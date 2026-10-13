@@ -1,14 +1,16 @@
-// Tous les corps célestes où la fusée peut se rendre : planètes, Lune et satellites naturels.
-// Chaque corps appartient au système d'une planète (la planète elle-même, ses satellites, et la Lune pour la Terre).
+// Tous les corps où la fusée peut se rendre : planètes, Lune, satellites naturels et Station spatiale internationale.
+// Chaque corps appartient au système d'une planète (la planète elle-même, ses satellites ; la Lune et l'ISS pour
+// la Terre).
 
 import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, type NomPlanete } from '../donnees/planetes'
+import { demiGrandAxeISS, periodeISS, positionISSGeocentrique } from './iss'
 import { positionLune } from './lune'
 import { positionPlanete } from './planetes'
 import { LISTE_SATELLITES, positionSatellite, satellite, type Satellite } from './satellites'
 import { UA_KM } from './temps'
-import type { Vecteur3 } from './vecteur'
+import { ajouter, multiplier, type Vecteur3 } from './vecteur'
 
-/** Nom d'un corps céleste : une planète, « Lune », ou le nom d'un satellite (par exemple « Titan »). */
+/** Nom d'un corps : une planète, « Lune », « ISS », ou le nom d'un satellite (par exemple « Titan »). */
 export type NomCorps = string
 
 const PLANETES_CONNUES = new Set<string>(NOMS_PLANETES)
@@ -18,12 +20,12 @@ export function estPlanete(nom: NomCorps): nom is NomPlanete {
 }
 
 export function corpsExiste(nom: NomCorps): boolean {
-  return estPlanete(nom) || nom === 'Lune' || satellite(nom) !== undefined
+  return estPlanete(nom) || nom === 'Lune' || nom === 'ISS' || satellite(nom) !== undefined
 }
 
-/** Tous les corps, dans l'ordre : planètes, Lune, puis satellites. */
+/** Tous les corps, dans l'ordre : planètes, Lune, ISS, puis satellites naturels. */
 export function tousLesCorps(): NomCorps[] {
-  return [...NOMS_PLANETES, 'Lune', ...LISTE_SATELLITES.map((s) => s.nom)]
+  return [...NOMS_PLANETES, 'Lune', 'ISS', ...LISTE_SATELLITES.map((s) => s.nom)]
 }
 
 function satelliteConnu(nom: NomCorps): Satellite {
@@ -35,7 +37,7 @@ function satelliteConnu(nom: NomCorps): Satellite {
 /** Planète dont le corps fait partie du système. */
 export function planeteDe(nom: NomCorps): NomPlanete {
   if (estPlanete(nom)) return nom
-  if (nom === 'Lune') return 'Terre'
+  if (nom === 'Lune' || nom === 'ISS') return 'Terre'
   return satelliteConnu(nom).planete
 }
 
@@ -43,6 +45,7 @@ export function planeteDe(nom: NomCorps): NomPlanete {
 export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
   if (estPlanete(nom)) return positionPlanete(nom, t)
   if (nom === 'Lune') return positionLune(t)
+  if (nom === 'ISS') return ajouter(positionPlanete('Terre', t), multiplier(positionISSGeocentrique(t), 1 / UA_KM))
   return positionSatellite(satelliteConnu(nom), t)
 }
 
@@ -50,6 +53,7 @@ export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
 export function demiGrandAxeAutourDeLaPlanete(nom: NomCorps): number | null {
   if (estPlanete(nom)) return null
   if (nom === 'Lune') return 384_400
+  if (nom === 'ISS') return demiGrandAxeISS()
   return satelliteConnu(nom).demiGrandAxe
 }
 
@@ -63,6 +67,7 @@ export function periodeOrbitale(nom: NomCorps): number {
     return 365.25 * a ** 1.5
   }
   if (nom === 'Lune') return 27.321661
+  if (nom === 'ISS') return periodeISS()
   return satelliteConnu(nom).periode
 }
 

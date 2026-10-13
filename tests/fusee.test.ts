@@ -62,19 +62,20 @@ describe('vitesse', () => {
 })
 
 describe('départ', () => {
-  it('une nouvelle partie commence en orbite autour de la Terre, cap vers Jupiter', () => {
+  it("une nouvelle partie commence en orbite autour de la Terre, à côté de l'ISS, cap vers Jupiter", () => {
     const etat = creerPartie(T0, mulberry32(1))
-    expect(etat.fusee.orbite).toBe('Terre')
+    expect(etat.fusee.orbite).toBe('ISS')
+    expect(systemeDeLaFusee(etat.fusee, T0)).toBe('Terre')
     expect(etat.fusee.destination).toBeNull()
-    expect(etat.fusee.position).toEqual(positionAstre('Terre', T0))
-    expect(etat.fusee.cap).toBeCloseTo(direction(positionAstre('Terre', T0), positionAstre('Jupiter', T0)), 10)
+    expect(etat.fusee.position).toEqual(positionAstre('ISS', T0))
+    expect(etat.fusee.cap).toBeCloseTo(direction(positionAstre('ISS', T0), positionAstre('Jupiter', T0)), 10)
   })
 
-  it('en orbite sans destination, la fusée suit la Terre et le compteur ne tourne pas', () => {
+  it("en orbite sans destination, la fusée suit l'ISS et le compteur ne tourne pas", () => {
     const f = creerFusee(T0)
     const un_jour = T0 + 86_400_000
     const r = avancerFusee(f, un_jour, 86_400, 17.4)
-    expect(r.fusee.position).toEqual(positionAstre('Terre', un_jour))
+    expect(r.fusee.position).toEqual(positionAstre('ISS', un_jour))
     expect(r.fusee.distanceParcourue).toBe(0)
     expect(r.arrivee).toBeNull()
   })

@@ -5,17 +5,18 @@ import { LISTE_SATELLITES } from '../src/astro/satellites'
 import { NOMS_PLANETES } from '../src/donnees/planetes'
 
 describe('corps célestes', () => {
-  it('chaque nom désigne un seul corps : planètes, Lune et satellites', () => {
+  it('chaque nom désigne un seul corps : planètes, Lune, ISS et satellites', () => {
     const noms = tousLesCorps()
     expect(new Set(noms).size).toBe(noms.length)
-    expect(noms.length).toBe(8 + 1 + LISTE_SATELLITES.length)
-    for (const nom of ['Mars', 'Lune', 'Titan', 'Phobos', 'Néréide']) expect(corpsExiste(nom), nom).toBe(true)
+    expect(noms.length).toBe(8 + 2 + LISTE_SATELLITES.length)
+    for (const nom of ['Mars', 'Lune', 'ISS', 'Titan', 'Phobos', 'Néréide']) expect(corpsExiste(nom), nom).toBe(true)
     expect(corpsExiste('Pluton')).toBe(false)
   })
 
   it('chaque corps appartient au système de sa planète', () => {
     expect(planeteDe('Mars')).toBe('Mars')
     expect(planeteDe('Lune')).toBe('Terre')
+    expect(planeteDe('ISS')).toBe('Terre')
     expect(planeteDe('Titan')).toBe('Saturne')
     expect(planeteDe('Triton')).toBe('Neptune')
     expect(() => planeteDe('Pluton')).toThrow()

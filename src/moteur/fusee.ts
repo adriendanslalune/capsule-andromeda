@@ -210,15 +210,18 @@ export function tempsRestant(fusee: EtatFusee, t: number, vitesseKmS: number): n
 // ---------------------------------------------------------------------------------------------------------------
 // Création et commandes
 
-/** Fusée neuve : en orbite autour de la Terre, le nez tourné vers Jupiter. */
+/**
+ * Fusée neuve : en orbite autour de la Terre à 400 km d'altitude, à côté de l'ISS (elle la suit), le nez tourné
+ * vers Jupiter.
+ */
 export function creerFusee(t: number): EtatFusee {
-  const terre = positionAstre('Terre', t)
+  const depart = positionAstre('ISS', t)
   return {
-    position: terre,
-    cap: direction(terre, positionAstre('Jupiter', t)),
+    position: depart,
+    cap: direction(depart, positionAstre('Jupiter', t)),
     virage: 0,
     destination: null,
-    orbite: 'Terre',
+    orbite: 'ISS',
     distanceParcourue: 0,
   }
 }

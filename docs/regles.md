@@ -44,9 +44,13 @@ UA = unité astronomique = 149 597 870,7 km.
 - **Sans destination**, la fusée ne bouge pas (vitesse affichée 0) et le compteur de route ne tourne pas.
 - **Destination** : une planète, la Lune, **n'importe quel satellite** (validé par Adrien le 13/10/2026) ou un point
   libre. Pendant un contrat, changer de destination est refusé.
-- **ISS** (à faire) : position réelle d'après l'orbite publiée, téléchargée quand le jeu est connecté ; si le
-  téléchargement échoue, une simulation prend le relais et l'interface le signale. Modèle 3D visible à quelques
-  dizaines de mètres de la fusée au départ.
+- **ISS** : corps du système de la Terre (destination possible ; distance d'arrivée ≈ 1 700 km, le quart de son
+  orbite). Position réelle par la méthode SGP4 à partir de son orbite publiée (TLE, CelesTrak), à télécharger quand
+  le jeu est connecté. Une orbite de secours est enregistrée dans le jeu ; si l'orbite a plus de 3 jours, la position
+  est une **simulation** et l'interface doit le signaler. La fusée neuve est en orbite à côté de l'ISS et la suit ;
+  le modèle 3D de l'ISS sera visible à quelques dizaines de mètres (phase 2).
+  *Validé par Adrien le 13/10/2026. À prévoir : CelesTrak n'autorise pas le téléchargement direct depuis une page
+  web ; passer par le serveur du jeu (phase 4) ou une autre source. L'ISS doit être retirée du service vers 2030.*
 
 ## 2. Vitesse et économie
 
