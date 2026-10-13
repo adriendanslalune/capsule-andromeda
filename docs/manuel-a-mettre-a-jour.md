@@ -25,6 +25,10 @@ manuel (scripts `manuel/sources/`, qui demandent Python et reportlab). Cocher ch
 - La phrase du manuel est conservée telle quelle : « Une purge (P) pendant une surchauffe provoque un emballement de
   tuyère. » (presser P tant que V-1 est allumé, même sans avarie de pression). *Décision d'Adrien du 13/10/2026.*
 
+### RE-1 : marge de purge
+- [ ] Procédure RE-1 : « Attendre que le CO2 soit **bien** sous 40 (vers 35), puis refermer V-C. » Refermée à 39,9,
+      le CO2 repasse 40 pendant qu’on pompe et la réparation échoue. *Validé par Adrien le 13/10/2026.*
+
 ### DV-1 supprimé
 - [ ] Planche CH-1 / TU-1 (`manuel.py`) : retirer le témoin **V-3** (repère 5, « Témoin de régime ») de la
       planche et de la légende.
