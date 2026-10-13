@@ -10,9 +10,16 @@ UA = unité astronomique = 149 597 870,7 km.
 - **Planètes** : éléments orbitaux J2000 et leurs dérivées séculaires (Standish, NASA/JPL), résolution de Kepler
   (6 itérations de Newton). Coordonnées écliptiques héliocentriques, en 2D (x, y en UA). Les 8 jeux d'éléments sont
   dans le prototype (tableau `EL`).
-- **Lune** : orbite circulaire autour de la Terre, rayon 0,00257 UA, période 27,321661 j, phase 2,1 rad à J2000.
-- **Satellites naturels** (vue 3D seulement) : Phobos, Deimos, Io, Europe, Ganymède, Callisto, Titan, Triton,
-  orbites circulaires avec rayon et période réels (tableau `LUNES` du prototype).
+- **Lune** : position réelle (théorie lunaire de Meeus, termes principaux ; précision ≈ 0,01°, distance variant
+  de 356 000 à 407 000 km). *Changement validé par Adrien le 13/10/2026 : le prototype utilisait un cercle de
+  0,00257 UA, de période 27,321661 j et de phase arbitraire 2,1 rad à J2000.*
+- **Satellites naturels** (vue 3D seulement) : **tous** les satellites connus des planètes (plus de 450, liste JPL),
+  en position réelle. Orbites ajustées sur les positions de précision de JPL Horizons pour 2026–2030
+  (outil `outils/satellites-jpl.mjs`, à relancer avant 2031) ; précision ≈ 1° vu de la planète.
+  *Changement validé par Adrien le 13/10/2026 : le prototype n'avait que 9 satellites, en orbites circulaires
+  de phase arbitraire.*
+- **Coordonnées** : le moteur calcule aussi la hauteur z au-dessus de l'écliptique (vue 3D) ; la carte et la
+  navigation n'utilisent que x et y, comme le prototype.
 - **Départ** : nouvelle partie en orbite autour de la Terre.
 - **Cap** : angle en degrés, 0° vers +x (point vernal), sens trigonométrique.
 - **Virage** : la fusée tourne vers sa destination à **4° par seconde**.
