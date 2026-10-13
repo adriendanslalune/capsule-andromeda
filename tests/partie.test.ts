@@ -40,7 +40,7 @@ describe('partie : modules et vitesse', () => {
     e = { ...e, modules: { ...e.modules, propulsion: { ...e.modules.propulsion, molette: 9 } } } // pression vers 98
     const evenements = []
     for (let s = 1; s <= 20; s++) {
-      const r = avancerPartie(e, T0 + s * 1000, 1)
+      const r = avancerPartie(e, T0 + s * 1000, 1, mulberry32(s))
       e = r.etat
       evenements.push(...r.evenements)
     }
@@ -60,8 +60,8 @@ describe('partie : recycleur d’air', () => {
     let sans = neuve()
     let avec: EtatPartie = { ...neuve(), modulesInstalles: ['CO-1', 'PB-1', 'LP-1', 'HY-1', 'RE-1'] }
     for (let s = 1; s <= 900; s++) {
-      sans = avancerPartie(sans, T0 + s * 1000, 1).etat
-      avec = avancerPartie(avec, T0 + s * 1000, 1).etat
+      sans = avancerPartie(sans, T0 + s * 1000, 1, mulberry32(s)).etat
+      avec = avancerPartie(avec, T0 + s * 1000, 1, mulberry32(s)).etat
     }
     expect(sans.modules.re1.o2).toBe(80)
     expect(avec.modules.re1.o2).toBeCloseTo(70, 6)

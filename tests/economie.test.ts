@@ -37,7 +37,7 @@ const lointains = (e: EtatPartie, t = T0) => contratsProposes(e, t).filter((c) =
 function voyager(etat: EtatPartie, maxSecondes: number) {
   let e = etat
   for (let s = 60; s <= maxSecondes; s += 60) {
-    const r = avancerPartie(e, T0 + s * 1000, 60)
+    const r = avancerPartie(e, T0 + s * 1000, 60, mulberry32(s))
     e = r.etat
     if (r.arrivee) return { etat: e, t: T0 + s * 1000 }
   }

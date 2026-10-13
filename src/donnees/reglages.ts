@@ -17,3 +17,16 @@ export const TAUX_VIRAGE = 4
 export const SEUIL_ARRIVEE = 0.002
 /** Distance d'arrivée (UA) : Lune. */
 export const SEUIL_ARRIVEE_LUNE = 0.0002
+
+/** Pannes. */
+export const PANNES = {
+  /** Première panne : 18 s après le début ; pendant le tutoriel, la suivante 18 s après la réparation. */
+  delaiTutoriel: 18,
+  /** Ensuite : une nouvelle avarie entre 120 et 300 s après que tout est réparé. */
+  delaiMin: 120,
+  delaiMax: 300,
+  /** Taille maximale d'une cascade selon les améliorations : < 8 → 1 ; < 20 → 2 ; < 35 → 3 ; sinon 4. */
+  paliersCascade: [8, 20, 35] as readonly number[],
+  /** Prime de cascade = somme des primes × (1 + 0,5 × (n − 1)). */
+  majorationParModule: 0.5,
+} as const
