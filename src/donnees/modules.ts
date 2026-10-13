@@ -61,3 +61,37 @@ export const BRASSAGE_DEPART: Readonly<Record<CouleurCable, readonly [number, nu
 export const BRASSAGE_CIBLE: Readonly<Record<CouleurCable, readonly [readonly [number, number], readonly [number, number]]>> = {
   rouge: [[1, 4], [2, 5]], bleu: [[3, 1], [5, 2]], jaune: [[4, 3], [1, 2]],
 }
+
+/** LP-1 Lampes à vide. */
+export const LAMPES = {
+  nombre: 6,
+  /** Lampes défectueuses par avarie : 1 + aléa × min(3, 1 + améliorations ÷ 10) (partie entière). */
+  maximumParAvarie: 3,
+  ameliorationsParLampe: 10,
+} as const
+export const ETATS_LAMPE_DEFECTUEUSE = ['eteinte', 'bleue', 'verte'] as const
+
+/** HY-1 Circuit hydraulique : grille de 4 colonnes × 3 rangées ; seuils du manomètre H pour R-1, R-2, R-3. */
+export const HYDRAULIQUE = { colonnes: 4, rangees: 3, rangeeSource: 1, seuilR1: 35, seuilR3: 70 } as const
+
+/** RE-1 Recycleur d'air. */
+export const RECYCLEUR = {
+  o2Depart: 80,
+  co2Depart: 20,
+  /** Usure : O2 −1 toutes les 90 s, CO2 +1 toutes les 100 s. */
+  secondesParPointO2: 90,
+  secondesParPointCO2: 100,
+  /** Vanne de purge V-C ouverte : CO2 −4 par seconde, O2 −0,5 par seconde. */
+  purgeCO2: 4,
+  purgeO2: 0.5,
+  /** Avarie si O2 < 25 ou CO2 > 75. */
+  o2Minimum: 25,
+  co2Maximum: 75,
+  /** Réparé quand CO2 < 40, 60 ≤ O2 ≤ 90 et V-C fermée. */
+  co2Repare: 40,
+  o2ZoneVerteMin: 60,
+  o2ZoneVerteMax: 90,
+  /** POMPE : O2 +10 ; au-delà de 90, la soupape lâche et O2 retombe à 70. */
+  pompe: 10,
+  o2ApresSoupape: 70,
+} as const

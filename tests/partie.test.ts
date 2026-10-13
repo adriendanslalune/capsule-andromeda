@@ -54,3 +54,16 @@ describe('partie : modules et vitesse', () => {
     expect(JSON.parse(JSON.stringify(e))).toEqual(e)
   })
 })
+
+describe('partie : recycleur d’air', () => {
+  it('RE-1 ne s’use que s’il est installé', () => {
+    let sans = neuve()
+    let avec: EtatPartie = { ...neuve(), modulesInstalles: ['CO-1', 'PB-1', 'LP-1', 'HY-1', 'RE-1'] }
+    for (let s = 1; s <= 900; s++) {
+      sans = avancerPartie(sans, T0 + s * 1000, 1).etat
+      avec = avancerPartie(avec, T0 + s * 1000, 1).etat
+    }
+    expect(sans.modules.re1.o2).toBe(80)
+    expect(avec.modules.re1.o2).toBeCloseTo(70, 6)
+  })
+})

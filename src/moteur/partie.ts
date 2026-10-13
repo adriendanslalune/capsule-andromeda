@@ -2,7 +2,7 @@
 // Pour l'instant : les modules (aiguilles), la fusée, les arrivées, les contrats, les trophées.
 // La gestion des pannes (déclenchement, cascades, primes) s'ajoutera ici.
 
-import { traiterArrivee, verifierTrophees } from './economie'
+import { estInstalle, traiterArrivee, verifierTrophees } from './economie'
 import type { EtatPartie } from './etat'
 import { avancerFusee, vitesse, type Destination } from './fusee'
 import type { Evenement } from './modules/commun'
@@ -27,7 +27,7 @@ export interface ResultatPasPartie {
 
 /** Fait avancer la partie de dt secondes, jusqu'à l'instant t (ms UTC). */
 export function avancerPartie(etat: EtatPartie, t: number, dt: number): ResultatPasPartie {
-  const m = evoluerModules(etat.modules, t, dt)
+  const m = evoluerModules(etat.modules, t, dt, (code) => estInstalle(etat, code))
   const avecModules: EtatPartie = { ...etat, modules: m.modules }
   const r = avancerFusee(etat.fusee, t, dt, vitesseActuelle(avecModules))
   let e: EtatPartie = { ...avecModules, fusee: r.fusee, vu: t }
