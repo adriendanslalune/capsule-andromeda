@@ -3,17 +3,21 @@
 
 import type { Hasard } from '../hasard'
 import { al1EnPanne, creerAL1, type EtatAL1 } from './al1'
+import { co1EnPanne, creerCO1, type EtatCO1 } from './co1'
 import type { Evenement } from './commun'
+import { creerPB1, pb1EnPanne, type EtatPB1 } from './pb1'
 import { ch1EnPanne, creerPropulsion, evoluerPropulsion, tu1EnPanne, type EtatPropulsion } from './propulsion'
 
 export interface EtatModules {
   /** CH-1 et TU-1. */
   propulsion: EtatPropulsion
   al1: EtatAL1
+  co1: EtatCO1
+  pb1: EtatPB1
 }
 
 export function creerModules(hasard: Hasard): EtatModules {
-  return { propulsion: creerPropulsion(), al1: creerAL1(hasard) }
+  return { propulsion: creerPropulsion(), al1: creerAL1(hasard), co1: creerCO1(), pb1: creerPB1() }
 }
 
 /** Codes des modules en avarie, dans l'ordre du tableau de voyants. */
@@ -22,6 +26,8 @@ export function modulesEnPanne(m: EtatModules): string[] {
   if (ch1EnPanne(m.propulsion)) liste.push('CH-1')
   if (tu1EnPanne(m.propulsion)) liste.push('TU-1')
   if (al1EnPanne(m.al1)) liste.push('AL-1')
+  if (co1EnPanne(m.co1)) liste.push('CO-1')
+  if (pb1EnPanne(m.pb1)) liste.push('PB-1')
   return liste
 }
 
