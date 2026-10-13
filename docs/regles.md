@@ -161,6 +161,8 @@ UA = unité astronomique = 149 597 870,7 km.
 - Cible (pair / impair selon le dernier chiffre) : rouge A1→B4 / A2→B5 ; bleu A3→B1 / A5→B2 ; jaune A4→B3 / A1→B2.
 - Prise occupée → prise suivante libre de la même rangée (après 5 : 1).
 - Débrancher en touchant une fiche, rebrancher en touchant A puis B.
+- À l'avarie, le câble défectueux n'est jamais laissé sur son branchement du tableau (sa fiche A est déplacée sur
+  la première prise A libre). *Correction du 13/10/2026 d'un oubli du prototype.*
 
 ### LP-1 Lampes à vide
 - 6 lampes ; panne : 1 + aléa × min(3, 1 + améliorations ÷ 10) lampes éteintes, bleues ou vertes.
@@ -170,7 +172,9 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ### HY-1 Circuit hydraulique
 - Grille 4 × 3 de tuyaux pivotants (droit ou coude), source à gauche de la rangée du milieu, réservoirs R-1 à R-3 à droite.
-- Génération : un chemin garanti vers le réservoir cible, tuiles mélangées.
+- Génération : grille au hasard, gardée seulement si la source peut être reliée à **chacun** des trois réservoirs
+  (la panne reste réparable même si S-2 change) et si elle n'est pas déjà réparée. *Correction du 13/10/2026 : le
+  prototype ne garantissait un chemin que vers un réservoir tiré au hasard, sans rapport avec le manomètre.*
 - Réservoir : manomètre H < 35 → R-1 ; 35–70 → R-2 ; > 70 → R-3 ; S-2 bas → réservoir suivant (R-3 → R-1).
 - VANNE : réparé si l'eau atteint ce réservoir et lui seul.
 
