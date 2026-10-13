@@ -36,6 +36,16 @@ UA = unité astronomique = 149 597 870,7 km.
   (Terre → Mars à 17,4 km/s : 258 jours au départ du 13/10/2026, 65 jours au départ du 13/05/2027).
   *Règle validée par Adrien le 13/10/2026. Le prototype visait la position actuelle de la cible, la vitesse étant
   comptée par rapport au Soleil : une fusée neuve ne pouvait rattraper ni la Lune, ni Vénus, ni Mars.*
+  Le point de rencontre est recalculé à chaque pas avec la vitesse du moment : une amélioration ou une avarie change
+  aussitôt la trajectoire.
+- **Fenêtre de tir** : en orbite, la fusée est emportée par son astre ; partir plus tard peut donc faire arriver plus
+  tôt. Quand le joueur choisit une destination depuis une orbite, la machine propose **deux départs** :
+  maintenant, ou à la fenêtre de tir (le départ qui fait arriver le plus tôt, cherché entre maintenant et la durée
+  du vol direct). La fenêtre n'est proposée que si elle fait gagner au moins 1 heure et 1 % du voyage.
+  **Le joueur choisit.** En attente de fenêtre, la fusée reste en orbite (vitesse affichée 0, compteur arrêté) ;
+  si la vitesse change pendant l'attente, la fenêtre est recalculée (elle peut disparaître : départ immédiat).
+  Exemple, à 17,4 km/s, le 13/10/2026 : Mars maintenant → arrivée le 28/06/2027 ; fenêtre le 21/03/2027 →
+  arrivée le 31/05/2027. *Validé par Adrien le 13/10/2026.*
 - **Arrivée** : quand la distance à la cible ≤ max(pas, distance d'arrivée) :
   - planète ou point libre : 0,002 UA ;
   - Lune et satellites : 0,0002 UA (≈ 30 000 km), sans dépasser le quart de la distance entre le satellite et sa

@@ -32,7 +32,9 @@ Puis « Prendre les commandes », et une première panne guidée.
 
 ## 4. Volets (montent du bas)
 - **Carte** : zoom libre, positions réelles, grille et échelle, cadran de cap autour de la fusée (avec la cible, le
-  point de rencontre visé et la trajectoire de rencontre), choix de destination (planète, Lune, satellite, point libre),
+  point de rencontre visé et la trajectoire de rencontre), choix de destination (planète, Lune, satellite, ISS,
+  point libre) ; depuis une orbite, deux boutons : « Partir maintenant — arrivée le … » et, s'il y en a une,
+  « Attendre la fenêtre de tir — départ le …, arrivée le … » ; en attente, afficher le compte à rebours du départ,
   ping, tracés de chasse (cercle autour du dernier ping, droite depuis la dernière visée).
 - **Office** : caisse et prochaine amélioration ; onglets Contrats, Atelier (améliorations, modules, instruments), Trophées.
 - **Manuel** : lecteur page par page.

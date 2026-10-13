@@ -5,7 +5,10 @@
 // - Le mouvement est compté dans un repère : celui de la planète quand la fusée et sa destination sont dans le
 //   même système (Terre → Lune, Io → Europe…), celui du Soleil sinon (Terre → Mars…).
 // - Dans ce repère, la fusée vole en ligne droite, à sa vitesse, vers le point de rencontre : l'endroit où sera
-//   la cible au moment où la fusée l'atteindra. Ce point est recalculé à chaque pas.
+//   la cible au moment où la fusée l'atteindra. Ce point est recalculé à chaque pas (donc aussi quand la vitesse
+//   change : amélioration, avarie…).
+// - Depuis une orbite, la machine propose deux départs : maintenant, ou à la fenêtre de tir (le moment de départ
+//   qui fait arriver le plus tôt, la fusée attendant en orbite). Le joueur choisit.
 
 import { demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe, positionCorps,
   rayonInfluence, type NomCorps } from '../astro/corps'
@@ -39,8 +42,17 @@ export interface EtatFusee {
   destination: Destination | null
   /** Corps autour duquel la fusée est en orbite, ou null (en route ou à l'arrêt). */
   orbite: NomCorps | null
-  /** Compteur de route (km) : il ne tourne que lorsqu'une destination est choisie. */
+  /** Compteur de route (km) : il ne tourne que lorsque la fusée vole vers une destination. */
   distanceParcourue: number
+  /** Fenêtre de tir choisie : la fusée attend en orbite jusqu'au départ prévu ; null = départ immédiat. */
+  fenetre: FenetreDeTir | null
+}
+
+export interface FenetreDeTir {
+  /** Instant du départ prévu (ms UTC). */
+  depart: number
+  /** Vitesse (km/s) pour laquelle la fenêtre a été calculée ; si la vitesse change, on la recalcule. */
+  vitesse: number
 }
 
 /** Ce qui influence la vitesse (état des modules et de l'économie). */
@@ -58,9 +70,14 @@ export function vitesse(f: FacteursVitesse): number {
   return v
 }
 
-/** Vitesse affichée (km/s) : nulle quand la fusée n'a pas de destination. */
+/** Vitesse affichée (km/s) : nulle quand la fusée n'a pas de destination ou attend sa fenêtre de tir. */
 export function vitesseAffichee(fusee: EtatFusee, f: FacteursVitesse): number {
-  return fusee.destination ? vitesse(f) : 0
+  return fusee.destination && !enAttenteDeFenetre(fusee) ? vitesse(f) : 0
+}
+
+/** Vrai si la fusée attend en orbite sa fenêtre de tir. */
+export function enAttenteDeFenetre(fusee: EtatFusee): boolean {
+  return fusee.destination !== null && fusee.fenetre !== null
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -187,11 +204,98 @@ export function calculerRencontre(position: Point2, dest: Destination, repere: N
   return { repere, duree: b, point: { x: p.x + c0.x, y: p.y + c0.y } }
 }
 
-/** Plan de vol actuel : la rencontre prévue avec la destination, ou null sans destination. */
-export function planDeVol(fusee: EtatFusee, t: number, vitesseKmS: number): Rencontre | null {
+/** Rencontre si la fusée, en orbite, quitte son astre à l'instant td. */
+function rencontreDepuisOrbite(fusee: EtatFusee, dest: Destination, td: number, vitesseKmS: number): Rencontre | null {
+  const auDepart: EtatFusee = { ...fusee, position: positionAstre(fusee.orbite!, td) }
+  return calculerRencontre(auDepart.position, dest, repereDuTrajet(auDepart, dest, td), td, vitesseKmS)
+}
+
+export interface PlanDeVol extends Rencontre {
+  /** Instant du départ (ms UTC) : maintenant, ou la fenêtre de tir. */
+  depart: number
+  /** Instant prévu de la rencontre (ms UTC). */
+  arrivee: number
+  /** Vrai si la fusée attend encore en orbite. Le point visé est alors exprimé à l'instant du départ. */
+  enAttente: boolean
+}
+
+/** Plan de vol actuel : départ, rencontre prévue et point visé ; null sans destination. */
+export function planDeVol(fusee: EtatFusee, t: number, vitesseKmS: number): PlanDeVol | null {
   const dest = fusee.destination
   if (!dest) return null
-  return calculerRencontre(fusee.position, dest, repereDuTrajet(fusee, dest, t), t, vitesseKmS)
+  if (enAttenteDeFenetre(fusee) && fusee.orbite) {
+    const td = Math.max(t, fusee.fenetre!.depart)
+    const r = rencontreDepuisOrbite(fusee, dest, td, vitesseKmS)
+    return r ? { ...r, depart: td, arrivee: td + r.duree * 1000, enAttente: true } : null
+  }
+  const r = calculerRencontre(fusee.position, dest, repereDuTrajet(fusee, dest, t), t, vitesseKmS)
+  return r ? { ...r, depart: t, arrivee: t + r.duree * 1000, enAttente: false } : null
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Fenêtre de tir
+
+export interface OptionDepart {
+  /** Instant du départ (ms UTC). */
+  depart: number
+  /** Instant prévu de l'arrivée (ms UTC). */
+  arrivee: number
+}
+
+/** Une fenêtre de tir n'est proposée que si elle fait arriver au moins 1 heure et 1 % plus tôt. */
+const GAIN_MIN_SECONDES = 3600
+const GAIN_MIN_PROPORTION = 0.01
+/** Nombre de départs essayés pour trouver la fenêtre de tir, avant affinage. */
+const ESSAIS_FENETRE = 120
+
+/**
+ * Meilleur moment pour quitter l'orbite : celui qui fait arriver le plus tôt, la fusée attendant en orbite
+ * d'ici là. Renvoie null si la fusée n'est pas en orbite, ou si partir maintenant est presque aussi rapide.
+ */
+export function fenetreDeTir(fusee: EtatFusee, dest: Destination, t: number, vitesseKmS: number): OptionDepart | null {
+  if (!fusee.orbite || vitesseKmS <= 0) return null
+  const arriveeSi = (delai: number): number => {
+    const r = rencontreDepuisOrbite(fusee, dest, t + delai * 1000, vitesseKmS)
+    return r ? delai + r.duree : Infinity
+  }
+  const immediate = arriveeSi(0)
+  if (!Number.isFinite(immediate)) return null
+  // Attendre plus longtemps que la durée du vol direct ne peut pas faire arriver plus tôt.
+  const pas = immediate / ESSAIS_FENETRE
+  let meilleur = 0
+  let meilleureArrivee = immediate
+  for (let k = 1; k < ESSAIS_FENETRE; k++) {
+    const a = arriveeSi(k * pas)
+    if (a < meilleureArrivee) { meilleur = k * pas; meilleureArrivee = a }
+  }
+  // Affinage autour du meilleur essai (section dorée).
+  let g = Math.max(0, meilleur - pas)
+  let d = meilleur + pas
+  const nombreDor = (Math.sqrt(5) - 1) / 2
+  for (let n = 0; n < 40; n++) {
+    const m1 = d - nombreDor * (d - g)
+    const m2 = g + nombreDor * (d - g)
+    if (arriveeSi(m1) < arriveeSi(m2)) d = m2
+    else g = m1
+  }
+  const affine = (g + d) / 2
+  const arriveeAffinee = arriveeSi(affine)
+  if (arriveeAffinee < meilleureArrivee) { meilleur = affine; meilleureArrivee = arriveeAffinee }
+  const gain = immediate - meilleureArrivee
+  if (gain < GAIN_MIN_SECONDES || gain < GAIN_MIN_PROPORTION * immediate) return null
+  return { depart: t + meilleur * 1000, arrivee: t + meilleureArrivee * 1000 }
+}
+
+/** Les deux départs proposés au joueur : maintenant, et la fenêtre de tir s'il y en a une meilleure. */
+export function optionsDeDepart(fusee: EtatFusee, dest: Destination, t: number, vitesseKmS: number):
+  { maintenant: OptionDepart | null; fenetre: OptionDepart | null } {
+  const r = fusee.orbite
+    ? rencontreDepuisOrbite(fusee, dest, t, vitesseKmS)
+    : calculerRencontre(fusee.position, dest, repereDuTrajet(fusee, dest, t), t, vitesseKmS)
+  return {
+    maintenant: r ? { depart: t, arrivee: t + r.duree * 1000 } : null,
+    fenetre: fenetreDeTir(fusee, dest, t, vitesseKmS),
+  }
 }
 
 /** Distance actuelle jusqu'à la destination (UA), ou null sans destination. */
@@ -199,12 +303,15 @@ export function distanceRestante(fusee: EtatFusee, t: number): number | null {
   return fusee.destination ? distance(fusee.position, positionDestination(fusee.destination, t)) : null
 }
 
-/** Temps restant avant l'arrivée (s), selon la trajectoire de rencontre ; null sans destination ou à vitesse nulle. */
+/**
+ * Temps restant avant l'arrivée (s), attente de la fenêtre de tir comprise ; null sans destination ou à vitesse
+ * nulle.
+ */
 export function tempsRestant(fusee: EtatFusee, t: number, vitesseKmS: number): number | null {
   if (!fusee.destination || vitesseKmS <= 0) return null
   const r = planDeVol(fusee, t, vitesseKmS)
   if (!r) return null
-  return Math.max(0, r.duree - (seuilArrivee(fusee.destination) * UA_KM) / vitesseKmS)
+  return Math.max(0, (r.arrivee - t) / 1000 - (seuilArrivee(fusee.destination) * UA_KM) / vitesseKmS)
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -223,16 +330,28 @@ export function creerFusee(t: number): EtatFusee {
     destination: null,
     orbite: 'ISS',
     distanceParcourue: 0,
+    fenetre: null,
   }
 }
 
+/** Choisit une destination, avec départ immédiat. */
 export function choisirDestination(fusee: EtatFusee, destination: Destination): EtatFusee {
-  return { ...fusee, destination }
+  return { ...fusee, destination, fenetre: null }
+}
+
+/**
+ * Choisit une destination, avec départ à la fenêtre de tir : la fusée attend en orbite le meilleur moment.
+ * S'il n'y a pas de meilleure fenêtre, le départ est immédiat.
+ */
+export function choisirDestinationAvecFenetre(fusee: EtatFusee, destination: Destination, t: number,
+  vitesseKmS: number): EtatFusee {
+  const f = fenetreDeTir(fusee, destination, t, vitesseKmS)
+  return { ...fusee, destination, fenetre: f ? { depart: f.depart, vitesse: vitesseKmS } : null }
 }
 
 /** Annule la destination : moteur coupé, la fusée s'arrête (ou reste en orbite si elle n'était pas partie). */
 export function annulerDestination(fusee: EtatFusee): EtatFusee {
-  return { ...fusee, destination: null }
+  return { ...fusee, destination: null, fenetre: null }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -247,7 +366,7 @@ export interface ResultatPas {
 /**
  * Fait avancer la fusée pendant dt secondes, jusqu'à l'instant t (ms UTC) : la fusée est entraînée par son
  * repère (la planète du système, ou rien pour le Soleil), tourne vers le point de rencontre (4°/s au plus),
- * puis avance tout droit selon son cap.
+ * puis avance tout droit selon son cap. Si elle attend sa fenêtre de tir, elle reste en orbite.
  */
 export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
   const dest = fusee.destination
@@ -255,6 +374,19 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
     // À l'arrêt ou en orbite : en orbite, la fusée suit son astre.
     const position = fusee.orbite ? positionAstre(fusee.orbite, t) : fusee.position
     return { fusee: { ...fusee, position, virage: 0 }, arrivee: null }
+  }
+
+  if (fusee.fenetre && fusee.orbite) {
+    let fenetre: FenetreDeTir | null = fusee.fenetre
+    if (fenetre.vitesse !== vitesseKmS) {
+      // La vitesse a changé (amélioration, avarie…) : la fenêtre de tir est recalculée.
+      const f = fenetreDeTir(fusee, dest, t, vitesseKmS)
+      fenetre = f ? { depart: f.depart, vitesse: vitesseKmS } : null
+    }
+    if (fenetre && t < fenetre.depart) {
+      return { fusee: { ...fusee, fenetre, position: positionAstre(fusee.orbite, t), virage: 0 }, arrivee: null }
+    }
+    fusee = { ...fusee, fenetre: null }
   }
 
   const repere = repereDuTrajet(fusee, dest, t - dt * 1000)
@@ -275,8 +407,14 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
   const virage = dt > 0 ? rotation / dt : 0
   if (arrive) {
     const orbite = dest.type === 'astre' ? dest.astre : null
-    return { fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue }, arrivee: dest }
+    return {
+      fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null },
+      arrivee: dest,
+    }
   }
   const position = { x: entrainee.x + Math.cos(cap * RAD) * pas, y: entrainee.y + Math.sin(cap * RAD) * pas }
-  return { fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue }, arrivee: null }
+  return {
+    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null },
+    arrivee: null,
+  }
 }

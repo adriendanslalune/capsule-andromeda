@@ -4,11 +4,14 @@ import {
   annulerDestination,
   avancerFusee,
   choisirDestination,
+  choisirDestinationAvecFenetre,
   creerFusee,
   direction,
   distance,
   distanceRestante,
   ecartAngle,
+  enAttenteDeFenetre,
+  optionsDeDepart,
   planDeVol,
   positionAstre,
   repereDuTrajet,
@@ -287,6 +290,90 @@ describe('satellites comme destinations', () => {
       arrivee = r.arrivee !== null
     }
     expect(f.orbite).toBe('Europe')
+  })
+})
+
+describe('fenêtre de tir', () => {
+  const MARS: Destination = { type: 'astre', astre: 'Mars' }
+  const jour = (t: number) => new Date(t).toISOString().slice(0, 10)
+
+  it('vers Mars le 13/10/2026 : partir maintenant arrive le 28/06/2027, la fenêtre (21/03/2027) le 31/05/2027', () => {
+    const o = optionsDeDepart(creerFusee(T0), MARS, T0, 17.4)
+    expect(jour(o.maintenant!.arrivee)).toBe('2027-06-28')
+    expect(jour(o.fenetre!.depart)).toBe('2027-03-21')
+    expect(jour(o.fenetre!.arrivee)).toBe('2027-05-31')
+  })
+
+  it('partir plus tard, à n’importe quelle date, ne fait jamais arriver avant la fenêtre de tir', () => {
+    const fenetre = optionsDeDepart(creerFusee(T0), MARS, T0, 17.4).fenetre!
+    for (let j = 0; j <= 260; j += 5) {
+      const t = T0 + j * 86_400_000
+      const arrivee = optionsDeDepart(creerFusee(t), MARS, t, 17.4).maintenant!.arrivee
+      expect(arrivee, `départ le ${jour(t)}`).toBeGreaterThanOrEqual(fenetre.arrivee - 3_600_000)
+    }
+  })
+
+  it('pas de fenêtre proposée quand partir maintenant est le plus rapide (Lune, Vénus)', () => {
+    expect(optionsDeDepart(creerFusee(T0), { type: 'astre', astre: 'Lune' }, T0, 17.4).fenetre).toBeNull()
+    expect(optionsDeDepart(creerFusee(T0), { type: 'astre', astre: 'Vénus' }, T0, 17.4).fenetre).toBeNull()
+  })
+
+  it('pas de fenêtre en plein vol : on ne peut pas attendre sans orbite', () => {
+    const libre: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 1.2, y: 0.3 } }
+    expect(optionsDeDepart(libre, MARS, T0, 17.4).fenetre).toBeNull()
+  })
+
+  it('en attente : la fusée reste en orbite, le compteur ne tourne pas, la vitesse affichée est nulle', () => {
+    let f = choisirDestinationAvecFenetre(creerFusee(T0), MARS, T0, 17.4)
+    expect(enAttenteDeFenetre(f)).toBe(true)
+    const unMois = T0 + 30 * 86_400_000
+    f = avancerFusee(f, unMois, 30 * 86_400, 17.4).fusee
+    expect(f.position).toEqual(positionAstre('ISS', unMois))
+    expect(f.distanceParcourue).toBe(0)
+    expect(vitesseAffichee(f, NORMAL)).toBe(0)
+    // Le temps restant compte l'attente et le vol.
+    expect(jour(unMois + tempsRestant(f, unMois, 17.4)! * 1000)).toBe('2027-05-31')
+    expect(planDeVol(f, unMois, 17.4)!.enAttente).toBe(true)
+  })
+
+  it('le voyage simulé avec la fenêtre arrive à la date annoncée', () => {
+    let f = choisirDestinationAvecFenetre(creerFusee(T0), MARS, T0, 17.4)
+    let arrivee = 0
+    for (let s = 0; s < 400 * 86_400 && !arrivee;) {
+      const pas = f.fenetre ? 3600 : 600
+      s += pas
+      const r = avancerFusee(f, T0 + s * 1000, pas, 17.4)
+      f = r.fusee
+      if (r.arrivee) arrivee = T0 + s * 1000
+    }
+    expect(f.orbite).toBe('Mars')
+    expect(jour(arrivee)).toBe('2027-05-31')
+  })
+})
+
+describe('changement de vitesse en route (amélioration, avarie)', () => {
+  it('en vol, la trajectoire est recalculée : avec un moteur amélioré, on vise plus près et on arrive plus tôt', () => {
+    let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Jupiter' })
+    for (let s = 1; s <= 120; s++) f = avancerFusee(f, T0 + s * 1000, 1, 17.4).fusee
+    const t = T0 + 120_000
+    const lent = planDeVol(f, t, 17.4)!
+    const rapide = planDeVol(f, t, 17.4 * 1.1 ** 10)!
+    expect(rapide.arrivee).toBeLessThan(lent.arrivee)
+    expect(distance(rapide.point, lent.point)).toBeGreaterThan(0.1)
+    // Au pas suivant, la fusée tourne vers le nouveau point de rencontre.
+    const apres = avancerFusee(f, t + 1000, 1, 17.4 * 1.1 ** 10).fusee
+    const versNouveau = Math.abs(ecartAngle(apres.cap, direction(apres.position, rapide.point)))
+    const versAncien = Math.abs(ecartAngle(f.cap, direction(f.position, rapide.point)))
+    expect(versNouveau).toBeLessThan(versAncien)
+  })
+
+  it("en attente de fenêtre, une amélioration recalcule la fenêtre (à 45 km/s, partir tout de suite vers Mars est le plus rapide)", () => {
+    let f = choisirDestinationAvecFenetre(creerFusee(T0), { type: 'astre', astre: 'Mars' }, T0, 17.4)
+    expect(f.fenetre).not.toBeNull()
+    f = avancerFusee(f, T0 + 3_600_000, 3600, 45).fusee
+    expect(f.fenetre).toBeNull()
+    expect(f.orbite).toBeNull() // partie
+    expect(f.distanceParcourue).toBeGreaterThan(0)
   })
 })
 
