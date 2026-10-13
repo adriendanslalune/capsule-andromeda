@@ -204,7 +204,10 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ## 6. Chasse au visiteur
 
-- **Saisons** de 14 jours depuis le 5 janvier 2026 à 00:00 UTC. N° de saison = partie entière((t − époque) ÷ 14 j).
+- **Saisons** : une par mois, du 1er à 00:00 UTC au 1er du mois suivant ; janvier 2026 = saison 0
+  (n° = mois écoulés depuis janvier 2026). *Décision d'Adrien du 13/10/2026 ; le prototype avait des saisons de
+  14 jours depuis le 5 janvier 2026.* La trajectoire est calculée jusqu'à 3 jours après la fin du mois, mais au-delà
+  du 1er c'est celle de la nouvelle saison qui compte.
 - **Trajectoire déterministe** (identique pour tous les joueurs) : générateur pseudo-aléatoire mulberry32,
   graine = n × 7919 + 13. Première escale tirée parmi Mercure…Saturne. Escale de 16 à 30 h ; puis voyage vers la
   planète la plus proche (parmi Mercure…Saturne) hors de ses deux dernières escales ; durée = max(6 h, distance ÷ 0,06 UA/h).
