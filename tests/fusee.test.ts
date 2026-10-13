@@ -239,7 +239,7 @@ describe('trajectoire de rencontre', () => {
       expect(fusee.orbite, astre).toBe(astre)
       expect(Math.abs(duree - annonce) / annonce, astre).toBeLessThan(0.01)
     }
-  })
+  }, 60_000) // six voyages complets simulés : plus long que la limite par défaut de 5 s
 
   it('la durée vers Mars dépend de la vraie position et du vrai mouvement de Mars', () => {
     const octobre2026 = tempsRestant(choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Mars' }), T0, 17.4)!
