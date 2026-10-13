@@ -3,6 +3,7 @@
 // Les autres parties de l'état (modules, pannes, chasse…) seront ajoutées étape par étape.
 
 import type { NomCorps } from '../astro/corps'
+import { CHASSE } from '../donnees/chasse'
 import { INTERRUPTEURS_DEPART, type Interrupteurs } from '../donnees/fusee'
 import { creerChasse, type EtatChasse } from './chasse'
 import { creerFusee, type EtatFusee } from './fusee'
@@ -53,6 +54,8 @@ export interface EtatPartie {
   creeLe: number
   /** Dernier instant simulé (ms UTC), pour le rattrapage après une absence. */
   vu: number
+  /** Nom de la fusée, choisi par le joueur (affiché dans les annonces de trouvaille). */
+  nom: string
   /** Numéro de série de la fusée (LLC-CCL). */
   serie: string
   /** Interrupteurs S-1 à S-4. */
@@ -83,11 +86,12 @@ export interface EtatPartie {
 }
 
 /** Crée une nouvelle partie à l'instant t. */
-export function creerPartie(t: number, hasard: Hasard): EtatPartie {
+export function creerPartie(t: number, hasard: Hasard, nom = ''): EtatPartie {
   return {
     version: VERSION_FORMAT,
     creeLe: t,
     vu: t,
+    nom: nom.trim().slice(0, CHASSE.longueurNomFusee),
     serie: genererSerie(hasard),
     interrupteurs: INTERRUPTEURS_DEPART,
     credits: 0,
@@ -103,4 +107,11 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     trophees: [],
     stats: { pannes: 0, contrats: 0, distanceMaxSoleil: 0 },
   }
+}
+
+/** Baptise la fusée (24 caractères au plus) ; refusé si le nom est vide. */
+export function baptiserFusee(etat: EtatPartie, nom: string): EtatPartie | null {
+  const propre = nom.trim().replace(/\s+/g, ' ')
+  if (!propre) return null
+  return { ...etat, nom: propre.slice(0, CHASSE.longueurNomFusee) }
 }

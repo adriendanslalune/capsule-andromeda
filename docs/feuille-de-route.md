@@ -17,7 +17,8 @@ Chaque phase se termine par une version jouable, testée, commitée et poussée 
 - Tests : chaque règle de `docs/regles.md`, et pour chaque panne, une réparation suivant exactement le manuel.
 
 ## Phase 2 — L'interface « fenêtre d'abord » (style neutre)
-- Ouverture, fenêtre, tableau de voyants, modules en plein écran, volets Carte / Office / Manuel, vue 3D.
+- Ouverture (avec le baptême de la fusée), fenêtre, tableau de voyants, modules en plein écran, volets Carte /
+  Office / Manuel, vue 3D (avec la soucoupe des années 50, son approche et la photo).
 
 ## Phase 3 — Application installable
 - PWA (installation sur l'écran d'accueil), notifications.
@@ -26,6 +27,8 @@ Chaque phase se termine par une version jouable, testée, commitée et poussée 
 
 ## Phase 4 — Serveur
 - Comptes, sauvegarde en ligne, couronne et classement, fusées des autres joueurs, vérification anti-triche.
+- Trouvailles du visiteur : annonce à tous avec la photo et le nom de la fusée ; couronne et fusée en or pour le
+  premier de la saison.
 - Cours des contrats : la prime baisse quand beaucoup de joueurs choisissent un contrat, monte s'il est délaissé.
 - Orbite à jour de l'ISS (CelesTrak ne permet pas le téléchargement direct depuis une page web).
 

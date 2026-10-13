@@ -1,25 +1,28 @@
-// Chasse au visiteur : réglages. Valeurs du prototype v0.1, sauf la durée des saisons (voir docs/regles.md).
+// Chasse au visiteur : réglages (décisions d'Adrien du 13/10/2026, voir docs/regles.md).
 // Ne pas modifier sans l'accord d'Adrien.
 
 export const CHASSE = {
   /** Saisons : une par mois, du 1er à 00:00 UTC au 1er du mois suivant ; saison n° 0 = janvier 2026. */
   anneeDepart: 2026,
-  /** Graine de la trajectoire de la saison n : n × 7919 + 13 (la même pour tous les joueurs). */
+  /** Graine de la saison n : n × 7919 + 13 (la même pour tous les joueurs). */
   graineMultiplicateur: 7919,
   graineDecalage: 13,
-  /** Le visiteur fait escale près d'une planète entre Mercure et Saturne (6 premières), de 16 à 30 heures. */
-  planetesVisitees: 6,
-  escaleMinHeures: 16,
-  escaleMaxHeures: 30,
-  /** Pendant l'escale, il tourne autour de la planète : cercle de 0,004 UA, un tour en 6 heures. */
-  rayonEscale: 0.004,
-  periodeEscaleHeures: 6,
-  /** Entre deux escales : voyage en ligne droite vers la planète la plus proche (hors ses deux dernières escales),
-   * à 0,06 UA par heure, en 6 heures au moins. */
-  vitesseUAParHeure: 0.06,
-  voyageMinHeures: 6,
-  /** La trajectoire est calculée 3 jours au-delà de la fin de la saison. */
-  margeJours: 3,
+  /** Chaque saison, le visiteur fait une boucle de 3 ou 4 escales ; il change d'escale chaque jour à 00:00 UTC. */
+  escalesMin: 3,
+  escalesMax: 4,
+  /** Chaque jour, il se tient à côté de son astre, à une distance tirée entre ces bornes (km). Valeurs provisoires. */
+  distanceAstreMinKm: 30_000,
+  distanceAstreMaxKm: 150_000,
+
+  /** On ne peut toucher la soucoupe dans la vue 3D (et lancer l'approche) qu'à moins de cette distance (km).
+   * Valeur provisoire. */
+  distanceReperageKm: 300_000,
+  /** L'approche s'arrête à cette distance du visiteur (km). Valeur provisoire. */
+  distanceApprocheKm: 0.2,
+  /** La photo n'est valable qu'à moins de cette distance (km). */
+  distancePhotoKm: 0.3,
+  /** Prime d'une trouvaille (une par saison et par joueur). */
+  primeTrouvaille: 250,
 
   /** Ping radio : sur 7,13 (± 0,05) ; écho après l'aller-retour de la lumière ; recharge 5 minutes. */
   frequencePing: 7.13,
@@ -40,15 +43,14 @@ export const CHASSE = {
   erreurTelescopeDegres: 3,
   rechargeTelescopeMinutes: 30,
 
-  /** Détecteur DET : visiteur visible à moins de 1,5 UA. */
+  /** Détecteur DET : visiteur signalé à moins de 1,5 UA (dans la vue 3D, la soucoupe clignote). */
   porteeDetecteur: 1.5,
-
-  /** Contact à moins de 0,01 UA : 250 CR et le trophée, une fois par saison. */
-  distanceContact: 0.01,
-  primeContact: 250,
 
   /** Nombre d'indices gardés. */
   indicesGardes: 12,
+
+  /** Nom de la fusée choisi par le joueur : longueur maximale. */
+  longueurNomFusee: 24,
 } as const
 
 /** Auteurs possibles des transmissions. */

@@ -44,9 +44,15 @@ Puis « Prendre les commandes », et une première panne guidée.
 ## 5. Vue 3D (dehors)
 Fusée détaillée, vrai ciel, Soleil, planètes et satellites à leurs vraies directions et tailles apparentes,
 Terre et Lune texturées (assets/textures), caméra orbitale au doigt, bouton « recentrer » derrière la fusée vers
-la destination, petit cadran de position, repère de destination, visiteur si DET installé.
+la destination, petit cadran de position, repère de destination.
+**Visiteur** : modèle 3D d'une soucoupe volante classique des années 50, visible à l'œil près de son astre (elle
+clignote si DET est installé et qu'elle est à moins de 1,5 UA). On ne peut la toucher qu'à moins de 300 000 km ; la
+toucher lance l'approche. Arrivé à environ 200 m, bouton « PHOTO » : la photo (capture de la vue 3D) valide la
+trouvaille à moins de 300 m.
 
 ## 6. Retours et alertes
 - Rapport de vol après une absence.
 - Alarme sonore propre à chaque module ; bouton son.
 - Plus tard : notifications du téléphone (avarie, écho reçu, arrivée).
+- Annonce d'une trouvaille du visiteur à tous les joueurs (phase 4) : photo, nom de la fusée ; couronne et fusée en
+  or pour le premier de la saison.

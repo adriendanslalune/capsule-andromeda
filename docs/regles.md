@@ -204,21 +204,33 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ## 6. Chasse au visiteur
 
+*Règles de la chasse refondues avec Adrien le 13/10/2026 (le prototype faisait voyager le visiteur entre les planètes,
+avec un contact à moins de 0,01 UA).*
+
 - **Saisons** : une par mois, du 1er à 00:00 UTC au 1er du mois suivant ; janvier 2026 = saison 0
-  (n° = mois écoulés depuis janvier 2026). *Décision d'Adrien du 13/10/2026 ; le prototype avait des saisons de
-  14 jours depuis le 5 janvier 2026.* La trajectoire est calculée jusqu'à 3 jours après la fin du mois, mais au-delà
-  du 1er c'est celle de la nouvelle saison qui compte.
-- **Trajectoire déterministe** (identique pour tous les joueurs) : générateur pseudo-aléatoire mulberry32,
-  graine = n × 7919 + 13. Première escale tirée parmi Mercure…Saturne. Escale de 16 à 30 h ; puis voyage vers la
-  planète la plus proche (parmi Mercure…Saturne) hors de ses deux dernières escales ; durée = max(6 h, distance ÷ 0,06 UA/h).
-  Pendant l'escale, petit cercle de 0,004 UA en 6 h autour de la planète.
+  (n° = mois écoulés depuis janvier 2026). Graine de la saison n : n × 7919 + 13 (mulberry32), la même pour tous.
+- **Le visiteur ne voyage pas.** Chaque saison, il fait une **boucle de 3 ou 4 escales** (astres différents, tirés
+  comme les contrats : un système, puis un astre de ce système). Il change d'escale **chaque jour à 00:00 UTC**
+  (jour 0 = le 1er du mois = première escale de la boucle). Chaque jour, il se tient à côté de son astre, dans le plan
+  de la carte, à une distance (30 000 à 150 000 km, *provisoire*) et dans une direction tirées pour ce jour.
 - **Ping** sur 7,13 (± 0,05) : écho après 2 × distance × 499,0048 s ; recharge 5 min ; hors fréquence : aucun écho.
-- **Observatoire** toutes les 6 h : la planète où se trouvait le visiteur 6 h plus tôt (ou « aucune perturbation »).
+- **Observatoire** toutes les 6 h : le **système** (la planète) où se trouvait le visiteur 6 h plus tôt
+  (« PERTURBATIONS DANS LE SYSTÈME DE SATURNE »). L'astre exact n'est pas donné.
 - **Transmissions** toutes les 8 h (graine = index × 31 + 7) : une fois sur deux la planète la plus proche du visiteur,
   sinon une planète au hasard.
 - **TEL** : direction ± 3° si le visiteur est à moins de 3 UA ; recharge 30 min.
-- **DET** : visiteur visible (carte, vue 3D, bloc) à moins de 1,5 UA.
-- **Contact** à moins de 0,01 UA : 250 CR + trophée, une fois par saison. Couronne et classement : avec le serveur.
+- **DET** : visiteur signalé à moins de 1,5 UA (dans la vue 3D, la soucoupe clignote).
+- **Trouvaille** :
+  1. repérer la soucoupe (une soucoupe volante classique des années 50) à l'œil dans la vue 3D ; on ne peut la
+     toucher qu'à moins de **300 000 km** (*provisoire*) : un joueur loin de là ne peut pas tomber dessus par hasard ;
+  2. la toucher lance l'**approche** : la fusée la rejoint (à sa vitesse) et s'arrête à environ **200 m**
+     (*provisoire*), puis reste à côté d'elle tant qu'elle ne change pas d'escale ; si le visiteur change d'escale
+     pendant l'approche, celle-ci est abandonnée ;
+  3. **prendre une photo** depuis la fusée : valable à moins de **300 m**.
+  Chaque joueur peut trouver le visiteur une fois par saison : 250 CR et le trophée « Premier contact ».
+- **Annonce** (phase 4, serveur) : chaque trouvaille est annoncée à tous les joueurs, avec la photo et le **nom de la
+  fusée** (choisi par le joueur au début de la partie, 24 caractères au plus). Le **premier** à trouver le visiteur de
+  la saison reçoit un statut particulier : une couronne à côté de son pseudo et une fusée entièrement en or, brillante.
 
 ## 7. Sauvegarde
 

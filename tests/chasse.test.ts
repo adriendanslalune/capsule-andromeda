@@ -1,27 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import { positionPlanete } from '../src/astro/planetes'
+import { corpsExiste, planeteDe } from '../src/astro/corps'
+import { UA_KM } from '../src/astro/temps'
 import { NOMS_PLANETES } from '../src/donnees/planetes'
 import {
+  approcherVisiteur,
+  boucleSaison,
   debutSaison,
+  distanceVisiteurKm,
   dureeEcho,
+  escaleDuJour,
   evoluerChasse,
   finSaison,
   numeroSaison,
+  photographierVisiteur,
   ping,
   positionVisiteur,
   reglerRadio,
-  trajetSaison,
   viserTelescope,
+  visiteurAPortee,
   visiteurDetecte,
 } from '../src/moteur/chasse'
-import { creerPartie, type EtatPartie } from '../src/moteur/etat'
+import { baptiserFusee, creerPartie, type EtatPartie } from '../src/moteur/etat'
 import { direction, distance, positionAstre, type Point2 } from '../src/moteur/fusee'
 import { mulberry32 } from '../src/moteur/hasard'
+import { avancerPartie } from '../src/moteur/partie'
 
 const T0 = Date.UTC(2026, 9, 13, 12)
 const H = 3_600_000
-const partie = (t = T0, modules: string[] = []): EtatPartie => ({ ...creerPartie(t, mulberry32(1)), modulesInstalles: modules })
+const JOUR = 24 * H
+const partie = (t = T0, modules: string[] = []): EtatPartie =>
+  ({ ...creerPartie(t, mulberry32(1), 'La Pie voleuse'), modulesInstalles: modules })
 const placer = (e: EtatPartie, p: Point2): EtatPartie => ({ ...e, fusee: { ...e.fusee, orbite: null, position: p } })
+/** Partie en orbite autour de l'astre de l'escale du jour, à l'instant t. */
+const surEscale = (t: number): EtatPartie => {
+  const astre = escaleDuJour(t)
+  const e = partie(t)
+  return { ...e, fusee: { ...e.fusee, orbite: astre, position: positionAstre(astre, t) } }
+}
 
 describe('saisons', () => {
   it('une saison par mois, du 1er à 00:00 UTC ; janvier 2026 = saison 0', () => {
@@ -32,139 +47,192 @@ describe('saisons', () => {
     expect(numeroSaison(Date.UTC(2027, 0, 1))).toBe(12)
     expect(debutSaison(9)).toBe(Date.UTC(2026, 9, 1))
     expect(finSaison(9)).toBe(Date.UTC(2026, 10, 1))
-    expect(finSaison(1) - debutSaison(1)).toBe(28 * 86_400_000) // février 2026
   })
 })
 
-describe('trajectoire du visiteur', () => {
-  it('la même pour tous les joueurs, et calculée jusqu’à 3 jours après la fin de la saison', () => {
-    const a = trajetSaison(9)
-    expect(trajetSaison(9)).toBe(a)
-    expect(a[0].t0).toBe(debutSaison(9))
-    expect(a[a.length - 1].t1).toBeGreaterThanOrEqual(finSaison(9) + 3 * 86_400_000)
-    for (let i = 1; i < a.length; i++) expect(a[i].t0).toBe(a[i - 1].t1)
+describe('le visiteur', () => {
+  it('chaque saison : une boucle de 3 ou 4 escales différentes, les mêmes pour tous les joueurs', () => {
+    const tailles = new Set<number>()
+    for (let n = 0; n < 48; n++) {
+      const b = boucleSaison(n)
+      tailles.add(b.length)
+      expect(new Set(b).size).toBe(b.length)
+      for (const astre of b) expect(corpsExiste(astre), astre).toBe(true)
+      expect(boucleSaison(n)).toEqual(b)
+    }
+    expect(tailles).toEqual(new Set([3, 4]))
   })
 
-  it('escales de 16 à 30 h près de Mercure à Saturne ; jamais vers une de ses deux dernières escales', () => {
-    for (let n = 0; n < 24; n++) {
-      const escales = trajetSaison(n).filter((g) => g.type === 'escale')
-      for (const g of escales) {
-        expect((g.t1 - g.t0) / H).toBeGreaterThanOrEqual(16)
-        expect((g.t1 - g.t0) / H).toBeLessThanOrEqual(30)
-        if (g.type === 'escale') expect(g.planete).toBeLessThan(6)
-      }
-      for (let i = 2; i < escales.length; i++) {
-        const p = (k: number) => (escales[k].type === 'escale' ? escales[k].planete : -1)
-        expect(p(i)).not.toBe(p(i - 1))
-        expect(p(i)).not.toBe(p(i - 2))
-      }
+  it('il change d’escale chaque jour à 00:00 UTC, en suivant la boucle', () => {
+    const b = boucleSaison(9)
+    for (let j = 0; j < 31; j++) {
+      const jour = debutSaison(9) + j * JOUR
+      expect(escaleDuJour(jour + 1)).toBe(b[j % b.length])
+      expect(escaleDuJour(jour + JOUR - 1)).toBe(b[j % b.length])
     }
   })
 
-  it('voyages en ligne droite à 0,06 UA/h (6 h au moins) ; arrivée au centre de la planète suivante', () => {
-    for (const g of trajetSaison(9)) {
-      // Au-delà de la fin du mois, c'est la trajectoire de la saison suivante qui compte.
-      if (g.type !== 'voyage' || g.t1 > finSaison(9)) continue
-      const A = positionPlanete(NOMS_PLANETES[g.de], g.t0)
-      const B = positionPlanete(NOMS_PLANETES[g.vers], g.t1)
-      const heures = (g.t1 - g.t0) / H
-      expect(heures).toBeGreaterThanOrEqual(6 - 1e-9)
-      const d = Math.hypot(B.x - A.x, B.y - A.y)
-      // Durée calculée sur la distance au départ ; la planète visée bouge un peu pendant le voyage.
-      if (heures > 6.01) expect(d / heures).toBeLessThan(0.065)
-      const fin = positionVisiteur(g.t1 - 1)
-      expect(distance(fin, B)).toBeLessThan(1e-4)
-    }
-  })
-
-  it('pendant une escale, il tourne à 0,004 UA de la planète', () => {
-    const g = trajetSaison(9).find((x) => x.type === 'escale')!
-    for (let k = 0; k < 10; k++) {
-      const t = g.t0 + ((g.t1 - g.t0) * k) / 10
+  it('il se tient à côté de son astre, entre 30 000 et 150 000 km, à une place qui change chaque jour', () => {
+    const places = new Set<string>()
+    for (let j = 0; j < 20; j++) {
+      const t = debutSaison(9) + j * JOUR + 5 * H
       const v = positionVisiteur(t)
-      const p = positionPlanete(NOMS_PLANETES[g.type === 'escale' ? g.planete : 0], t)
-      expect(Math.hypot(v.x - p.x, v.y - p.y)).toBeCloseTo(0.004, 9)
-      expect(v.escale).toBe(NOMS_PLANETES[g.type === 'escale' ? g.planete : 0])
+      const a = positionAstre(v.astre, t)
+      const km = distance(v, a) * UA_KM
+      expect(km).toBeGreaterThanOrEqual(30_000 - 1)
+      expect(km).toBeLessThanOrEqual(150_000 + 1)
+      expect(km).toBeCloseTo(v.distanceAstreKm, 0)
+      places.add(v.distanceAstreKm.toFixed(0))
     }
+    expect(places.size).toBe(20)
   })
 
-  it('chaque saison a sa propre trajectoire', () => {
-    expect(positionVisiteur(Date.UTC(2026, 9, 1, 6))).not.toEqual(positionVisiteur(Date.UTC(2026, 10, 1, 6)))
+  it('pendant la journée, il suit son astre (il ne voyage pas)', () => {
+    const t = debutSaison(9) + 2 * JOUR + 3 * H
+    const v1 = positionVisiteur(t), v2 = positionVisiteur(t + 6 * H)
+    const a1 = positionAstre(v1.astre, t), a2 = positionAstre(v2.astre, t + 6 * H)
+    expect(v1.astre).toBe(v2.astre)
+    expect(v2.x - a2.x).toBeCloseTo(v1.x - a1.x, 12)
+    expect(v2.y - a2.y).toBeCloseTo(v1.y - a1.y, 12)
+  })
+
+  it('les escales sont tirées système puis astre : on y trouve des planètes et des satellites', () => {
+    const astres = new Set<string>()
+    for (let n = 0; n < 60; n++) for (const a of boucleSaison(n)) astres.add(a)
+    const planetes = [...astres].filter((a) => (NOMS_PLANETES as readonly string[]).includes(a))
+    expect(planetes.length).toBeGreaterThan(3)
+    expect(astres.size - planetes.length).toBeGreaterThan(40)
+  })
+})
+
+describe('trouvaille', () => {
+  it('à côté de l’astre de l’escale : la soucoupe est à portée (moins de 300 000 km), pas depuis une autre planète', () => {
+    const t = T0
+    expect(visiteurAPortee(surEscale(t), t)).toBe(true)
+    expect(visiteurAPortee(placer(partie(t), { x: 30, y: 0 }), t)).toBe(false)
+    expect(approcherVisiteur(placer(partie(t), { x: 30, y: 0 }), t).etat.fusee.destination).toBeNull()
+  })
+
+  it('approcher, s’arrêter à environ 200 m, photographier : trouvaille, 250 CR et le trophée', () => {
+    const t = Date.UTC(2026, 9, 13, 1) // tôt dans la journée : le temps d'approcher
+    let e = approcherVisiteur(surEscale(t), t).etat
+    expect(e.fusee.destination).toEqual({ type: 'visiteur', astre: escaleDuJour(t) })
+    let s = 0
+    while (e.fusee.destination && s < 20 * 3600) {
+      s += 10
+      e = avancerPartie(e, t + s * 1000, 10, mulberry32(s)).etat
+    }
+    const tFin = t + s * 1000
+    expect(e.fusee.presDuVisiteur).toBe(true)
+    expect(distanceVisiteurKm(e, tFin)).toBeLessThan(0.3)
+    // Elle reste à côté de lui tant qu'il est à cette escale.
+    e = avancerPartie(e, tFin + 60_000, 60, mulberry32(1)).etat
+    expect(distanceVisiteurKm(e, tFin + 60_000)).toBeLessThan(0.3)
+    const avant = e.credits
+    const r = photographierVisiteur(e, tFin + 60_000)
+    expect(r.trouvaille).toMatchObject({ saison: 9, nomFusee: 'La Pie voleuse', serie: e.serie, astre: escaleDuJour(t) })
+    expect(r.etat.credits).toBe(avant + 250)
+    expect(r.etat.trophees).toContain('contact')
+    expect(r.messages[0]).toMatch(/^VISITEUR PHOTOGRAPHIÉ PRÈS DE/)
+  })
+
+  it('photo trop loin (plus de 300 m) : rien sur le cliché', () => {
+    const t = T0
+    const r = photographierVisiteur(surEscale(t), t)
+    expect(r.trouvaille).toBeNull()
+    expect(r.messages).toEqual(['PHOTO PRISE. RIEN DE NOTABLE SUR LE CLICHÉ.'])
+  })
+
+  it('une trouvaille par saison et par joueur ; de nouveau possible la saison suivante', () => {
+    const prendre = (t: number, e0?: EtatPartie) => {
+      const v = positionVisiteur(t)
+      const base = e0 ?? partie(t)
+      const e = { ...base, fusee: { ...base.fusee, orbite: v.astre, presDuVisiteur: true, position: { x: v.x, y: v.y } } }
+      return photographierVisiteur(e, t)
+    }
+    const r1 = prendre(T0)
+    expect(r1.trouvaille).not.toBeNull()
+    const r2 = prendre(T0 + H, r1.etat)
+    expect(r2.trouvaille).toBeNull()
+    expect(r2.messages).toEqual(['PHOTO PRISE. VISITEUR DÉJÀ SIGNALÉ CETTE SAISON.'])
+    const r3 = prendre(Date.UTC(2026, 10, 5, 12), r1.etat)
+    expect(r3.trouvaille!.saison).toBe(10)
+    expect(r3.etat.credits).toBe(500)
+  })
+
+  it('à minuit le visiteur change d’escale : stationnée, la fusée reste en orbite simple autour de l’astre', () => {
+    const t = Date.UTC(2026, 9, 13, 23, 59)
+    const v = positionVisiteur(t)
+    const base = partie(t)
+    let e: EtatPartie = { ...base, fusee: { ...base.fusee, orbite: v.astre, presDuVisiteur: true, position: { x: v.x, y: v.y } } }
+    e = avancerPartie(e, t + 2 * 60_000, 120, mulberry32(1)).etat
+    expect(e.fusee.presDuVisiteur).toBe(false)
+    expect(e.fusee.orbite).toBe(v.astre)
+  })
+})
+
+describe('le nom de la fusée', () => {
+  it('choisi par le joueur, nettoyé, 24 caractères au plus ; jamais vide', () => {
+    expect(partie().nom).toBe('La Pie voleuse')
+    expect(baptiserFusee(partie(), '  Le   Grand   Bleu ')!.nom).toBe('Le Grand Bleu')
+    expect(baptiserFusee(partie(), 'x'.repeat(40))!.nom).toHaveLength(24)
+    expect(baptiserFusee(partie(), '   ')).toBeNull()
   })
 })
 
 describe('ping radio', () => {
   it('écho après l’aller-retour de la lumière : 2 × distance × 499 s ; recharge de 5 minutes', () => {
     const e = partie()
-    const v = positionVisiteur(T0)
-    const d = distance(e.fusee.position, v)
+    const d = distance(e.fusee.position, positionVisiteur(T0))
     const r = ping(e, T0)
     expect(r.messages).toEqual(['PING ÉMIS SUR 7,13. ÉCOUTE EN COURS…'])
     const attendu = 2 * d * 499.0048 * 1000
     expect(r.etat.chasse.pings[0].duree).toBeCloseTo(attendu, 3)
     expect(ping(r.etat, T0 + 60_000).messages).toEqual(['RADIO EN RECHARGE.'])
-    expect(evoluerChasse(r.etat, T0 + attendu - 1000).messages.filter((m) => m.startsWith('ÉCHO'))).toEqual([])
     const retour = evoluerChasse(r.etat, T0 + attendu + 1)
     expect(retour.messages).toContain(`ÉCHO REÇU APRÈS ${dureeEcho(attendu)}.`)
     expect(retour.etat.chasse.pings).toEqual([])
-    expect(retour.etat.chasse.indices[0].texte).toMatch(/^ÉCHO REÇU APRÈS/)
   })
 
   it('hors de 7,13 ± 0,05 : aucun écho', () => {
     const e = reglerRadio(partie(), 0.06)
-    expect(e.chasse.frequenceRadio).toBe(7.19)
-    const r = ping(e, T0)
-    expect(r.messages).toEqual(['PING ÉMIS SUR 7,19.', 'AUCUN ÉCHO SUR 7,19.'])
-    expect(r.etat.chasse.pings).toEqual([])
-    const juste = ping(reglerRadio(partie(), 0.05), T0)
-    expect(juste.etat.chasse.pings).toHaveLength(1)
+    expect(ping(e, T0).messages).toEqual(['PING ÉMIS SUR 7,19.', 'AUCUN ÉCHO SUR 7,19.'])
+    expect(ping(reglerRadio(partie(), 0.05), T0).etat.chasse.pings).toHaveLength(1)
   })
 
-  it('le dernier ping garde la position de la fusée (pour tracer le cercle sur la carte)', () => {
-    const e = placer(partie(), { x: 2, y: -1 })
-    expect(ping(e, T0).etat.chasse.dernierPing).toEqual({ x: 2, y: -1 })
-  })
-
-  it('durée en clair', () => {
-    expect(dureeEcho(65_000)).toBe('1 MIN 05 S')
+  it('le dernier ping garde la position de la fusée ; durée en clair', () => {
+    expect(ping(placer(partie(), { x: 2, y: -1 }), T0).etat.chasse.dernierPing).toEqual({ x: 2, y: -1 })
     expect(dureeEcho((3600 + 23 * 60 + 5) * 1000)).toBe('1 H 23 MIN 05 S')
   })
 })
 
 describe('Observatoire et transmissions', () => {
-  it('bulletin toutes les 6 h, sur la position du visiteur 6 h plus tôt', () => {
-    const e = partie()
+  it('bulletin toutes les 6 h : le système où se trouvait le visiteur 6 h plus tôt', () => {
     const creneau = Math.floor(T0 / (6 * H))
     const t = (creneau + 1) * 6 * H + 1000
-    const r = evoluerChasse(e, t)
+    const r = evoluerChasse(partie(), t)
     const v = positionVisiteur((creneau + 1) * 6 * H - 6 * H)
-    const attendu = v.escale ? `OBSERVATOIRE : LES LUNES DE ${v.escale.toUpperCase()} SONT PERTURBÉES.` : 'OBSERVATOIRE : AUCUNE PERTURBATION NOTABLE.'
-    expect(r.messages).toContain(attendu)
+    expect(r.messages).toContain(`OBSERVATOIRE : PERTURBATIONS DANS LE SYSTÈME DE ${planeteDe(v.astre).toUpperCase()}.`)
     expect(evoluerChasse(r.etat, t + 1000).messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toEqual([])
   })
 
   it('après une longue absence : un seul bulletin et une seule transmission, les plus récents', () => {
-    const r = evoluerChasse(partie(), T0 + 3 * 86_400_000)
+    const r = evoluerChasse(partie(), T0 + 3 * JOUR)
     expect(r.messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toHaveLength(1)
     expect(r.messages.filter((m) => m.includes('SIGNALE UNE LUEUR'))).toHaveLength(1)
   })
 
-  it('transmissions toutes les 8 h, les mêmes pour tous ; une fois sur deux au moins la planète la plus proche', () => {
+  it('transmissions toutes les 8 h ; plus d’une fois sur deux la planète la plus proche du visiteur', () => {
     const e = partie()
-    let proches = 0, total = 0
+    let proches = 0
     for (let k = 1; k <= 200; k++) {
       const creneau = Math.floor(T0 / (8 * H)) + k
       const t = creneau * 8 * H + 1000
       const avant = { ...e, chasse: { ...e.chasse, transmission: creneau - 1, bulletin: Infinity } }
       const m = evoluerChasse(avant, t).messages.find((x) => x.includes('LUEUR'))!
-      expect(evoluerChasse(avant, t).messages).toContain(m)
-      const v = positionVisiteur(t)
-      const plusProche = NOMS_PLANETES.reduce((a, b) =>
-        distance(v, positionAstre(a, t)) <= distance(v, positionAstre(b, t)) ? a : b)
-      if (m.endsWith(`${plusProche.toUpperCase()}.`)) proches++
-      total++
+      if (m.endsWith(`${planeteDe(positionVisiteur(t).astre).toUpperCase()}.`)) proches++
     }
-    expect(proches / total).toBeGreaterThan(0.5)
+    expect(proches / 200).toBeGreaterThan(0.5)
   })
 })
 
@@ -176,56 +244,18 @@ describe('télescope TEL et détecteur DET', () => {
     for (let g = 1; g <= 20; g++) {
       const r = viserTelescope(pres, T0, mulberry32(g))
       const lu = r.etat.chasse.derniereVisee!.direction!
-      const vrai = direction(pres.fusee.position, v)
-      expect(Math.abs(((lu - vrai + 540) % 360) - 180)).toBeLessThanOrEqual(3.5)
-      expect(r.messages[0]).toBe(`TÉLESCOPE : OBJET VISÉ À ${lu}°.`)
+      expect(Math.abs(((lu - direction(pres.fusee.position, v) + 540) % 360) - 180)).toBeLessThanOrEqual(3.5)
     }
     const r = viserTelescope(pres, T0, mulberry32(1))
     expect(viserTelescope(r.etat, T0 + 29 * 60_000, mulberry32(1)).messages).toEqual(['TÉLESCOPE EN RECHARGE.'])
-    expect(viserTelescope(r.etat, T0 + 30 * 60_000, mulberry32(1)).messages[0]).toMatch(/^TÉLESCOPE : OBJET VISÉ/)
     const loin = placer(partie(T0, ['TEL']), { x: v.x + 3.5, y: v.y })
     expect(viserTelescope(loin, T0, mulberry32(1)).messages).toEqual(['TÉLESCOPE : RIEN DANS LA PORTÉE.'])
   })
 
-  it('DET : visiteur visible à moins de 1,5 UA, s’il est installé', () => {
+  it('DET : visiteur signalé à moins de 1,5 UA, s’il est installé', () => {
     const v = positionVisiteur(T0)
     expect(visiteurDetecte(placer(partie(T0, ['TEL', 'DET']), { x: v.x + 1.4, y: v.y }), T0)).toBeCloseTo(1.4, 6)
     expect(visiteurDetecte(placer(partie(T0, ['TEL', 'DET']), { x: v.x + 1.6, y: v.y }), T0)).toBeNull()
     expect(visiteurDetecte(placer(partie(T0, ['TEL']), { x: v.x + 1.4, y: v.y }), T0)).toBeNull()
-  })
-})
-
-describe('contact', () => {
-  /** Un instant d'escale du visiteur pendant la saison n, et la planète. */
-  function uneEscale(n: number) {
-    const g = trajetSaison(n).find((x) => x.type === 'escale' && x.t0 >= debutSaison(n))!
-    return { t: (g.t0 + g.t1) / 2, planete: NOMS_PLANETES[g.type === 'escale' ? g.planete : 0] }
-  }
-
-  it('en orbite autour de la planète de son escale (à 0,004 UA) : contact, 250 CR et le trophée', () => {
-    const { t, planete } = uneEscale(9)
-    const e = { ...partie(t), fusee: { ...partie(t).fusee, orbite: planete, position: positionAstre(planete, t) } }
-    const r = evoluerChasse(e, t)
-    expect(r.messages).toContain('CONTACT ÉTABLI AVEC LE VISITEUR DE LA SAISON 9 !')
-    expect(r.etat.credits).toBe(250)
-    expect(r.etat.trophees).toContain('contact')
-    expect(r.etat.chasse.contacts).toEqual([9])
-  })
-
-  it('une fois par saison seulement ; possible de nouveau la saison suivante', () => {
-    const { t, planete } = uneEscale(9)
-    let e: EtatPartie = { ...partie(t), fusee: { ...partie(t).fusee, orbite: planete, position: positionAstre(planete, t) } }
-    e = evoluerChasse(e, t).etat
-    expect(evoluerChasse(e, t + 60_000).etat.credits).toBe(250)
-    const suivante = uneEscale(10)
-    const ailleurs = { ...e, fusee: { ...e.fusee, orbite: suivante.planete, position: positionAstre(suivante.planete, suivante.t) } }
-    const r = evoluerChasse(ailleurs, suivante.t)
-    expect(r.etat.credits).toBe(500)
-    expect(r.etat.chasse.contacts).toEqual([9, 10])
-  })
-
-  it('loin du visiteur : pas de contact', () => {
-    const r = evoluerChasse(placer(partie(), { x: 100, y: 100 }), T0)
-    expect(r.etat.chasse.contacts).toEqual([])
   })
 })

@@ -14,6 +14,7 @@ import { demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, plane
   rayonInfluence, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import { RAD } from '../astro/vecteur'
+import { CHASSE } from '../donnees/chasse'
 import { NOMS_PLANETES, type NomPlanete } from '../donnees/planetes'
 import {
   FACTEUR_AMELIORATION,
@@ -24,13 +25,21 @@ import {
   TAUX_VIRAGE,
   VITESSE_BASE,
 } from '../donnees/reglages'
+import { escaleDuJour, positionVisiteur } from './visiteur'
 
 export interface Point2 {
   x: number
   y: number
 }
 
-export type Destination = { type: 'astre'; astre: NomCorps } | { type: 'point'; x: number; y: number }
+/**
+ * Destination : un astre, un point libre, ou le visiteur (approche finale, possible seulement à proximité ; on note
+ * l'astre de son escale au moment où l'approche commence).
+ */
+export type Destination =
+  | { type: 'astre'; astre: NomCorps }
+  | { type: 'point'; x: number; y: number }
+  | { type: 'visiteur'; astre: NomCorps }
 
 export interface EtatFusee {
   /** Position dans le plan de l'écliptique (UA). */
@@ -46,6 +55,8 @@ export interface EtatFusee {
   distanceParcourue: number
   /** Fenêtre de tir choisie : la fusée attend en orbite jusqu'au départ prévu ; null = départ immédiat. */
   fenetre: FenetreDeTir | null
+  /** Fusée stationnée à côté du visiteur (en orbite autour de son astre, à environ 200 m de lui). */
+  presDuVisiteur: boolean
 }
 
 export interface FenetreDeTir {
@@ -90,7 +101,9 @@ export function positionAstre(nom: NomCorps, t: number): Point2 {
 }
 
 export function positionDestination(d: Destination, t: number): Point2 {
-  return d.type === 'astre' ? positionAstre(d.astre, t) : { x: d.x, y: d.y }
+  if (d.type === 'astre') return positionAstre(d.astre, t)
+  if (d.type === 'visiteur') { const v = positionVisiteur(t); return { x: v.x, y: v.y } }
+  return { x: d.x, y: d.y }
 }
 
 export function distance(a: Point2, b: Point2): number {
@@ -116,6 +129,7 @@ export function ecartAngle(a: number, b: number): number {
  * (Phobos ≈ 2 300 km).
  */
 export function seuilArrivee(d: Destination): number {
+  if (d.type === 'visiteur') return enUA(CHASSE.distanceApprocheKm)
   if (d.type === 'point' || estPlanete(d.astre)) return SEUIL_ARRIVEE
   return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
 }
@@ -183,7 +197,7 @@ export function calculerRencontre(position: Point2, dest: Destination, repere: N
 
   // Pas de recherche : assez fin pour suivre le mouvement de la cible dans le repère.
   let periode = Infinity
-  if (dest.type === 'astre') {
+  if (dest.type !== 'point') {
     periode = periodeOrbitale(repere || estPlanete(dest.astre) ? dest.astre : planeteDe(dest.astre)) * 86_400
   }
   const directe = d0 / v
@@ -331,12 +345,13 @@ export function creerFusee(t: number): EtatFusee {
     orbite: 'ISS',
     distanceParcourue: 0,
     fenetre: null,
+    presDuVisiteur: false,
   }
 }
 
 /** Choisit une destination, avec départ immédiat. */
 export function choisirDestination(fusee: EtatFusee, destination: Destination): EtatFusee {
-  return { ...fusee, destination, fenetre: null }
+  return { ...fusee, destination, fenetre: null, presDuVisiteur: false }
 }
 
 /**
@@ -346,7 +361,7 @@ export function choisirDestination(fusee: EtatFusee, destination: Destination): 
 export function choisirDestinationAvecFenetre(fusee: EtatFusee, destination: Destination, t: number,
   vitesseKmS: number): EtatFusee {
   const f = fenetreDeTir(fusee, destination, t, vitesseKmS)
-  return { ...fusee, destination, fenetre: f ? { depart: f.depart, vitesse: vitesseKmS } : null }
+  return { ...fusee, destination, fenetre: f ? { depart: f.depart, vitesse: vitesseKmS } : null, presDuVisiteur: false }
 }
 
 /** Annule la destination : moteur coupé, la fusée s'arrête (ou reste en orbite si elle n'était pas partie). */
@@ -371,9 +386,22 @@ export interface ResultatPas {
 export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
   const dest = fusee.destination
   if (!dest) {
+    // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
+    if (fusee.presDuVisiteur && fusee.orbite) {
+      if (escaleDuJour(t) === fusee.orbite) {
+        const v = positionVisiteur(t)
+        return { fusee: { ...fusee, position: { x: v.x, y: v.y }, virage: 0 }, arrivee: null }
+      }
+      return { fusee: { ...fusee, position: positionAstre(fusee.orbite, t), virage: 0, presDuVisiteur: false }, arrivee: null }
+    }
     // À l'arrêt ou en orbite : en orbite, la fusée suit son astre.
     const position = fusee.orbite ? positionAstre(fusee.orbite, t) : fusee.position
     return { fusee: { ...fusee, position, virage: 0 }, arrivee: null }
+  }
+
+  if (dest.type === 'visiteur' && escaleDuJour(t) !== dest.astre) {
+    // Le visiteur a changé d'escale pendant l'approche : elle est abandonnée, la fusée reste où elle est.
+    return { fusee: { ...fusee, destination: null, orbite: null, virage: 0, presDuVisiteur: false }, arrivee: null }
   }
 
   if (fusee.fenetre && fusee.orbite) {
@@ -406,15 +434,16 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
   const cap = (fusee.cap + rotation + 360) % 360
   const virage = dt > 0 ? rotation / dt : 0
   if (arrive) {
-    const orbite = dest.type === 'astre' ? dest.astre : null
+    const orbite = dest.type === 'point' ? null : dest.astre
+    const presDuVisiteur = dest.type === 'visiteur'
     return {
-      fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null },
+      fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur },
       arrivee: dest,
     }
   }
   const position = { x: entrainee.x + Math.cos(cap * RAD) * pas, y: entrainee.y + Math.sin(cap * RAD) * pas }
   return {
-    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null },
+    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false },
     arrivee: null,
   }
 }

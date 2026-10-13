@@ -1,116 +1,39 @@
-// Chasse au visiteur : chaque mois (saison), un visiteur extraterrestre parcourt le système solaire selon une
-// trajectoire identique pour tous les joueurs. Indices : ping radio (écho après l'aller-retour de la lumière),
-// bulletins de l'Observatoire, transmissions, télescope TEL, détecteur DET. Contact à moins de 0,01 UA.
+// Chasse au visiteur. Chaque mois (saison), un visiteur fait une boucle de 3 ou 4 escales, une par jour (voir
+// visiteur.ts). Indices : ping radio, bulletins de l'Observatoire, transmissions, télescope TEL, détecteur DET.
+// Trouvaille (décisions d'Adrien du 13/10/2026) : repérer la soucoupe dans la vue 3D (on ne peut la toucher qu'à
+// moins de 300 000 km), s'en approcher (la fusée s'arrête à environ 200 m), puis la photographier à moins de 300 m.
+// Chaque trouvaille est annoncée à tous les joueurs ; le premier de la saison reçoit la couronne et la fusée en or
+// (attribuées par le serveur, en phase 4).
 
+import { planeteDe } from '../astro/corps'
 import { delaiLumiere } from '../astro/lumiere'
-import { positionPlanete } from '../astro/planetes'
+import { UA_KM } from '../astro/temps'
 import { AUTEURS_TRANSMISSIONS, CHASSE as C } from '../donnees/chasse'
 import { NOMS_PLANETES } from '../donnees/planetes'
 import { crediter, estInstalle } from './economie'
 import type { EtatPartie } from './etat'
-import { direction, distance, type Point2 } from './fusee'
+import { direction, distance, positionAstre, type Point2 } from './fusee'
 import { choisirAuHasard, entierAuHasard, mulberry32, type Hasard } from './hasard'
+import { numeroSaison, positionVisiteur } from './visiteur'
+
+export { boucleSaison, debutSaison, escaleDuJour, finSaison, numeroSaison, positionVisiteur } from './visiteur'
 
 const HEURE = 3_600_000
-
-// ---------------------------------------------------------------------------------------------------------------
-// Saisons
-
-/** Numéro de la saison de l'instant t : nombre de mois écoulés depuis janvier 2026 (janvier 2026 = 0). */
-export function numeroSaison(t: number): number {
-  const d = new Date(t)
-  return (d.getUTCFullYear() - C.anneeDepart) * 12 + d.getUTCMonth()
-}
-
-/** Début de la saison n (1er du mois, 00:00 UTC). */
-export function debutSaison(n: number): number {
-  return Date.UTC(C.anneeDepart, n, 1)
-}
-
-/** Fin de la saison n (1er du mois suivant, 00:00 UTC). */
-export function finSaison(n: number): number {
-  return debutSaison(n + 1)
-}
-
-// ---------------------------------------------------------------------------------------------------------------
-// Trajectoire
-
-type Segment =
-  | { type: 'escale'; planete: number; t0: number; t1: number }
-  | { type: 'voyage'; de: number; vers: number; t0: number; t1: number }
-
-const position2D = (planete: number, t: number): Point2 => {
-  const p = positionPlanete(NOMS_PLANETES[planete], t)
-  return { x: p.x, y: p.y }
-}
-
-const trajets = new Map<number, Segment[]>()
-
-/**
- * Trajectoire de la saison n (la même pour tous les joueurs, graine n × 7919 + 13) : première escale près d'une
- * planète tirée entre Mercure et Saturne ; escales de 16 à 30 heures ; voyage vers la planète la plus proche hors de
- * ses deux dernières escales, en ligne droite à 0,06 UA/h (6 heures au moins).
- */
-export function trajetSaison(n: number): Segment[] {
-  const deja = trajets.get(n)
-  if (deja) return deja
-  const r = mulberry32(n * C.graineMultiplicateur + C.graineDecalage)
-  const fin = finSaison(n) + C.margeJours * 86_400_000
-  const segments: Segment[] = []
-  const historique: number[] = []
-  let p = Math.floor(r() * C.planetesVisitees)
-  let t = debutSaison(n)
-  while (t < fin) {
-    const escale = (C.escaleMinHeures + r() * (C.escaleMaxHeures - C.escaleMinHeures)) * HEURE
-    segments.push({ type: 'escale', planete: p, t0: t, t1: t + escale })
-    t += escale
-    historique.push(p)
-    const depart = position2D(p, t)
-    let suivante = -1
-    let meilleure = Infinity
-    for (let i = 0; i < C.planetesVisitees; i++) {
-      if (historique.slice(-2).includes(i)) continue
-      const d = distance(depart, position2D(i, t))
-      if (d < meilleure) { meilleure = d; suivante = i }
-    }
-    const duree = Math.max(C.voyageMinHeures, meilleure / C.vitesseUAParHeure) * HEURE
-    segments.push({ type: 'voyage', de: p, vers: suivante, t0: t, t1: t + duree })
-    t += duree
-    p = suivante
-  }
-  trajets.set(n, segments)
-  return segments
-}
-
-export interface PositionVisiteur extends Point2 {
-  /** Planète de l'escale en cours (nom), ou null pendant un voyage. */
-  escale: string | null
-}
-
-/** Position du visiteur à l'instant t (plan de l'écliptique, UA). */
-export function positionVisiteur(t: number): PositionVisiteur {
-  for (const g of trajetSaison(numeroSaison(t))) {
-    if (t < g.t0 || t >= g.t1) continue
-    if (g.type === 'escale') {
-      const q = position2D(g.planete, t)
-      const a = (t / HEURE / C.periodeEscaleHeures) * 2 * Math.PI
-      return { x: q.x + C.rayonEscale * Math.cos(a), y: q.y + C.rayonEscale * Math.sin(a), escale: NOMS_PLANETES[g.planete] }
-    }
-    const A = position2D(g.de, g.t0)
-    const B = position2D(g.vers, g.t1)
-    const f = (t - g.t0) / (g.t1 - g.t0)
-    return { x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, escale: null }
-  }
-  const q = position2D(0, t)
-  return { ...q, escale: NOMS_PLANETES[0] }
-}
-
-// ---------------------------------------------------------------------------------------------------------------
-// État de la chasse du joueur
 
 export interface Indice {
   t: number
   texte: string
+}
+
+/** Une trouvaille : de quoi l'annoncer à tous (le serveur y joindra la photo). */
+export interface Trouvaille {
+  saison: number
+  t: number
+  /** Nom de la fusée, choisi par le joueur. */
+  nomFusee: string
+  serie: string
+  /** Astre près duquel le visiteur a été photographié. */
+  astre: string
 }
 
 export interface EtatChasse {
@@ -129,8 +52,8 @@ export interface EtatChasse {
   /** Dernier bulletin de l'Observatoire et dernière transmission reçus (numéros de créneau). */
   bulletin: number
   transmission: number
-  /** Saisons où le contact a été établi. */
-  contacts: number[]
+  /** Trouvailles du joueur (une par saison au plus). */
+  trouvailles: Trouvaille[]
   /** Indices reçus, le plus récent en premier. */
   indices: Indice[]
 }
@@ -146,7 +69,7 @@ export function creerChasse(t: number): EtatChasse {
     // Pas de bulletin ni de transmission en retard au premier lancement.
     bulletin: Math.floor(t / (C.bulletinHeures * HEURE)),
     transmission: Math.floor(t / (C.transmissionHeures * HEURE)),
-    contacts: [],
+    trouvailles: [],
     indices: [],
   }
 }
@@ -163,12 +86,20 @@ function avecIndice(e: EtatPartie, t: number, texte: string): EtatPartie {
   return { ...e, chasse: { ...e.chasse, indices } }
 }
 
+/** Distance (km) entre la fusée et le visiteur, dans le plan de la carte. */
+export function distanceVisiteurKm(etat: EtatPartie, t: number): number {
+  return distance(etat.fusee.position, positionVisiteur(t)) * UA_KM
+}
+
 /** Durée d'un écho, en clair : « 1 H 23 MIN 05 S ». */
 export function dureeEcho(ms: number): string {
   const s = Math.round(ms / 1000)
   const h = Math.floor(s / 3600), mi = Math.floor((s % 3600) / 60), se = s % 60
   return `${h ? `${h} H ` : ''}${mi} MIN ${String(se).padStart(2, '0')} S`
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Instruments
 
 /** Règle la fréquence de la radio (au centième, de 0 à 12). */
 export function reglerRadio(etat: EtatPartie, ecart: number): EtatPartie {
@@ -217,34 +148,76 @@ export function viserTelescope(etat: EtatPartie, t: number, hasard: Hasard): Res
   return { etat: e, messages: [`TÉLESCOPE : OBJET VISÉ À ${a}°.`] }
 }
 
-/** Distance du visiteur si le détecteur DET est installé et qu'il est à moins de 1,5 UA ; sinon null. */
+/** Distance du visiteur (UA) si le détecteur DET est installé et qu'il est à moins de 1,5 UA ; sinon null. */
 export function visiteurDetecte(etat: EtatPartie, t: number): number | null {
   if (!estInstalle(etat, 'DET')) return null
   const d = distance(etat.fusee.position, positionVisiteur(t))
   return d <= C.porteeDetecteur ? d : null
 }
 
-/** Planète la plus proche d'un point (parmi les 8). */
-function planeteLaPlusProche(p: Point2, t: number): string {
-  let meilleure = 0
-  let dMin = Infinity
-  NOMS_PLANETES.forEach((_, i) => {
-    const d = distance(p, position2D(i, t))
-    if (d < dMin) { dMin = d; meilleure = i }
-  })
-  return NOMS_PLANETES[meilleure]
+// ---------------------------------------------------------------------------------------------------------------
+// Trouvaille
+
+/** Vrai si la soucoupe peut être touchée dans la vue 3D (fusée à moins de 300 000 km du visiteur). */
+export function visiteurAPortee(etat: EtatPartie, t: number): boolean {
+  return distanceVisiteurKm(etat, t) <= C.distanceReperageKm
 }
 
 /**
- * Fait vivre la chasse à l'instant t : échos qui reviennent, bulletin de l'Observatoire (toutes les 6 h, sur la
- * position du visiteur 6 h plus tôt), transmissions (toutes les 8 h), contact (moins de 0,01 UA, une fois par saison).
- * Après une longue absence, un seul bulletin et une seule transmission : les plus récents.
+ * Le joueur a touché la soucoupe dans la vue 3D : la fusée s'en approche (elle s'arrêtera à environ 200 m).
+ * Refusé si le visiteur est trop loin pour avoir été vu.
+ */
+export function approcherVisiteur(etat: EtatPartie, t: number): ResultatChasse {
+  if (!visiteurAPortee(etat, t)) return { etat, messages: [] }
+  const astre = positionVisiteur(t).astre
+  const fusee = { ...etat.fusee, destination: { type: 'visiteur' as const, astre }, fenetre: null, presDuVisiteur: false }
+  return { etat: { ...etat, fusee }, messages: ['APPROCHE DE L’OBJET INCONNU.'] }
+}
+
+/**
+ * Photo prise depuis la fusée : valable à moins de 300 m du visiteur. Une trouvaille par saison et par joueur :
+ * 250 CR et le trophée « Premier contact ». Renvoie la trouvaille, à annoncer à tous les joueurs.
+ */
+export function photographierVisiteur(etat: EtatPartie, t: number): ResultatChasse & { trouvaille: Trouvaille | null } {
+  const v = positionVisiteur(t)
+  if (distanceVisiteurKm(etat, t) > C.distancePhotoKm) {
+    return { etat, messages: ['PHOTO PRISE. RIEN DE NOTABLE SUR LE CLICHÉ.'], trouvaille: null }
+  }
+  const saison = numeroSaison(t)
+  if (etat.chasse.trouvailles.some((x) => x.saison === saison)) {
+    return { etat, messages: ['PHOTO PRISE. VISITEUR DÉJÀ SIGNALÉ CETTE SAISON.'], trouvaille: null }
+  }
+  const trouvaille: Trouvaille = { saison, t, nomFusee: etat.nom, serie: etat.serie, astre: v.astre }
+  let e: EtatPartie = { ...etat, chasse: { ...etat.chasse, trouvailles: [...etat.chasse.trouvailles, trouvaille] } }
+  e = crediter(e, C.primeTrouvaille, `Visiteur, saison ${saison}`, t)
+  if (!e.trophees.includes('contact')) e = { ...e, trophees: [...e.trophees, 'contact'] }
+  e = avecIndice(e, t, 'VISITEUR PHOTOGRAPHIÉ.')
+  return { etat: e, messages: [`VISITEUR PHOTOGRAPHIÉ PRÈS DE ${v.astre.toUpperCase()} ! LA PHOTO EST TRANSMISE À L’OFFICE.`], trouvaille }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Indices qui arrivent tout seuls
+
+/** Planète la plus proche d'un point (parmi les 8). */
+function planeteLaPlusProche(p: Point2, t: number): string {
+  let meilleure: string = NOMS_PLANETES[0]
+  let dMin = Infinity
+  for (const nom of NOMS_PLANETES) {
+    const d = distance(p, positionAstre(nom, t))
+    if (d < dMin) { dMin = d; meilleure = nom }
+  }
+  return meilleure
+}
+
+/**
+ * Fait vivre la chasse à l'instant t : échos qui reviennent, bulletin de l'Observatoire (toutes les 6 h : le système
+ * où se trouvait le visiteur 6 h plus tôt), transmissions (toutes les 8 h). Après une longue absence, un seul bulletin
+ * et une seule transmission : les plus récents.
  */
 export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
   let e = etat
   const messages: string[] = []
 
-  // Échos.
   const revenus = e.chasse.pings.filter((p) => t >= p.retour)
   if (revenus.length) {
     e = { ...e, chasse: { ...e.chasse, pings: e.chasse.pings.filter((p) => t < p.retour) } }
@@ -255,18 +228,14 @@ export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
     }
   }
 
-  // Bulletin de l'Observatoire.
   const b = Math.floor(t / (C.bulletinHeures * HEURE))
   if (b > e.chasse.bulletin) {
     const v = positionVisiteur(b * C.bulletinHeures * HEURE - C.bulletinHeures * HEURE)
-    const m = v.escale
-      ? `OBSERVATOIRE : LES LUNES DE ${v.escale.toUpperCase()} SONT PERTURBÉES.`
-      : 'OBSERVATOIRE : AUCUNE PERTURBATION NOTABLE.'
+    const m = `OBSERVATOIRE : PERTURBATIONS DANS LE SYSTÈME DE ${planeteDe(v.astre).toUpperCase()}.`
     e = avecIndice({ ...e, chasse: { ...e.chasse, bulletin: b } }, t, m)
     messages.push(m)
   }
 
-  // Transmissions.
   const tr = Math.floor(t / (C.transmissionHeures * HEURE))
   if (tr > e.chasse.transmission) {
     const r = mulberry32(tr * C.transmissionMultiplicateur + C.transmissionDecalage)
@@ -275,16 +244,6 @@ export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
     const qui = choisirAuHasard(r, AUTEURS_TRANSMISSIONS)
     const m = `${qui} SIGNALE UNE LUEUR PRÈS DE ${planete.toUpperCase()}.`
     e = avecIndice({ ...e, chasse: { ...e.chasse, transmission: tr } }, t, m)
-    messages.push(m)
-  }
-
-  // Contact.
-  const n = numeroSaison(t)
-  if (!e.chasse.contacts.includes(n) && distance(e.fusee.position, positionVisiteur(t)) < C.distanceContact) {
-    e = crediter({ ...e, chasse: { ...e.chasse, contacts: [...e.chasse.contacts, n] } }, C.primeContact, `Contact, saison ${n}`, t)
-    if (!e.trophees.includes('contact')) e = { ...e, trophees: [...e.trophees, 'contact'] }
-    const m = `CONTACT ÉTABLI AVEC LE VISITEUR DE LA SAISON ${n} !`
-    e = avecIndice(e, t, 'CONTACT ÉTABLI.')
     messages.push(m)
   }
   return { etat: e, messages }

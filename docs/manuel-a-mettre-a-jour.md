@@ -29,6 +29,11 @@ manuel (scripts `manuel/sources/`, qui demandent Python et reportlab). Cocher ch
 - [ ] `chasse_pdf.py` : « pendant une SAISON de 14 jours » → « pendant une SAISON d'un mois (du 1er au dernier jour du
       mois) ». *Décision d'Adrien du 13/10/2026.*
 
+### Chasse : le visiteur ne voyage plus
+- [ ] `chasse_pdf.py` : réécrire la page « Recherche des visiteurs » : boucle de 3 ou 4 escales par mois, une par
+      jour (changement à 00:00 UTC) ; bulletin de l'Observatoire = système ; repérage à l'œil, approche, photo à moins
+      de 300 m ; annonce de la trouvaille à tous. *Décisions d'Adrien du 13/10/2026.*
+
 ### RE-1 : marge de purge
 - [ ] Procédure RE-1 : « Attendre que le CO2 soit **bien** sous 40 (vers 35), puis refermer V-C. » Refermée à 39,9,
       le CO2 repasse 40 pendant qu’on pompe et la réparation échoue. *Validé par Adrien le 13/10/2026.*
