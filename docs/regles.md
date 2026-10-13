@@ -53,7 +53,7 @@ UA = unité astronomique = 149 597 870,7 km.
   - Sur un astre : **mise en orbite**, la fusée suit l'astre. Sur un point libre : arrêt moteur.
 - **Sans destination**, la fusée ne bouge pas (vitesse affichée 0) et le compteur de route ne tourne pas.
 - **Destination** : une planète, la Lune, **n'importe quel satellite** (validé par Adrien le 13/10/2026) ou un point
-  libre. Pendant un contrat, changer de destination est refusé.
+  libre (ou l'ISS). La destination reste libre, même avec des contrats en cours.
 - **ISS** : corps du système de la Terre (destination possible ; distance d'arrivée ≈ 1 700 km, le quart de son
   orbite). Position réelle par la méthode SGP4 à partir de son orbite publiée (TLE, CelesTrak), à télécharger quand
   le jeu est connecté. Une orbite de secours est enregistrée dans le jeu ; si l'orbite a plus de 3 jours, la position
@@ -64,28 +64,33 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ## 2. Vitesse et économie
 
-- Vitesse = 17,4 km/s × 1,1^(améliorations) × 0,2 si L-A abaissé × 0,45 si au moins une avarie.
-  *L'accélération DV-1 (× (1 + 0,5 × accélérations)) est supprimée, avec le grand-père (décision d'Adrien du 13/10/2026).*
+- Vitesse = **30 km/s** × 1,1^(améliorations) × 0,2 si L-A abaissé × 0,45 si au moins une avarie.
+  *Vitesse de départ proposée par Adrien le 13/10/2026 (17,4 km/s dans le prototype).
+  L'accélération DV-1 (× (1 + 0,5 × accélérations)) est supprimée, avec le grand-père.*
 - Coût de l'amélioration n (n commence à 0) : arrondi(20 × 1,07^n) si n ≤ 45 ; sinon arrondi(20 × 1,07^45 × 1,12^(n−45)).
 - Améliorations achetées dans l'ordre, une par une.
 - **Primes de réparation** : CH-1 2, TU-1 2, AL-1 5, CO-1 8, PB-1 10, LP-1 8, HY-1 10, RE-1 6, MO-1 12,
   CR-1 8, AN-1 10, SX-1 12 crédits (CR).
 - **Contrats du tutoriel** : d'abord ISS → Lune, puis Lune → ISS, proposés seuls et dans l'ordre.
-  *Décision d'Adrien du 13/10/2026.*
-- **Contrats du jour** (après le tutoriel) : 6 par jour UTC, identiques pour tous les joueurs (graine = AAAAMMJJ).
-  Pour chacun : un système tiré au hasard (une chance sur 8), puis un corps de ce système (la planète, un de ses
-  satellites ; la Lune ou l'ISS pour la Terre), sans doublon dans la journée. Tous les corps sont possibles,
-  petits satellites compris. *Décision d'Adrien du 13/10/2026 ; le prototype proposait la Lune puis 5 planètes.*
-  Un contrat rempli n'est plus proposé ce jour-là.
-  Types : livraison, relevé, remorquage, courrier (textes dans `src/donnees/economie.ts`).
-  Prime = max(6, arrondi((8 + 30 × √distance_UA) × cours)), figée à l'acceptation. Un contrat à la fois.
-  Accepter fixe la destination (départ maintenant ou à la fenêtre de tir) ; la prime est versée à l'arrivée ;
-  pendant un contrat, changer de destination est refusé ; annuler la destination abandonne le contrat.
-- **Contrat sur place** : un contrat vers l'astre autour duquel la fusée est déjà en orbite peut être accepté ;
-  il est rempli aussitôt, avec la prime divisée par 10 (au moins 1 CR). *Décision d'Adrien du 13/10/2026.*
-- **Cours des contrats** (phase 4, avec le serveur) : les contrats étant les mêmes pour tous, plus un contrat est
-  choisi par les joueurs, moins il rapporte ; moins il est choisi, plus il rapporte. Le moteur accepte déjà un
-  coefficient de cours (1 en attendant le serveur). *Idée d'Adrien du 13/10/2026 ; formule à décider.*
+- **Contrats de la semaine** (après le tutoriel) : 6 par semaine, renouvelés le **lundi à 00:00 UTC**, identiques
+  pour tous les joueurs (graine = AAAAMMJJ du lundi). Pour chacun : un système tiré au hasard (une chance sur 8),
+  puis un corps de ce système (la planète, un de ses satellites ; la Lune ou l'ISS pour la Terre), sans doublon
+  dans la semaine. Tous les corps sont possibles, petits satellites compris. Un contrat rempli n'est plus proposé
+  de la semaine. Types : livraison, relevé, remorquage, courrier (textes dans `src/donnees/economie.ts`).
+- **Contrats en cours** : **3 au plus** en même temps. Accepter un contrat ne change pas la destination (bouton
+  « Y aller » dans l'interface) ; la destination reste libre. Chaque contrat est rempli en arrivant à sa
+  destination ; il reste valable après la fin de sa semaine ; on peut l'abandonner sans pénalité.
+- **Prime** = arrondi(10 × cours + 10 × distance_UA), figée à l'acceptation : une **base** de 10 CR, la même pour
+  tous (soumise au cours), et un **bonus** de 10 CR par UA entre la fusée du joueur et la destination au moment où
+  il accepte. Chaque joueur voit donc un bonus différent ; la prime suit la longueur du voyage.
+- **Contrat sur place** : si la fusée, qui ne vole pas, est déjà à destination (en orbite autour de l'astre, ou
+  assez près pour y être arrivée : par exemple à côté de l'ISS pour un contrat vers la Terre), le contrat peut
+  être accepté ; il est rempli aussitôt, avec la prime divisée par 10 (au moins 1 CR).
+- **Cours des contrats** (phase 4, avec le serveur) : plus un contrat est choisi par les joueurs, moins il rapporte ;
+  moins il est choisi, plus il rapporte. Le moteur accepte déjà un coefficient de cours sur la base (1 en attendant
+  le serveur). *Formule à décider.*
+- *Toutes les règles de contrats ci-dessus : décisions d'Adrien du 13/10/2026. Le prototype proposait 6 contrats par
+  jour (la Lune puis 5 planètes), un seul à la fois, qui fixait la destination ; prime = max(6, arrondi(8 + 30 × √d)).*
 - **Installation des modules** (dans l'ordre) : CO-1 40, PB-1 70, LP-1 110, HY-1 160, RE-1 230, MO-1 320,
   CR-1 420, AN-1 540, SX-1 680. Instruments de chasse : TEL 250, puis DET 1 200 (DET exige TEL).
 - **Trophées** : premier contrat, Mars, Jupiter, Neptune (arrivées), Kuiper (40 UA du Soleil), héliopause (120 UA),

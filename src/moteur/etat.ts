@@ -13,14 +13,14 @@ export const VERSION_FORMAT = 1
 
 /** Un contrat proposé par l'Office. */
 export interface OffreContrat {
-  /** Identifiant : « AAAA-MM-JJ-n » pour les contrats du jour, « tutoriel-n » pour ceux du tutoriel. */
+  /** Identifiant : « AAAA-MM-JJ-n » (date du lundi) pour les contrats de la semaine, « tutoriel-n » pour le tutoriel. */
   id: string
   type: string
   texte: string
   destination: NomCorps
 }
 
-/** Le contrat accepté, avec sa prime figée à l'acceptation. */
+/** Un contrat accepté, avec sa prime figée à l'acceptation. */
 export interface ContratEnCours extends OffreContrat {
   prime: number
 }
@@ -62,9 +62,9 @@ export interface EtatPartie {
   modulesInstalles: string[]
   /** Position, cap et destination de la fusée. */
   fusee: EtatFusee
-  /** Contrat accepté, ou null. */
-  contrat: ContratEnCours | null
-  /** Contrats déjà remplis (ceux du jour et ceux du tutoriel), pour ne pas les proposer à nouveau. */
+  /** Contrats acceptés et pas encore remplis (3 au plus). */
+  contrats: ContratEnCours[]
+  /** Contrats déjà remplis (ceux de la semaine et ceux du tutoriel), pour ne pas les proposer à nouveau. */
   contratsFaits: string[]
   /** Journal des crédits, le plus récent en premier. */
   journal: EntreeJournal[]
@@ -85,7 +85,7 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     ameliorations: 0,
     modulesInstalles: [],
     fusee: creerFusee(t),
-    contrat: null,
+    contrats: [],
     contratsFaits: [],
     journal: [],
     trophees: [],

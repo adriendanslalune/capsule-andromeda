@@ -35,14 +35,16 @@ export const INSTRUMENTS: readonly { code: string; nom: string; prix: number; ex
 /** Nombre maximal de lignes gardées dans le journal des crédits. */
 export const TAILLE_JOURNAL = 40
 
-/** Contrats. */
+/** Contrats (décisions d'Adrien du 13/10/2026). */
 export const CONTRATS = {
-  /** Contrats proposés chaque jour (après le tutoriel). */
-  parJour: 6,
-  /** Prime = max(minimum, arrondi(base + parRacineUA × √distance en UA)), figée à l'acceptation. */
-  primeMinimum: 6,
-  primeBase: 8,
-  primeParRacineUA: 30,
+  /** Contrats proposés chaque semaine (après le tutoriel), renouvelés le lundi à 00:00 UTC. */
+  parSemaine: 6,
+  /** Nombre maximal de contrats en cours en même temps. */
+  maxEnCours: 3,
+  /** Prime = arrondi(base × cours + bonusParUA × distance en UA), figée à l'acceptation. */
+  primeBase: 10,
+  /** Bonus selon la distance entre le joueur et la destination, au moment où il accepte (CR par UA). */
+  bonusParUA: 10,
   /** Contrat vers l'astre où la fusée est déjà en orbite : prime divisée par ce nombre (au moins 1 CR). */
   diviseurSurPlace: 10,
 } as const

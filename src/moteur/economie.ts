@@ -16,14 +16,7 @@ import {
   TYPES_CONTRATS,
 } from '../donnees/economie'
 import type { ContratEnCours, EtatPartie, OffreContrat } from './etat'
-import {
-  annulerDestination,
-  choisirDestination,
-  choisirDestinationAvecFenetre,
-  distance,
-  positionAstre,
-  type Destination,
-} from './fusee'
+import { distance, positionAstre, seuilArrivee, type Destination } from './fusee'
 import { choisirAuHasard, entierAuHasard, mulberry32 } from './hasard'
 
 /** Résultat d'une action du joueur : le nouvel état, ou la raison du refus (l'état est alors inchangé). */
@@ -96,29 +89,42 @@ export function installer(etat: EtatPartie, code: string, t: number): Resultat {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Contrats
+//
+// Décisions d'Adrien (13/10/2026) : contrats renouvelés chaque semaine (lundi 00:00 UTC), les mêmes pour tous ;
+// 3 contrats en cours au plus ; accepter un contrat ne change pas la destination ; prime = base (la même pour
+// tous, soumise plus tard au cours) + bonus selon la distance du joueur qui l'accepte.
 
-/** Jour UTC de l'instant t, au format AAAA-MM-JJ. */
-export function jourUTC(t: number): string {
-  return new Date(t).toISOString().slice(0, 10)
+/** Lundi (00:00 UTC) de la semaine de l'instant t, au format AAAA-MM-JJ. */
+export function semaineUTC(t: number): string {
+  const d = new Date(t)
+  const joursDepuisLundi = (d.getUTCDay() + 6) % 7
+  const lundi = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - joursDepuisLundi)
+  return new Date(lundi).toISOString().slice(0, 10)
 }
 
-/** Nom d'un lieu dans une phrase (« la Lune », « l'ISS », « Titan »). */
+/** Nom d'un lieu dans une phrase (« la Lune », « la Terre », « l'ISS », « Titan »). */
 function lieu(destination: NomCorps): string {
   if (destination === 'Lune') return 'la Lune'
+  if (destination === 'Terre') return 'la Terre'
   if (destination === 'ISS') return 'l’ISS'
   return destination
 }
 
+/** Élision devant une voyelle : « près de Obéron » → « près d'Obéron ». */
+function elider(texte: string): string {
+  return texte.replace(/(^|\s)de ([AEIOUYÉÈÊÂÎÔ])/g, '$1d’$2')
+}
+
 /**
- * Les contrats d'un jour UTC, identiques pour tous les joueurs (tirage à graine = AAAAMMJJ).
- * Pour chacun : un système tiré au hasard (une chance sur 8), puis un corps de ce système (la planète, un de ses
- * satellites ; la Lune ou l'ISS pour la Terre), sans doublon dans la journée.
+ * Les contrats d'une semaine (désignée par la date de son lundi), identiques pour tous les joueurs
+ * (tirage à graine = AAAAMMJJ du lundi). Pour chacun : un système tiré au hasard (une chance sur 8), puis un corps
+ * de ce système (la planète, un de ses satellites ; la Lune ou l'ISS pour la Terre), sans doublon dans la semaine.
  */
-export function contratsDuJour(jour: string): OffreContrat[] {
-  const hasard = mulberry32(Number(jour.replace(/-/g, '')))
+export function contratsDeLaSemaine(lundi: string): OffreContrat[] {
+  const hasard = mulberry32(Number(lundi.replace(/-/g, '')))
   const offres: OffreContrat[] = []
   const destinations = new Set<NomCorps>()
-  while (offres.length < CONTRATS.parJour) {
+  while (offres.length < CONTRATS.parSemaine) {
     const systeme = choisirAuHasard(hasard, NOMS_PLANETES)
     const destination = choisirAuHasard(hasard, corpsDuSysteme(systeme))
     const modele = TYPES_CONTRATS[entierAuHasard(hasard, TYPES_CONTRATS.length)]
@@ -126,9 +132,9 @@ export function contratsDuJour(jour: string): OffreContrat[] {
     if (destinations.has(destination)) continue
     destinations.add(destination)
     offres.push({
-      id: `${jour}-${offres.length}`,
+      id: `${lundi}-${offres.length}`,
       type: modele.type,
-      texte: modele.texte.replace('{o}', objet).replace('{d}', lieu(destination)),
+      texte: elider(modele.texte.replace('{o}', objet).replace('{d}', lieu(destination))),
       destination,
     })
   }
@@ -141,75 +147,80 @@ export function contratsTutorielFaits(etat: EtatPartie): number {
 }
 
 /**
- * Contrats proposés à l'instant t : tant que le tutoriel n'est pas fini, seulement le prochain contrat du tutoriel ;
- * ensuite, les contrats du jour pas encore remplis.
+ * Contrats proposés à l'instant t (hors contrats déjà acceptés ou remplis) : tant que le tutoriel n'est pas fini,
+ * seulement le prochain contrat du tutoriel ; ensuite, les contrats de la semaine.
  */
 export function contratsProposes(etat: EtatPartie, t: number): OffreContrat[] {
+  const pris = new Set([...etat.contratsFaits, ...etat.contrats.map((c) => c.id)])
   const tutoriel = CONTRATS_TUTORIEL.find((c) => !etat.contratsFaits.includes(c.id))
-  if (tutoriel) return [{ ...tutoriel }]
-  return contratsDuJour(jourUTC(t)).filter((c) => !etat.contratsFaits.includes(c.id))
-}
-
-/** Vrai si la fusée est déjà en orbite autour de la destination du contrat. */
-export function contratSurPlace(etat: EtatPartie, offre: OffreContrat): boolean {
-  return etat.fusee.orbite === offre.destination && etat.fusee.destination === null
+  if (tutoriel) return pris.has(tutoriel.id) ? [] : [{ ...tutoriel }]
+  return contratsDeLaSemaine(semaineUTC(t)).filter((c) => !pris.has(c.id))
 }
 
 /**
- * Prime proposée (CR) : max(6, arrondi((8 + 30 × √distance) × cours)), distance en UA entre la fusée et la
- * destination. Le cours (1 par défaut) viendra du serveur : plus un contrat est choisi par les joueurs, moins il
- * rapporte (idée d'Adrien du 13/10/2026, formule à décider en phase 4).
+ * Vrai si la fusée, qui ne vole pas, est déjà sur place : en orbite autour de la destination du contrat, ou assez
+ * près pour y être arrivée (par exemple à côté de l'ISS pour un contrat vers la Terre).
+ */
+export function contratSurPlace(etat: EtatPartie, offre: OffreContrat, t: number): boolean {
+  if (etat.fusee.destination !== null && etat.fusee.fenetre === null) return false
+  if (etat.fusee.orbite === offre.destination) return true
+  const dest: Destination = { type: 'astre', astre: offre.destination }
+  return distance(etat.fusee.position, positionAstre(offre.destination, t)) <= seuilArrivee(dest)
+}
+
+/**
+ * Prime proposée au joueur (CR) : arrondi(10 × cours + 10 × distance), distance en UA entre sa fusée et la
+ * destination. La base est la même pour tous ; le bonus dépend de la position de chaque joueur. Le cours (1 par
+ * défaut) viendra du serveur : plus un contrat est choisi, moins il rapporte (formule à décider en phase 4).
  * Si la fusée est déjà en orbite autour de la destination : prime divisée par 10 (au moins 1 CR).
  */
 export function primeContrat(etat: EtatPartie, offre: OffreContrat, t: number, cours = 1): number {
   const d = distance(etat.fusee.position, positionAstre(offre.destination, t))
-  const brute = (CONTRATS.primeBase + CONTRATS.primeParRacineUA * Math.sqrt(d)) * cours
-  const prime = Math.max(CONTRATS.primeMinimum, Math.round(brute))
-  return contratSurPlace(etat, offre) ? Math.max(1, Math.round(prime / CONTRATS.diviseurSurPlace)) : prime
+  const prime = Math.round(CONTRATS.primeBase * cours + CONTRATS.bonusParUA * d)
+  return contratSurPlace(etat, offre, t) ? Math.max(1, Math.round(prime / CONTRATS.diviseurSurPlace)) : prime
 }
 
-/** Remplit le contrat en cours : prime versée, contrat noté comme fait. */
-function remplirContrat(etat: EtatPartie, t: number): EtatPartie {
-  const c = etat.contrat
-  if (!c) return etat
-  const jour = jourUTC(t)
-  // On ne garde que les contrats faits aujourd'hui et ceux du tutoriel.
-  const faits = [...etat.contratsFaits.filter((id) => id.startsWith(jour) || id.startsWith('tutoriel')), c.id]
-  const apres = crediter(etat, c.prime, `Contrat ${c.destination}`, t)
-  return { ...apres, contrat: null, contratsFaits: faits, stats: { ...apres.stats, contrats: apres.stats.contrats + 1 } }
+/** Remplit les contrats en cours dont la destination est cet astre : primes versées, contrats notés comme faits. */
+function remplirContrats(etat: EtatPartie, astre: NomCorps, t: number): EtatPartie {
+  const remplis = etat.contrats.filter((c) => c.destination === astre)
+  if (remplis.length === 0) return etat
+  const semaine = semaineUTC(t)
+  // On ne garde que les contrats faits cette semaine et ceux du tutoriel.
+  const anciens = etat.contratsFaits.filter((id) => id.startsWith(semaine) || id.startsWith('tutoriel'))
+  let e: EtatPartie = {
+    ...etat,
+    contrats: etat.contrats.filter((c) => c.destination !== astre),
+    contratsFaits: [...anciens, ...remplis.map((c) => c.id)],
+    stats: { ...etat.stats, contrats: etat.stats.contrats + remplis.length },
+  }
+  for (const c of remplis) e = crediter(e, c.prime, `Contrat ${c.destination}`, t)
+  return e
 }
 
 /**
- * Accepte un contrat proposé : la prime est figée et la destination fixée (départ maintenant, ou à la fenêtre de
- * tir). Un contrat vers l'astre où la fusée est déjà en orbite est rempli aussitôt, avec une prime réduite.
+ * Accepte un contrat proposé : la prime est figée ; la destination de la fusée ne change pas.
+ * Un contrat vers l'astre où la fusée est déjà en orbite est rempli aussitôt, avec une prime réduite.
  */
-export function accepterContrat(etat: EtatPartie, id: string, t: number, vitesseKmS: number,
-  depart: 'maintenant' | 'fenetre' = 'maintenant', cours = 1): Resultat {
-  if (etat.contrat) return refuse(etat, 'Un contrat est déjà en cours.')
+export function accepterContrat(etat: EtatPartie, id: string, t: number, cours = 1): Resultat {
   const offre = contratsProposes(etat, t).find((c) => c.id === id)
   if (!offre) return refuse(etat, "Ce contrat n'est pas proposé.")
+  if (etat.contrats.length >= CONTRATS.maxEnCours) {
+    return refuse(etat, `${CONTRATS.maxEnCours} contrats au plus en même temps.`)
+  }
   const contrat: ContratEnCours = { ...offre, prime: primeContrat(etat, offre, t, cours) }
-  if (contratSurPlace(etat, offre)) return accepte(verifierTrophees(remplirContrat({ ...etat, contrat }, t)))
-  const dest: Destination = { type: 'astre', astre: offre.destination }
-  const fusee = depart === 'fenetre'
-    ? choisirDestinationAvecFenetre(etat.fusee, dest, t, vitesseKmS)
-    : choisirDestination(etat.fusee, dest)
-  return accepte({ ...etat, contrat, fusee })
+  const e: EtatPartie = { ...etat, contrats: [...etat.contrats, contrat] }
+  return accepte(contratSurPlace(etat, offre, t) ? verifierTrophees(remplirContrats(e, offre.destination, t)) : e)
 }
 
-/** Change de destination (hors contrat) ; refusé pendant un contrat. */
-export function changerDestination(etat: EtatPartie, dest: Destination, t: number, vitesseKmS: number,
-  depart: 'maintenant' | 'fenetre' = 'maintenant'): Resultat {
-  if (etat.contrat) return refuse(etat, 'Contrat en cours : annulez-le avant de changer de cap.')
-  const fusee = depart === 'fenetre'
-    ? choisirDestinationAvecFenetre(etat.fusee, dest, t, vitesseKmS)
-    : choisirDestination(etat.fusee, dest)
-  return accepte({ ...etat, fusee })
+/** Abandonne un contrat en cours (sans pénalité). */
+export function abandonnerContrat(etat: EtatPartie, id: string): Resultat {
+  if (!etat.contrats.some((c) => c.id === id)) return refuse(etat, "Ce contrat n'est pas en cours.")
+  return accepte({ ...etat, contrats: etat.contrats.filter((c) => c.id !== id) })
 }
 
-/** Annule la destination ; pendant un contrat, le contrat est abandonné. */
-export function annulerDestinationEtContrat(etat: EtatPartie): EtatPartie {
-  return { ...etat, contrat: null, fusee: annulerDestination(etat.fusee) }
+/** Destination d'un contrat, à donner à la fusée (bouton « Y aller »). */
+export function destinationDuContrat(contrat: OffreContrat): Destination {
+  return { type: 'astre', astre: contrat.destination }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -219,11 +230,11 @@ function ajouterTrophee(etat: EtatPartie, id: string): EtatPartie {
   return etat.trophees.includes(id) ? etat : { ...etat, trophees: [...etat.trophees, id] }
 }
 
-/** Arrivée sur une destination : contrat rempli si c'est la sienne, trophées d'arrivée. */
+/** Arrivée sur une destination : contrats remplis s'ils vont là, trophées d'arrivée. */
 export function traiterArrivee(etat: EtatPartie, arrivee: Destination, t: number): EtatPartie {
   let e = etat
   if (arrivee.type === 'astre') {
-    if (e.contrat && e.contrat.destination === arrivee.astre) e = remplirContrat(e, t)
+    e = remplirContrats(e, arrivee.astre, t)
     const trophee = TROPHEES_ARRIVEE[arrivee.astre]
     if (trophee) e = ajouterTrophee(e, trophee)
   }

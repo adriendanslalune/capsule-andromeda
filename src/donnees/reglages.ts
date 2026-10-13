@@ -1,8 +1,8 @@
 // Réglages d'équilibrage du jeu. Valeurs du prototype v0.1 (voir docs/regles.md).
 // Ne pas modifier sans l'accord d'Adrien.
 
-/** Vitesse de base de la C-58 (km/s). */
-export const VITESSE_BASE = 17.4
+/** Vitesse de base de la C-58 (km/s). Proposée par Adrien le 13/10/2026 (17,4 km/s dans le prototype). */
+export const VITESSE_BASE = 30
 /** Chaque amélioration du moteur multiplie la vitesse par ce facteur. */
 export const FACTEUR_AMELIORATION = 1.1
 /** Multiplicateur de vitesse quand le levier L-A (TU-1) est abaissé. */

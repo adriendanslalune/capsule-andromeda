@@ -36,7 +36,9 @@ Puis « Prendre les commandes », et une première panne guidée.
   point libre) ; depuis une orbite, deux boutons : « Partir maintenant — arrivée le … » et, s'il y en a une,
   « Attendre la fenêtre de tir — départ le …, arrivée le … » ; en attente, afficher le compte à rebours du départ,
   ping, tracés de chasse (cercle autour du dernier ping, droite depuis la dernière visée).
-- **Office** : caisse et prochaine amélioration ; onglets Contrats, Atelier (améliorations, modules, instruments), Trophées.
+- **Office** : caisse et prochaine amélioration ; onglets Contrats (contrats de la semaine avec leur prime pour ce
+  joueur, 3 contrats en cours au plus, boutons « Accepter », « Y aller », « Abandonner »), Atelier (améliorations,
+  modules, instruments), Trophées.
 - **Manuel** : lecteur page par page.
 
 ## 5. Vue 3D (dehors)

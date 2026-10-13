@@ -42,25 +42,25 @@ function voyager(fusee: EtatFusee, dest: Destination, v: number, pas: number, ma
 }
 
 describe('vitesse', () => {
-  it('17,4 km/s pour une fusée neuve', () => {
-    expect(vitesse(NORMAL)).toBe(17.4)
+  it('30 km/s pour une fusée neuve', () => {
+    expect(vitesse(NORMAL)).toBe(30)
   })
 
   it('× 1,1 par amélioration', () => {
-    expect(vitesse({ ...NORMAL, ameliorations: 1 })).toBeCloseTo(19.14, 10)
-    expect(vitesse({ ...NORMAL, ameliorations: 10 })).toBeCloseTo(17.4 * 1.1 ** 10, 10)
+    expect(vitesse({ ...NORMAL, ameliorations: 1 })).toBeCloseTo(33, 10)
+    expect(vitesse({ ...NORMAL, ameliorations: 10 })).toBeCloseTo(30 * 1.1 ** 10, 10)
   })
 
   it('× 0,2 levier L-A abaissé, × 0,45 en avarie', () => {
-    expect(vitesse({ ...NORMAL, levierAAbaisse: true })).toBeCloseTo(3.48, 10)
-    expect(vitesse({ ...NORMAL, avarie: true })).toBeCloseTo(7.83, 10)
-    expect(vitesse({ ameliorations: 2, levierAAbaisse: true, avarie: true })).toBeCloseTo(17.4 * 1.21 * 0.2 * 0.45, 10)
+    expect(vitesse({ ...NORMAL, levierAAbaisse: true })).toBeCloseTo(6, 10)
+    expect(vitesse({ ...NORMAL, avarie: true })).toBeCloseTo(13.5, 10)
+    expect(vitesse({ ameliorations: 2, levierAAbaisse: true, avarie: true })).toBeCloseTo(30 * 1.21 * 0.2 * 0.45, 10)
   })
 
   it('vitesse affichée nulle sans destination', () => {
     const f = creerFusee(T0)
     expect(vitesseAffichee(f, NORMAL)).toBe(0)
-    expect(vitesseAffichee(choisirDestination(f, { type: 'astre', astre: 'Mars' }), NORMAL)).toBe(17.4)
+    expect(vitesseAffichee(choisirDestination(f, { type: 'astre', astre: 'Mars' }), NORMAL)).toBe(30)
   })
 })
 
