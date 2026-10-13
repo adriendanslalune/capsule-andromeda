@@ -1,7 +1,8 @@
 // État complet d'une partie.
 // Tout ce qui doit être sauvegardé est ici, sous forme de données simples (sérialisables en JSON).
-// Les autres parties de l'état (fusée, modules, pannes, chasse…) seront ajoutées étape par étape.
+// Les autres parties de l'état (modules, pannes, chasse…) seront ajoutées étape par étape.
 
+import type { NomCorps } from '../astro/corps'
 import { INTERRUPTEURS_DEPART, type Interrupteurs } from '../donnees/fusee'
 import { creerFusee, type EtatFusee } from './fusee'
 import type { Hasard } from './hasard'
@@ -10,12 +11,44 @@ import { genererSerie } from './serie'
 /** Version du format de sauvegarde. À augmenter à chaque changement de structure, avec une migration. */
 export const VERSION_FORMAT = 1
 
+/** Un contrat proposé par l'Office. */
+export interface OffreContrat {
+  /** Identifiant : « AAAA-MM-JJ-n » pour les contrats du jour, « tutoriel-n » pour ceux du tutoriel. */
+  id: string
+  type: string
+  texte: string
+  destination: NomCorps
+}
+
+/** Le contrat accepté, avec sa prime figée à l'acceptation. */
+export interface ContratEnCours extends OffreContrat {
+  prime: number
+}
+
+/** Une ligne du journal des crédits. */
+export interface EntreeJournal {
+  /** Instant (ms UTC). */
+  t: number
+  raison: string
+  /** Montant (CR) : positif pour un gain, négatif pour une dépense. */
+  montant: number
+}
+
+export interface Statistiques {
+  /** Pannes réparées. */
+  pannes: number
+  /** Contrats remplis. */
+  contrats: number
+  /** Plus grande distance au Soleil atteinte (UA). */
+  distanceMaxSoleil: number
+}
+
 export interface EtatPartie {
   /** Version du format, pour migrer les anciennes sauvegardes. */
   version: number
   /** Instant de création de la partie (ms UTC). */
   creeLe: number
-  /** Dernier instant simulé (ms UTC), pour le rattrapage hors ligne. */
+  /** Dernier instant simulé (ms UTC), pour le rattrapage après une absence. */
   vu: number
   /** Numéro de série de la fusée (LLC-CCL). */
   serie: string
@@ -25,8 +58,19 @@ export interface EtatPartie {
   credits: number
   /** Nombre d'améliorations du moteur achetées. */
   ameliorations: number
+  /** Modules et instruments achetés à l'Office (en plus des modules de base), dans l'ordre d'achat. */
+  modulesInstalles: string[]
   /** Position, cap et destination de la fusée. */
   fusee: EtatFusee
+  /** Contrat accepté, ou null. */
+  contrat: ContratEnCours | null
+  /** Contrats déjà remplis (ceux du jour et ceux du tutoriel), pour ne pas les proposer à nouveau. */
+  contratsFaits: string[]
+  /** Journal des crédits, le plus récent en premier. */
+  journal: EntreeJournal[]
+  /** Trophées obtenus (identifiants), dans l'ordre d'obtention. */
+  trophees: string[]
+  stats: Statistiques
 }
 
 /** Crée une nouvelle partie à l'instant t. */
@@ -39,6 +83,12 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     interrupteurs: INTERRUPTEURS_DEPART,
     credits: 0,
     ameliorations: 0,
+    modulesInstalles: [],
     fusee: creerFusee(t),
+    contrat: null,
+    contratsFaits: [],
+    journal: [],
+    trophees: [],
+    stats: { pannes: 0, contrats: 0, distanceMaxSoleil: 0 },
   }
 }

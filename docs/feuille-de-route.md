@@ -26,6 +26,8 @@ Chaque phase se termine par une version jouable, testée, commitée et poussée 
 
 ## Phase 4 — Serveur
 - Comptes, sauvegarde en ligne, couronne et classement, fusées des autres joueurs, vérification anti-triche.
+- Cours des contrats : la prime baisse quand beaucoup de joueurs choisissent un contrat, monte s'il est délaissé.
+- Orbite à jour de l'ISS (CelesTrak ne permet pas le téléchargement direct depuis une page web).
 
 ## Plus tard
 - Direction artistique définitive.

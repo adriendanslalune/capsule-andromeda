@@ -6,7 +6,7 @@ import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, type NomPlanete } from '
 import { demiGrandAxeISS, periodeISS, positionISSGeocentrique } from './iss'
 import { positionLune } from './lune'
 import { positionPlanete } from './planetes'
-import { LISTE_SATELLITES, positionSatellite, satellite, type Satellite } from './satellites'
+import { LISTE_SATELLITES, positionSatellite, satellite, satellitesDe, type Satellite } from './satellites'
 import { UA_KM } from './temps'
 import { ajouter, multiplier, type Vecteur3 } from './vecteur'
 
@@ -26,6 +26,12 @@ export function corpsExiste(nom: NomCorps): boolean {
 /** Tous les corps, dans l'ordre : planètes, Lune, ISS, puis satellites naturels. */
 export function tousLesCorps(): NomCorps[] {
   return [...NOMS_PLANETES, 'Lune', 'ISS', ...LISTE_SATELLITES.map((s) => s.nom)]
+}
+
+/** Corps d'un système, dans l'ordre : la planète, (pour la Terre : Lune, ISS), puis ses satellites naturels. */
+export function corpsDuSysteme(planete: NomPlanete): NomCorps[] {
+  const proches = planete === 'Terre' ? ['Lune', 'ISS'] : []
+  return [planete, ...proches, ...satellitesDe(planete).map((s) => s.nom)]
 }
 
 function satelliteConnu(nom: NomCorps): Satellite {

@@ -70,11 +70,22 @@ UA = unité astronomique = 149 597 870,7 km.
 - Améliorations achetées dans l'ordre, une par une.
 - **Primes de réparation** : CH-1 2, TU-1 2, AL-1 5, CO-1 8, PB-1 10, LP-1 8, HY-1 10, RE-1 6, MO-1 12,
   CR-1 8, AN-1 10, SX-1 12 crédits (CR).
-- **Contrats** : 6 par jour, tirés au hasard avec une graine = la date du jour (AAAAMMJJ).
-  Le premier va toujours vers la Lune, les 5 autres vers 5 planètes différentes parmi Mercure → Neptune.
-  Types : livraison, relevé, remorquage, courrier (textes dans le prototype).
-  Prime = max(6, arrondi(8 + 30 × √distance_UA)), figée à l'acceptation. Un contrat à la fois.
-  Accepter fixe la destination ; la prime est versée à l'arrivée ; annuler la destination abandonne le contrat.
+- **Contrats du tutoriel** : d'abord ISS → Lune, puis Lune → ISS, proposés seuls et dans l'ordre.
+  *Décision d'Adrien du 13/10/2026.*
+- **Contrats du jour** (après le tutoriel) : 6 par jour UTC, identiques pour tous les joueurs (graine = AAAAMMJJ).
+  Pour chacun : un système tiré au hasard (une chance sur 8), puis un corps de ce système (la planète, un de ses
+  satellites ; la Lune ou l'ISS pour la Terre), sans doublon dans la journée. Tous les corps sont possibles,
+  petits satellites compris. *Décision d'Adrien du 13/10/2026 ; le prototype proposait la Lune puis 5 planètes.*
+  Un contrat rempli n'est plus proposé ce jour-là.
+  Types : livraison, relevé, remorquage, courrier (textes dans `src/donnees/economie.ts`).
+  Prime = max(6, arrondi((8 + 30 × √distance_UA) × cours)), figée à l'acceptation. Un contrat à la fois.
+  Accepter fixe la destination (départ maintenant ou à la fenêtre de tir) ; la prime est versée à l'arrivée ;
+  pendant un contrat, changer de destination est refusé ; annuler la destination abandonne le contrat.
+- **Contrat sur place** : un contrat vers l'astre autour duquel la fusée est déjà en orbite peut être accepté ;
+  il est rempli aussitôt, avec la prime divisée par 10 (au moins 1 CR). *Décision d'Adrien du 13/10/2026.*
+- **Cours des contrats** (phase 4, avec le serveur) : les contrats étant les mêmes pour tous, plus un contrat est
+  choisi par les joueurs, moins il rapporte ; moins il est choisi, plus il rapporte. Le moteur accepte déjà un
+  coefficient de cours (1 en attendant le serveur). *Idée d'Adrien du 13/10/2026 ; formule à décider.*
 - **Installation des modules** (dans l'ordre) : CO-1 40, PB-1 70, LP-1 110, HY-1 160, RE-1 230, MO-1 320,
   CR-1 420, AN-1 540, SX-1 680. Instruments de chasse : TEL 250, puis DET 1 200 (DET exige TEL).
 - **Trophées** : premier contrat, Mars, Jupiter, Neptune (arrivées), Kuiper (40 UA du Soleil), héliopause (120 UA),
