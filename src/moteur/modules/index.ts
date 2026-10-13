@@ -1,15 +1,18 @@
 // Ensemble des modules de la fusée : leur état, qui est en avarie, et leur évolution à chaque pas de temps.
-// Les modules achetés à l'Office s'ajouteront ici au fil de leur écriture.
 
 import type { Hasard } from '../hasard'
 import { al1EnPanne, creerAL1, type EtatAL1 } from './al1'
+import { an1EnPanne, creerAN1, type EtatAN1 } from './an1'
 import { co1EnPanne, creerCO1, type EtatCO1 } from './co1'
 import type { Evenement } from './commun'
+import { cr1EnPanne, creerCR1, type EtatCR1 } from './cr1'
 import { creerHY1, hy1EnPanne, type EtatHY1 } from './hy1'
 import { creerLP1, lp1EnPanne, type EtatLP1 } from './lp1'
+import { creerMO1, mo1EnPanne, type EtatMO1 } from './mo1'
 import { creerPB1, pb1EnPanne, type EtatPB1 } from './pb1'
 import { ch1EnPanne, creerPropulsion, evoluerPropulsion, tu1EnPanne, type EtatPropulsion } from './propulsion'
 import { creerRE1, evoluerRE1, re1EnPanne, type EtatRE1 } from './re1'
+import { creerSX1, sx1EnPanne, type EtatSX1 } from './sx1'
 
 export interface EtatModules {
   /** CH-1 et TU-1. */
@@ -20,12 +23,17 @@ export interface EtatModules {
   lp1: EtatLP1
   hy1: EtatHY1
   re1: EtatRE1
+  mo1: EtatMO1
+  cr1: EtatCR1
+  an1: EtatAN1
+  sx1: EtatSX1
 }
 
 export function creerModules(hasard: Hasard): EtatModules {
   return {
     propulsion: creerPropulsion(), al1: creerAL1(hasard), co1: creerCO1(), pb1: creerPB1(),
-    lp1: creerLP1(), hy1: creerHY1(), re1: creerRE1(),
+    lp1: creerLP1(), hy1: creerHY1(), re1: creerRE1(), mo1: creerMO1(), cr1: creerCR1(), an1: creerAN1(),
+    sx1: creerSX1(),
   }
 }
 
@@ -40,6 +48,10 @@ export function modulesEnPanne(m: EtatModules): string[] {
   if (lp1EnPanne(m.lp1)) liste.push('LP-1')
   if (hy1EnPanne(m.hy1)) liste.push('HY-1')
   if (re1EnPanne(m.re1)) liste.push('RE-1')
+  if (mo1EnPanne(m.mo1)) liste.push('MO-1')
+  if (cr1EnPanne(m.cr1)) liste.push('CR-1')
+  if (an1EnPanne(m.an1)) liste.push('AN-1')
+  if (sx1EnPanne(m.sx1)) liste.push('SX-1')
   return liste
 }
 

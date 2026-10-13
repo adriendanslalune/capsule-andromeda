@@ -95,3 +95,33 @@ export const RECYCLEUR = {
   pompe: 10,
   o2ApresSoupape: 70,
 } as const
+
+/** MO-1 Morse : annuaire des stations (indicatif → fréquence d'émission), page XIV du manuel. */
+export const STATIONS_MORSE: Readonly<Record<string, number>> = {
+  VEGA: 3.47, ARES: 5.12, IRIS: 8.06, NOVA: 2.89, LUNA: 6.64, ECHO: 9.31, ZETA: 1.75, OMEGA: 10.42, SOL: 4.58, ATLAS: 7.93,
+}
+export const MORSE = {
+  /** Fréquence affichée au départ, bornes du réglage (le réglage se fait au centième). */
+  frequenceDepart: 5,
+  frequenceMin: 0,
+  frequenceMax: 12,
+  /** S-1 bas : ajouter 1,00 à la fréquence. */
+  correctionS1: 1,
+  /** Durée d'un point (s) ; un trait vaut 3 points ; 3 points entre deux lettres, 8 avant de recommencer. */
+  point: 0.22,
+} as const
+/** Alphabet morse international. */
+export const ALPHABET_MORSE: Readonly<Record<string, string>> = {
+  A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-',
+  L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-',
+  W: '.--', X: '-..-', Y: '-.--', Z: '--..',
+}
+
+/** CR-1 Chronomètre de bord : dérive de ±7 à ±240 minutes ; tolérance au recalage : 1 minute. */
+export const CHRONOMETRE = { deriveMin: 7, deriveMax: 240, tolerance: 1 } as const
+
+/** AN-1 Antenne : tolérance 5° ; jamais en avarie à moins de 0,02 UA (3 millions de km) de la Terre. */
+export const ANTENNE = { tolerance: 5, distanceMinTerre: 0.02 } as const
+
+/** SX-1 Sextant : tolérance 1,5°. */
+export const SEXTANT = { tolerance: 1.5 } as const
