@@ -3,6 +3,7 @@
 // Les autres parties de l'état (fusée, modules, pannes, chasse…) seront ajoutées étape par étape.
 
 import { INTERRUPTEURS_DEPART, type Interrupteurs } from '../donnees/fusee'
+import { creerFusee, type EtatFusee } from './fusee'
 import type { Hasard } from './hasard'
 import { genererSerie } from './serie'
 
@@ -24,6 +25,8 @@ export interface EtatPartie {
   credits: number
   /** Nombre d'améliorations du moteur achetées. */
   ameliorations: number
+  /** Position, cap et destination de la fusée. */
+  fusee: EtatFusee
 }
 
 /** Crée une nouvelle partie à l'instant t. */
@@ -36,5 +39,6 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     interrupteurs: INTERRUPTEURS_DEPART,
     credits: 0,
     ameliorations: 0,
+    fusee: creerFusee(t),
   }
 }

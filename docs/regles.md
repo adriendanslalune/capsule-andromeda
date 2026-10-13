@@ -23,6 +23,11 @@ UA = unité astronomique = 149 597 870,7 km.
 - **Départ** : nouvelle partie en orbite autour de la Terre.
 - **Cap** : angle en degrés, 0° vers +x (point vernal), sens trigonométrique.
 - **Virage** : la fusée tourne vers sa destination à **4° par seconde**.
+- **Déplacement** : la vitesse de la fusée est comptée **par rapport à sa destination**. À chaque pas, la fusée est
+  d'abord entraînée par le mouvement de sa cible, puis elle tourne et avance tout droit selon son cap. Une fois le
+  virage fini, la distance restante diminue exactement à la vitesse de la fusée : temps restant = distance ÷ vitesse.
+  *Changement validé par Adrien le 13/10/2026 : dans le prototype, la vitesse était comptée par rapport au Soleil ;
+  une fusée neuve (17,4 km/s) ne pouvait alors rattraper ni la Lune (emportée par la Terre à 30 km/s), ni Vénus, ni Mars.*
 - **Arrivée** : quand la distance restante ≤ max(pas, 0,002 UA) (Lune : 0,0002 UA).
   - Sur une planète ou la Lune : **mise en orbite**, la fusée suit l'astre.
   - Sur un point libre : arrêt moteur.
