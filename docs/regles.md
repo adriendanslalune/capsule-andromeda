@@ -37,7 +37,8 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ## 2. Vitesse et économie
 
-- Vitesse = 17,4 km/s × 1,1^(améliorations) × 0,2 si L-A abaissé × 0,45 si au moins une avarie × (1 + 0,5 × accélérations).
+- Vitesse = 17,4 km/s × 1,1^(améliorations) × 0,2 si L-A abaissé × 0,45 si au moins une avarie.
+  *L'accélération DV-1 (× (1 + 0,5 × accélérations)) est supprimée, avec le grand-père (décision d'Adrien du 13/10/2026).*
 - Coût de l'amélioration n (n commence à 0) : arrondi(20 × 1,07^n) si n ≤ 45 ; sinon arrondi(20 × 1,07^45 × 1,12^(n−45)).
 - Améliorations achetées dans l'ordre, une par une.
 - **Primes de réparation** : CH-1 2, TU-1 2, AL-1 5, CO-1 8, PB-1 10, LP-1 8, HY-1 10, RE-1 6, MO-1 12,
@@ -91,10 +92,9 @@ UA = unité astronomique = 149 597 870,7 km.
 - Réparation : abaisser L-A, attendre, relever L-A. Relevé à T ≤ 40 : réparé. Entre 40 et 60 : faux réparé,
   la surchauffe revient 6 s plus tard. Au-dessus de 60 : rien.
 
-### DV-1 Dérivation (accélération du grand-père, de base)
-- Conditions : L-B abaissé, R sur 9, pas de panne de pression, P entre 72 et 90 → V-3 « chante ».
-- Presser P exactement deux fois en moins de 0,9 s → armé. Puis relever L-B et remettre R sur 5 en moins de 15 s
-  → accélération +1 (maximum 3). Une, ou trois pressions → erreur.
+### ~~DV-1 Dérivation~~ — supprimé (décision d'Adrien du 13/10/2026)
+- L'accélération secrète et le témoin V-3 disparaissent. Le levier L-B reste sur CH-1 : le manuel interdit d'y
+  toucher, et l'abaisser fait monter la pression (risque de surpression, faute de pilotage).
 
 ### AL-1 Fusibles (de base)
 - 8 fusibles F-1 à F-8, bague de couleur (bleu, rouge, vert, jaune) tirée au hasard à la création.

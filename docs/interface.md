@@ -10,7 +10,7 @@ L'écran principal répond à trois questions : où je vais, qu'est-ce qui ne va
 ## 1. Ouverture (première partie)
 Lettre de l'Office au commissionnaire : la fusée est vieille et lente ; 1. réparez (chaque avarie réparée est payée,
 le manuel est votre seul guide) ; 2. améliorez (les crédits rendent la fusée plus rapide) ; 3. ouvrez l'œil (quelque
-chose rôde entre les planètes). P.-S. du grand-père : « Le manuel est annoté. Lis les marges. »
+chose rôde entre les planètes).
 Puis « Prendre les commandes », et une première panne guidée.
 
 ## 2. Écran principal : la fenêtre

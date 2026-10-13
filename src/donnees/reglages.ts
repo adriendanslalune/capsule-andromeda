@@ -9,8 +9,6 @@ export const FACTEUR_AMELIORATION = 1.1
 export const FACTEUR_LEVIER_A = 0.2
 /** Multiplicateur de vitesse quand au moins un module est en avarie. */
 export const FACTEUR_AVARIE = 0.45
-/** Gain de vitesse par accélération du grand-père (DV-1) : × (1 + 0,5 × accélérations). */
-export const GAIN_ACCELERATION = 0.5
 
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4

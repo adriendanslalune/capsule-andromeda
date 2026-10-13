@@ -21,7 +21,7 @@ import { creerPartie } from '../src/moteur/etat'
 import { mulberry32 } from '../src/moteur/hasard'
 
 const T0 = Date.UTC(2026, 9, 13, 12)
-const NORMAL: FacteursVitesse = { ameliorations: 0, levierAAbaisse: false, avarie: false, accelerations: 0 }
+const NORMAL: FacteursVitesse = { ameliorations: 0, levierAAbaisse: false, avarie: false }
 
 /** Simule le voyage pas à pas ; renvoie l'état et la durée (s) quand la destination est atteinte. */
 function voyager(fusee: EtatFusee, dest: Destination, v: number, pas: number, maxSecondes: number) {
@@ -44,12 +44,10 @@ describe('vitesse', () => {
     expect(vitesse({ ...NORMAL, ameliorations: 10 })).toBeCloseTo(17.4 * 1.1 ** 10, 10)
   })
 
-  it('× 0,2 levier L-A abaissé, × 0,45 en avarie, × (1 + 0,5 × accélérations)', () => {
+  it('× 0,2 levier L-A abaissé, × 0,45 en avarie', () => {
     expect(vitesse({ ...NORMAL, levierAAbaisse: true })).toBeCloseTo(3.48, 10)
     expect(vitesse({ ...NORMAL, avarie: true })).toBeCloseTo(7.83, 10)
-    expect(vitesse({ ...NORMAL, accelerations: 3 })).toBeCloseTo(43.5, 10)
-    expect(vitesse({ ameliorations: 2, levierAAbaisse: true, avarie: true, accelerations: 1 }))
-      .toBeCloseTo(17.4 * 1.21 * 0.2 * 0.45 * 1.5, 10)
+    expect(vitesse({ ameliorations: 2, levierAAbaisse: true, avarie: true })).toBeCloseTo(17.4 * 1.21 * 0.2 * 0.45, 10)
   })
 
   it('vitesse affichée nulle sans destination', () => {

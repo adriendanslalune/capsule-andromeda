@@ -10,7 +10,6 @@ import {
   FACTEUR_AMELIORATION,
   FACTEUR_AVARIE,
   FACTEUR_LEVIER_A,
-  GAIN_ACCELERATION,
   SEUIL_ARRIVEE,
   SEUIL_ARRIVEE_LUNE,
   TAUX_VIRAGE,
@@ -46,7 +45,6 @@ export interface FacteursVitesse {
   ameliorations: number
   levierAAbaisse: boolean
   avarie: boolean
-  accelerations: number
 }
 
 /** Vitesse de croisière (km/s). */
@@ -54,7 +52,7 @@ export function vitesse(f: FacteursVitesse): number {
   let v = VITESSE_BASE * FACTEUR_AMELIORATION ** f.ameliorations
   if (f.levierAAbaisse) v *= FACTEUR_LEVIER_A
   if (f.avarie) v *= FACTEUR_AVARIE
-  return v * (1 + GAIN_ACCELERATION * f.accelerations)
+  return v
 }
 
 /** Vitesse affichée (km/s) : nulle quand la fusée n'a pas de destination. */
