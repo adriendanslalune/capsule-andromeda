@@ -1,0 +1,31 @@
+/* Mise en page de base : téléphone uniquement. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  font-family: var(--police-texte);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app {
+  max-width: var(--largeur-ecran);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) var(--espace) env(safe-area-inset-bottom);
+}
+
+button {
+  min-height: var(--cible-tactile);
+  min-width: var(--cible-tactile);
+  font: inherit;
+}

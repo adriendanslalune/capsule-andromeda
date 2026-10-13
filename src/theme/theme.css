@@ -1,0 +1,25 @@
+/* Thème provisoire, volontairement neutre.
+   Toute la direction artistique passe par ces variables :
+   pour changer de style, on ne touche qu'à ce fichier. */
+
+:root {
+  /* Couleurs */
+  --couleur-fond: #0e1116;
+  --couleur-surface: #171b22;
+  --couleur-bordure: #2a303a;
+  --couleur-texte: #e6e8eb;
+  --couleur-texte-discret: #8a919c;
+  --couleur-ok: #5fae7b;
+  --couleur-avarie: #e0a43a;
+  --couleur-danger: #e05a4f;
+
+  /* Polices */
+  --police-texte: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --police-chiffres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Formes et tailles */
+  --rayon: 8px;
+  --espace: 16px;
+  --cible-tactile: 44px;
+  --largeur-ecran: 390px;
+}
