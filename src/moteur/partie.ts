@@ -2,6 +2,7 @@
 // Un pas : évolution des modules (aiguilles, usure), traitement de leurs événements (primes, fautes, cascades),
 // avance de la fusée (arrivées, contrats, trophées), puis programmation des avaries.
 
+import { evoluerChasse } from './chasse'
 import { estInstalle, traiterArrivee, verifierTrophees } from './economie'
 import type { EtatPartie } from './etat'
 import { avancerFusee, vitesse, type Destination } from './fusee'
@@ -40,7 +41,8 @@ export function avancerPartie(etat: EtatPartie, t: number, dt: number, hasard: H
   e = { ...e, fusee: r.fusee, vu: t }
   e = r.arrivee ? traiterArrivee(e, r.arrivee, t) : verifierTrophees(e)
   e = planifierPannes(e, t, hasard)
-  return { etat: e, arrivee: r.arrivee, evenements: m.evenements, messages: traites.messages }
+  const chasse = evoluerChasse(e, t)
+  return { etat: chasse.etat, arrivee: r.arrivee, evenements: m.evenements, messages: [...traites.messages, ...chasse.messages] }
 }
 
 export interface ResultatAction {

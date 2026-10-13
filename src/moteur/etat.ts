@@ -4,6 +4,7 @@
 
 import type { NomCorps } from '../astro/corps'
 import { INTERRUPTEURS_DEPART, type Interrupteurs } from '../donnees/fusee'
+import { creerChasse, type EtatChasse } from './chasse'
 import { creerFusee, type EtatFusee } from './fusee'
 import type { Hasard } from './hasard'
 import { creerModules, type EtatModules } from './modules'
@@ -68,6 +69,8 @@ export interface EtatPartie {
   modules: EtatModules
   /** Programmation des avaries, cascade en cours, fautes de pilotage. */
   pannes: EtatPannes
+  /** Chasse au visiteur : radio, télescope, indices, contacts. */
+  chasse: EtatChasse
   /** Contrats acceptés et pas encore remplis (3 au plus). */
   contrats: ContratEnCours[]
   /** Contrats déjà remplis (ceux de la semaine et ceux du tutoriel), pour ne pas les proposer à nouveau. */
@@ -93,6 +96,7 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     fusee: creerFusee(t),
     modules: creerModules(hasard),
     pannes: creerPannes(t),
+    chasse: creerChasse(t),
     contrats: [],
     contratsFaits: [],
     journal: [],
