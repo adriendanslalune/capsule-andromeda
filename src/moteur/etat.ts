@@ -6,6 +6,7 @@ import type { NomCorps } from '../astro/corps'
 import { INTERRUPTEURS_DEPART, type Interrupteurs } from '../donnees/fusee'
 import { creerFusee, type EtatFusee } from './fusee'
 import type { Hasard } from './hasard'
+import { creerModules, type EtatModules } from './modules'
 import { genererSerie } from './serie'
 
 /** Version du format de sauvegarde. À augmenter à chaque changement de structure, avec une migration. */
@@ -62,6 +63,8 @@ export interface EtatPartie {
   modulesInstalles: string[]
   /** Position, cap et destination de la fusée. */
   fusee: EtatFusee
+  /** État des modules de bord (commandes, aiguilles, avaries). */
+  modules: EtatModules
   /** Contrats acceptés et pas encore remplis (3 au plus). */
   contrats: ContratEnCours[]
   /** Contrats déjà remplis (ceux de la semaine et ceux du tutoriel), pour ne pas les proposer à nouveau. */
@@ -85,6 +88,7 @@ export function creerPartie(t: number, hasard: Hasard): EtatPartie {
     ameliorations: 0,
     modulesInstalles: [],
     fusee: creerFusee(t),
+    modules: creerModules(hasard),
     contrats: [],
     contratsFaits: [],
     journal: [],
