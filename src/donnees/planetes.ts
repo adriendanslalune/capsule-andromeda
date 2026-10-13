@@ -54,3 +54,12 @@ export const PLANETES: readonly Planete[] = [
 
 /** Rayon de la Lune (km). */
 export const RAYON_LUNE = 1737.4
+
+/**
+ * Rapport de masse Soleil / planète (UAI 2015 ; pour la Terre, Terre + Lune).
+ * Sert à calculer la sphère d'influence de chaque planète (rayon de Hill).
+ */
+export const RAPPORT_MASSE_SOLEIL: Readonly<Record<NomPlanete, number>> = {
+  Mercure: 6023657.33, Vénus: 408523.72, Terre: 328900.56, Mars: 3098703.59,
+  Jupiter: 1047.348644, Saturne: 3497.9018, Uranus: 22902.951, Neptune: 19412.26,
+}

@@ -1,0 +1,81 @@
+// Tous les corps célestes où la fusée peut se rendre : planètes, Lune et satellites naturels.
+// Chaque corps appartient au système d'une planète (la planète elle-même, ses satellites, et la Lune pour la Terre).
+
+import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, type NomPlanete } from '../donnees/planetes'
+import { positionLune } from './lune'
+import { positionPlanete } from './planetes'
+import { LISTE_SATELLITES, positionSatellite, satellite, type Satellite } from './satellites'
+import { UA_KM } from './temps'
+import type { Vecteur3 } from './vecteur'
+
+/** Nom d'un corps céleste : une planète, « Lune », ou le nom d'un satellite (par exemple « Titan »). */
+export type NomCorps = string
+
+const PLANETES_CONNUES = new Set<string>(NOMS_PLANETES)
+
+export function estPlanete(nom: NomCorps): nom is NomPlanete {
+  return PLANETES_CONNUES.has(nom)
+}
+
+export function corpsExiste(nom: NomCorps): boolean {
+  return estPlanete(nom) || nom === 'Lune' || satellite(nom) !== undefined
+}
+
+/** Tous les corps, dans l'ordre : planètes, Lune, puis satellites. */
+export function tousLesCorps(): NomCorps[] {
+  return [...NOMS_PLANETES, 'Lune', ...LISTE_SATELLITES.map((s) => s.nom)]
+}
+
+function satelliteConnu(nom: NomCorps): Satellite {
+  const s = satellite(nom)
+  if (!s) throw new Error(`Corps inconnu : ${nom}`)
+  return s
+}
+
+/** Planète dont le corps fait partie du système. */
+export function planeteDe(nom: NomCorps): NomPlanete {
+  if (estPlanete(nom)) return nom
+  if (nom === 'Lune') return 'Terre'
+  return satelliteConnu(nom).planete
+}
+
+/** Position héliocentrique du corps (écliptique J2000, UA). */
+export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
+  if (estPlanete(nom)) return positionPlanete(nom, t)
+  if (nom === 'Lune') return positionLune(t)
+  return positionSatellite(satelliteConnu(nom), t)
+}
+
+/** Demi-grand axe de l'orbite du satellite autour de sa planète (km) ; null pour une planète. */
+export function demiGrandAxeAutourDeLaPlanete(nom: NomCorps): number | null {
+  if (estPlanete(nom)) return null
+  if (nom === 'Lune') return 384_400
+  return satelliteConnu(nom).demiGrandAxe
+}
+
+/**
+ * Période du mouvement du corps (jours) : autour du Soleil pour une planète, autour de sa planète pour un
+ * satellite ou la Lune.
+ */
+export function periodeOrbitale(nom: NomCorps): number {
+  if (estPlanete(nom)) {
+    const a = PLANETES.find((p) => p.nom === nom)!.elements[0]
+    return 365.25 * a ** 1.5
+  }
+  if (nom === 'Lune') return 27.321661
+  return satelliteConnu(nom).periode
+}
+
+/**
+ * Rayon de la sphère d'influence de la planète (rayon de Hill, UA) : a × (m / 3M)^(1/3).
+ * Terre ≈ 0,010 UA, Jupiter ≈ 0,35 UA, Neptune ≈ 0,78 UA.
+ */
+export function rayonInfluence(planete: NomPlanete): number {
+  const a = PLANETES.find((p) => p.nom === planete)!.elements[0]
+  return a * (1 / (3 * RAPPORT_MASSE_SOLEIL[planete])) ** (1 / 3)
+}
+
+/** Distance (km) convertie en UA. */
+export function enUA(km: number): number {
+  return km / UA_KM
+}

@@ -9,7 +9,11 @@ import {
   distance,
   distanceRestante,
   ecartAngle,
+  planDeVol,
   positionAstre,
+  repereDuTrajet,
+  seuilArrivee,
+  systemeDeLaFusee,
   tempsRestant,
   vitesse,
   vitesseAffichee,
@@ -164,39 +168,124 @@ describe('arrivée', () => {
   })
 })
 
-describe('vitesse comptée par rapport à la destination', () => {
-  it('une fois alignée, la distance restante diminue exactement à la vitesse de la fusée', () => {
-    for (const astre of ['Lune', 'Vénus', 'Mars', 'Jupiter'] as const) {
-      let f = choisirDestination(creerFusee(T0), { type: 'astre', astre })
-      // Laisse la fusée finir son virage (180° au plus : 45 s).
-      for (let s = 1; s <= 60; s++) f = avancerFusee(f, T0 + s * 1000, 1, 17.4).fusee
-      const avant = distanceRestante(f, T0 + 60_000)!
-      f = avancerFusee(f, T0 + 3_660_000, 3600, 17.4).fusee
-      const apres = distanceRestante(f, T0 + 3_660_000)!
-      expect((avant - apres) * UA_KM, astre).toBeCloseTo(17.4 * 3600, -1)
+/** Voyage complet depuis l'orbite terrestre à la date t0 ; renvoie la durée annoncée au départ et la durée réelle (s). */
+function voyageComplet(t0: number, astre: string, v: number, pasCroisiere = 1800) {
+  let f = choisirDestination(creerFusee(t0), { type: 'astre', astre })
+  const annonce = tempsRestant(f, t0, v)!
+  for (let s = 0; s < 50 * 365.25 * 86_400;) {
+    const pas = s < 120 ? 1 : pasCroisiere // pas fins pendant le virage, puis plus longs
+    s += pas
+    const r = avancerFusee(f, t0 + s * 1000, pas, v)
+    f = r.fusee
+    if (r.arrivee) return { annonce, duree: s, fusee: f }
+  }
+  return { annonce, duree: Infinity, fusee: f }
+}
+
+describe('repères', () => {
+  it('en orbite, la fusée est dans le système de son astre', () => {
+    expect(systemeDeLaFusee(creerFusee(T0), T0)).toBe('Terre')
+    expect(systemeDeLaFusee({ ...creerFusee(T0), orbite: 'Lune' }, T0)).toBe('Terre')
+    expect(systemeDeLaFusee({ ...creerFusee(T0), orbite: 'Titan' }, T0)).toBe('Saturne')
+  })
+
+  it("en route, elle est dans le système de la planète dont elle est dans la sphère d'influence", () => {
+    const jupiter = positionAstre('Jupiter', T0)
+    const libre: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: jupiter.x + 0.3, y: jupiter.y } }
+    expect(systemeDeLaFusee(libre, T0)).toBe('Jupiter') // 0,3 UA < 0,35 UA
+    expect(systemeDeLaFusee({ ...libre, position: { x: jupiter.x + 0.4, y: jupiter.y } }, T0)).toBeNull()
+    expect(systemeDeLaFusee({ ...libre, position: { x: 0, y: 0.1 } }, T0)).toBeNull()
+  })
+
+  it('même système : repère de la planète ; sinon : repère du Soleil', () => {
+    const f = creerFusee(T0)
+    expect(repereDuTrajet(f, { type: 'astre', astre: 'Lune' }, T0)).toBe('Terre')
+    expect(repereDuTrajet(f, { type: 'astre', astre: 'Mars' }, T0)).toBeNull()
+    expect(repereDuTrajet(f, { type: 'astre', astre: 'Phobos' }, T0)).toBeNull()
+    expect(repereDuTrajet({ ...f, orbite: 'Io' }, { type: 'astre', astre: 'Europe' }, T0)).toBe('Jupiter')
+    expect(repereDuTrajet({ ...f, orbite: 'Io' }, { type: 'astre', astre: 'Jupiter' }, T0)).toBe('Jupiter')
+    expect(repereDuTrajet(f, { type: 'point', x: 1, y: 0 }, T0)).toBeNull()
+  })
+})
+
+describe('trajectoire de rencontre', () => {
+  it('vise le point où sera la cible, pas sa position actuelle', () => {
+    const f = choisirDestination({ ...creerFusee(T0), orbite: null }, { type: 'astre', astre: 'Mars' })
+    const plan = planDeVol(f, T0, 17.4)!
+    const tard = positionAstre('Mars', T0 + plan.duree * 1000)
+    expect(plan.repere).toBeNull()
+    expect(distance(plan.point, tard)).toBeLessThan(1e-9)
+    // La rencontre est atteignable en ligne droite à la vitesse de la fusée.
+    expect(Math.abs(distance(f.position, plan.point) * UA_KM - 17.4 * plan.duree)).toBeLessThan(1000)
+    expect(distance(plan.point, positionAstre('Mars', T0))).toBeGreaterThan(0.1)
+  })
+
+  it('Terre → Lune en environ 6 heures, avec une fusée neuve', () => {
+    const { annonce, duree, fusee } = voyageComplet(T0, 'Lune', 17.4, 60)
+    expect(fusee.orbite).toBe('Lune')
+    expect(duree / 3600).toBeGreaterThan(5)
+    expect(duree / 3600).toBeLessThan(7)
+    expect(Math.abs(duree - annonce)).toBeLessThan(0.1 * annonce)
+  })
+
+  it('la durée annoncée au départ correspond à la durée réelle (à 1 % près)', () => {
+    for (const [astre, v] of [['Mars', 17.4], ['Vénus', 17.4], ['Jupiter', 45], ['Io', 117], ['Phobos', 45],
+      ['Titan', 117]] as const) {
+      const { annonce, duree, fusee } = voyageComplet(T0, astre, v)
+      expect(fusee.orbite, astre).toBe(astre)
+      expect(Math.abs(duree - annonce) / annonce, astre).toBeLessThan(0.01)
     }
   })
 
-  it('la durée réelle du voyage correspond au temps restant annoncé', () => {
-    for (const [astre, v] of [['Lune', 17.4], ['Vénus', 17.4], ['Mars', 17.4], ['Jupiter', 17.4 * 1.1 ** 20]] as const) {
-      let f = choisirDestination(creerFusee(T0), { type: 'astre', astre })
-      for (let s = 1; s <= 60; s++) f = avancerFusee(f, T0 + s * 1000, 1, v).fusee
-      const annonce = tempsRestant(f, T0 + 60_000, v)!
-      let duree = Infinity
-      for (let s = 60; s < 3e8; s += 60) {
-        const r = avancerFusee(f, T0 + (s + 60) * 1000, 60, v)
-        f = r.fusee
-        if (r.arrivee) { duree = s; break } // secondes écoulées depuis l’annonce (faite à T0 + 60 s)
-      }
-      expect(duree - annonce, astre).toBeGreaterThanOrEqual(0)
-      expect(duree - annonce, astre).toBeLessThanOrEqual(120) // deux pas de 60 s
-      expect(f.orbite).toBe(astre)
-    }
+  it('la durée vers Mars dépend de la vraie position et du vrai mouvement de Mars', () => {
+    const octobre2026 = tempsRestant(choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Mars' }), T0, 17.4)!
+    const mai2027 = Date.UTC(2027, 4, 13, 12)
+    const enMai = tempsRestant(choisirDestination(creerFusee(mai2027), { type: 'astre', astre: 'Mars' }), mai2027, 17.4)!
+    expect(octobre2026 / 86_400).toBeGreaterThan(200)
+    expect(enMai / 86_400).toBeLessThan(100)
+  })
+
+  it('vers un point libre, la rencontre est le point lui-même', () => {
+    const f: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 2, y: 0 } }
+    const plan = planDeVol(choisirDestination(f, { type: 'point', x: 2.5, y: 0 }), T0, 17.4)!
+    expect(distance(plan.point, { x: 2.5, y: 0 })).toBe(0)
+    expect(plan.duree).toBeCloseTo((0.5 * UA_KM) / 17.4, 0)
   })
 
   it('sans destination, pas de temps restant', () => {
     expect(tempsRestant(creerFusee(T0), T0, 17.4)).toBeNull()
     expect(distanceRestante(creerFusee(T0), T0)).toBeNull()
+    expect(planDeVol(creerFusee(T0), T0, 17.4)).toBeNull()
+  })
+})
+
+describe('satellites comme destinations', () => {
+  it("distance d'arrivée : 30 000 km au plus, et jamais plus du quart de l'orbite du satellite", () => {
+    expect(seuilArrivee({ type: 'astre', astre: 'Mars' })).toBe(0.002)
+    expect(seuilArrivee({ type: 'astre', astre: 'Lune' })).toBe(0.0002)
+    expect(seuilArrivee({ type: 'astre', astre: 'Titan' })).toBe(0.0002)
+    expect(seuilArrivee({ type: 'astre', astre: 'Phobos' }) * UA_KM).toBeCloseTo(9376 / 4, -2)
+  })
+
+  it('arrivée à Phobos : mise en orbite, puis la fusée suit Phobos', () => {
+    const { fusee, duree } = voyageComplet(T0, 'Phobos', 45)
+    expect(fusee.orbite).toBe('Phobos')
+    const plusTard = T0 + (duree + 3600) * 1000
+    expect(avancerFusee(fusee, plusTard, 3600, 45).fusee.position).toEqual(positionAstre('Phobos', plusTard))
+  })
+
+  it("d'un satellite à l'autre dans le même système (Io → Europe)", () => {
+    const depart: EtatFusee = { ...creerFusee(T0), orbite: 'Io', position: positionAstre('Io', T0) }
+    let f = choisirDestination(depart, { type: 'astre', astre: 'Europe' })
+    const annonce = tempsRestant(f, T0, 17.4)!
+    expect(annonce / 86_400).toBeLessThan(1) // entre 250 000 et 1 100 000 km à 17,4 km/s
+    let arrivee = false
+    for (let s = 10; s < 2 * 86_400 && !arrivee; s += 10) {
+      const r = avancerFusee(f, T0 + s * 1000, 10, 17.4)
+      f = r.fusee
+      arrivee = r.arrivee !== null
+    }
+    expect(f.orbite).toBe('Europe')
   })
 })
 

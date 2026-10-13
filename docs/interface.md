@@ -31,7 +31,8 @@ Puis « Prendre les commandes », et une première panne guidée.
 - Les modules sans panne restent consultables depuis le tableau de voyants (pour vérifier un interrupteur, etc.).
 
 ## 4. Volets (montent du bas)
-- **Carte** : zoom libre, positions réelles, grille et échelle, cadran de cap autour de la fusée, choix de destination,
+- **Carte** : zoom libre, positions réelles, grille et échelle, cadran de cap autour de la fusée (avec la cible, le
+  point de rencontre visé et la trajectoire de rencontre), choix de destination (planète, Lune, satellite, point libre),
   ping, tracés de chasse (cercle autour du dernier ping, droite depuis la dernière visée).
 - **Office** : caisse et prochaine amélioration ; onglets Contrats, Atelier (améliorations, modules, instruments), Trophées.
 - **Manuel** : lecteur page par page.

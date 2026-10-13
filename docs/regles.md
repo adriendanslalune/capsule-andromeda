@@ -20,20 +20,33 @@ UA = unité astronomique = 149 597 870,7 km.
   de phase arbitraire.*
 - **Coordonnées** : le moteur calcule aussi la hauteur z au-dessus de l'écliptique (vue 3D) ; la carte et la
   navigation n'utilisent que x et y, comme le prototype.
-- **Départ** : nouvelle partie en orbite autour de la Terre.
+- **Départ** : nouvelle partie en orbite autour de la Terre, à 400 km d'altitude, près de l'ISS (voir ci-dessous).
 - **Cap** : angle en degrés, 0° vers +x (point vernal), sens trigonométrique.
-- **Virage** : la fusée tourne vers sa destination à **4° par seconde**.
-- **Déplacement** : la vitesse de la fusée est comptée **par rapport à sa destination**. À chaque pas, la fusée est
-  d'abord entraînée par le mouvement de sa cible, puis elle tourne et avance tout droit selon son cap. Une fois le
-  virage fini, la distance restante diminue exactement à la vitesse de la fusée : temps restant = distance ÷ vitesse.
-  *Changement validé par Adrien le 13/10/2026 : dans le prototype, la vitesse était comptée par rapport au Soleil ;
-  une fusée neuve (17,4 km/s) ne pouvait alors rattraper ni la Lune (emportée par la Terre à 30 km/s), ni Vénus, ni Mars.*
-- **Arrivée** : quand la distance restante ≤ max(pas, 0,002 UA) (Lune : 0,0002 UA).
-  - Sur une planète ou la Lune : **mise en orbite**, la fusée suit l'astre.
-  - Sur un point libre : arrêt moteur.
+- **Virage** : la fusée tourne vers son point de visée à **4° par seconde**.
+- **Systèmes** : chaque planète a son système (elle-même, ses satellites ; la Lune pour la Terre). La fusée est dans
+  un système quand elle est en orbite autour d'un de ses corps, ou dans la sphère d'influence de la planète
+  (rayon de Hill : a × (m / 3M)^(1/3) ; Terre ≈ 0,010 UA, Jupiter ≈ 0,35 UA, Neptune ≈ 0,78 UA).
+- **Repère du trajet** : celui de la planète quand la fusée et sa destination sont dans le même système
+  (Terre → Lune, Io → Europe) ; celui du Soleil sinon (Terre → Mars, Terre → Titan, point libre).
+  Dans un repère de planète, la fusée est entraînée par le mouvement de la planète.
+- **Trajectoire de rencontre** : dans ce repère, la fusée vole en ligne droite, à sa vitesse, vers le point où sera
+  la cible au moment où elle l'atteindra (plus petite durée τ telle que la cible, à t + τ, soit à moins de v·τ).
+  Le point est recalculé à chaque pas. Le temps restant affiché est cette durée τ (moins la distance d'arrivée).
+  La durée d'un voyage dépend donc de la vraie position et du vrai mouvement de la cible
+  (Terre → Mars à 17,4 km/s : 258 jours au départ du 13/10/2026, 65 jours au départ du 13/05/2027).
+  *Règle validée par Adrien le 13/10/2026. Le prototype visait la position actuelle de la cible, la vitesse étant
+  comptée par rapport au Soleil : une fusée neuve ne pouvait rattraper ni la Lune, ni Vénus, ni Mars.*
+- **Arrivée** : quand la distance à la cible ≤ max(pas, distance d'arrivée) :
+  - planète ou point libre : 0,002 UA ;
+  - Lune et satellites : 0,0002 UA (≈ 30 000 km), sans dépasser le quart de la distance entre le satellite et sa
+    planète (Phobos ≈ 2 300 km). *Validé par Adrien le 13/10/2026.*
+  - Sur un astre : **mise en orbite**, la fusée suit l'astre. Sur un point libre : arrêt moteur.
 - **Sans destination**, la fusée ne bouge pas (vitesse affichée 0) et le compteur de route ne tourne pas.
-- **Destination** : touche une planète (rayon de sélection 18 px), la Lune (si zoom suffisant) ou un point libre.
-  Pendant un contrat, changer de destination est refusé.
+- **Destination** : une planète, la Lune, **n'importe quel satellite** (validé par Adrien le 13/10/2026) ou un point
+  libre. Pendant un contrat, changer de destination est refusé.
+- **ISS** (à faire) : position réelle d'après l'orbite publiée, téléchargée quand le jeu est connecté ; si le
+  téléchargement échoue, une simulation prend le relais et l'interface le signale. Modèle 3D visible à quelques
+  dizaines de mètres de la fusée au départ.
 
 ## 2. Vitesse et économie
 
