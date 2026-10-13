@@ -17,10 +17,18 @@ manuel (scripts `manuel/sources/`, qui demandent Python et reportlab). Cocher ch
 - [ ] TU-1 (`manuel.py`, procédure de surchauffe) : « Attendre que l'aiguille descende sous la graduation **40** »
       (au lieu de 60 ; la valeur 40 était donnée par l'annotation « 60 ?? Mon œil. Attends 40 »).
 
+### AL-1 : précision sur la couleur
+- [ ] Préciser : « même couleur que le fusible **qui a grillé en premier** » (si un fusible de mauvaise couleur
+      grille à son tour, la règle part toujours de la couleur d'origine). *Décision d'Adrien du 13/10/2026.*
+
+### CH-1 / TU-1 : emballement
+- La phrase du manuel est conservée telle quelle : « Une purge (P) pendant une surchauffe provoque un emballement de
+  tuyère. » (presser P tant que V-1 est allumé, même sans avarie de pression). *Décision d'Adrien du 13/10/2026.*
+
 ### DV-1 supprimé
 - [ ] Planche CH-1 / TU-1 (`manuel.py`) : retirer le témoin **V-3** (repère 5, « Témoin de régime ») de la
       planche et de la légende.
 - [ ] Le levier **L-B** reste : « Réservé à la maintenance au sol. Ne jamais manœuvrer en vol. »
 
 ### Navigation (à écrire si le manuel en parle un jour)
-- La vitesse de la fusée est comptée par rapport à sa destination ; trajectoire de rencontre (voir `docs/regles.md`).
+- Trajectoire de rencontre, repère du trajet (planète ou Soleil), fenêtre de tir au choix du joueur (voir `docs/regles.md`).

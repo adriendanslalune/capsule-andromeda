@@ -76,12 +76,9 @@ export function insererFusible(e: EtatAL1, i: number, couleur: CouleurFusible, c
   const bon = i !== e.panne || couleur === couleurAttendue(e.couleurGrillee!, ctx.serie, ctx.interrupteurs)
   const fusibles = e.fusibles.map((g, k): Fusible => (k === i ? { couleur, etat: bon ? 'bon' : 'grille' } : g))
   if (bon) return sansEvenement({ ...e, fusibles })
-  // Le fusible qui vient de griller est désormais « le fusible grillé » du manuel : la règle repart de sa couleur.
-  // (Le prototype gardait la couleur du premier fusible grillé : écart signalé à Adrien.)
-  return {
-    etat: { ...e, fusibles, couleurGrillee: couleur },
-    evenements: [{ type: 'erreur', module: 'AL-1', nature: 'fusible regrillé' }],
-  }
+  // La règle part toujours de la couleur du PREMIER fusible grillé, même si un fusible de mauvaise couleur a grillé
+  // à sa place depuis (décision d'Adrien du 13/10/2026 ; le manuel doit le préciser).
+  return { etat: { ...e, fusibles }, evenements: [{ type: 'erreur', module: 'AL-1', nature: 'fusible regrillé' }] }
 }
 
 /**

@@ -44,10 +44,13 @@ function couleurSelonManuel(grillee: string, serie: string, s1Bas: boolean): 'bl
   return pair ? ordre[k] : ordre[(k + 1) % 4]
 }
 
-/** Procédure du manuel : S-4 bas, retirer le grillé, insérer le neuf de la bonne couleur, S-4 haut. */
-function procedureAL1(b: Banc) {
+/**
+ * Procédure du manuel : S-4 bas, retirer le grillé, insérer le neuf de la bonne couleur, S-4 haut.
+ * La couleur de départ est celle du premier fusible grillé (à préciser dans le manuel).
+ */
+function procedureAL1(b: Banc, premiereCouleur?: string) {
   const i = b.e.fusibles.findIndex((f) => f.etat === 'grille')
-  const grillee = b.e.fusibles[i].couleur
+  const grillee = premiereCouleur ?? b.e.fusibles[i].couleur
   if (b.ctx.interrupteurs[3] === 'haut') b.interrupteur(4)
   b.retirer(i)
   b.inserer(i, couleurSelonManuel(grillee, b.ctx.serie, b.ctx.interrupteurs[0] === 'bas'))
@@ -117,7 +120,8 @@ describe('AL-1 — fusibles', () => {
     const h = mulberry32(4)
     const b = new Banc(panneAL1(creerAL1(h), h), 'KE4-70B') // pair : même couleur
     const i = b.e.panne!
-    const mauvaise = b.e.couleurGrillee === 'bleu' ? 'rouge' : 'bleu'
+    const premiere = b.e.couleurGrillee!
+    const mauvaise = premiere === 'bleu' ? 'rouge' : 'bleu'
     b.interrupteur(4)
     b.retirer(i)
     b.inserer(i, mauvaise)
@@ -125,8 +129,9 @@ describe('AL-1 — fusibles', () => {
     expect(b.types('erreur')[0]).toMatchObject({ nature: 'fusible regrillé' })
     b.interrupteur(4)
     expect(al1EnPanne(b.e)).toBe(true)
-    // On peut recommencer : S-4 bas, retirer, bonne couleur, S-4 haut.
-    procedureAL1(b)
+    // On peut recommencer : S-4 bas, retirer, bonne couleur (d'après le PREMIER fusible grillé), S-4 haut.
+    expect(b.e.couleurGrillee).toBe(premiere)
+    procedureAL1(b, premiere)
     expect(al1EnPanne(b.e)).toBe(false)
   })
 

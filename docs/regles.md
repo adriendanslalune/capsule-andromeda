@@ -127,7 +127,10 @@ UA = unité astronomique = 149 597 870,7 km.
   Vitesse d'évolution 5/s (4/s si L-B abaissé).
 - Surpression si P > 90 pendant 2 s ; sous-pression si P < 15 pendant 2 s (fautes de pilotage si non déclenchées par le jeu).
 - Réparation : R sur 2 (surpression) ou 7 (sous-pression), puis presser P une fois.
-- Presser P pendant une surchauffe → emballement (T = 100, erreur). Presser P sans panne → purge à vide (P − 20, erreur).
+- Presser P pendant une surchauffe (V-1 allumé), avec ou sans avarie de pression → emballement (T = 100, erreur),
+  comme le dit le manuel. *Décision d'Adrien du 13/10/2026 ; le prototype exigeait aussi une avarie de pression.*
+  Presser P sans avarie → purge à vide (P − 20, erreur). Après la réparation, replacer R sur 5 (sinon, avec R sur 2,
+  la pression vise 14 et retombe en sous-pression : faute de pilotage).
 - Molette R : 0 à 9, chaque pression +1, après 9 vient 0.
 
 ### TU-1 Tuyère (de base)
@@ -143,7 +146,8 @@ UA = unité astronomique = 149 597 870,7 km.
 - 8 fusibles F-1 à F-8, bague de couleur (bleu, rouge, vert, jaune) tirée au hasard à la création.
 - Panne : un fusible grille.
 - Couleur du neuf : si S-1 bas → jaune ; sinon dernier chiffre pair → même couleur ; impair → couleur suivante
-  (bleu → rouge → vert → jaune → bleu).
+  (bleu → rouge → vert → jaune → bleu). La couleur de référence est celle du **premier** fusible grillé, même si un
+  fusible de mauvaise couleur a grillé à sa place depuis. *Confirmé par Adrien le 13/10/2026.*
 - Toute manipulation avec S-4 haut → étincelle (erreur). Couleur fausse → regrille aussitôt.
 - Réparé quand le bon fusible est en place **et** S-4 remis en haut.
 
