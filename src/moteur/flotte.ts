@@ -167,7 +167,7 @@ export function arriveesDesBots(flotte: readonly Bot[], depuis: number, t: numbe
       const duree = (distanceKm(stationnement(bot, a, depart), stationnement(bot, b, depart)) / bot.vitesse) * 1000
       const arrivee = depart + duree
       if (arrivee > debut + cycle || arrivee < depuis || arrivee > t) continue
-      const verbe = b === 'ISS' ? 's’est amarrée à l’ISS' : b === 'Terre' ? 'est revenue autour de la Terre' : `est arrivée à ${nomLieu(b)}`
+      const verbe = b === 'ISS' ? 'est arrivée auprès de l’ISS' : b === 'Terre' ? 'est revenue autour de la Terre' : `est arrivée à ${nomLieu(b)}`
       l.push({ t: arrivee, de: bot.nom, couleur: bot.couleur, texte: `${bot.nom} ${verbe}.` })
     }
   }

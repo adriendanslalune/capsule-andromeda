@@ -82,7 +82,7 @@
     <rect x="66" y="341" width="212" height="30" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
     <text x="72" y="350" font-size="5" font-family={police}>LIAISON · 9 en ligne</text>
     <text x="272" y="350" text-anchor="end" font-size="5.5" font-family={police}>Classement : 7e / 13</text>
-    <text x="72" y="363" font-size="6" font-family={police}>► Mistinguett s’est amarrée à l’ISS.</text>
+    <text x="72" y="363" font-size="6" font-family={police}>► Mistinguett est arrivée auprès de l’ISS.</text>
     <rect x="66" y="376" width="212" height="16" fill="none" stroke={encre} stroke-width="0.8" />
     <line x1="74" y1="384" x2="262" y2="384" stroke={encre} stroke-width="0.6" stroke-dasharray="3 2" />
 

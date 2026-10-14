@@ -53,7 +53,7 @@ function construire(): Trophee[] {
   // Astres.
   l.push({ id: 'astre:Soleil', nom: 'Le Soleil', description: 'Atteindre le Soleil', categorie: 'astres', icone: 'soleil', couleur: COULEURS_ASTRES.Soleil })
   for (const p of NOMS_PLANETES) {
-    l.push({ id: `astre:${p}`, nom: p, description: p === 'Terre' ? 'S’amarrer à l’ISS' : `Atteindre ${LIEUX[p] ?? p}`, categorie: 'astres', icone: 'planete', couleur: COULEURS_ASTRES[p] })
+    l.push({ id: `astre:${p}`, nom: p, description: `Atteindre ${LIEUX[p] ?? p}`, categorie: 'astres', icone: 'planete', couleur: COULEURS_ASTRES[p] })
   }
   l.push({ id: 'astre:Lune', nom: 'La Lune', description: 'Atteindre la Lune', categorie: 'astres', icone: 'planete', couleur: COULEURS_ASTRES.Lune })
   for (const p of SYSTEMES_A_SATELLITES) {
@@ -102,9 +102,9 @@ function construire(): Trophee[] {
 /** Tous les trophées, dans l'ordre de la vitrine. */
 export const CATALOGUE_TROPHEES: readonly Trophee[] = construire()
 
-/** Trophées d'une arrivée : l'astre ou l'engin ; s'amarrer à l'ISS, c'est aussi atteindre la Terre. */
+/** Trophées d'une arrivée : l'astre ou l'engin (l'ISS est un engin). */
 export function tropheesDArrivee(astre: string): string[] {
-  if (astre === 'ISS') return ['engin:ISS', 'astre:Terre']
+  if (astre === 'ISS') return ['engin:ISS']
   return NOMS_ENGINS.includes(astre) ? [`engin:${astre}`] : [`astre:${astre}`]
 }
 
@@ -130,7 +130,7 @@ export function verifierTropheesPaliers(etat: EtatPartie): EtatPartie {
   // Lieux déjà visités : là où la fusée est en orbite, et les destinations des contrats remplis (parties d'avant
   // les trophées d'astres).
   if (f.orbite) for (const id of tropheesDArrivee(f.orbite)) ont.add(id)
-  for (const c of etat.contratsAccomplis ?? []) for (const id of tropheesDArrivee(c.destination === 'Terre' ? 'ISS' : c.destination)) ont.add(id)
+  for (const c of etat.contratsAccomplis ?? []) for (const id of tropheesDArrivee(c.destination)) ont.add(id)
   for (const p of PALIERS_ROUTE) si(`route:${p.seuil}`, f.distanceParcourue >= p.seuil)
   for (const p of PALIERS_ELOIGNEMENT) si(p.id, stats.distanceMaxSoleil >= p.seuil)
   for (const p of PALIERS_PROXIMITE) si(p.id, stats.distanceMinSoleil <= p.seuil)

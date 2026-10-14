@@ -20,6 +20,7 @@
   import { jeu } from '../jeu.svelte'
   import { annonces, classement, presence } from '../reseau'
   import Pictogramme from '../cockpit/Pictogramme.svelte'
+  import { estEngin } from '../../astro/engins'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
 
@@ -160,7 +161,7 @@
             <div class="piste"><div class="fait" style={`width: ${avancement * 100}%`}></div></div>
           {/if}
         {:else if fusee.orbite}
-          <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : fusee.orbite === 'ISS' ? 'AMARRÉE' : 'EN ORBITE'}</span></div>
+          <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : estEngin(fusee.orbite) || fusee.orbite === 'ISS' ? 'AUPRÈS DE' : 'EN ORBITE'}</span></div>
           <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
           <div class="sous">Choisis une destination (page NAVIGATION).</div>
         {:else}

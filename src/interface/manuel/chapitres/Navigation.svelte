@@ -1,7 +1,7 @@
 <script lang="ts">
-  // XIX. Navigation : destinations, distances d'arrivée, amarrage à l'ISS, Soleil et filtre solaire.
+  // XIX. Navigation : destinations, distances d'arrivée, Soleil et filtre solaire.
   import { UA_KM } from '../../../astro/temps'
-  import { AMARRAGE_ISS_KM, ORBITE_RAYONS, SEUIL_ARRIVEE_POINT_KM, SEUIL_ARRIVEE_SOLEIL } from '../../../donnees/reglages'
+  import { ORBITE_RAYONS, SEUIL_ARRIVEE_POINT_KM, SEUIL_ARRIVEE_SOLEIL } from '../../../donnees/reglages'
   import Page from '../Page.svelte'
 
   let { numero }: { numero: number } = $props()
@@ -24,12 +24,7 @@
     </tbody>
   </table>
   <p>Arrivée, la fusée se met en orbite et suit l’astre.</p>
-  <h3>Retour sur Terre</h3>
-  <p>
-    La Terre se rejoint par l’ISS : choisir la Terre mène à la station, où la fusée s’amarre à
-    {Math.round(AMARRAGE_ISS_KM * 1000)} m du module d’amarrage. Les contrats pour la Terre se remplissent à l’amarrage.
-  </p>
-  <p class="discret">Sur la carte, les losanges blancs sont des engins humains (stations, télescopes, sondes) : on peut s’y rendre comme à un astre.</p>
+  <p class="discret">Sur la carte, les losanges blancs sont des engins humains (l’ISS, d’autres stations, des télescopes, des sondes) : on peut s’y rendre comme à un astre.</p>
   <h3>Approche du Soleil</h3>
   <p>
     À moins de 0,6 UA du Soleil (entre Vénus et Mercure), la lumière éblouit peu à peu le hublot et la vue extérieure. Le bouton FILTRE (au

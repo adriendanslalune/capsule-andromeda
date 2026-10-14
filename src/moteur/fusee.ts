@@ -10,7 +10,7 @@
 // - Depuis une orbite, la machine propose deux départs : maintenant, ou à la fenêtre de tir (le moment de départ
 //   qui fait arriver le plus tôt, la fusée attendant en orbite). Le joueur choisit.
 
-import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe,
+import { corpsDuSysteme, enUA, estPlanete, periodeOrbitale, planeteDe,
   positionCorps, rayonCorps, rayonInfluence, systemeDuCorps, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import { RAD, type Vecteur3 } from '../astro/vecteur'
@@ -23,16 +23,15 @@ import {
   DUREE_ACCELERATION,
   ORBITE_RAYONS,
   RAYON_INCONNU_KM,
-  SEUIL_ARRIVEE_LUNE,
   SEUIL_ARRIVEE_POINT_KM,
   SEUIL_ARRIVEE_SOLEIL,
   TAUX_VIRAGE,
   VITESSE_BASE,
-  AMARRAGE_ISS_KM,
   SEUIL_ARRIVEE_ENGIN_KM,
 } from '../donnees/reglages'
 import { escaleDuJour, positionVisiteur } from './visiteur'
 import { approcheEngin, estEngin } from '../astro/engins'
+import { approcheEnginKm } from '../donnees/engins'
 
 export interface Point2 {
   x: number
@@ -204,8 +203,8 @@ export function seuilArrivee(d: Destination): number {
   if (d.type === 'point') return enUA(SEUIL_ARRIVEE_POINT_KM)
   if (d.astre === 'Soleil') return SEUIL_ARRIVEE_SOLEIL
   if (estEngin(d.astre)) return enUA(SEUIL_ARRIVEE_ENGIN_KM)
-  // L'ISS : on s'en approche comme avant (puis on s'y amarre) ; les autres astres : orbite à trois rayons.
-  if (d.astre === 'ISS') return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
+  // L'ISS : comme un engin ; les autres astres : orbite à trois rayons.
+  if (d.astre === 'ISS') return enUA(SEUIL_ARRIVEE_ENGIN_KM)
   return enUA(ORBITE_RAYONS * (rayonCorps(d.astre) ?? RAYON_INCONNU_KM))
 }
 
@@ -445,28 +444,17 @@ export function creerFusee(t: number): EtatFusee {
   }
 }
 
-/** Lieu d'arrivée d'un astre : la Terre, c'est l'ISS (on s'y amarre). */
-export function lieuDArrivee(astre: NomCorps): NomCorps {
-  return astre === 'Terre' ? 'ISS' : astre
-}
-
-/** Destination réelle : une destination « Terre » mène à l'ISS. */
-export function normaliserDestination(d: Destination): Destination {
-  return d.type === 'astre' && d.astre !== lieuDArrivee(d.astre) ? { type: 'astre', astre: lieuDArrivee(d.astre) } : d
-}
-
 /** Choisit une destination, avec départ immédiat. */
 export function choisirDestination(fusee: EtatFusee, destination: Destination): EtatFusee {
-  return { ...fusee, destination: normaliserDestination(destination), fenetre: null, presDuVisiteur: false }
+  return { ...fusee, destination, fenetre: null, presDuVisiteur: false }
 }
 
 /**
  * Choisit une destination, avec départ à la fenêtre de tir : la fusée attend en orbite le meilleur moment.
  * S'il n'y a pas de meilleure fenêtre, le départ est immédiat.
  */
-export function choisirDestinationAvecFenetre(fusee: EtatFusee, choisie: Destination, t: number,
+export function choisirDestinationAvecFenetre(fusee: EtatFusee, destination: Destination, t: number,
   vitesseKmS: number): EtatFusee {
-  const destination = normaliserDestination(choisie)
   const f = fenetreDeTir(fusee, destination, t, vitesseKmS)
   return { ...fusee, destination, fenetre: f ? { depart: f.depart, vitesse: vitesseKmS } : null, presDuVisiteur: false }
 }
@@ -739,9 +727,9 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
     if (dest.type === 'astre') {
       const dx = entrainee.x - cible.x, dy = entrainee.y - cible.y
       const d = Math.hypot(dx, dy)
-      // Amarrée à l'ISS : tout contre elle ; ailleurs, en orbite à la distance d'arrivée.
+      // Auprès d'un engin (l'ISS comprise) : tout près de lui ; ailleurs, en orbite à la distance d'arrivée.
       const dz = z - hauteurDestination(dest, t, z)
-      const tout = dest.astre === 'ISS' ? AMARRAGE_ISS_KM : estEngin(dest.astre) ? approcheEngin(dest.astre) : null
+      const tout = dest.astre === 'ISS' ? approcheEnginKm(109) : estEngin(dest.astre) ? approcheEngin(dest.astre) : null
       const k = tout !== null ? enUA(tout) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
       ecartOrbite = { x: dx * k, y: dy * k, z: dz * k }
     }

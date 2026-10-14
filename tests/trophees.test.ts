@@ -20,9 +20,9 @@ describe('trophées', () => {
     expect(CATALOGUE_TROPHEES.length).toBeGreaterThan(500)
   })
 
-  it('s’amarrer à l’ISS : l’ISS et la Terre ; un engin : son trophée', () => {
+  it('l’ISS : son trophée d’engin ; un engin : son trophée', () => {
     let e = traiterArrivee(neuve(), { type: 'astre', astre: 'ISS' }, T0)
-    expect(e.trophees).toEqual(expect.arrayContaining(['engin:ISS', 'astre:Terre']))
+    expect(e.trophees).toContain('engin:ISS')
     e = traiterArrivee(e, { type: 'astre', astre: 'Voyager 1' }, T0)
     expect(e.trophees).toContain('engin:Voyager 1')
   })
@@ -54,7 +54,7 @@ describe('trophées', () => {
 
   it('collections : le Grand Tour, le système de Mars, les visites', () => {
     let e = neuve()
-    for (const p of NOMS_PLANETES) e = traiterArrivee(e, { type: 'astre', astre: p === 'Terre' ? 'ISS' : p }, T0)
+    for (const p of NOMS_PLANETES) e = traiterArrivee(e, { type: 'astre', astre: p }, T0)
     expect(e.trophees).toContain('grand-tour')
     expect(e.trophees).toContain('visites:5')
     expect(e.trophees).not.toContain('systeme:Mars')

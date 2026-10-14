@@ -22,7 +22,7 @@
   ]
   const nomLigne = (cle: string) => LIGNES_BAREME.find((l) => l.cle === cle)!.nom
   const lieu = (f: { escale: string | null; systeme: string | null }) =>
-    f.escale ? (f.escale === 'ISS' ? 'amarrée à l’ISS' : `autour de ${nomAstre(f.escale)}`) : f.systeme ? `près de ${nomAstre(f.systeme)}` : 'en route'
+    f.escale ? (f.escale === 'ISS' ? 'auprès de l’ISS' : `autour de ${nomAstre(f.escale)}`) : f.systeme ? `près de ${nomAstre(f.systeme)}` : 'en route'
   const medaille = (r: number) => (r === 1 ? 'or' : r === 2 ? 'argent' : r === 3 ? 'bronze' : '')
 </script>
 

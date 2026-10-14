@@ -9,8 +9,8 @@
   import { satellitesDe } from '../../astro/satellites'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES } from '../../donnees/planetes'
-  import { AMARRAGE_ISS_KM } from '../../donnees/reglages'
-  import { lieuDArrivee, seuilArrivee } from '../../moteur/fusee'
+  import { seuilArrivee } from '../../moteur/fusee'
+  import { approcheEnginKm } from '../../donnees/engins'
   import { nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
 
@@ -24,10 +24,10 @@
   function sauter() {
     if (!choix || !jeu.etat) return
     const t = jeu.maintenant
-    const astre = lieuDArrivee(choix)
+    const astre = choix
     const c = positionCorps(astre, t)
     // On se range du côté éclairé (entre l'astre et le Soleil), à la distance d'arrivée.
-    const km = astre === 'ISS' ? AMARRAGE_ISS_KM : NOMS_ENGINS.includes(astre) ? approcheEngin(astre)
+    const km = astre === 'ISS' ? approcheEnginKm(109) : NOMS_ENGINS.includes(astre) ? approcheEngin(astre)
       : Math.max(seuilArrivee({ type: 'astre', astre }) * UA_KM, (rayonCorps(astre) ?? 0) * 1.5)
     const d = Math.hypot(c.x, c.y) || 1
     const u = astre === 'Soleil' ? { x: 1, y: 0 } : { x: -c.x / d, y: -c.y / d }

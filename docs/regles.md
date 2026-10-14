@@ -281,11 +281,11 @@ avec un contact à moins de 0,01 UA).*
   deux à un télégramme collectif), quelques minutes après l'avoir reçu.
 - Moteur : `src/moteur/telegrammes.ts` ; constantes : `TELEGRAMMES` dans `src/donnees/reglages.ts`.
 
-## 9. La Terre, c'est l'ISS (décision d'Adrien du 14/10/2026)
-- La Terre et l'ISS ne forment qu'une destination : choisir la Terre (sur la carte ou par un contrat) mène à l'ISS.
-- À l'arrivée, la fusée s'amarre à l'ISS, à 40 m de son module d'amarrage (`AMARRAGE_ISS_KM`).
-- Les contrats de la semaine ne visent plus « la Terre » mais l'ISS ; un contrat « Terre » d'une ancienne partie se
-  remplit à l'amarrage.
+## 9. La Terre et l'ISS (décision d'Adrien du 15/10/2026, remplace celle du 14/10)
+- La Terre et l'ISS sont deux destinations. Arrivée sur Terre : orbite à trois rayons, comme les autres astres
+  (l'amarrage systématique à l'ISS était pénible, et aurait entassé tous les joueurs au même endroit).
+- L'ISS se visite comme un engin : arrivée à 1 km, puis la fusée se range à 100 m et la suit. Plus d'amarrage.
+- Les contrats peuvent viser la Terre ou l'ISS.
 
 ## 10. Le Soleil, destination (décisions d'Adrien du 14/10/2026)
 - Le Soleil se choisit sur la carte comme un astre ; arrivée à 0,02 UA (`SEUIL_ARRIVEE_SOLEIL`, ~3 millions de km).
@@ -307,7 +307,7 @@ avec un contact à moins de 0,01 UA).*
   parcourue, éloignement et proximité du Soleil, avaries réparées, améliorations du moteur, vitesse de croisière,
   modules et instruments au complet, contrats, crédits en caisse, jours de service, télégrammes, visites, collections
   (Grand Tour, chaque système complet, tous les engins), trouvailles du visiteur.
-- S'amarrer à l'ISS donne aussi la Terre. Les lieux visités avant cette version (orbite actuelle, contrats remplis)
+- Les lieux visités avant cette version (orbite actuelle, contrats remplis)
   sont rattrapés.
 
 ## 13. Contournement en 3D (14/10/2026)
@@ -329,5 +329,5 @@ avec un contact à moins de 0,01 UA).*
 - Planètes, Lune et satellites : arrivée et orbite à **trois rayons** de l'astre, depuis son centre (`ORBITE_RAYONS`) ;
   petits satellites au rayon inconnu : 5 km supposés. Remplace les distances du prototype (0,002 UA pour toute
   planète, 0,0002 UA pour la Lune, au plus le quart de l'orbite d'un satellite).
-- Inchangés : le Soleil (0,02 UA), l'ISS (approche puis amarrage à 40 m), les engins (trois fois leur taille).
+- Inchangés : le Soleil (0,02 UA), les engins et l'ISS (trois fois leur taille, de 25 à 100 m).
 - Hublot : près d'un gros astre, le champ s'élargit en douceur (jusqu'à 40°) pour que l'astre reste lisible.

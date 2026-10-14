@@ -11,7 +11,6 @@
     choisirDestination,
     choisirDestinationAvecFenetre,
     distance,
-    normaliserDestination,
     optionsDeDepart,
     planDeVol,
     positionAstre,
@@ -129,13 +128,14 @@
   const marques = $derived.by(() => {
     const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: 9, couleur: '#f2b53a', etiquette: true }]
     for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
+    l.push({ nom: 'ISS', p: positionAstre('ISS', tl), r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
     for (const e of positionsEngins(tl)) l.push({ nom: e.nom, p: e.position, r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
       if (Math.abs(c.x - centre.x) > demi * 1.6 || Math.abs(c.y - centre.y) > demi * 1.8) continue
       for (const nom of corpsDuSysteme(planete)) {
-        if (estPlanete(nom)) continue
+        if (estPlanete(nom) || nom === 'ISS') continue
         const a = demiGrandAxeAutourDeLaPlanete(nom)! / UA_KM
         if (a * k < 6) continue
         l.push({ nom, p: positionAstre(nom, tl), r: 3, couleur: '#cfc8b8', etiquette: a * k > 26 })
@@ -165,7 +165,7 @@
   /** Plusieurs objets sous le doigt : on propose de choisir. */
   let ambigus = $state<{ noms: string[]; point: Destination } | null>(null)
   function choisir(d: Destination) {
-    choix = normaliserDestination(d)
+    choix = d
     ambigus = null
   }
   /** Liste de toutes les destinations, par familles (pour les objets lointains ou trop serrés sur la carte). */
@@ -245,7 +245,7 @@
       return
     }
     ambigus = null
-    choix = proches.length ? normaliserDestination({ type: 'astre', astre: proches[0].m.nom }) : { type: 'point', x: w.x, y: w.y }
+    choix = proches.length ? { type: 'astre', astre: proches[0].m.nom } : { type: 'point', x: w.x, y: w.y }
   }
   function molette(e: WheelEvent) {
     suivi = false

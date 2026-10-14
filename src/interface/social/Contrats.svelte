@@ -8,7 +8,7 @@
     abandonnerContrat, accepterContrat, contratSurPlace, contratsProposes, destinationDuContrat, primeContrat,
   } from '../../moteur/economie'
   import type { OffreContrat } from '../../moteur/etat'
-  import { choisirDestination, distance, lieuDArrivee, optionsDeDepart, positionAstre } from '../../moteur/fusee'
+  import { choisirDestination, distance, optionsDeDepart, positionAstre } from '../../moteur/fusee'
   import { vitesseActuelle } from '../../moteur/partie'
   import { dateLocale, duree, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
@@ -22,7 +22,7 @@
 
   /** Durée du voyage vers une destination (s), ou null si elle est hors de portée. */
   function voyage(astre: string): number | null {
-    const o = optionsDeDepart(etat.fusee, { type: 'astre', astre: lieuDArrivee(astre) }, t, v)
+    const o = optionsDeDepart(etat.fusee, { type: 'astre', astre: astre }, t, v)
     return o.maintenant ? (o.maintenant.arrivee - t) / 1000 : null
   }
   // Propositions, de la plus rapide à atteindre à la plus lointaine.
@@ -31,9 +31,9 @@
       .map((c) => ({ c, prime: primeContrat(etat, c, t), duree: voyage(c.destination), surPlace: contratSurPlace(etat, c, t) }))
       .sort((a, b) => (a.duree ?? Infinity) - (b.duree ?? Infinity)),
   )
-  const enRoute = (astre: string) => etat.fusee.destination?.type === 'astre' && etat.fusee.destination.astre === lieuDArrivee(astre)
+  const enRoute = (astre: string) => etat.fusee.destination?.type === 'astre' && etat.fusee.destination.astre === astre
   const nom = (astre: string) => nomAstre(astre).replace(/^./, (c) => c.toUpperCase())
-  const km = (astre: string) => ua(distance(etat.fusee.position, positionAstre(lieuDArrivee(astre), t)))
+  const km = (astre: string) => ua(distance(etat.fusee.position, positionAstre(astre, t)))
 
   let refus = $state<string | null>(null)
   function accepter(c: OffreContrat) {
@@ -52,7 +52,7 @@
   let apercu = $state<{ astre: string; titre: string } | null>(null)
   function montrer(e: Event, c: OffreContrat) {
     if ((e.target as Element).closest('button')) return
-    apercu = { astre: lieuDArrivee(c.destination), titre: c.texte }
+    apercu = { astre: c.destination, titre: c.texte }
   }
 </script>
 

@@ -255,9 +255,6 @@ export class Vue3D {
     const o = f.orbite ? positionCorps(f.orbite, t) : { ...f.position, z: f.z ?? 0 }
     const base = { x: o.x * UA_KM, y: o.y * UA_KM, z: o.z * UA_KM }
     if (f.presDuVisiteur) return { ...base, x: base.x + CHASSE.distanceApprocheKm }
-    // Amarrée à l'ISS : au port avant (PMA-2), au bout de l'enfilade des modules, nez contre le port.
-    // (Axes du modèle de l'ISS : +Z de three.js, soit -y de l'écliptique ; modules 4,6 m sous la poutre.)
-    if (f.orbite === 'ISS') return { x: base.x, y: base.y - 0.0286, z: base.z - 0.0046 }
     // En orbite, là où la fusée est arrivée (à sa vraie distance de l'astre).
     if (f.orbite && f.ecartOrbite) return { x: base.x + f.ecartOrbite.x * UA_KM, y: base.y + f.ecartOrbite.y * UA_KM, z: base.z + f.ecartOrbite.z * UA_KM }
     if (f.orbite) return { ...base, x: base.x + rayon(f.orbite) * 1.6 + 300 }
@@ -306,8 +303,7 @@ export class Vue3D {
     this.iss.position.copy(iss)
 
     // Fusée au centre, orientée selon son cap ; flamme quand le moteur pousse.
-    // Amarrée à l'ISS, le nez tourné vers la station ; sinon, selon son cap.
-    this.fusee.rotation.y = etat.fusee.orbite === 'ISS' ? Math.PI / 2 : (etat.fusee.cap * Math.PI) / 180
+    this.fusee.rotation.y = (etat.fusee.cap * Math.PI) / 180
     const pousse = etat.fusee.destination !== null && !enAttenteDeFenetre(etat.fusee) && etat.modules.propulsion.levierAHaut
       && !etat.fusee.moteurCoupe && (etat.fusee.vitesseCourante ?? 1) > 0
     const flamme = this.fusee.getObjectByName('flamme')!

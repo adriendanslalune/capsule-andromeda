@@ -16,7 +16,7 @@ import {
 import type { ContratEnCours, EtatPartie, OffreContrat } from './etat'
 import { tropheesDArrivee, verifierTropheesPaliers } from './trophees'
 import { releverCompteurs } from './classement'
-import { distance, lieuDArrivee, positionAstre, seuilArrivee, type Destination } from './fusee'
+import { distance, positionAstre, seuilArrivee, type Destination } from './fusee'
 import { choisirAuHasard, entierAuHasard, mulberry32 } from './hasard'
 
 /** Résultat d'une action du joueur : le nouvel état, ou la raison du refus (l'état est alors inchangé). */
@@ -128,8 +128,7 @@ export function contratsDeLaSemaine(lundi: string): OffreContrat[] {
   while (offres.length < CONTRATS.parSemaine) {
     // Une chance sur 9 : le Soleil ; sinon un système planétaire.
     const systeme = choisirAuHasard(hasard, [...NOMS_PLANETES, 'Soleil'] as const)
-    // La Terre, c'est l'ISS : un contrat pour la Terre se remplit à l'amarrage.
-    const destination = systeme === 'Soleil' ? 'Soleil' : lieuDArrivee(choisirAuHasard(hasard, corpsDuSysteme(systeme)))
+    const destination = systeme === 'Soleil' ? 'Soleil' : choisirAuHasard(hasard, corpsDuSysteme(systeme))
     const modele = TYPES_CONTRATS[entierAuHasard(hasard, TYPES_CONTRATS.length)]
     const objet = choisirAuHasard(hasard, modele.objets)
     if (destinations.has(destination)) continue
@@ -166,8 +165,8 @@ export function contratsProposes(etat: EtatPartie, t: number): OffreContrat[] {
  */
 export function contratSurPlace(etat: EtatPartie, offre: OffreContrat, t: number): boolean {
   if (etat.fusee.destination !== null && etat.fusee.fenetre === null) return false
-  if (etat.fusee.orbite === lieuDArrivee(offre.destination)) return true
-  const dest: Destination = { type: 'astre', astre: lieuDArrivee(offre.destination) }
+  if (etat.fusee.orbite === offre.destination) return true
+  const dest: Destination = { type: 'astre', astre: offre.destination }
   return distance(etat.fusee.position, positionAstre(offre.destination, t)) <= seuilArrivee(dest)
 }
 
@@ -188,8 +187,7 @@ export function primeContrat(etat: EtatPartie, offre: OffreContrat, t: number, c
 const HISTORIQUE_CONTRATS = 50
 
 function remplirContrats(etat: EtatPartie, astre: NomCorps, t: number): EtatPartie {
-  // Les contrats « Terre » des anciennes parties se remplissent à l'ISS.
-  const remplis = etat.contrats.filter((c) => lieuDArrivee(c.destination) === lieuDArrivee(astre))
+  const remplis = etat.contrats.filter((c) => c.destination === astre)
   if (remplis.length === 0) return etat
   const semaine = semaineUTC(t)
   // On ne garde que les contrats faits cette semaine et ceux du tutoriel.
@@ -228,7 +226,7 @@ export function abandonnerContrat(etat: EtatPartie, id: string): Resultat {
 
 /** Destination d'un contrat, à donner à la fusée (bouton « Y aller »). */
 export function destinationDuContrat(contrat: OffreContrat): Destination {
-  return { type: 'astre', astre: lieuDArrivee(contrat.destination) }
+  return { type: 'astre', astre: contrat.destination }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
