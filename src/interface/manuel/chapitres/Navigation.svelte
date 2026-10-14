@@ -2,6 +2,7 @@
   // XIX. Navigation : destinations, distances d'arrivée, amarrage à l'ISS, Soleil et filtre solaire.
   import { UA_KM } from '../../../astro/temps'
   import { AMARRAGE_ISS_KM, SEUIL_ARRIVEE, SEUIL_ARRIVEE_LUNE, SEUIL_ARRIVEE_POINT_KM, SEUIL_ARRIVEE_SOLEIL } from '../../../donnees/reglages'
+  import { APPROCHE_ENGIN_KM } from '../../../donnees/engins'
   import Page from '../Page.svelte'
 
   let { numero }: { numero: number } = $props()
@@ -11,7 +12,7 @@
 
 <Page {numero} chapitre="XIX." titre="NAVIGATION">
   <p>
-    La destination se choisit sur la carte : une planète, un satellite, la Lune, le Soleil, ou un point libre. Le
+    La destination se choisit sur la carte : une planète, un satellite, la Lune, le Soleil, un engin, ou un point libre. Le
     voyage suit la vraie position des astres ; la fusée contourne d’elle-même ceux qui sont sur sa route.
   </p>
   <h3>Distances d’arrivée</h3>
@@ -21,6 +22,7 @@
       <tr><td>Lune</td><td>{virgule(SEUIL_ARRIVEE_LUNE)} UA ({km(SEUIL_ARRIVEE_LUNE)} km)</td></tr>
       <tr><td>Autre satellite</td><td>le quart de son orbite, au plus comme la Lune</td></tr>
       <tr><td>Soleil</td><td>{virgule(SEUIL_ARRIVEE_SOLEIL)} UA ({km(SEUIL_ARRIVEE_SOLEIL)} km)</td></tr>
+      <tr><td>Engin</td><td>on s’en approche à {Math.round(APPROCHE_ENGIN_KM * 1000)} m</td></tr>
       <tr><td>Point libre</td><td>{SEUIL_ARRIVEE_POINT_KM.toLocaleString('fr-FR')} km</td></tr>
     </tbody>
   </table>
@@ -30,7 +32,7 @@
     La Terre se rejoint par l’ISS : choisir la Terre mène à la station, où la fusée s’amarre à
     {Math.round(AMARRAGE_ISS_KM * 1000)} m du module d’amarrage. Les contrats pour la Terre se remplissent à l’amarrage.
   </p>
-  <p class="discret">Sur la carte, les losanges blancs sont des engins : Hubble, James Webb, Voyager 1 et 2.</p>
+  <p class="discret">Sur la carte, les losanges blancs sont des engins humains (stations, télescopes, sondes) : on peut s’y rendre comme à un astre.</p>
   <h3>Approche du Soleil</h3>
   <p>
     À moins de 0,6 UA du Soleil (entre Vénus et Mercure), la lumière éblouit peu à peu le hublot et la vue extérieure. Le bouton FILTRE (au

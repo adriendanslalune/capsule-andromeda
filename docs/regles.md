@@ -298,3 +298,12 @@ avec un contact à moins de 0,01 UA).*
   (trajectoires de JPL Horizons, `outils/engins-jpl.mjs`, période 2026-2029 à rafraîchir).
 - Chacun est une destination : arrivée à 1 km (`SEUIL_ARRIVEE_ENGIN_KM`), puis la fusée se range à 100 m
   (`APPROCHE_ENGIN_KM`) et le suit.
+
+## 12. Trophées (décision d'Adrien du 14/10/2026)
+- Ils ne rapportent rien. Catalogue : `src/moteur/trophees.ts` (paliers dans `src/donnees/trophees.ts`), 555 trophées :
+  un par astre (Soleil, 8 planètes, Lune, 452 satellites), un par engin (ISS et 17 autres), et des paliers : route
+  parcourue, éloignement et proximité du Soleil, avaries réparées, améliorations du moteur, vitesse de croisière,
+  modules et instruments au complet, contrats, crédits en caisse, jours de service, télégrammes, visites, collections
+  (Grand Tour, chaque système complet, tous les engins), trouvailles du visiteur.
+- S'amarrer à l'ISS donne aussi la Terre. Les lieux visités avant cette version (orbite actuelle, contrats remplis)
+  sont rattrapés.

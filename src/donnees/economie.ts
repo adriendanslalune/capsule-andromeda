@@ -68,26 +68,6 @@ export const CONTRATS_TUTORIEL: readonly { id: string; type: string; texte: stri
   { id: 'tutoriel-2', type: 'COURRIER', texte: 'Rapporter le courrier de la Lune jusqu’à l’ISS.', destination: 'ISS' },
 ]
 
-/** Trophées. Le trophée « contact » est attribué par la chasse au visiteur. */
-export const TROPHEES: readonly { id: string; nom: string; description: string }[] = [
-  { id: 'premier', nom: 'Premier contrat', description: 'Accomplir un contrat' },
-  { id: 'mars', nom: 'Mars', description: 'Atteindre Mars' },
-  { id: 'jupiter', nom: 'Jupiter', description: 'Atteindre Jupiter' },
-  { id: 'neptune', nom: 'Neptune', description: 'Atteindre Neptune' },
-  { id: 'kuiper', nom: 'Ceinture de Kuiper', description: 'S’éloigner à 40 UA du Soleil' },
-  { id: 'helio', nom: 'Héliopause', description: 'S’éloigner à 120 UA' },
-  { id: 'voyager', nom: 'Plus loin que Voyager 1', description: 'Dépasser 170 UA' },
-  { id: 'contact', nom: 'Premier contact', description: 'Intercepter un visiteur' },
-]
-
-/** Trophées d'arrivée : astre atteint → trophée. */
-export const TROPHEES_ARRIVEE: Readonly<Record<string, string>> = { Mars: 'mars', Jupiter: 'jupiter', Neptune: 'neptune' }
-
-/** Trophées de distance au Soleil (UA). */
-export const TROPHEES_DISTANCE: readonly { ua: number; id: string }[] = [
-  { ua: 40, id: 'kuiper' }, { ua: 120, id: 'helio' }, { ua: 170, id: 'voyager' },
-]
-
 /**
  * Ce que l'atelier dit de chaque module et instrument, pour donner envie de l'acheter (textes du jeu).
  * Les procédures de réparation restent dans le manuel : ici, seulement à quoi sert la pièce.

@@ -51,6 +51,10 @@ export interface Statistiques {
   contrats: number
   /** Plus grande distance au Soleil atteinte (UA). */
   distanceMaxSoleil: number
+  /** Plus petite distance au Soleil atteinte (UA) ; absente des anciennes sauvegardes. */
+  distanceMinSoleil?: number
+  /** Télégrammes envoyés ; absent des anciennes sauvegardes. */
+  telegrammes?: number
 }
 
 export interface EtatPartie {

@@ -11,11 +11,10 @@ import {
   MODULES_A_INSTALLER,
   MODULES_DE_BASE,
   TAILLE_JOURNAL,
-  TROPHEES_ARRIVEE,
-  TROPHEES_DISTANCE,
   TYPES_CONTRATS,
 } from '../donnees/economie'
 import type { ContratEnCours, EtatPartie, OffreContrat } from './etat'
+import { tropheesDArrivee, verifierTropheesPaliers } from './trophees'
 import { distance, lieuDArrivee, positionAstre, seuilArrivee, type Destination } from './fusee'
 import { choisirAuHasard, entierAuHasard, mulberry32 } from './hasard'
 
@@ -243,19 +242,12 @@ export function traiterArrivee(etat: EtatPartie, arrivee: Destination, t: number
   let e = etat
   if (arrivee.type === 'astre') {
     e = remplirContrats(e, arrivee.astre, t)
-    const trophee = TROPHEES_ARRIVEE[arrivee.astre]
-    if (trophee) e = ajouterTrophee(e, trophee)
+    for (const id of tropheesDArrivee(arrivee.astre)) e = ajouterTrophee(e, id)
   }
   return verifierTrophees(e)
 }
 
-/** Met à jour la distance maximale au Soleil et attribue les trophées de contrat et de distance. */
+/** Records et trophées de palier et de collection (voir src/moteur/trophees.ts). */
 export function verifierTrophees(etat: EtatPartie): EtatPartie {
-  const dSoleil = Math.hypot(etat.fusee.position.x, etat.fusee.position.y)
-  let e: EtatPartie = dSoleil > etat.stats.distanceMaxSoleil
-    ? { ...etat, stats: { ...etat.stats, distanceMaxSoleil: dSoleil } }
-    : etat
-  if (e.stats.contrats > 0) e = ajouterTrophee(e, 'premier')
-  for (const { ua, id } of TROPHEES_DISTANCE) if (e.stats.distanceMaxSoleil >= ua) e = ajouterTrophee(e, id)
-  return e
+  return verifierTropheesPaliers(etat)
 }

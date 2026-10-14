@@ -304,10 +304,11 @@ describe('contrat vers l’astre où l’on est déjà en orbite', () => {
 })
 
 describe('trophées', () => {
-  it('arrivées : Mars, Jupiter, Neptune', () => {
+  it('arrivées : un trophée par astre', () => {
     let e = neuve()
     for (const astre of ['Mars', 'Lune', 'Jupiter', 'Neptune']) e = traiterArrivee(e, { type: 'astre', astre }, T0)
-    expect(e.trophees).toEqual(['mars', 'jupiter', 'neptune'])
+    // (La partie commence amarrée à l'ISS : la Terre et l'ISS comptent déjà.)
+    expect(e.trophees.filter((id) => id.startsWith('astre:') && id !== 'astre:Terre')).toEqual(['astre:Mars', 'astre:Lune', 'astre:Jupiter', 'astre:Neptune'])
     expect(traiterArrivee(e, { type: 'astre', astre: 'Mars' }, T0).trophees).toEqual(e.trophees) // pas en double
   })
 
@@ -316,10 +317,11 @@ describe('trophées', () => {
       const e = neuve()
       return { ...e, fusee: { ...e.fusee, orbite: null, position: { x: ua, y: 0 } } }
     }
-    expect(verifierTrophees(loin(39.9)).trophees).toEqual([])
-    expect(verifierTrophees(loin(40)).trophees).toEqual(['kuiper'])
-    expect(verifierTrophees(loin(120)).trophees).toEqual(['kuiper', 'helio'])
-    expect(verifierTrophees(loin(170)).trophees).toEqual(['kuiper', 'helio', 'voyager'])
+    const eloignement = (e: EtatPartie) => verifierTrophees(e).trophees.filter((id) => ['kuiper', 'helio', 'voyager'].includes(id))
+    expect(eloignement(loin(39.9))).toEqual([])
+    expect(eloignement(loin(40))).toEqual(['kuiper'])
+    expect(eloignement(loin(120))).toEqual(['kuiper', 'helio'])
+    expect(eloignement(loin(170))).toEqual(['kuiper', 'helio', 'voyager'])
     expect(verifierTrophees(loin(55)).stats.distanceMaxSoleil).toBe(55)
   })
 })

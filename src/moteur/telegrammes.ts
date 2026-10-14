@@ -93,7 +93,11 @@ export function envoyerTelegramme(etat: EtatPartie, texte: string, portee: Porte
     origine: { ...etat.fusee.position, z: etat.fusee.z ?? 0 }, systeme,
   }
   const avant = telegrammesDe(etat)
-  return { ...etat, telegrammes: { ...avant, envoyes: [m, ...avant.envoyes].slice(0, 30) } }
+  return {
+    ...etat,
+    telegrammes: { ...avant, envoyes: [m, ...avant.envoyes].slice(0, 30) },
+    stats: { ...etat.stats, telegrammes: (etat.stats.telegrammes ?? 0) + 1 },
+  }
 }
 
 /** Le destinataire (sa série, son système) est-il visé par le télégramme ? On ne reçoit jamais les siens. */

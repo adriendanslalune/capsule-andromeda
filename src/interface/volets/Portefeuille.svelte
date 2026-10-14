@@ -1,7 +1,8 @@
 <script lang="ts">
   // Portefeuille : ce que l'on possède (crédits, moteur, modules, instruments, trophées) et le journal des
   // opérations (gains et dépenses).
-  import { INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE, TROPHEES } from '../../donnees/economie'
+  import { INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE } from '../../donnees/economie'
+  import { CATALOGUE_TROPHEES } from '../../moteur/trophees'
   import { estInstalle } from '../../moteur/economie'
   import { vitesse } from '../../moteur/fusee'
   import { dateLocale, heureLocale, nombre } from '../format'
@@ -55,7 +56,7 @@
         {#each INSTRUMENTS as i}<span class="pastille" class:non={!estInstalle(etat, i.code)}>{i.code} {i.nom}</span>{/each}
       </div>
     </div>
-    <div class="ligne"><span>Trophées</span><b>{etat.trophees.length} / {TROPHEES.length}</b></div>
+    <div class="ligne"><span>Trophées</span><b>{etat.trophees.length} / {CATALOGUE_TROPHEES.length}</b></div>
     <div class="ligne"><span>Contrats remplis</span><b>{etat.stats.contrats}</b></div>
     <div class="ligne"><span>Avaries réparées</span><b>{etat.stats.pannes}</b></div>
   </section>
