@@ -1,0 +1,86 @@
+/* Éléments communs aux écrans des modules (fond papier, encre). */
+
+.mod-zone {
+  padding: 14px 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mod-rang {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mod-cellule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.mod-plaque {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
+  padding: 1px 6px;
+}
+.mod-bouton {
+  min-width: 58px;
+  height: 52px;
+  padding: 0 14px;
+  border: 3px solid var(--couleur-encre);
+  border-radius: 12px;
+  background: var(--couleur-papier);
+  color: var(--couleur-encre);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.mod-bouton.fort {
+  background: var(--couleur-danger);
+  color: var(--couleur-papier);
+}
+.mod-bouton.sombre {
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
+}
+.mod-bouton.enfonce {
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
+}
+.mod-afficheur {
+  background: var(--couleur-papier);
+  border: 2px solid var(--couleur-encre);
+  padding: 6px 12px;
+  text-align: center;
+  font-family: var(--police-chiffres);
+  font-size: 26px;
+  letter-spacing: 4px;
+  min-width: 120px;
+}
+.mod-temoin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--couleur-encre);
+  background: #8a8173;
+}
+.mod-temoin.allume {
+  background: var(--couleur-avarie);
+  box-shadow: 0 0 10px var(--couleur-avarie);
+}
+.mod-temoin.clignote {
+  animation: clignote 0.8s steps(1) infinite;
+}
+.mod-secoue {
+  animation: secoue 0.35s;
+}
+@keyframes secoue {
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}

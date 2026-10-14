@@ -70,6 +70,26 @@ export function reservoirAttendu(manometre: number, inters: Interrupteurs): numb
   return r
 }
 
+/** Tuyaux où l'eau circule, depuis la source (pour l'affichage). */
+export function tuyauxMouilles(tuyaux: Tuyau[]): Set<number> {
+  const vus = new Set<number>()
+  if (!(ouvertures(tuyaux[SOURCE]) & O)) return vus
+  const file = [SOURCE]
+  vus.add(SOURCE)
+  while (file.length) {
+    const k = file.shift()!
+    const r = Math.floor(k / H.colonnes), c = k % H.colonnes, m = ouvertures(tuyaux[k])
+    for (const d of DIRECTIONS) {
+      if (!(m & d.bit)) continue
+      const r2 = r + d.dr, c2 = c + d.dc
+      if (r2 < 0 || r2 >= H.rangees || c2 < 0 || c2 >= H.colonnes) continue
+      const k2 = r2 * H.colonnes + c2
+      if (!vus.has(k2) && ouvertures(tuyaux[k2]) & d.oppose) { vus.add(k2); file.push(k2) }
+    }
+  }
+  return vus
+}
+
 /** Réservoirs atteints par l'eau (rangées 0 à 2), en suivant les tuyaux depuis la source. */
 export function reservoirsAtteints(tuyaux: Tuyau[]): number[] {
   if (!(ouvertures(tuyaux[SOURCE]) & O)) return []
