@@ -13,8 +13,10 @@ export const FACTEUR_AVARIE = 0.45
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4
 
-/** Distance d'arrivée (UA) : planète ou point libre. */
+/** Distance d'arrivée (UA) : planète. */
 export const SEUIL_ARRIVEE = 0.002
+/** Distance d'arrivée (km) : point libre (décision d'Adrien du 14/10/2026). */
+export const SEUIL_ARRIVEE_POINT_KM = 1000
 /** Distance d'arrivée (UA) : Lune. */
 export const SEUIL_ARRIVEE_LUNE = 0.0002
 

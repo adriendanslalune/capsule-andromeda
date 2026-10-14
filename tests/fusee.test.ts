@@ -126,8 +126,8 @@ describe('arrivée', () => {
   it('sur un point libre : arrêt moteur, pas d’orbite', () => {
     const f: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 2, y: 0 }, cap: 0 }
     const { fusee, duree } = voyager(f, { type: 'point', x: 2.01, y: 0 }, 17.4, 60, 1e6)
-    // 0,01 UA − 0,002 UA de seuil, à 17,4 km/s.
-    const attendu = (0.008 * UA_KM) / 17.4
+    // 0,01 UA − 1 000 km de seuil, à 17,4 km/s.
+    const attendu = (0.01 * UA_KM - 1000) / 17.4
     expect(duree).toBeGreaterThanOrEqual(attendu)
     // L'arrivée est constatée au pas qui suit le franchissement du seuil : deux pas de 60 s au plus.
     expect(duree).toBeLessThan(attendu + 120)
@@ -409,7 +409,8 @@ describe('identique au prototype', () => {
     S.cap = (S.cap + pasA + 360) % 360; S.virage = dt > 0 ? pasA / dt : 0; S.orbite = null
     const pas = S.v * dt / UA
     const reste = Math.hypot(S.pos.x - d.x, S.pos.y - d.y)
-    if (reste <= Math.max(pas, S.dest.astre === 'Lune' ? 0.0002 : 0.002)) {
+    // Point libre : 1 000 km (décision d'Adrien du 14/10/2026 ; 0,002 UA dans le prototype).
+    if (reste <= Math.max(pas, S.dest.p < 0 ? 1000 / UA : S.dest.astre === 'Lune' ? 0.0002 : 0.002)) {
       S.pos = { x: d.x, y: d.y }; S.orbite = S.dest.p >= 0 ? S.dest.astre : null; S.dest = null; return
     }
     S.pos.x += Math.cos(S.cap * R) * pas; S.pos.y += Math.sin(S.cap * R) * pas

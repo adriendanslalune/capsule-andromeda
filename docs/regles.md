@@ -56,7 +56,9 @@ UA = unité astronomique = 149 597 870,7 km.
   Exemple, à 17,4 km/s, le 13/10/2026 : Mars maintenant → arrivée le 28/06/2027 ; fenêtre le 21/03/2027 →
   arrivée le 31/05/2027. *Validé par Adrien le 13/10/2026.*
 - **Arrivée** : quand la distance à la cible ≤ max(pas, distance d'arrivée) :
-  - planète ou point libre : 0,002 UA ;
+  - planète : 0,002 UA ;
+  - point libre : 1 000 km. *Décision d'Adrien du 14/10/2026 (avec 0,002 UA, soit 300 000 km, un point choisi près
+    de la Lune était « atteint » presque aussitôt).*
   - Lune et satellites : 0,0002 UA (≈ 30 000 km), sans dépasser le quart de la distance entre le satellite et sa
     planète (Phobos ≈ 2 300 km). *Validé par Adrien le 13/10/2026.*
   - Sur un astre : **mise en orbite**, la fusée suit l'astre. Sur un point libre : arrêt moteur.

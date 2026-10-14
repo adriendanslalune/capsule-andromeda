@@ -22,6 +22,7 @@ import {
   FACTEUR_LEVIER_A,
   SEUIL_ARRIVEE,
   SEUIL_ARRIVEE_LUNE,
+  SEUIL_ARRIVEE_POINT_KM,
   TAUX_VIRAGE,
   VITESSE_BASE,
 } from '../donnees/reglages'
@@ -150,13 +151,14 @@ export function ecartAngle(a: number, b: number): number {
 // Arrivée
 
 /**
- * Distance d'arrivée (UA) : 0,002 UA pour une planète ou un point libre ; 0,0002 UA (≈ 30 000 km) pour la Lune et
+ * Distance d'arrivée (UA) : 0,002 UA pour une planète, 1 000 km pour un point libre ; 0,0002 UA (≈ 30 000 km) pour la Lune et
  * les satellites, sans jamais dépasser le quart de la distance entre le satellite et sa planète
  * (Phobos ≈ 2 300 km).
  */
 export function seuilArrivee(d: Destination): number {
   if (d.type === 'visiteur') return enUA(CHASSE.distanceApprocheKm)
-  if (d.type === 'point' || estPlanete(d.astre)) return SEUIL_ARRIVEE
+  if (d.type === 'point') return enUA(SEUIL_ARRIVEE_POINT_KM)
+  if (estPlanete(d.astre)) return SEUIL_ARRIVEE
   return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
 }
 
