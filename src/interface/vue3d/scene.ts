@@ -21,6 +21,8 @@ import { autresFusees } from '../reseau'
 import { positionsEngins } from '../../astro/engins'
 import { modeleEngin, modeleISSFidele } from './engins'
 import { creerTerre, type Terre } from './terre'
+import { creerCiel, type Ciel } from './ciel'
+import { galactiqueVersEcliptique } from '../../astro/galaxie'
 import { aspectAstre, orienter } from './astres'
 import { estEngin } from '../../astro/engins'
 import { modeleFusee, modeleSoucoupe, refleter } from './modeles'
@@ -40,6 +42,8 @@ function rayon(nom: string): number {
 }
 
 /** Passe de l'écliptique (x, y, z nord) aux axes de three.js (y vers le haut). */
+/** Le fond du ciel : presque noir (la lueur vient de la Voie lactée). */
+const FOND_DU_CIEL = 0x020306
 const versThree = (v: Vecteur3) => new THREE.Vector3(v.x, v.z, -v.y)
 
 export interface Etiquette {
@@ -80,6 +84,7 @@ export class Vue3D {
   private soleil: THREE.PointLight
   private astres = new Map<string, Astre>()
   private chargeur = new THREE.TextureLoader()
+  private voieLactee!: Ciel
   private largeur = 1
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
@@ -121,7 +126,7 @@ export class Vue3D {
     this.rendu.toneMapping = THREE.LinearToneMapping
     this.rendu.toneMappingExposure = 1
     this.camera = new THREE.PerspectiveCamera(55, 1, 1e-5, 1e13)
-    this.scene.background = new THREE.Color(0x14202d)
+    this.scene.background = new THREE.Color(FOND_DU_CIEL)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.12))
     this.soleil = new THREE.PointLight(0xfff3dd, 2.2, 0, 0)
     this.scene.add(this.soleil)
@@ -134,6 +139,8 @@ export class Vue3D {
     refleter(this.fusee, this.environnement, 0.9)
     refleter(this.iss, this.environnement, 0.6)
     refleter(this.soucoupe, this.environnement, 1)
+    this.voieLactee = creerCiel(this.chargeur)
+    this.scene.add(this.voieLactee.maillage)
     this.ajouterEtoiles()
     this.ajouterAstre('Soleil', 0xffd27a, true)
     for (const nom of NOMS_PLANETES) this.ajouterAstre(nom, COULEURS[nom])
@@ -172,6 +179,14 @@ export class Vue3D {
     for (let i = 0; i < 9000; i++) {
       const m = Math.max(-0.5, 6.8 + 2.2 * Math.log10(h()))
       ajouter(h() * 360, (Math.asin(h() * 2 - 1) * 180) / Math.PI, m)
+    }
+    // Les étoiles faibles se pressent le long de la Voie lactée (disque de la Galaxie), surtout vers son centre.
+    for (let i = 0; i < 6000; i++) {
+      const m = Math.max(2.5, 6.8 + 2.2 * Math.log10(h()))
+      const l = h() < 0.4 ? (h() - 0.5) * 120 : h() * 360
+      const gauss = Math.sqrt(-2 * Math.log(1 - h())) * Math.cos(2 * Math.PI * h())
+      const e = galactiqueVersEcliptique(l, gauss * 7)
+      ajouter(e.lon, e.lat, m)
     }
     for (const e of ETOILES) ajouter(e.azimut, e.hauteur, 0.4)
     const geo = new THREE.BufferGeometry()
@@ -474,7 +489,7 @@ export class Vue3D {
     const dUA = Math.max(1e-6, Math.hypot(origine.x, origine.y, origine.z) / UA_KM)
     const proche = Math.min(1, Math.max(0, Math.log10(0.6 / dUA) / Math.log10(0.6 / 0.02)))
     this.eblouissement = 0.92 * proche ** 1.4 * (1 - f)
-    ;(this.scene.background as THREE.Color).setHex(0x14202d).lerp(new THREE.Color(0x000000), f)
+    ;(this.scene.background as THREE.Color).setHex(FOND_DU_CIEL).lerp(new THREE.Color(0x000000), f)
     // Derrière le filtre, l'exposition tombe : tout s'éteint, sauf le Soleil, rendu d'autant plus intense (blanc).
     const exposition = 1 - 0.96 * f
     this.rendu.toneMappingExposure = exposition
@@ -482,6 +497,7 @@ export class Vue3D {
     if (soleil) (soleil.maillage.material as THREE.MeshBasicMaterial).color.setHex(0xffffff).lerp(new THREE.Color(0xffffff), f).multiplyScalar(1 / exposition)
     // Derrière le filtre, les étoiles disparaissent.
     this.reglerCiel(6.3 - 9 * f, 1)
+    this.voieLactee.regler(1 - f)
   }
 
   /** Étiquettes des astres et position du visiteur à l'écran. */

@@ -112,7 +112,7 @@
   <div class="cadre" bind:this={cadre}>
     <canvas bind:this={toile} onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher}
       onwheel={(e) => { e.preventDefault(); vue?.zoomer(e.deltaY > 0 ? 1.15 : 1 / 1.15) }}></canvas>
-    {#each etiquettes as e}
+    {#each jeu.nomsAstres ? etiquettes : [] as e}
       <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
     {/each}
     <div class="eblouissement" style={`opacity: ${eblouissement}`}></div>
@@ -129,7 +129,8 @@
 
   <footer>
     <button class="bouton clair" onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
-    <button class="bouton" class:filtre-actif={jeu.filtreSolaire} aria-pressed={jeu.filtreSolaire} onclick={() => (jeu.filtreSolaire = !jeu.filtreSolaire)}>☀ FILTRE SOLAIRE</button>
+    <button class="bouton" class:filtre-actif={jeu.filtreSolaire} aria-pressed={jeu.filtreSolaire} onclick={() => (jeu.filtreSolaire = !jeu.filtreSolaire)}>☀ FILTRE</button>
+    <button class="bouton" class:filtre-actif={!jeu.nomsAstres} aria-pressed={!jeu.nomsAstres} onclick={() => jeu.basculerNoms()}>{jeu.nomsAstres ? 'SANS NOMS' : 'AVEC NOMS'}</button>
     {#if peutPhotographier}<button class="photo bouton cerise" onclick={photographier}>PHOTO</button>{/if}
   </footer>
 
@@ -213,6 +214,7 @@
     right: 14px;
     bottom: 24px;
     display: flex;
+    gap: 6px;
     justify-content: space-between;
   }
   footer .photo {

@@ -4,7 +4,7 @@
   //                               trois petits cadrans, interrupteur MOTEUR) ;
   //  2. Qu'est-ce qui ne va pas ? les voyants des blocs, en grand, avec une phrase d'état et la plaque constructeur ;
   //  3. Quel est mon but ?        la mission en cours et le radar du visiteur ;
-  //  4. Qui est autour ?          la liaison (commissionnaires en ligne, classement, dernière annonce).
+  //  4. Qui est autour ?          les transmissions (les 3 derniers messages ; ouvre COMMUNICATION).
   // En pied, la dernière ligne du journal de bord. Les instruments détaillés s'ouvrent d'un toucher sur les cadrans.
   import { onMount } from 'svelte'
   import { MODULES_A_INSTALLER } from '../../donnees/economie'
@@ -18,7 +18,8 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import { duree, dureePrecise, heureLocale, jourEtHeure, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
-  import { annonces, classement, presence } from '../reseau'
+  import { presence } from '../reseau'
+  import { filDesTransmissions } from '../social/fil'
   import Pictogramme from '../cockpit/Pictogramme.svelte'
   import { estEngin } from '../../astro/engins'
 
@@ -121,11 +122,11 @@
   const detecte = $derived(visiteurDetecte(etat, t))
   const joursSaison = $derived(Math.ceil((finSaison(saison) - t) / 86_400_000))
 
-  // Liaison.
+  // Transmissions : les trois derniers messages (le plus récent en bas, comme sur l'écran COMMUNICATION).
   const reseau = $derived(presence(etat, t))
-  const rangs = $derived(classement(etat, t, 'semaine'))
-  const moi = $derived(rangs.find((c) => c.moi)!)
-  const derniere = $derived(annonces(t)[0] ?? null)
+  const fil = $derived(filDesTransmissions(etat, t))
+  const derniers = $derived(fil.slice(-3))
+  const aLire = $derived(fil.filter((l) => l.nouveau).length)
   const ligneJournal = $derived(jeu.telex.at(-1) ?? null)
 </script>
 
@@ -261,15 +262,21 @@
     </div>
 
     <!-- 4. Qui est autour ? -->
-    <button class="carte liaison" onclick={() => jeu.ouvrirSocial('classement')}>
-      <span class="entete">
-        <small><span class="antenne" aria-hidden="true"></span>LIAISON</small>
-        <span>{reseau.total} en ligne</span>
-        <span class="rang">Semaine : <b>{moi.rang}<sup>{moi.rang === 1 ? 'er' : 'e'}</sup></b> / {rangs.length}</span>
+    <button class="transmissions" onclick={() => jeu.ouvrirSocial('communication')} aria-label="Transmissions : ouvrir COMMUNICATION">
+      <span class="bandeau-tx">
+        <span><span class="antenne" aria-hidden="true"></span>TRANSMISSIONS</span>
+        {#if aLire}<span class="a-lire">{aLire} NOUVEAU{aLire > 1 ? 'X' : ''}</span>{/if}
+        <span>{reseau.total} EN LIGNE</span>
       </span>
-      {#if derniere}
-        <span class="annonce" class:majeure={derniere.majeure}><span class="fanion" style={`background: ${derniere.couleur}`}></span><span class="texte-annonce">{derniere.texte}</span><span class="quand">{heureLocale(derniere.t)}</span></span>
-      {/if}
+      {#each derniers as l (l.id)}
+        <span class={`tx ${l.sorte}`} class:nouveau={l.nouveau} class:majeur={l.majeur}>
+          <span class="h">{heureLocale(l.quand)}</span>
+          <span class="de" style={l.couleur && l.sorte !== 'bulletin' ? `color: ${l.couleur}` : ''}>{l.de}</span>
+          <span class="txt">{l.texte}</span>
+        </span>
+      {:else}
+        <span class="tx vide">AUCUNE TRANSMISSION.</span>
+      {/each}
     </button>
 
     <!-- Journal de bord : la dernière ligne ; le toucher déroule la bande. -->
@@ -821,22 +828,100 @@
       transform: rotate(360deg);
     }
   }
-  .liaison {
-    width: 100%;
-    gap: 4px;
-    border-left: 6px solid var(--couleur-bandeau);
-  }
-  .liaison .entete {
+  /* Transmissions : petit écran vert phosphore, comme celui de COMMUNICATION. */
+  .transmissions {
+    position: relative;
     display: flex;
-    align-items: baseline;
-    gap: 10px;
+    flex-direction: column;
     width: 100%;
+    padding: 0 0 4px;
+    border: 2.5px solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--nuit);
+    box-shadow: 0 0 0 2px #0f1822 inset, 3px 3px 0 var(--couleur-encre);
+    color: var(--menthe);
+    font-family: var(--police-machine);
+    text-align: left;
+    text-shadow: 0 0 5px rgba(143, 207, 152, 0.5);
+    overflow: hidden;
   }
-  .liaison .rang {
+  .transmissions::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px);
+  }
+  .bandeau-tx {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 9px;
+    border-bottom: 1px solid rgba(143, 207, 152, 0.4);
+    font-size: 10.5px;
+    letter-spacing: 1px;
+  }
+  .bandeau-tx > span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bandeau-tx > span:last-child {
     margin-left: auto;
   }
-  .liaison .rang b {
-    font-size: 15px;
+  .a-lire {
+    padding: 0 5px;
+    border-radius: 3px;
+    background: var(--moutarde);
+    color: var(--couleur-encre);
+    text-shadow: none;
+    font-weight: 700;
+  }
+  .transmissions .tx {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 3px 9px;
+    border-bottom: 1px dashed rgba(143, 207, 152, 0.18);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .transmissions .tx:last-child {
+    border-bottom: none;
+  }
+  .transmissions .h {
+    flex: none;
+    opacity: 0.7;
+  }
+  .transmissions .de {
+    flex: none;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+  .transmissions .txt {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .transmissions .envoye {
+    opacity: 0.75;
+  }
+  .transmissions .bulletin {
+    color: var(--moutarde);
+  }
+  .transmissions .bulletin.majeur .txt {
+    color: #ff8f7a;
+  }
+  .transmissions .nouveau .txt {
+    color: #eafff0;
+  }
+  .transmissions .vide {
+    opacity: 0.6;
   }
   .antenne {
     width: 8px;
@@ -845,35 +930,6 @@
     border: 1.5px solid var(--couleur-encre);
     background: var(--menthe);
     animation: clignote 1.6s steps(1) infinite;
-  }
-  .annonce {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-    font-family: var(--police-machine);
-  }
-  .annonce .texte-annonce {
-    font-size: 12px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .annonce.majeure .texte-annonce {
-    color: var(--cerise);
-  }
-  .annonce .quand {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--couleur-texte-discret);
-  }
-  .fanion {
-    flex: none;
-    width: 11px;
-    height: 8px;
-    clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
 
   /* Journal : une ligne, sur papier de téléscripteur. */

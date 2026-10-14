@@ -22,7 +22,7 @@ Puis « Prendre les commandes », et une première panne guidée.
   droite (sauf sur la carte, qui se déplace au doigt). Le geste « retour » du téléphone ramène au cockpit.
 
 ### Page COCKPIT (refaite le 14/10/2026 : un seul écran, quatre questions)
-- **Hublot** d'un bord à l'autre (toucher : vue 3D extérieure ; bouton FILTRE solaire).
+- **Hublot** d'un bord à l'autre (toucher : vue 3D extérieure ; boutons NOMS et FILTRE solaire).
 - **1. Où je vais ?** Panneau PILOTAGE : écran de navigation (destination, temps restant à la seconde, jour et
   heure d'arrivée, frise) ; trois petits cadrans (vitesse, cap, heure d'arrivée), qui ouvrent le volet INSTRUMENTS
   (grands cadrans, loupe, relevés : route, Soleil, radio, croisière) ; interrupteur MOTEUR cerné de rayures jaunes et
@@ -31,8 +31,8 @@ Puis « Prendre les commandes », et une première panne guidée.
   touchez un voyant rouge. »), les 12 voyants en grand (trait PROPULSION), plaque constructeur avec le numéro de série.
 - **3. Quel est mon but ?** Carte MISSION (contrat en cours : destination, prime, distance ; ouvre CONTRATS) et carte
   VISITEUR (radar, jours de saison ; ouvre NAVIGATION).
-- **4. Qui est autour ?** Carte LIAISON : commissionnaires en ligne, rang au classement, dernière annonce ; ouvre le
-  volet LIAISON (télégrammes, en ligne, classement aux trophées, annonces des 48 dernières heures).
+- **4. Qui est autour ?** Écran TRANSMISSIONS (vert phosphore, comme COMMUNICATION) : les 3 derniers messages
+  (télégrammes reçus et envoyés, bulletins), le nombre de nouveaux et de connectés ; le toucher ouvre COMMUNICATION.
 - En pied : la dernière ligne du journal de bord (toucher : tout le journal).
 
 ## 3. Module en plein écran
@@ -56,6 +56,11 @@ Puis « Prendre les commandes », et une première panne guidée.
 Fusée détaillée, vrai ciel, Soleil, planètes et satellites à leurs vraies directions et tailles apparentes,
 Terre et Lune texturées (assets/textures), caméra orbitale au doigt, bouton « recentrer » derrière la fusée vers
 la destination, petit cadran de position, repère de destination.
+Ciel (15/10/2026) : fond presque noir ; la Voie lactée est la vraie photographie du ciel entier (ESO/S. Brunier),
+posée à sa vraie place (coordonnées galactiques, `src/astro/galaxie.ts`, `src/interface/vue3d/ciel.ts`) ; les étoiles
+nettes sont dessinées par-dessus, plus nombreuses le long de la Voie lactée. Le filtre solaire éteint le tout.
+Bouton SANS NOMS / AVEC NOMS (et NOMS sur le hublot) : retire toutes les étiquettes pour une vue naturelle ; le
+choix est retenu sur l'appareil.
 **Visiteur** : modèle 3D d'une soucoupe volante classique des années 50, visible à l'œil près de son astre (elle
 clignote si DET est installé et qu'elle est à moins de 1,5 UA). On ne peut la toucher qu'à moins de 300 000 km ; la
 toucher lance l'approche. Arrivé à environ 200 m, bouton « PHOTO » : la photo (capture de la vue 3D) valide la

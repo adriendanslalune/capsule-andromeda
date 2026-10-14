@@ -46,10 +46,16 @@
 
 <div class="hublot" bind:this={cadre}>
   <canvas bind:this={toile}></canvas>
-  {#each etiquettes as e}
+  {#each jeu.nomsAstres ? etiquettes : [] as e}
     <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
   {/each}
   <div class="eblouissement" style={`opacity: ${eblouissement}`}></div>
+  <!-- Noms des astres : on les écrit ou on les retire (vue naturelle du ciel). -->
+  <button class="filtre noms" class:actif={!jeu.nomsAstres} aria-pressed={!jeu.nomsAstres} aria-label="Retirer les noms des astres"
+    onclick={(e) => { e.stopPropagation(); jeu.basculerNoms() }}>
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" />{#if !jeu.nomsAstres}<line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />{/if}</svg>
+    NOMS
+  </button>
   <!-- Filtre solaire : un toucher le pose ou le retire (sans sortir en vue extérieure). -->
   <button class="filtre" class:actif={jeu.filtreSolaire} aria-pressed={jeu.filtreSolaire} aria-label="Filtre solaire"
     onclick={(e) => { e.stopPropagation(); jeu.filtreSolaire = !jeu.filtreSolaire }}>
@@ -115,6 +121,10 @@
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
+  }
+  .filtre.noms {
+    right: auto;
+    left: 6px;
   }
   .filtre.actif {
     background: var(--moutarde);

@@ -17,6 +17,7 @@ import { ALARMES, SONS } from './sons'
 const CLE_PARTIE = 'mdv-partie'
 const CLE_TELEX = 'mdv-telex'
 const CLE_TRACES = 'mdv-traces'
+const CLE_NOMS = 'mdv-noms'
 const TELEX_GARDES = 100
 const SAUVEGARDE_TOUTES_LES = 10_000
 
@@ -67,6 +68,12 @@ class Jeu {
   }
   /** Filtre solaire du hublot et de la vue extérieure (lunettes de soleil). */
   filtreSolaire = $state(false)
+  /** Noms des astres écrits dans le hublot et la vue extérieure (sans eux : la vue naturelle du ciel). Retenu. */
+  nomsAstres = $state(lire(CLE_NOMS) !== 'non')
+  basculerNoms() {
+    this.nomsAstres = !this.nomsAstres
+    ecrire(CLE_NOMS, this.nomsAstres ? 'oui' : 'non')
+  }
   /** Vrai pendant l'impression du manuel. */
   impression = $state(false)
 

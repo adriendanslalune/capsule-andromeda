@@ -5,17 +5,16 @@
   import { TELEGRAMMES } from '../../donnees/reglages'
   import { PHRASES } from '../../donnees/telegrammes'
   import {
-    envoisRestants, envoyerTelegramme, estLu, marquerLus, prochainEnvoi, systemeDuJoueur, telegrammesDe, type Portee,
+    envoisRestants, envoyerTelegramme, estLu, marquerLus, prochainEnvoi, systemeDuJoueur, type Portee,
   } from '../../moteur/telegrammes'
-  import { duree, heureLocale, nomAstre } from '../format'
+  import { heureLocale } from '../format'
   import { jeu } from '../jeu.svelte'
-  import { annonces, autresFusees, presence, telegrammesRecus } from '../reseau'
+  import { autresFusees, presence, telegrammesRecus } from '../reseau'
+  import { filDesTransmissions } from './fil'
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
   const recus = $derived(telegrammesRecus(etat, t))
-  const envoyes = $derived(telegrammesDe(etat).envoyes.filter((m) => m.envoye > t - TELEGRAMMES.gardesJours * 86_400_000))
-  const bulletins = $derived(annonces(t))
   const systeme = $derived(systemeDuJoueur(etat, t))
   const restants = $derived(envoisRestants(etat, t))
   const prochain = $derived(prochainEnvoi(etat, t))
@@ -30,20 +29,8 @@
     if (e !== etat) jeu.remplacer(e)
   })
 
-  const lieu = (s: string | null) => (s ? (s === 'Terre' ? 'TERRE' : nomAstre(s).replace(/^la /, '').toUpperCase()) : 'ESPACE')
-  const aQui = (p: Portee) => (p.type === 'tout' ? 'TOUS' : p.type === 'systeme' ? `SYSTÈME ${lieu(p.systeme)}` : p.nom.toUpperCase())
-
   /** Le fil des transmissions, le plus récent en bas (comme sur un téléscripteur). */
-  type Ligne = { id: string; quand: number; sorte: 'recu' | 'envoye' | 'bulletin'; de: string; couleur?: string; meta: string; texte: string; nouveau?: boolean; majeur?: boolean }
-  const fil = $derived<Ligne[]>([
-    ...recus.map((m) => ({
-      id: `r-${m.id}`, quand: m.arrivee, sorte: 'recu' as const, de: m.de.toUpperCase(), couleur: m.couleur,
-      meta: `${m.serie === 'ONVI' ? 'TERRE' : lieu(m.systeme)}${m.arrivee - m.envoye >= 60_000 ? ` · ${duree((m.arrivee - m.envoye) / 1000).toUpperCase()}` : ''}`,
-      texte: m.texte, nouveau: nouveaux.has(m.id),
-    })),
-    ...envoyes.map((m) => ({ id: `e-${m.id}`, quand: m.envoye, sorte: 'envoye' as const, de: `→ ${aQui(m.portee)}`, meta: '', texte: m.texte })),
-    ...bulletins.map((a, i) => ({ id: `b-${i}-${a.t}`, quand: a.t, sorte: 'bulletin' as const, de: 'BULLETIN', couleur: a.couleur, meta: '', texte: a.texte.toUpperCase(), majeur: a.majeure })),
-  ].sort((a, b) => a.quand - b.quand))
+  const fil = $derived(filDesTransmissions(etat, t, nouveaux))
 
   // L'écran descend tout seul jusqu'au dernier message (à l'ouverture et à chaque nouveau).
   let filEl = $state<HTMLDivElement>()
