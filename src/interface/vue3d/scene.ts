@@ -1,9 +1,7 @@
 // Vue 3D « dehors » : la fusée au centre, le vrai ciel, le Soleil, les planètes, la Lune, les satellites proches,
 // l'ISS et le visiteur, chacun à sa vraie position (en km) et à sa vraie taille. Les astres trop lointains pour être
-// vus restent signalés par un point lumineux. Deux façons de regarder :
-//  - « orbite » (écran Dehors) : la caméra tourne autour de la fusée au doigt ;
-//  - « hublot » (tableau de bord) : depuis l'intérieur de la fusée, dans l'axe de son cap, à travers une vitre de
-//    90° de large (vue droite, sans déformation).
+// vus restent signalés par un point lumineux. La caméra tourne autour de la fusée au doigt ; la même vue sert au
+// hublot du cockpit et à la vue extérieure en plein écran.
 
 import * as THREE from 'three'
 import terreUrl from '../../../assets/textures/terre_lc.jpg?url'
@@ -44,25 +42,16 @@ export interface Etiquette {
   x: number
   y: number
   cible: boolean
-  /** Hublot : la cible est hors du champ, de ce côté (l'étiquette est collée au bord). */
-  horsChamp?: 'gauche' | 'droite'
 }
 
 /** Distance de la caméra à la fusée dans la vue extérieure (km) : 90 m. */
 const DISTANCE_CAMERA = 0.09
 
-/** Les vitres du hublot : décalage de chacune par rapport au cap (degrés), de gauche à droite. Une seule, de face. */
-const VITRES = [0]
-/** Champ horizontal d'une vitre (degrés). */
-const CHAMP_VITRE = 90
-/** Largeur des montants entre les vitres (px). */
-export const MONTANT = 12
-
-/** Position (x, largeur) de chaque vitre dans le hublot. */
-export function disposerVitres(largeur: number): { x: number; l: number }[] {
-  const l = (largeur - (VITRES.length - 1) * MONTANT) / VITRES.length
-  return VITRES.map((_, i) => ({ x: i * (l + MONTANT), l }))
-}
+/**
+ * Position de la caméra autour de la fusée, partagée entre le hublot du cockpit et la vue extérieure en plein
+ * écran : on retrouve la même vue de l'un à l'autre.
+ */
+export const camera = { lacet: 2.6, tangage: 0.22, distance: DISTANCE_CAMERA, placee: false }
 
 interface Astre {
   nom: string
@@ -85,21 +74,19 @@ export class Vue3D {
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
   private hauteur = 1
-  /** Caméras des trois vitres du hublot (null pour la vue « orbite »). */
-  private vitres: THREE.PerspectiveCamera[] | null = null
 
   // Caméra en orbite autour de la fusée.
-  lacet = 2.6
-  tangage = 0.25
-  distance = DISTANCE_CAMERA
+  lacet = camera.lacet
+  tangage = camera.tangage
+  distance = camera.distance
   /** Position de caméra vers laquelle on revient en douceur (RECENTRER), ou null. */
   private objectif: { lacet: number; tangage: number; distance: number } | null = null
   etiquettes: Etiquette[] = []
   /** Position du visiteur à l'écran (pour savoir si on l'a touché), ou null s'il n'est pas visible. */
   visiteurEcran: { x: number; y: number } | null = null
 
-  constructor(toile: HTMLCanvasElement, mode: 'orbite' | 'hublot' = 'orbite') {
-    this.rendu = new THREE.WebGLRenderer({ canvas: toile, antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: mode === 'orbite' })
+  constructor(toile: HTMLCanvasElement) {
+    this.rendu = new THREE.WebGLRenderer({ canvas: toile, antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: true })
     this.rendu.setPixelRatio(Math.min(2, window.devicePixelRatio || 1))
     this.camera = new THREE.PerspectiveCamera(55, 1, 1e-5, 1e13)
     this.scene.background = new THREE.Color(0x14202d)
@@ -121,7 +108,6 @@ export class Vue3D {
     this.ajouterAstre('Lune', 0xcfc8b8)
     this.lueurVisiteur = this.point(0xbfffd0, 5)
     this.scene.add(this.lueurVisiteur)
-    if (mode === 'hublot') this.vitres = VITRES.map(() => new THREE.PerspectiveCamera(50, 1, 1e-5, 1e13))
   }
 
   private point(couleur: number, taille: number): THREE.Points {
@@ -255,16 +241,9 @@ export class Vue3D {
     this.hauteur = hauteur
     this.rendu.setSize(largeur, hauteur, false)
     this.camera.aspect = largeur / hauteur
+    // Une vue très large (le hublot) garde un champ horizontal raisonnable.
+    this.camera.fov = this.camera.aspect > 1.6 ? 36 : 55
     this.camera.updateProjectionMatrix()
-    if (this.vitres) {
-      // Champ vertical d'une vitre, déduit de son champ horizontal (60°) et de ses proportions.
-      const { l } = disposerVitres(largeur)[0]
-      for (const c of this.vitres) {
-        c.aspect = l / hauteur
-        c.fov = (2 * Math.atan(Math.tan(((CHAMP_VITRE / 2) * Math.PI) / 180) / c.aspect) * 180) / Math.PI
-        c.updateProjectionMatrix()
-      }
-    }
   }
 
   /** Met la scène à l'instant t et dessine. */
@@ -316,8 +295,6 @@ export class Vue3D {
     const mat = this.lueurVisiteur.material as THREE.PointsMaterial
     mat.opacity = detecte ? 0.4 + 0.6 * (Math.sin(horloge / 120) > 0 ? 1 : 0) : 0.55
 
-    if (this.vitres) return this.dessinerHublot(etat, iss, satellites)
-
     // Caméra (en douceur vers l'objectif de RECENTRER, s'il y en a un ; le zoom glisse en échelle logarithmique).
     if (this.objectif) {
       const o = this.objectif
@@ -329,6 +306,7 @@ export class Vue3D {
         this.lacet = o.lacet; this.tangage = o.tangage; this.distance = o.distance; this.objectif = null
       }
     }
+    Object.assign(camera, { lacet: this.lacet, tangage: this.tangage, distance: this.distance, placee: true })
     const c = new THREE.Vector3(
       Math.cos(this.tangage) * Math.cos(this.lacet), Math.sin(this.tangage), -Math.cos(this.tangage) * Math.sin(this.lacet),
     ).multiplyScalar(this.distance)
@@ -356,56 +334,6 @@ export class Vue3D {
     this.visiteurEcran = this.lueurVisiteur.visible || this.soucoupe.visible ? projeter(pv) : null
   }
 
-  /** Hublot : la vue depuis la fusée, à travers sa vitre. */
-  private dessinerHublot(etat: EtatPartie, iss: THREE.Vector3, satellites: string[]) {
-    const vitres = this.vitres!
-    const cases = disposerVitres(this.largeur)
-    const cap = etat.fusee.cap
-    const regard = (deg: number) => { const a = (deg * Math.PI) / 180; return new THREE.Vector3(Math.cos(a), 0, -Math.sin(a)) }
-    this.fusee.visible = false // on est dedans
-    this.reglerCiel(5.4, 0.85)
-    this.rendu.setScissorTest(true)
-    vitres.forEach((c, i) => {
-      c.position.set(0, 0, 0)
-      c.up.set(0, 1, 0)
-      c.lookAt(regard(cap + VITRES[i]))
-      c.updateMatrixWorld()
-      const { x, l } = cases[i]
-      this.rendu.setViewport(x, 0, l, this.hauteur)
-      this.rendu.setScissor(x, 0, l, this.hauteur)
-      this.rendu.render(this.scene, c)
-    })
-    this.rendu.setScissorTest(false)
-
-    // Étiquettes, vitre par vitre ; la cible hors du champ est signalée au bord, du côté où il faut tourner.
-    const dest = etat.fusee.destination
-    const cibleNom = dest?.type === 'astre' ? dest.astre : null
-    const avant = regard(cap)
-    const gauche = regard(cap + 90)
-    const placer = (nom: string, p: THREE.Vector3) => {
-      const cible = nom === cibleNom
-      for (let i = 0; i < vitres.length; i++) {
-        const q = p.clone().project(vitres[i])
-        if (q.z > 1 || Math.abs(q.x) > 1 || Math.abs(q.y) > 1) continue
-        this.etiquettes.push({ nom, x: cases[i].x + ((q.x + 1) / 2) * cases[i].l, y: ((1 - q.y) / 2) * this.hauteur, cible })
-        return
-      }
-      if (!cible) return
-      const az = Math.atan2(p.dot(gauche), p.dot(avant))
-      if (Math.abs(az) < (CHAMP_VITRE * Math.PI) / 360) return // devant, mais trop haut ou trop bas
-      const cote = az > 0 ? 'gauche' : 'droite'
-      this.etiquettes.push({ nom, x: cote === 'gauche' ? 0 : this.largeur, y: this.hauteur / 2, cible, horsChamp: cote })
-    }
-    this.etiquettes = []
-    for (const nom of ['Soleil', ...NOMS_PLANETES, 'Lune', ...satellites.filter((s) => (satellite(s)?.rayon ?? 0) > 100 || s === cibleNom)]) {
-      const a = this.astres.get(nom)
-      if (a?.maillage.visible) placer(nom, a.maillage.position)
-    }
-    if (this.iss.visible) placer('ISS', iss)
-    this.visiteurEcran = null
-  }
-
-  /** Recentre la caméra derrière la fusée, dans l'axe de son cap. */
   /** Ramène la caméra près de la fusée, juste derrière elle, en regardant dans l'axe de sa trajectoire. */
   recentrer(cap: number) {
     let lacet = (cap * Math.PI) / 180 + Math.PI

@@ -1,6 +1,7 @@
 <script lang="ts">
   // Volet de l'Office : caisse, prochaine amélioration ; onglets Contrats, Atelier, Trophées.
-  import { CONTRATS, INSTRUMENTS, TROPHEES } from '../../donnees/economie'
+  import { CONTRATS, DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, PRIMES_REPARATION, TROPHEES } from '../../donnees/economie'
+  import { PANNES } from '../../donnees/reglages'
   import {
     abandonnerContrat,
     accepterContrat,
@@ -13,9 +14,9 @@
     primeContrat,
     prochainModule,
   } from '../../moteur/economie'
-  import { choisirDestination, distance, optionsDeDepart, positionAstre } from '../../moteur/fusee'
+  import { choisirDestination, distance, optionsDeDepart, positionAstre, vitesse as vitesseMoteur } from '../../moteur/fusee'
   import { vitesseActuelle } from '../../moteur/partie'
-  import { duree, heureLocale, nombre, ua } from '../format'
+  import { duree, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
   let onglet = $state<'contrats' | 'atelier' | 'trophees'>('contrats')
@@ -27,6 +28,20 @@
   const proposes = $derived(contratsProposes(etat, t))
   const cout = $derived(coutAmelioration(etat.ameliorations))
   const module = $derived(prochainModule(etat))
+
+  // Effet de la prochaine amélioration : vitesse de croisière avant / après, et un voyage d'exemple.
+  const vitesseAvant = $derived(vitesseMoteur({ ameliorations: etat.ameliorations, levierAAbaisse: false, avarie: false }))
+  const vitesseApres = $derived(vitesseMoteur({ ameliorations: etat.ameliorations + 1, levierAAbaisse: false, avarie: false }))
+  const exemple = $derived(etat.fusee.destination?.type === 'astre' ? etat.fusee.destination.astre : 'Mars')
+  const voyage = (vitesseKmS: number) => {
+    const o = optionsDeDepart(etat.fusee, { type: 'astre', astre: exemple }, t, vitesseKmS)
+    return o.maintenant ? (o.maintenant.arrivee - t) / 1000 : null
+  }
+  const voyageAvant = $derived(onglet === 'atelier' ? voyage(vitesseAvant) : null)
+  const voyageApres = $derived(onglet === 'atelier' ? voyage(vitesseApres) : null)
+  /** Prochain palier de cascade (nombre d'améliorations), s'il en reste un. */
+  const palier = $derived(PANNES.paliersCascade.find((n) => n > etat.ameliorations) ?? null)
+  const aVenir = $derived(MODULES_A_INSTALLER.filter((m) => !estInstalle(etat, m.code) && m.code !== module?.code))
 
   function resultat(r: { etat: typeof etat; refus: string | null }, message: string) {
     refus = r.refus
@@ -45,10 +60,10 @@
     <button role="tab" aria-selected={onglet === 'trophees'} class:actif={onglet === 'trophees'} onclick={() => (onglet = 'trophees')}>TROPHÉES</button>
   </div>
 
-  <div class="caisse">
-    <div class="col"><span class="etiquette">CAISSE</span><span class="montant">{etat.credits} CR</span></div>
+  <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
+    <div class="col"><span class="etiquette">CAISSE · PORTEFEUILLE ›</span><span class="montant">{etat.credits} CR</span></div>
     <div class="col droite"><span class="etiquette">PROCHAINE AMÉLIORATION</span><span class="fort">{cout} CR · +10 % de vitesse</span></div>
-  </div>
+  </button>
 
   {#if refus}<p class="refus" role="alert">{refus}</p>{/if}
 
@@ -94,44 +109,59 @@
         <p class="vide">Plus de contrats cette semaine. Nouveaux contrats lundi.</p>
       {/each}
     {:else if onglet === 'atelier'}
+      <h3>MOTEUR</h3>
       <article class="contrat">
-        <span class="type">MOTEUR</span>
-        <span class="texte">Amélioration n° {etat.ameliorations + 1} · vitesse ×{nombre(1.1 ** etat.ameliorations, 2)} → ×{nombre(1.1 ** (etat.ameliorations + 1), 2)}</span>
+        <span class="type">AMÉLIORATION N° {etat.ameliorations + 1}</span>
+        <div class="vitesses">
+          <span><small>AUJOURD’HUI</small><b>{nombre(vitesseAvant, 1)} km/s</b></span>
+          <span class="fleche">→</span>
+          <span><small>APRÈS</small><b class="mieux">{nombre(vitesseApres, 1)} km/s</b></span>
+        </div>
+        {#if voyageAvant !== null && voyageApres !== null}
+          <span class="detail">Voyage vers {nomAstre(exemple)} : {duree(voyageAvant)} → <b>{duree(voyageApres)}</b> (−{duree(voyageAvant - voyageApres)})</span>
+        {/if}
+        {#if palier !== null}
+          <span class="detail">À {palier} améliorations, les avaries pourront arriver en cascade (plusieurs à la fois, mieux payées).</span>
+        {/if}
         <div class="infos"><span class="prime">{cout} CR</span>
           <span class="boutons"><button class="petit" disabled={etat.credits < cout} onclick={() => resultat(acheterAmelioration(etat, t), `ATELIER : AMÉLIORATION N° ${etat.ameliorations + 1} INSTALLÉE.`)}>AMÉLIORER</button></span>
         </div>
       </article>
+
+      <h3>MODULES</h3>
       {#if module}
         <article class="contrat">
-          <span class="type">MODULE</span>
-          <span class="texte">{module.code} {module.nom}</span>
+          <span class="type">{module.code} · PROCHAIN MODULE</span>
+          <span class="nom-piece">{module.nom}</span>
+          <span class="texte">{DESCRIPTIONS_ATELIER[module.code]}</span>
+          <span class="detail">Ajoute un module au tableau de bord. Ses avaries rapportent <b>{PRIMES_REPARATION[module.code]} CR</b> (CH-1 : {PRIMES_REPARATION['CH-1']} CR).</span>
           <div class="infos"><span class="prime">{module.prix} CR</span>
             <span class="boutons"><button class="petit" disabled={etat.credits < module.prix} onclick={() => resultat(installer(etat, module.code, t), `ATELIER : MODULE ${module.code} INSTALLÉ.`)}>INSTALLER</button></span>
           </div>
         </article>
+        {#each aVenir as m}
+          <div class="a-venir"><span><b>{m.code}</b> {m.nom}</span><span>{m.prix} CR · avaries {PRIMES_REPARATION[m.code]} CR</span></div>
+        {/each}
       {:else}
         <p class="vide">Tous les modules sont installés.</p>
       {/if}
+
       <h3>INSTRUMENTS DE CHASSE</h3>
       {#each INSTRUMENTS as i}
         <article class="contrat">
           <span class="type">{i.code}</span>
-          <span class="texte">{i.nom}</span>
+          <span class="nom-piece">{i.nom}</span>
+          <span class="texte">{DESCRIPTIONS_ATELIER[i.code]}</span>
           <div class="infos">
-            {#if estInstalle(etat, i.code)}<span class="installe">installé</span>
+            {#if estInstalle(etat, i.code)}<span class="installe">INSTALLÉ</span>
             {:else}
               <span class="prime">{i.prix} CR</span>
+              {#if i.exige !== null && !estInstalle(etat, i.exige)}<span class="chiffres">exige {i.exige}</span>{/if}
               <span class="boutons"><button class="petit" disabled={etat.credits < i.prix || (i.exige !== null && !estInstalle(etat, i.exige))}
                 onclick={() => resultat(installer(etat, i.code, t), `ATELIER : ${i.code} INSTALLÉ.`)}>INSTALLER</button></span>
             {/if}
           </div>
         </article>
-      {/each}
-      <h3>JOURNAL</h3>
-      {#each etat.journal.slice(0, 20) as j}
-        <div class="journal"><span>{heureLocale(j.t)} {j.raison}</span><b class:gain={j.montant > 0}>{j.montant > 0 ? '+' : ''}{j.montant}</b></div>
-      {:else}
-        <p class="vide">Aucune opération.</p>
       {/each}
     {:else}
       {#each TROPHEES as tr}
@@ -171,6 +201,8 @@
   }
   .caisse {
     margin: 12px 16px 0;
+    width: calc(100% - 32px);
+    text-align: left;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -308,6 +340,52 @@
   .petit:disabled {
     opacity: 0.35;
   }
+  .vitesses {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vitesses span {
+    display: flex;
+    flex-direction: column;
+  }
+  .vitesses small {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--couleur-texte-discret);
+  }
+  .vitesses b {
+    font-family: var(--police-titre);
+    font-size: 20px;
+    font-weight: 400;
+  }
+  .vitesses .mieux {
+    color: var(--sarcelle);
+  }
+  .fleche {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .detail {
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--couleur-encre-discrete);
+  }
+  .nom-piece {
+    font-family: var(--police-titre);
+    font-size: 18px;
+  }
+  .a-venir {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 2px dashed var(--couleur-texte-eteint);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--couleur-encre-discrete);
+  }
   .installe {
     margin-left: auto;
     font-weight: 700;
@@ -315,19 +393,6 @@
   }
   .vide {
     color: var(--couleur-encre-discrete);
-  }
-  .journal {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    border-bottom: 1px dotted #c9bb98;
-    padding-bottom: 4px;
-  }
-  .journal b {
-    color: var(--couleur-danger);
-  }
-  .journal b.gain {
-    color: #4f7a4c;
   }
   .trophee {
     display: flex;

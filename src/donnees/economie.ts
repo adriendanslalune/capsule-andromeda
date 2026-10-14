@@ -87,3 +87,21 @@ export const TROPHEES_ARRIVEE: Readonly<Record<string, string>> = { Mars: 'mars'
 export const TROPHEES_DISTANCE: readonly { ua: number; id: string }[] = [
   { ua: 40, id: 'kuiper' }, { ua: 120, id: 'helio' }, { ua: 170, id: 'voyager' },
 ]
+
+/**
+ * Ce que l'atelier dit de chaque module et instrument, pour donner envie de l'acheter (textes du jeu).
+ * Les procédures de réparation restent dans le manuel : ici, seulement à quoi sert la pièce.
+ */
+export const DESCRIPTIONS_ATELIER: Readonly<Record<string, string>> = {
+  'CO-1': 'Machine à chiffrer les rapports de l’Office. Un rapport chiffré, c’est un rapport mieux payé.',
+  'PB-1': 'Distribue le courant entre les circuits de bord. Un câble de travers, et c’est la cafetière qui pilote.',
+  'LP-1': 'Six lampes à vide pour amplifier la radio de bord. Elles chauffent, grésillent et claquent sans prévenir.',
+  'HY-1': 'Achemine le liquide de refroidissement jusqu’aux trois réservoirs. Les tuyaux se tournent à la main.',
+  'RE-1': 'Rend l’air de la cabine respirable. Recommandé par l’Office pour tout voyage de plus de cinq minutes.',
+  'MO-1': 'Récepteur des stations de balisage. Pour les amateurs de points, de traits et de longues nuits.',
+  'CR-1': 'L’heure exacte de bord, indispensable aux manœuvres. Il retarde quand on le regarde de travers.',
+  'AN-1': 'Garde la liaison avec la Terre, à condition de la pointer dans la bonne direction.',
+  'SX-1': 'Le point par les étoiles, comme les navigateurs d’autrefois. Rien de plus fiable, quand il marche.',
+  TEL: 'Donne la direction du visiteur depuis la fusée, à 3° près, s’il est à moins de 3 UA. Une visée toutes les 30 minutes.',
+  DET: 'Prévient quand le visiteur passe à moins de 1,5 UA de la fusée : le radar du cockpit donne sa distance.',
+}

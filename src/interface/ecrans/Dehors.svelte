@@ -8,7 +8,7 @@
   import { nombre, nomAstre } from '../format'
   import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
-  import { Vue3D, type Etiquette } from '../vue3d/scene'
+  import { camera, Vue3D, type Etiquette } from '../vue3d/scene'
 
   let toile: HTMLCanvasElement
   let ecran = $state<HTMLElement>()
@@ -33,7 +33,8 @@
     }
     const ajuster = () => vue?.taille(cadre.clientWidth, cadre.clientHeight)
     ajuster()
-    vue.recentrer(etat.fusee.cap)
+    // La caméra reprend là où le hublot la montrait (sinon, derrière la fusée).
+    if (!camera.placee) vue.recentrer(etat.fusee.cap)
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
     let image = 0

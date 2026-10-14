@@ -82,10 +82,10 @@
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
     <div class="instruments">
-      <div class="credits" aria-label={`${etat.credits} crédits`}>
+      <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
         <span class="compteur">{#each tambours as c}<span>{c}</span>{/each}</span>
         <span class="unite">CR</span>
-      </div>
+      </button>
       <span class="etiquette-encre">SAISON {saison}</span>
       <button class="interrupteur" class:coupe={!son} aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>
         <span class="bascule"></span><span class="mot">{son ? 'SON' : 'MUET'}</span>
@@ -254,6 +254,12 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .credits:active {
+    transform: translateY(2px);
   }
   .credits .compteur {
     font-size: 17px;

@@ -1,9 +1,10 @@
 <script lang="ts">
-  // Hublot du tableau de bord : la vue depuis l'intérieur de la fusée, dans l'axe de son cap, sans déformation.
+  // Hublot du cockpit : la vraie vue 3D (la fusée, les astres à leur vraie place), la même que la vue extérieure en
+  // plein écran, qui s'ouvre quand on touche le hublot.
   import { onMount } from 'svelte'
   import { nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
-  import { Vue3D, type Etiquette } from './scene'
+  import { camera, Vue3D, type Etiquette } from './scene'
 
   let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
@@ -13,13 +14,14 @@
   onMount(() => {
     let vue: Vue3D
     try {
-      vue = new Vue3D(toile, 'hublot')
+      vue = new Vue3D(toile)
     } catch {
       indisponible = true
       return
     }
     const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight)
     ajuster()
+    if (!camera.placee && jeu.etat) vue.recentrer(jeu.etat.fusee.cap)
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
     let image = 0
@@ -43,9 +45,7 @@
 <div class="hublot" bind:this={cadre}>
   <canvas bind:this={toile}></canvas>
   {#each etiquettes as e}
-    <span class={`etiquette ${e.horsChamp ?? ''}`} class:cible={e.cible} style={`left: ${e.x}px; top: ${e.y}px`}>
-      {#if e.horsChamp === 'gauche'}‹ {/if}{nomAstre(e.nom)}{#if e.horsChamp === 'droite'} ›{/if}
-    </span>
+    <span class="etiquette" class:cible={e.cible} style={`left: ${e.x}px; top: ${e.y}px`}>{nomAstre(e.nom)}</span>
   {/each}
   {#if indisponible}<p>Vue indisponible sur cet appareil.</p>{/if}
 </div>
@@ -76,12 +76,6 @@
     color: var(--moutarde);
     opacity: 1;
     font-weight: 700;
-  }
-  .etiquette.gauche {
-    transform: translate(6px, -50%);
-  }
-  .etiquette.droite {
-    transform: translate(calc(-100% - 6px), -50%);
   }
   p {
     position: absolute;
