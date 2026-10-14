@@ -31,8 +31,7 @@ import {
   SEUIL_ARRIVEE_ENGIN_KM,
 } from '../donnees/reglages'
 import { escaleDuJour, positionVisiteur } from './visiteur'
-import { estEngin } from '../astro/engins'
-import { APPROCHE_ENGIN_KM } from '../donnees/engins'
+import { approcheEngin, estEngin } from '../astro/engins'
 
 export interface Point2 {
   x: number
@@ -740,7 +739,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       const d = Math.hypot(dx, dy)
       // Amarrée à l'ISS : tout contre elle ; ailleurs, en orbite à la distance d'arrivée.
       const dz = z - hauteurDestination(dest, t, z)
-      const tout = dest.astre === 'ISS' ? AMARRAGE_ISS_KM : estEngin(dest.astre) ? APPROCHE_ENGIN_KM : null
+      const tout = dest.astre === 'ISS' ? AMARRAGE_ISS_KM : estEngin(dest.astre) ? approcheEngin(dest.astre) : null
       const k = tout !== null ? enUA(tout) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
       ecartOrbite = { x: dx * k, y: dy * k, z: dz * k }
     }

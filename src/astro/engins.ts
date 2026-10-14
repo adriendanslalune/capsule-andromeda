@@ -1,7 +1,7 @@
 // Position des engins humains (héliocentrique, écliptique J2000, UA) : SGP4 pour ceux qui tournent autour de la
 // Terre à basse altitude, interpolation des trajectoires de JPL Horizons pour les autres.
 
-import { ENGINS, type FicheEngin } from '../donnees/engins'
+import { approcheEnginKm, ENGINS, type FicheEngin } from '../donnees/engins'
 import { TRAJECTOIRES, type Trajectoire } from '../donnees/engins-jpl'
 import type { NomPlanete } from '../donnees/planetes'
 import { positionTLEGeocentrique } from './iss'
@@ -21,6 +21,11 @@ export function estEngin(nom: string): boolean {
 
 export function ficheEngin(nom: string): FicheEngin | undefined {
   return FICHES.get(nom)
+}
+
+/** Distance d'approche d'un engin (km). */
+export function approcheEngin(nom: string): number {
+  return approcheEnginKm(FICHES.get(nom)?.tailleM ?? 30)
 }
 
 /** Noms de tous les engins (hors ISS). */

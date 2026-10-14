@@ -299,7 +299,7 @@ avec un contact à moins de 0,01 UA).*
   Solar Orbiter, BepiColombo, Europa Clipper, JUICE, Juno, Lucy, Psyche, New Horizons, Pioneer 10 et 11, Voyager 1 et 2
   (trajectoires de JPL Horizons, `outils/engins-jpl.mjs`, période 2026-2029 à rafraîchir).
 - Chacun est une destination : arrivée à 1 km (`SEUIL_ARRIVEE_ENGIN_KM`), puis la fusée se range à 100 m
-  (`APPROCHE_ENGIN_KM`) et le suit.
+  (trois fois sa taille, de 25 à 100 m) et le suit.
 
 ## 12. Trophées (décision d'Adrien du 14/10/2026)
 - Ils ne rapportent rien. Catalogue : `src/moteur/trophees.ts` (paliers dans `src/donnees/trophees.ts`), 555 trophées :

@@ -1,13 +1,13 @@
 // Les engins humains du système solaire, à leur position réelle (en plus de l'ISS, calculée à part) :
 //  - en orbite basse (Hubble, la station chinoise Tiangong) : par la méthode SGP4, à partir de leur orbite publiée ;
 //  - les sondes et télescopes lointains : trajectoires de JPL Horizons (NASA), voir engins-jpl.ts.
-// Chaque engin est une destination : on s'en approche à 100 m.
+// Chaque engin est une destination : on s'en approche à trois fois sa taille (de 25 à 100 m).
 
 import type { OrbiteTLE } from './iss'
 
 export type ModeleEngin =
   | 'hubble' | 'tiangong' | 'webb' | 'gaia' | 'voyager' | 'pioneer' | 'new-horizons' | 'parker' | 'solar-orbiter'
-  | 'bepicolombo' | 'clipper' | 'juice' | 'lucy' | 'psyche' | 'juno'
+  | 'bepicolombo' | 'clipper' | 'juice' | 'lucy' | 'psyche' | 'juno' | 'roadster'
 
 export interface FicheEngin {
   nom: string
@@ -39,6 +39,7 @@ export const ENGINS: readonly FicheEngin[] = [
   { nom: 'Juno', modele: 'juno', tailleM: 20, periodeJours: 33, description: 'En orbite autour de Jupiter' },
   { nom: 'Lucy', modele: 'lucy', tailleM: 16, periodeJours: 365, description: 'Vers les astéroïdes troyens' },
   { nom: 'Psyche', modele: 'psyche', tailleM: 25, periodeJours: 365, description: 'Vers l’astéroïde métallique Psyché' },
+  { nom: 'Tesla Roadster', modele: 'roadster', tailleM: 4, periodeJours: 557, description: 'Une voiture et son pilote, lancés en 2018' },
   { nom: 'New Horizons', modele: 'new-horizons', tailleM: 3, periodeJours: 3650, description: 'Après Pluton, la ceinture de Kuiper' },
   { nom: 'Pioneer 10', modele: 'pioneer', tailleM: 3, periodeJours: 3650, description: 'Silencieuse depuis 2003' },
   { nom: 'Pioneer 11', modele: 'pioneer', tailleM: 3, periodeJours: 3650, description: 'Silencieuse depuis 1995' },
@@ -46,5 +47,7 @@ export const ENGINS: readonly FicheEngin[] = [
   { nom: 'Voyager 2', modele: 'voyager', tailleM: 13, periodeJours: 3650, description: 'Seule visiteuse d’Uranus et de Neptune' },
 ]
 
-/** Distance d'approche d'un engin (km) : on s'arrête à 100 m. */
-export const APPROCHE_ENGIN_KM = 0.1
+/** Distance d'approche d'un engin (km) : trois fois sa taille, de 25 m (Roadster) à 100 m (Tiangong). */
+export function approcheEnginKm(tailleM: number): number {
+  return Math.min(100, Math.max(25, 3 * tailleM)) / 1000
+}

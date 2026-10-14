@@ -2,7 +2,6 @@
   // XIX. Navigation : destinations, distances d'arrivée, amarrage à l'ISS, Soleil et filtre solaire.
   import { UA_KM } from '../../../astro/temps'
   import { AMARRAGE_ISS_KM, SEUIL_ARRIVEE, SEUIL_ARRIVEE_LUNE, SEUIL_ARRIVEE_POINT_KM, SEUIL_ARRIVEE_SOLEIL } from '../../../donnees/reglages'
-  import { APPROCHE_ENGIN_KM } from '../../../donnees/engins'
   import Page from '../Page.svelte'
 
   let { numero }: { numero: number } = $props()
@@ -22,7 +21,7 @@
       <tr><td>Lune</td><td>{virgule(SEUIL_ARRIVEE_LUNE)} UA ({km(SEUIL_ARRIVEE_LUNE)} km)</td></tr>
       <tr><td>Autre satellite</td><td>le quart de son orbite, au plus comme la Lune</td></tr>
       <tr><td>Soleil</td><td>{virgule(SEUIL_ARRIVEE_SOLEIL)} UA ({km(SEUIL_ARRIVEE_SOLEIL)} km)</td></tr>
-      <tr><td>Engin</td><td>on s’en approche à {Math.round(APPROCHE_ENGIN_KM * 1000)} m</td></tr>
+      <tr><td>Engin</td><td>on s’en approche à trois fois sa taille (25 à 100 m)</td></tr>
       <tr><td>Point libre</td><td>{SEUIL_ARRIVEE_POINT_KM.toLocaleString('fr-FR')} km</td></tr>
     </tbody>
   </table>

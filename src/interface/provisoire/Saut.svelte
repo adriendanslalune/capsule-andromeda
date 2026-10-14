@@ -4,11 +4,10 @@
   // src/interface/volets/Carte.svelte (chercher « PROVISOIRE »).
   // Le saut place la fusée en orbite autour de la destination choisie, instantanément. Aucun contrat n'est rempli,
   // mais la visite compte pour les trophées (et les points).
-  import { NOMS_ENGINS } from '../../astro/engins'
+  import { approcheEngin, NOMS_ENGINS } from '../../astro/engins'
   import { positionCorps, rayonCorps } from '../../astro/corps'
   import { satellitesDe } from '../../astro/satellites'
   import { UA_KM } from '../../astro/temps'
-  import { APPROCHE_ENGIN_KM } from '../../donnees/engins'
   import { NOMS_PLANETES } from '../../donnees/planetes'
   import { AMARRAGE_ISS_KM } from '../../donnees/reglages'
   import { lieuDArrivee, seuilArrivee } from '../../moteur/fusee'
@@ -28,7 +27,7 @@
     const astre = lieuDArrivee(choix)
     const c = positionCorps(astre, t)
     // On se range du côté éclairé (entre l'astre et le Soleil), à la distance d'arrivée.
-    const km = astre === 'ISS' ? AMARRAGE_ISS_KM : NOMS_ENGINS.includes(astre) ? APPROCHE_ENGIN_KM
+    const km = astre === 'ISS' ? AMARRAGE_ISS_KM : NOMS_ENGINS.includes(astre) ? approcheEngin(astre)
       : Math.max(seuilArrivee({ type: 'astre', astre }) * UA_KM, (rayonCorps(astre) ?? 0) * 1.5)
     const d = Math.hypot(c.x, c.y) || 1
     const u = astre === 'Soleil' ? { x: 1, y: 0 } : { x: -c.x / d, y: -c.y / d }

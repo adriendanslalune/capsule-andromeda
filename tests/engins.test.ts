@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { NOMS_ENGINS, positionEngin } from '../src/astro/engins'
 import { positionPlanete } from '../src/astro/planetes'
 import { UA_KM } from '../src/astro/temps'
-import { APPROCHE_ENGIN_KM } from '../src/donnees/engins'
+import { approcheEngin } from '../src/astro/engins'
 import { TRAJECTOIRES } from '../src/donnees/engins-jpl'
 import { creerPartie, type EtatPartie } from '../src/moteur/etat'
 import { choisirDestination, positionAstre } from '../src/moteur/fusee'
@@ -76,7 +76,7 @@ describe('engins humains, à leur position réelle', () => {
     }
   })
 
-  it('on peut aller jusqu’à Hubble et s’en approcher à 100 m', () => {
+  it('on peut aller jusqu’à Hubble et s’en approcher (trois fois sa taille)', () => {
     let e: EtatPartie = { ...creerPartie(T0, mulberry32(1)), ameliorations: 10 }
     e = { ...e, fusee: choisirDestination(e.fusee, { type: 'astre', astre: 'Hubble' }) }
     let t = T0
@@ -90,7 +90,7 @@ describe('engins humains, à leur position réelle', () => {
     expect(arrive).toBe(true)
     expect(e.fusee.orbite).toBe('Hubble')
     const o = e.fusee.ecartOrbite!
-    expect(Math.hypot(o.x, o.y, o.z) * UA_KM).toBeCloseTo(APPROCHE_ENGIN_KM, 6)
+    expect(Math.hypot(o.x, o.y, o.z) * UA_KM).toBeCloseTo(approcheEngin('Hubble'), 6)
     // Elle le suit ensuite.
     const r = avancerPartie(e, t + 60_000, 60, mulberry32(1))
     expect(km({ ...r.etat.fusee.position, z: 0 }, { ...positionAstre('Hubble', t + 60_000), z: 0 })).toBeLessThan(1)

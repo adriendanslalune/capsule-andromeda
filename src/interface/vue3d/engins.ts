@@ -504,6 +504,72 @@ function modeleJuno(): THREE.Group {
   return g
 }
 
+/**
+ * Le Tesla Roadster lancé en 2018 (3,9 m) : carrosserie rouge cerise aux flancs galbés, capot plongeant, roues noires,
+ * pare-brise, et « Starman », le mannequin en combinaison blanche, une main sur le volant, le coude sur la portière.
+ * Axe de la voiture : +X (l'avant).
+ */
+function modeleRoadster(): THREE.Group {
+  const g = new THREE.Group()
+  const rouge = mat(0xb5121b, { roughness: 0.35, metalness: 0.3 })
+  const noir = mat(0x1a1a1a)
+  // Silhouette vue de côté (x : de l'arrière à l'avant, y : hauteur), extrudée sur la largeur.
+  const profil = new THREE.Shape()
+  const pts: [number, number][] = [[-1.95, 0.25], [-1.95, 0.75], [-1.6, 0.85], [-0.55, 0.9], [-0.25, 0.95], [0.6, 0.78],
+    [1.75, 0.62], [1.95, 0.45], [1.95, 0.25]]
+  profil.moveTo(pts[0][0] * M, pts[0][1] * M)
+  for (const [x, y] of pts.slice(1)) profil.lineTo(x * M, y * M)
+  const caisse = new THREE.Mesh(new THREE.ExtrudeGeometry(profil, { depth: 1.8 * M, bevelEnabled: true, bevelSize: 0.08 * M, bevelThickness: 0.08 * M, bevelSegments: 3 }), rouge)
+  caisse.position.z = -0.9 * M
+  g.add(caisse)
+  // Habitacle : creux noir, sièges, volant.
+  g.add(placer(boite(1.3 * M, 0.12 * M, 1.4 * M, noir), -0.55 * M, 0.92 * M, 0))
+  g.add(placer(boite(0.25 * M, 0.55 * M, 0.5 * M, noir), -0.95 * M, 1.15 * M, 0.38 * M))
+  g.add(placer(boite(0.25 * M, 0.55 * M, 0.5 * M, noir), -0.95 * M, 1.15 * M, -0.38 * M))
+  const volant = new THREE.Mesh(new THREE.TorusGeometry(0.17 * M, 0.025 * M, 8, 20), noir)
+  volant.position.set(-0.2 * M, 1.12 * M, 0.38 * M)
+  volant.rotation.y = Math.PI / 2
+  volant.rotation.x = 0.4
+  g.add(volant)
+  // Pare-brise, légèrement teinté, et son cadre.
+  const vitre = new THREE.Mesh(new THREE.PlaneGeometry(0.55 * M, 1.5 * M), new THREE.MeshStandardMaterial({ color: 0x9fb8c8, transparent: true, opacity: 0.35, side: THREE.DoubleSide }))
+  vitre.position.set(0.05 * M, 1.15 * M, 0)
+  vitre.rotation.y = Math.PI / 2
+  vitre.rotation.x = 0
+  vitre.rotation.z = 0.9
+  g.add(vitre)
+  // Roues (pneus noirs, jantes argentées).
+  for (const x of [-1.25, 1.3]) {
+    for (const z of [-0.88, 0.88]) {
+      g.add(placer(cylindre(0.33 * M, 0.24 * M, noir, 'z', 20), x * M, 0.33 * M, z * M))
+      g.add(placer(cylindre(0.2 * M, 0.26 * M, mat(0xb8bcc2, { metalness: 0.5, roughness: 0.4 }), 'z', 16), x * M, 0.33 * M, z * M))
+    }
+  }
+  // Phares et feux.
+  for (const z of [-0.6, 0.6]) {
+    g.add(placer(boite(0.05 * M, 0.08 * M, 0.3 * M, mat(0xf2f0e6)), 1.98 * M, 0.55 * M, z * M))
+    g.add(placer(boite(0.05 * M, 0.08 * M, 0.3 * M, mat(0x8a1010)), -1.98 * M, 0.68 * M, z * M))
+  }
+  // Starman : combinaison blanche, casque à visière noire, bras gauche sur la portière.
+  const blanc = mat(0xf1f1ee, { roughness: 0.6 })
+  const buste = new THREE.Mesh(new THREE.CapsuleGeometry(0.2 * M, 0.45 * M, 6, 12), blanc)
+  buste.position.set(-0.85 * M, 1.4 * M, 0.38 * M)
+  buste.rotation.z = 0.25
+  g.add(buste)
+  g.add(placer(new THREE.Mesh(new THREE.SphereGeometry(0.17 * M, 20, 16), blanc), -0.75 * M, 1.85 * M, 0.38 * M))
+  const visiere = new THREE.Mesh(new THREE.SphereGeometry(0.15 * M, 20, 12, -Math.PI / 2.4, Math.PI / 1.2, Math.PI / 3.2, Math.PI / 2.8), mat(0x111111, { roughness: 0.2 }))
+  visiere.position.set(-0.73 * M, 1.85 * M, 0.38 * M)
+  visiere.rotation.y = -Math.PI / 2
+  g.add(visiere)
+  const bras = placer(new THREE.Mesh(new THREE.CapsuleGeometry(0.07 * M, 0.45 * M, 4, 8), blanc), -0.55 * M, 1.25 * M, 0.75 * M)
+  bras.rotation.z = Math.PI / 2.4
+  g.add(bras)
+  const brasVolant = placer(new THREE.Mesh(new THREE.CapsuleGeometry(0.07 * M, 0.5 * M, 4, 8), blanc), -0.5 * M, 1.3 * M, 0.28 * M)
+  brasVolant.rotation.z = Math.PI / 2.2
+  g.add(brasVolant)
+  return g
+}
+
 /** Modèle 3D d'un engin d'après le type de sa fiche. */
 export function modeleEngin(type: string): THREE.Group {
   switch (type) {
@@ -521,6 +587,7 @@ export function modeleEngin(type: string): THREE.Group {
     case 'juice': return modeleJuice()
     case 'lucy': return modeleLucy()
     case 'psyche': return modelePsyche()
+    case 'roadster': return modeleRoadster()
     default: return modeleJuno()
   }
 }

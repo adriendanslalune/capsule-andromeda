@@ -19,7 +19,7 @@ const ENGINS = [
   ['Pioneer 10', -23, 10, 10], ['Pioneer 11', -24, 10, 10],
   ['Parker Solar Probe', -96, 10, 0.5],
   ['Solar Orbiter', -144, 10, 2], ['BepiColombo', -121, 10, 2, 'Mercure'], ['Europa Clipper', -159, 10, 2],
-  ['JUICE', -28, 10, 2], ['Lucy', -49, 10, 2], ['Psyche', -255, 10, 2],
+  ['JUICE', -28, 10, 2], ['Lucy', -49, 10, 2], ['Psyche', -255, 10, 2], ['Tesla Roadster', -143205, 10, 2],
   ['James Webb', -170, 399, 1], ['Gaia', -139479, 399, 1],
   ['Juno', -61, 599, 0.5, 'Jupiter'],
 ]
