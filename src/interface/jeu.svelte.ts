@@ -53,6 +53,11 @@ class Jeu {
 
   private minuterie: ReturnType<typeof setInterval> | null = null
   private prochaineAlarme = 0
+  /** Nombre d'étages ouverts au-dessus du tableau de bord, tels que l'historique du navigateur les connaît. */
+  private etagesHistorique = 0
+  private retoursIgnores = 0
+  /** Instant du dernier changement d'écran (pour ignorer un toucher « fantôme » juste après). */
+  dernierChangement = 0
   private derniereSauvegarde = 0
 
   /** Au lancement : reprend la partie sauvegardée (avec rattrapage), sinon montre l'ouverture. */
@@ -72,6 +77,8 @@ class Jeu {
       this.lancerBoucle()
     }
     if (typeof document !== 'undefined') {
+      history.replaceState({ mdv: 0 }, '')
+      window.addEventListener('popstate', (e) => this.retourNavigateur(e.state?.mdv ?? 0))
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') this.sauvegarder()
         else this.revenir()
@@ -90,6 +97,40 @@ class Jeu {
     this.ecran = { nom: 'fenetre' }
     this.sauvegarder()
     this.lancerBoucle()
+  }
+
+  /** Étages ouverts au-dessus du tableau de bord : un écran (module, dehors), puis un volet. */
+  private etages(): number {
+    return (this.ecran.nom === 'module' || this.ecran.nom === 'dehors' ? 1 : 0) + (this.volet ? 1 : 0)
+  }
+
+  /**
+   * Tient l'historique du navigateur au courant des écrans ouverts, pour que le geste « retour » du téléphone
+   * (glisser depuis le bord, ou bouton retour) ferme l'écran du dessus au lieu de quitter le jeu.
+   */
+  synchroniserHistorique() {
+    const n = this.etages()
+    if (n === this.etagesHistorique) return
+    this.dernierChangement = Date.now()
+    if (n > this.etagesHistorique) for (let i = this.etagesHistorique + 1; i <= n; i++) history.pushState({ mdv: i }, '')
+    else { this.retoursIgnores++; history.go(n - this.etagesHistorique) }
+    this.etagesHistorique = n
+  }
+
+  private retourNavigateur(etage: number) {
+    if (this.retoursIgnores > 0) { this.retoursIgnores--; return }
+    this.etagesHistorique = etage
+    this.dernierChangement = Date.now()
+    while (this.etages() > etage) {
+      if (this.volet) this.volet = null
+      else this.ecran = { nom: 'fenetre' }
+    }
+  }
+
+  /** Ferme l'écran ou le volet du dessus (bouton, ou glissement). */
+  fermer() {
+    if (this.volet) this.volet = null
+    else if (this.ecran.nom !== 'ouverture') this.ecran = { nom: 'fenetre' }
   }
 
   private lancerBoucle() {

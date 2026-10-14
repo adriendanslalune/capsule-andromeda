@@ -1,6 +1,7 @@
 <script lang="ts">
   // Un module en plein écran : retour à la fenêtre, renvoi au manuel, commandes du module, avarie suivante.
   import { modulesEnPanne } from '../../moteur/modules'
+  import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
   import { pageDuChapitre } from '../volets/pages-manuel'
   import Antenne from '../modules/Antenne.svelte'
@@ -16,6 +17,8 @@
   import Sextant from '../modules/Sextant.svelte'
 
   let { code }: { code: string } = $props()
+  let ecran = $state<HTMLElement>()
+  const glisser = { sens: 'droite' as const, cible: () => ecran, fermer: () => jeu.fermer() }
 
   /** Nom du module et chapitre du manuel qui le décrit. */
   const FICHES: Record<string, { nom: string; chapitre: string }> = {
@@ -40,9 +43,11 @@
   const autre = $derived(enPanne.find((c) => !affiche.includes(c)) ?? null)
 </script>
 
-<main>
-  <header>
-    <button class="retour" onclick={() => (jeu.ecran = { nom: 'fenetre' })}>‹ FENÊTRE</button>
+<main bind:this={ecran}>
+  <!-- Tirer depuis le bord gauche, ou par le bandeau du haut, ramène au tableau de bord. -->
+  <div class="bord" use:glisserPourFermer={glisser}></div>
+  <header use:glisserPourFermer={glisser}>
+    <button class="retour" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
     <button class="manuel" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
   </header>
   <div class="titre">
@@ -74,6 +79,14 @@
 </main>
 
 <style>
+  .bord {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 22px;
+    z-index: 5;
+  }
   main {
     position: relative;
     height: 100%;

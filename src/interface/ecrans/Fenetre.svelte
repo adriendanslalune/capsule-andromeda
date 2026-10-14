@@ -3,16 +3,7 @@
   import { MODULES_A_INSTALLER } from '../../donnees/economie'
   import { finSaison, numeroSaison, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
-  import {
-    direction,
-    distanceRestante,
-    enAttenteDeFenetre,
-    planDeVol,
-    positionDestination,
-    tempsRestant,
-    type Destination,
-  } from '../../moteur/fusee'
-  import { mulberry32 } from '../../moteur/hasard'
+  import { distanceRestante, enAttenteDeFenetre, planDeVol, tempsRestant, type Destination } from '../../moteur/fusee'
   import { modulesEnPanne } from '../../moteur/modules'
   import { vitesseActuelle } from '../../moteur/partie'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
@@ -20,12 +11,6 @@
   import { basculerSon, sonActif } from '../sons'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
-
-  // Étoiles du décor (toujours les mêmes).
-  const etoiles = (() => {
-    const h = mulberry32(58)
-    return Array.from({ length: 160 }, () => ({ x: h() * 390, y: h() * 360, r: 0.4 + h(), o: 0.3 + h() * 0.6 }))
-  })()
 
   let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
@@ -53,11 +38,12 @@
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, vitesse) : null)
   const reste = $derived(fusee.destination ? tempsRestant(fusee, t, vitesse) : null)
-  const visee = $derived.by(() => {
-    if (!fusee.destination) return null
-    const cible = plan?.point ?? positionDestination(fusee.destination, t)
-    return direction(fusee.position, cible)
-  })
+
+  /** Vue extérieure ; un toucher arrivé juste après un changement d'écran est ignoré (toucher « fantôme »). */
+  function regarderDehors() {
+    if (Date.now() - jeu.dernierChangement < 500) return
+    jeu.ecran = { nom: 'dehors' }
+  }
 
   // Chasse.
   const saison = $derived(numeroSaison(t))
@@ -72,39 +58,22 @@
 </script>
 
 <main>
-  <button class="ouvrir-vue" aria-label="Regarder dehors (vue 3D)" onclick={() => (jeu.ecran = { nom: 'dehors' })}></button>
-  <svg class="vue" viewBox="0 0 390 360" aria-hidden="true">
-    <rect width="390" height="360" fill="var(--couleur-fond)" />
-    {#each etoiles as e}
-      <circle cx={e.x} cy={e.y} r={e.r} fill="var(--couleur-texte)" opacity={e.o} />
-    {/each}
-    {#if visee !== null}
-      {@const a = (visee * Math.PI) / 180}
-      <line
-        x1="195" y1="168" x2={195 + Math.cos(a) * 150} y2={168 - Math.sin(a) * 150}
-        stroke="var(--couleur-avarie)" stroke-width="1.5" stroke-dasharray="5 5"
-      />
-    {/if}
-    <g transform={`translate(195 168) rotate(${-fusee.cap})`}>
-      <path d="M-46 0 L-62 -9 L-62 9 Z" fill="#ffd27a" opacity={fusee.destination && !enAttenteDeFenetre(fusee) ? 0.9 : 0} />
-      <path d="M-38 -11 L22 -11 Q48 0 22 11 L-38 11 Z" fill="var(--couleur-texte)" stroke="var(--couleur-encre)" stroke-width="2" />
-      <rect x="-10" y="-11" width="7" height="22" fill="var(--couleur-avarie)" stroke="var(--couleur-encre)" stroke-width="1.5" />
-      <circle cx="12" cy="0" r="5" fill="#7f9db4" stroke="#b8893b" stroke-width="2" />
-      <path d="M-30 -11 L-42 -24 L-22 -11 Z M-30 11 L-42 24 L-22 11 Z" fill="var(--couleur-avarie)" stroke="var(--couleur-encre)" stroke-width="1.5" />
-    </g>
-  </svg>
-
-  <header>
-    <div class="ident">
-      <span class="c58">C-58</span>
-      <span class="nom">{etat.nom || etat.serie}</span>
-    </div>
-    <div class="pastilles">
-      <span class="pastille chiffres">{etat.credits} CR</span>
-      <span class="pastille">SAISON {saison}</span>
-      <button class="pastille son" aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>{son ? 'SON' : 'MUET'}</button>
-    </div>
-  </header>
+  <div class="vitre">
+    <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
+    {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+    <header>
+      <div class="ident">
+        <span class="c58">C-58</span>
+        <span class="nom">{etat.nom || etat.serie}</span>
+      </div>
+      <div class="pastilles">
+        <span class="pastille chiffres">{etat.credits} CR</span>
+        <span class="pastille">SAISON {saison}</span>
+        <button class="pastille son" aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>{son ? 'SON' : 'MUET'}</button>
+      </div>
+    </header>
+    <button class="dehors" onclick={regarderDehors}>VUE EXTÉRIEURE</button>
+  </div>
 
   <section class="voyage">
     {#if fusee.destination && enAttenteDeFenetre(fusee) && plan}
@@ -174,31 +143,42 @@
 </main>
 
 <style>
+  /* Le hublot prend toute la hauteur que le tableau de bord laisse libre. */
   main {
     position: relative;
     height: 100%;
-    min-height: 700px;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
+    padding-bottom: 22px;
   }
-  .ouvrir-vue {
+  main > :global(*) {
+    flex: none;
+  }
+  .vitre {
+    position: relative;
+    flex: 1 0 190px;
+    background: #05080d;
+    border-bottom: 1px solid var(--couleur-bordure-forte);
+  }
+  .dehors {
     position: absolute;
-    top: 52px;
-    left: 0;
-    width: 100%;
-    height: 190px;
-    border: 0;
-    background: none;
-    z-index: 1;
+    right: 12px;
+    bottom: 10px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 20px;
+    border: 1px solid var(--couleur-bordure-forte);
+    background: rgba(15, 26, 36, 0.75);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
   }
-  .vue {
+  header {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 360px;
-  }
-  header {
-    position: relative;
+    right: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -246,7 +226,7 @@
   }
   .voyage {
     position: relative;
-    margin: 196px var(--espace) 0;
+    margin: 12px var(--espace) 0;
     background: rgba(15, 26, 36, 0.86);
     border: 1px solid var(--couleur-bordure-forte);
     border-radius: var(--rayon);
@@ -409,7 +389,7 @@
   nav {
     display: flex;
     gap: 10px;
-    margin: 10px var(--espace) 22px;
+    margin: 10px var(--espace) 0;
   }
   nav button {
     flex: 1;

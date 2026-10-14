@@ -9,6 +9,8 @@
   import { jeu } from './jeu.svelte'
 
   onMount(() => jeu.demarrer())
+  // Chaque écran ouvert est inscrit dans l'historique : le geste « retour » du téléphone le referme.
+  $effect(() => jeu.synchroniserHistorique())
 </script>
 
 {#if jeu.ecran.nom === 'ouverture' || !jeu.etat}

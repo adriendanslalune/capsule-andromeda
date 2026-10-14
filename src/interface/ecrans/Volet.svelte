@@ -1,20 +1,25 @@
 <script lang="ts">
   // Volets qui montent du bas : Carte, Office, Manuel.
+  import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
   import Carte from '../volets/Carte.svelte'
   import Manuel from '../volets/Manuel.svelte'
   import Office from '../volets/Office.svelte'
 
   const titres = { carte: 'CARTE', office: 'OFFICE', manuel: 'MANUEL' } as const
+  let volet = $state<HTMLElement>()
 </script>
 
-<div class="voile" role="presentation" onclick={() => (jeu.volet = null)}></div>
-<section class="volet" aria-label={jeu.volet ? titres[jeu.volet] : ''}>
-  <div class="poignee"></div>
-  <header>
-    <span class="titre">{jeu.volet ? titres[jeu.volet] : ''}</span>
-    <button onclick={() => (jeu.volet = null)}>FERMER</button>
-  </header>
+<div class="voile" role="presentation" onclick={() => jeu.fermer()}></div>
+<section class="volet" bind:this={volet} aria-label={jeu.volet ? titres[jeu.volet] : ''}>
+  <!-- Tirer la poignée vers le bas ferme le volet. -->
+  <div class="prise" use:glisserPourFermer={{ sens: 'bas', cible: () => volet, fermer: () => jeu.fermer() }}>
+    <div class="poignee"></div>
+    <header>
+      <span class="titre">{jeu.volet ? titres[jeu.volet] : ''}</span>
+      <button onclick={() => jeu.fermer()}>FERMER</button>
+    </header>
+  </div>
   {#if jeu.volet === 'carte'}<Carte />
   {:else if jeu.volet === 'office'}<Office />
   {:else if jeu.volet === 'manuel'}<Manuel />
@@ -45,12 +50,15 @@
   @keyframes monte {
     from { transform: translateY(100%); }
   }
+  .prise {
+    padding-bottom: 6px;
+  }
   .poignee {
-    width: 44px;
-    height: 5px;
+    width: 56px;
+    height: 6px;
     border-radius: 3px;
     background: #c9bb98;
-    margin: 8px auto 0;
+    margin: 10px auto 0;
   }
   header {
     display: flex;

@@ -6,10 +6,13 @@
   import { CHASSE } from '../../donnees/chasse'
   import { vitesseActuelle } from '../../moteur/partie'
   import { nombre, nomAstre } from '../format'
+  import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
   import { Vue3D, type Etiquette } from '../vue3d/scene'
 
   let toile: HTMLCanvasElement
+  let ecran = $state<HTMLElement>()
+  const glisser = { sens: 'droite' as const, cible: () => ecran, fermer: () => jeu.fermer() }
   let cadre: HTMLDivElement
   let vue: Vue3D | null = null
   let etiquettes = $state<Etiquette[]>([])
@@ -100,7 +103,7 @@
   }
 </script>
 
-<main>
+<main bind:this={ecran}>
   <div class="cadre" bind:this={cadre}>
     <canvas bind:this={toile} onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher}
       onwheel={(e) => { e.preventDefault(); vue?.zoomer(e.deltaY > 0 ? 1.15 : 1 / 1.15) }}></canvas>
@@ -112,8 +115,9 @@
 
   {#if erreur}<p class="erreur">{erreur}</p>{/if}
 
+  <div class="bord" use:glisserPourFermer={glisser}></div>
   <header>
-    <button onclick={() => (jeu.ecran = { nom: 'fenetre' })}>‹ FENÊTRE</button>
+    <button onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
     <span class="info">C-58 · CAP {String(Math.round(etat.fusee.cap) % 360).padStart(3, '0')}° · {nombre(etat.fusee.destination ? vitesseActuelle(etat) : 0, 1)} km/s</span>
   </header>
 
@@ -132,6 +136,14 @@
 </main>
 
 <style>
+  .bord {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 22px;
+    z-index: 5;
+  }
   main {
     position: relative;
     height: 100%;
