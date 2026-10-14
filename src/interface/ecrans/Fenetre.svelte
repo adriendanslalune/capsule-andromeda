@@ -1,15 +1,28 @@
 <script lang="ts">
   // Écran principal : le cockpit. Il répond à trois questions : où je vais, qu'est-ce qui ne va pas, quel est mon but.
-  // En haut, la fenêtre ; dessous, le tableau de bord : navigation, voyants des modules, chasse, téléscripteur et
-  // les trois gros boutons.
+  // En haut, le hublot (le toucher fait sortir en vue extérieure) ; dessous, la console : instruments à aiguilles
+  // (vitesse, cap, heure d'arrivée), navigation et frise du trajet, voyants des modules, chasse, téléscripteur.
   import { MODULES_A_INSTALLER } from '../../donnees/economie'
   import { finSaison, numeroSaison, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
-  import { distanceRestante, enAttenteDeFenetre, planDeVol, tempsRestant, type Destination } from '../../moteur/fusee'
+  import {
+    avancementTrajet,
+    direction,
+    distanceRestante,
+    enAttenteDeFenetre,
+    planDeVol,
+    positionDestination,
+    tempsRestant,
+    type Destination,
+  } from '../../moteur/fusee'
   import { modulesEnPanne } from '../../moteur/modules'
   import { vitesseActuelle } from '../../moteur/partie'
-  import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
+  import Compas from '../cockpit/Compas.svelte'
+  import Horloge from '../cockpit/Horloge.svelte'
+  import Tachymetre from '../cockpit/Tachymetre.svelte'
+  import { dateLocale, duree, heureLocale, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import { presence } from '../reseau'
   import { basculerSon, sonActif } from '../sons'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
@@ -19,27 +32,25 @@
   const t = $derived(jeu.maintenant)
   const fusee = $derived(etat.fusee)
   const enPanne = $derived(modulesEnPanne(etat.modules))
-  const vitesse = $derived(vitesseActuelle(etat))
+  const croisiere = $derived(vitesseActuelle(etat))
+  const attente = $derived(enAttenteDeFenetre(fusee))
+  const vitesse = $derived(fusee.destination && !attente ? croisiere : 0)
 
+  const majuscule = (s: string) => s.replace(/^./, (c) => c.toUpperCase())
   function nomDestination(d: Destination): string {
     if (d.type === 'point') return 'Point libre'
     if (d.type === 'visiteur') return 'Objet inconnu'
-    return nomAstre(d.astre).replace(/^./, (c) => c.toUpperCase())
+    return majuscule(nomAstre(d.astre))
   }
 
-  // Distance au départ, pour la barre de progression (retenue tant que la destination ne change pas).
-  let cleDepart = ''
-  let distanceDepart = 0
-  const progression = $derived.by(() => {
-    if (!fusee.destination || enAttenteDeFenetre(fusee)) return null
-    const cle = JSON.stringify(fusee.destination)
-    const d = distanceRestante(fusee, t) ?? 0
-    if (cle !== cleDepart) { cleDepart = cle; distanceDepart = d }
-    return distanceDepart > 0 ? Math.max(0, Math.min(1, 1 - d / distanceDepart)) : 0
-  })
-
-  const plan = $derived(fusee.destination ? planDeVol(fusee, t, vitesse) : null)
-  const reste = $derived(fusee.destination ? tempsRestant(fusee, t, vitesse) : null)
+  const plan = $derived(fusee.destination ? planDeVol(fusee, t, croisiere) : null)
+  const reste = $derived(fusee.destination ? tempsRestant(fusee, t, croisiere) : null)
+  /** Instant d'arrivée prévu (ms), ou null. */
+  const arrivee = $derived(reste !== null ? t + reste * 1000 : null)
+  /** Direction de la destination (point de rencontre), pour le compas. */
+  const vers = $derived(fusee.destination ? direction(fusee.position, plan?.point ?? positionDestination(fusee.destination, t)) : null)
+  const avancement = $derived(avancementTrajet(fusee, t))
+  const origine = $derived(fusee.trajet?.origine ? majuscule(nomAstre(fusee.trajet.origine)) : 'En vol')
 
   /** Vue extérieure ; un toucher arrivé juste après un changement d'écran est ignoré (toucher « fantôme »). */
   function regarderDehors() {
@@ -47,18 +58,19 @@
     jeu.ecran = { nom: 'dehors' }
   }
 
-  // Chasse.
+  // Chasse et présence des autres commissionnaires.
   const saison = $derived(numeroSaison(t))
   const trouve = $derived(etat.chasse.trouvailles.some((x) => x.saison === saison))
   const detecte = $derived(visiteurDetecte(etat, t))
   const dernierIndice = $derived(etat.chasse.indices[0] ?? null)
+  const reseau = $derived(presence(etat, t))
 
   function etatTuile(code: string): 'ok' | 'avarie' | 'scelle' {
     if (!estInstalle(etat, code)) return 'scelle'
     return enPanne.includes(code) ? 'avarie' : 'ok'
   }
 
-  /** Crédits sur le compteur à tambours (au moins 4 chiffres). */
+  /** Crédits sur le compteur (au moins 4 chiffres). */
   const tambours = $derived(String(Math.max(0, Math.floor(etat.credits))).padStart(4, '0').split(''))
 </script>
 
@@ -81,56 +93,91 @@
     </div>
   </header>
 
-  <!-- La fenêtre du cockpit. -->
-  <div class="fenetre">
-    <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
-    {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
-    <button class="dehors bouton clair" onclick={regarderDehors}>VUE EXTÉRIEURE</button>
+  <!-- Hublot de la fusée, boulonné. Le toucher fait sortir en vue extérieure. -->
+  <div class="hublot" role="button" tabindex="0" aria-label="Regarder dehors (vue extérieure)"
+    onclick={regarderDehors} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') regarderDehors() }}>
+    <div class="boulons-h"></div>
+    <div class="boulons-v"></div>
+    <div class="vitre">
+      <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
+      {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+    </div>
   </div>
 
-  <!-- Navigation. -->
-  <section class="navigation panneau">
-    {#if fusee.destination && enAttenteDeFenetre(fusee) && plan}
-      <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
-      <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">le {dateLocale(plan.arrivee)}</span></div>
-      <div class="sous">En orbite en attendant le meilleur moment pour partir.</div>
-    {:else if fusee.destination}
-      <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">{ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-      <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{reste !== null ? duree(reste) : '—'}</span></div>
-      <div class="barre"><div style={`width: ${Math.round((progression ?? 0) * 100)}%`}></div></div>
-      <div class="sous" class:alerte={enPanne.length > 0 || !etat.modules.propulsion.levierAHaut}>
-        {nombre(vitesse, 1)} km/s{#if enPanne.length} · ralentie par {enPanne.length} avarie{enPanne.length > 1 ? 's' : ''}{/if}{#if !etat.modules.propulsion.levierAHaut} · levier L-A abaissé{/if}
-      </div>
-    {:else if fusee.orbite}
-      <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : 'EN ORBITE'}</span><span class="discret">0 km/s</span></div>
-      <div class="ligne"><span class="grand">{nomAstre(fusee.orbite).replace(/^./, (c) => c.toUpperCase())}</span></div>
-      <div class="sous">Choisis une destination sur la carte.</div>
-    {:else}
-      <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span><span class="discret">0 km/s</span></div>
-      <div class="ligne"><span class="grand">Point libre</span></div>
-      <div class="sous">Moteur coupé. Choisis une destination sur la carte.</div>
-    {/if}
-  </section>
+  <!-- Présence des autres commissionnaires. -->
+  <p class="reseau">
+    <span class="antenne" aria-hidden="true"></span>
+    <b>{reseau.total}</b> en vol dans le système solaire{#if reseau.systeme && reseau.ici !== null} · <b>{reseau.ici}</b> autour {reseau.systeme === 'Terre' ? 'de la Terre' : `de ${reseau.systeme}`}{/if}
+    {#if reseau.horsReseau}<span class="hors">HORS RÉSEAU</span>{/if}
+  </p>
 
-  <!-- Voyants des modules. -->
-  <section class="tableau panneau">
-    <div class="ligne">
-      <span class="etiquette-encre">TABLEAU DE BORD</span>
-      {#if enPanne.length}<span class="etiquette-encre cerise clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
+  <!-- Console : instruments, navigation, voyants. -->
+  <section class="console">
+    <div class="cadrans">
+      <Tachymetre valeur={vitesse} {croisiere} />
+      <Compas cap={fusee.cap} {vers} />
+      <Horloge instant={arrivee ?? t} arrivee={arrivee !== null} maintenant={t} />
     </div>
-    <div class="grille">
-      {#each TOUS_LES_MODULES as code}
-        {@const e = etatTuile(code)}
-        <button
-          class={`tuile ${e}`}
-          disabled={e === 'scelle'}
-          aria-label={`${code} : ${e === 'ok' ? 'en ordre' : e === 'avarie' ? 'avarie' : 'scellé'}`}
-          onclick={() => (jeu.ecran = { nom: 'module', code })}
-        >
-          <span class="voyant"></span>
-          <span class="code">{code}</span>
-        </button>
-      {/each}
+
+    <div class="navigation panneau">
+      {#if fusee.destination && attente && plan}
+        <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
+        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{heureLocale(plan.depart)}</span></div>
+        <div class="sous">En orbite en attendant le meilleur moment pour partir. Arrivée le {dateLocale(plan.arrivee)}.</div>
+      {:else if fusee.destination}
+        <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
+        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{reste !== null ? duree(reste) : '—'}</span></div>
+        <!-- Frise du trajet : du départ à l'arrivée ; la fusée avance avec la route faite. -->
+        {#if avancement !== null && fusee.trajet}
+          <div class="frise">
+            <div class="bouts">
+              <span><small>DÉPART</small> {origine} · {heureLocale(fusee.trajet.depart)}</span>
+              <span><small>ARRIVÉE</small> {arrivee !== null ? heureLocale(arrivee) : '—'}</span>
+            </div>
+            <div class="piste">
+              <div class="fait" style={`width: ${avancement * 100}%`}></div>
+              <svg class="fusee" style={`left: ${avancement * 100}%`} viewBox="-14 -8 30 16" aria-hidden="true">
+                <path d="M -6 -5 L 6 -5 Q 14 0 6 5 L -6 5 Z" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="2" />
+                <path d="M -4 -5 L -10 -8 L -8 -5 Z M -4 5 L -10 8 L -8 5 Z" fill="var(--cerise)" stroke="var(--couleur-encre)" stroke-width="1.5" />
+              </svg>
+            </div>
+          </div>
+        {/if}
+        {#if enPanne.length || !etat.modules.propulsion.levierAHaut}
+          <div class="sous alerte">
+            Vitesse réduite{#if enPanne.length} : {enPanne.length} avarie{enPanne.length > 1 ? 's' : ''}{/if}{#if !etat.modules.propulsion.levierAHaut} · levier L-A abaissé{/if}
+          </div>
+        {/if}
+      {:else if fusee.orbite}
+        <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : 'EN ORBITE'}</span></div>
+        <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
+        <div class="sous">Choisis une destination sur la carte.</div>
+      {:else}
+        <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span></div>
+        <div class="ligne"><span class="grand">Point libre</span></div>
+        <div class="sous">Moteur coupé. Choisis une destination sur la carte.</div>
+      {/if}
+    </div>
+
+    <div class="tableau">
+      <div class="ligne">
+        <span class="etiquette-encre">MODULES</span>
+        {#if enPanne.length}<span class="etiquette-encre cerise clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
+      </div>
+      <div class="grille">
+        {#each TOUS_LES_MODULES as code}
+          {@const e = etatTuile(code)}
+          <button
+            class={`tuile ${e}`}
+            disabled={e === 'scelle'}
+            aria-label={`${code} : ${e === 'ok' ? 'en ordre' : e === 'avarie' ? 'avarie' : 'scellé'}`}
+            onclick={() => (jeu.ecran = { nom: 'module', code })}
+          >
+            <span class="voyant"></span>
+            <span class="code">{code}</span>
+          </button>
+        {/each}
+      </div>
     </div>
   </section>
 
@@ -164,9 +211,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     overflow-y: auto;
-    padding: 0 var(--espace) 18px;
+    padding: 0 var(--espace) 16px;
   }
   main > :global(*) {
     flex: none;
@@ -178,7 +225,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    padding-top: 10px;
+    padding-top: 9px;
   }
   .identite {
     display: flex;
@@ -215,7 +262,6 @@
     font-size: 12px;
     font-weight: 700;
   }
-  /* Interrupteur à bascule, à plat. */
   .interrupteur {
     display: flex;
     flex-direction: column;
@@ -258,31 +304,113 @@
     letter-spacing: 1px;
   }
 
-  /* Fenêtre du cockpit : basse, pour laisser la place au tableau de bord. */
-  .fenetre {
+  /* Hublot : épais cadre sarcelle boulonné, vitre cernée d'encre. */
+  .hublot {
     position: relative;
     flex: 1 1 auto !important;
-    min-height: 140px;
-    max-height: 230px;
+    min-height: 124px;
+    max-height: 200px;
+    padding: 12px;
+    border: 3px solid var(--couleur-encre);
+    border-radius: 34px;
+    background: var(--sarcelle);
+    box-shadow: var(--ombre);
+    cursor: pointer;
+  }
+  .hublot:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--couleur-encre);
+  }
+  /* Boulons : une rangée en haut et en bas, une colonne de chaque côté. */
+  .boulons-h,
+  .boulons-v {
+    position: absolute;
+    pointer-events: none;
+    --boulon: radial-gradient(circle, var(--couleur-papier) 0 2.2px, var(--couleur-encre) 2.7px 3.7px, transparent 4.1px);
+  }
+  .boulons-h {
+    left: 30px;
+    right: 30px;
+    top: 0;
+    bottom: 0;
+    background: var(--boulon) top / 32px 12px space no-repeat, var(--boulon) bottom / 32px 12px space no-repeat;
+  }
+  .boulons-v {
+    top: 30px;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    background: var(--boulon) left / 12px 30px no-repeat space, var(--boulon) right / 12px 30px no-repeat space;
+  }
+  .vitre {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
     border: 3px solid var(--couleur-encre);
     border-radius: 22px;
-    overflow: hidden;
-    box-shadow: var(--ombre);
     background: var(--nuit);
   }
-  .dehors {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    min-height: 36px;
-    padding: 0 12px;
-    font-size: 12px;
-    border-radius: 10px;
+
+  /* Présence en ligne. */
+  .reseau {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 14px;
+    color: var(--couleur-texte-discret);
+  }
+  .reseau b {
+    color: var(--couleur-encre);
+  }
+  .antenne {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--couleur-encre);
+    background: var(--menthe);
+    animation: clignote 1.6s steps(1) infinite;
+  }
+  .hors {
+    margin-left: auto;
+    padding: 0 6px;
+    border: 1.5px dashed var(--couleur-texte-discret);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
   }
 
-  /* Navigation. */
+  /* Console : plaque de bord, vis aux coins. */
+  .console {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 12px 12px;
+    border: 3px solid var(--couleur-encre);
+    border-radius: 18px;
+    background: var(--couleur-papier-fonce);
+    box-shadow: var(--ombre);
+  }
+  .console::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    pointer-events: none;
+    --vis: radial-gradient(circle, var(--couleur-papier) 0 1.6px, var(--couleur-encre) 2px 3px, transparent 3.4px);
+    background: var(--vis) left top / 8px 8px no-repeat, var(--vis) right top / 8px 8px no-repeat,
+      var(--vis) left bottom / 8px 8px no-repeat, var(--vis) right bottom / 8px 8px no-repeat;
+  }
+  .cadrans {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 0 2px;
+  }
+
   .navigation {
-    padding: 9px 13px 10px;
+    padding: 8px 12px 9px;
   }
   .ligne {
     display: flex;
@@ -296,7 +424,7 @@
   }
   .grand {
     font-family: var(--police-titre);
-    font-size: 25px;
+    font-size: 23px;
     line-height: 1.2;
     margin-top: 2px;
   }
@@ -304,22 +432,9 @@
     font-size: 18px;
     font-weight: 700;
   }
-  .barre {
-    height: 12px;
-    margin-top: 5px;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 6px;
-    background: var(--couleur-papier-fonce);
-    overflow: hidden;
-  }
-  .barre div {
-    height: 100%;
-    background: repeating-linear-gradient(-45deg, var(--moutarde) 0 6px, #f6c867 6px 12px);
-    border-right: 2px solid var(--couleur-encre);
-  }
   .sous {
-    margin-top: 5px;
-    font-size: 15px;
+    margin-top: 4px;
+    font-size: 14px;
     color: var(--couleur-texte-discret);
   }
   .alerte {
@@ -327,18 +442,52 @@
     font-weight: 700;
   }
 
-  /* Voyants. */
-  .tableau {
-    padding: 9px 12px 10px;
+  /* Frise du trajet. */
+  .frise {
+    margin-top: 6px;
   }
+  .bouts {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .bouts small {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--couleur-texte-discret);
+  }
+  .piste {
+    position: relative;
+    height: 12px;
+    margin: 6px 10px 2px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 6px;
+    background: repeating-linear-gradient(90deg, var(--couleur-papier) 0 8px, var(--couleur-papier-fonce) 8px 10px);
+  }
+  .fait {
+    height: 100%;
+    border-radius: 4px 0 0 4px;
+    background: var(--moutarde);
+  }
+  .fusee {
+    position: absolute;
+    top: 50%;
+    width: 30px;
+    height: 16px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Voyants des modules. */
   .clignotant {
     animation: clignote 0.8s steps(1) infinite;
   }
   .grille {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 8px 4px;
-    margin-top: 9px;
+    gap: 7px 4px;
+    margin-top: 8px;
   }
   .tuile {
     display: flex;
@@ -352,19 +501,18 @@
   }
   .voyant {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: var(--trait) solid var(--couleur-encre);
     background: var(--menthe);
     box-shadow: 2px 2px 0 var(--couleur-encre);
   }
-  /* Petit éclat blanc, à plat, façon bande dessinée. */
   .voyant::after {
     content: '';
     position: absolute;
-    left: 6px;
-    top: 5px;
+    left: 5px;
+    top: 4px;
     width: 8px;
     height: 5px;
     border-radius: 50%;
@@ -414,8 +562,8 @@
   .radar {
     position: relative;
     flex: none;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     border: var(--trait) solid var(--couleur-encre);
     background: var(--sarcelle);
@@ -477,10 +625,10 @@
     box-shadow: 1px 1px 0 var(--couleur-encre);
   }
 
-  /* Téléscripteur : bande de papier tapée à la machine. */
+  /* Téléscripteur. */
   .telex {
-    min-height: 44px;
-    padding: 5px 10px;
+    min-height: 40px;
+    padding: 4px 10px;
     border-top: 2px dashed var(--couleur-encre);
     border-bottom: 2px dashed var(--couleur-encre);
     font-family: var(--police-machine);
@@ -494,7 +642,6 @@
     color: var(--cerise);
   }
 
-  /* Les trois gros boutons. */
   nav {
     display: flex;
     gap: 12px;

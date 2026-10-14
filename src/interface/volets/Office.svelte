@@ -64,7 +64,12 @@
               <span class="prime">{c.prime} CR</span>
               <span class="chiffres">{ua(distance(etat.fusee.position, positionAstre(c.destination, t)))}</span>
               <span class="boutons">
-                <button class="petit" onclick={() => jeu.remplacer({ ...etat, fusee: choisirDestination(etat.fusee, destinationDuContrat(c)) }, [`NOUVEAU CAP : ${c.destination.toUpperCase()}.`])}>Y ALLER</button>
+                {#if etat.fusee.destination?.type === 'astre' && etat.fusee.destination.astre === c.destination}
+                  <!-- La fusée y va déjà. -->
+                  <span class="en-route">EN ROUTE</span>
+                {:else}
+                  <button class="petit" onclick={() => jeu.remplacer({ ...etat, fusee: choisirDestination(etat.fusee, destinationDuContrat(c)) }, [`NOUVEAU CAP : ${c.destination.toUpperCase()}.`])}>Y ALLER</button>
+                {/if}
                 <button class="petit clair" onclick={() => resultat(abandonnerContrat(etat, c.id), 'CONTRAT ABANDONNÉ.')}>ABANDONNER</button>
               </span>
             </div>
@@ -276,6 +281,18 @@
     background: var(--sarcelle);
     color: var(--couleur-papier);
     box-shadow: 0 3px 0 var(--couleur-encre);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+  .en-route {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: var(--trait) dashed var(--sarcelle);
+    color: var(--sarcelle);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;

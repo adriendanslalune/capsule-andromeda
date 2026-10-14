@@ -62,6 +62,27 @@ export interface EtatFusee {
    * peu à peu celle de la destination. Sert à la vue 3D ; absente des anciennes sauvegardes (0).
    */
   z?: number
+  /** Trajet en cours (pour l'affichage) : d'où et quand la fusée est partie ; absent hors trajet. */
+  trajet?: Trajet
+}
+
+export interface Trajet {
+  /** Destination du trajet (pour savoir s'il a changé). */
+  vers: string
+  /** Astre quitté, ou null si la fusée est partie d'un point libre ou a changé de cap en vol. */
+  origine: NomCorps | null
+  /** Instant du départ (ms UTC). */
+  depart: number
+  /** Compteur de route au départ (km). */
+  kmAuDepart: number
+}
+
+/** Avancement du trajet en cours (0 au départ, 1 à l'arrivée), d'après la route faite et la distance restante. */
+export function avancementTrajet(fusee: EtatFusee, t: number): number | null {
+  if (!fusee.destination || !fusee.trajet || enAttenteDeFenetre(fusee)) return null
+  const fait = fusee.distanceParcourue - fusee.trajet.kmAuDepart
+  const reste = Math.max(0, (distanceRestante(fusee, t) ?? 0) * UA_KM - seuilArrivee(fusee.destination) * UA_KM)
+  return fait + reste > 0 ? Math.min(1, fait / (fait + reste)) : 0
 }
 
 export interface FenetreDeTir {
@@ -534,6 +555,11 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   // Au départ d'une orbite, la fusée part de son orbite (hors de l'astre), à la hauteur de l'astre quitté.
   const quitte = fusee.orbite
   let z = quitte ? positionCorps(quitte, t).z : (fusee.z ?? 0)
+  // Nouveau trajet : au départ d'une orbite, ou quand la destination change en vol.
+  const vers = JSON.stringify(dest)
+  const trajet: Trajet = quitte || fusee.trajet?.vers !== vers
+    ? { vers, origine: quitte, depart: t - dt * 1000, kmAuDepart: fusee.distanceParcourue }
+    : fusee.trajet!
 
   const cible = positionDestination(dest, t)
   const arrive = distance(entrainee, cible) <= Math.max(pas, seuilArrivee(dest))
@@ -562,7 +588,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
     const presDuVisiteur = dest.type === 'visiteur'
     return {
       fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur,
-        z: hauteurDestination(dest, t, z) },
+        z: hauteurDestination(dest, t, z), trajet: undefined },
       arrivee: dest,
     }
   }
@@ -571,7 +597,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const reste = distance(position, cible)
   z += (hauteurDestination(dest, t, z) - z) * Math.min(1, pas / Math.max(reste, pas))
   return {
-    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false, z },
+    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false, z, trajet },
     arrivee: null,
   }
 }

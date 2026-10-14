@@ -15,6 +15,8 @@
     planDeVol,
     positionAstre,
     positionDestination,
+    seuilArrivee,
+    tempsRestant,
     type Destination,
     type Point2,
   } from '../../moteur/fusee'
@@ -55,14 +57,58 @@
   const ecran = (p: Point2) => ({ x: L / 2 + (p.x - centre.x) * k, y: Hc / 2 - (p.y - centre.y) * k })
   const monde = (sx: number, sy: number): Point2 => ({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k })
 
-  function viser(c: Point2, d: number) { centre = c; demi = d }
+  function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false }
+
+  // TRAJECTOIRE : cadre la fusée, le point de rencontre et la cible, et les suit tant qu'on ne touche pas la carte.
+  let suivi = $state(false)
+  function cadrerTrajectoire() {
+    const dest = fusee.destination
+    if (!dest) return
+    const points = [fl.position, positionDestination(dest, tl), ...(plan ? [plan.point] : [])]
+    const xs = points.map((q) => q.x)
+    const ys = points.map((q) => q.y)
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys)
+    centre = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
+    // Demi-largeur : assez pour tout voir, avec une marge de 64 px de chaque côté (le cadran de cap de la fusée).
+    const marge = 64
+    const demiX = ((maxX - minX) / 2) * (L / 2) / (L / 2 - marge)
+    const demiY = ((maxY - minY) / 2) * (Hc / 2) / (Hc / 2 - marge) * (L / Hc)
+    demi = Math.max(0.00005, demiX, demiY)
+  }
+  $effect(() => {
+    void tl
+    if (suivi) cadrerTrajectoire()
+  })
+
+  // Quadrillage : environ six cases dans la largeur, de 1, 2 ou 5 × 10ⁿ UA ; en kilomètres ronds aux petites échelles.
+  const rond = (brut: number) => {
+    const p10 = 10 ** Math.floor(Math.log10(brut))
+    return [5, 2, 1].map((m) => m * p10).find((v) => v <= brut) ?? p10
+  }
+  const pasGrille = $derived.by(() => {
+    const brut = (demi * 2) / 6
+    return brut >= 0.01 ? rond(brut) : rond(brut * UA_KM) / UA_KM
+  })
+  const lignesGrille = $derived.by(() => {
+    const coin = monde(0, Hc)
+    const oppose = monde(L, 0)
+    const v: number[] = []
+    const h: number[] = []
+    for (let x = Math.ceil(coin.x / pasGrille) * pasGrille; x <= oppose.x; x += pasGrille) v.push(ecran({ x, y: 0 }).x)
+    for (let y = Math.ceil(coin.y / pasGrille) * pasGrille; y <= oppose.y; y += pasGrille) h.push(ecran({ x: 0, y }).y)
+    return { v, h }
+  })
+  /** Taille d'une case, en UA (ou en km quand c'est petit). */
+  const echelle = $derived(pasGrille >= 0.01 ? `${nombre(pasGrille, pasGrille < 1 ? (pasGrille < 0.1 ? 2 : 1) : 0)} UA` : `${Math.round(pasGrille * UA_KM).toLocaleString('fr-FR')} km`)
+
   const raccourcis = [
     { nom: 'INTÉRIEUR', f: () => viser({ x: 0, y: 0 }, 2.2) },
     { nom: 'JUPITER', f: () => viser({ x: 0, y: 0 }, 6) },
     { nom: 'EXTÉRIEUR', f: () => viser({ x: 0, y: 0 }, 32) },
     { nom: 'C-58', f: () => viser({ ...fusee.position }, Math.min(demi, 0.05)) },
   ]
-  let tracesVisibles = $state(true)
+  // Tracés de chasse (cercles du ping, droites du télescope) et outils pour les tracer.
+  let tracesVisibles = $state(false)
 
   // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
   type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean }
@@ -92,6 +138,9 @@
   const options = $derived(choix ? optionsDeDepart(fusee, choix, t, v) : null)
   const nomChoix = (d: Destination) => (d.type === 'astre' ? nomAstre(d.astre) : d.type === 'point' ? 'Point libre' : 'Objet inconnu')
 
+  /** Durée de l'approche finale (s) : la fusée arrive à la distance d'arrivée, pas au centre de l'astre. */
+  const approche = (d: Destination) => (v > 0 ? (seuilArrivee(d) * UA_KM) / v : 0)
+
   function partir(fenetre: boolean) {
     if (!choix) return
     const f = fenetre ? choisirDestinationAvecFenetre(fusee, choix, t, v) : choisirDestination(fusee, choix)
@@ -110,6 +159,7 @@
     return { x: ((e.clientX - r.left) / r.width) * L, y: ((e.clientY - r.top) / r.height) * Hc }
   }
   function appuyer(e: PointerEvent) {
+    suivi = false
     svg.setPointerCapture(e.pointerId)
     doigts.set(e.pointerId, local(e))
     deplace = false
@@ -148,6 +198,7 @@
     choix = meilleur ? { type: 'astre', astre: meilleur.nom } : { type: 'point', x: w.x, y: w.y }
   }
   function molette(e: WheelEvent) {
+    suivi = false
     e.preventDefault()
     demi = Math.max(0.00005, Math.min(250, demi * (e.deltaY > 0 ? 1.15 : 1 / 1.15)))
   }
@@ -179,13 +230,17 @@
 
 <div class="carte">
   <div class="raccourcis">
+    {#if fusee.destination}<button class="trajectoire" class:actif={suivi} onclick={() => { suivi = true; cadrerTrajectoire() }}>TRAJECTOIRE</button>{/if}
     {#each raccourcis as r}<button onclick={r.f}>{r.nom}</button>{/each}
-    <button class:actif={tracesVisibles} class="traces" onclick={() => (tracesVisibles = !tracesVisibles)}>TRACÉS</button>
+    <button class:actif={tracesVisibles} class="traces" aria-pressed={tracesVisibles} onclick={() => (tracesVisibles = !tracesVisibles)}>TRACÉS DE CHASSE</button>
   </div>
 
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
     <rect width={L} height={Hc} fill="#fffaf0" />
+    <!-- Quadrillage. -->
+    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke="#2c6fb0" stroke-width="0.7" opacity=".28" />{/each}
+    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke="#2c6fb0" stroke-width="0.7" opacity=".28" />{/each}
     {#each NOMS_PLANETES as nom}
       {@const c = ecran({ x: 0, y: 0 })}
       <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke="#2b2723" stroke-width="0.8" opacity=".35" />
@@ -241,7 +296,10 @@
       <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e0743f" stroke="#2b2723" stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
 
-    <text x="8" y={Hc - 8} font-size="11" font-family="var(--police-chiffres)" fill="#2b2723">{nombre(demi * 2, demi < 0.05 ? 4 : 2)} UA de large</text>
+    <g transform={`translate(8 ${Hc - 24})`}>
+      <rect width="14" height="14" fill="none" stroke="#2c6fb0" stroke-width="1.5" />
+      <text x="20" y="11.5" font-size="12" font-weight="700" font-family="var(--police-chiffres)" fill="#2a1e17">= {echelle}</text>
+    </g>
   </svg>
 
   <div class="panneau">
@@ -249,7 +307,7 @@
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
       <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
-        <button class="action clair" onclick={() => partir(false)}>PARTIR MAINTENANT — arrivée {duree((options.maintenant.arrivee - t) / 1000)}</button>
+        <button class="action clair" onclick={() => partir(false)}>PARTIR MAINTENANT — arrivée {duree((options.maintenant.arrivee - t) / 1000 - approche(choix))}</button>
       {/if}
       {#if options.fenetre}
         <button class="action" onclick={() => partir(true)}>FENÊTRE DE TIR — départ le {dateLocale(options.fenetre.depart)}, arrivée le {dateLocale(options.fenetre.arrivee)}</button>
@@ -261,7 +319,7 @@
       </div>
       <div class="ligne">
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
-        {#if plan}<span class="chiffres">{duree((plan.arrivee - t) / 1000)}</span>{/if}
+        {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
       <div class="radio">
         <span class="etiquette">RADIO</span>
@@ -313,6 +371,13 @@
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1px;
+  }
+  .raccourcis .trajectoire {
+    background: var(--moutarde);
+  }
+  .raccourcis .trajectoire.actif {
+    background: var(--cerise);
+    color: var(--couleur-papier);
   }
   .raccourcis .traces {
     border-color: var(--couleur-trace);

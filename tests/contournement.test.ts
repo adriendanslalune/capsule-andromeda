@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { positionCorps, rayonCorps } from '../src/astro/corps'
 import { UA_KM } from '../src/astro/temps'
 import {
+  avancementTrajet,
   avancerFusee,
   capDeContournement,
   choisirDestination,
@@ -91,4 +92,31 @@ describe('Contournement des astres', () => {
     expect(approcheLune).toBeGreaterThan(rayonCorps('Lune')!)
     expect(voler(f, t, 5).approche).toBeGreaterThan(RAYON_TERRE)
   }, 60_000)
+})
+
+describe('Trajet en cours (frise du cockpit)', () => {
+  it('retient l’astre quitté et l’heure du départ ; l’avancement va de 0 à 1 ; effacé à l’arrivée', () => {
+    let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Lune' })
+    let t = T0
+    const avancements: number[] = []
+    let arrivee = false
+    for (let n = 0; n < 20_000 && !arrivee; n++) {
+      t += 10_000
+      const r = avancerFusee(f, t, 10, 30)
+      f = r.fusee
+      arrivee = r.arrivee !== null
+      if (n === 0) {
+        expect(f.trajet?.origine).toBe('ISS')
+        expect(f.trajet?.depart).toBe(T0)
+      }
+      const a = avancementTrajet(f, t)
+      if (a !== null) avancements.push(a)
+    }
+    expect(arrivee).toBe(true)
+    expect(f.trajet).toBeUndefined()
+    expect(avancements[0]).toBeLessThan(0.01)
+    expect(avancements.at(-1)!).toBeGreaterThan(0.95)
+    // Toujours croissant (à un pouième près : la Lune bouge).
+    for (let i = 1; i < avancements.length; i++) expect(avancements[i]).toBeGreaterThanOrEqual(avancements[i - 1] - 0.002)
+  })
 })
