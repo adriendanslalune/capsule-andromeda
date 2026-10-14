@@ -42,8 +42,11 @@
     <text x="191" y="32" text-anchor="middle" font-size="5.5" font-weight="700" fill="#f8f5ec" font-family="Courier Prime, monospace">2</text>
     <!-- Hublot, d'un bord à l'autre. -->
     <line x1="62" y1="54" x2="282" y2="54" stroke="#1d1916" stroke-width="1.2" />
-    <rect x="66" y="58" width="212" height="56" rx="6" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
-    <line x1="62" y1="118" x2="282" y2="118" stroke="#1d1916" stroke-width="1.2" />
+    <rect x="66" y="58" width="212" height="28" rx="5" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
+    <line x1="62" y1="90" x2="282" y2="90" stroke="#1d1916" stroke-width="1.2" />
+    <!-- Panneau A : moteur, cadrans, radar. -->
+    <rect x="66" y="94" width="212" height="122" rx="4" fill="none" stroke="#1d1916" stroke-width="0.8" />
+    <g transform="translate(0 -26)">
     <!-- Interrupteur MOTEUR. -->
     <rect x="72" y="124" width="50" height="16" rx="8" fill="none" stroke="#1d1916" stroke-width="1.2" />
     <circle cx="114" cy="132" r="5.5" fill="#1d1916" />
@@ -61,6 +64,13 @@
     <circle cx="236" cy="200" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
     <line x1="236" y1="200" x2="236" y2="189" stroke="#1d1916" stroke-width="1.6" />
     <line x1="236" y1="200" x2="244" y2="203" stroke="#1d1916" stroke-width="1.1" />
+    </g>
+    <!-- Radar du visiteur. -->
+    <rect x="72" y="194" width="200" height="18" rx="3" fill="#1d1916" />
+    <circle cx="82" cy="203" r="6" fill="#f8f5ec" stroke="#1d1916" stroke-width="1" />
+    <path d="M 82 203 L 82 197 A 6 6 0 0 1 87.2 200 Z" fill="#1d1916" />
+    <text x="94" y="205.5" font-size="6.5" fill="#f8f5ec" font-family="Courier Prime, monospace">VISITEUR INTROUVABLE</text>
+    <text x="266" y="205.5" text-anchor="end" font-size="7" font-weight="700" fill="#f8f5ec" font-family="Courier Prime, monospace">18</text>
     <!-- Écran de navigation. -->
     <rect x="70" y="222" width="204" height="40" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
     <text x="76" y="235" font-size="7" font-family="Courier Prime, monospace">EN ROUTE VERS</text>
@@ -77,27 +87,27 @@
     <path d="M 92 304 L 92 301 L 124 301 L 124 304" fill="none" stroke="#1d1916" stroke-width="0.6" />
     <rect x="132" y="352" width="80" height="11" fill="none" stroke="#1d1916" stroke-width="1" />
     <text x="172" y="360" text-anchor="middle" font-size="6.5" font-family="Courier Prime, monospace">N° SÉRIE ___-___</text>
-    <!-- Chasse, téléscripteur. -->
-    <rect x="70" y="369" width="204" height="20" rx="5" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <circle cx="82" cy="379" r="6.5" fill="url(#zone-rouge)" stroke="#1d1916" stroke-width="1" />
-    <line x1="70" y1="398" x2="274" y2="398" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
-    <line x1="70" y1="408" x2="274" y2="408" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
+    <!-- Téléscripteur. -->
+    <rect x="70" y="372" width="204" height="30" fill="none" stroke="#1d1916" stroke-width="0.8" />
+    {#each [378, 384, 390, 396] as y}<circle cx="74" cy={y} r="1.3" fill="none" stroke="#1d1916" stroke-width="0.6" /><circle cx="270" cy={y} r="1.3" fill="none" stroke="#1d1916" stroke-width="0.6" />{/each}
+    <line x1="82" y1="384" x2="262" y2="384" stroke="#1d1916" stroke-width="0.6" stroke-dasharray="3 2" />
+    <line x1="82" y1="392" x2="262" y2="392" stroke="#1d1916" stroke-width="0.6" stroke-dasharray="3 2" />
 
     <Repere x={129} y={12} tx={30} ty={12} n={1} />
     <Repere x={204} y={16} tx={316} ty={8} n={2} />
     <Repere x={242} y={18} tx={316} ty={24} n={3} />
     <Repere x={270} y={22} tx={316} ty={40} n={4} />
     <Repere x={110} y={40} tx={30} ty={40} n={5} />
-    <Repere x={70} y={86} tx={30} ty={86} n={6} />
-    <Repere x={76} y={132} tx={30} ty={132} n={7} />
-    <Repere x={92} y={194} tx={30} ty={190} n={8} />
-    <Repere x={252} y={156} tx={316} ty={156} n={9} />
-    <Repere x={252} y={204} tx={316} ty={204} n={10} />
+    <Repere x={70} y={72} tx={30} ty={72} n={6} />
+    <Repere x={76} y={106} tx={30} ty={106} n={7} />
+    <Repere x={92} y={168} tx={30} ty={164} n={8} />
+    <Repere x={252} y={130} tx={316} ty={130} n={9} />
+    <Repere x={252} y={178} tx={316} ty={178} n={10} />
     <Repere x={268} y={232} tx={316} ty={232} n={11} />
     <Repere x={268} y={275} tx={316} ty={275} n={12} />
     <Repere x={85} y={320} tx={30} ty={320} n={13} />
     <Repere x={208} y={357} tx={316} ty={357} n={14} />
-    <Repere x={76} y={379} tx={30} ty={379} n={15} />
-    <Repere x={270} y={403} tx={316} ty={403} n={16} />
+    <Repere x={76} y={203} tx={30} ty={203} n={15} />
+    <Repere x={270} y={387} tx={316} ty={387} n={16} />
   </svg>
 </Page>

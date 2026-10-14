@@ -12,7 +12,7 @@
     ['Onglets', 'CARTE, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
     ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination. Il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
-    ['Tachymètre', 'Vitesse du moment (lucarne, en km/s). Secteur vert : vitesse de croisière.'],
+    ['Tachymètre', 'Vitesse du moment (lucarne, en km/s). Secteur vert : vitesse de croisière. Toucher un cadran le montre en grand.'],
     ['Compas de cap', 'Aiguille : cap. Triangle : direction de la destination. 0° à droite de la carte, sens inverse des aiguilles d’une montre.'],
     ['Horloge d’arrivée', 'Heure prévue de l’arrivée (heure du téléphone). À l’arrêt : heure actuelle.'],
     ['Écran de navigation', 'Destination, temps restant, frise du trajet.'],

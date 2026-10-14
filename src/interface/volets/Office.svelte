@@ -19,11 +19,18 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import ApercuCarte from './ApercuCarte.svelte'
   import Trophees from './Trophees.svelte'
 
   let { onglet }: { onglet: 'contrats' | 'atelier' | 'trophees' } = $props()
 
   let refus = $state<string | null>(null)
+  /** Aperçu de la carte pour un contrat touché (hors de ses boutons). */
+  let apercu = $state<{ astre: string; titre: string } | null>(null)
+  function montrer(e: MouseEvent, astre: string, titre: string) {
+    if ((e.target as Element).closest('button')) return
+    apercu = { astre, titre }
+  }
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
@@ -57,6 +64,7 @@
 </script>
 
 <div class="office">
+  {#if apercu}<ApercuCarte astre={apercu.astre} titre={apercu.titre} fermer={() => (apercu = null)} />{/if}
 
   {#if onglet !== 'trophees'}
     <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
@@ -72,7 +80,7 @@
       {#if etat.contrats.length}
         <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours})</h3>
         {#each etat.contrats as c}
-          <article class="contrat encours">
+          <article class="contrat encours" role="presentation" onclick={(e) => montrer(e, c.destination, c.texte)}>
             <span class="type">{c.type}</span>
             <span class="texte">{c.texte}</span>
             <div class="infos">
@@ -93,7 +101,7 @@
       {/if}
       <h3>PROPOSÉS</h3>
       {#each proposes as c}
-        <article class="contrat">
+        <article class="contrat" role="presentation" onclick={(e) => montrer(e, c.destination, c.texte)}>
           <span class="type">{c.type}</span>
           <span class="texte">{c.texte}</span>
           <div class="infos">
