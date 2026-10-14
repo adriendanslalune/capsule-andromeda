@@ -231,6 +231,8 @@ export class Vue3D {
     const o = f.orbite ? positionCorps(f.orbite, t) : { ...f.position, z: f.z ?? 0 }
     const base = { x: o.x * UA_KM, y: o.y * UA_KM, z: o.z * UA_KM }
     if (f.presDuVisiteur) return { ...base, x: base.x + CHASSE.distanceApprocheKm }
+    // En orbite, là où la fusée est arrivée (à sa vraie distance de l'astre).
+    if (f.orbite && f.ecartOrbite) return { x: base.x + f.ecartOrbite.x * UA_KM, y: base.y + f.ecartOrbite.y * UA_KM, z: base.z + f.ecartOrbite.z * UA_KM }
     if (f.orbite === 'ISS') return { x: base.x + 0.03, y: base.y, z: base.z - 0.05 } // à quelques dizaines de mètres, sous l'ISS
     if (f.orbite) return { ...base, x: base.x + rayon(f.orbite) * 1.6 + 300 }
     return base

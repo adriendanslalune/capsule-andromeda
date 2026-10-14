@@ -28,7 +28,8 @@ UA = unité astronomique = 149 597 870,7 km.
   vitesse de croisière change (avarie, levier L-A, amélioration), la vitesse la rejoint au même rythme. Le bouton
   MOTEUR du cockpit coupe le moteur : la fusée ralentit jusqu'à l'arrêt en 20 s et reste où elle est (entraînée par la
   planète dans un repère de planète), sa destination est gardée ; rallumé, elle repart (20 s pour retrouver sa
-  croisière). Le temps restant affiché suppose la vitesse de croisière. *Décisions d'Adrien du 14/10/2026.*
+  croisière). Le temps restant tient compte de l'accélération restante : il diminue
+  d'une seconde par seconde, même pendant la rampe ; moteur coupé, il n'y en a pas. *Décisions d'Adrien du 14/10/2026.*
 - **Contournement des astres** : la fusée ne traverse jamais un astre. En route, elle ne passe jamais à moins de
   **1,1 rayon** du centre du Soleil, d'une planète ou d'un satellite du système où elle se trouve (sa destination
   exceptée : elle s'y met en orbite avant). Si la route directe coupe un astre, elle suit la tangente à cet astre,
@@ -67,7 +68,9 @@ UA = unité astronomique = 149 597 870,7 km.
     de la Lune était « atteint » presque aussitôt).*
   - Lune et satellites : 0,0002 UA (≈ 30 000 km), sans dépasser le quart de la distance entre le satellite et sa
     planète (Phobos ≈ 2 300 km). *Validé par Adrien le 13/10/2026.*
-  - Sur un astre : **mise en orbite**, la fusée suit l'astre. Sur un point libre : arrêt moteur.
+  - Sur un astre : **mise en orbite**, la fusée suit l'astre, **à l'endroit où elle est arrivée** (à la distance
+    d'arrivée, environ 30 000 km pour la Lune), et en repart de là. *Décision d'Adrien du 14/10/2026 : l'astre ne doit
+    pas « sauter » à côté de la fusée à l'arrivée.* Sur un point libre : arrêt moteur.
 - **Sans destination**, la fusée ne bouge pas (vitesse affichée 0) et le compteur de route ne tourne pas.
 - **Destination** : une planète, la Lune, **n'importe quel satellite** (validé par Adrien le 13/10/2026) ou un point
   libre (ou l'ISS). La destination reste libre, même avec des contrats en cours.

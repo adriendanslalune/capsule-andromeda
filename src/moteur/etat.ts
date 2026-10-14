@@ -29,6 +29,11 @@ export interface ContratEnCours extends OffreContrat {
   prime: number
 }
 
+/** Un contrat accompli : le contrat, et l'instant où il a été rempli. */
+export interface ContratAccompli extends ContratEnCours {
+  t: number
+}
+
 /** Une ligne du journal des crédits. */
 export interface EntreeJournal {
   /** Instant (ms UTC). */
@@ -78,6 +83,8 @@ export interface EtatPartie {
   contrats: ContratEnCours[]
   /** Contrats déjà remplis (ceux de la semaine et ceux du tutoriel), pour ne pas les proposer à nouveau. */
   contratsFaits: string[]
+  /** Historique des contrats accomplis (le plus récent en premier, 50 au plus) ; absent des anciennes sauvegardes. */
+  contratsAccomplis?: ContratAccompli[]
   /** Journal des crédits, le plus récent en premier. */
   journal: EntreeJournal[]
   /** Trophées obtenus (identifiants), dans l'ordre d'obtention. */

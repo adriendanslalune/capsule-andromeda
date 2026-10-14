@@ -181,6 +181,9 @@ export function primeContrat(etat: EtatPartie, offre: OffreContrat, t: number, c
 }
 
 /** Remplit les contrats en cours dont la destination est cet astre : primes versées, contrats notés comme faits. */
+/** Nombre de contrats accomplis gardés dans l'historique. */
+const HISTORIQUE_CONTRATS = 50
+
 function remplirContrats(etat: EtatPartie, astre: NomCorps, t: number): EtatPartie {
   const remplis = etat.contrats.filter((c) => c.destination === astre)
   if (remplis.length === 0) return etat
@@ -191,6 +194,7 @@ function remplirContrats(etat: EtatPartie, astre: NomCorps, t: number): EtatPart
     ...etat,
     contrats: etat.contrats.filter((c) => c.destination !== astre),
     contratsFaits: [...anciens, ...remplis.map((c) => c.id)],
+    contratsAccomplis: [...remplis.map((c) => ({ ...c, t })), ...(etat.contratsAccomplis ?? [])].slice(0, HISTORIQUE_CONTRATS),
     stats: { ...etat.stats, contrats: etat.stats.contrats + remplis.length },
   }
   for (const c of remplis) e = crediter(e, c.prime, `Contrat ${c.destination}`, t)

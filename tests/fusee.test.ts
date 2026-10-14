@@ -486,3 +486,21 @@ describe('moteur : accélération en 20 s, bouton MOTEUR', () => {
     expect(r.moyenne * 600).toBeCloseTo(30 * 590, 6)
   })
 })
+
+describe('temps restant pendant l’accélération', () => {
+  it('compte à rebours régulier : une seconde de moins par seconde, accélération comprise', () => {
+    let f: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 3, y: 0 }, cap: 0, vitesseCourante: 0 }
+    f = choisirDestination(f, { type: 'point', x: 3.02, y: 0 })
+    let avant = tempsRestant(f, T0, 30)!
+    for (let s = 1; s <= 30; s++) {
+      f = avancerFusee(f, T0 + s * 1000, 1, 30).fusee
+      const maintenant = tempsRestant(f, T0 + s * 1000, 30)!
+      expect(avant - maintenant).toBeCloseTo(1, 3)
+      avant = maintenant
+    }
+  })
+  it('moteur coupé : pas de temps restant', () => {
+    const f = basculerMoteur(choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Lune' }))
+    expect(tempsRestant(f, T0, 30)).toBeNull()
+  })
+})
