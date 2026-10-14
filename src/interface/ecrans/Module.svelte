@@ -2,6 +2,7 @@
   // Un module en plein écran : retour à la fenêtre, renvoi au manuel, commandes du module, avarie suivante.
   import { modulesEnPanne } from '../../moteur/modules'
   import { jeu } from '../jeu.svelte'
+  import { pageDuChapitre } from '../volets/pages-manuel'
   import Antenne from '../modules/Antenne.svelte'
   import Brassage from '../modules/Brassage.svelte'
   import Chronometre from '../modules/Chronometre.svelte'
@@ -42,7 +43,7 @@
 <main>
   <header>
     <button class="retour" onclick={() => (jeu.ecran = { nom: 'fenetre' })}>‹ FENÊTRE</button>
-    <button class="manuel" onclick={() => (jeu.volet = 'manuel')}>MANUEL · {FICHES[code].chapitre}</button>
+    <button class="manuel" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
   </header>
   <div class="titre">
     {#each affiche as c}<span class="code">{c}</span>{/each}

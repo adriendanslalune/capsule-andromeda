@@ -1,6 +1,9 @@
 <script lang="ts">
-  // Volets qui montent du bas : Carte, Office, Manuel. Leur contenu arrive dans les étapes suivantes.
+  // Volets qui montent du bas : Carte, Office, Manuel.
   import { jeu } from '../jeu.svelte'
+  import Carte from '../volets/Carte.svelte'
+  import Manuel from '../volets/Manuel.svelte'
+  import Office from '../volets/Office.svelte'
 
   const titres = { carte: 'CARTE', office: 'OFFICE', manuel: 'MANUEL' } as const
 </script>
@@ -12,7 +15,10 @@
     <span class="titre">{jeu.volet ? titres[jeu.volet] : ''}</span>
     <button onclick={() => (jeu.volet = null)}>FERMER</button>
   </header>
-  <p class="bientot">Ce volet arrive dans une prochaine étape.</p>
+  {#if jeu.volet === 'carte'}<Carte />
+  {:else if jeu.volet === 'office'}<Office />
+  {:else if jeu.volet === 'manuel'}<Manuel />
+  {/if}
 </section>
 
 <style>
@@ -34,6 +40,10 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    animation: monte 0.25s ease-out;
+  }
+  @keyframes monte {
+    from { transform: translateY(100%); }
   }
   .poignee {
     width: 44px;
@@ -55,15 +65,12 @@
   }
   header button {
     height: 36px;
+    min-height: 36px;
     padding: 0 14px;
     border-radius: 18px;
     border: 2px solid var(--couleur-encre);
     background: none;
     font-weight: 700;
     letter-spacing: 1.5px;
-  }
-  .bientot {
-    padding: 30px 16px;
-    font-size: 18px;
   }
 </style>

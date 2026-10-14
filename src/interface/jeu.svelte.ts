@@ -14,11 +14,15 @@ import { nomAstre } from './format'
 
 const CLE_PARTIE = 'mdv-partie'
 const CLE_TELEX = 'mdv-telex'
+const CLE_TRACES = 'mdv-traces'
 const TELEX_GARDES = 60
 const SAUVEGARDE_TOUTES_LES = 10_000
 
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string }
 export type Volet = 'carte' | 'office' | 'manuel' | null
+
+/** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */
+export type Trace = { type: 'cercle'; x: number; y: number; rayon: number } | { type: 'droite'; x: number; y: number; angle: number }
 
 export interface LigneTelex {
   t: number
@@ -42,6 +46,9 @@ class Jeu {
   rapport = $state.raw<RapportDeVol | null>(null)
   ecran = $state.raw<Ecran>({ nom: 'ouverture' })
   volet = $state<Volet>(null)
+  traces = $state.raw<Trace[]>([])
+  /** Page ouverte dans le lecteur du manuel. */
+  pageManuel = $state(0)
 
   private minuterie: ReturnType<typeof setInterval> | null = null
   private derniereSauvegarde = 0
@@ -51,6 +58,7 @@ class Jeu {
     const texte = lire(CLE_PARTIE)
     const lu = texte ? charger(texte) : null
     try { this.telex = JSON.parse(lire(CLE_TELEX) ?? '[]') } catch { this.telex = [] }
+    try { this.traces = JSON.parse(lire(CLE_TRACES) ?? '[]') } catch { this.traces = [] }
     if (lu?.etat) {
       const r = rattraper(lu.etat, horlogeReelle(), hasardReel)
       this.etat = r.etat
@@ -75,6 +83,7 @@ class Jeu {
     const t = horlogeReelle()
     this.etat = creerPartie(t, hasardReel, nom)
     this.telex = []
+    this.traces = []
     this.ajouterTelex('OFFICE : BON VOL, COMMISSIONNAIRE.', t)
     this.ecran = { nom: 'fenetre' }
     this.sauvegarder()
@@ -168,6 +177,7 @@ class Jeu {
     const t = horlogeReelle()
     ecrire(CLE_PARTIE, sauvegarder(this.etat, t))
     ecrire(CLE_TELEX, JSON.stringify(this.telex))
+    ecrire(CLE_TRACES, JSON.stringify(this.traces))
     this.derniereSauvegarde = t
   }
 }
