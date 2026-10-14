@@ -19,6 +19,7 @@
   import { duree, dureePrecise, heureLocale, jourEtHeure, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { annonces, classement, presence } from '../reseau'
+  import Pictogramme from '../cockpit/Pictogramme.svelte'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
 
@@ -150,6 +151,8 @@
           <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
           <div class="ligne">
             <span class="grand">{nomDestination(fusee.destination)}</span>
+            <!-- Dessin de la destination, au milieu, au-dessus de la frise. -->
+            <span class="picto"><Pictogramme destination={fusee.destination} /></span>
             <span class="compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span>
           </div>
           <div class="sous">Arrivée <b>{arrivee !== null ? jourEtHeure(arrivee, maintenantDirect) : '—'}</b></div>
@@ -419,6 +422,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .picto {
+    flex: none;
+    align-self: center;
+    display: flex;
+    color: var(--menthe);
+    filter: drop-shadow(0 0 3px rgba(143, 207, 152, 0.6));
   }
   .compte {
     font-family: var(--police-chiffres);

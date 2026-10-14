@@ -27,6 +27,7 @@
   import { DUREE_ACCELERATION } from '../../donnees/reglages'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
   import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
   import { satellitesDe } from '../../astro/satellites'
@@ -486,6 +487,8 @@
       </div>
     {/if}
   </div>
+  <!-- PROVISOIRE (à retirer sur ordre d'Adrien) : saut d'essai vers n'importe quelle destination. -->
+  <Saut />
 </div>
 
 <style>
