@@ -94,6 +94,32 @@ describe('Contournement des astres', () => {
   }, 60_000)
 })
 
+describe('Vers les engins qui frôlent la Terre', () => {
+  it('de la Lune vers l’ISS, Hubble ou Tiangong, à toute heure : jamais à travers la Terre (en 3D)', () => {
+    const pires: string[] = []
+    for (let h = 0; h < 48; h += 9) {
+      for (const cible of ['ISS', 'Hubble', 'Tiangong']) {
+        const t0 = Date.UTC(2026, 9, 14) + h * 3_600_000
+        const lune = positionCorps('Lune', t0)
+        let f: EtatFusee = { ...creerFusee(t0), position: { x: lune.x, y: lune.y }, orbite: 'Lune', destination: { type: 'astre', astre: cible } }
+        let t = t0, mini = Infinity, arrive = false
+        for (let n = 0; n < 40000 && !arrive; n++) {
+          t += 2000
+          const r = avancerFusee(f, t, 2, 30)
+          f = r.fusee
+          arrive = r.arrivee !== null
+          if (!f.orbite) {
+            const e = positionCorps('Terre', t)
+            mini = Math.min(mini, Math.hypot((f.position.x - e.x) * UA_KM, (f.position.y - e.y) * UA_KM, ((f.z ?? 0) - e.z) * UA_KM))
+          }
+        }
+        if (mini < RAYON_TERRE || !arrive) pires.push(`${h} h, ${cible} : ${Math.round(mini)} km${arrive ? '' : ', pas arrivée'}`)
+      }
+    }
+    expect(pires).toEqual([])
+  }, 120_000)
+})
+
 describe('Trajet en cours (frise du cockpit)', () => {
   it('retient l’astre quitté et l’heure du départ ; l’avancement va de 0 à 1 ; effacé à l’arrivée', () => {
     let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Lune' })

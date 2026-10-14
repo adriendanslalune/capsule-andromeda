@@ -13,7 +13,7 @@
 import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe,
   positionCorps, rayonCorps, rayonInfluence, systemeDuCorps, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
-import { RAD } from '../astro/vecteur'
+import { RAD, type Vecteur3 } from '../astro/vecteur'
 import { CHASSE } from '../donnees/chasse'
 import { NOMS_PLANETES, type NomPlanete } from '../donnees/planetes'
 import {
@@ -492,8 +492,43 @@ export interface Obstacle {
   rayon: number
 }
 
-/** Astres à contourner, à l'instant t, pour une fusée en position p qui vise le point `vise`. */
-export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number): Obstacle[] {
+/** Marge de sécurité en 3D : la route droite ne doit pas passer à moins de 1,02 rayon du centre d'un astre. */
+export const MARGE_ASTRE_3D = 1.02
+
+/** La route droite (en 3D) de a à b passe-t-elle dans la sphère de centre c et de rayon r ? */
+function routeTraverse(a: Vecteur3, b: Vecteur3, c: Vecteur3, r: number): boolean {
+  const ab = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z }
+  const l2 = ab.x ** 2 + ab.y ** 2 + ab.z ** 2
+  const k = l2 > 0 ? Math.max(0, Math.min(1, ((c.x - a.x) * ab.x + (c.y - a.y) * ab.y + (c.z - a.z) * ab.z) / l2)) : 0
+  return Math.hypot(a.x + ab.x * k - c.x, a.y + ab.y * k - c.y, a.z + ab.z * k - c.z) < r
+}
+
+/** Hauteur corrigée pour que le point (p, z) reste hors de la sphère de sécurité de chaque astre proche. */
+function horsDesAstres(p: Point2, z: number, dest: Destination, t: number): number {
+  const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
+  const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
+  if (systeme) noms.push(...corpsDuSysteme(systeme).filter((n) => !estPlanete(n)))
+  for (const nom of noms) {
+    if (dest.type === 'astre' && nom === dest.astre) continue
+    const r = rayonCorps(nom)
+    if (!r) continue
+    const r3 = enUA(r) * MARGE_ASTRE_3D
+    const c = positionCorps(nom, t)
+    const d2 = Math.hypot(p.x - c.x, p.y - c.y)
+    if (d2 >= r3) continue
+    const h = Math.sqrt(r3 * r3 - d2 * d2)
+    if (Math.abs(z - c.z) < h) z = c.z + (z >= c.z ? h : -h)
+  }
+  return z
+}
+
+/**
+ * Astres à contourner, à l'instant t, pour une fusée en position p qui vise le point `vise`. Avec les hauteurs
+ * (z de la fusée et de la cible), un astre ne gêne que si la route droite en 3D le traverse : la fusée le contourne
+ * alors dans le plan, en rejoignant peu à peu la hauteur de sa cible, jusqu'à ce que la route se dégage. C'est ainsi
+ * qu'elle rejoint l'ISS ou Hubble, qui tournent tout près de la Terre, sans jamais la traverser.
+ */
+export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number, hauteurs?: { z: number; zVise: number }): Obstacle[] {
   const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
   const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
   if (systeme) noms.push(...corpsDuSysteme(systeme).filter((n) => !estPlanete(n)))
@@ -502,8 +537,19 @@ export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number)
     if (dest.type === 'astre' && nom === dest.astre) continue
     const r = rayonCorps(nom)
     if (!r) continue
-    const centre = nom === 'Soleil' ? { x: 0, y: 0 } : positionAstre(nom, t)
+    const c3 = positionCorps(nom, t)
+    const centre = { x: c3.x, y: c3.y }
     const rayon = enUA(r) * MARGE_ASTRE
+    if (hauteurs) {
+      const r3 = enUA(r) * MARGE_ASTRE_3D
+      const b = { x: vise.x, y: vise.y, z: hauteurs.zVise }
+      // Cible dans l'astre lui-même (point libre) : on ne peut que s'en approcher.
+      if (Math.hypot(b.x - c3.x, b.y - c3.y, b.z - c3.z) < r3) continue
+      if (!routeTraverse({ x: p.x, y: p.y, z: hauteurs.z }, b, c3, r3)) continue
+      // Cible tout près de l'astre (l'ISS au-dessus de la Terre) : on ne s'interdit que le nécessaire.
+      liste.push({ nom, centre, rayon: Math.max(r3, Math.min(rayon, distance(vise, centre) * 0.99)) })
+      continue
+    }
     // Un point libre choisi à l'intérieur d'un astre : on ne peut que s'en approcher.
     if (distance(vise, centre) < rayon) continue
     liste.push({ nom, centre, rayon })
@@ -677,7 +723,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       entrainee = { x: o.x + Math.cos(a) * marge, y: o.y + Math.sin(a) * marge }
     }
   }
-  const liste = arrive ? [] : obstacles(entrainee, dest, vise, t)
+  const liste = arrive ? [] : obstacles(entrainee, dest, vise, t, { z, zVise: hauteurDestination(dest, t, z) })
   const voulu = arrive ? direction(entrainee, vise) : capDeContournement(entrainee, vise, liste)
   const ecart = ecartAngle(fusee.cap, voulu)
   // Au départ d'une orbite, ou dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement).
@@ -708,6 +754,9 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   // La hauteur rejoint peu à peu celle de la destination, pour y arriver en même temps.
   const reste = distance(position, cible)
   z += (hauteurDestination(dest, t, z) - z) * Math.min(1, pas / Math.max(reste, pas))
+  // Garde : jamais sous la surface de sécurité d'un astre (la cible bouge pendant l'approche) ; la fusée passe
+  // alors au-dessus (ou au-dessous), du côté où elle se trouve.
+  z = horsDesAstres(position, z, dest, t)
   return {
     fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false, z, trajet },
     arrivee: null,

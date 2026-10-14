@@ -10,7 +10,7 @@
 
 <Page {numero} chapitre="XVII." titre="CHASSE : MODE D’EMPLOI PAS À PAS">
   <ol class="etapes">
-    <li><b>Régler la radio.</b> CARTE, onglet CHASSE, ligne RADIO : amener la fréquence sur {virgule(C.frequencePing)} avec les boutons.</li>
+    <li><b>Régler la radio.</b> NAVIGATION, onglet CHASSE, ligne RADIO : amener la fréquence sur {virgule(C.frequencePing)} avec les boutons.</li>
     <li>
       <b>Pinger.</b> Presser PING. Le téléscripteur répond « PING ÉMIS SUR {virgule(C.frequencePing)}. ÉCOUTE EN COURS… ». La
       carte retient l’endroit où se trouvait la fusée.

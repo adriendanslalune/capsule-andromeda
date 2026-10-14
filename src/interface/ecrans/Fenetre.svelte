@@ -214,11 +214,11 @@
       {:else if fusee.orbite}
         <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : 'EN ORBITE'}</span></div>
         <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
-        <div class="sous">Choisis une destination sur la carte.</div>
+        <div class="sous">Choisis une destination (page NAVIGATION).</div>
       {:else}
         <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span></div>
         <div class="ligne"><span class="grand">Point libre</span></div>
-        <div class="sous">Moteur coupé. Choisis une destination sur la carte.</div>
+        <div class="sous">Moteur coupé. Choisis une destination (page NAVIGATION).</div>
       {/if}
     </div>
 

@@ -78,7 +78,7 @@
   <div class="liste">
     {#if onglet === 'contrats'}
       {#if etat.contrats.length}
-        <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours})</h3>
+        <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours}) <small class="sans-limite">· sans limite de temps</small></h3>
         {#each etat.contrats as c}
           <article class="contrat encours" role="presentation" onclick={(e) => montrer(e, c.destination, c.texte)}>
             <span class="type">{c.type}</span>
@@ -401,5 +401,11 @@
   }
   .vide {
     color: var(--couleur-encre-discrete);
+  }
+  .sans-limite {
+    font-family: var(--police-texte);
+    font-size: 12px;
+    letter-spacing: 0;
+    color: var(--couleur-texte-discret);
   }
 </style>

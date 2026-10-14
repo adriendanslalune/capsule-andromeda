@@ -343,3 +343,20 @@ describe('textes et cas particuliers des contrats', () => {
     expect(primeContrat(e, versTerre, T0)).toBe(1)
   })
 })
+
+describe('contrats acceptés : sans limite de temps', () => {
+  it('un contrat accepté reste valable après la fin de sa semaine, et se remplit quand on veut, à sa prime d’origine', () => {
+    const e0: EtatPartie = { ...neuve(), contratsFaits: ['tutoriel-1', 'tutoriel-2'] }
+    const offre = contratsProposes(e0, T0).find((c) => c.destination !== 'ISS' && c.destination !== 'Soleil')!
+    const r = accepterContrat(e0, offre.id, T0)
+    expect(r.refus).toBeNull()
+    const prime = r.etat.contrats[0].prime
+    // Trois semaines plus tard : d'autres contrats sont proposés, celui-ci est toujours en cours.
+    const plusTard = T0 + 3 * SEMAINE
+    expect(contratsProposes(r.etat, plusTard).some((c) => c.id === offre.id)).toBe(false)
+    expect(r.etat.contrats.map((c) => c.id)).toEqual([offre.id])
+    const fait = traiterArrivee(r.etat, { type: 'astre', astre: offre.destination }, plusTard)
+    expect(fait.contrats).toEqual([])
+    expect(fait.credits).toBe(r.etat.credits + prime)
+  })
+})

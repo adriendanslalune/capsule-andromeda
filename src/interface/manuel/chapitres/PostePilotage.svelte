@@ -8,7 +8,7 @@
 
   let { numero }: { numero: number } = $props()
   const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 92 + (i % 6) * 32, y: 314 + Math.floor(i / 6) * 22 }))
-  const onglets = ['CARTE', 'CONTR.', 'COCKPIT', 'ATEL.', 'TROPH.']
+  const onglets = ['NAVIG.', 'CONTR.', 'COCKPIT', 'ATEL.', 'TROPH.']
 </script>
 
 <Page {numero} chapitre="I." titre="LE POSTE DE PILOTAGE">

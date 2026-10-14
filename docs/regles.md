@@ -98,7 +98,9 @@ UA = unité astronomique = 149 597 870,7 km.
   puis un corps de ce système (la planète, un de ses satellites ; la Lune ou l'ISS pour la Terre), sans doublon
   dans la semaine. Tous les corps sont possibles, petits satellites compris. Un contrat rempli n'est plus proposé
   de la semaine. Types : livraison, relevé, remorquage, courrier (textes dans `src/donnees/economie.ts`).
-- **Contrats en cours** : **3 au plus** en même temps. Accepter un contrat ne change pas la destination (bouton
+- **Contrats en cours** : **3 au plus** en même temps. **Un contrat accepté n'expire jamais** : il reste valable
+  après la fin de sa semaine, et se remplit quand le joueur le souhaite, à la prime figée à l'acceptation
+  (décision d'Adrien du 14/10/2026). Accepter un contrat ne change pas la destination (bouton
   « Y aller » dans l'interface) ; la destination reste libre. Chaque contrat est rempli en arrivant à sa
   destination ; il reste valable après la fin de sa semaine ; on peut l'abandonner sans pénalité.
 - **Prime** = arrondi(10 × cours + 10 × distance_UA), figée à l'acceptation : une **base** de 10 CR, la même pour
@@ -307,3 +309,10 @@ avec un contact à moins de 0,01 UA).*
   (Grand Tour, chaque système complet, tous les engins), trouvailles du visiteur.
 - S'amarrer à l'ISS donne aussi la Terre. Les lieux visités avant cette version (orbite actuelle, contrats remplis)
   sont rattrapés.
+
+## 13. Contournement en 3D (14/10/2026)
+- Un astre ne gêne que si la route droite en 3D (fusée → cible, avec les hauteurs) passe à moins de 1,02 rayon de son
+  centre (`MARGE_ASTRE_3D`). La fusée le contourne alors dans le plan (marge 1,1 rayon, réduite si la cible est
+  plus près), en rejoignant peu à peu la hauteur de sa cible, jusqu'à ce que la route se dégage.
+- Garde : la fusée ne descend jamais sous 1,02 rayon d'un astre ; elle passe au-dessus (ou au-dessous).
+- Testé : de la Lune vers l'ISS, Hubble ou Tiangong, à toute heure, jamais à travers la Terre.

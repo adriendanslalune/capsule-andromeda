@@ -13,7 +13,7 @@
   import Office from '../volets/Office.svelte'
   import Fenetre from './Fenetre.svelte'
 
-  const NOMS: Record<PagePoste, string> = { carte: 'CARTE', contrats: 'CONTRATS', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
+  const NOMS: Record<PagePoste, string> = { carte: 'NAVIGATION', contrats: 'CONTRATS', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
 
   let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
@@ -392,6 +392,10 @@
     bottom: -3px;
     height: 4px;
     background: var(--couleur-fond);
+  }
+  .onglet.carte span {
+    font-size: 7.6px;
+    letter-spacing: -0.2px;
   }
   .onglet.actif.carte {
     background: var(--couleur-fond);

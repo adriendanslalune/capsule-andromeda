@@ -12,7 +12,7 @@
 
 <Page {numero} chapitre="XIX." titre="NAVIGATION">
   <p>
-    La destination se choisit sur la carte : une planète, un satellite, la Lune, le Soleil, un engin, ou un point libre. Le
+    La destination se choisit sur la carte de la page NAVIGATION (ou dans sa liste) : une planète, un satellite, la Lune, le Soleil, un engin, ou un point libre. Le
     voyage suit la vraie position des astres ; la fusée contourne d’elle-même ceux qui sont sur sa route.
   </p>
   <h3>Distances d’arrivée</h3>

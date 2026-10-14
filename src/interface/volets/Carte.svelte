@@ -28,7 +28,8 @@
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { autresFusees } from '../reseau'
-  import { positionsEngins } from '../../astro/engins'
+  import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
+  import { satellitesDe } from '../../astro/satellites'
 
   /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
   const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
@@ -160,6 +161,23 @@
 
   // Sélection d'une nouvelle destination.
   let choix = $state<Destination | null>(null)
+  /** Plusieurs objets sous le doigt : on propose de choisir. */
+  let ambigus = $state<{ noms: string[]; point: Destination } | null>(null)
+  function choisir(d: Destination) {
+    choix = normaliserDestination(d)
+    ambigus = null
+  }
+  /** Liste de toutes les destinations, par familles (pour les objets lointains ou trop serrés sur la carte). */
+  const LISTE = [
+    { titre: 'Soleil, planètes et Lune', noms: ['Soleil', ...NOMS_PLANETES, 'Lune'] },
+    { titre: 'Engins', noms: ['ISS', ...NOMS_ENGINS] },
+    ...NOMS_PLANETES.filter((p) => satellitesDe(p).length).map((p) => ({ titre: `Satellites de ${p}`, noms: satellitesDe(p).map((s) => s.nom) })),
+  ]
+  function depuisLaListe(e: Event) {
+    const nom = (e.currentTarget as HTMLSelectElement).value
+    if (nom) choisir({ type: 'astre', astre: nom })
+    ;(e.currentTarget as HTMLSelectElement).value = ''
+  }
   const options = $derived(choix ? optionsDeDepart(fusee, choix, t, v) : null)
   const nomChoix = (d: Destination) => (d.type === 'astre' ? nomAstre(d.astre) : d.type === 'point' ? 'Point libre' : 'Objet inconnu')
 
@@ -212,17 +230,21 @@
     doigts.delete(e.pointerId)
     if (doigts.size < 2) pincement = 0
     if (!p || deplace || doigts.size > 0) return
-    // Toucher : l'astre le plus proche à moins de 18 px, sinon un point libre.
-    let meilleur: Marque | null = null
-    let dMin = 18
-    for (const m of marques) {
-      const s = ecran(m.p)
-      const d = Math.hypot(s.x - p.x, s.y - p.y)
-      if (d < dMin) { dMin = d; meilleur = m }
-    }
+    // Toucher : l'astre ou l'engin à moins de 22 px ; s'il y en a plusieurs (la Terre, l'ISS, Hubble…), on demande
+    // lequel ; sinon, un point libre.
+    const proches = marques
+      .map((m) => { const s = ecran(m.p); return { m, d: Math.hypot(s.x - p.x, s.y - p.y) } })
+      .filter((x) => x.d < 22)
+      .sort((a, b) => a.d - b.d)
     const w = monde(p.x, p.y)
-    choix = meilleur ? normaliserDestination({ type: 'astre', astre: meilleur.nom }) : { type: 'point', x: w.x, y: w.y }
     mode = 'navigation'
+    if (proches.length > 1) {
+      ambigus = { noms: proches.map((x) => x.m.nom), point: { type: 'point', x: w.x, y: w.y } }
+      choix = null
+      return
+    }
+    ambigus = null
+    choix = proches.length ? normaliserDestination({ type: 'astre', astre: proches[0].m.nom }) : { type: 'point', x: w.x, y: w.y }
   }
   function molette(e: WheelEvent) {
     suivi = false
@@ -400,17 +422,26 @@
   </svg>
 
   <div class="onglets" role="tablist">
-    <button role="tab" aria-selected={mode === 'navigation'} class:actif={mode === 'navigation'} onclick={() => (mode = 'navigation')}>NAVIGATION</button>
+    <button role="tab" aria-selected={mode === 'navigation'} class:actif={mode === 'navigation'} onclick={() => (mode = 'navigation')}>DESTINATION</button>
     <button role="tab" aria-selected={mode === 'chasse'} class:actif={mode === 'chasse'} onclick={() => (mode = 'chasse')}>CHASSE</button>
   </div>
   <div class="panneau">
-    {#if mode === 'navigation' && choix && options}
+    {#if mode === 'navigation' && ambigus}
+      <div class="ligne"><span class="etiquette">PLUSIEURS OBJETS ICI</span><button class="lien" onclick={() => (ambigus = null)}>annuler</button></div>
+      <div class="ambigus">
+        {#each ambigus.noms as n}<button onclick={() => choisir({ type: 'astre', astre: n })}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</button>{/each}
+        <button class="clair" onclick={() => choisir(ambigus!.point)}>Point libre</button>
+      </div>
+    {:else if mode === 'navigation' && choix && options}
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
       <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
         {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
         {@const quand = t + voyage * 1000}
         <button class="action clair" onclick={() => partir(false)}>PARTIR MAINTENANT — {duree(voyage)}<br /><small>arrivée le {dateLocale(quand)} à {heureLocale(quand)}</small></button>
+      {/if}
+      {#if !options.maintenant && !options.fenetre}
+        <p class="aide">Hors de portée : à la vitesse actuelle de la fusée, on ne peut pas le rattraper.</p>
       {/if}
       {#if options.fenetre}
         <button class="action" onclick={() => partir(true)}>FENÊTRE DE TIR — départ le {dateLocale(options.fenetre.depart)} à {heureLocale(options.fenetre.depart)}<br /><small>arrivée le {dateLocale(options.fenetre.arrivee)} à {heureLocale(options.fenetre.arrivee)}</small></button>
@@ -424,7 +455,13 @@
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
         {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
-      <p class="aide">Touchez un astre ou un point de la carte pour choisir une destination.</p>
+      <p class="aide">Touchez un astre, un engin ou un point de la carte pour choisir une destination, ou :</p>
+      <select class="liste" aria-label="Choisir une destination dans la liste" onchange={depuisLaListe}>
+        <option value="">Choisir dans la liste…</option>
+        {#each LISTE as g}
+          <optgroup label={g.titre}>{#each g.noms as n}<option value={n}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</option>{/each}</optgroup>
+        {/each}
+      </select>
     {:else}
       <div class="radio">
         <span class="etiquette">RADIO</span>
@@ -503,6 +540,34 @@
   .onglets button.actif {
     background: var(--cerise);
     color: var(--couleur-papier);
+  }
+  .ambigus {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ambigus button {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--couleur-bandeau);
+    color: var(--couleur-texte-clair);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .ambigus button.clair {
+    background: var(--couleur-papier);
+    color: var(--couleur-encre);
+  }
+  .liste {
+    min-height: 44px;
+    padding: 0 10px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--couleur-papier);
+    font: inherit;
+    font-size: 16px;
   }
   .aide {
     margin: 0;
