@@ -310,9 +310,16 @@ export class Vue3D {
       this.fusee.visible = false
       this.camera.position.set(0, 0, 0)
       this.camera.up.set(0, 1, 0)
+      // L'ISS, trop petite pour être vue de loin : on vise la Terre tant qu'elle n'est pas en vue. Un point libre :
+      // on vise le point lui-même.
       const dest = etat.fusee.destination
-      const vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
-      const cible = vise === 'ISS' ? iss : vise ? this.astres.get(vise)?.maillage.position : dest?.type === 'visiteur' ? pv : undefined
+      let vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
+      if (vise === 'ISS' && !this.iss.visible) vise = 'Terre'
+      const cible = vise === 'ISS' ? iss
+        : vise ? this.astres.get(vise)?.maillage.position
+        : dest?.type === 'visiteur' ? pv
+        : dest?.type === 'point' ? relatif({ x: dest.x * UA_KM, y: dest.y * UA_KM, z: 0 })
+        : undefined
       if (cible && cible.lengthSq() > 0) this.camera.lookAt(cible)
       else {
         const a = (etat.fusee.cap * Math.PI) / 180

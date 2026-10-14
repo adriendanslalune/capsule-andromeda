@@ -25,6 +25,7 @@
   --menthe: #8fcf98;
   --rose: #f3a08b;
   --nuit: #1c2a3a; /* l'espace, derrière la vitre */
+  --couleur-bandeau: #23476b; /* bandeau figé du haut : bleu d'imprimerie */
 
   /* Rôles */
   --couleur-ok: var(--menthe);

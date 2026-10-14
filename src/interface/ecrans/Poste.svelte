@@ -4,6 +4,7 @@
   // en glissant le doigt vers la gauche ou la droite.
   import { fly } from 'svelte/transition'
   import { numeroSaison } from '../../moteur/chasse'
+  import { modulesEnPanne } from '../../moteur/modules'
   import Icone from '../cockpit/Icone.svelte'
   import { jeu, PAGES_POSTE, type PagePoste } from '../jeu.svelte'
   import { basculerSon, sonActif } from '../sons'
@@ -16,6 +17,9 @@
   let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
   const saison = $derived(numeroSaison(jeu.maintenant))
+  /** Vraie heure UTC, celle de l'Office. */
+  const utc = $derived(new Date(jeu.maintenant).toISOString().slice(11, 19))
+  const avaries = $derived(modulesEnPanne(etat.modules).length)
   const tambours = $derived(String(Math.max(0, Math.floor(etat.credits))).padStart(4, '0').split(''))
 
   // Sens de l'animation : la nouvelle page arrive du côté vers lequel on va.
@@ -27,36 +31,50 @@
   }
 
   // Glisser à gauche ou à droite : page voisine (sauf sur la carte elle-même, qui se déplace au doigt).
+  // Sur téléphone, on écoute les évènements tactiles : ceux du « pointeur » sont annulés par le navigateur dès que
+  // la page commence à défiler, si bien que le geste n'arrivait jamais. La souris passe par le pointeur.
   let depart: { x: number; y: number; t: number } | null = null
-  function appuyer(e: PointerEvent) {
-    const cible = e.target as Element
-    depart = cible.closest('.plan, input, .pas-de-glisse') ? null : { x: e.clientX, y: e.clientY, t: Date.now() }
+  function commencer(x: number, y: number, cible: EventTarget | null) {
+    depart = (cible as Element | null)?.closest('.plan, input, .pas-de-glisse') ? null : { x, y, t: Date.now() }
   }
-  function relacher(e: PointerEvent) {
+  function finir(x: number, y: number) {
     if (!depart) return
-    const dx = e.clientX - depart.x
-    const dy = e.clientY - depart.y
-    const vite = Date.now() - depart.t < 700
+    const dx = x - depart.x
+    const dy = y - depart.y
+    const vite = Date.now() - depart.t < 800
     depart = null
-    if (!vite || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return
+    if (!vite || Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return
     const i = PAGES_POSTE.indexOf(jeu.page) + (dx < 0 ? 1 : -1)
     if (i >= 0 && i < PAGES_POSTE.length) aller(PAGES_POSTE[i])
   }
+  const toucher = (e: TouchEvent) => { if (e.touches.length === 1) commencer(e.touches[0].clientX, e.touches[0].clientY, e.target); else depart = null }
+  const lacher = (e: TouchEvent) => { const d = e.changedTouches[0]; if (d) finir(d.clientX, d.clientY) }
+  const appuyer = (e: PointerEvent) => { if (e.pointerType === 'mouse') commencer(e.clientX, e.clientY, e.target) }
+  const relacher = (e: PointerEvent) => { if (e.pointerType === 'mouse') finir(e.clientX, e.clientY) }
 </script>
 
 <div class="poste">
+  <div class="bandeau">
   <!-- Barre fixe : identité de la fusée et instruments de bord. -->
   <header>
     <div class="identite">
       <span class="c58 titre-pulp">C-58</span>
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
+    <!-- Plaque centrale : l'heure UTC de l'Office et l'état du bord (le toucher ramène au cockpit). -->
+    <button class="etat-bord" class:alerte={avaries > 0} onclick={() => aller('cockpit')}
+      aria-label={avaries ? `${avaries} avarie${avaries > 1 ? 's' : ''} : aller au cockpit` : 'Bord en ordre'}>
+      <span class="utc"><small>UTC</small>{utc}</span>
+      <span class="bord"><span class="lampe"></span>{avaries ? `${avaries} AVARIE${avaries > 1 ? 'S' : ''}` : 'EN ORDRE'}</span>
+    </button>
     <div class="instruments">
-      <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
-        <span class="compteur">{#each tambours as c}<span>{c}</span>{/each}</span>
-        <span class="unite">CR</span>
-      </button>
-      <span class="etiquette-encre">SAISON {saison}</span>
+      <div class="caisse">
+        <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
+          <span class="compteur">{#each tambours as c}<span>{c}</span>{/each}</span>
+          <span class="unite">CR</span>
+        </button>
+        <span class="saison">SAISON {saison}</span>
+      </div>
       <button class="interrupteur" class:coupe={!son} aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>
         <span class="bascule"></span><span class="mot">{son ? 'SON' : 'MUET'}</span>
       </button>
@@ -72,8 +90,9 @@
       </button>
     {/each}
   </nav>
+  </div>
 
-  <div class="page" onpointerdown={appuyer} onpointerup={relacher} role="presentation">
+  <div class="page" ontouchstart={toucher} ontouchend={lacher} ontouchcancel={() => (depart = null)} onpointerdown={appuyer} onpointerup={relacher} role="presentation">
     {#key jeu.page}
       <div class="contenu" in:fly={{ x: sens * 120, duration: 180 }}>
         {#if jeu.page === 'cockpit'}<Fenetre />
@@ -91,13 +110,88 @@
     display: flex;
     flex-direction: column;
   }
-  header {
+  /* Partie haute, figée : un bandeau bleu nuit, qui se détache du papier du cockpit. */
+  .bandeau {
     flex: none;
+    background: var(--hachures-claires), var(--couleur-bandeau);
+    color: var(--couleur-texte-clair);
+    border-bottom: 3px solid var(--couleur-encre);
+  }
+  header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    padding: 6px var(--espace) 4px;
+    gap: 6px;
+    padding: 6px 10px 4px var(--espace);
+  }
+  .etat-bord {
+    flex: 1;
+    min-width: 0;
+    max-width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 3px 6px;
+    border: 1.5px solid var(--couleur-texte-clair);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    color: inherit;
+    font-family: var(--police-chiffres);
+  }
+  .utc {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .utc small {
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+  .bord {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .lampe {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: 1px solid var(--couleur-encre);
+    background: var(--menthe);
+  }
+  .etat-bord.alerte .bord {
+    color: var(--rose);
+  }
+  .etat-bord.alerte .lampe {
+    background: var(--cerise);
+    animation: clignote 0.9s steps(2, jump-none) infinite;
+  }
+  @keyframes clignote {
+    50% {
+      background: var(--couleur-encre);
+    }
+  }
+  .caisse {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .saison {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    opacity: 0.85;
   }
   .identite {
     display: flex;
@@ -115,7 +209,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 120px;
+    max-width: 96px;
   }
   .instruments {
     display: flex;
@@ -129,6 +223,10 @@
     padding: 0;
     border: 0;
     background: none;
+    color: inherit;
+  }
+  .credits .compteur {
+    outline: 1px solid rgba(255, 255, 255, 0.5);
   }
   .credits .compteur {
     font-size: 16px;
@@ -146,6 +244,7 @@
     border: 0;
     background: none;
     padding: 0;
+    color: inherit;
   }
   .bascule {
     position: relative;
@@ -179,6 +278,7 @@
     letter-spacing: 1px;
   }
   .manuel {
+    color: var(--couleur-encre);
     width: 44px;
     height: 44px;
     display: grid;
@@ -201,7 +301,7 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 3px;
     padding: 4px 8px 0;
-    border-bottom: 3px solid var(--couleur-encre);
+    margin-bottom: -3px;
   }
   .onglet {
     position: relative;

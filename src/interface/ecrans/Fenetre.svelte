@@ -139,6 +139,10 @@
 
   <!-- Console : instruments, navigation, voyants. -->
   <section class="console">
+    <!-- Conduites de câbles, le long des deux bords de la console (décor). -->
+    <span class="conduite gauche" aria-hidden="true"></span>
+    <span class="conduite droite" aria-hidden="true"></span>
+    <div class="panneau-fin" data-titre="PANNEAU A · PILOTAGE" data-ref="réf. TB-12">
     <div class="moteur">
       <button class="interrupteur-moteur" class:coupe aria-pressed={!coupe} aria-label={coupe ? 'Rallumer le moteur' : 'Couper le moteur'} onclick={basculer}>
         <span class="position on">ON</span>
@@ -154,6 +158,8 @@
         <Compas cap={fusee.cap} {vers} />
         <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
       </div>
+    </div>
+    <div class="danger" aria-hidden="true"><span>ATTENTION · PIÈCES EN MOUVEMENT</span></div>
     </div>
 
     <div class="navigation ecran">
@@ -232,7 +238,10 @@
       </div>
     </div>
     <!-- Plaque constructeur, vissée sur la console : le numéro de série de l'appareil. -->
-    <div class="plaque-constructeur"><span>O.N.V.I. · C-58</span><b>N° SÉRIE {etat.serie}</b></div>
+    <div class="rangee-plaque">
+      <span class="tampon" aria-hidden="true">CONTRÔLÉ<small>O.N.V.I.</small></span>
+      <div class="plaque-constructeur"><span>O.N.V.I. · C-58</span><b>N° SÉRIE {etat.serie}</b></div>
+    </div>
   </section>
 
   <!-- Chasse au visiteur. -->
@@ -251,6 +260,7 @@
     {#each jeu.telex.slice(-6).reverse() as l}
       <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
     {/each}
+    <div class="fin-bande">— FIN DE BANDE —</div>
   </section>
 
   </div>
@@ -283,7 +293,7 @@
   /* Hublot : d'un bord à l'autre de l'écran, cadre fin. */
   .hublot {
     position: relative;
-    height: clamp(140px, 26vh, 230px);
+    height: clamp(80px, 13vh, 120px);
     margin: 0 calc(-1 * var(--espace));
     padding: 7px 7px;
     border-top: 2px solid var(--couleur-encre);
@@ -422,7 +432,8 @@
     padding: 2px 12px;
     border: 2px solid var(--couleur-encre);
     border-radius: 4px;
-    background: var(--moutarde);
+    --rivet: radial-gradient(circle, var(--couleur-encre) 0 1.5px, transparent 2px);
+    background: var(--rivet) left 3px center / 5px 5px no-repeat, var(--rivet) right 3px center / 5px 5px no-repeat, var(--moutarde);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -848,15 +859,128 @@
   /* Téléscripteur. */
   /* Journal de bord : les derniers messages, le plus récent en haut. */
   .telex {
-    padding: 4px 10px;
-    border-top: 2px dashed var(--couleur-encre);
-    border-bottom: 2px dashed var(--couleur-encre);
+    padding: 6px 22px;
+    border: 1px solid var(--couleur-encre);
+    border-radius: 2px;
+    /* Bande de téléscripteur : papier clair, trous d'entraînement des deux côtés. */
+    --trou: radial-gradient(circle, var(--couleur-fond) 0 2.4px, var(--couleur-encre) 2.9px 3.4px, transparent 3.8px);
+    background: var(--trou) left 4px top 4px / 10px 14px repeat-y, var(--trou) right 4px top 4px / 10px 14px repeat-y,
+      linear-gradient(90deg, transparent 17px, rgba(42, 30, 23, 0.35) 17px 18px, transparent 18px calc(100% - 18px), rgba(42, 30, 23, 0.35) calc(100% - 18px) calc(100% - 17px), transparent calc(100% - 17px)),
+      var(--couleur-papier);
     font-family: var(--police-machine);
     font-size: 13px;
     line-height: 1.45;
   }
   .heure {
     color: var(--couleur-texte-discret);
+  }
+  .fin-bande {
+    margin-top: 2px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--couleur-texte-eteint);
+  }
+
+  /* Décors au trait fin. */
+  /* Panneau : double filet d'encre, vis aux quatre coins, légende gravée dans le cadre. */
+  .panneau-fin {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 14px 12px 8px;
+    border: 1px solid var(--couleur-encre);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 3px var(--couleur-fond), inset 0 0 0 4px rgba(42, 30, 23, 0.5);
+    --vis: radial-gradient(circle, var(--couleur-papier) 0 1.6px, var(--couleur-encre) 2px 2.7px, transparent 3px);
+    background: var(--vis) left 6px top 6px / 8px 8px no-repeat, var(--vis) right 6px top 6px / 8px 8px no-repeat,
+      var(--vis) left 6px bottom 6px / 8px 8px no-repeat, var(--vis) right 6px bottom 6px / 8px 8px no-repeat;
+  }
+  .panneau-fin::before,
+  .panneau-fin::after {
+    position: absolute;
+    top: -7px;
+    padding: 0 5px;
+    background: var(--couleur-fond);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 13px;
+    color: var(--couleur-encre-discrete);
+  }
+  .panneau-fin::before {
+    content: attr(data-titre);
+    left: 18px;
+  }
+  .panneau-fin::after {
+    content: attr(data-ref);
+    right: 18px;
+    font-family: var(--police-machine);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+  /* Bande « danger » jaune et noire, avec sa consigne. */
+  .danger {
+    display: flex;
+    justify-content: center;
+    height: 12px;
+    border: 1px solid var(--couleur-encre);
+    background: repeating-linear-gradient(-45deg, var(--moutarde) 0 6px, var(--couleur-encre) 6px 12px);
+  }
+  .danger span {
+    padding: 0 6px;
+    background: var(--moutarde);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    line-height: 10px;
+  }
+  /* Conduites de câbles : deux filets, avec un collier tous les 70 px. */
+  .conduite {
+    position: absolute;
+    top: 30px;
+    bottom: 40px;
+    width: 5px;
+    border-left: 1px solid rgba(42, 30, 23, 0.55);
+    border-right: 1px solid rgba(42, 30, 23, 0.55);
+    background: repeating-linear-gradient(180deg, transparent 0 62px, var(--couleur-encre) 62px 63px, transparent 63px 66px, var(--couleur-encre) 66px 67px, transparent 67px 70px);
+    pointer-events: none;
+  }
+  .conduite.gauche {
+    left: -11px;
+  }
+  .conduite.droite {
+    right: -11px;
+  }
+  /* Plaque constructeur, cote et tampon de contrôle. */
+  .rangee-plaque {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+  .tampon {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1px 5px;
+    border: 2px solid var(--cerise);
+    border-radius: 4px;
+    color: var(--cerise);
+    font-family: var(--police-titre);
+    font-size: 7.5px;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    transform: rotate(-12deg);
+  }
+  .tampon small {
+    font-family: var(--police-machine);
+    font-size: 6px;
   }
   .heure.alerte {
     color: var(--cerise);
