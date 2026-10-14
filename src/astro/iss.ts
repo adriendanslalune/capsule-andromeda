@@ -54,8 +54,13 @@ export function positionISSSimulee(t: number): boolean {
  * précession depuis l'an 2000 (environ 0,37° en 2026, soit plus de 40 km à l'altitude de l'ISS).
  */
 export function positionISSGeocentrique(t: number): Vecteur3 {
-  const r = propagate(satrec, new Date(t))
-  if (!r) throw new Error("Calcul de la position de l'ISS impossible")
+  return positionTLEGeocentrique(satrec, t)
+}
+
+/** Position d'un satellite de la Terre d'après son orbite TLE (écliptique J2000, km, vue du centre de la Terre). */
+export function positionTLEGeocentrique(sat: SatRec, t: number): Vecteur3 {
+  const r = propagate(sat, new Date(t))
+  if (!r) throw new Error('Calcul de la position du satellite impossible')
   const e = equatorialVersEcliptique(r.position)
   const a = -PRECESSION_PAR_SIECLE * sieclesDepuisJ2000(t) * RAD
   return { x: e.x * Math.cos(a) - e.y * Math.sin(a), y: e.x * Math.sin(a) + e.y * Math.cos(a), z: e.z }

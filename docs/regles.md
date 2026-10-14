@@ -291,3 +291,10 @@ avec un contact à moins de 0,01 UA).*
 - Contrats : à chaque tirage, une chance sur 9 pour le Soleil (sinon un des 8 systèmes).
 - Hublot et vue 3D : éblouissement croissant à moins de 0,6 UA ; bouton FILTRE (filtre solaire) : l'image
   s'assombrit en douceur, le Soleil devient une boule blanche ; le retirer revient en douceur.
+
+## 11. Engins humains, destinations (décision d'Adrien du 14/10/2026)
+- 17 engins, à leur position réelle : Hubble et Tiangong (orbites publiées, SGP4), James Webb, Gaia, Parker Solar Probe,
+  Solar Orbiter, BepiColombo, Europa Clipper, JUICE, Juno, Lucy, Psyche, New Horizons, Pioneer 10 et 11, Voyager 1 et 2
+  (trajectoires de JPL Horizons, `outils/engins-jpl.mjs`, période 2026-2029 à rafraîchir).
+- Chacun est une destination : arrivée à 1 km (`SEUIL_ARRIVEE_ENGIN_KM`), puis la fusée se range à 100 m
+  (`APPROCHE_ENGIN_KM`) et le suit.

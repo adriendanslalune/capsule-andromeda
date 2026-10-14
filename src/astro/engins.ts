@@ -1,46 +1,96 @@
-// Position des engins humains (Hubble, James Webb, Voyager 1 et 2), héliocentrique, écliptique J2000, en UA.
+// Position des engins humains (héliocentrique, écliptique J2000, UA) : SGP4 pour ceux qui tournent autour de la
+// Terre à basse altitude, interpolation des trajectoires de JPL Horizons pour les autres.
 
-import { ENGINS, type Engin } from '../donnees/engins'
+import { ENGINS, type FicheEngin } from '../donnees/engins'
+import { TRAJECTOIRES, type Trajectoire } from '../donnees/engins-jpl'
+import type { NomPlanete } from '../donnees/planetes'
+import { positionTLEGeocentrique } from './iss'
 import { positionPlanete } from './planetes'
-import { UA_KM } from './temps'
-import { OBLIQUITE_J2000, RAD, type Vecteur3 } from './vecteur'
+import { twoline2satrec, type SatRec } from './sgp4'
+import { MS_PAR_JOUR, UA_KM } from './temps'
+import type { Vecteur3 } from './vecteur'
 
-const AN = 365.25 * 86_400_000
-const RAYON_TERRE = 6378.137
+const FICHES = new Map(ENGINS.map((e) => [e.nom, e]))
+const TRAJETS = new Map(TRAJECTOIRES.map((t) => [t.nom, t]))
+const ORBITES = new Map<string, SatRec>()
+for (const e of ENGINS) if (e.tle) ORBITES.set(e.nom, twoline2satrec(e.tle.ligne1, e.tle.ligne2))
 
-export function engin(nom: string): Engin | undefined {
-  return ENGINS.find((e) => e.nom === nom)
+export function estEngin(nom: string): boolean {
+  return FICHES.has(nom)
 }
 
-export function positionEngin(e: Engin, t: number): Vecteur3 {
-  if (e.type === 'lointain') {
-    const r = e.distanceUA + (e.vitesseUAParAn * (t - e.epoque)) / AN
-    const l = e.longitude * RAD, b = e.latitude * RAD
-    return { x: r * Math.cos(b) * Math.cos(l), y: r * Math.cos(b) * Math.sin(l), z: r * Math.sin(b) }
+export function ficheEngin(nom: string): FicheEngin | undefined {
+  return FICHES.get(nom)
+}
+
+/** Noms de tous les engins (hors ISS). */
+export const NOMS_ENGINS: readonly string[] = ENGINS.map((e) => e.nom)
+
+/** Point n de la trajectoire (vu de son centre). */
+function point(tr: Trajectoire, n: number): Vecteur3 {
+  const k = Math.max(0, Math.min(tr.points.length / 3 - 1, n)) * 3
+  return { x: tr.points[k], y: tr.points[k + 1], z: tr.points[k + 2] }
+}
+
+/** Interpolation de Catmull-Rom entre les points n et n + 1 (u de 0 à 1). */
+function catmullRom(a: Vecteur3, b: Vecteur3, c: Vecteur3, d: Vecteur3, u: number): Vecteur3 {
+  const f = (p0: number, p1: number, p2: number, p3: number) =>
+    0.5 * (2 * p1 + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u + (-p0 + 3 * p1 - 3 * p2 + p3) * u * u * u)
+  return { x: f(a.x, b.x, c.x, d.x), y: f(a.y, b.y, c.y, d.y), z: f(a.z, b.z, c.z, d.z) }
+}
+
+function centre(tr: Trajectoire, t: number): Vecteur3 {
+  return tr.centre === 'Soleil' ? { x: 0, y: 0, z: 0 } : positionPlanete(tr.centre, t)
+}
+
+/** Position d'après la trajectoire de JPL ; après le dernier point, auprès de sa planète ou en ligne droite. */
+function positionTrajectoire(tr: Trajectoire, t: number): Vecteur3 {
+  const pas = tr.pasJours * MS_PAR_JOUR
+  const dernier = tr.points.length / 3 - 1
+  const f = (t - tr.debut) / pas
+  if (f > dernier) {
+    const fin = tr.debut + dernier * pas
+    const p = point(tr, dernier)
+    if (tr.apres) {
+      // L'engin reste auprès de sa planète, au même écart qu'à la fin des données.
+      const planete = tr.apres as NomPlanete
+      const c = centre(tr, fin), q = positionPlanete(planete, fin), ici = positionPlanete(planete, t)
+      return { x: ici.x + p.x + c.x - q.x, y: ici.y + p.y + c.y - q.y, z: ici.z + p.z + c.z - q.z }
+    }
+    const avant = point(tr, dernier - 1)
+    const k = f - dernier
+    const c = centre(tr, t)
+    return { x: c.x + p.x + (p.x - avant.x) * k, y: c.y + p.y + (p.y - avant.y) * k, z: c.z + p.z + (p.z - avant.z) * k }
   }
-  const terre = positionPlanete('Terre', t)
-  if (e.type === 'orbite-basse') {
-    // Orbite circulaire, dans le repère équatorial, puis passage à l'écliptique.
-    const R = RAYON_TERRE + e.altitudeKm
-    const u = (2 * Math.PI * (t / 60_000)) / e.periodeMinutes
-    const O = e.noeud * RAD, i = e.inclinaison * RAD
-    const x = R * (Math.cos(O) * Math.cos(u) - Math.sin(O) * Math.sin(u) * Math.cos(i))
-    const y = R * (Math.sin(O) * Math.cos(u) + Math.cos(O) * Math.sin(u) * Math.cos(i))
-    const z = R * Math.sin(u) * Math.sin(i)
-    const c = Math.cos(OBLIQUITE_J2000 * RAD), s = Math.sin(OBLIQUITE_J2000 * RAD)
-    return { x: terre.x + x / UA_KM, y: terre.y + (y * c + z * s) / UA_KM, z: terre.z + (-y * s + z * c) / UA_KM }
+  const n = Math.max(0, Math.floor(f))
+  const u = Math.max(0, f - n)
+  const p = catmullRom(point(tr, n - 1), point(tr, n), point(tr, n + 1), point(tr, n + 2), u)
+  const c = centre(tr, t)
+  return { x: c.x + p.x, y: c.y + p.y, z: c.z + p.z }
+}
+
+/** Position héliocentrique d'un engin (UA). */
+export function positionEngin(nom: string, t: number): Vecteur3 {
+  const orbite = ORBITES.get(nom)
+  if (orbite) {
+    // Loin de la date de l'orbite publiée, SGP4 finit par échouer (freinage par l'atmosphère) : on rejoue alors
+    // la dernière année calculable (position simulée).
+    let g: Vecteur3
+    try {
+      g = positionTLEGeocentrique(orbite, t)
+    } catch {
+      const epoque = (orbite.jdsatepoch - 2440587.5) * MS_PAR_JOUR
+      g = positionTLEGeocentrique(orbite, epoque + (((t - epoque) % (365 * MS_PAR_JOUR)) + 365 * MS_PAR_JOUR) % (365 * MS_PAR_JOUR))
+    }
+    const terre = positionPlanete('Terre', t)
+    return { x: terre.x + g.x / UA_KM, y: terre.y + g.y / UA_KM, z: terre.z + g.z / UA_KM }
   }
-  // Point L2 : dans le prolongement Soleil-Terre ; halo autour de lui.
-  const d = Math.hypot(terre.x, terre.y)
-  const ux = terre.x / d, uy = terre.y / d
-  const phi = (2 * Math.PI * (t / 86_400_000)) / e.periodeJours
-  const plan = (e.haloPlanKm * Math.cos(phi)) / UA_KM
-  const haut = (e.haloHautKm * Math.sin(phi)) / UA_KM
-  const l2 = e.distanceKm / UA_KM
-  return { x: terre.x + ux * l2 - uy * plan, y: terre.y + uy * l2 + ux * plan, z: terre.z + haut }
+  const tr = TRAJETS.get(nom)
+  if (!tr) throw new Error(`Engin inconnu : ${nom}`)
+  return positionTrajectoire(tr, t)
 }
 
 /** Tous les engins à l'instant t. */
-export function positionsEngins(t: number): { nom: string; position: Vecteur3; tailleM: number }[] {
-  return ENGINS.map((e) => ({ nom: e.nom, position: positionEngin(e, t), tailleM: e.tailleM }))
+export function positionsEngins(t: number): { nom: string; position: Vecteur3; fiche: FicheEngin }[] {
+  return ENGINS.map((fiche) => ({ nom: fiche.nom, position: positionEngin(fiche.nom, t), fiche }))
 }

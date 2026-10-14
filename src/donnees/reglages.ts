@@ -33,6 +33,8 @@ export const AMARRAGE_ISS_KM = 0.04
  * 3 millions de km du centre, quatre rayons solaires.
  */
 export const SEUIL_ARRIVEE_SOLEIL = 0.02
+/** Distance d'arrivée (km) : engin humain (on s'en approche ensuite à 100 m). */
+export const SEUIL_ARRIVEE_ENGIN_KM = 1
 /** Distance d'arrivée (UA) : Lune. */
 export const SEUIL_ARRIVEE_LUNE = 0.0002
 

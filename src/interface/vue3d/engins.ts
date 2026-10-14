@@ -327,3 +327,200 @@ export function modeleVoyager(): THREE.Group {
   g.add(placer(boite(0.5 * M, 0.5 * M, 0.8 * M, mat(0x3a3a3a)), -1.3 * M, 0.3 * M, 3 * M))
   return g
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Les autres engins : formes simples, proportions et couleurs réelles
+
+const cellulesBleues = () => mat(0xffffff, { map: textureCellules('#151c2c', '#2f4475', 6, 30), side: THREE.DoubleSide, roughness: 0.45 })
+const isolantDore = () => mat(0xc79a3a, { roughness: 0.6 })
+const isolantNoir = () => mat(0x2a2826)
+
+/** Antenne parabolique de diamètre d (m), creux tourné vers +X, bord en x (m). */
+function parabole(d: number, x: number, couleur = 0xf0eee8): THREE.Mesh {
+  const ouverture = 0.6
+  const r = d / 2 / Math.sin(ouverture)
+  const p = new THREE.Mesh(new THREE.SphereGeometry(r * M, 32, 10, 0, Math.PI * 2, 0, ouverture), mat(couleur, { side: THREE.DoubleSide }))
+  // Calotte tournée vers -X (son creux regarde +X) ; son bord est à x.
+  p.rotation.z = Math.PI / 2
+  p.position.x = (x + r * Math.cos(ouverture)) * M
+  return p
+}
+
+/** Aile solaire rectangulaire (l × h m) dans le plan horizontal, centrée en (x, y, z) (m). */
+function aile(l: number, h: number, x: number, y: number, z: number, m: THREE.Material = cellulesBleues()): THREE.Mesh {
+  return placer(plaque(l * M, h * M, m), x * M, y * M, z * M)
+}
+
+/** Tiangong : module central Tianhe, laboratoires Wentian et Mengtian en T, grandes ailes, cargo Tianzhou. */
+function modeleTiangong(): THREE.Group {
+  const g = new THREE.Group()
+  const blanc = mat(0xf2f1ec)
+  g.add(cylindre(2.1 * M, 16.6 * M, blanc, 'z', 24)) // Tianhe
+  g.add(placer(new THREE.Mesh(new THREE.SphereGeometry(1.4 * M, 16, 12), blanc), 0, 0, 8.6 * M)) // nœud
+  for (const cote of [-1, 1]) {
+    g.add(placer(cylindre(2.1 * M, 17.9 * M, blanc, 'x', 24), cote * 10 * M, 0, 8.6 * M)) // Wentian, Mengtian
+    // Grandes ailes au bout des laboratoires (55 m d'envergure en tout).
+    g.add(aile(9, 4.2, cote * 23.5, 0, 6.3))
+    g.add(aile(9, 4.2, cote * 23.5, 0, 10.9))
+    g.add(placer(cylindre(0.15 * M, 10 * M, mat(0xcfcfcf), 'z', 6), cote * 23.5 * M, 0, 8.6 * M))
+  }
+  g.add(placer(cylindre(1.7 * M, 10.6 * M, mat(0xd8d2c0), 'z', 20), 0, 0, -13.6 * M)) // Tianzhou
+  for (const cote of [-1, 1]) g.add(aile(6, 2.2, cote * 5.5, 0, -14))
+  return g
+}
+
+/** Gaia : grand pare-soleil circulaire de 10 m (cellules bleues), tambour du télescope dessus. */
+function modeleGaia(): THREE.Group {
+  const g = new THREE.Group()
+  const jupe = new THREE.Mesh(new THREE.CircleGeometry(5 * M, 12), cellulesBleues())
+  jupe.rotation.x = -Math.PI / 2
+  g.add(jupe)
+  g.add(placer(new THREE.Mesh(new THREE.CylinderGeometry(1.8 * M, 1.8 * M, 2.8 * M, 12), isolantNoir()), 0, 1.4 * M, 0))
+  g.add(placer(new THREE.Mesh(new THREE.CylinderGeometry(1.9 * M, 1.9 * M, 0.4 * M, 12), isolantDore()), 0, 0.3 * M, 0))
+  return g
+}
+
+/** Pioneer 10 et 11 : antenne de 2,7 m sur un corps hexagonal, deux perches de générateurs, un magnétomètre. */
+function modelePioneer(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(parabole(2.74, 0))
+  g.add(placer(new THREE.Mesh(new THREE.CylinderGeometry(0.7 * M, 0.7 * M, 0.36 * M, 6), isolantDore()).rotateZ(Math.PI / 2), -0.4 * M, 0, 0))
+  for (const a of [Math.PI / 3, -Math.PI / 3]) {
+    const b = placer(cylindre(0.04 * M, 3 * M, mat(0xcfcfcf), 'y', 6), -0.4 * M, Math.cos(a) * 1.6 * M, Math.sin(a) * 1.6 * M)
+    b.rotation.x = -a
+    g.add(b)
+    g.add(placer(cylindre(0.18 * M, 0.9 * M, isolantNoir(), 'y', 8), -0.4 * M, Math.cos(a) * 3 * M, Math.sin(a) * 3 * M))
+  }
+  g.add(placer(cylindre(0.03 * M, 6.6 * M, mat(0xd8d8d8), 'y', 6), -0.4 * M, -3.3 * M, 0))
+  return g
+}
+
+/** New Horizons : corps triangulaire doré, antenne de 2,1 m, un générateur sur le côté. */
+function modeleNewHorizons(): THREE.Group {
+  const g = new THREE.Group()
+  const corps = new THREE.Mesh(new THREE.CylinderGeometry(1.3 * M, 1.3 * M, 0.7 * M, 3), isolantDore())
+  corps.rotation.z = Math.PI / 2
+  g.add(corps)
+  g.add(parabole(2.1, 0.4))
+  g.add(placer(cylindre(0.2 * M, 1.1 * M, isolantNoir(), 'z', 8), 0, -0.4 * M, -1.5 * M))
+  return g
+}
+
+/** Parker Solar Probe : bouclier thermique de 2,3 m (blanc devant, noir derrière), petites ailes refroidies. */
+function modeleParker(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(placer(cylindre(1.15 * M, 0.11 * M, mat(0xf5f5f0), 'x', 32), 1.4 * M, 0, 0))
+  g.add(placer(cylindre(1.12 * M, 0.04 * M, isolantNoir(), 'x', 32), 1.32 * M, 0, 0))
+  g.add(placer(new THREE.Mesh(new THREE.CylinderGeometry(0.5 * M, 0.5 * M, 1.6 * M, 6), isolantDore()).rotateZ(Math.PI / 2), 0.3 * M, 0, 0))
+  for (const cote of [-1, 1]) g.add(aile(0.8, 0.7, -0.1, 0, cote * 1.05))
+  return g
+}
+
+/** Solar Orbiter : bouclier thermique noir devant, corps doré, deux longues ailes, perche de 4 m, antenne. */
+function modeleSolarOrbiter(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(placer(boite(0.3 * M, 3.1 * M, 2.4 * M, isolantNoir()), 1.4 * M, 0, 0))
+  g.add(boite(2.5 * M, 2.5 * M, 3 * M, isolantDore()))
+  for (const cote of [-1, 1]) g.add(aile(1.2, 6.5, 0, 0, cote * 4.8))
+  g.add(placer(cylindre(0.04 * M, 4.4 * M, mat(0xd8d8d8), 'x', 6), -3.4 * M, 0, 0))
+  g.add(placer(parabole(1.1, 0), -0.5 * M, 1.6 * M, 0))
+  return g
+}
+
+/** BepiColombo : les deux orbiteurs empilés (MPO argenté, MMO octogonal) et le module de propulsion à deux ailes. */
+function modeleBepi(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(boite(2.4 * M, 2.2 * M, 1.7 * M, mat(0xd7d9dc)))
+  g.add(placer(new THREE.Mesh(new THREE.CylinderGeometry(0.9 * M, 0.9 * M, 1.1 * M, 8), mat(0x4b5f87)).rotateZ(Math.PI / 2), 1.8 * M, 0, 0))
+  g.add(placer(boite(1.6 * M, 1.8 * M, 1.6 * M, isolantDore()), -2 * M, 0, 0))
+  for (const cote of [-1, 1]) g.add(aile(2.6, 14, -2, 0, cote * 7.9))
+  g.add(aile(7.5, 2.4, 0, 0, 2.2))
+  return g
+}
+
+/** Europa Clipper : deux immenses ailes de cinq panneaux (30 m d'envergure), corps, antenne de 3 m. */
+function modeleClipper(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(cylindre(0.8 * M, 3 * M, isolantNoir(), 'x', 16))
+  g.add(parabole(3, 1.6))
+  for (const cote of [-1, 1]) {
+    for (let k = 0; k < 5; k++) g.add(aile(4.1, 2.6, 0, 0, cote * (2.2 + k * 2.7)))
+  }
+  g.add(placer(cylindre(0.03 * M, 8.5 * M, mat(0xd8d8d8), 'y', 6), -0.8 * M, 4.3 * M, 0))
+  return g
+}
+
+/** JUICE : croix de dix panneaux solaires (27 m), corps doré, antenne de 2,5 m, perche du magnétomètre. */
+function modeleJuice(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(boite(2.6 * M, 2.4 * M, 2.4 * M, isolantDore()))
+  g.add(parabole(2.5, 1.4))
+  for (const cote of [-1, 1]) {
+    for (let k = 0; k < 5; k++) {
+      for (const dx of [-1.3, 1.3]) g.add(aile(2.5, 2.5, dx, 0, cote * (2.6 + k * 2.6)))
+    }
+  }
+  g.add(placer(cylindre(0.03 * M, 10.6 * M, mat(0xd8d8d8), 'y', 6), -0.8 * M, 5.3 * M, 0))
+  return g
+}
+
+/** Lucy : deux grands panneaux solaires ronds de 7,3 m, corps, antenne de 2 m. */
+function modeleLucy(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(boite(1.8 * M, 1.8 * M, 1.8 * M, isolantDore()))
+  g.add(parabole(2, 1.1))
+  for (const cote of [-1, 1]) {
+    const d = new THREE.Mesh(new THREE.CircleGeometry(3.65 * M, 20), cellulesBleues())
+    d.rotation.x = -Math.PI / 2
+    d.position.z = cote * 4.6 * M
+    g.add(d)
+  }
+  return g
+}
+
+/** Psyche : corps en boîte, deux ailes en croix de cinq panneaux (25 m), antenne. */
+function modelePsyche(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(boite(2.4 * M, 2.2 * M, 2.2 * M, isolantDore()))
+  g.add(parabole(2, 1.3))
+  for (const cote of [-1, 1]) {
+    g.add(aile(2.2, 7.5, 0, 0, cote * 5))
+    for (const dx of [-2.2, 2.2]) g.add(aile(2.2, 2.2, dx, 0, cote * 7.5))
+  }
+  return g
+}
+
+/** Juno : corps hexagonal, trois ailes de 9 m à 120°, antenne au centre. */
+function modeleJuno(): THREE.Group {
+  const g = new THREE.Group()
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(1.75 * M, 1.75 * M, 3.5 * M, 6), isolantNoir()).rotateZ(Math.PI / 2))
+  g.add(parabole(2.5, 1.9))
+  for (let k = 0; k < 3; k++) {
+    const bras = new THREE.Group()
+    bras.add(aile(2.6, 8.9, 0, 0, 1.7 + 4.45))
+    bras.rotation.x = (k * 2 * Math.PI) / 3
+    g.add(bras)
+  }
+  return g
+}
+
+/** Modèle 3D d'un engin d'après le type de sa fiche. */
+export function modeleEngin(type: string): THREE.Group {
+  switch (type) {
+    case 'hubble': return modeleHubble()
+    case 'webb': return modeleWebb()
+    case 'voyager': return modeleVoyager()
+    case 'tiangong': return modeleTiangong()
+    case 'gaia': return modeleGaia()
+    case 'pioneer': return modelePioneer()
+    case 'new-horizons': return modeleNewHorizons()
+    case 'parker': return modeleParker()
+    case 'solar-orbiter': return modeleSolarOrbiter()
+    case 'bepicolombo': return modeleBepi()
+    case 'clipper': return modeleClipper()
+    case 'juice': return modeleJuice()
+    case 'lucy': return modeleLucy()
+    case 'psyche': return modelePsyche()
+    default: return modeleJuno()
+  }
+}

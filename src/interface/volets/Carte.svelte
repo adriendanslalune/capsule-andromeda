@@ -123,10 +123,11 @@
   const tracesVisibles = $derived(mode === 'chasse')
 
   // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
-  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean }
+  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean }
   const marques = $derived.by(() => {
     const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: 9, couleur: '#f2b53a', etiquette: true }]
     for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
+    for (const e of positionsEngins(tl)) l.push({ nom: e.nom, p: e.position, r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
@@ -139,6 +140,18 @@
       }
     }
     return l
+  })
+
+  /** Noms d'engins qui ne se chevauchent pas (ni entre eux ni avec un astre). */
+  const etiquettesEngins = $derived.by(() => {
+    const pris = marques.filter((m) => !m.engin).map((m) => ecran(m.p))
+    const ok = new Set<string>()
+    for (const m of marques) {
+      if (!m.engin) continue
+      const s = ecran(m.p)
+      if (pris.every((q) => Math.abs(q.x - s.x) > 60 || Math.abs(q.y - s.y) > 12)) { ok.add(m.nom); pris.push(s) }
+    }
+    return ok
   })
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, v) : null)
@@ -289,8 +302,6 @@
     })
   })
 
-  /** Engins humains (Hubble, Webb, Voyager) à l'écran. */
-  const engins = $derived(positionsEngins(tl).map((e) => ({ nom: e.nom, s: ecran(e.position) })).filter((e) => e.s.x > -10 && e.s.x < L + 10 && e.s.y > -10 && e.s.y < Hc + 10))
 
   const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
@@ -319,8 +330,14 @@
     {#each marques as m}
       {@const s = ecran(m.p)}
       {#if s.x > -40 && s.x < L + 40 && s.y > -40 && s.y < Hc + 40}
-        <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke={PLAN.trait} stroke-width="1.5" />
-        {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
+        {#if m.engin}
+          <!-- Engin humain : petit losange, nom en plus petit. -->
+          <path d={`M ${s.x} ${s.y - 4.5} L ${s.x + 4.5} ${s.y} L ${s.x} ${s.y + 4.5} L ${s.x - 4.5} ${s.y} Z`} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.3" />
+          {#if etiquettesEngins.has(m.nom)}<text x={s.x + 7} y={s.y + 4} font-size="9" font-family="var(--police-machine)" fill={PLAN.trait} opacity=".9">{m.nom.toUpperCase()}</text>{/if}
+        {:else}
+          <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke={PLAN.trait} stroke-width="1.5" />
+          {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
+        {/if}
       {/if}
     {/each}
 
@@ -337,10 +354,6 @@
       {/each}
     {/if}
 
-    {#each engins as e}
-      <path d={`M ${e.s.x} ${e.s.y - 4} L ${e.s.x + 4} ${e.s.y} L ${e.s.x} ${e.s.y + 4} L ${e.s.x - 4} ${e.s.y} Z`} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.3" />
-      <text x={e.s.x + 7} y={e.s.y + 4} font-size="9.5" font-family="var(--police-machine)" fill={PLAN.trait} opacity=".9">{e.nom.toUpperCase()}</text>
-    {/each}
     {#each autres as a}
       {#if a.visible}
         <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.fond} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />

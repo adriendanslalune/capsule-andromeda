@@ -1,8 +1,10 @@
-// Tous les corps où la fusée peut se rendre : planètes, Lune, satellites naturels et Station spatiale internationale.
+// Tous les corps où la fusée peut se rendre : Soleil, planètes, Lune, satellites naturels, Station spatiale
+// internationale, et les autres engins humains (Hubble, Webb, Voyager… voir engins.ts).
 // Chaque corps appartient au système d'une planète (la planète elle-même, ses satellites ; la Lune et l'ISS pour
 // la Terre).
 
 import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, RAYON_LUNE, type NomPlanete } from '../donnees/planetes'
+import { estEngin, ficheEngin, positionEngin } from './engins'
 import { demiGrandAxeISS, periodeISS, positionISSGeocentrique } from './iss'
 import { positionLune } from './lune'
 import { positionPlanete } from './planetes'
@@ -20,7 +22,7 @@ export function estPlanete(nom: NomCorps): nom is NomPlanete {
 }
 
 export function corpsExiste(nom: NomCorps): boolean {
-  return estPlanete(nom) || nom === 'Lune' || nom === 'ISS' || satellite(nom) !== undefined
+  return estPlanete(nom) || nom === 'Lune' || nom === 'ISS' || nom === 'Soleil' || estEngin(nom) || satellite(nom) !== undefined
 }
 
 /** Tous les corps, dans l'ordre : planètes, Lune, ISS, puis satellites naturels. */
@@ -53,6 +55,7 @@ export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
   if (estPlanete(nom)) return positionPlanete(nom, t)
   if (nom === 'Lune') return positionLune(t)
   if (nom === 'ISS') return ajouter(positionPlanete('Terre', t), multiplier(positionISSGeocentrique(t), 1 / UA_KM))
+  if (estEngin(nom)) return positionEngin(nom, t)
   return positionSatellite(satelliteConnu(nom), t)
 }
 
@@ -75,6 +78,7 @@ export function periodeOrbitale(nom: NomCorps): number {
   }
   if (nom === 'Lune') return 27.321661
   if (nom === 'ISS') return periodeISS()
+  if (estEngin(nom)) return ficheEngin(nom)!.periodeJours
   return satelliteConnu(nom).periode
 }
 
@@ -85,6 +89,25 @@ export function periodeOrbitale(nom: NomCorps): number {
 export function rayonInfluence(planete: NomPlanete): number {
   const a = PLANETES.find((p) => p.nom === planete)!.elements[0]
   return a * (1 / (3 * RAPPORT_MASSE_SOLEIL[planete])) ** (1 / 3)
+}
+
+/** Système planétaire d'un point de l'espace (dans la sphère d'influence d'une planète), ou null. */
+export function systemeDuPoint(p: { x: number; y: number }, t: number): NomPlanete | null {
+  let meilleure: NomPlanete | null = null
+  let meilleurRapport = 1
+  for (const n of NOMS_PLANETES) {
+    const c = positionPlanete(n, t)
+    const rapport = Math.hypot(p.x - c.x, p.y - c.y) / rayonInfluence(n)
+    if (rapport < meilleurRapport) { meilleure = n; meilleurRapport = rapport }
+  }
+  return meilleure
+}
+
+/** Système planétaire d'un corps à l'instant t : null pour le Soleil ; pour un engin, là où il se trouve. */
+export function systemeDuCorps(nom: NomCorps, t: number): NomPlanete | null {
+  if (nom === 'Soleil') return null
+  if (estEngin(nom)) return systemeDuPoint(positionEngin(nom, t), t)
+  return planeteDe(nom)
 }
 
 /** Distance (km) convertie en UA. */

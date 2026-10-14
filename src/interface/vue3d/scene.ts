@@ -21,7 +21,8 @@ import { CHASSE } from '../../donnees/chasse'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { autresFusees } from '../reseau'
 import { positionsEngins } from '../../astro/engins'
-import { modeleHubble, modeleISSFidele, modeleVoyager, modeleWebb } from './engins'
+import { modeleEngin, modeleISSFidele } from './engins'
+import { estEngin } from '../../astro/engins'
 import { modeleFusee, modeleSoucoupe, refleter } from './modeles'
 
 const COULEURS: Record<string, number> = {
@@ -328,7 +329,7 @@ export class Vue3D {
       o.point.position.copy(pe)
       o.point.visible = d > 0.2 && d < AUTRES.pointKm
       if (d < 50 && !o.modele) {
-        o.modele = e.nom === 'Hubble' ? modeleHubble() : e.nom === 'James Webb' ? modeleWebb() : modeleVoyager()
+        o.modele = modeleEngin(e.fiche.modele)
         this.scene.add(o.modele)
       }
       if (o.modele) {
@@ -392,6 +393,7 @@ export class Vue3D {
       let vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
       if (vise === 'ISS' && !this.iss.visible) vise = 'Terre'
       const cible = vise === 'ISS' ? iss
+        : vise && estEngin(vise) ? this.engins.get(vise)?.ecran
         : vise ? this.astres.get(vise)?.maillage.position
         : dest?.type === 'visiteur' ? pv
         : dest?.type === 'point' ? relatif({ x: dest.x * UA_KM, y: dest.y * UA_KM, z: 0 })

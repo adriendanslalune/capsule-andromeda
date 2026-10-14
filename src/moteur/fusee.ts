@@ -11,7 +11,7 @@
 //   qui fait arriver le plus tôt, la fusée attendant en orbite). Le joueur choisit.
 
 import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe,
-  positionCorps, rayonCorps, rayonInfluence, type NomCorps } from '../astro/corps'
+  positionCorps, rayonCorps, rayonInfluence, systemeDuCorps, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import { RAD } from '../astro/vecteur'
 import { CHASSE } from '../donnees/chasse'
@@ -28,8 +28,11 @@ import {
   TAUX_VIRAGE,
   VITESSE_BASE,
   AMARRAGE_ISS_KM,
+  SEUIL_ARRIVEE_ENGIN_KM,
 } from '../donnees/reglages'
 import { escaleDuJour, positionVisiteur } from './visiteur'
+import { estEngin } from '../astro/engins'
+import { APPROCHE_ENGIN_KM } from '../donnees/engins'
 
 export interface Point2 {
   x: number
@@ -200,6 +203,7 @@ export function seuilArrivee(d: Destination): number {
   if (d.type === 'visiteur') return enUA(CHASSE.distanceApprocheKm)
   if (d.type === 'point') return enUA(SEUIL_ARRIVEE_POINT_KM)
   if (d.astre === 'Soleil') return SEUIL_ARRIVEE_SOLEIL
+  if (estEngin(d.astre)) return enUA(SEUIL_ARRIVEE_ENGIN_KM)
   if (estPlanete(d.astre)) return SEUIL_ARRIVEE
   return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
 }
@@ -209,8 +213,8 @@ export function seuilArrivee(d: Destination): number {
 
 /** Système planétaire où se trouve la fusée (en orbite autour d'un de ses corps, ou dans sa sphère d'influence). */
 export function systemeDeLaFusee(fusee: EtatFusee, t: number): NomPlanete | null {
-  // Autour du Soleil, on n'est dans aucun système planétaire.
-  if (fusee.orbite) return fusee.orbite === 'Soleil' ? null : planeteDe(fusee.orbite)
+  // Autour du Soleil, on n'est dans aucun système planétaire ; auprès d'un engin, on est là où il se trouve.
+  if (fusee.orbite && !estEngin(fusee.orbite)) return fusee.orbite === 'Soleil' ? null : planeteDe(fusee.orbite)
   let meilleure: NomPlanete | null = null
   let meilleurRapport = 1
   for (const p of NOMS_PLANETES) {
@@ -224,7 +228,7 @@ export function systemeDeLaFusee(fusee: EtatFusee, t: number): NomPlanete | null
 export function repereDuTrajet(fusee: EtatFusee, dest: Destination, t: number): NomPlanete | null {
   if (dest.type === 'point' || dest.astre === 'Soleil') return null
   const systeme = systemeDeLaFusee(fusee, t)
-  return systeme !== null && systeme === planeteDe(dest.astre) ? systeme : null
+  return systeme !== null && systeme === systemeDuCorps(dest.astre, t) ? systeme : null
 }
 
 function centre(repere: NomPlanete | null, t: number): Point2 {
@@ -269,7 +273,10 @@ export function calculerRencontre(position: Point2, dest: Destination, repere: N
   // Pas de recherche : assez fin pour suivre le mouvement de la cible dans le repère.
   let periode = Infinity
   if (dest.type !== 'point' && dest.astre !== 'Soleil') {
-    periode = periodeOrbitale(repere || estPlanete(dest.astre) ? dest.astre : planeteDe(dest.astre)) * 86_400
+    // Un engin vu de loin bouge comme sa planète (Hubble autour de la Terre) ; de près, à son propre rythme.
+    const lui = estEngin(dest.astre) ? (repere ? dest.astre : systemeDuCorps(dest.astre, t) ?? dest.astre)
+      : repere || estPlanete(dest.astre) ? dest.astre : planeteDe(dest.astre)
+    periode = periodeOrbitale(lui) * 86_400
   }
   const directe = d0 / v
   const pas = Math.max(1, Math.min(directe / 50, periode / 72))
@@ -687,7 +694,8 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       const d = Math.hypot(dx, dy)
       // Amarrée à l'ISS : tout contre elle ; ailleurs, en orbite à la distance d'arrivée.
       const dz = z - hauteurDestination(dest, t, z)
-      const k = dest.astre === 'ISS' ? enUA(AMARRAGE_ISS_KM) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
+      const tout = dest.astre === 'ISS' ? AMARRAGE_ISS_KM : estEngin(dest.astre) ? APPROCHE_ENGIN_KM : null
+      const k = tout !== null ? enUA(tout) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
       ecartOrbite = { x: dx * k, y: dy * k, z: dz * k }
     }
     return {
