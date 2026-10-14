@@ -5,6 +5,7 @@
   import { jeu } from '../jeu.svelte'
   import { pageDuChapitre } from '../volets/pages-manuel'
   import Antenne from '../modules/Antenne.svelte'
+  import Bricolage from '../modules/Bricolage.svelte'
   import Brassage from '../modules/Brassage.svelte'
   import Chronometre from '../modules/Chronometre.svelte'
   import Codeur from '../modules/Codeur.svelte'
@@ -44,6 +45,7 @@
 </script>
 
 <main class="papier" bind:this={ecran}>
+  <Bricolage graine={code} />
   <!-- Tirer depuis le bord gauche, ou par le bandeau du haut, ramène au tableau de bord. -->
   <div class="bord" use:glisserPourFermer={glisser}></div>
   <header use:glisserPourFermer={glisser}>
@@ -146,6 +148,17 @@
     border-radius: 50%;
     background: var(--couleur-papier);
     animation: clignote 0.8s steps(1) infinite;
+  }
+  /* Le contenu passe devant le décor. */
+  header,
+  .titre,
+  .contenu,
+  .suivante {
+    position: relative;
+    z-index: 1;
+  }
+  .suivante {
+    position: absolute;
   }
   .contenu {
     flex: 1;
