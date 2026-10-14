@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Levier (ou interrupteur) à deux positions : haut ou bas. Plaque chromée à fente, pommeau en bakélite rouge.
+  // Levier (ou interrupteur) à deux positions : haut ou bas. Plaque à fente, pommeau rouge, à plat.
   let { haut, nom, onbascule, petit = false }: { haut: boolean; nom: string; onbascule: () => void; petit?: boolean } = $props()
 </script>
 
@@ -22,11 +22,11 @@
     position: relative;
     width: 58px;
     height: 124px;
-    border: 0;
+    border: var(--trait) solid var(--couleur-encre);
     padding: 0;
-    border-radius: 10px;
-    background: linear-gradient(150deg, var(--chrome-clair), var(--chrome) 40%, var(--chrome-sombre) 70%, var(--chrome) 100%);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    background: var(--couleur-papier-fonce);
+    box-shadow: var(--ombre);
   }
   .levier.petit {
     width: 50px;
@@ -38,28 +38,27 @@
     content: '';
     position: absolute;
     left: 50%;
-    width: 7px;
-    height: 7px;
-    margin-left: -3.5px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
     border-radius: 50%;
-    background: linear-gradient(45deg, transparent 42%, #333 43% 57%, transparent 58%), radial-gradient(circle at 35% 35%, #fff, #8a959b);
+    background: var(--couleur-encre);
   }
   .levier::before {
-    top: 3px;
+    top: 4px;
   }
   .levier::after {
-    bottom: 3px;
+    bottom: 4px;
   }
   .fente {
     position: absolute;
     left: 50%;
-    top: 14px;
-    bottom: 14px;
+    top: 15px;
+    bottom: 15px;
     width: 12px;
     margin-left: -6px;
     border-radius: 6px;
-    background: #080808;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.8) inset, 0 1px 0 rgba(255, 255, 255, 0.6);
+    background: var(--couleur-encre);
   }
   .manche {
     position: absolute;
@@ -69,9 +68,21 @@
     height: 40px;
     margin-left: -20px;
     border-radius: 50%;
-    background: radial-gradient(circle at 34% 30%, #ffd8c8 0 6%, #f05a44 22%, var(--cerise) 55%, #5a120c 100%);
-    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.55);
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--cerise);
     transition: top 0.18s cubic-bezier(0.5, 1.6, 0.6, 1);
+  }
+  /* Petit éclat blanc. */
+  .manche::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    width: 10px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: rotate(-30deg);
   }
   .petit .manche {
     width: 32px;

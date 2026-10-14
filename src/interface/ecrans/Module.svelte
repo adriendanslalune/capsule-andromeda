@@ -43,14 +43,14 @@
   const autre = $derived(enPanne.find((c) => !affiche.includes(c)) ?? null)
 </script>
 
-<main class="tole creme" bind:this={ecran}>
+<main class="papier" bind:this={ecran}>
   <!-- Tirer depuis le bord gauche, ou par le bandeau du haut, ramène au tableau de bord. -->
   <div class="bord" use:glisserPourFermer={glisser}></div>
-  <header class="tole" use:glisserPourFermer={glisser}>
-    <button class="retour poussoir" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
-    <button class="manuel poussoir ivoire" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
+  <header use:glisserPourFermer={glisser}>
+    <button class="retour bouton" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
+    <button class="manuel bouton clair" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
   </header>
-  <div class="titre rivets">
+  <div class="titre panneau">
     {#each affiche as c}<span class="code">{c}</span>{/each}
     <span class="nom">{propulsion ? 'PROPULSION' : FICHES[code].nom}</span>
     {#if avarie}<span class="avarie"><span class="lampe"></span>AVARIE</span>{/if}
@@ -72,7 +72,7 @@
   </div>
 
   {#if autre}
-    <button class="suivante poussoir cerise" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
+    <button class="suivante bouton cerise" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
       <span><span class="pastille"></span>Autre avarie : <b>{autre} {FICHES[autre].nom}</b></span><span>›</span>
     </button>
   {/if}
@@ -92,14 +92,12 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    border: 0;
   }
   header {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    padding: 12px 12px 10px;
-    border-width: 0 0 1px;
+    padding: 12px 14px 0;
   }
   .retour,
   .manuel {
@@ -111,48 +109,42 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 12px 12px 0;
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.06);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 4px rgba(0, 0, 0, 0.25) inset;
+    margin: 14px 14px 0;
+    padding: 9px 12px;
   }
   .code {
-    padding: 2px 7px 1px;
-    border-radius: 2px;
-    background: linear-gradient(180deg, #1b1b1b, #000);
-    color: #f2f2f2;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: var(--couleur-encre);
+    color: var(--couleur-papier);
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 2px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
   }
   .nom {
     font-family: var(--police-titre);
     font-size: 17px;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     line-height: 1.1;
-    color: var(--email-sarcelle-sombre);
   }
   .avarie {
     margin-left: auto;
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 2px 8px 1px;
-    border-radius: 2px;
-    background: linear-gradient(180deg, #c4302a, #8a1712);
-    color: #fff;
+    padding: 1px 8px;
+    border-radius: 4px;
+    background: var(--cerise);
+    color: var(--couleur-papier);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
   }
   .lampe {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #ffd0b0;
-    box-shadow: 0 0 8px 2px #ff5a36;
+    background: var(--couleur-papier);
     animation: clignote 0.8s steps(1) infinite;
   }
   .contenu {
@@ -179,8 +171,8 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #ffd0b0;
-    box-shadow: 0 0 8px 2px #ffb08a;
+    border: 2px solid var(--couleur-encre);
+    background: var(--couleur-papier);
     margin-right: 10px;
     animation: clignote 0.8s steps(1) infinite;
   }

@@ -9,7 +9,7 @@
 </script>
 
 <main>
-  <header class="couverture">
+  <header class="couverture rayons">
     <p class="presente">L’Office national des vols interplanétaires présente</p>
     <h1 class="titre-pulp">MANUEL<br />DE VOL</h1>
     <!-- Une fusée qui file entre les planètes. -->
@@ -17,7 +17,7 @@
       <circle cx="300" cy="40" r="26" fill="#f2b33d" stroke="#22160f" stroke-width="3" />
       <ellipse cx="300" cy="40" rx="44" ry="9" fill="none" stroke="#22160f" stroke-width="3" transform="rotate(-15 300 40)" />
       <circle cx="40" cy="118" r="14" fill="#7fc4c8" stroke="#22160f" stroke-width="3" />
-      <path d="M 20 140 Q 120 120 210 70" fill="none" stroke="#f4e6c3" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" />
+      <path d="M 20 140 Q 120 120 210 70" fill="none" stroke="#2a1e17" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" />
       <g transform="translate(225 62) rotate(-28)">
         <path d="M -52 0 L -78 -10 L -70 0 L -78 10 Z" fill="#ffb04a" />
         <path d="M -40 -12 Q 10 -14 40 0 Q 10 14 -40 12 Z" fill="#f4e6c3" stroke="#22160f" stroke-width="3" />
@@ -29,7 +29,7 @@
     <span class="macaron">C-58</span>
   </header>
 
-  <article class="lettre papier-pulp">
+  <article class="lettre panneau">
     <p class="entete">OFFICE NATIONAL DES VOLS INTERPLANÉTAIRES<br /><small>Service des commissions</small></p>
     <p>Commissionnaire,</p>
     <p>
@@ -48,7 +48,7 @@
   </article>
 
   <form
-    class="bapteme tole rivets"
+    class="bapteme panneau"
     onsubmit={(e) => {
       e.preventDefault()
       if (nomPropre) jeu.nouvellePartie(nomPropre)
@@ -62,7 +62,7 @@
       autocomplete="off"
       placeholder="Par exemple : La Pie voleuse"
     />
-    <button class="poussoir cerise" type="submit" disabled={!nomPropre}>PRENDRE LES COMMANDES</button>
+    <button class="bouton cerise" type="submit" disabled={!nomPropre}>PRENDRE LES COMMANDES</button>
   </form>
 </main>
 
@@ -74,7 +74,6 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
-    background: radial-gradient(ellipse at 50% 0%, #1f5f7a 0%, #0e1f2b 70%);
   }
 
   /* Couverture. */
@@ -82,8 +81,7 @@
     position: relative;
     padding: 22px var(--espace) 0;
     text-align: center;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.5) 0.8px, transparent 1.2px);
-    background-size: 23px 19px;
+    border-bottom: 3px solid var(--couleur-encre);
   }
   .presente {
     margin: 0;
@@ -91,7 +89,7 @@
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--couleur-texte-discret);
+    color: var(--couleur-encre);
   }
   h1 {
     margin: 10px 0 0;
@@ -117,6 +115,7 @@
     color: var(--couleur-encre);
     background: var(--moutarde);
     /* Étoile à 16 branches. */
+    border: var(--trait) solid var(--couleur-encre);
     clip-path: polygon(50% 0, 59% 15%, 75% 7%, 77% 25%, 93% 25%, 87% 41%, 100% 50%, 87% 59%, 93% 75%, 77% 75%, 75% 93%, 59% 85%, 50% 100%, 41% 85%, 25% 93%, 23% 75%, 7% 75%, 13% 59%, 0 50%, 13% 41%, 7% 25%, 23% 25%, 25% 7%, 41% 15%);
     transform: rotate(12deg);
   }
@@ -130,7 +129,6 @@
     font-family: var(--police-machine);
     font-size: 16px;
     line-height: 1.45;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
     transform: rotate(0.6deg);
   }
   .entete {
@@ -181,8 +179,8 @@
     align-self: flex-start;
     padding: 2px 8px 1px;
     border-radius: 2px;
-    background: #000;
-    color: #f2f2f2;
+    background: var(--couleur-encre);
+    color: var(--couleur-papier);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 2px;
@@ -191,10 +189,8 @@
   input {
     height: 54px;
     border-radius: 8px;
-    border: 0;
-    background: var(--couleur-papier);
-    background-image: var(--grain);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) inset, 0 0 0 3px var(--chrome-sombre);
+    border: var(--trait) solid var(--couleur-encre);
+    background: #fffaf0;
     color: var(--couleur-encre);
     font-family: var(--police-script);
     font-size: 24px;

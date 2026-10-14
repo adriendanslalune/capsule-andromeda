@@ -26,7 +26,7 @@
   </div>
 
   <svg viewBox="0 0 360 260" class="tableau" role="group" aria-label="Tableau de brassage">
-    <rect x="2" y="2" width="356" height="256" rx="10" fill="#3d342c" stroke="var(--couleur-encre)" stroke-width="3" />
+    <rect x="2" y="2" width="356" height="256" rx="14" fill="var(--sarcelle)" stroke="var(--couleur-encre)" stroke-width="3" />
     {#each pb1.cables as c}
       <path d={`M ${x(c.a)} 60 C ${x(c.a)} 140, ${x(c.b)} 120, ${x(c.b)} 200`} fill="none" stroke={TEINTES[c.couleur]} stroke-width="7" stroke-linecap="round" />
     {/each}
@@ -36,12 +36,12 @@
         {@const cable = pb1.cables.find((c) => c[rang] === n)}
         <g role="button" tabindex="0" aria-label={`Prise ${rang.toUpperCase()}-${n}`} class="prise"
           onclick={() => toucher(rang, n)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') toucher(rang, n) }}>
-          <circle cx={x(n)} cy={y} r="22" fill="var(--couleur-encre)" stroke="#d8cbab" stroke-width="3" />
+          <circle cx={x(n)} cy={y} r="22" fill="var(--couleur-encre)" stroke="var(--couleur-papier)" stroke-width="3" />
           <circle cx={x(n)} cy={y} r="9" fill="#0d0b0a" />
           {#if cable}<circle cx={x(n)} cy={y} r="13" fill={TEINTES[cable.couleur]} stroke="var(--couleur-encre)" stroke-width="2.5" />{/if}
           {#if rang === 'a' && pb1.enMain?.a === n}<circle cx={x(n)} cy={y} r="13" fill={TEINTES[pb1.enMain.couleur]} stroke="var(--couleur-avarie)" stroke-width="3" />{/if}
         </g>
-        <text x={x(n)} y={rang === 'a' ? 26 : 246} text-anchor="middle" font-size="15" font-weight="700" fill="#efe6d2">{rang.toUpperCase()}-{n}</text>
+        <text x={x(n)} y={rang === 'a' ? 26 : 246} text-anchor="middle" font-size="15" font-weight="700" fill="var(--couleur-papier)">{rang.toUpperCase()}-{n}</text>
       {/each}
     {/each}
   </svg>
@@ -54,21 +54,33 @@
     gap: 30px;
   }
   .temoin {
-    width: 24px;
-    height: 24px;
+    position: relative;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8) 0 10%, var(--c) 35%, #111 120%);
-    box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222;
-    opacity: 0.5;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--c);
+    box-shadow: 2px 2px 0 var(--couleur-encre);
+    opacity: 0.45;
   }
   .temoin.clignote {
     opacity: 1;
-    box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 0 16px 4px var(--c);
     animation: clignote 0.6s steps(1) infinite;
+  }
+  .temoin.clignote::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 7px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: rotate(-30deg);
   }
   .tableau {
     width: 100%;
-    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(3px 3px 0 var(--couleur-encre));
   }
   .prise {
     cursor: pointer;

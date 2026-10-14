@@ -2,8 +2,8 @@
 // l'ISS et le visiteur, chacun à sa vraie position (en km) et à sa vraie taille. Les astres trop lointains pour être
 // vus restent signalés par un point lumineux. Deux façons de regarder :
 //  - « orbite » (écran Dehors) : la caméra tourne autour de la fusée au doigt ;
-//  - « hublot » (tableau de bord) : depuis l'intérieur de la fusée, à travers trois vitres (gauche, face, droite)
-//    de 60° chacune, soit 180° en tout. Chaque vitre est une vue droite, sans déformation.
+//  - « hublot » (tableau de bord) : depuis l'intérieur de la fusée, dans l'axe de son cap, à travers une vitre de
+//    90° de large (vue droite, sans déformation).
 
 import * as THREE from 'three'
 import terreUrl from '../../../assets/textures/terre_lc.jpg?url'
@@ -51,16 +51,16 @@ export interface Etiquette {
 /** Distance de la caméra à la fusée dans la vue extérieure (km) : 90 m. */
 const DISTANCE_CAMERA = 0.09
 
-/** Les trois vitres du hublot : décalage de chacune par rapport au cap (degrés), de gauche à droite. */
-const VITRES = [60, 0, -60]
+/** Les vitres du hublot : décalage de chacune par rapport au cap (degrés), de gauche à droite. Une seule, de face. */
+const VITRES = [0]
 /** Champ horizontal d'une vitre (degrés). */
-const CHAMP_VITRE = 60
+const CHAMP_VITRE = 90
 /** Largeur des montants entre les vitres (px). */
 export const MONTANT = 12
 
 /** Position (x, largeur) de chaque vitre dans le hublot. */
 export function disposerVitres(largeur: number): { x: number; l: number }[] {
-  const l = (largeur - 2 * MONTANT) / 3
+  const l = (largeur - (VITRES.length - 1) * MONTANT) / VITRES.length
   return VITRES.map((_, i) => ({ x: i * (l + MONTANT), l }))
 }
 
@@ -102,7 +102,7 @@ export class Vue3D {
     this.rendu = new THREE.WebGLRenderer({ canvas: toile, antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: mode === 'orbite' })
     this.rendu.setPixelRatio(Math.min(2, window.devicePixelRatio || 1))
     this.camera = new THREE.PerspectiveCamera(55, 1, 1e-5, 1e13)
-    this.scene.background = new THREE.Color(0x05080d)
+    this.scene.background = new THREE.Color(0x14202d)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.12))
     this.soleil = new THREE.PointLight(0xfff3dd, 2.2, 0, 0)
     this.scene.add(this.soleil)
@@ -356,7 +356,7 @@ export class Vue3D {
     this.visiteurEcran = this.lueurVisiteur.visible || this.soucoupe.visible ? projeter(pv) : null
   }
 
-  /** Hublot : la vue depuis la fusée, à travers les trois vitres. */
+  /** Hublot : la vue depuis la fusée, à travers sa vitre. */
   private dessinerHublot(etat: EtatPartie, iss: THREE.Vector3, satellites: string[]) {
     const vitres = this.vitres!
     const cases = disposerVitres(this.largeur)
@@ -392,7 +392,7 @@ export class Vue3D {
       }
       if (!cible) return
       const az = Math.atan2(p.dot(gauche), p.dot(avant))
-      if (Math.abs(az) < Math.PI / 2) return // devant, mais trop haut ou trop bas
+      if (Math.abs(az) < (CHAMP_VITRE * Math.PI) / 360) return // devant, mais trop haut ou trop bas
       const cote = az > 0 ? 'gauche' : 'droite'
       this.etiquettes.push({ nom, x: cote === 'gauche' ? 0 : this.largeur, y: this.hauteur / 2, cible, horsChamp: cote })
     }

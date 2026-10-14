@@ -185,14 +185,14 @@
 
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
-    <rect width={L} height={Hc} fill="#efe6d2" />
+    <rect width={L} height={Hc} fill="#fffaf0" />
     {#each NOMS_PLANETES as nom}
       {@const c = ecran({ x: 0, y: 0 })}
       <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke="#2b2723" stroke-width="0.8" opacity=".35" />
     {/each}
     {#if true}
       {@const s = ecran({ x: 0, y: 0 })}
-      <circle cx={s.x} cy={s.y} r="8" fill="#e9b04a" stroke="#2b2723" stroke-width="2" />
+      <circle cx={s.x} cy={s.y} r="9" fill="#f2b53a" stroke="#2a1e17" stroke-width="2.5" />
     {/if}
     {#each marques as m}
       {@const s = ecran(m.p)}
@@ -308,10 +308,10 @@
     min-height: 32px;
     padding: 0 10px;
     border-radius: 14px;
-    border: 1px solid var(--couleur-encre);
-    background: none;
+    border: 2px solid var(--couleur-encre);
+    background: var(--couleur-papier);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1px;
   }
   .raccourcis .traces {
@@ -325,11 +325,12 @@
   .plan {
     width: 100%;
     touch-action: none;
-    border: 1px solid #c9bb98;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 10px;
+    box-shadow: var(--ombre);
   }
+  /* Panneau de commande : papier clair cerné d'encre (voir matieres.css). */
   .panneau {
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
     border-radius: var(--rayon-grand);
     padding: 12px 14px;
     display: flex;
@@ -348,8 +349,8 @@
     color: var(--couleur-texte-discret);
   }
   .grand {
-    font-size: 24px;
-    font-weight: 700;
+    font-family: var(--police-titre);
+    font-size: 22px;
   }
   .chiffres {
     font-family: var(--police-chiffres);
@@ -365,17 +366,20 @@
   .action {
     min-height: 46px;
     border-radius: 12px;
-    border: 1px solid #4a5b6b;
-    background: none;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--couleur-papier);
+    box-shadow: var(--ombre-bouton);
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 1px;
     flex: 1;
   }
   .action.clair {
-    background: var(--couleur-texte);
-    color: var(--couleur-encre);
-    border: 0;
+    background: var(--moutarde);
+  }
+  .action:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--couleur-encre);
   }
   .boutons {
     display: flex;
@@ -390,8 +394,9 @@
     min-height: 36px;
     min-width: 44px;
     border-radius: 10px;
-    border: 1px solid #4a5b6b;
-    background: none;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--couleur-papier);
+    font-weight: 700;
   }
   .radio .chiffres {
     font-size: 18px;
@@ -406,18 +411,18 @@
   .tracer input {
     min-height: 40px;
     border-radius: 10px;
-    border: 1px solid #4a5b6b;
-    background: #1a2836;
-    color: var(--couleur-texte);
+    border: var(--trait) solid var(--couleur-encre);
+    background: #fffaf0;
+    color: var(--couleur-encre);
     font: inherit;
     padding: 0 10px;
   }
   .tracer button {
     min-height: 40px;
     border-radius: 10px;
-    border: 1px solid var(--couleur-trace);
-    background: none;
-    color: #9fc4e8;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--couleur-trace);
+    color: var(--couleur-papier);
     font-weight: 700;
     letter-spacing: 1px;
   }

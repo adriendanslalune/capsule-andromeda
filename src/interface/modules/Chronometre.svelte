@@ -30,19 +30,18 @@
 </div>
 
 <style>
-  /* Horloge de bord à tubes Nixie. */
+  /* Horloge de bord à chiffres lumineux. */
   .cadran-chrono {
     font-family: var(--police-chiffres);
     font-size: 56px;
-    font-weight: 600;
-    padding: 12px 22px;
-    border-radius: 12px;
+    font-weight: 700;
+    padding: 10px 22px;
+    border: 3px solid var(--couleur-encre);
+    border-radius: 14px;
     letter-spacing: 3px;
-    background: radial-gradient(ellipse at 50% 40%, #2a1408, #0c0603 75%);
-    color: #ffb04a;
-    text-shadow: 0 0 4px #ff8a1f, 0 0 10px #ff6a00, 0 0 18px rgba(255, 90, 0, 0.6);
-    box-shadow: 0 0 0 1px #000, 0 2px 4px rgba(255, 255, 255, 0.08) inset, 0 -6px 10px rgba(255, 120, 30, 0.08) inset;
-    box-shadow: 0 0 0 4px var(--chrome), 0 0 0 5px #222, 0 4px 10px 5px rgba(0, 0, 0, 0.35);
+    background: var(--couleur-encre);
+    color: #ffa93a;
+    box-shadow: var(--ombre);
   }
   .cadran-chrono small {
     font-size: 26px;

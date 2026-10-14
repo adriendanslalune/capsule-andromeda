@@ -1,7 +1,7 @@
 <script lang="ts">
   // Écran principal : le cockpit. Il répond à trois questions : où je vais, qu'est-ce qui ne va pas, quel est mon but.
-  // En haut, la cloison et le hublot à trois vitres ; dessous, le tableau de bord : écran de navigation, voyants
-  // des modules, radar de chasse, téléscripteur et les trois gros poussoirs.
+  // En haut, la fenêtre ; dessous, le tableau de bord : navigation, voyants des modules, chasse, téléscripteur et
+  // les trois gros boutons.
   import { MODULES_A_INSTALLER } from '../../donnees/economie'
   import { finSaison, numeroSaison, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
@@ -62,11 +62,11 @@
   const tambours = $derived(String(Math.max(0, Math.floor(etat.credits))).padStart(4, '0').split(''))
 </script>
 
-<main class="tole">
-  <!-- Cloison du haut : plaque de la fusée, compteur de crédits, saison, son. -->
-  <header class="rivets">
-    <div class="plaque">
-      <span class="c58">C-58</span>
+<main>
+  <!-- En-tête : nom de la fusée, compteur de crédits, saison, son. -->
+  <header>
+    <div class="identite">
+      <span class="c58 titre-pulp">C-58</span>
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
     <div class="instruments">
@@ -74,52 +74,49 @@
         <span class="compteur">{#each tambours as c}<span>{c}</span>{/each}</span>
         <span class="unite">CR</span>
       </div>
-      <span class="ruban">SAISON {saison}</span>
+      <span class="etiquette-encre">SAISON {saison}</span>
       <button class="interrupteur" class:coupe={!son} aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>
         <span class="bascule"></span><span class="mot">{son ? 'SON' : 'MUET'}</span>
       </button>
     </div>
   </header>
 
-  <!-- Le hublot : trois vitres cerclées de chrome. -->
-  <div class="verriere chrome">
-    <div class="vitre">
-      <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
-      {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
-      <div class="reflet"></div>
-      <button class="dehors poussoir ivoire" onclick={regarderDehors}>VUE EXTÉRIEURE</button>
-    </div>
+  <!-- La fenêtre du cockpit. -->
+  <div class="fenetre">
+    <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
+    {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+    <button class="dehors bouton clair" onclick={regarderDehors}>VUE EXTÉRIEURE</button>
   </div>
 
-  <!-- Écran de navigation. -->
-  <section class="navigation phosphore">
+  <!-- Navigation. -->
+  <section class="navigation panneau">
     {#if fusee.destination && enAttenteDeFenetre(fusee) && plan}
-      <div class="ligne"><span class="etiquette">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
-      <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span>arrivée le {dateLocale(plan.arrivee)}</span></div>
+      <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
+      <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">le {dateLocale(plan.arrivee)}</span></div>
       <div class="sous">En orbite en attendant le meilleur moment pour partir.</div>
     {:else if fusee.destination}
-      <div class="ligne"><span class="etiquette">EN ROUTE VERS</span><span class="discret">{ua(distanceRestante(fusee, t) ?? 0)}</span></div>
+      <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">{ua(distanceRestante(fusee, t) ?? 0)}</span></div>
       <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{reste !== null ? duree(reste) : '—'}</span></div>
       <div class="barre"><div style={`width: ${Math.round((progression ?? 0) * 100)}%`}></div></div>
       <div class="sous" class:alerte={enPanne.length > 0 || !etat.modules.propulsion.levierAHaut}>
         {nombre(vitesse, 1)} km/s{#if enPanne.length} · ralentie par {enPanne.length} avarie{enPanne.length > 1 ? 's' : ''}{/if}{#if !etat.modules.propulsion.levierAHaut} · levier L-A abaissé{/if}
       </div>
     {:else if fusee.orbite}
-      <div class="ligne"><span class="etiquette">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : 'EN ORBITE'}</span><span class="discret">0 km/s</span></div>
+      <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : 'EN ORBITE'}</span><span class="discret">0 km/s</span></div>
       <div class="ligne"><span class="grand">{nomAstre(fusee.orbite).replace(/^./, (c) => c.toUpperCase())}</span></div>
       <div class="sous">Choisis une destination sur la carte.</div>
     {:else}
-      <div class="ligne"><span class="etiquette">À L’ARRÊT</span><span class="discret">0 km/s</span></div>
+      <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span><span class="discret">0 km/s</span></div>
       <div class="ligne"><span class="grand">Point libre</span></div>
       <div class="sous">Moteur coupé. Choisis une destination sur la carte.</div>
     {/if}
   </section>
 
   <!-- Voyants des modules. -->
-  <section class="tableau rivets">
+  <section class="tableau panneau">
     <div class="ligne">
-      <span class="ruban">TABLEAU DE BORD</span>
-      {#if enPanne.length}<span class="ruban rouge clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
+      <span class="etiquette-encre">TABLEAU DE BORD</span>
+      {#if enPanne.length}<span class="etiquette-encre cerise clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
     </div>
     <div class="grille">
       {#each TOUS_LES_MODULES as code}
@@ -130,89 +127,76 @@
           aria-label={`${code} : ${e === 'ok' ? 'en ordre' : e === 'avarie' ? 'avarie' : 'scellé'}`}
           onclick={() => (jeu.ecran = { nom: 'module', code })}
         >
-          <span class="lunette chrome"><span class="voyant"></span></span>
+          <span class="voyant"></span>
           <span class="code">{code}</span>
         </button>
       {/each}
     </div>
   </section>
 
-  <!-- Radar de chasse. -->
-  <button class="chasse" onclick={() => (jeu.volet = 'carte')}>
-    <span class="radar chrome" aria-hidden="true"><span class="ecran"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span></span>
-    <span class="texte phosphore">
+  <!-- Chasse au visiteur. -->
+  <button class="chasse panneau" onclick={() => (jeu.volet = 'carte')}>
+    <span class="radar" aria-hidden="true"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span>
+    <span class="texte">
       <span class="etat">{trouve ? 'VISITEUR PHOTOGRAPHIÉ' : detecte !== null ? `DÉTECTÉ À ${ua(detecte)}` : 'VISITEUR INTROUVABLE'}</span>
       <span class="indice">{dernierIndice ? `${dernierIndice.texte.toLowerCase()} (${heureLocale(dernierIndice.t)})` : 'Aucun indice pour l’instant.'}</span>
-      <span class="jours">{Math.ceil((finSaison(saison) - t) / 86_400_000)} j</span>
     </span>
+    <span class="jours">{Math.ceil((finSaison(saison) - t) / 86_400_000)} j</span>
   </button>
 
-  <!-- Téléscripteur : le ruban de papier sort de la fente. -->
+  <!-- Téléscripteur. -->
   <section class="telex" aria-label="Téléscripteur">
-    <div class="fente"></div>
-    <div class="papier">
-      {#each jeu.telex.slice(-2).reverse() as l}
-        <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
-      {/each}
-    </div>
+    {#each jeu.telex.slice(-2).reverse() as l}
+      <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
+    {/each}
   </section>
 
   <nav>
-    <button class="poussoir cerise" onclick={() => (jeu.volet = 'carte')}>CARTE</button>
-    <button class="poussoir moutarde" onclick={() => (jeu.volet = 'office')}>OFFICE</button>
-    <button class="poussoir ivoire" onclick={() => (jeu.volet = 'manuel')}>MANUEL</button>
+    <button class="bouton cerise" onclick={() => (jeu.volet = 'carte')}>CARTE</button>
+    <button class="bouton moutarde" onclick={() => (jeu.volet = 'office')}>OFFICE</button>
+    <button class="bouton clair" onclick={() => (jeu.volet = 'manuel')}>MANUEL</button>
   </nav>
 </main>
 
 <style>
-  /* Le hublot prend toute la hauteur que le tableau de bord laisse libre. */
   main {
     position: relative;
     height: 100%;
     display: flex;
     flex-direction: column;
+    gap: 10px;
     overflow-y: auto;
-    padding-bottom: 18px;
-    border: 0;
-    box-shadow: none;
+    padding: 0 var(--espace) 18px;
   }
   main > :global(*) {
     flex: none;
   }
 
-  /* Cloison du haut. */
+  /* En-tête. */
   header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px 8px;
+    padding-top: 10px;
   }
-  .plaque {
+  .identite {
     display: flex;
     flex-direction: column;
-    padding: 3px 12px 4px;
-    border-radius: 5px;
-    background: linear-gradient(160deg, #f1d58a, var(--laiton) 45%, #8e6c25 100%);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 2px 5px rgba(0, 0, 0, 0.5);
-    color: var(--couleur-encre);
     min-width: 0;
   }
   .c58 {
-    font-family: var(--police-titre);
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1;
-    letter-spacing: 2px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   }
   .nom {
     font-family: var(--police-script);
-    font-size: 15px;
-    line-height: 1.1;
+    font-size: 17px;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 140px;
+    max-width: 150px;
   }
   .instruments {
     display: flex;
@@ -230,8 +214,8 @@
   .unite {
     font-size: 12px;
     font-weight: 700;
-    color: var(--couleur-texte-discret);
   }
+  /* Interrupteur à bascule, à plat. */
   .interrupteur {
     display: flex;
     flex-direction: column;
@@ -244,25 +228,29 @@
   }
   .bascule {
     position: relative;
-    width: 18px;
-    height: 26px;
-    border-radius: 9px;
-    background: linear-gradient(90deg, #2a2a2a, #0d0d0d);
-    box-shadow: 0 0 0 2px var(--chrome), 0 2px 3px rgba(0, 0, 0, 0.6);
+    width: 20px;
+    height: 30px;
+    border-radius: 10px;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--menthe);
   }
   .bascule::after {
     content: '';
     position: absolute;
-    left: 3px;
+    left: 2px;
     top: 2px;
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff, var(--chrome) 45%, var(--chrome-sombre));
+    border: 2px solid var(--couleur-encre);
+    background: var(--couleur-papier);
     transition: top 0.12s;
   }
+  .interrupteur.coupe .bascule {
+    background: var(--couleur-papier-fonce);
+  }
   .interrupteur.coupe .bascule::after {
-    top: 12px;
+    top: 13px;
   }
   .interrupteur .mot {
     font-size: 10px;
@@ -270,207 +258,191 @@
     letter-spacing: 1px;
   }
 
-  /* Le hublot. */
-  .verriere {
+  /* Fenêtre du cockpit : basse, pour laisser la place au tableau de bord. */
+  .fenetre {
     position: relative;
-    flex: 1 0 170px;
-    margin: 0 10px;
-    padding: 5px;
-    border-radius: 34px 34px 10px 10px;
-  }
-  .vitre {
-    position: absolute;
-    inset: 5px;
+    flex: 1 1 auto !important;
+    min-height: 140px;
+    max-height: 230px;
+    border: 3px solid var(--couleur-encre);
+    border-radius: 22px;
     overflow: hidden;
-    border-radius: 30px 30px 7px 7px;
-    background: #03060a;
-    box-shadow: 0 0 0 2px #000 inset;
+    box-shadow: var(--ombre);
+    background: var(--nuit);
   }
   .dehors {
     position: absolute;
     right: 10px;
     bottom: 10px;
-    min-height: 38px;
+    min-height: 36px;
     padding: 0 12px;
     font-size: 12px;
+    border-radius: 10px;
   }
 
-  /* Écran de navigation. */
+  /* Navigation. */
   .navigation {
-    position: relative;
-    margin: 12px var(--espace) 0;
-    border-radius: 12px;
     padding: 9px 13px 10px;
-    font-family: var(--police-chiffres);
   }
   .ligne {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
   }
-  .etiquette {
-    font-size: 12px;
-    letter-spacing: 2.5px;
-    font-weight: 700;
-  }
   .discret {
-    font-size: 13px;
-    opacity: 0.75;
+    font-size: 14px;
+    color: var(--couleur-texte-discret);
   }
   .grand {
     font-family: var(--police-titre);
     font-size: 25px;
-    letter-spacing: 1px;
-    line-height: 1.15;
+    line-height: 1.2;
+    margin-top: 2px;
   }
   .moyen {
     font-size: 18px;
     font-weight: 700;
   }
   .barre {
-    height: 7px;
-    margin-top: 6px;
-    border-radius: 4px;
-    background: rgba(141, 255, 176, 0.15);
+    height: 12px;
+    margin-top: 5px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 6px;
+    background: var(--couleur-papier-fonce);
     overflow: hidden;
   }
   .barre div {
     height: 100%;
-    background: var(--phosphore);
-    box-shadow: 0 0 8px var(--phosphore);
+    background: repeating-linear-gradient(-45deg, var(--moutarde) 0 6px, #f6c867 6px 12px);
+    border-right: 2px solid var(--couleur-encre);
   }
   .sous {
     margin-top: 5px;
-    font-size: 14px;
-    opacity: 0.85;
+    font-size: 15px;
+    color: var(--couleur-texte-discret);
   }
   .alerte {
-    color: #ffb347;
-    text-shadow: 0 0 6px rgba(255, 140, 50, 0.8);
-    opacity: 1;
+    color: var(--cerise);
+    font-weight: 700;
   }
 
-  /* Voyants des modules. */
+  /* Voyants. */
   .tableau {
-    margin: 12px var(--espace) 0;
-    padding: 10px 12px 12px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.16);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4) inset;
+    padding: 9px 12px 10px;
   }
   .clignotant {
     animation: clignote 0.8s steps(1) infinite;
   }
   .grille {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px 8px;
-    margin-top: 10px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px 4px;
+    margin-top: 9px;
   }
   .tuile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    padding: 2px 0;
+    gap: 3px;
+    padding: 0;
     border: 0;
     background: none;
-  }
-  .lunette {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    min-width: 0;
   }
   .voyant {
-    width: 28px;
-    height: 28px;
+    position: relative;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #d9ffe2 0 8%, #7dff9a 25%, #1e8f40 70%, #0b3d1b);
-    box-shadow: 0 0 10px rgba(125, 255, 154, 0.55), 0 0 0 2px rgba(0, 0, 0, 0.6) inset;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--menthe);
+    box-shadow: 2px 2px 0 var(--couleur-encre);
   }
-  .tuile:active .lunette {
-    transform: scale(0.94);
+  /* Petit éclat blanc, à plat, façon bande dessinée. */
+  .voyant::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 5px;
+    width: 8px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    transform: rotate(-30deg);
+  }
+  .tuile:active .voyant {
+    transform: translate(2px, 2px);
+    box-shadow: none;
   }
   .tuile .code {
     font-size: 13px;
     font-weight: 700;
-    letter-spacing: 1.5px;
-    padding: 0 5px;
-    border-radius: 2px;
-    background: #0b0b0b;
-    color: #f2f2f2;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+    letter-spacing: 1px;
   }
   .tuile.avarie .voyant {
-    background: radial-gradient(circle at 35% 30%, #fff1e0 0 8%, #ff7a52 25%, #c8221a 70%, #4d0805);
-    box-shadow: 0 0 18px 4px rgba(255, 70, 40, 0.75), 0 0 0 2px rgba(0, 0, 0, 0.6) inset;
+    background: var(--cerise);
     animation: clignote 0.8s steps(1) infinite;
   }
   .tuile.avarie .code {
-    background: var(--cerise);
+    color: var(--cerise);
   }
   .tuile.scelle {
     cursor: default;
   }
-  .tuile.scelle .lunette {
-    filter: saturate(0) brightness(0.7);
-  }
   .tuile.scelle .voyant {
-    /* Plomb de scellé : disque gris traversé d'un fil. */
-    background: linear-gradient(35deg, transparent 46%, #2b2b2b 47% 53%, transparent 54%),
-      radial-gradient(circle at 40% 35%, #a9a9a9, #5d5d5d 60%, #333);
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6) inset;
+    border-style: dashed;
+    border-color: var(--couleur-texte-eteint);
+    background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(42, 30, 23, 0.12) 4px 6px);
+    box-shadow: none;
+  }
+  .tuile.scelle .voyant::after {
+    display: none;
   }
   .tuile.scelle .code {
-    opacity: 0.45;
+    color: var(--couleur-texte-eteint);
   }
 
-  /* Radar de chasse. */
+  /* Chasse. */
   .chasse {
     display: flex;
-    gap: 10px;
-    align-items: stretch;
-    margin: 12px var(--espace) 0;
-    padding: 0;
-    border: 0;
-    background: none;
+    gap: 11px;
+    align-items: center;
+    padding: 8px 12px;
     text-align: left;
   }
   .radar {
-    flex: none;
-    width: 62px;
-    height: 62px;
-    padding: 4px;
-    border-radius: 50%;
-  }
-  .radar .ecran {
     position: relative;
-    display: block;
-    width: 100%;
-    height: 100%;
+    flex: none;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--sarcelle);
     overflow: hidden;
-    background: radial-gradient(circle, transparent 0 30%, rgba(141, 255, 176, 0.25) 31% 32%, transparent 33% 62%, rgba(141, 255, 176, 0.25) 63% 64%, transparent 65%),
-      var(--phosphore-fond);
+  }
+  .radar::before {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(250, 242, 220, 0.5);
   }
   .balayage {
     position: absolute;
     inset: 0;
-    background: conic-gradient(from 0deg, rgba(141, 255, 176, 0.7), rgba(141, 255, 176, 0) 70deg, transparent);
+    background: conic-gradient(from 0deg, rgba(250, 242, 220, 0.65) 0 40deg, transparent 40deg);
     animation: tourne 3s linear infinite;
   }
   .echo {
     position: absolute;
-    left: 62%;
-    top: 30%;
+    left: 60%;
+    top: 26%;
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--phosphore);
-    box-shadow: 0 0 8px var(--phosphore);
+    background: var(--moutarde);
+    border: 1.5px solid var(--couleur-encre);
     animation: clignote 1.2s steps(1) infinite;
   }
   @keyframes tourne {
@@ -479,81 +451,61 @@
     }
   }
   .chasse .texte {
-    position: relative;
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 1px;
-    padding: 6px 44px 6px 12px;
-    border-radius: 10px;
   }
   .chasse .etat {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
   }
   .chasse .indice {
-    font-size: 13px;
-    opacity: 0.8;
+    font-size: 14px;
+    color: var(--couleur-texte-discret);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .chasse .jours {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    font-weight: 700;
+    font-family: var(--police-titre);
+    font-size: 15px;
+  }
+  .chasse:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--couleur-encre);
   }
 
-  /* Téléscripteur. */
+  /* Téléscripteur : bande de papier tapée à la machine. */
   .telex {
-    margin: 12px var(--espace) 0;
-  }
-  .fente {
-    height: 6px;
-    margin: 0 6px;
-    border-radius: 3px;
-    background: #050505;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
-  }
-  .papier {
-    margin: -2px 12px 0;
     min-height: 44px;
-    padding: 6px 10px 6px;
-    background-color: var(--couleur-papier);
-    background-image: var(--grain);
-    color: var(--couleur-encre);
+    padding: 5px 10px;
+    border-top: 2px dashed var(--couleur-encre);
+    border-bottom: 2px dashed var(--couleur-encre);
     font-family: var(--police-machine);
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.45;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-    /* Bord bas déchiré. */
-    clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 91% 93%, 85% 100%, 79% 94%, 72% 100%, 66% 93%, 59% 100%, 52% 94%, 45% 100%, 38% 93%, 31% 100%, 24% 94%, 17% 100%, 10% 93%, 4% 100%, 0 94%);
   }
   .heure {
-    color: var(--couleur-encre-discrete);
+    color: var(--couleur-texte-discret);
   }
   .heure.alerte {
     color: var(--cerise);
-    text-shadow: none;
   }
 
-  /* Les trois gros poussoirs. */
+  /* Les trois gros boutons. */
   nav {
     display: flex;
     gap: 12px;
-    margin: 16px var(--espace) 0;
+    margin-top: 2px;
   }
   nav button {
     flex: 1;
-    height: 56px;
+    height: 54px;
     font-family: var(--police-titre);
     font-size: 17px;
-    letter-spacing: 1.5px;
+    font-weight: 400;
+    letter-spacing: 1px;
   }
 </style>

@@ -62,8 +62,9 @@
     width: 230px;
     height: 230px;
     align-self: center;
+    border: 4px solid var(--couleur-encre);
     border-radius: 50%;
-    box-shadow: 0 0 0 6px var(--laiton), 0 0 0 7px #3b2a10, 0 6px 12px 6px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--ombre);
   }
   .lectures {
     display: flex;

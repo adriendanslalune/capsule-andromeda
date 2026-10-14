@@ -1,17 +1,14 @@
 <script lang="ts">
-  // Hublot du tableau de bord : la vue depuis l'intérieur de la fusée, à travers trois vitres de 60° (gauche, face,
-  // droite), soit 180°, sans déformation. Les montants entre les vitres cachent les raccords.
+  // Hublot du tableau de bord : la vue depuis l'intérieur de la fusée, dans l'axe de son cap, sans déformation.
   import { onMount } from 'svelte'
   import { nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
-  import { disposerVitres, MONTANT, Vue3D, type Etiquette } from './scene'
+  import { Vue3D, type Etiquette } from './scene'
 
   let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
   let etiquettes = $state<Etiquette[]>([])
   let indisponible = $state(false)
-  let largeur = $state(0)
-  const montants = $derived(disposerVitres(largeur).slice(1).map((v) => v.x - MONTANT))
 
   onMount(() => {
     let vue: Vue3D
@@ -21,7 +18,7 @@
       indisponible = true
       return
     }
-    const ajuster = () => { largeur = cadre.clientWidth; vue.taille(cadre.clientWidth, cadre.clientHeight) }
+    const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight)
     ajuster()
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
@@ -45,7 +42,6 @@
 
 <div class="hublot" bind:this={cadre}>
   <canvas bind:this={toile}></canvas>
-  {#each montants as x}<div class="montant" style={`left: ${x}px; width: ${MONTANT}px`}></div>{/each}
   {#each etiquettes as e}
     <span class={`etiquette ${e.horsChamp ?? ''}`} class:cible={e.cible} style={`left: ${e.x}px; top: ${e.y}px`}>
       {#if e.horsChamp === 'gauche'}‹ {/if}{nomAstre(e.nom)}{#if e.horsChamp === 'droite'} ›{/if}
@@ -59,35 +55,26 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: #05080d;
+    background: var(--nuit);
   }
   canvas {
     width: 100%;
     height: 100%;
     display: block;
   }
-  /* Montants de la verrière : tôle émaillée, rivets tout du long. */
-  .montant {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    background-color: var(--email-sarcelle);
-    background-image: radial-gradient(circle at 50% 50%, #e9eef0 0 0.8px, #7d8a90 1.6px, rgba(0, 0, 0, 0.4) 2.2px, transparent 2.6px),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.45), rgba(255, 255, 255, 0.18) 45%, rgba(0, 0, 0, 0.35));
-    background-size: 100% 22px, 100% 100%;
-    box-shadow: 0 0 0 1px #000;
-  }
   .etiquette {
     position: absolute;
     transform: translate(7px, -16px);
     font-size: 12px;
     letter-spacing: 1px;
-    color: var(--couleur-texte-discret);
+    color: var(--couleur-texte-clair);
+    opacity: 0.8;
     pointer-events: none;
     white-space: nowrap;
   }
   .etiquette.cible {
-    color: var(--couleur-avarie);
+    color: var(--moutarde);
+    opacity: 1;
     font-weight: 700;
   }
   .etiquette.gauche {
@@ -100,6 +87,6 @@
     position: absolute;
     inset: 40% 0 auto;
     text-align: center;
-    color: var(--couleur-texte-discret);
+    color: var(--couleur-texte-clair);
   }
 </style>

@@ -1,61 +1,60 @@
-/* Thème « pulp des années 50 » : couvertures de magazines de science-fiction, cockpits émaillés, chrome, bakélite.
+/* Thème « comics rétro » : pop culture des années 50-60, à plat (flat design), sur vieux papier.
+   Traits d'encre, aplats de couleur, ombres dures décalées ; ni dégradés métalliques, ni reflets.
    Toute la direction artistique passe par ces variables (et les matières de matieres.css) : pour changer de style,
    on ne touche qu'à ces deux fichiers. */
 
 :root {
-  /* Couleurs de base */
-  --couleur-fond: #0e1f2b; /* cabine dans l'ombre */
-  --couleur-surface: #1d4752; /* tôle émaillée sarcelle */
-  --couleur-surface-alerte: rgba(232, 72, 47, 0.18);
-  --couleur-bordure: #10303a;
-  --couleur-bordure-forte: #0a2129;
-  --couleur-texte: #f6ead0; /* ivoire */
-  --couleur-texte-discret: #b9d3cb;
-  --couleur-texte-eteint: #6f8f8d;
-  --couleur-ok: #7dff9a; /* voyant vert */
-  --couleur-avarie: #ff5a36; /* voyant rouge cerise */
-  --couleur-danger: #d93a2b;
-  --couleur-or: #f2b33d; /* moutarde */
-  --couleur-papier: #f4e6c3; /* papier pulp jauni */
-  --couleur-papier-fonce: #e6d2a3;
-  --couleur-encre: #22160f; /* encre brune */
-  --couleur-encre-discrete: #6c5440;
-  --couleur-trace: #1f5fa8;
+  /* Papier et encre */
+  --couleur-fond: #efe1bd; /* vieux papier */
+  --couleur-papier: #faf2dc; /* papier clair (cartes, panneaux) */
+  --couleur-papier-fonce: #e3d1a5;
+  --couleur-encre: #2a1e17; /* encre brune */
+  --couleur-encre-discrete: #75604b;
 
-  /* Couleurs du cockpit */
-  --email-sarcelle: #24606b;
-  --email-sarcelle-clair: #2f7a86;
-  --email-sarcelle-sombre: #143c45;
-  --email-creme: #efe1bd;
-  --email-creme-sombre: #d8c497;
-  --cerise: #d93a2b;
-  --cerise-sombre: #8e1f16;
-  --moutarde: #f2b33d;
-  --moutarde-sombre: #a8721a;
-  --bakelite: #2a1a12;
-  --bakelite-clair: #4a3022;
-  --chrome-clair: #f4f7f8;
-  --chrome: #b9c2c7;
-  --chrome-sombre: #5b666c;
-  --laiton: #c9a14a;
-  --phosphore: #8dffb0; /* écran cathodique vert */
-  --phosphore-fond: #06231a;
+  /* Texte (sur papier) */
+  --couleur-texte: #2a1e17;
+  --couleur-texte-discret: #75604b;
+  --couleur-texte-eteint: #ab9a7c;
+  --couleur-texte-clair: #faf2dc; /* sur fond sombre (espace, encre) */
+
+  /* Aplats */
+  --cerise: #e04b37;
+  --moutarde: #f2b53a;
+  --sarcelle: #2f8f8c;
+  --ciel: #8fd0dc;
+  --menthe: #8fcf98;
+  --rose: #f3a08b;
+  --nuit: #1c2a3a; /* l'espace, derrière la vitre */
+
+  /* Rôles */
+  --couleur-ok: var(--menthe);
+  --couleur-avarie: var(--cerise);
+  --couleur-danger: #c8331f;
+  --couleur-or: var(--moutarde);
+  --couleur-trace: #2c6fb0;
+  --couleur-surface: var(--couleur-papier);
+  --couleur-surface-alerte: #fbd9cf;
+  --couleur-bordure: var(--couleur-encre);
+  --couleur-bordure-forte: var(--couleur-encre);
 
   /* Polices */
-  --police-titre: 'Bowlby One SC', 'Arial Black', sans-serif;
+  --police-titre: 'Bowlby One SC', 'Arial Black', sans-serif; /* lettres de couverture */
   --police-texte: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
   --police-chiffres: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --police-machine: 'Special Elite', 'Courier New', monospace; /* machine à écrire, téléscripteur */
-  --police-script: 'Lobster', 'Brush Script MT', cursive; /* noms peints sur la carrosserie */
+  --police-script: 'Lobster', 'Brush Script MT', cursive; /* noms peints */
 
-  /* Formes et tailles */
+  /* Formes */
+  --trait: 2.5px; /* épaisseur du trait d'encre */
+  --ombre: 3px 3px 0 var(--couleur-encre); /* ombre dure, décalée */
+  --ombre-bouton: 0 4px 0 var(--couleur-encre);
   --rayon: 12px;
   --rayon-grand: 18px;
   --espace: 14px;
   --cible-tactile: 44px;
 
-  /* Matières (images générées, aucun fichier) */
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  --trame: radial-gradient(rgba(34, 22, 15, 0.055) 0.8px, transparent 1.2px); /* trame d'imprimerie */
-  --ombre-relief: 0 2px 0 rgba(255, 255, 255, 0.18) inset, 0 -3px 0 rgba(0, 0, 0, 0.35) inset, 0 4px 10px rgba(0, 0, 0, 0.45);
+  /* Grain du papier (image générée, aucun fichier) */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  /* Trame d'imprimerie, à petite dose. */
+  --trame: radial-gradient(rgba(42, 30, 23, 0.16) 0.9px, transparent 1.3px);
 }

@@ -169,11 +169,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(180deg, var(--bakelite-clair), var(--bakelite));
-    color: var(--couleur-texte);
+    background: var(--moutarde);
+    color: var(--couleur-encre);
+    border: var(--trait) solid var(--couleur-encre);
     border-radius: 14px;
     padding: 12px 16px;
-    box-shadow: 0 0 0 3px var(--chrome-sombre), 0 4px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--ombre);
   }
   .col {
     display: flex;
@@ -190,7 +191,6 @@
   .montant {
     font-family: var(--police-titre);
     font-size: 24px;
-    color: var(--moutarde);
   }
   .fort {
     font-size: 15px;
@@ -221,15 +221,17 @@
     background: #fffaf0;
     background-image: repeating-linear-gradient(180deg, transparent 0 23px, rgba(31, 95, 168, 0.12) 23px 24px);
     border: 0;
-    border-radius: 3px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 6px;
+    box-shadow: var(--ombre);
     padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
   .contrat.encours {
-    box-shadow: 0 0 0 3px var(--cerise), 0 2px 5px rgba(0, 0, 0, 0.3);
+    border-color: var(--cerise);
+    box-shadow: 3px 3px 0 var(--cerise);
   }
   .type {
     font-size: 11px;
@@ -270,17 +272,21 @@
     min-height: 36px;
     padding: 0 12px;
     border-radius: 10px;
-    border: 0;
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--sarcelle);
+    color: var(--couleur-papier);
+    box-shadow: 0 3px 0 var(--couleur-encre);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
   }
   .petit.clair {
-    background: none;
+    background: var(--couleur-papier);
     color: var(--couleur-encre);
-    border: 1px solid var(--couleur-encre);
+  }
+  .petit:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--couleur-encre);
   }
   .petit:disabled {
     opacity: 0.35;

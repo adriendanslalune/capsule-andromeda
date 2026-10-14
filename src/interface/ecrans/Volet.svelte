@@ -11,13 +11,13 @@
 </script>
 
 <div class="voile" role="presentation" onclick={() => jeu.fermer()}></div>
-<section class="volet papier-pulp" bind:this={volet} aria-label={jeu.volet ? titres[jeu.volet] : ''}>
+<section class="volet papier" bind:this={volet} aria-label={jeu.volet ? titres[jeu.volet] : ''}>
   <!-- Tirer la poignée vers le bas ferme le volet. -->
   <div class="prise" use:glisserPourFermer={{ sens: 'bas', cible: () => volet, fermer: () => jeu.fermer() }}>
     <div class="poignee"></div>
     <header>
       <span class="titre titre-pulp">{jeu.volet ? titres[jeu.volet] : ''}</span>
-      <button class="poussoir" onclick={() => jeu.fermer()}>FERMER</button>
+      <button class="bouton" onclick={() => jeu.fermer()}>FERMER</button>
     </header>
   </div>
   {#if jeu.volet === 'carte'}<Carte />
@@ -30,8 +30,8 @@
   .voile {
     position: absolute;
     inset: 0;
-    background: var(--couleur-fond);
-    opacity: 0.55;
+    background: var(--couleur-encre);
+    opacity: 0.45;
   }
   .volet {
     position: absolute;
@@ -40,7 +40,8 @@
     top: 40px;
     bottom: 0;
     border-radius: 22px 22px 0 0;
-    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.5);
+    border: 3px solid var(--couleur-encre);
+    border-bottom: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -56,7 +57,7 @@
     width: 56px;
     height: 6px;
     border-radius: 3px;
-    background: rgba(34, 22, 15, 0.35);
+    background: var(--couleur-encre);
     margin: 10px auto 0;
   }
   header {

@@ -60,7 +60,7 @@
 <style>
   .grille {
     width: 100%;
-    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(3px 3px 0 var(--couleur-encre));
   }
   .tuile {
     cursor: pointer;

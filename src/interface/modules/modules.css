@@ -1,5 +1,5 @@
-/* Éléments communs aux écrans des modules : plaques en ruban, boutons en bakélite, afficheurs à tambours,
-   témoins en verre coloré. Les couleurs et matières viennent du thème. */
+/* Éléments communs aux écrans des modules, à plat : étiquettes d'encre, boutons de bande dessinée, afficheurs,
+   témoins. Les couleurs viennent du thème. */
 
 .mod-zone {
   padding: 14px 18px 0;
@@ -21,86 +21,91 @@
   gap: 7px;
 }
 
-/* Plaque : ruban noir à lettres blanches en relief. */
+/* Plaque : étiquette d'encre, lettres claires. */
 .mod-plaque {
   display: inline-block;
-  padding: 2px 7px 1px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #1b1b1b, #000);
-  color: #f2f2f2;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35), 0 -1px 0 #000;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Bouton-poussoir en bakélite ivoire (rouge : .fort, noir : .sombre ; enfoncé : .enfonce). */
+/* Bouton : papier clair cerné d'encre (rouge : .fort, encre : .sombre ; enfoncé : .enfonce). */
 .mod-bouton {
   min-width: 58px;
   height: 52px;
   padding: 0 14px;
-  border: 0;
+  border: var(--trait) solid var(--couleur-encre);
   border-radius: 14px;
+  background: var(--couleur-papier);
   color: var(--couleur-encre);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  background: linear-gradient(180deg, #fffaf0, var(--email-creme) 55%, var(--email-creme-sombre));
-  box-shadow: 0 2px 0 #fff inset, 0 -3px 0 rgba(0, 0, 0, 0.15) inset, 0 0 0 2px var(--chrome-sombre), 0 5px 0 #6d5d3f, 0 7px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--ombre-bouton);
   transition: transform 0.06s, box-shadow 0.06s;
 }
 .mod-bouton:active,
 .mod-bouton.enfonce {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4) inset, 0 -2px 0 rgba(0, 0, 0, 0.15) inset, 0 0 0 2px var(--chrome-sombre), 0 1px 0 #6d5d3f, 0 2px 4px rgba(0, 0, 0, 0.4);
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--couleur-encre);
 }
 .mod-bouton.fort {
-  color: #fff6e6;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-  background: linear-gradient(180deg, #ef5a45, var(--cerise) 55%, var(--cerise-sombre));
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.3) inset, 0 -3px 0 rgba(0, 0, 0, 0.25) inset, 0 0 0 2px var(--chrome-sombre), 0 5px 0 #5a120c, 0 7px 10px rgba(0, 0, 0, 0.4);
+  background: var(--cerise);
+  color: var(--couleur-papier);
 }
-.mod-bouton.sombre,
+.mod-bouton.sombre {
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
+}
 .mod-bouton.enfonce {
-  color: var(--couleur-texte);
-  text-shadow: 0 -1px 0 #000;
-  background: linear-gradient(180deg, var(--bakelite-clair), var(--bakelite));
-}
-.mod-bouton.fort:active {
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.25) inset, 0 0 0 2px var(--chrome-sombre), 0 1px 0 #5a120c, 0 2px 4px rgba(0, 0, 0, 0.4);
+  background: var(--moutarde);
 }
 .mod-bouton:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
-/* Afficheur : chiffres blancs sur tambours noirs, dans un cadre chromé. */
+/* Afficheur : chiffres clairs sur fond d'encre. */
 .mod-afficheur {
-  padding: 6px 12px;
+  padding: 4px 12px;
   min-width: 120px;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: var(--couleur-encre);
+  color: var(--couleur-papier);
   font-family: var(--police-chiffres);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 6px;
-  color: #f4f1e8;
-  background: linear-gradient(180deg, #000 0%, #2b2b2b 30%, #3d3d3d 50%, #2b2b2b 70%, #000 100%);
-  box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 3px 6px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--ombre);
 }
 
-/* Témoin : verre coloré serti de chrome (éteint : verre fumé). */
+/* Témoin : rond cerné d'encre (éteint : papier foncé ; allumé : rouge). */
 .mod-temoin {
-  width: 24px;
-  height: 24px;
+  position: relative;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #9a948a, #4a453e 60%, #26231f);
-  box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 2px 4px 3px rgba(0, 0, 0, 0.3);
+  border: var(--trait) solid var(--couleur-encre);
+  background: var(--couleur-papier-fonce);
+  box-shadow: 2px 2px 0 var(--couleur-encre);
 }
 .mod-temoin.allume {
-  background: radial-gradient(circle at 35% 30%, #fff1e0 0 10%, #ff7a52 30%, #c8221a 75%, #4d0805);
-  box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 0 16px 5px rgba(255, 70, 40, 0.65);
+  background: var(--cerise);
+}
+.mod-temoin.allume::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 7px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  transform: rotate(-30deg);
 }
 .mod-temoin.clignote {
   animation: clignote 0.8s steps(1) infinite;

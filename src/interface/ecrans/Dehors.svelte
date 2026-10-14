@@ -118,13 +118,13 @@
 
   <div class="bord" use:glisserPourFermer={glisser}></div>
   <header>
-    <button class="poussoir" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
+    <button class="bouton" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
     <span class="info">C-58 · CAP {String(Math.round(etat.fusee.cap) % 360).padStart(3, '0')}° · {nombre(etat.fusee.destination ? vitesseActuelle(etat) : 0, 1)} km/s</span>
   </header>
 
   <footer>
-    <button class="poussoir ivoire" onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
-    {#if peutPhotographier}<button class="photo poussoir cerise" onclick={photographier}>PHOTO</button>{/if}
+    <button class="bouton clair" onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
+    {#if peutPhotographier}<button class="photo bouton cerise" onclick={photographier}>PHOTO</button>{/if}
   </footer>
 
   {#if photo}
@@ -148,7 +148,7 @@
   main {
     position: relative;
     height: 100%;
-    background: #05080d;
+    background: var(--nuit);
   }
   .cadre {
     position: absolute;
@@ -166,7 +166,7 @@
     transform: translate(8px, -18px);
     font-size: 13px;
     letter-spacing: 1px;
-    color: var(--couleur-texte-discret);
+    color: var(--couleur-texte-clair);
     pointer-events: none;
     white-space: nowrap;
   }
@@ -193,7 +193,7 @@
   .info {
     font-family: var(--police-chiffres);
     font-size: 11px;
-    color: var(--couleur-texte-discret);
+    color: var(--couleur-texte-clair);
     text-align: right;
   }
   footer {
@@ -221,6 +221,7 @@
     left: 20px;
     right: 20px;
     text-align: center;
+    color: var(--couleur-texte-clair);
   }
   .cliche {
     position: absolute;

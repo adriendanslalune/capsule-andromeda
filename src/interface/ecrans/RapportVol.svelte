@@ -9,7 +9,7 @@
 </script>
 
 <div class="voile"></div>
-<div class="rapport papier-pulp" role="dialog" aria-label="Rapport de vol">
+<div class="rapport panneau" role="dialog" aria-label="Rapport de vol">
   <p class="office">Office national des vols interplanétaires</p>
   <h2 class="titre-pulp">RAPPORT DE VOL</h2>
   <p class="sous">Absence de {duree((r.jusqua - r.depuis) / 1000)}</p>
@@ -22,15 +22,15 @@
     {#each r.avaries as a}<li class="alerte">Avarie {a.modules.join(' + ')} ({heureLocale(a.t)})</li>{/each}
     {#if r.enPanne.length}<li class="alerte">À réparer : <b>{r.enPanne.join(', ')}</b></li>{/if}
   </ul>
-  <button class="poussoir cerise" onclick={() => (jeu.rapport = null)}>REPRENDRE LES COMMANDES</button>
+  <button class="bouton cerise" onclick={() => (jeu.rapport = null)}>REPRENDRE LES COMMANDES</button>
 </div>
 
 <style>
   .voile {
     position: absolute;
     inset: 0;
-    background: var(--couleur-fond);
-    opacity: 0.7;
+    background: var(--couleur-encre);
+    opacity: 0.45;
   }
   .rapport {
     position: absolute;
@@ -41,7 +41,7 @@
     overflow-y: auto;
     border-radius: 3px;
     padding: 20px 18px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: 5px 5px 0 var(--couleur-encre);
     transform: rotate(-0.8deg);
   }
   .office {

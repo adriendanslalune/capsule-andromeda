@@ -45,8 +45,9 @@ Les règles dépendent d'indices éparpillés (numéro de série de la fusée, i
    fautes de pilotage, visiteur, rattrapage hors ligne, sauvegarde. Ne jamais livrer un moteur sans tests verts.
 7. **Pas de changement de règle ou d'équilibrage sans accord d'Adrien.** En cas de doute, demander.
 8. **Petits pas.** Une fonctionnalité à la fois, testée, commitée, avec un message clair.
-9. **Direction artistique : « pulp » des années 50** (couvertures de magazines de SF, cockpit émaillé, chrome,
-   bakélite ; choisie par Adrien le 14/10/2026). Couleurs, polices et matières sont dans `src/theme/`
+9. **Direction artistique : comics rétro, à plat** (pop culture des années 50-60 ; fun mais réaliste, un peu absurde ;
+   sobre et sympathique ; vieux papier, traits d'encre, aplats, ombres dures ; pas de reflets métalliques ;
+   choisie par Adrien le 14/10/2026). Couleurs, polices et matières sont dans `src/theme/`
    (`theme.css`, `matieres.css`) : on change de style sans toucher au reste.
 
 ## Technique retenue (à confirmer avec Adrien en phase 0)
