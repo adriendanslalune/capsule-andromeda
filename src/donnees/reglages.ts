@@ -19,7 +19,15 @@ export const DUREE_ACCELERATION = 20
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4
 
-/** Distance d'arrivée (UA) : planète. */
+/**
+ * Distance d'arrivée et d'orbite d'une planète, de la Lune ou d'un satellite : trois rayons de l'astre, depuis son
+ * centre (décision d'Adrien du 14/10/2026 : on était beaucoup trop loin, 300 000 km pour toutes les planètes). Le
+ * Soleil garde 0,02 UA, l'ISS son amarrage, les engins leur approche.
+ */
+export const ORBITE_RAYONS = 3
+/** Rayon supposé (km) d'un petit satellite dont le rayon n'est pas publié. */
+export const RAYON_INCONNU_KM = 5
+/** Ancienne distance d'arrivée (UA) des planètes, gardée pour mémoire (prototype v0.1). */
 export const SEUIL_ARRIVEE = 0.002
 /** Distance d'arrivée (km) : point libre (décision d'Adrien du 14/10/2026). */
 export const SEUIL_ARRIVEE_POINT_KM = 1000

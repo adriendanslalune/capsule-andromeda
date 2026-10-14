@@ -148,13 +148,15 @@ describe('arrivée', () => {
     expect(avancerFusee(fusee, plusTard, 86_400, 17.4).fusee.position).toEqual(positionAstre('Mars', plusTard))
   })
 
-  it('la Lune demande de venir plus près (0,0002 UA au lieu de 0,002)', () => {
+  it('on arrive à trois rayons de l’astre : la Lune à 5 212 km, Mars à 10 169 km', () => {
     const t = T0 + 1000
     const lune = positionAstre('Lune', t)
     const pres: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: lune.x + 0.001, y: lune.y } }
     expect(avancerFusee(choisirDestination(pres, { type: 'astre', astre: 'Lune' }), t, 1, 17.4).arrivee).toBeNull()
     expect(avancerFusee(choisirDestination(pres, { type: 'astre', astre: 'Mars' }), t, 1, 17.4).arrivee).toBeNull()
-    const tresPres: EtatFusee = { ...pres, position: { x: lune.x + 0.00015, y: lune.y } }
+    // 22 000 km de la Lune : pas encore arrivée ; 4 500 km : arrivée.
+    expect(avancerFusee(choisirDestination({ ...pres, position: { x: lune.x + 0.00015, y: lune.y } }, { type: 'astre', astre: 'Lune' }), t, 1, 17.4).arrivee).toBeNull()
+    const tresPres: EtatFusee = { ...pres, position: { x: lune.x + 0.00003, y: lune.y } }
     const r = avancerFusee(choisirDestination(tresPres, { type: 'astre', astre: 'Lune' }), t, 1, 17.4)
     expect(r.arrivee).toEqual({ type: 'astre', astre: 'Lune' })
     expect(r.fusee.orbite).toBe('Lune')
@@ -267,11 +269,13 @@ describe('trajectoire de rencontre', () => {
 })
 
 describe('satellites comme destinations', () => {
-  it("distance d'arrivée : 30 000 km au plus, et jamais plus du quart de l'orbite du satellite", () => {
-    expect(seuilArrivee({ type: 'astre', astre: 'Mars' })).toBe(0.002)
-    expect(seuilArrivee({ type: 'astre', astre: 'Lune' })).toBe(0.0002)
-    expect(seuilArrivee({ type: 'astre', astre: 'Titan' })).toBe(0.0002)
-    expect(seuilArrivee({ type: 'astre', astre: 'Phobos' }) * UA_KM).toBeCloseTo(9376 / 4, -2)
+  it("distance d'arrivée : trois rayons de l'astre (Mars, Lune, Titan, Phobos) ; le Soleil à 0,02 UA", () => {
+    const km = (astre: string) => seuilArrivee({ type: 'astre', astre }) * UA_KM
+    expect(km('Mars')).toBeCloseTo(3 * 3389.5, -1)
+    expect(km('Lune')).toBeCloseTo(3 * 1737.4, -1)
+    expect(km('Titan')).toBeCloseTo(3 * 2574.7, -1)
+    expect(km('Phobos')).toBeCloseTo(3 * 11.08, 0)
+    expect(seuilArrivee({ type: 'astre', astre: 'Soleil' })).toBe(0.02)
   })
 
   it('arrivée à Phobos : mise en orbite, puis la fusée suit Phobos', () => {

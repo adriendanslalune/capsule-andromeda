@@ -21,7 +21,8 @@ import {
   FACTEUR_AVARIE,
   FACTEUR_LEVIER_A,
   DUREE_ACCELERATION,
-  SEUIL_ARRIVEE,
+  ORBITE_RAYONS,
+  RAYON_INCONNU_KM,
   SEUIL_ARRIVEE_LUNE,
   SEUIL_ARRIVEE_POINT_KM,
   SEUIL_ARRIVEE_SOLEIL,
@@ -203,8 +204,9 @@ export function seuilArrivee(d: Destination): number {
   if (d.type === 'point') return enUA(SEUIL_ARRIVEE_POINT_KM)
   if (d.astre === 'Soleil') return SEUIL_ARRIVEE_SOLEIL
   if (estEngin(d.astre)) return enUA(SEUIL_ARRIVEE_ENGIN_KM)
-  if (estPlanete(d.astre)) return SEUIL_ARRIVEE
-  return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
+  // L'ISS : on s'en approche comme avant (puis on s'y amarre) ; les autres astres : orbite à trois rayons.
+  if (d.astre === 'ISS') return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
+  return enUA(ORBITE_RAYONS * (rayonCorps(d.astre) ?? RAYON_INCONNU_KM))
 }
 
 // ---------------------------------------------------------------------------------------------------------------

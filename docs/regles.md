@@ -324,3 +324,10 @@ avec un contact à moins de 0,01 UA).*
   première fois 5 ; trophée 3 ; million de km parcourus 1 ; visiteur photographié 50. Les points ne s'échangent pas.
 - Un relevé des compteurs par jour (UTC, 40 jours gardés) ; points d'une période = aujourd'hui − relevé du début.
 - Chaque trophée garde aussi sa date d'obtention.
+
+## 15. Distance d'orbite (décision d'Adrien du 14/10/2026)
+- Planètes, Lune et satellites : arrivée et orbite à **trois rayons** de l'astre, depuis son centre (`ORBITE_RAYONS`) ;
+  petits satellites au rayon inconnu : 5 km supposés. Remplace les distances du prototype (0,002 UA pour toute
+  planète, 0,0002 UA pour la Lune, au plus le quart de l'orbite d'un satellite).
+- Inchangés : le Soleil (0,02 UA), l'ISS (approche puis amarrage à 40 m), les engins (trois fois leur taille).
+- Hublot : près d'un gros astre, le champ s'élargit en douceur (jusqu'à 40°) pour que l'astre reste lisible.

@@ -88,6 +88,8 @@ export class Vue3D {
   /** Direction du regard par le hublot : elle suit en douceur le virage de la fusée. */
   private regard: THREE.Vector3 | null = null
   private horlogePrecedente = 0
+  /** Champ du hublot au « grossissement » normal ; il s'élargit près d'un gros astre pour en garder la courbure. */
+  private fovBase = 55
   /** Engins humains (Hubble, Webb, Voyager) : point lumineux de loin, modèle de près. */
   private engins = new Map<string, { point: THREE.Points; modele: THREE.Group | null; ecran: THREE.Vector3 }>()
   /** Filtre solaire demandé (bouton) ; l'effet suit en douceur (0 : sans filtre, 1 : filtre en place). */
@@ -271,7 +273,8 @@ export class Vue3D {
     this.camera.aspect = largeur / hauteur
     // Même « grossissement » partout : la vue plein écran couvre 55° sur sa hauteur (environ 15 px par degré) ;
     // le hublot, plus petit, couvre un champ plus serré, pour que les astres y paraissent aussi gros.
-    this.camera.fov = this.interieur ? Math.max(6, Math.min(55, hauteur / 15)) : 55
+    this.fovBase = this.interieur ? Math.max(6, Math.min(55, hauteur / 15)) : 55
+    this.camera.fov = this.fovBase
     this.camera.updateProjectionMatrix()
   }
 
@@ -422,6 +425,19 @@ export class Vue3D {
         this.regard.applyQuaternion(qPas).normalize()
       }
       this.camera.lookAt(this.regard)
+      // Tout près d'un astre (en orbite à trois rayons), il déborderait du hublot : le champ s'élargit en douceur pour
+      // que l'astre remplisse un peu plus que la hauteur de la vitre, sa courbure visible.
+      const corps = vise && !estEngin(vise) && vise !== 'ISS' ? this.astres.get(vise)?.maillage : undefined
+      let fovVoulu = this.fovBase
+      if (corps && corps.visible) {
+        const d = corps.position.length()
+        const r = corps.scale.x
+        if (d > r) fovVoulu = Math.min(40, Math.max(this.fovBase, ((2 * Math.asin(r / d)) * 180) / Math.PI * 0.9))
+      }
+      if (Math.abs(fovVoulu - this.camera.fov) > 0.01) {
+        this.camera.fov += (fovVoulu - this.camera.fov) * Math.min(1, dt * 2)
+        this.camera.updateProjectionMatrix()
+      }
       this.appliquerSoleil(origine)
       this.rendu.render(this.scene, this.camera)
       this.etiqueter(etat, iss, pv, satellites)

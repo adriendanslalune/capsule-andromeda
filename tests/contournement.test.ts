@@ -148,15 +148,15 @@ describe('Trajet en cours (frise du cockpit)', () => {
 })
 
 describe('Orbite : la fusée reste là où elle est arrivée', () => {
-  it('arrivée vers la Lune : elle garde sa distance (≈ 30 000 km), et repart de là', () => {
+  it('arrivée vers la Lune : elle garde sa distance (trois rayons, ≈ 5 200 km), et repart de là', () => {
     let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Lune' })
     let t = T0
     let arrivee = false
     while (!arrivee) { t += 10_000; const r = avancerFusee(f, t, 10, 30); f = r.fusee; arrivee = r.arrivee !== null }
     expect(f.orbite).toBe('Lune')
     const ecartKm = Math.hypot(f.ecartOrbite!.x, f.ecartOrbite!.y) * UA_KM
-    expect(ecartKm).toBeGreaterThan(20_000)
-    expect(ecartKm).toBeLessThanOrEqual(30_000 * 1.001)
+    expect(ecartKm).toBeGreaterThan(4_500)
+    expect(ecartKm).toBeLessThanOrEqual(3 * 1737.4 * 1.001)
     // Une heure plus tard, départ vers l'ISS : le premier pas part de cet endroit, pas du centre de la Lune.
     t += 3_600_000
     f = avancerFusee(f, t, 0.001, 30).fusee
