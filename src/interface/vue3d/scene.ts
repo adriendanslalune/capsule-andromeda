@@ -412,7 +412,8 @@ export class Vue3D {
     for (const o of this.autres.values()) {
       if (!o.point.visible || o.ecran.length() > AUTRES.nomKm) continue
       const e = projeter(o.ecran)
-      if (e) this.etiquettes.push({ nom: o.nom, ...e, cible: false, couleur: o.couleur })
+      // Le nom ne s'écrit que s'il ne chevauche aucune autre étiquette (autour de la Terre, ils sont nombreux).
+      if (e && this.etiquettes.every((x) => Math.abs(x.x - e.x) > 90 || Math.abs(x.y - e.y) > 15)) this.etiquettes.push({ nom: o.nom, ...e, cible: false, couleur: o.couleur })
     }
     this.visiteurEcran = this.lueurVisiteur.visible || this.soucoupe.visible ? projeter(pv) : null
   }
