@@ -25,7 +25,7 @@
   import { onMount } from 'svelte'
   import { delaiLumiere } from '../../astro/lumiere'
   import { positionCorps } from '../../astro/corps'
-  import { dateLocale, duree, dureePrecise, heureLocale, km, nombre, nomAstre, ua } from '../format'
+  import { dateLocale, duree, dureePrecise, heureLocale, jourEtHeure, km, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { presence } from '../reseau'
 
@@ -195,7 +195,7 @@
           <div class="frise">
             <div class="bouts">
               <span><small>DÉPART</small> {origine} · {heureLocale(fusee.trajet.depart)}</span>
-              <span><small>ARRIVÉE</small> {arrivee !== null ? heureLocale(arrivee) : '—'}</span>
+              <span><small>ARRIVÉE</small> {arrivee !== null ? jourEtHeure(arrivee, maintenantDirect) : '—'}</span>
             </div>
             <div class="piste">
               <div class="fait" style={`width: ${avancement * 100}%`}></div>

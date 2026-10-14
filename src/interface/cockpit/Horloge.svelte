@@ -1,7 +1,7 @@
 <script lang="ts">
   // Horloge à aiguilles : l'heure réelle d'arrivée à destination (heure du téléphone), ou l'heure actuelle à
   // l'arrêt. La date s'affiche dans le cadran quand l'arrivée n'est pas aujourd'hui.
-  import { heureLocale } from '../format'
+  import { heureLocale, jourEtHeure } from '../format'
 
   let { instant, arrivee, maintenant }: { instant: number; arrivee: boolean; maintenant: number } = $props()
 
@@ -51,7 +51,7 @@
     <circle cx="60" cy="60" r="5" fill="var(--couleur-encre)" />
     </g>
   </svg>
-  <figcaption><span class="etiquette-encre">{arrivee ? 'ARRIVÉE' : 'HEURE'}</span><b>{heureLocale(instant)}</b></figcaption>
+  <figcaption><span class="etiquette-encre">{arrivee ? 'ARRIVÉE' : 'HEURE'}</span><b>{arrivee ? jourEtHeure(instant, maintenant) : heureLocale(instant)}</b></figcaption>
 </figure>
 
 <style>

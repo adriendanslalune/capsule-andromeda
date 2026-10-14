@@ -58,3 +58,17 @@ export function nomAstre(nom: string): string {
   if (nom === 'ISS') return 'l’ISS'
   return nom
 }
+
+/**
+ * Jour et heure locaux, d'autant plus précis que c'est loin : « 18:39 » aujourd'hui, « demain 18:39 »,
+ * « jeu. 30 nov., 18:39 » dans l'année, « 30 nov. 2027, 18:39 » au-delà.
+ */
+export function jourEtHeure(t: number, maintenant: number): string {
+  const d = new Date(t)
+  const jour = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const ecart = Math.round((jour(d) - jour(new Date(maintenant))) / 86_400_000)
+  if (ecart === 0) return heureLocale(t)
+  if (ecart === 1) return `demain ${heureLocale(t)}`
+  if (ecart > 1 && ecart < 300) return `${d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}, ${heureLocale(t)}`
+  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}, ${heureLocale(t)}`
+}
