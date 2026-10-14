@@ -278,3 +278,9 @@ avec un contact à moins de 0,01 UA).*
   et répondent aux télégrammes du joueur qui leur parviennent (toujours à un télégramme personnel, une fois sur
   deux à un télégramme collectif), quelques minutes après l'avoir reçu.
 - Moteur : `src/moteur/telegrammes.ts` ; constantes : `TELEGRAMMES` dans `src/donnees/reglages.ts`.
+
+## 9. La Terre, c'est l'ISS (décision d'Adrien du 14/10/2026)
+- La Terre et l'ISS ne forment qu'une destination : choisir la Terre (sur la carte ou par un contrat) mène à l'ISS.
+- À l'arrivée, la fusée s'amarre à l'ISS, à 40 m de son module d'amarrage (`AMARRAGE_ISS_KM`).
+- Les contrats de la semaine ne visent plus « la Terre » mais l'ISS ; un contrat « Terre » d'une ancienne partie se
+  remplit à l'amarrage.

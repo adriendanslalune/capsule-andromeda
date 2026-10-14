@@ -11,6 +11,7 @@
     choisirDestination,
     choisirDestinationAvecFenetre,
     distance,
+    normaliserDestination,
     optionsDeDepart,
     planDeVol,
     positionAstre,
@@ -206,7 +207,7 @@
       if (d < dMin) { dMin = d; meilleur = m }
     }
     const w = monde(p.x, p.y)
-    choix = meilleur ? { type: 'astre', astre: meilleur.nom } : { type: 'point', x: w.x, y: w.y }
+    choix = meilleur ? normaliserDestination({ type: 'astre', astre: meilleur.nom }) : { type: 'point', x: w.x, y: w.y }
     mode = 'navigation'
   }
   function molette(e: WheelEvent) {

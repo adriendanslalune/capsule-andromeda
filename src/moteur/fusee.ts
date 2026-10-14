@@ -26,6 +26,7 @@ import {
   SEUIL_ARRIVEE_POINT_KM,
   TAUX_VIRAGE,
   VITESSE_BASE,
+  AMARRAGE_ISS_KM,
 } from '../donnees/reglages'
 import { escaleDuJour, positionVisiteur } from './visiteur'
 
@@ -433,17 +434,28 @@ export function creerFusee(t: number): EtatFusee {
   }
 }
 
+/** Lieu d'arrivée d'un astre : la Terre, c'est l'ISS (on s'y amarre). */
+export function lieuDArrivee(astre: NomCorps): NomCorps {
+  return astre === 'Terre' ? 'ISS' : astre
+}
+
+/** Destination réelle : une destination « Terre » mène à l'ISS. */
+export function normaliserDestination(d: Destination): Destination {
+  return d.type === 'astre' && d.astre !== lieuDArrivee(d.astre) ? { type: 'astre', astre: lieuDArrivee(d.astre) } : d
+}
+
 /** Choisit une destination, avec départ immédiat. */
 export function choisirDestination(fusee: EtatFusee, destination: Destination): EtatFusee {
-  return { ...fusee, destination, fenetre: null, presDuVisiteur: false }
+  return { ...fusee, destination: normaliserDestination(destination), fenetre: null, presDuVisiteur: false }
 }
 
 /**
  * Choisit une destination, avec départ à la fenêtre de tir : la fusée attend en orbite le meilleur moment.
  * S'il n'y a pas de meilleure fenêtre, le départ est immédiat.
  */
-export function choisirDestinationAvecFenetre(fusee: EtatFusee, destination: Destination, t: number,
+export function choisirDestinationAvecFenetre(fusee: EtatFusee, choisie: Destination, t: number,
   vitesseKmS: number): EtatFusee {
+  const destination = normaliserDestination(choisie)
   const f = fenetreDeTir(fusee, destination, t, vitesseKmS)
   return { ...fusee, destination, fenetre: f ? { depart: f.depart, vitesse: vitesseKmS } : null, presDuVisiteur: false }
 }
@@ -670,8 +682,10 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
     if (dest.type === 'astre') {
       const dx = entrainee.x - cible.x, dy = entrainee.y - cible.y
       const d = Math.hypot(dx, dy)
-      const k = d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
-      ecartOrbite = { x: dx * k, y: dy * k, z: (z - hauteurDestination(dest, t, z)) * k }
+      // Amarrée à l'ISS : tout contre elle ; ailleurs, en orbite à la distance d'arrivée.
+      const dz = z - hauteurDestination(dest, t, z)
+      const k = dest.astre === 'ISS' ? enUA(AMARRAGE_ISS_KM) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
+      ecartOrbite = { x: dx * k, y: dy * k, z: dz * k }
     }
     return {
       fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur,

@@ -23,6 +23,11 @@ export const TAUX_VIRAGE = 4
 export const SEUIL_ARRIVEE = 0.002
 /** Distance d'arrivée (km) : point libre (décision d'Adrien du 14/10/2026). */
 export const SEUIL_ARRIVEE_POINT_KM = 1000
+/**
+ * Arriver sur Terre, c'est s'amarrer à l'ISS (décision d'Adrien du 14/10/2026) : la Terre et l'ISS ne font qu'une
+ * destination. Distance de la fusée amarrée au module d'amarrage (km).
+ */
+export const AMARRAGE_ISS_KM = 0.04
 /** Distance d'arrivée (UA) : Lune. */
 export const SEUIL_ARRIVEE_LUNE = 0.0002
 
