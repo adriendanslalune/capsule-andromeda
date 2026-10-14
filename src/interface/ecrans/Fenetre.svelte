@@ -203,6 +203,8 @@
         {/each}
       </div>
     </div>
+    <!-- Plaque constructeur, vissée sur la console : le numéro de série de l'appareil. -->
+    <div class="plaque-constructeur"><span>O.N.V.I. · FUSÉE DE CROISIÈRE C-58</span><b>N° SÉRIE {etat.serie}</b></div>
   </section>
 
   <!-- Chasse au visiteur. -->
@@ -491,6 +493,25 @@
   }
   .regime.actif {
     color: var(--sarcelle);
+  }
+  .plaque-constructeur {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3px 14px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 4px;
+    background: var(--moutarde);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.25;
+  }
+  .plaque-constructeur b {
+    font-family: var(--police-machine);
+    font-size: 14px;
+    letter-spacing: 2px;
   }
   .cadrans {
     display: grid;

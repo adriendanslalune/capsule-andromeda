@@ -25,8 +25,9 @@ Les règles dépendent d'indices éparpillés (numéro de série de la fusée, i
 - `docs/feuille-de-route.md` — les phases du projet, dans l'ordre.
 - `reference/prototype-v0.1.html` — le prototype jouable (un seul fichier). **Référence de comportement**,
   pas de structure : ne pas recopier son organisation, seulement ses règles.
-- `manuel/pdf/` — le manuel actuel (21 pages en 5 PDF). `manuel/sources/` — les scripts Python
-  (reportlab) qui le génèrent, avec les polices.
+- `src/interface/manuel/` — **le manuel**, dessiné par le jeu à partir des données (`src/donnees/`) : pages A5 en
+  noir et blanc (manuel d'entretien), lues dans le volet MANUEL, imprimables en PDF (bouton IMPRIMER).
+  `manuel/pdf/` et `manuel/sources/` : ancien manuel du prototype, gardé pour archive.
 - `assets/textures/` — cartes de la Terre et de la Lune converties en ligne claire.
 - Maquette de l'interface (piste A) : https://claude.ai/artifact/PrrqBmjCrTVS8Nf2TXCorz
 
@@ -69,7 +70,7 @@ src/
   interface/     # écrans Svelte : Ouverture, Fenetre, Module, Carte, Office, Manuel
   theme/         # variables de style (couleurs, polices, formes)
 tests/
-manuel/          # génération du PDF
+manuel/          # archive : ancien manuel du prototype (le manuel du jeu est dans src/interface/manuel/)
 ```
 
 ## Première session : ce qu'il faut faire

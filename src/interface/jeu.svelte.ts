@@ -51,6 +51,8 @@ class Jeu {
   traces = $state.raw<Trace[]>([])
   /** Page ouverte dans le lecteur du manuel. */
   pageManuel = $state(0)
+  /** Vrai pendant l'impression du manuel. */
+  impression = $state(false)
 
   private minuterie: ReturnType<typeof setInterval> | null = null
   /** Partie au pas précédent, pour dessiner les mouvements en douceur entre deux pas. */

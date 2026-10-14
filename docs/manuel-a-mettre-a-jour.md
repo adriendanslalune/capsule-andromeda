@@ -1,47 +1,24 @@
 # Manuel : changements à reporter
 
-Le jeu et le manuel ne doivent jamais diverger (règle 5 de `CLAUDE.md`). Le manuel actuel (`manuel/pdf/`) date du
-prototype ; les changements de règle décidés depuis sont listés ici, et seront faits lors de la régénération du
-manuel (scripts `manuel/sources/`, qui demandent Python et reportlab). Cocher chaque ligne une fois reportée.
+Le jeu et le manuel ne doivent jamais diverger (règle 5 de `CLAUDE.md`).
 
-## Décisions du 13/10/2026 (Adrien)
+**Depuis le 14/10/2026, le manuel est dessiné par le jeu lui-même** (`src/interface/manuel/`) : ses pages lisent
+directement les données du moteur (`src/donnees/`) — mots du codeur, stations morse, étoiles, branchements,
+seuils, primes, délais. Il se lit dans le volet MANUEL et s'imprime (ou s'enregistre en PDF) avec le bouton
+IMPRIMER, au format A5, en noir et blanc. Les anciens PDF du prototype (`manuel/pdf/`, `manuel/sources/`) sont
+gardés pour archive et ne sont plus utilisés.
 
-### Plus de grand-père
-- [ ] Supprimer **toutes** les annotations manuscrites (appels `main(...)` dans les 5 scripts, 24 au total).
-- [ ] Supprimer la page 6 « carnet du grand-père » (`manuel.py`, « Pour faire cracher la bête ») et le renvoi
-      « Ben voyons. → voir mon carnet, au dos. ».
-- [ ] Recherche des visiteurs (`chasse_pdf.py`) : retirer « Ce que je sais d'eux », « 1958. Je l'ai entendu… »,
-      « Pour le petit, s'il lit ça un jour. ».
+Quand une règle change, il reste à **relire le texte** de la page concernée (les chiffres suivent tout seuls).
 
-### Règles cachées qui deviennent officielles
-- [ ] TU-1 (`manuel.py`, procédure de surchauffe) : « Attendre que l'aiguille descende sous la graduation **40** »
-      (au lieu de 60 ; la valeur 40 était donnée par l'annotation « 60 ?? Mon œil. Attends 40 »).
+## Changements reportés le 14/10/2026 (tous faits)
 
-### AL-1 : précision sur la couleur
-- [ ] Préciser : « même couleur que le fusible **qui a grillé en premier** » (si un fusible de mauvaise couleur
-      grille à son tour, la règle part toujours de la couleur d'origine). *Décision d'Adrien du 13/10/2026.*
-
-### CH-1 / TU-1 : emballement
-- La phrase du manuel est conservée telle quelle : « Une purge (P) pendant une surchauffe provoque un emballement de
-  tuyère. » (presser P tant que V-1 est allumé, même sans avarie de pression). *Décision d'Adrien du 13/10/2026.*
-
-### Chasse : saisons mensuelles
-- [ ] `chasse_pdf.py` : « pendant une SAISON de 14 jours » → « pendant une SAISON d'un mois (du 1er au dernier jour du
-      mois) ». *Décision d'Adrien du 13/10/2026.*
-
-### Chasse : le visiteur ne voyage plus
-- [ ] `chasse_pdf.py` : réécrire la page « Recherche des visiteurs » : boucle de 3 ou 4 escales par mois, une par
-      jour ; voyage chaque matin de 00:00 à 06:00 UTC ; bulletin de l'Observatoire = système ; repérage à l'œil, approche, photo à moins
-      de 300 m ; annonce de la trouvaille à tous. *Décisions d'Adrien du 13/10/2026.*
-
-### RE-1 : marge de purge
-- [ ] Procédure RE-1 : « Attendre que le CO2 soit **bien** sous 40 (vers 35), puis refermer V-C. » Refermée à 39,9,
-      le CO2 repasse 40 pendant qu’on pompe et la réparation échoue. *Validé par Adrien le 13/10/2026.*
-
-### DV-1 supprimé
-- [ ] Planche CH-1 / TU-1 (`manuel.py`) : retirer le témoin **V-3** (repère 5, « Témoin de régime ») de la
-      planche et de la légende.
-- [ ] Le levier **L-B** reste : « Réservé à la maintenance au sol. Ne jamais manœuvrer en vol. »
-
-### Navigation (à écrire si le manuel en parle un jour)
-- Trajectoire de rencontre, repère du trajet (planète ou Soleil), fenêtre de tir au choix du joueur (voir `docs/regles.md`).
+- [x] Plus de grand-père : annotations, carnet, souvenirs supprimés.
+- [x] TU-1 : « attendre que l'aiguille descende sous la graduation 40 ».
+- [x] AL-1 : « même couleur que le fusible qui a grillé en premier ».
+- [x] CH-1 / TU-1 : phrase de l'emballement conservée telle quelle.
+- [x] Chasse : saisons d'un mois ; boucle de 3 ou 4 escales, voyage de 00:00 à 06:00 UTC ; Observatoire = système ;
+      repérage à l'œil, approche, photo à moins de 300 m.
+- [x] RE-1 : « attendre que le CO2 soit bien sous 40 (vers 35) ».
+- [x] DV-1 supprimé : plus de témoin V-3 ; L-B « réservé à la maintenance au sol ».
+- [x] Nouveau : poste de pilotage actuel (planche et nomenclature), plaque constructeur, interrupteur MOTEUR et
+      accélération en 20 s, contournement des astres, cascades selon les améliorations, faute de pilotage.

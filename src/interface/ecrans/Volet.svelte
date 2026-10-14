@@ -31,12 +31,14 @@
 <style>
   .voile {
     position: absolute;
+    z-index: 20;
     inset: 0;
     background: var(--couleur-encre);
     opacity: 0.45;
   }
   .volet {
     position: absolute;
+    z-index: 20;
     left: 0;
     right: 0;
     top: 40px;

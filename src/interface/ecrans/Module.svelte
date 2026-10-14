@@ -3,7 +3,7 @@
   import { modulesEnPanne } from '../../moteur/modules'
   import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
-  import { pageDuChapitre } from '../volets/pages-manuel'
+  import { CHAPITRE_DU_MODULE, pageDuChapitre } from '../manuel/pages'
   import Antenne from '../modules/Antenne.svelte'
   import Bricolage from '../modules/Bricolage.svelte'
   import Brassage from '../modules/Brassage.svelte'
@@ -21,20 +21,20 @@
   let ecran = $state<HTMLElement>()
   const glisser = { sens: 'droite' as const, cible: () => ecran, fermer: () => jeu.fermer() }
 
-  /** Nom du module et chapitre du manuel qui le décrit. */
-  const FICHES: Record<string, { nom: string; chapitre: string }> = {
-    'CH-1': { nom: 'CHAMBRE DE COMBUSTION', chapitre: 'III' },
-    'TU-1': { nom: 'TUYÈRE', chapitre: 'III' },
-    'AL-1': { nom: 'FUSIBLES', chapitre: 'VII' },
-    'CO-1': { nom: 'CODEUR', chapitre: 'VIII' },
-    'PB-1': { nom: 'TABLEAU DE BRASSAGE', chapitre: 'IX' },
-    'LP-1': { nom: 'LAMPES À VIDE', chapitre: 'XI' },
-    'HY-1': { nom: 'CIRCUIT HYDRAULIQUE', chapitre: 'XII' },
-    'RE-1': { nom: 'RECYCLEUR D’AIR', chapitre: 'XIII' },
-    'MO-1': { nom: 'MORSE', chapitre: 'XIV' },
-    'CR-1': { nom: 'CHRONOMÈTRE DE BORD', chapitre: 'XV' },
-    'SX-1': { nom: 'SEXTANT', chapitre: 'XVI' },
-    'AN-1': { nom: 'ANTENNE ORIENTABLE', chapitre: 'XVII' },
+  /** Nom de chaque module (son chapitre du manuel : manuel/pages.ts). */
+  const NOMS: Record<string, string> = {
+    'CH-1': 'CHAMBRE DE COMBUSTION',
+    'TU-1': 'TUYÈRE',
+    'AL-1': 'FUSIBLES',
+    'CO-1': 'CODEUR',
+    'PB-1': 'TABLEAU DE BRASSAGE',
+    'LP-1': 'LAMPES À VIDE',
+    'HY-1': 'CIRCUIT HYDRAULIQUE',
+    'RE-1': 'RECYCLEUR D’AIR',
+    'MO-1': 'MORSE',
+    'CR-1': 'CHRONOMÈTRE DE BORD',
+    'SX-1': 'SEXTANT',
+    'AN-1': 'ANTENNE ORIENTABLE',
   }
 
   const enPanne = $derived(modulesEnPanne(jeu.etat!.modules))
@@ -50,11 +50,11 @@
   <div class="bord" use:glisserPourFermer={glisser}></div>
   <header use:glisserPourFermer={glisser}>
     <button class="retour bouton" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
-    <button class="manuel bouton clair" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
+    <button class="manuel bouton clair" onclick={() => { jeu.pageManuel = pageDuChapitre(CHAPITRE_DU_MODULE[code]); jeu.volet = 'manuel' }}>MANUEL · {CHAPITRE_DU_MODULE[code]}</button>
   </header>
   <div class="titre panneau">
     {#each affiche as c}<span class="code">{c}</span>{/each}
-    <span class="nom">{propulsion ? 'PROPULSION' : FICHES[code].nom}</span>
+    <span class="nom">{propulsion ? 'PROPULSION' : NOMS[code]}</span>
     {#if avarie}<span class="avarie"><span class="lampe"></span>AVARIE</span>{/if}
   </div>
 
@@ -75,7 +75,7 @@
 
   {#if autre}
     <button class="suivante bouton cerise" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
-      <span><span class="pastille"></span>Autre avarie : <b>{autre} {FICHES[autre].nom}</b></span><span>›</span>
+      <span><span class="pastille"></span>Autre avarie : <b>{autre} {NOMS[autre]}</b></span><span>›</span>
     </button>
   {/if}
 </main>

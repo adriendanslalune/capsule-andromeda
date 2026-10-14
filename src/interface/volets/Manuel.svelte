@@ -1,79 +1,41 @@
 <script lang="ts">
-  // Volet du manuel : lecteur page par page des PDF du manuel (pdf.js, chargé seulement à l'ouverture).
+  // Volet du manuel : le manuel d'entretien, page par page, mis à l'échelle de l'écran ; IMPRIMER ouvre
+  // l'impression du téléphone (ou l'enregistrement en PDF) de tout le manuel.
   import { jeu } from '../jeu.svelte'
-  import { PAGES_MANUEL } from './pages-manuel'
+  import { PAGES } from '../manuel/pages'
 
-  let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
-  let erreur = $state<string | null>(null)
-  let chargement = $state(true)
+  let echelle = $state(0.9)
+  $effect(() => {
+    const ajuster = () => (echelle = Math.min(1.4, (cadre.clientWidth - 4) / 400))
+    ajuster()
+    const o = new ResizeObserver(ajuster)
+    o.observe(cadre)
+    return () => o.disconnect()
+  })
+  $effect(() => {
+    void jeu.pageManuel
+    if (cadre) cadre.scrollTop = 0
+  })
 
-  // Documents déjà chargés (un par fichier PDF).
-  type Document = { getPage(n: number): Promise<any> }
-  const documents = new Map<string, Promise<Document>>()
-  let pdfjs: Promise<any> | null = null
-
-  async function bibliotheque() {
-    pdfjs ??= (async () => {
-      const lib = await import('pdfjs-dist')
-      const worker = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default
-      lib.GlobalWorkerOptions.workerSrc = worker
-      return lib
-    })()
-    return pdfjs
-  }
-
-  async function document(fichier: string): Promise<Document> {
-    if (!documents.has(fichier)) documents.set(fichier, bibliotheque().then((lib) => lib.getDocument({ url: fichier }).promise))
-    return documents.get(fichier)!
-  }
-
-  let rendu: { cancel(): void } | null = null
-  async function afficher(index: number) {
-    chargement = true
-    erreur = null
-    try {
-      const p = PAGES_MANUEL[index]
-      const page = await (await document(p.fichier)).getPage(p.page)
-      // Volet refermé pendant le chargement : plus rien à dessiner.
-      if (!cadre || !toile) return
-      const largeur = cadre.clientWidth
-      const base = page.getViewport({ scale: 1 })
-      const echelle = (largeur / base.width) * (window.devicePixelRatio || 1)
-      const vue = page.getViewport({ scale: echelle })
-      toile.width = vue.width
-      toile.height = vue.height
-      toile.style.width = `${largeur}px`
-      rendu?.cancel()
-      const tache = page.render({ canvas: toile, viewport: vue })
-      rendu = tache
-      await tache.promise
-      if (cadre) cadre.scrollTop = 0
-    } catch (e) {
-      if ((e as { name?: string }).name !== 'RenderingCancelledException') {
-        console.error('Manuel :', e)
-        erreur = 'Impossible d’ouvrir cette page du manuel.'
-      }
-    } finally {
-      chargement = false
-    }
-  }
-
-  $effect(() => { afficher(jeu.pageManuel) })
-
-  const aller = (d: number) => (jeu.pageManuel = Math.max(0, Math.min(PAGES_MANUEL.length - 1, jeu.pageManuel + d)))
+  const page = $derived(PAGES[jeu.pageManuel] ?? PAGES[0])
+  const aller = (d: number) => (jeu.pageManuel = Math.max(0, Math.min(PAGES.length - 1, jeu.pageManuel + d)))
 </script>
 
 <div class="manuel">
-  <div class="page" bind:this={cadre}>
-    <canvas bind:this={toile} aria-label={`Page ${jeu.pageManuel + 1} du manuel`}></canvas>
-    {#if chargement}<p class="info">Chargement…</p>{/if}
-    {#if erreur}<p class="info">{erreur}</p>{/if}
+  <div class="cadre" bind:this={cadre}>
+    <div class="feuille" style={`width: ${400 * echelle}px; height: ${567 * echelle}px`}>
+      <div class="echelle" style={`transform: scale(${echelle})`} aria-label={`Page ${jeu.pageManuel + 1} du manuel`}>
+        <page.composant numero={jeu.pageManuel + 1} />
+      </div>
+    </div>
   </div>
   <nav>
-    <button onclick={() => aller(-1)} disabled={jeu.pageManuel === 0}>‹ PRÉCÉDENTE</button>
-    <span>{jeu.pageManuel + 1} / {PAGES_MANUEL.length}</span>
-    <button onclick={() => aller(1)} disabled={jeu.pageManuel === PAGES_MANUEL.length - 1}>SUIVANTE ›</button>
+    <button class="bouton clair" onclick={() => aller(-1)} disabled={jeu.pageManuel === 0} aria-label="Page précédente">‹</button>
+    <button class="bouton clair" onclick={() => (jeu.pageManuel = 1)}>SOMMAIRE</button>
+    <span>{jeu.pageManuel + 1} / {PAGES.length}</span>
+    <button class="bouton clair" onclick={() => (jeu.impression = true)}>IMPRIMER</button>
+    <button class="bouton clair" onclick={() => aller(1)} disabled={jeu.pageManuel === PAGES.length - 1} aria-label="Page suivante">›</button>
   </nav>
 </div>
 
@@ -83,46 +45,40 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 8px 0 0;
+    padding: 6px 0 0;
   }
-  .page {
-    position: relative;
+  .cadre {
     flex: 1;
     overflow-y: auto;
-    margin: 0 10px;
-    background: #fff;
+    padding: 0 14px;
+    display: flex;
+    justify-content: center;
   }
-  canvas {
-    display: block;
+  .feuille {
+    flex: none;
+    border: 1px solid #1d1916;
+    box-shadow: var(--ombre);
+    overflow: hidden;
   }
-  .info {
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 16px;
+  .echelle {
+    width: 400px;
+    transform-origin: top left;
   }
   nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 10px 14px 18px;
+    gap: 6px;
+    padding: 10px 14px 16px;
   }
   nav button {
     min-height: 44px;
-    padding: 0 14px;
-    border-radius: 12px;
-    border: 2px solid var(--couleur-encre);
-    background: none;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-  nav button:disabled {
-    opacity: 0.3;
+    min-width: 44px;
+    padding: 0 10px;
+    font-size: 13px;
   }
   nav span {
     font-family: var(--police-chiffres);
+    font-weight: 700;
   }
 </style>

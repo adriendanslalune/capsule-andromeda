@@ -2,6 +2,7 @@
   // Racine de l'interface : choisit l'écran à montrer.
   import { onMount } from 'svelte'
   import Fenetre from './ecrans/Fenetre.svelte'
+  import Impression from './manuel/Impression.svelte'
   import Module from './ecrans/Module.svelte'
   import Ouverture from './ecrans/Ouverture.svelte'
   import RapportVol from './ecrans/RapportVol.svelte'
@@ -32,4 +33,8 @@
 
 {#if jeu.etat && jeu.rapport}
   <RapportVol />
+{/if}
+
+{#if jeu.impression}
+  <Impression />
 {/if}

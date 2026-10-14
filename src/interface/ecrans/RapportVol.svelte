@@ -28,12 +28,14 @@
 <style>
   .voile {
     position: absolute;
+    z-index: 20;
     inset: 0;
     background: var(--couleur-encre);
     opacity: 0.45;
   }
   .rapport {
     position: absolute;
+    z-index: 20;
     left: 14px;
     right: 14px;
     top: 60px;
