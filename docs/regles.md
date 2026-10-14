@@ -209,10 +209,14 @@ avec un contact à moins de 0,01 UA).*
 
 - **Saisons** : une par mois, du 1er à 00:00 UTC au 1er du mois suivant ; janvier 2026 = saison 0
   (n° = mois écoulés depuis janvier 2026). Graine de la saison n : n × 7919 + 13 (mulberry32), la même pour tous.
-- **Le visiteur ne voyage pas.** Chaque saison, il fait une **boucle de 3 ou 4 escales** (astres différents, tirés
-  comme les contrats : un système, puis un astre de ce système). Il change d'escale **chaque jour à 00:00 UTC**
-  (jour 0 = le 1er du mois = première escale de la boucle). Chaque jour, il se tient à côté de son astre, dans le plan
-  de la carte, à une distance (30 000 à 150 000 km, *provisoire*) et dans une direction tirées pour ce jour.
+- **Boucle d'escales.** Chaque saison, le visiteur fait une **boucle de 3 ou 4 escales** (astres différents, tirés
+  comme les contrats : un système, puis un astre de ce système), une par jour (jour 0 = le 1er du mois = première
+  escale de la boucle). À son escale, il se tient à côté de son astre, dans le plan de la carte, à une distance
+  (30 000 à 150 000 km, *provisoire*) et dans une direction tirées pour ce jour, en suivant l'astre.
+- **Voyage du matin.** Chaque jour à **00:00 UTC**, il quitte sa place de la veille et file **en ligne droite** vers sa
+  place du jour, où il arrive à **06:00 UTC** ; sa vitesse dépend donc de la distance. Il reste ensuite à son escale
+  jusqu'au minuit suivant. Pendant le voyage, on peut le repérer (ping, TEL, DET) mais pas l'approcher.
+  *Décision d'Adrien du 14/10/2026.*
 - **Ping** sur 7,13 (± 0,05) : écho après 2 × distance × 499,0048 s ; recharge 5 min ; hors fréquence : aucun écho.
 - **Observatoire** toutes les 6 h : le **système** (la planète) où se trouvait le visiteur 6 h plus tôt
   (« PERTURBATIONS DANS LE SYSTÈME DE SATURNE »). L'astre exact n'est pas donné.

@@ -158,9 +158,12 @@ export function visiteurDetecte(etat: EtatPartie, t: number): number | null {
 // ---------------------------------------------------------------------------------------------------------------
 // Trouvaille
 
-/** Vrai si la soucoupe peut être touchée dans la vue 3D (fusée à moins de 300 000 km du visiteur). */
+/**
+ * Vrai si la soucoupe peut être touchée dans la vue 3D : fusée à moins de 300 000 km du visiteur, et visiteur à son
+ * escale (pendant son voyage du matin, il va bien trop vite pour être approché).
+ */
 export function visiteurAPortee(etat: EtatPartie, t: number): boolean {
-  return distanceVisiteurKm(etat, t) <= C.distanceReperageKm
+  return !positionVisiteur(t).enVoyage && distanceVisiteurKm(etat, t) <= C.distanceReperageKm
 }
 
 /**

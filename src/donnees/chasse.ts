@@ -10,6 +10,8 @@ export const CHASSE = {
   /** Chaque saison, le visiteur fait une boucle de 3 ou 4 escales ; il change d'escale chaque jour à 00:00 UTC. */
   escalesMin: 3,
   escalesMax: 4,
+  /** Chaque jour à 00:00 UTC, il part vers l'escale suivante et y arrive à 06:00 (sa vitesse dépend de la distance). */
+  dureeVoyageHeures: 6,
   /** Chaque jour, il se tient à côté de son astre, à une distance tirée entre ces bornes (km). Valeurs provisoires. */
   distanceAstreMinKm: 30_000,
   distanceAstreMaxKm: 150_000,

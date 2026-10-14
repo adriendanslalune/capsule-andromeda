@@ -75,7 +75,7 @@ describe('le visiteur', () => {
   it('il se tient à côté de son astre, entre 30 000 et 150 000 km, à une place qui change chaque jour', () => {
     const places = new Set<string>()
     for (let j = 0; j < 20; j++) {
-      const t = debutSaison(9) + j * JOUR + 5 * H
+      const t = debutSaison(9) + j * JOUR + 7 * H // après son arrivée de 06:00
       const v = positionVisiteur(t)
       const a = positionAstre(v.astre, t)
       const km = distance(v, a) * UA_KM
@@ -87,8 +87,8 @@ describe('le visiteur', () => {
     expect(places.size).toBe(20)
   })
 
-  it('pendant la journée, il suit son astre (il ne voyage pas)', () => {
-    const t = debutSaison(9) + 2 * JOUR + 3 * H
+  it('de 06:00 à minuit, il reste à son escale en suivant son astre', () => {
+    const t = debutSaison(9) + 2 * JOUR + 7 * H
     const v1 = positionVisiteur(t), v2 = positionVisiteur(t + 6 * H)
     const a1 = positionAstre(v1.astre, t), a2 = positionAstre(v2.astre, t + 6 * H)
     expect(v1.astre).toBe(v2.astre)
@@ -105,16 +105,68 @@ describe('le visiteur', () => {
   })
 })
 
+describe('le voyage du matin', () => {
+  it('chaque jour, il part à 00:00 de sa place de la veille et arrive à 06:00 à sa place du jour', () => {
+    for (let j = 1; j < 20; j++) {
+      const minuit = debutSaison(9) + j * JOUR
+      const veille = positionVisiteur(minuit - 1)
+      const depart = positionVisiteur(minuit)
+      const arrivee = positionVisiteur(minuit + 6 * H)
+      expect(distance(depart, veille) * UA_KM).toBeLessThan(5) // il part bien d'où il était
+      expect(depart.enVoyage).toBe(true)
+      expect(veille.enVoyage).toBe(false)
+      expect(arrivee.enVoyage).toBe(false)
+      expect(arrivee.astre).toBe(escaleDuJour(minuit))
+      const presque = positionVisiteur(minuit + 6 * H - 1)
+      expect(distance(presque, arrivee) * UA_KM).toBeLessThan(2000) // il arrive bien à sa place
+    }
+  })
+
+  it('il se déplace réellement, en ligne droite, d’une escale à l’autre (pas de saut)', () => {
+    const minuit = debutSaison(9) + 3 * JOUR
+    const A = positionVisiteur(minuit), B = positionVisiteur(minuit + 6 * H)
+    let precedent = A
+    for (let m = 10; m < 360; m += 10) {
+      const p = positionVisiteur(minuit + m * 60_000)
+      // Chaque tranche de 10 minutes : 1/36 du trajet environ, sur la droite de A à B.
+      const pas = distance(p, precedent)
+      expect(pas).toBeLessThan(distance(A, B) / 36 * 1.5 + 1e-6)
+      const croix = (B.x - A.x) * (p.y - A.y) - (B.y - A.y) * (p.x - A.x)
+      expect(Math.abs(croix) / distance(A, B)).toBeLessThan(0.01 * distance(A, B) + 1e-4)
+      precedent = p
+    }
+  })
+
+  it('sa vitesse dépend de la distance : le trajet dure toujours 6 heures', () => {
+    const vitesses = new Set<number>()
+    for (let j = 1; j < 25; j++) {
+      const minuit = debutSaison(9) + j * JOUR
+      const d = distance(positionVisiteur(minuit), positionVisiteur(minuit + 6 * H))
+      vitesses.add(Math.round((d * UA_KM) / (6 * 3600)))
+    }
+    expect(vitesses.size).toBeGreaterThan(1)
+  })
+
+  it('pendant le voyage, on ne peut pas l’approcher', () => {
+    const t = Date.UTC(2026, 9, 13, 3)
+    const v = positionVisiteur(t)
+    expect(v.enVoyage).toBe(true)
+    const e = placer(partie(t), { x: v.x, y: v.y })
+    expect(visiteurAPortee(e, t)).toBe(false)
+    expect(approcherVisiteur(e, t).etat.fusee.destination).toBeNull()
+  })
+})
+
 describe('trouvaille', () => {
   it('à côté de l’astre de l’escale : la soucoupe est à portée (moins de 300 000 km), pas depuis une autre planète', () => {
-    const t = T0
+    const t = T0 // 12:00 : à son escale
     expect(visiteurAPortee(surEscale(t), t)).toBe(true)
     expect(visiteurAPortee(placer(partie(t), { x: 30, y: 0 }), t)).toBe(false)
     expect(approcherVisiteur(placer(partie(t), { x: 30, y: 0 }), t).etat.fusee.destination).toBeNull()
   })
 
   it('approcher, s’arrêter à environ 200 m, photographier : trouvaille, 250 CR et le trophée', () => {
-    const t = Date.UTC(2026, 9, 13, 1) // tôt dans la journée : le temps d'approcher
+    const t = Date.UTC(2026, 9, 13, 7) // arrivé à son escale depuis 06:00 : le temps d'approcher
     let e = approcherVisiteur(surEscale(t), t).etat
     expect(e.fusee.destination).toEqual({ type: 'visiteur', astre: escaleDuJour(t) })
     let s = 0
@@ -224,15 +276,19 @@ describe('Observatoire et transmissions', () => {
 
   it('transmissions toutes les 8 h ; plus d’une fois sur deux la planète la plus proche du visiteur', () => {
     const e = partie()
-    let proches = 0
-    for (let k = 1; k <= 200; k++) {
+    let proches = 0, total = 0
+    for (let k = 1; k <= 600; k++) {
       const creneau = Math.floor(T0 / (8 * H)) + k
       const t = creneau * 8 * H + 1000
+      if (positionVisiteur(t).enVoyage) continue // créneau de minuit : il vient de partir
       const avant = { ...e, chasse: { ...e.chasse, transmission: creneau - 1, bulletin: Infinity } }
       const m = evoluerChasse(avant, t).messages.find((x) => x.includes('LUEUR'))!
-      if (m.endsWith(`${planeteDe(positionVisiteur(t).astre).toUpperCase()}.`)) proches++
+      const v = positionVisiteur(t)
+      const plusProche = NOMS_PLANETES.reduce((a, b) => (distance(v, positionAstre(a, t)) <= distance(v, positionAstre(b, t)) ? a : b))
+      if (m.endsWith(`${plusProche.toUpperCase()}.`)) proches++
+      total++
     }
-    expect(proches / 200).toBeGreaterThan(0.5)
+    expect(proches / total).toBeGreaterThan(0.5)
   })
 })
 

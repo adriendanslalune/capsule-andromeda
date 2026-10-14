@@ -31,7 +31,7 @@ manuel (scripts `manuel/sources/`, qui demandent Python et reportlab). Cocher ch
 
 ### Chasse : le visiteur ne voyage plus
 - [ ] `chasse_pdf.py` : réécrire la page « Recherche des visiteurs » : boucle de 3 ou 4 escales par mois, une par
-      jour (changement à 00:00 UTC) ; bulletin de l'Observatoire = système ; repérage à l'œil, approche, photo à moins
+      jour ; voyage chaque matin de 00:00 à 06:00 UTC ; bulletin de l'Observatoire = système ; repérage à l'œil, approche, photo à moins
       de 300 m ; annonce de la trouvaille à tous. *Décisions d'Adrien du 13/10/2026.*
 
 ### RE-1 : marge de purge

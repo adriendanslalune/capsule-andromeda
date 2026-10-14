@@ -388,8 +388,8 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
   if (!dest) {
     // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
     if (fusee.presDuVisiteur && fusee.orbite) {
-      if (escaleDuJour(t) === fusee.orbite) {
-        const v = positionVisiteur(t)
+      const v = positionVisiteur(t)
+      if (!v.enVoyage && v.astre === fusee.orbite) {
         return { fusee: { ...fusee, position: { x: v.x, y: v.y }, virage: 0 }, arrivee: null }
       }
       return { fusee: { ...fusee, position: positionAstre(fusee.orbite, t), virage: 0, presDuVisiteur: false }, arrivee: null }
@@ -399,7 +399,7 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
     return { fusee: { ...fusee, position, virage: 0 }, arrivee: null }
   }
 
-  if (dest.type === 'visiteur' && escaleDuJour(t) !== dest.astre) {
+  if (dest.type === 'visiteur' && (escaleDuJour(t) !== dest.astre || positionVisiteur(t).enVoyage)) {
     // Le visiteur a changé d'escale pendant l'approche : elle est abandonnée, la fusée reste où elle est.
     return { fusee: { ...fusee, destination: null, orbite: null, virage: 0, presDuVisiteur: false }, arrivee: null }
   }
