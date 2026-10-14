@@ -320,7 +320,7 @@ avec un contact à moins de 0,01 UA).*
 ## 14. Classements (décision d'Adrien du 14/10/2026 ; barème proposé, à ajuster)
 - Trois classements aux **points de commissionnaire** : de la **semaine** (depuis lundi 00:00 UTC), du **mois**
   (depuis le 1er, 00:00 UTC) et **général**.
-- Barème () : contrat rempli 10 pts ; avarie réparée 2 ; astre ou engin visité pour la
+- Barème (`src/donnees/classement.ts`) : contrat rempli 10 pts ; avarie réparée 2 ; astre ou engin visité pour la
   première fois 5 ; trophée 3 ; million de km parcourus 1 ; visiteur photographié 50. Les points ne s'échangent pas.
 - Un relevé des compteurs par jour (UTC, 40 jours gardés) ; points d'une période = aujourd'hui − relevé du début.
 - Chaque trophée garde aussi sa date d'obtention.
