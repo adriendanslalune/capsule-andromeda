@@ -38,6 +38,8 @@
       fusee: {
         ...etat.fusee, position: { x: c.x, y: c.y }, z: c.z, orbite: astre, destination: null, fenetre: null,
         presDuVisiteur: false, trajet: undefined, ecartOrbite: { x: u.x * e, y: u.y * e, z: 0 }, vitesseCourante: 0,
+        // Le nez tourné vers l'astre, comme à une vraie arrivée.
+        cap: ((Math.atan2(-u.y, -u.x) * 180) / Math.PI + 360) % 360, virage: 0,
       },
     }, [`SAUT D’ESSAI : ${nomAstre(astre).toUpperCase()}.`])
     choix = ''
