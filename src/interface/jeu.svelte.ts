@@ -2,7 +2,7 @@
 // dans le téléphone et rattrape le temps écoulé quand on revient. Les écrans lisent cet objet et lui demandent d'agir.
 
 import { rattraper, type RapportDeVol } from '../moteur/absence'
-import { creerPartie, type EtatPartie } from '../moteur/etat'
+import { creerPartie, type ContratAccompli, type EtatPartie } from '../moteur/etat'
 import { horlogeReelle } from '../moteur/horloge'
 import { hasardReel } from '../moteur/hasard'
 import type { Contexte, Evenement } from '../moteur/modules/commun'
@@ -46,6 +46,8 @@ class Jeu {
   maintenant = $state(horlogeReelle())
   telex = $state.raw<LigneTelex[]>([])
   rapport = $state.raw<RapportDeVol | null>(null)
+  /** Contrats accomplis à annoncer (fenêtre « contrat accompli »), le premier d'abord. */
+  annonces = $state.raw<ContratAccompli[]>([])
   ecran = $state.raw<Ecran>({ nom: 'ouverture' })
   volet = $state<Volet>(null)
   traces = $state.raw<Trace[]>([])
@@ -74,6 +76,7 @@ class Jeu {
     if (lu?.etat) {
       const r = rattraper(lu.etat, horlogeReelle(), hasardReel)
       this.etat = r.etat
+      this.annoncerContrats(lu.etat, r.etat)
       this.precedent = null
       if (r.rapport) {
         this.rapport = r.rapport
@@ -158,8 +161,10 @@ class Jeu {
     if (!this.etat) return
     const t = horlogeReelle()
     if (t - this.etat.vu > 60_000) {
+      const avant = this.etat
       const r = rattraper(this.etat, t, hasardReel)
       this.etat = r.etat
+      this.annoncerContrats(avant, r.etat)
       this.precedent = null
       if (r.rapport) {
         this.rapport = r.rapport
@@ -187,8 +192,19 @@ class Jeu {
     if (t - this.derniereSauvegarde > SAUVEGARDE_TOUTES_LES) this.sauvegarder()
   }
 
+  /** Contrats accomplis entre deux états : ils seront annoncés, un par un. */
+  private annoncerContrats(avant: EtatPartie, apres: EtatPartie) {
+    const deja = new Set((avant.contratsAccomplis ?? []).map((c) => c.id))
+    const nouveaux = (apres.contratsAccomplis ?? []).filter((c) => !deja.has(c.id)).reverse()
+    if (nouveaux.length) {
+      this.annonces = [...this.annonces, ...nouveaux]
+      SONS.bon()
+    }
+  }
+
   /** Messages du moteur, et nouvelles avaries, au téléscripteur. */
   private annoncer(avant: EtatPartie, apres: EtatPartie, messages: string[], t: number) {
+    this.annoncerContrats(avant, apres)
     for (const m of messages) this.ajouterTelex(m, t, m.startsWith('FAUTE') || m.startsWith('ORDRE'))
     if (messages.some((m) => m.startsWith('FAUTE') || m.startsWith('ORDRE'))) SONS.erreur()
     const anciennes = new Set(modulesEnPanne(avant.modules))
@@ -206,6 +222,17 @@ class Jeu {
    * deux pas, la fusée glisse de sa position précédente à la nouvelle (avec une seconde de retard), pour que les
    * mouvements soient fluides. Renvoie aussi l'instant correspondant, pour placer les astres au même moment.
    */
+  /**
+   * Où en est le dessin entre le pas précédent (0) et le dernier pas du moteur (1), à l'instant `horloge` : sert à
+   * faire glisser en douceur tout ce qui change d'un pas à l'autre (position, temps restant…).
+   */
+  fraction(horloge = Date.now()): number {
+    const e = this.etat
+    const p = this.precedent
+    if (!e || !p || e.vu <= p.vu || e.vu - p.vu > 5000) return 1
+    return Math.max(0, Math.min(1, (horloge - e.vu) / (e.vu - p.vu)))
+  }
+
   affichage(horloge = Date.now()): { etat: EtatPartie; t: number } {
     const e = this.etat!
     const p = this.precedent
@@ -221,6 +248,7 @@ class Jeu {
       position: { x: f0.position.x + (f1.position.x - f0.position.x) * a, y: f0.position.y + (f1.position.y - f0.position.y) * a },
       cap: (f0.cap + ecartAngle(f0.cap, f1.cap) * a + 360) % 360,
       z: (f0.z ?? 0) + ((f1.z ?? 0) - (f0.z ?? 0)) * a,
+      vitesseCourante: (f0.vitesseCourante ?? 0) + ((f1.vitesseCourante ?? 0) - (f0.vitesseCourante ?? 0)) * a,
     }
     return { etat: { ...e, fusee }, t: p.vu + duree * a }
   }
@@ -260,6 +288,7 @@ class Jeu {
 
   /** Remplace la partie (actions de l'Office, de la carte…). */
   remplacer(etat: EtatPartie, messages: string[] = []) {
+    if (this.etat) this.annoncerContrats(this.etat, etat)
     this.etat = etat
     for (const m of messages) this.ajouterTelex(m, horlogeReelle())
     this.sauvegarder()

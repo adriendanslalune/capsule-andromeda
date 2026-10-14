@@ -17,12 +17,14 @@
     positionDestination,
     seuilArrivee,
     tempsRestant,
+    vitesseDuMoment,
     type Destination,
     type Point2,
   } from '../../moteur/fusee'
   import { hasardReel } from '../../moteur/hasard'
   import { vitesseActuelle } from '../../moteur/partie'
-  import { dateLocale, duree, nombre, nomAstre, ua } from '../format'
+  import { DUREE_ACCELERATION } from '../../donnees/reglages'
+  import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
   const L = 362
@@ -307,10 +309,12 @@
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
       <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
-        <button class="action clair" onclick={() => partir(false)}>PARTIR MAINTENANT — arrivée {duree((options.maintenant.arrivee - t) / 1000 - approche(choix))}</button>
+        {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
+        {@const quand = t + voyage * 1000}
+        <button class="action clair" onclick={() => partir(false)}>PARTIR MAINTENANT — {duree(voyage)}<br /><small>arrivée le {dateLocale(quand)} à {heureLocale(quand)}</small></button>
       {/if}
       {#if options.fenetre}
-        <button class="action" onclick={() => partir(true)}>FENÊTRE DE TIR — départ le {dateLocale(options.fenetre.depart)}, arrivée le {dateLocale(options.fenetre.arrivee)}</button>
+        <button class="action" onclick={() => partir(true)}>FENÊTRE DE TIR — départ le {dateLocale(options.fenetre.depart)} à {heureLocale(options.fenetre.depart)}<br /><small>arrivée le {dateLocale(options.fenetre.arrivee)} à {heureLocale(options.fenetre.arrivee)}</small></button>
       {/if}
     {:else}
       <div class="ligne">

@@ -22,7 +22,8 @@
   import Compas from '../cockpit/Compas.svelte'
   import Horloge from '../cockpit/Horloge.svelte'
   import Tachymetre from '../cockpit/Tachymetre.svelte'
-  import { dateLocale, duree, heureLocale, nomAstre, ua } from '../format'
+  import { onMount } from 'svelte'
+  import { dateLocale, duree, dureePrecise, heureLocale, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { presence } from '../reseau'
   import { basculerSon, sonActif } from '../sons'
@@ -58,6 +59,30 @@
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, croisiere) : null)
   const reste = $derived(fusee.destination && !coupe ? tempsRestant(fusee, t, croisiere) : null)
+  // Temps restant en direct : le moteur le calcule à chaque pas (une fois par seconde) ; entre deux pas, il glisse
+  // linéairement de la valeur précédente à la nouvelle, image par image (accélérations et ralentissements compris).
+  let resteAvant: number | null = null
+  let resteApres: number | null = null
+  let cleReste = ''
+  $effect(() => {
+    const cle = JSON.stringify(fusee.destination) + String(!!fusee.moteurCoupe)
+    resteAvant = cle === cleReste ? resteApres : reste
+    resteApres = reste
+    cleReste = cle
+  })
+  let resteDirect = $state<number | null>(null)
+  onMount(() => {
+    let image = 0
+    const boucle = () => {
+      image = requestAnimationFrame(boucle)
+      if (resteApres === null) { resteDirect = null; return }
+      const a = jeu.fraction()
+      // Le dessin a une seconde de retard sur le moteur : on part de la valeur du pas précédent.
+      resteDirect = resteAvant === null ? resteApres : resteAvant + (resteApres - resteAvant) * a
+    }
+    image = requestAnimationFrame(boucle)
+    return () => cancelAnimationFrame(image)
+  })
   /** Instant d'arrivée prévu (ms), ou null. */
   const arrivee = $derived(reste !== null ? t + reste * 1000 : null)
   /** Direction de la destination (point de rencontre), pour le compas. */
@@ -141,14 +166,14 @@
       <Horloge instant={arrivee ?? t} arrivee={arrivee !== null} maintenant={t} />
     </div>
 
-    <div class="navigation panneau">
+    <div class="navigation ecran">
       {#if fusee.destination && attente && plan}
         <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
         <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{heureLocale(plan.depart)}</span></div>
         <div class="sous">En orbite en attendant le meilleur moment pour partir. Arrivée le {dateLocale(plan.arrivee)}.</div>
       {:else if fusee.destination}
         <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{coupe ? 'moteur coupé' : reste !== null ? duree(reste) : '—'}</span></div>
+        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen compte">{coupe ? 'MOTEUR COUPÉ' : resteDirect !== null ? dureePrecise(resteDirect) : '—'}</span></div>
         <!-- Frise du trajet : du départ à l'arrivée ; la fusée avance avec la route faite. -->
         {#if avancement !== null && fusee.trajet}
           <div class="frise">
@@ -181,7 +206,7 @@
       {/if}
     </div>
 
-    <div class="tableau">
+    <div class="tableau plaque-papier">
       <div class="ligne">
         <span class="etiquette-encre">MODULES</span>
         {#if enPanne.length}<span class="etiquette-encre cerise clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
@@ -422,8 +447,13 @@
     padding: 12px 12px 12px;
     border: 3px solid var(--couleur-encre);
     border-radius: 18px;
-    background: var(--couleur-papier-fonce);
+    /* Panneau d'instruments : tôle sarcelle, à plat. */
+    background: var(--sarcelle);
     box-shadow: var(--ombre);
+    color: var(--couleur-papier);
+  }
+  .console :global(figcaption b) {
+    color: var(--couleur-papier);
   }
   .console::before {
     content: '';
@@ -486,13 +516,18 @@
   }
   .regime {
     margin-left: auto;
-    font-size: 14px;
+    padding: 2px 8px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 6px;
+    background: var(--nuit);
+    color: #9cc7a4;
+    font-family: var(--police-chiffres);
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: var(--couleur-texte-discret);
   }
   .regime.actif {
-    color: var(--sarcelle);
+    color: var(--menthe);
   }
   .plaque-constructeur {
     align-self: center;
@@ -520,8 +555,58 @@
     padding: 0 2px;
   }
 
-  .navigation {
+  /* Écran de navigation : vitre sombre dans un cadre d'encre, texte vert lumineux, compte à rebours ambré. */
+  .ecran {
+    position: relative;
     padding: 8px 12px 9px;
+    border: 3px solid var(--couleur-encre);
+    border-radius: 12px;
+    background-color: var(--nuit);
+    background-image: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
+    box-shadow: 0 0 0 3px #0f1822 inset, 3px 3px 0 var(--couleur-encre);
+    color: var(--menthe);
+  }
+  .ecran .etiquette-encre {
+    background: none;
+    border: 1.5px solid var(--menthe);
+    color: var(--menthe);
+  }
+  .ecran .grand {
+    color: var(--couleur-papier);
+  }
+  .ecran .discret,
+  .ecran .sous,
+  .ecran .bouts small {
+    color: #9cc7a4;
+  }
+  .ecran .alerte {
+    color: #ff8a6e;
+  }
+  .compte {
+    font-family: var(--police-chiffres);
+    font-variant-numeric: tabular-nums;
+    font-size: 21px;
+    color: var(--moutarde);
+    letter-spacing: 1px;
+  }
+  .ecran .piste {
+    border-color: var(--menthe);
+    background: repeating-linear-gradient(90deg, transparent 0 8px, rgba(143, 207, 152, 0.25) 8px 10px);
+  }
+  .ecran .fait {
+    background: var(--menthe);
+  }
+  /* Plaque de papier vissée sur la console (voyants des blocs). */
+  .plaque-papier {
+    position: relative;
+    padding: 8px 10px 10px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--couleur-papier);
+    color: var(--couleur-encre);
+  }
+  .plaque-papier .lien span {
+    background: var(--couleur-papier);
   }
   .ligne {
     display: flex;

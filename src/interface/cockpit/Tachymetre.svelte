@@ -18,7 +18,15 @@
 
 <figure>
   <svg viewBox="0 0 120 120" role="img" aria-label={`Vitesse : ${nombre(valeur, 1)} km/s`}>
-    <circle cx="63" cy="63" r="56" fill="var(--couleur-encre)" />
+    <!-- Lunette boulonnée, puis le cadran (réduit à l'intérieur). -->
+    <circle cx="62.5" cy="62.5" r="57" fill="var(--couleur-encre)" />
+    <circle cx="60" cy="60" r="57" fill="var(--moutarde)" stroke="var(--couleur-encre)" stroke-width="3" />
+    {#each [45, 135, 225, 315] as v}
+      {@const r = (v * Math.PI) / 180}
+      <circle cx={60 + Math.cos(r) * 51.5} cy={60 + Math.sin(r) * 51.5} r="2.6" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="1.2" />
+      <line x1={60 + Math.cos(r) * 51.5 - 1.6} y1={60 + Math.sin(r) * 51.5} x2={60 + Math.cos(r) * 51.5 + 1.6} y2={60 + Math.sin(r) * 51.5} stroke="var(--couleur-encre)" stroke-width="0.9" />
+    {/each}
+    <g transform="translate(60 60) scale(0.8) translate(-60 -60)">
     <circle cx="60" cy="60" r="56" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="3.5" />
     <!-- Zone de croisière. -->
     {#if croisiere > 0}
@@ -40,6 +48,7 @@
       <path d="M 57.6 64 L 59 19 L 60 14 L 61 19 L 62.4 64 Z" fill="var(--cerise)" stroke="var(--couleur-encre)" stroke-width="1.6" stroke-linejoin="round" />
     </g>
     <circle cx="60" cy="60" r="5.5" fill="var(--couleur-encre)" />
+    </g>
   </svg>
   <figcaption><span class="etiquette-encre">VITESSE</span><b>{nombre(valeur, 1)}</b></figcaption>
 </figure>
@@ -54,7 +63,7 @@
   }
   svg {
     width: 100%;
-    max-width: 106px;
+    max-width: 112px;
   }
   .aiguille {
     transform-box: view-box;

@@ -29,6 +29,16 @@ export function duree(secondes: number): string {
   return `${Math.max(1, m)} min`
 }
 
+/** Durée précise pour les compteurs : « 04:12:33 », précédée des jours s'il y en a (« 258 j 04:12:33 »). */
+export function dureePrecise(secondes: number): string {
+  if (!Number.isFinite(secondes)) return '—'
+  const s = Math.max(0, Math.floor(secondes))
+  const j = Math.floor(s / 86_400)
+  const deux = (n: number) => String(n).padStart(2, '0')
+  const hms = `${deux(Math.floor((s % 86_400) / 3600))}:${deux(Math.floor((s % 3600) / 60))}:${deux(s % 60)}`
+  return j > 0 ? `${j} j ${hms}` : hms
+}
+
 /** Heure locale « HH:MM ». */
 export function heureLocale(t: number): string {
   const d = new Date(t)

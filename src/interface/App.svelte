@@ -1,6 +1,7 @@
 <script lang="ts">
   // Racine de l'interface : choisit l'écran à montrer.
   import { onMount } from 'svelte'
+  import AnnonceContrat from './ecrans/AnnonceContrat.svelte'
   import Fenetre from './ecrans/Fenetre.svelte'
   import Impression from './manuel/Impression.svelte'
   import Module from './ecrans/Module.svelte'
@@ -33,6 +34,8 @@
 
 {#if jeu.etat && jeu.rapport}
   <RapportVol />
+{:else if jeu.etat && jeu.annonces.length}
+  <AnnonceContrat />
 {/if}
 
 {#if jeu.impression}

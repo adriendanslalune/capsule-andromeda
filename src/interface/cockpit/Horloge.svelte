@@ -20,7 +20,15 @@
 
 <figure>
   <svg viewBox="0 0 120 120" role="img" aria-label={`${arrivee ? 'Arrivée' : 'Heure'} : ${heureLocale(instant)}`}>
-    <circle cx="63" cy="63" r="56" fill="var(--couleur-encre)" />
+    <!-- Lunette boulonnée, puis le cadran (réduit à l'intérieur). -->
+    <circle cx="62.5" cy="62.5" r="57" fill="var(--couleur-encre)" />
+    <circle cx="60" cy="60" r="57" fill="var(--moutarde)" stroke="var(--couleur-encre)" stroke-width="3" />
+    {#each [45, 135, 225, 315] as v}
+      {@const r = (v * Math.PI) / 180}
+      <circle cx={60 + Math.cos(r) * 51.5} cy={60 + Math.sin(r) * 51.5} r="2.6" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="1.2" />
+      <line x1={60 + Math.cos(r) * 51.5 - 1.6} y1={60 + Math.sin(r) * 51.5} x2={60 + Math.cos(r) * 51.5 + 1.6} y2={60 + Math.sin(r) * 51.5} stroke="var(--couleur-encre)" stroke-width="0.9" />
+    {/each}
+    <g transform="translate(60 60) scale(0.8) translate(-60 -60)">
     <circle cx="60" cy="60" r="56" fill={arrivee ? 'var(--couleur-papier)' : '#f6ead0'} stroke="var(--couleur-encre)" stroke-width="3.5" />
     {#each Array.from({ length: 60 }, (_, i) => i) as m}
       {@const p = point(m / 60, 48)}
@@ -38,6 +46,7 @@
     <line x1="60" y1="60" x2={aiguilleH.x} y2={aiguilleH.y} stroke="var(--couleur-encre)" stroke-width="4.5" stroke-linecap="round" />
     <line x1="60" y1="60" x2={aiguilleM.x} y2={aiguilleM.y} stroke="var(--cerise)" stroke-width="3" stroke-linecap="round" />
     <circle cx="60" cy="60" r="5" fill="var(--couleur-encre)" />
+    </g>
   </svg>
   <figcaption><span class="etiquette-encre">{arrivee ? 'ARRIVÉE' : 'HEURE'}</span><b>{heureLocale(instant)}</b></figcaption>
 </figure>
@@ -52,7 +61,7 @@
   }
   svg {
     width: 100%;
-    max-width: 106px;
+    max-width: 112px;
   }
   figcaption {
     display: flex;

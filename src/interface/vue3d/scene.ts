@@ -1,7 +1,8 @@
 // Vue 3D « dehors » : la fusée au centre, le vrai ciel, le Soleil, les planètes, la Lune, les satellites proches,
 // l'ISS et le visiteur, chacun à sa vraie position (en km) et à sa vraie taille. Les astres trop lointains pour être
-// vus restent signalés par un point lumineux. La caméra tourne autour de la fusée au doigt ; la même vue sert au
-// hublot du cockpit et à la vue extérieure en plein écran.
+// vus restent signalés par un point lumineux. Deux façons de regarder : de l'extérieur (la caméra tourne autour de
+// la fusée au doigt), ou de l'intérieur (hublot du cockpit : depuis le poste de pilotage, droit devant, dans l'axe du
+// cap ; la fusée elle-même n'est pas visible).
 
 import * as THREE from 'three'
 import terreUrl from '../../../assets/textures/terre_lc.jpg?url'
@@ -85,7 +86,11 @@ export class Vue3D {
   /** Position du visiteur à l'écran (pour savoir si on l'a touché), ou null s'il n'est pas visible. */
   visiteurEcran: { x: number; y: number } | null = null
 
-  constructor(toile: HTMLCanvasElement) {
+  /** Vue de l'intérieur (hublot du cockpit). */
+  private interieur: boolean
+
+  constructor(toile: HTMLCanvasElement, options: { interieur?: boolean } = {}) {
+    this.interieur = options.interieur ?? false
     this.rendu = new THREE.WebGLRenderer({ canvas: toile, antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: true })
     this.rendu.setPixelRatio(Math.min(2, window.devicePixelRatio || 1))
     this.camera = new THREE.PerspectiveCamera(55, 1, 1e-5, 1e13)
@@ -298,6 +303,19 @@ export class Vue3D {
     const mat = this.lueurVisiteur.material as THREE.PointsMaterial
     mat.opacity = detecte ? 0.4 + 0.6 * (Math.sin(horloge / 120) > 0 ? 1 : 0) : 0.55
 
+    if (this.interieur) {
+      // Depuis le poste de pilotage, à l'avant de la fusée, droit devant dans l'axe du cap.
+      this.fusee.visible = false
+      const a = (etat.fusee.cap * Math.PI) / 180
+      this.camera.position.set(0, 0, 0)
+      this.camera.up.set(0, 1, 0)
+      this.camera.lookAt(Math.cos(a), 0, -Math.sin(a))
+      this.reglerCiel(6.3, 1)
+      this.rendu.render(this.scene, this.camera)
+      this.etiqueter(etat, iss, pv, satellites)
+      return
+    }
+
     // Caméra (en douceur vers l'objectif de RECENTRER, s'il y en a un ; le zoom glisse en échelle logarithmique).
     if (this.objectif) {
       const o = this.objectif
@@ -318,7 +336,11 @@ export class Vue3D {
     this.reglerCiel(6.3, 1)
     this.rendu.render(this.scene, this.camera)
 
-    // Étiquettes et position du visiteur à l'écran.
+    this.etiqueter(etat, iss, pv, satellites)
+  }
+
+  /** Étiquettes des astres et position du visiteur à l'écran. */
+  private etiqueter(etat: EtatPartie, iss: THREE.Vector3, pv: THREE.Vector3, satellites: string[]) {
     const projeter = (p: THREE.Vector3) => {
       const q = p.clone().project(this.camera)
       if (q.z > 1 || Math.abs(q.x) > 1.05 || Math.abs(q.y) > 1.05) return null

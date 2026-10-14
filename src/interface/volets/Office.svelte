@@ -16,7 +16,7 @@
   } from '../../moteur/economie'
   import { choisirDestination, distance, optionsDeDepart, positionAstre, vitesse as vitesseMoteur } from '../../moteur/fusee'
   import { vitesseActuelle } from '../../moteur/partie'
-  import { duree, nombre, nomAstre, ua } from '../format'
+  import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
   let onglet = $state<'contrats' | 'atelier' | 'trophees'>('contrats')
@@ -108,6 +108,16 @@
       {:else}
         <p class="vide">Plus de contrats cette semaine. Nouveaux contrats lundi.</p>
       {/each}
+      {#if etat.contratsAccomplis?.length}
+        <h3>ACCOMPLIS ({etat.contratsAccomplis.length})</h3>
+        {#each etat.contratsAccomplis as c}
+          <article class="contrat accompli">
+            <span class="type">{c.type} · {dateLocale(c.t)}, {heureLocale(c.t)}</span>
+            <span class="texte">{c.texte}</span>
+            <div class="infos"><span class="prime">+{c.prime} CR</span><span class="paye">PAYÉ</span></div>
+          </article>
+        {/each}
+      {/if}
     {:else if onglet === 'atelier'}
       <h3>MOTEUR</h3>
       <article class="contrat">
@@ -316,6 +326,19 @@
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
+  }
+  .contrat.accompli {
+    opacity: 0.75;
+  }
+  .paye {
+    margin-left: auto;
+    padding: 0 8px;
+    border: 2.5px solid var(--cerise);
+    border-radius: 6px;
+    color: var(--cerise);
+    font-family: var(--police-titre);
+    font-size: 14px;
+    transform: rotate(-6deg);
   }
   .en-route {
     display: inline-flex;

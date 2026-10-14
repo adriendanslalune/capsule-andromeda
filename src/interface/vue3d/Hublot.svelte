@@ -1,10 +1,10 @@
 <script lang="ts">
-  // Hublot du cockpit : la vraie vue 3D (la fusée, les astres à leur vraie place), la même que la vue extérieure en
-  // plein écran, qui s'ouvre quand on touche le hublot.
+  // Hublot du cockpit : la vraie vue 3D depuis l'intérieur de la fusée, droit devant (les astres à leur vraie
+  // place et à leur vraie distance) ; le toucher ouvre la vue extérieure en plein écran.
   import { onMount } from 'svelte'
   import { nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
-  import { camera, Vue3D, type Etiquette } from './scene'
+  import { Vue3D, type Etiquette } from './scene'
 
   let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
@@ -14,14 +14,13 @@
   onMount(() => {
     let vue: Vue3D
     try {
-      vue = new Vue3D(toile)
+      vue = new Vue3D(toile, { interieur: true })
     } catch {
       indisponible = true
       return
     }
     const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight)
     ajuster()
-    if (!camera.placee && jeu.etat) vue.recentrer(jeu.etat.fusee.cap)
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
     let image = 0
