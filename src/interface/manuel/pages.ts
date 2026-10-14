@@ -12,6 +12,7 @@ import Fusibles from './chapitres/Fusibles.svelte'
 import Hydraulique from './chapitres/Hydraulique.svelte'
 import Lampes from './chapitres/Lampes.svelte'
 import Morse from './chapitres/Morse.svelte'
+import Navigation from './chapitres/Navigation.svelte'
 import Nomenclature from './chapitres/Nomenclature.svelte'
 import Notes from './chapitres/Notes.svelte'
 import PostePilotage from './chapitres/PostePilotage.svelte'
@@ -61,6 +62,7 @@ export const PAGES: PageManuel[] = [
   { composant: Visiteur2, chapitre: 'XVII', titre: 'Recherche du visiteur (suite)', suite: true },
   { composant: Visiteur3, chapitre: 'XVII', titre: 'Chasse : mode d’emploi pas à pas', suite: true },
   { composant: Telegrammes, chapitre: 'XVIII', titre: 'Télégrammes' },
+  { composant: Navigation, chapitre: 'XIX', titre: 'Navigation' },
   { composant: Notes, titre: 'Notes de bord' },
 ]
 

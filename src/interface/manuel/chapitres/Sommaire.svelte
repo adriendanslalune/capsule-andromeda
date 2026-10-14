@@ -37,7 +37,8 @@
   .sommaire td {
     border: 0;
     border-bottom: 1px dotted #1d1916;
-    padding: 1px 4px;
+    padding: 0 4px;
+    line-height: 1.3;
   }
   .num {
     width: 40px;

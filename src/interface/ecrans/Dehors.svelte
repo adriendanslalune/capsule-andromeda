@@ -19,6 +19,7 @@
   let erreur = $state<string | null>(null)
   let photo = $state<string | null>(null)
   let flash = $state(false)
+  let eblouissement = $state(0)
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
@@ -41,8 +42,10 @@
     const boucle = (horloge: number) => {
       if (vue && jeu.etat) {
         const a = jeu.affichage()
+        vue.filtreSolaire = jeu.filtreSolaire
         vue.dessiner(a.etat, a.t, horloge)
         etiquettes = vue.etiquettes
+        eblouissement = vue.eblouissement
       }
       image = requestAnimationFrame(boucle)
     }
@@ -112,6 +115,7 @@
     {#each etiquettes as e}
       <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
     {/each}
+    <div class="eblouissement" style={`opacity: ${eblouissement}`}></div>
     {#if flash}<div class="flash"></div>{/if}
   </div>
 
@@ -125,6 +129,7 @@
 
   <footer>
     <button class="bouton clair" onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
+    <button class="bouton" class:filtre-actif={jeu.filtreSolaire} aria-pressed={jeu.filtreSolaire} onclick={() => (jeu.filtreSolaire = !jeu.filtreSolaire)}>☀ FILTRE SOLAIRE</button>
     {#if peutPhotographier}<button class="photo bouton cerise" onclick={photographier}>PHOTO</button>{/if}
   </footer>
 
@@ -258,5 +263,16 @@
     border: 2px solid var(--couleur-encre);
     background: none;
     font-weight: 700;
+  }
+  .eblouissement {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, #ffffff 0 30%, #fff6d8 60%, #ffe9a8);
+    transition: opacity 0.3s linear;
+  }
+  .filtre-actif {
+    background: var(--moutarde);
+    color: var(--couleur-encre);
   }
 </style>

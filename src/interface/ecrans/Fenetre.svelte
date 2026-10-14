@@ -226,7 +226,7 @@
     <div class="rubrique"><span>INSTRUMENTS DE BORD</span></div>
     <div class="lucarnes">
       <div class="lucarne"><small>ROUTE</small><b>{km(fusee.distanceParcourue)}</b></div>
-      <div class="lucarne"><small>SOLEIL</small><b>{nombre(Math.hypot(fusee.position.x, fusee.position.y), 3)} UA</b></div>
+      <div class="lucarne"><small>SOLEIL</small><b>{nombre(Math.hypot(fusee.position.x + (fusee.ecartOrbite?.x ?? 0), fusee.position.y + (fusee.ecartOrbite?.y ?? 0)), 3)} UA</b></div>
       <div class="lucarne"><small>RADIO TERRE</small><b>{delaiRadio}</b></div>
       <div class="lucarne en-ligne">
         <small><span class="antenne" aria-hidden="true"></span>EN LIGNE{#if reseau.horsReseau} · <i>FLOTTE SIMULÉE</i>{/if}</small>

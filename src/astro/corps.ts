@@ -49,6 +49,7 @@ export function planeteDe(nom: NomCorps): NomPlanete {
 
 /** Position héliocentrique du corps (écliptique J2000, UA). */
 export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
+  if (nom === 'Soleil') return { x: 0, y: 0, z: 0 }
   if (estPlanete(nom)) return positionPlanete(nom, t)
   if (nom === 'Lune') return positionLune(t)
   if (nom === 'ISS') return ajouter(positionPlanete('Terre', t), multiplier(positionISSGeocentrique(t), 1 / UA_KM))

@@ -24,6 +24,7 @@ import {
   SEUIL_ARRIVEE,
   SEUIL_ARRIVEE_LUNE,
   SEUIL_ARRIVEE_POINT_KM,
+  SEUIL_ARRIVEE_SOLEIL,
   TAUX_VIRAGE,
   VITESSE_BASE,
   AMARRAGE_ISS_KM,
@@ -198,6 +199,7 @@ export function ecartAngle(a: number, b: number): number {
 export function seuilArrivee(d: Destination): number {
   if (d.type === 'visiteur') return enUA(CHASSE.distanceApprocheKm)
   if (d.type === 'point') return enUA(SEUIL_ARRIVEE_POINT_KM)
+  if (d.astre === 'Soleil') return SEUIL_ARRIVEE_SOLEIL
   if (estPlanete(d.astre)) return SEUIL_ARRIVEE
   return Math.min(SEUIL_ARRIVEE_LUNE, enUA(demiGrandAxeAutourDeLaPlanete(d.astre)! / 4))
 }
@@ -207,7 +209,8 @@ export function seuilArrivee(d: Destination): number {
 
 /** Système planétaire où se trouve la fusée (en orbite autour d'un de ses corps, ou dans sa sphère d'influence). */
 export function systemeDeLaFusee(fusee: EtatFusee, t: number): NomPlanete | null {
-  if (fusee.orbite) return planeteDe(fusee.orbite)
+  // Autour du Soleil, on n'est dans aucun système planétaire.
+  if (fusee.orbite) return fusee.orbite === 'Soleil' ? null : planeteDe(fusee.orbite)
   let meilleure: NomPlanete | null = null
   let meilleurRapport = 1
   for (const p of NOMS_PLANETES) {
@@ -219,7 +222,7 @@ export function systemeDeLaFusee(fusee: EtatFusee, t: number): NomPlanete | null
 
 /** Repère du trajet : la planète si la fusée et la destination sont dans son système, sinon null (Soleil). */
 export function repereDuTrajet(fusee: EtatFusee, dest: Destination, t: number): NomPlanete | null {
-  if (dest.type === 'point') return null
+  if (dest.type === 'point' || dest.astre === 'Soleil') return null
   const systeme = systemeDeLaFusee(fusee, t)
   return systeme !== null && systeme === planeteDe(dest.astre) ? systeme : null
 }
@@ -265,7 +268,7 @@ export function calculerRencontre(position: Point2, dest: Destination, repere: N
 
   // Pas de recherche : assez fin pour suivre le mouvement de la cible dans le repère.
   let periode = Infinity
-  if (dest.type !== 'point') {
+  if (dest.type !== 'point' && dest.astre !== 'Soleil') {
     periode = periodeOrbitale(repere || estPlanete(dest.astre) ? dest.astre : planeteDe(dest.astre)) * 86_400
   }
   const directe = d0 / v

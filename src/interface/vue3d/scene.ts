@@ -81,6 +81,11 @@ export class Vue3D {
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
   private hauteur = 1
+  /** Filtre solaire demandé (bouton) ; l'effet suit en douceur (0 : sans filtre, 1 : filtre en place). */
+  filtreSolaire = false
+  private filtre = 0
+  /** Éblouissement près du Soleil (0 à 1), à rendre par un voile clair sur l'image ; nul derrière le filtre. */
+  eblouissement = 0
   /** Les autres fusées (bots, puis vrais joueurs) : point de couleur, et modèle quand on est tout près. */
   private autres = new Map<string, { point: THREE.Points; modele: THREE.Group | null; ecran: THREE.Vector3; nom: string; couleur: string }>()
 
@@ -101,6 +106,9 @@ export class Vue3D {
     this.interieur = options.interieur ?? false
     this.rendu = new THREE.WebGLRenderer({ canvas: toile, antialias: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: true })
     this.rendu.setPixelRatio(Math.min(2, window.devicePixelRatio || 1))
+    // Exposition réglable (filtre solaire) : à 1, l'image est inchangée.
+    this.rendu.toneMapping = THREE.LinearToneMapping
+    this.rendu.toneMappingExposure = 1
     this.camera = new THREE.PerspectiveCamera(55, 1, 1e-5, 1e13)
     this.scene.background = new THREE.Color(0x14202d)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.12))
@@ -363,7 +371,7 @@ export class Vue3D {
         const a = (etat.fusee.cap * Math.PI) / 180
         this.camera.lookAt(Math.cos(a), 0, -Math.sin(a))
       }
-      this.reglerCiel(6.3, 1)
+      this.appliquerSoleil(origine)
       this.rendu.render(this.scene, this.camera)
       this.etiqueter(etat, iss, pv, satellites)
       return
@@ -386,10 +394,31 @@ export class Vue3D {
     ).multiplyScalar(this.distance)
     this.camera.position.copy(c)
     this.camera.lookAt(0, 0, 0)
-    this.reglerCiel(6.3, 1)
+    this.appliquerSoleil(origine)
     this.rendu.render(this.scene, this.camera)
 
     this.etiqueter(etat, iss, pv, satellites)
+  }
+
+  /**
+   * Le Soleil de près : l'image s'éclaire de plus en plus (éblouissement, à partir de 0,6 UA) ; le filtre solaire
+   * assombrit tout et ne laisse voir qu'une énorme boule blanche. Passage en douceur de l'un à l'autre.
+   */
+  private appliquerSoleil(origine: Vecteur3) {
+    this.filtre += ((this.filtreSolaire ? 1 : 0) - this.filtre) * 0.06
+    if (Math.abs((this.filtreSolaire ? 1 : 0) - this.filtre) < 0.002) this.filtre = this.filtreSolaire ? 1 : 0
+    const f = this.filtre
+    const dUA = Math.max(1e-6, Math.hypot(origine.x, origine.y, origine.z) / UA_KM)
+    const proche = Math.min(1, Math.max(0, Math.log10(0.6 / dUA) / Math.log10(0.6 / 0.02)))
+    this.eblouissement = 0.92 * proche ** 1.4 * (1 - f)
+    ;(this.scene.background as THREE.Color).setHex(0x14202d).lerp(new THREE.Color(0x000000), f)
+    // Derrière le filtre, l'exposition tombe : tout s'éteint, sauf le Soleil, rendu d'autant plus intense (blanc).
+    const exposition = 1 - 0.96 * f
+    this.rendu.toneMappingExposure = exposition
+    const soleil = this.astres.get('Soleil')
+    if (soleil) (soleil.maillage.material as THREE.MeshBasicMaterial).color.setHex(0xffd27a).lerp(new THREE.Color(0xffffff), f).multiplyScalar(1 / exposition)
+    // Derrière le filtre, les étoiles disparaissent.
+    this.reglerCiel(6.3 - 9 * f, 1)
   }
 
   /** Étiquettes des astres et position du visiteur à l'écran. */

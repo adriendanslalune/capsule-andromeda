@@ -104,6 +104,7 @@ export function semaineUTC(t: number): string {
 
 /** Nom d'un lieu dans une phrase (« la Lune », « la Terre », « l'ISS », « Titan »). */
 function lieu(destination: NomCorps): string {
+  if (destination === 'Soleil') return 'le Soleil'
   if (destination === 'Lune') return 'la Lune'
   if (destination === 'Terre') return 'la Terre'
   if (destination === 'ISS') return 'l’ISS'
@@ -112,7 +113,7 @@ function lieu(destination: NomCorps): string {
 
 /** Élision devant une voyelle : « près de Obéron » → « près d'Obéron ». */
 function elider(texte: string): string {
-  return texte.replace(/(^|\s)de ([AEIOUYÉÈÊÂÎÔ])/g, '$1d’$2')
+  return texte.replace(/(^|\s)de ([AEIOUYÉÈÊÂÎÔ])/g, '$1d’$2').replace(/(^|\s)de le /g, '$1du ').replace(/(^|\s|’)à le /g, '$1au ')
 }
 
 /**
@@ -125,9 +126,10 @@ export function contratsDeLaSemaine(lundi: string): OffreContrat[] {
   const offres: OffreContrat[] = []
   const destinations = new Set<NomCorps>()
   while (offres.length < CONTRATS.parSemaine) {
-    const systeme = choisirAuHasard(hasard, NOMS_PLANETES)
+    // Une chance sur 9 : le Soleil ; sinon un système planétaire.
+    const systeme = choisirAuHasard(hasard, [...NOMS_PLANETES, 'Soleil'] as const)
     // La Terre, c'est l'ISS : un contrat pour la Terre se remplit à l'amarrage.
-    const destination = lieuDArrivee(choisirAuHasard(hasard, corpsDuSysteme(systeme)))
+    const destination = systeme === 'Soleil' ? 'Soleil' : lieuDArrivee(choisirAuHasard(hasard, corpsDuSysteme(systeme)))
     const modele = TYPES_CONTRATS[entierAuHasard(hasard, TYPES_CONTRATS.length)]
     const objet = choisirAuHasard(hasard, modele.objets)
     if (destinations.has(destination)) continue

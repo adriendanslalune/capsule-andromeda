@@ -284,3 +284,10 @@ avec un contact à moins de 0,01 UA).*
 - À l'arrivée, la fusée s'amarre à l'ISS, à 40 m de son module d'amarrage (`AMARRAGE_ISS_KM`).
 - Les contrats de la semaine ne visent plus « la Terre » mais l'ISS ; un contrat « Terre » d'une ancienne partie se
   remplit à l'amarrage.
+
+## 10. Le Soleil, destination (décisions d'Adrien du 14/10/2026)
+- Le Soleil se choisit sur la carte comme un astre ; arrivée à 0,02 UA (`SEUIL_ARRIVEE_SOLEIL`, ~3 millions de km).
+  En orbite solaire, la fusée n'est dans aucun système planétaire. Pas de fenêtre de tir vers le Soleil.
+- Contrats : à chaque tirage, une chance sur 9 pour le Soleil (sinon un des 8 systèmes).
+- Hublot et vue 3D : éblouissement croissant à moins de 0,6 UA ; bouton FILTRE (filtre solaire) : l'image
+  s'assombrit en douceur, le Soleil devient une boule blanche ; le retirer revient en douceur.

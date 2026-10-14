@@ -58,6 +58,8 @@ class Jeu {
   pageManuel = $state(0)
   /** Page affichée dans le poste de pilotage. */
   page = $state<PagePoste>('cockpit')
+  /** Filtre solaire du hublot et de la vue extérieure (lunettes de soleil). */
+  filtreSolaire = $state(false)
   /** Vrai pendant l'impression du manuel. */
   impression = $state(false)
 

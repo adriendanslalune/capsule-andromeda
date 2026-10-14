@@ -2,7 +2,6 @@
 // tient leur place. Seul ce fichier changera quand le serveur existera : il donnera alors les vraies fusées, avec les
 // mêmes champs.
 
-import { planeteDe } from '../astro/corps'
 import type { Vecteur3 } from '../astro/vecteur'
 import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
@@ -44,7 +43,7 @@ export interface Presence {
 }
 
 export function presence(etat: EtatPartie, t: number): Presence {
-  const systeme = etat.fusee.orbite ? planeteDe(etat.fusee.orbite) : systemeDeLaFusee(etat.fusee, t)
+  const systeme = systemeDeLaFusee(etat.fusee, t)
   const connectes = autresFusees(t).filter((f) => f.enLigne)
   return {
     total: 1 + connectes.length,

@@ -173,19 +173,20 @@ describe('contrats de la semaine', () => {
     expect(contratsDeLaSemaine('2026-10-19')).not.toEqual(a)
   })
 
-  it('chaque système sort environ une fois sur 8, quel que soit son nombre de satellites', () => {
+  it('chaque système (et le Soleil) sort environ une fois sur 9, quel que soit son nombre de satellites', () => {
     const compte: Record<string, number> = {}
     let total = 0
     for (let s = 0; s < 300; s++) {
       for (const c of contratsDeLaSemaine(semaineUTC(T0 + s * SEMAINE))) {
-        compte[planeteDe(c.destination)] = (compte[planeteDe(c.destination)] ?? 0) + 1
+        const systeme = c.destination === 'Soleil' ? 'Soleil' : planeteDe(c.destination)
+        compte[systeme] = (compte[systeme] ?? 0) + 1
         total++
       }
     }
-    for (const p of NOMS_PLANETES) {
-      // Mercure et Vénus n'ont qu'un corps : le refus des doublons d'une même semaine les rend un peu plus rares.
-      expect(compte[p] / total, p).toBeGreaterThan(0.08)
-      expect(compte[p] / total, p).toBeLessThan(0.17)
+    for (const p of [...NOMS_PLANETES, 'Soleil']) {
+      // Mercure, Vénus et le Soleil n'ont qu'un corps : le refus des doublons d'une même semaine les rend un peu plus rares.
+      expect(compte[p] / total, p).toBeGreaterThan(0.07)
+      expect(compte[p] / total, p).toBeLessThan(0.16)
     }
   })
 

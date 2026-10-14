@@ -124,7 +124,7 @@
   // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
   type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean }
   const marques = $derived.by(() => {
-    const l: Marque[] = []
+    const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: 9, couleur: '#f2b53a', etiquette: true }]
     for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
@@ -312,10 +312,6 @@
       {@const d = arcVisible({ x: 0, y: 0 }, Math.hypot(p.x, p.y))}
       {#if d}<path {d} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />{/if}
     {/each}
-    {#if true}
-      {@const s = ecran({ x: 0, y: 0 })}
-      <circle cx={s.x} cy={s.y} r="9" fill="#f2b53a" stroke={PLAN.trait} stroke-width="2" />
-    {/if}
     {#each marques as m}
       {@const s = ecran(m.p)}
       {#if s.x > -40 && s.x < L + 40 && s.y > -40 && s.y < Hc + 40}

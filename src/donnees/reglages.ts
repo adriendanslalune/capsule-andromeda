@@ -28,6 +28,11 @@ export const SEUIL_ARRIVEE_POINT_KM = 1000
  * destination. Distance de la fusée amarrée au module d'amarrage (km).
  */
 export const AMARRAGE_ISS_KM = 0.04
+/**
+ * Distance d'arrivée (UA) : Soleil, destination comme une autre (décision d'Adrien du 14/10/2026) : environ
+ * 3 millions de km du centre, quatre rayons solaires.
+ */
+export const SEUIL_ARRIVEE_SOLEIL = 0.02
 /** Distance d'arrivée (UA) : Lune. */
 export const SEUIL_ARRIVEE_LUNE = 0.0002
 

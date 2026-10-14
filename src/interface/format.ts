@@ -52,6 +52,7 @@ export function dateLocale(t: number): string {
 
 /** Nom d'un astre dans une phrase (« la Lune », « l'ISS », « Titan »). */
 export function nomAstre(nom: string): string {
+  if (nom === 'Soleil') return 'le Soleil'
   if (nom === 'Lune') return 'la Lune'
   if (nom === 'Terre') return 'la Terre'
   if (nom === 'ISS') return 'l’ISS'
