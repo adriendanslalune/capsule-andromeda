@@ -120,6 +120,7 @@
 </script>
 
 <main>
+  <div class="defile">
   <!-- En-tête : nom de la fusée, compteur de crédits, saison, son. -->
   <header>
     <div class="identite">
@@ -168,9 +169,11 @@
       <span class="regime" class:actif={!coupe && vitesse > 0}>{regime}</span>
     </div>
     <div class="cadrans">
-      <Tachymetre valeur={vitesse} {croisiere} />
-      <Compas cap={fusee.cap} {vers} />
-      <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
+      <div class="grand-cadran"><Tachymetre valeur={vitesse} {croisiere} /></div>
+      <div class="petits-cadrans">
+        <Compas cap={fusee.cap} {vers} />
+        <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
+      </div>
     </div>
 
     <div class="navigation ecran">
@@ -251,12 +254,14 @@
 
   <!-- Téléscripteur. -->
   <section class="telex" aria-label="Téléscripteur">
-    {#each jeu.telex.slice(-1) as l}
+    {#each jeu.telex.slice(-6).reverse() as l}
       <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
     {/each}
   </section>
 
-  <!-- Les cinq boutons du bas : chacun avec son dessin. -->
+  </div>
+
+  <!-- Les cinq boutons du bas, toujours fixés : chacun avec son dessin. -->
   <nav>
     <button class="bouton cerise" onclick={() => (jeu.volet = 'carte')}><Icone nom="carte" /><span>CARTE</span></button>
     <button class="bouton moutarde" onclick={() => { jeu.ongletOffice = 'contrats'; jeu.volet = 'office' }}><Icone nom="contrats" /><span>CONTRATS</span></button>
@@ -272,11 +277,18 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    overflow-y: auto;
-    padding: 0 var(--espace) 10px;
   }
-  main > :global(*) {
+  /* Tout le cockpit défile au-dessus des boutons, qui restent fixés. */
+  .defile {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 var(--espace) 12px;
+  }
+  .defile > :global(*) {
     flex: none;
   }
 
@@ -374,13 +386,11 @@
   /* Hublot : épais cadre tôle boulonné, vitre cernée d'encre. */
   .hublot {
     position: relative;
-    flex: 1 1 auto !important;
-    min-height: 104px;
-    max-height: 200px;
+    height: clamp(130px, 24vh, 210px);
     padding: 12px;
     border: 3px solid var(--couleur-encre);
     border-radius: 34px;
-    background: var(--traits), var(--tole);
+    background: var(--traits), var(--couleur-papier-fonce);
     box-shadow: var(--ombre);
     cursor: pointer;
   }
@@ -462,26 +472,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 10px 10px 10px;
-    border: 3px solid var(--couleur-encre);
-    border-radius: 18px;
-    /* Panneau d'instruments : tôle peinte, hachures fines. */
-    background: var(--hachures-claires), var(--tole);
-    box-shadow: var(--ombre);
-    color: var(--couleur-papier);
-  }
-  .console :global(figcaption b) {
-    color: var(--couleur-papier);
-  }
-  .console::before {
-    content: '';
-    position: absolute;
-    inset: 5px;
-    pointer-events: none;
-    --vis: radial-gradient(circle, var(--couleur-papier) 0 1.6px, var(--couleur-encre) 2px 3px, transparent 3.4px);
-    background: var(--vis) left top / 8px 8px no-repeat, var(--vis) right top / 8px 8px no-repeat,
-      var(--vis) left bottom / 8px 8px no-repeat, var(--vis) right bottom / 8px 8px no-repeat;
+    gap: 10px;
   }
   /* Bouton MOTEUR : interrupteur à bascule, ON à gauche, OFF à droite. */
   .moteur {
@@ -569,9 +560,28 @@
   }
   .cadrans {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1.55fr 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+  .grand-cadran :global(svg) {
+    max-width: 200px;
+  }
+  .petits-cadrans {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
-    padding: 0 2px;
+  }
+  .petits-cadrans :global(figure) {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .petits-cadrans :global(svg) {
+    max-width: 82px;
+  }
+  .petits-cadrans :global(figcaption) {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   /* Écran de navigation : vitre sombre dans un cadre d'encre, texte vert lumineux, compte à rebours ambré. */
@@ -657,14 +667,9 @@
   /* Plaque de papier vissée sur la console (voyants des blocs). */
   .plaque-papier {
     position: relative;
-    padding: 8px 10px 10px;
-    border: var(--trait) solid var(--couleur-encre);
-    border-radius: 10px;
-    background: var(--points), var(--couleur-papier);
-    color: var(--couleur-encre);
   }
   .plaque-papier .lien span {
-    background: var(--couleur-papier);
+    background: var(--couleur-fond);
   }
   .ligne {
     display: flex;
@@ -905,11 +910,9 @@
   }
 
   /* Téléscripteur. */
+  /* Journal de bord : les derniers messages, le plus récent en haut. */
   .telex {
     padding: 4px 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     border-top: 2px dashed var(--couleur-encre);
     border-bottom: 2px dashed var(--couleur-encre);
     font-family: var(--police-machine);
@@ -924,10 +927,13 @@
   }
 
   nav {
+    flex: none;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 7px;
-    margin-top: 2px;
+    padding: 8px var(--espace) 10px;
+    border-top: 3px solid var(--couleur-encre);
+    background: var(--points), var(--couleur-fond);
   }
   nav button {
     height: 56px;

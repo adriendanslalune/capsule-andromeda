@@ -27,6 +27,8 @@
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
+  /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
+  const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
   const L = 362
   const Hc = 400
   const COULEURS: Record<string, string> = {
@@ -59,7 +61,7 @@
   const ecran = (p: Point2) => ({ x: L / 2 + (p.x - centre.x) * k, y: Hc / 2 - (p.y - centre.y) * k })
   const monde = (sx: number, sy: number): Point2 => ({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k })
 
-  function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false }
+  function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false; vue = null }
 
   // TRAJECTOIRE : cadre la fusée, le point de rencontre et la cible, et les suit tant qu'on ne touche pas la carte.
   let suivi = $state(false)
@@ -103,14 +105,19 @@
   /** Taille d'une case, en UA (ou en km quand c'est petit). */
   const echelle = $derived(pasGrille >= 0.01 ? `${nombre(pasGrille, pasGrille < 1 ? (pasGrille < 0.1 ? 2 : 1) : 0)} UA` : `${Math.round(pasGrille * UA_KM).toLocaleString('fr-FR')} km`)
 
-  const raccourcis = [
-    { nom: 'INTÉRIEUR', f: () => viser({ x: 0, y: 0 }, 2.2) },
-    { nom: 'JUPITER', f: () => viser({ x: 0, y: 0 }, 6) },
-    { nom: 'EXTÉRIEUR', f: () => viser({ x: 0, y: 0 }, 32) },
-    { nom: 'C-58', f: () => viser({ ...fusee.position }, Math.min(demi, 0.05)) },
-  ]
-  // Tracés de chasse (cercles du ping, droites du télescope) et outils pour les tracer.
-  let tracesVisibles = $state(false)
+  /** Vues de la carte : la fusée de près, le trajet (suivi), les planètes intérieures, tout le système. */
+  let vue = $state<'fusee' | 'trajet' | 'planetes' | 'tout' | null>(null)
+  function choisirVue(v: 'fusee' | 'trajet' | 'planetes' | 'tout') {
+    if (v === 'fusee') viser({ ...fusee.position }, Math.min(demi, 0.05))
+    else if (v === 'planetes') viser({ x: 0, y: 0 }, 2.2)
+    else if (v === 'tout') viser({ x: 0, y: 0 }, 32)
+    else { suivi = true; cadrerTrajectoire() }
+    vue = v
+  }
+  /** Onglet du panneau du bas : navigation (destination) ou chasse (radio, ping, tracés). */
+  let mode = $state<'navigation' | 'chasse'>('navigation')
+  // Tracés de chasse (cercles du ping, droites du télescope) : visibles dans l'onglet CHASSE.
+  const tracesVisibles = $derived(mode === 'chasse')
 
   // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
   type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean }
@@ -162,6 +169,7 @@
   }
   function appuyer(e: PointerEvent) {
     suivi = false
+    vue = null
     svg.setPointerCapture(e.pointerId)
     doigts.set(e.pointerId, local(e))
     deplace = false
@@ -198,6 +206,7 @@
     }
     const w = monde(p.x, p.y)
     choix = meilleur ? { type: 'astre', astre: meilleur.nom } : { type: 'point', x: w.x, y: w.y }
+    mode = 'navigation'
   }
   function molette(e: WheelEvent) {
     suivi = false
@@ -231,31 +240,33 @@
 </script>
 
 <div class="carte">
-  <div class="raccourcis">
-    {#if fusee.destination}<button class="trajectoire" class:actif={suivi} onclick={() => { suivi = true; cadrerTrajectoire() }}>TRAJECTOIRE</button>{/if}
-    {#each raccourcis as r}<button onclick={r.f}>{r.nom}</button>{/each}
-    <button class:actif={tracesVisibles} class="traces" aria-pressed={tracesVisibles} onclick={() => (tracesVisibles = !tracesVisibles)}>TRACÉS DE CHASSE</button>
+  <!-- Vues de la carte. -->
+  <div class="vues" role="group" aria-label="Vue de la carte">
+    <button class:actif={vue === 'fusee'} onclick={() => choisirVue('fusee')}>FUSÉE</button>
+    <button class:actif={vue === 'trajet'} disabled={!fusee.destination} onclick={() => choisirVue('trajet')}>TRAJET</button>
+    <button class:actif={vue === 'planetes'} onclick={() => choisirVue('planetes')}>PLANÈTES</button>
+    <button class:actif={vue === 'tout'} onclick={() => choisirVue('tout')}>TOUT</button>
   </div>
 
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
-    <rect width={L} height={Hc} fill="#fffaf0" />
+    <rect width={L} height={Hc} fill={PLAN.fond} />
     <!-- Quadrillage. -->
-    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke="#2c6fb0" stroke-width="0.7" opacity=".28" />{/each}
-    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke="#2c6fb0" stroke-width="0.7" opacity=".28" />{/each}
+    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
+    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
     {#each NOMS_PLANETES as nom}
       {@const c = ecran({ x: 0, y: 0 })}
-      <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke="#2b2723" stroke-width="0.8" opacity=".35" />
+      <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />
     {/each}
     {#if true}
       {@const s = ecran({ x: 0, y: 0 })}
-      <circle cx={s.x} cy={s.y} r="9" fill="#f2b53a" stroke="#2a1e17" stroke-width="2.5" />
+      <circle cx={s.x} cy={s.y} r="9" fill="#f2b53a" stroke={PLAN.trait} stroke-width="2" />
     {/if}
     {#each marques as m}
       {@const s = ecran(m.p)}
       {#if s.x > -40 && s.x < L + 40 && s.y > -40 && s.y < Hc + 40}
-        <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke="#2b2723" stroke-width="1.5" />
-        {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="12" font-weight="600" fill="#2b2723">{m.nom.toUpperCase()}</text>{/if}
+        <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke={PLAN.trait} stroke-width="1.5" />
+        {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
       {/if}
     {/each}
 
@@ -263,49 +274,57 @@
       {#each jeu.traces as tr}
         {@const s = ecran(tr)}
         {#if tr.type === 'cercle'}
-          <circle cx={s.x} cy={s.y} r={tr.rayon * k} fill="none" stroke="#3c6fa8" stroke-width="1.5" stroke-dasharray="6 4" />
+          <circle cx={s.x} cy={s.y} r={tr.rayon * k} fill="none" stroke={PLAN.chasse} stroke-width="1.6" stroke-dasharray="6 4" />
         {:else}
           {@const a = (tr.angle * Math.PI) / 180}
-          <line x1={s.x} y1={s.y} x2={s.x + Math.cos(a) * 2000} y2={s.y - Math.sin(a) * 2000} stroke="#3c6fa8" stroke-width="1.5" stroke-dasharray="6 4" />
+          <line x1={s.x} y1={s.y} x2={s.x + Math.cos(a) * 2000} y2={s.y - Math.sin(a) * 2000} stroke={PLAN.chasse} stroke-width="1.6" stroke-dasharray="6 4" />
         {/if}
       {/each}
     {/if}
 
     {#if visiteur}
       {@const s = ecran(visiteur)}
-      <ellipse cx={s.x} cy={s.y} rx="9" ry="4.5" fill="#6fbf73" stroke="#2b2723" stroke-width="1.5" />
+      <ellipse cx={s.x} cy={s.y} rx="9" ry="4.5" fill="#8fcf98" stroke={PLAN.trait} stroke-width="1.5" />
     {/if}
 
     {#if fusee.destination}
       {@const cible = ecran(positionDestination(fusee.destination, tl))}
       {@const point = plan ? ecran(plan.point) : cible}
-      <path d={`M ${posFusee.x} ${posFusee.y} L ${point.x} ${point.y}`} fill="none" stroke="#e0743f" stroke-width="2" stroke-dasharray="7 5" />
-      <circle cx={point.x} cy={point.y} r="6" fill="none" stroke="#e0743f" stroke-width="2" />
-      <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke="#2b2723" stroke-width="1.5" stroke-dasharray="3 3" />
+      <path d={`M ${posFusee.x} ${posFusee.y} L ${point.x} ${point.y}`} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />
+      <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
+      <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
     {/if}
     {#if choix}
       {@const s = ecran(positionDestination(choix, tl))}
-      <circle cx={s.x} cy={s.y} r="12" fill="none" stroke="#c9452f" stroke-width="2.5" />
+      <circle cx={s.x} cy={s.y} r="12" fill="none" stroke={PLAN.route} stroke-width="2.5" />
     {/if}
 
     <g transform={`translate(${posFusee.x} ${posFusee.y})`}>
-      <circle r="40" fill="none" stroke="#2b2723" stroke-width="1" opacity=".5" />
+      <circle r="40" fill="none" stroke={PLAN.trait} stroke-width="1" opacity=".6" />
       {#each graduations as g}
         {@const a = (g * Math.PI) / 180}
-        <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke="#2b2723" stroke-width={g % 90 === 0 ? 2 : 1} />
-        {#if g % 90 === 0}<text x={Math.cos(a) * 50} y={-Math.sin(a) * 50 + 4} text-anchor="middle" font-size="10" font-family="var(--police-chiffres)" fill="#2b2723">{g}</text>{/if}
+        <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 2 : 1} />
+        {#if g % 90 === 0}<text x={Math.cos(a) * 50} y={-Math.sin(a) * 50 + 4} text-anchor="middle" font-size="10" font-family="var(--police-chiffres)" fill={PLAN.trait}>{g}</text>{/if}
       {/each}
-      <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e0743f" stroke="#2b2723" stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
+      <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e04b37" stroke={PLAN.trait} stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
 
-    <g transform={`translate(8 ${Hc - 24})`}>
-      <rect width="14" height="14" fill="none" stroke="#2c6fb0" stroke-width="1.5" />
-      <text x="20" y="11.5" font-size="12" font-weight="700" font-family="var(--police-chiffres)" fill="#2a1e17">= {echelle}</text>
+    <!-- Cartouche du plan, comme sur un bleu d'architecte. -->
+    <g transform={`translate(${L - 150} ${Hc - 40})`}>
+      <rect width="144" height="34" fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.2" />
+      <line x1="0" y1="14" x2="144" y2="14" stroke={PLAN.trait} stroke-width="0.8" />
+      <text x="6" y="10.5" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>O.N.V.I. — PLAN DE VOL C-58</text>
+      <rect x="6" y="19" width="10" height="10" fill="none" stroke={PLAN.trait} stroke-width="1.2" />
+      <text x="22" y="28" font-size="10" font-family="var(--police-machine)" fill={PLAN.trait}>= {echelle}</text>
     </g>
   </svg>
 
+  <div class="onglets" role="tablist">
+    <button role="tab" aria-selected={mode === 'navigation'} class:actif={mode === 'navigation'} onclick={() => (mode = 'navigation')}>NAVIGATION</button>
+    <button role="tab" aria-selected={mode === 'chasse'} class:actif={mode === 'chasse'} onclick={() => (mode = 'chasse')}>CHASSE</button>
+  </div>
   <div class="panneau">
-    {#if choix && options}
+    {#if mode === 'navigation' && choix && options}
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
       <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
@@ -316,7 +335,7 @@
       {#if options.fenetre}
         <button class="action" onclick={() => partir(true)}>FENÊTRE DE TIR — départ le {dateLocale(options.fenetre.depart)} à {heureLocale(options.fenetre.depart)}<br /><small>arrivée le {dateLocale(options.fenetre.arrivee)} à {heureLocale(options.fenetre.arrivee)}</small></button>
       {/if}
-    {:else}
+    {:else if mode === 'navigation'}
       <div class="ligne">
         <span class="etiquette">DESTINATION</span>
         {#if fusee.destination}<button class="lien" onclick={() => jeu.remplacer({ ...etat, fusee: annulerDestination(fusee) }, ['DESTINATION ANNULÉE. MOTEUR COUPÉ.'])}>annuler</button>{/if}
@@ -325,6 +344,8 @@
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
         {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
+      <p class="aide">Touchez un astre ou un point de la carte pour choisir une destination.</p>
+    {:else}
       <div class="radio">
         <span class="etiquette">RADIO</span>
         <button onclick={() => jeu.remplacer(reglerRadio(etat, -0.1))}>−0,1</button>
@@ -339,15 +360,13 @@
           <button class="action" onclick={() => { const r = viserTelescope(etat, t, hasardReel); jeu.remplacer(r.etat, r.messages) }}>TÉLESCOPE</button>
         {/if}
       </div>
-      {#if tracesVisibles}
-        <div class="tracer">
-          <input inputmode="decimal" placeholder="rayon (UA)" bind:value={rayon} aria-label="Rayon du cercle en UA" />
-          <button onclick={tracerCercle} disabled={!etat.chasse.dernierPing}>CERCLE</button>
-          <input inputmode="decimal" placeholder="angle (°)" bind:value={angle} aria-label="Angle de la droite en degrés" />
-          <button onclick={tracerDroite} disabled={!etat.chasse.derniereVisee}>DROITE</button>
-          <button onclick={() => { jeu.traces = []; jeu.sauvegarder() }}>EFFACER</button>
-        </div>
-      {/if}
+      <div class="tracer">
+        <input inputmode="decimal" placeholder="rayon (UA)" bind:value={rayon} aria-label="Rayon du cercle en UA" />
+        <button onclick={tracerCercle} disabled={!etat.chasse.dernierPing}>CERCLE</button>
+        <input inputmode="decimal" placeholder="angle (°)" bind:value={angle} aria-label="Angle de la droite en degrés" />
+        <button onclick={tracerDroite} disabled={!etat.chasse.derniereVisee}>DROITE</button>
+        <button onclick={() => { jeu.traces = []; jeu.sauvegarder() }}>EFFACER</button>
+      </div>
     {/if}
   </div>
 </div>
@@ -361,35 +380,54 @@
     overflow-y: auto;
     flex: 1;
   }
-  .raccourcis {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+  .vues {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 12px;
+    overflow: hidden;
   }
-  .raccourcis button {
-    min-height: 32px;
-    padding: 0 10px;
-    border-radius: 14px;
-    border: 2px solid var(--couleur-encre);
+  .vues button {
+    min-height: 40px;
+    border: 0;
+    border-left: 2px solid var(--couleur-encre);
     background: var(--couleur-papier);
+    font-family: var(--police-titre);
+    font-size: 12px;
+  }
+  .vues button:first-child {
+    border-left: 0;
+  }
+  .vues button.actif {
+    background: #1f4f8c;
+    color: #eef4ff;
+  }
+  .vues button:disabled {
+    color: var(--couleur-texte-eteint);
+  }
+  .onglets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    border-bottom: 3px solid var(--couleur-encre);
+  }
+  .onglets button {
+    min-height: 40px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: var(--couleur-papier-fonce);
+    font-family: var(--police-titre);
     font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
   }
-  .raccourcis .trajectoire {
-    background: var(--moutarde);
-  }
-  .raccourcis .trajectoire.actif {
+  .onglets button.actif {
     background: var(--cerise);
     color: var(--couleur-papier);
   }
-  .raccourcis .traces {
-    border-color: var(--couleur-trace);
-    color: var(--couleur-trace);
-  }
-  .raccourcis .traces.actif {
-    background: var(--couleur-trace);
-    color: var(--couleur-papier);
+  .aide {
+    margin: 0;
+    font-size: 13px;
+    color: var(--couleur-texte-discret);
   }
   .plan {
     width: 100%;

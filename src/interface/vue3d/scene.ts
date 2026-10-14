@@ -305,12 +305,19 @@ export class Vue3D {
     mat.opacity = detecte ? 0.4 + 0.6 * (Math.sin(horloge / 120) > 0 ? 1 : 0) : 0.55
 
     if (this.interieur) {
-      // Depuis le poste de pilotage, à l'avant de la fusée, droit devant dans l'axe du cap.
+      // Depuis le poste de pilotage : la destination au centre de la vitre (sinon l'astre de l'orbite, sinon droit
+      // devant, dans l'axe du cap).
       this.fusee.visible = false
-      const a = (etat.fusee.cap * Math.PI) / 180
       this.camera.position.set(0, 0, 0)
       this.camera.up.set(0, 1, 0)
-      this.camera.lookAt(Math.cos(a), 0, -Math.sin(a))
+      const dest = etat.fusee.destination
+      const vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
+      const cible = vise === 'ISS' ? iss : vise ? this.astres.get(vise)?.maillage.position : dest?.type === 'visiteur' ? pv : undefined
+      if (cible && cible.lengthSq() > 0) this.camera.lookAt(cible)
+      else {
+        const a = (etat.fusee.cap * Math.PI) / 180
+        this.camera.lookAt(Math.cos(a), 0, -Math.sin(a))
+      }
       this.reglerCiel(6.3, 1)
       this.rendu.render(this.scene, this.camera)
       this.etiqueter(etat, iss, pv, satellites)

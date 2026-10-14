@@ -1,6 +1,7 @@
 <script lang="ts">
-  // Volet de l'Office : caisse, prochaine amélioration ; onglets Contrats, Atelier, Trophées.
-  import { CONTRATS, DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, PRIMES_REPARATION, TROPHEES } from '../../donnees/economie'
+  // Volet de l'Office : caisse, prochaine amélioration ; une page à la fois (contrats, atelier ou trophées), choisie
+  // par le bouton du cockpit.
+  import { CONTRATS, DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, PRIMES_REPARATION } from '../../donnees/economie'
   import { PANNES } from '../../donnees/reglages'
   import {
     abandonnerContrat,
@@ -18,6 +19,7 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import Trophees from './Trophees.svelte'
 
   let refus = $state<string | null>(null)
 
@@ -53,16 +55,13 @@
 </script>
 
 <div class="office">
-  <div class="onglets" role="tablist">
-    <button role="tab" aria-selected={jeu.ongletOffice === 'contrats'} class:actif={jeu.ongletOffice === 'contrats'} onclick={() => (jeu.ongletOffice = 'contrats')}>CONTRATS</button>
-    <button role="tab" aria-selected={jeu.ongletOffice === 'atelier'} class:actif={jeu.ongletOffice === 'atelier'} onclick={() => (jeu.ongletOffice = 'atelier')}>ATELIER</button>
-    <button role="tab" aria-selected={jeu.ongletOffice === 'trophees'} class:actif={jeu.ongletOffice === 'trophees'} onclick={() => (jeu.ongletOffice = 'trophees')}>TROPHÉES</button>
-  </div>
 
-  <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
-    <div class="col"><span class="etiquette">CAISSE · PORTEFEUILLE ›</span><span class="montant">{etat.credits} CR</span></div>
-    <div class="col droite"><span class="etiquette">PROCHAINE AMÉLIORATION</span><span class="fort">{cout} CR · +10 % de vitesse</span></div>
-  </button>
+  {#if jeu.ongletOffice !== 'trophees'}
+    <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
+      <div class="col"><span class="etiquette">CAISSE · PORTEFEUILLE ›</span><span class="montant">{etat.credits} CR</span></div>
+      <div class="col droite"><span class="etiquette">PROCHAINE AMÉLIORATION</span><span class="fort">{cout} CR · +10 % de vitesse</span></div>
+    </button>
+    {/if}
 
   {#if refus}<p class="refus" role="alert">{refus}</p>{/if}
 
@@ -173,9 +172,7 @@
         </article>
       {/each}
     {:else}
-      {#each TROPHEES as tr}
-        <div class="trophee" class:obtenu={etat.trophees.includes(tr.id)}><b>{tr.nom}</b><span>{tr.description}</span></div>
-      {/each}
+      <Trophees />
     {/if}
   </div>
 </div>
@@ -186,27 +183,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-  }
-  .onglets {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    margin: 12px 16px 0;
-    border-bottom: 3px solid var(--couleur-encre);
-  }
-  .onglets button {
-    min-height: 40px;
-    border: 2px solid var(--couleur-encre);
-    border-bottom: 0;
-    border-radius: 10px 10px 0 0;
-    background: var(--couleur-papier-fonce);
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-  }
-  .onglets button.actif {
-    background: var(--cerise);
-    color: #fff6e6;
   }
   .caisse {
     margin: 12px 16px 0;
@@ -415,18 +391,5 @@
   }
   .vide {
     color: var(--couleur-encre-discrete);
-  }
-  .trophee {
-    display: flex;
-    flex-direction: column;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px dashed #c9bb98;
-    opacity: 0.5;
-  }
-  .trophee.obtenu {
-    opacity: 1;
-    border: 2px solid var(--couleur-or);
-    background: #fff4d6;
   }
 </style>

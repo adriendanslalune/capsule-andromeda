@@ -10,7 +10,7 @@
 
 <Page {numero} chapitre="XVII." titre="CHASSE : MODE D’EMPLOI PAS À PAS">
   <ol class="etapes">
-    <li><b>Régler la radio.</b> CARTE, ligne RADIO : amener la fréquence sur {virgule(C.frequencePing)} avec les boutons.</li>
+    <li><b>Régler la radio.</b> CARTE, onglet CHASSE, ligne RADIO : amener la fréquence sur {virgule(C.frequencePing)} avec les boutons.</li>
     <li>
       <b>Pinger.</b> Presser PING. Le téléscripteur répond « PING ÉMIS SUR {virgule(C.frequencePing)}. ÉCOUTE EN COURS… ». La
       carte retient l’endroit où se trouvait la fusée.
@@ -20,7 +20,7 @@
     </li>
     <li><b>Calculer la distance.</b> 24 min 54 s = 24,9 min ; 24,9 ÷ 16,6 = <b>1,5 UA</b>.</li>
     <li>
-      <b>Tracer le cercle.</b> CARTE, TRACÉS DE CHASSE : écrire 1,5 dans « rayon (UA) », presser CERCLE. Le visiteur
+      <b>Tracer le cercle.</b> Toujours dans l’onglet CHASSE : écrire 1,5 dans « rayon (UA) », presser CERCLE. Le visiteur
       se trouvait quelque part sur ce cercle.
     </li>
     <li>
