@@ -100,3 +100,10 @@ L'onglet SOCIAL remplace CONTRATS ; trois sous-onglets :
   JOUEUR, TOUS ; phrases toutes faites ; ligne de saisie ; ÉMETTRE ; timbres du quota).
 Le voyant TÉLÉGR. ouvre COMMUNICATION ; la carte MISSION du cockpit ouvre CONTRATS ; la carte LIAISON, CLASSEMENT.
 Les trophées gardent leur date d'obtention (`tropheesQuand`) pour les classements par période.
+
+## 11. Page ATELIER (14/10/2026)
+Même présentation que les contrats : bandeau de résumé (caisse, vitesse du moteur, modules installés), puis des
+fiches identiques — la pièce à gauche, son nom en gros, le prix en gros à droite, ce qu'elle change (vitesse avant →
+après et durée d'un voyage d'exemple ; prime des avaries d'un module), et un seul bouton (AMÉLIORER, INSTALLER) ou ce
+qui manque (« il manque 8 CR », « installer TEL d'abord »). Les modules à venir sont listés dans l'ordre ; les
+installés en pastilles.

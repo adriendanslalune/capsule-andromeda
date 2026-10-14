@@ -10,7 +10,8 @@
   import { nonLus, telegrammesRecus } from '../reseau'
   import { basculerSon, sonActif } from '../sons'
   import Carte from '../volets/Carte.svelte'
-  import Office from '../volets/Office.svelte'
+  import Atelier from '../volets/Atelier.svelte'
+  import Trophees from '../volets/Trophees.svelte'
   import Social from '../social/Social.svelte'
   import Fenetre from './Fenetre.svelte'
 
@@ -102,7 +103,8 @@
         {#if jeu.page === 'cockpit'}<Fenetre />
         {:else if jeu.page === 'carte'}<Carte />
         {:else if jeu.page === 'social'}<Social />
-        {:else}<Office onglet={jeu.page} />
+        {:else if jeu.page === 'atelier'}<Atelier />
+        {:else}<div class="vitrine-defile"><Trophees /></div>
         {/if}
       </div>
     {/key}
@@ -434,5 +436,10 @@
     inset: 0;
     display: flex;
     flex-direction: column;
+  }
+  .vitrine-defile {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px var(--espace) 20px;
   }
 </style>
