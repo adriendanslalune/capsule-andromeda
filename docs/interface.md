@@ -107,3 +107,13 @@ fiches identiques — la pièce à gauche, son nom en gros, le prix en gros à d
 après et durée d'un voyage d'exemple ; prime des avaries d'un module), et un seul bouton (AMÉLIORER, INSTALLER) ou ce
 qui manque (« il manque 8 CR », « installer TEL d'abord »). Les modules à venir sont listés dans l'ordre ; les
 installés en pastilles.
+
+## 12. Ajouts du 14/10/2026 (soir)
+- Hublot : en route, il regarde dans l'axe de la fusée (cap) à la hauteur de la cible ; pendant un virage, le paysage
+  défile (25°/s au plus). En orbite, il regarde l'astre.
+- Écran EN ROUTE VERS : petit dessin schématique de la destination, au milieu de la ligne du nom.
+- Modules : on glisse le doigt pour passer au module voisin (ordre du tableau de bord) ; leurs noms sont sur les bords.
+- Terre : images NASA (jour, lumières de nuit, océans, nuages), orientation réelle (temps sidéral, axe incliné).
+- Chasse : calculateur de l'écho (durée de l'aller-retour → distance en UA, bouton TRACER).
+- **PROVISOIRE** : saut d'essai (page NAVIGATION) vers n'importe quelle destination, à retirer sur ordre d'Adrien
+  (`src/interface/provisoire/` et la ligne « PROVISOIRE » de Carte.svelte).

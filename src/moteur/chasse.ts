@@ -6,7 +6,7 @@
 // (attribuées par le serveur, en phase 4).
 
 import { planeteDe } from '../astro/corps'
-import { delaiLumiere } from '../astro/lumiere'
+import { delaiLumiere, SECONDES_LUMIERE_PAR_UA } from '../astro/lumiere'
 import { UA_KM } from '../astro/temps'
 import { AUTEURS_TRANSMISSIONS, CHASSE as C } from '../donnees/chasse'
 import { NOMS_PLANETES } from '../donnees/planetes'
@@ -45,6 +45,8 @@ export interface EtatChasse {
   radioPrete: number
   /** Position de la fusée au dernier ping (pour tracer le cercle sur la carte). */
   dernierPing: Point2 | null
+  /** Dernier écho reçu : instant de réception et durée de l'aller-retour (ms) ; absent des anciennes sauvegardes. */
+  dernierEcho?: { t: number; duree: number }
   /** Télescope disponible à partir de cet instant (ms UTC). */
   telescopePret: number
   /** Position de la fusée et direction lue à la dernière visée du télescope (pour tracer la droite). */
@@ -126,6 +128,11 @@ export function ping(etat: EtatPartie, t: number): ResultatChasse {
   const duree = 2 * delaiLumiere(d) * 1000
   e = { ...e, chasse: { ...e.chasse, pings: [...e.chasse.pings, { retour: t + duree, duree }] } }
   return { etat: e, messages: ['PING ÉMIS SUR 7,13. ÉCOUTE EN COURS…'] }
+}
+
+/** Distance du visiteur (UA) d'après la durée d'un écho (ms) : la moitié de l'aller-retour, à la vitesse de la lumière. */
+export function distanceEcho(dureeMs: number): number {
+  return dureeMs / 1000 / 2 / SECONDES_LUMIERE_PAR_UA
 }
 
 /**
@@ -225,6 +232,7 @@ export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
   if (revenus.length) {
     e = { ...e, chasse: { ...e.chasse, pings: e.chasse.pings.filter((p) => t < p.retour) } }
     for (const p of revenus) {
+      e = { ...e, chasse: { ...e.chasse, dernierEcho: { t, duree: p.duree } } }
       const m = `ÉCHO REÇU APRÈS ${dureeEcho(p.duree)}.`
       messages.push(m)
       e = avecIndice(e, t, m)

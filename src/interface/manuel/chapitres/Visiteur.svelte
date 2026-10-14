@@ -23,7 +23,7 @@
     Le visiteur ne répond que sur {virgule(C.frequencePing)}. Régler la radio (NAVIGATION, onglet CHASSE), presser PING. L’écho revient au
     rythme de la lumière (aller et retour, depuis la position de l’émission). Un ping toutes les {C.rechargePingMinutes} min.
   </p>
-  <p class="attention">distance (UA) = délai de l’écho (minutes) ÷ 16,6</p>
+  <p class="attention">distance (UA) = délai de l’écho (minutes) ÷ 16,6 — le calculateur de l’onglet CHASSE la donne.</p>
   <p>
     <b>Télescope (TEL).</b> Portée : {C.porteeTelescope} UA. Donne une direction, jamais une distance, à {C.erreurTelescopeDegres}° près, comptée
     comme le cap. Une visée toutes les {C.rechargeTelescopeMinutes} minutes.

@@ -13,7 +13,7 @@
     ['Écran de navigation', 'Destination, temps restant, jour et heure d’arrivée (heure du téléphone), frise du trajet.'],
     ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher ouvre les instruments en grand et les relevés (route, Soleil, radio).'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination ; il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
-    ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],
+    ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc ; on glisse le doigt pour passer au voisin. Trait PROPULSION : CH-1 et TU-1 (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
     ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre SOCIAL, CONTRATS.'],
     ['Visiteur', 'Radar de la chasse (chapitre XVII), jours de saison. Le toucher ouvre la page NAVIGATION.'],

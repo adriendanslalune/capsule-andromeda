@@ -315,3 +315,11 @@ describe('télescope TEL et détecteur DET', () => {
     expect(visiteurDetecte(placer(partie(T0, ['TEL']), { x: v.x + 1.4, y: v.y }), T0)).toBeNull()
   })
 })
+
+describe('calculateur de l’écho', () => {
+  it('distance = moitié de l’aller-retour de la lumière : 16,6 min d’écho pour 1 UA', async () => {
+    const { distanceEcho } = await import('../src/moteur/chasse')
+    expect(distanceEcho(2 * 499.0048 * 1000)).toBeCloseTo(1, 6)
+    expect(distanceEcho((24 * 60 + 54) * 1000)).toBeCloseTo(1.497, 3)
+  })
+})

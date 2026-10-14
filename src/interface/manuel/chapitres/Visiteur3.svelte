@@ -18,9 +18,9 @@
     <li>
       <b>Attendre l’écho.</b> Exemple : « ÉCHO REÇU APRÈS 24 MIN 54 S ». Pas d’écho : la fréquence était fausse.
     </li>
-    <li><b>Calculer la distance.</b> 24 min 54 s = 24,9 min ; 24,9 ÷ 16,6 = <b>1,5 UA</b>.</li>
+    <li><b>Lire la distance.</b> Le calculateur de l’onglet CHASSE l’affiche (24 min 54 s → <b>1,5 UA</b> ; à la main : 24,9 ÷ 16,6).</li>
     <li>
-      <b>Tracer le cercle.</b> Toujours dans l’onglet CHASSE : écrire 1,5 dans « rayon (UA) », presser CERCLE. Le visiteur
+      <b>Tracer le cercle.</b> Presser TRACER sur le calculateur (ou écrire 1,5 dans « rayon (UA) » et presser CERCLE). Le visiteur
       se trouvait quelque part sur ce cercle.
     </li>
     <li>

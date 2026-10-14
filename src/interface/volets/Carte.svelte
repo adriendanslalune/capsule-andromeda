@@ -4,7 +4,7 @@
   import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES } from '../../donnees/planetes'
-  import { ping, positionVisiteur, reglerRadio, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
+  import { distanceEcho, ping, positionVisiteur, reglerRadio, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
     annulerDestination,
@@ -25,7 +25,7 @@
   import { hasardReel } from '../../moteur/hasard'
   import { vitesseActuelle } from '../../moteur/partie'
   import { DUREE_ACCELERATION } from '../../donnees/reglages'
-  import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
+  import { dateLocale, duree, dureePrecise, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
@@ -478,6 +478,14 @@
           <button class="action" onclick={() => { const r = viserTelescope(etat, t, hasardReel); jeu.remplacer(r.etat, r.messages) }}>TÉLESCOPE</button>
         {/if}
       </div>
+      <!-- Calculateur de l'écho : la distance du visiteur au point du ping, en UA. -->
+      {#if etat.chasse.dernierEcho}
+        {@const d = distanceEcho(etat.chasse.dernierEcho.duree)}
+        <div class="calcul">
+          <span><small>DERNIER ÉCHO · {heureLocale(etat.chasse.dernierEcho.t)}</small>{dureePrecise(etat.chasse.dernierEcho.duree / 1000)} aller-retour → <b>{nombre(d, 3)} UA</b></span>
+          <button onclick={() => { rayon = nombre(d, 3); tracerCercle() }} disabled={!etat.chasse.dernierPing}>TRACER</button>
+        </div>
+      {/if}
       <div class="tracer">
         <input inputmode="decimal" placeholder="rayon (UA)" bind:value={rayon} aria-label="Rayon du cercle en UA" />
         <button onclick={tracerCercle} disabled={!etat.chasse.dernierPing}>CERCLE</button>
@@ -571,6 +579,39 @@
     background: var(--couleur-papier);
     font: inherit;
     font-size: 16px;
+  }
+  .calcul {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 8px;
+    background: var(--nuit);
+    color: var(--menthe);
+    font-family: var(--police-machine);
+    font-size: 13px;
+  }
+  .calcul span {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .calcul small {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #9cc7a4;
+  }
+  .calcul b {
+    color: var(--moutarde);
+  }
+  .calcul button {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 6px;
+    background: var(--moutarde);
+    font-weight: 700;
   }
   .aide {
     margin: 0;
