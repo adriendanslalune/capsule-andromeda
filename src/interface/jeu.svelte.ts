@@ -11,6 +11,7 @@ import { agir as agirMoteur, avancerPartie, basculerInterrupteur } from '../mote
 import type { NumeroInterrupteur } from '../moteur/interrupteurs'
 import { charger, sauvegarder } from '../moteur/sauvegarde'
 import { nomAstre } from './format'
+import { ALARMES, SONS } from './sons'
 
 const CLE_PARTIE = 'mdv-partie'
 const CLE_TELEX = 'mdv-telex'
@@ -51,6 +52,7 @@ class Jeu {
   pageManuel = $state(0)
 
   private minuterie: ReturnType<typeof setInterval> | null = null
+  private prochaineAlarme = 0
   private derniereSauvegarde = 0
 
   /** Au lancement : reprend la partie sauvegardée (avec rattrapage), sinon montre l'ouverture. */
@@ -93,6 +95,15 @@ class Jeu {
   private lancerBoucle() {
     if (this.minuterie) return
     this.minuterie = setInterval(() => this.pas(), 1000)
+    this.sonnerAlarmes()
+  }
+
+  /** Les modules en avarie sonnent chacun leur tour (toutes les 0,9 s ; 1,4 s s'il n'y en a qu'un). */
+  private sonnerAlarmes() {
+    const visible = typeof document === 'undefined' || document.visibilityState === 'visible'
+    const enPanne = this.etat && !this.rapport && visible ? modulesEnPanne(this.etat.modules) : []
+    if (enPanne.length) ALARMES[enPanne[this.prochaineAlarme++ % enPanne.length]]?.()
+    setTimeout(() => this.sonnerAlarmes(), enPanne.length > 1 ? 900 : 1400)
   }
 
   /** Retour au premier plan après une longue mise en veille : on rattrape comme après une absence. */
@@ -130,11 +141,14 @@ class Jeu {
   /** Messages du moteur, et nouvelles avaries, au téléscripteur. */
   private annoncer(avant: EtatPartie, apres: EtatPartie, messages: string[], t: number) {
     for (const m of messages) this.ajouterTelex(m, t, m.startsWith('FAUTE') || m.startsWith('ORDRE'))
+    if (messages.some((m) => m.startsWith('FAUTE') || m.startsWith('ORDRE'))) SONS.erreur()
     const anciennes = new Set(modulesEnPanne(avant.modules))
     const nouvelles = modulesEnPanne(apres.modules).filter((c) => !anciennes.has(c))
     if (nouvelles.length) {
       const cascade = apres.pannes.cascade && nouvelles.length > 1
       this.ajouterTelex(`${cascade ? 'AVARIE EN CASCADE' : 'AVARIE'} : ${nouvelles.join(' + ')}.`, t, true)
+      // Première avarie de la carrière : l'Office renvoie au manuel, sans rien expliquer de plus.
+      if (avant.pannes.tutoriel === 0 && apres.pannes.tutoriel === 1) this.ajouterTelex('OFFICE : TOUTE AVARIE SE RÉPARE SELON LE MANUEL DE VOL. CONSULTEZ-LE.', t)
     }
   }
 
@@ -150,7 +164,7 @@ class Jeu {
     const r = agirMoteur(avant, t, hasardReel, action)
     this.etat = r.etat
     this.annoncer(avant, r.etat, r.messages, t)
-    for (const ev of r.evenements) if (ev.type === 'reparation') this.ajouterTelex(`${ev.module} RÉPARÉ.`, t)
+    this.reparations(r.evenements, t)
     return r.evenements
   }
 
@@ -162,7 +176,13 @@ class Jeu {
     const r = basculerInterrupteur(avant, n, t, hasardReel)
     this.etat = r.etat
     this.annoncer(avant, r.etat, r.messages, t)
-    for (const ev of r.evenements) if (ev.type === 'reparation') this.ajouterTelex(`${ev.module} RÉPARÉ.`, t)
+    this.reparations(r.evenements, t)
+  }
+
+  private reparations(evenements: Evenement[], t: number) {
+    let repare = false
+    for (const ev of evenements) if (ev.type === 'reparation') { this.ajouterTelex(`${ev.module} RÉPARÉ.`, t); repare = true }
+    if (repare) SONS.bon()
   }
 
   /** Remplace la partie (actions de l'Office, de la carte…). */

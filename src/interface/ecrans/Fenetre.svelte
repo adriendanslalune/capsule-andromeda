@@ -17,6 +17,7 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import { basculerSon, sonActif } from '../sons'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
 
@@ -26,6 +27,7 @@
     return Array.from({ length: 160 }, () => ({ x: h() * 390, y: h() * 360, r: 0.4 + h(), o: 0.3 + h() * 0.6 }))
   })()
 
+  let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
   const fusee = $derived(etat.fusee)
@@ -100,6 +102,7 @@
     <div class="pastilles">
       <span class="pastille chiffres">{etat.credits} CR</span>
       <span class="pastille">SAISON {saison}</span>
+      <button class="pastille son" aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>{son ? 'SON' : 'MUET'}</button>
     </div>
   </header>
 
@@ -217,7 +220,14 @@
   }
   .pastilles {
     display: flex;
+    align-items: center;
     gap: 8px;
+  }
+  .son {
+    min-width: 52px;
+    min-height: 44px;
+    background: none;
+    color: var(--couleur-texte);
   }
   .pastille {
     font-size: 13px;

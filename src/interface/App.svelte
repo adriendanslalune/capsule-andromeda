@@ -4,6 +4,7 @@
   import Fenetre from './ecrans/Fenetre.svelte'
   import Module from './ecrans/Module.svelte'
   import Ouverture from './ecrans/Ouverture.svelte'
+  import RapportVol from './ecrans/RapportVol.svelte'
   import Volet from './ecrans/Volet.svelte'
   import { jeu } from './jeu.svelte'
 
@@ -25,4 +26,8 @@
 
 {#if jeu.etat && jeu.volet}
   <Volet />
+{/if}
+
+{#if jeu.etat && jeu.rapport}
+  <RapportVol />
 {/if}
