@@ -24,6 +24,7 @@ import Sextant from './chapitres/Sextant.svelte'
 import Sommaire from './chapitres/Sommaire.svelte'
 import Visiteur from './chapitres/Visiteur.svelte'
 import Visiteur2 from './chapitres/Visiteur2.svelte'
+import Visiteur3 from './chapitres/Visiteur3.svelte'
 
 export interface PageManuel {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,6 +58,7 @@ export const PAGES: PageManuel[] = [
   { composant: Cascades, chapitre: 'XVI', titre: 'Pannes multiples' },
   { composant: Visiteur, chapitre: 'XVII', titre: 'Recherche du visiteur' },
   { composant: Visiteur2, chapitre: 'XVII', titre: 'Recherche du visiteur (suite)', suite: true },
+  { composant: Visiteur3, chapitre: 'XVII', titre: 'Chasse : mode d’emploi pas à pas', suite: true },
   { composant: Notes, titre: 'Notes de bord' },
 ]
 

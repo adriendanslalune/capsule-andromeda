@@ -19,7 +19,6 @@
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
-  let onglet = $state<'contrats' | 'atelier' | 'trophees'>('contrats')
   let refus = $state<string | null>(null)
 
   const etat = $derived(jeu.etat!)
@@ -37,8 +36,8 @@
     const o = optionsDeDepart(etat.fusee, { type: 'astre', astre: exemple }, t, vitesseKmS)
     return o.maintenant ? (o.maintenant.arrivee - t) / 1000 : null
   }
-  const voyageAvant = $derived(onglet === 'atelier' ? voyage(vitesseAvant) : null)
-  const voyageApres = $derived(onglet === 'atelier' ? voyage(vitesseApres) : null)
+  const voyageAvant = $derived(jeu.ongletOffice === 'atelier' ? voyage(vitesseAvant) : null)
+  const voyageApres = $derived(jeu.ongletOffice === 'atelier' ? voyage(vitesseApres) : null)
   /** Prochain palier de cascade (nombre d'améliorations), s'il en reste un. */
   const palier = $derived(PANNES.paliersCascade.find((n) => n > etat.ameliorations) ?? null)
   const aVenir = $derived(MODULES_A_INSTALLER.filter((m) => !estInstalle(etat, m.code) && m.code !== module?.code))
@@ -55,9 +54,9 @@
 
 <div class="office">
   <div class="onglets" role="tablist">
-    <button role="tab" aria-selected={onglet === 'contrats'} class:actif={onglet === 'contrats'} onclick={() => (onglet = 'contrats')}>CONTRATS</button>
-    <button role="tab" aria-selected={onglet === 'atelier'} class:actif={onglet === 'atelier'} onclick={() => (onglet = 'atelier')}>ATELIER</button>
-    <button role="tab" aria-selected={onglet === 'trophees'} class:actif={onglet === 'trophees'} onclick={() => (onglet = 'trophees')}>TROPHÉES</button>
+    <button role="tab" aria-selected={jeu.ongletOffice === 'contrats'} class:actif={jeu.ongletOffice === 'contrats'} onclick={() => (jeu.ongletOffice = 'contrats')}>CONTRATS</button>
+    <button role="tab" aria-selected={jeu.ongletOffice === 'atelier'} class:actif={jeu.ongletOffice === 'atelier'} onclick={() => (jeu.ongletOffice = 'atelier')}>ATELIER</button>
+    <button role="tab" aria-selected={jeu.ongletOffice === 'trophees'} class:actif={jeu.ongletOffice === 'trophees'} onclick={() => (jeu.ongletOffice = 'trophees')}>TROPHÉES</button>
   </div>
 
   <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
@@ -68,7 +67,7 @@
   {#if refus}<p class="refus" role="alert">{refus}</p>{/if}
 
   <div class="liste">
-    {#if onglet === 'contrats'}
+    {#if jeu.ongletOffice === 'contrats'}
       {#if etat.contrats.length}
         <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours})</h3>
         {#each etat.contrats as c}
@@ -118,7 +117,7 @@
           </article>
         {/each}
       {/if}
-    {:else if onglet === 'atelier'}
+    {:else if jeu.ongletOffice === 'atelier'}
       <h3>MOTEUR</h3>
       <article class="contrat">
         <span class="type">AMÉLIORATION N° {etat.ameliorations + 1}</span>
@@ -320,7 +319,7 @@
     padding: 0 12px;
     border-radius: 10px;
     border: var(--trait) solid var(--couleur-encre);
-    background: var(--sarcelle);
+    background: var(--tole);
     color: var(--couleur-papier);
     box-shadow: 0 3px 0 var(--couleur-encre);
     font-size: 13px;
@@ -346,8 +345,8 @@
     min-height: 36px;
     padding: 0 10px;
     border-radius: 10px;
-    border: var(--trait) dashed var(--sarcelle);
-    color: var(--sarcelle);
+    border: var(--trait) dashed var(--tole);
+    color: var(--tole);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -384,7 +383,7 @@
     font-weight: 400;
   }
   .vitesses .mieux {
-    color: var(--sarcelle);
+    color: var(--tole);
   }
   .fleche {
     font-size: 22px;

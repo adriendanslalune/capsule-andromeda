@@ -17,7 +17,7 @@
   <div class="prise" use:glisserPourFermer={{ sens: 'bas', cible: () => volet, fermer: () => jeu.fermer() }}>
     <div class="poignee"></div>
     <header>
-      <span class="titre titre-pulp">{jeu.volet ? titres[jeu.volet] : ''}</span>
+      <span class="titre titre-pulp">{jeu.volet === 'office' ? { contrats: 'CONTRATS', atelier: 'ATELIER', trophees: 'TROPHÉES' }[jeu.ongletOffice] : jeu.volet ? titres[jeu.volet] : ''}</span>
       <button class="bouton" onclick={() => jeu.fermer()}>FERMER</button>
     </header>
   </div>

@@ -26,7 +26,7 @@
   </div>
 
   <svg viewBox="0 0 360 260" class="tableau" role="group" aria-label="Tableau de brassage">
-    <rect x="2" y="2" width="356" height="256" rx="14" fill="var(--sarcelle)" stroke="var(--couleur-encre)" stroke-width="3" />
+    <rect x="2" y="2" width="356" height="256" rx="14" fill="var(--tole)" stroke="var(--couleur-encre)" stroke-width="3" />
     {#each pb1.cables as c}
       <path d={`M ${x(c.a)} 60 C ${x(c.a)} 140, ${x(c.b)} 120, ${x(c.b)} 200`} fill="none" stroke={TEINTES[c.couleur]} stroke-width="7" stroke-linecap="round" />
     {/each}

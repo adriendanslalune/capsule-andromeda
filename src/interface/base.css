@@ -11,7 +11,8 @@ body {
   margin: 0;
   height: 100%;
   background-color: var(--couleur-fond);
-  background-image: var(--grain);
+  background-image: var(--grain), radial-gradient(rgba(42, 30, 23, 0.08) 0.8px, transparent 1.2px);
+  background-size: auto, 7px 7px;
   color: var(--couleur-texte);
   font-family: var(--police-texte);
   -webkit-tap-highlight-color: transparent;

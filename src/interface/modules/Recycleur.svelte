@@ -34,13 +34,13 @@
     align-items: center;
     gap: 40px;
   }
-  /* Grosse pompe sarcelle. */
+  /* Grosse pompe tôle. */
   .pompe {
     width: 112px;
     height: 112px;
     border: 3px solid var(--couleur-encre);
     border-radius: 50%;
-    background: var(--sarcelle);
+    background: var(--tole);
     box-shadow: 0 6px 0 var(--couleur-encre);
     color: var(--couleur-papier);
     font-family: var(--police-titre);

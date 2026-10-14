@@ -13,7 +13,7 @@
     enAttenteDeFenetre,
     planDeVol,
     positionDestination,
-    tempsRestant,
+    tempsRestantAVitesse,
     vitesseDuMoment,
     type Destination,
   } from '../../moteur/fusee'
@@ -21,6 +21,7 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import Compas from '../cockpit/Compas.svelte'
   import Horloge from '../cockpit/Horloge.svelte'
+  import Icone from '../cockpit/Icone.svelte'
   import Tachymetre from '../cockpit/Tachymetre.svelte'
   import { onMount } from 'svelte'
   import { dateLocale, duree, dureePrecise, heureLocale, nomAstre, ua } from '../format'
@@ -58,33 +59,39 @@
   }
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, croisiere) : null)
-  const reste = $derived(fusee.destination && !coupe ? tempsRestant(fusee, t, croisiere) : null)
-  // Temps restant en direct : le moteur le calcule à chaque pas (une fois par seconde) ; entre deux pas, il glisse
-  // linéairement de la valeur précédente à la nouvelle, image par image (accélérations et ralentissements compris).
+  // Temps restant en direct, à la vitesse du moment : il fond pendant une accélération et grimpe pendant un
+  // freinage. Le moteur donne, à chaque pas (une fois par seconde), le temps restant à la vitesse de croisière ; entre
+  // deux pas, on le fait glisser linéairement, et on le corrige à chaque image par la vitesse du moment.
+  const resteCroisiere = $derived(fusee.destination && !attente ? tempsRestantAVitesse(fusee, t, croisiere, croisiere) : null)
   let resteAvant: number | null = null
   let resteApres: number | null = null
   let cleReste = ''
   $effect(() => {
-    const cle = JSON.stringify(fusee.destination) + String(!!fusee.moteurCoupe)
-    resteAvant = cle === cleReste ? resteApres : reste
-    resteApres = reste
+    const cle = JSON.stringify(fusee.destination)
+    resteAvant = cle === cleReste ? resteApres : resteCroisiere
+    resteApres = resteCroisiere
     cleReste = cle
   })
   let resteDirect = $state<number | null>(null)
+  let maintenantDirect = $state(Date.now())
   onMount(() => {
     let image = 0
     const boucle = () => {
       image = requestAnimationFrame(boucle)
-      if (resteApres === null) { resteDirect = null; return }
+      const vue = jeu.affichage()
+      maintenantDirect = vue.t
+      const v = vitesseDuMoment(vue.etat.fusee, croisiere)
+      if (resteApres === null || v <= 0.001) { resteDirect = null; return }
       const a = jeu.fraction()
       // Le dessin a une seconde de retard sur le moteur : on part de la valeur du pas précédent.
-      resteDirect = resteAvant === null ? resteApres : resteAvant + (resteApres - resteAvant) * a
+      const base = resteAvant === null ? resteApres : resteAvant + (resteApres - resteAvant) * a
+      resteDirect = (base * croisiere) / v
     }
     image = requestAnimationFrame(boucle)
     return () => cancelAnimationFrame(image)
   })
-  /** Instant d'arrivée prévu (ms), ou null. */
-  const arrivee = $derived(reste !== null ? t + reste * 1000 : null)
+  /** Instant d'arrivée prévu à la vitesse du moment (ms), ou null. */
+  const arrivee = $derived(resteDirect !== null ? maintenantDirect + resteDirect * 1000 : null)
   /** Direction de la destination (point de rencontre), pour le compas. */
   const vers = $derived(fusee.destination ? direction(fusee.position, plan?.point ?? positionDestination(fusee.destination, t)) : null)
   const avancement = $derived(avancementTrajet(fusee, t))
@@ -139,15 +146,15 @@
     <div class="vitre">
       <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
       {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+      <!-- Présence des autres commissionnaires, inscrite au bas de la vitre. -->
+      <p class="reseau">
+        <span class="antenne" aria-hidden="true"></span>
+        <b>{reseau.total}</b> en vol dans le système solaire{#if reseau.systeme && reseau.ici !== null} · <b>{reseau.ici}</b> autour {reseau.systeme === 'Terre' ? 'de la Terre' : `de ${reseau.systeme}`}{/if}
+        {#if reseau.horsReseau}<span class="hors">HORS RÉSEAU</span>{/if}
+      </p>
     </div>
   </div>
 
-  <!-- Présence des autres commissionnaires. -->
-  <p class="reseau">
-    <span class="antenne" aria-hidden="true"></span>
-    <b>{reseau.total}</b> en vol dans le système solaire{#if reseau.systeme && reseau.ici !== null} · <b>{reseau.ici}</b> autour {reseau.systeme === 'Terre' ? 'de la Terre' : `de ${reseau.systeme}`}{/if}
-    {#if reseau.horsReseau}<span class="hors">HORS RÉSEAU</span>{/if}
-  </p>
 
   <!-- Console : instruments, navigation, voyants. -->
   <section class="console">
@@ -163,7 +170,7 @@
     <div class="cadrans">
       <Tachymetre valeur={vitesse} {croisiere} />
       <Compas cap={fusee.cap} {vers} />
-      <Horloge instant={arrivee ?? t} arrivee={arrivee !== null} maintenant={t} />
+      <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
     </div>
 
     <div class="navigation ecran">
@@ -173,7 +180,7 @@
         <div class="sous">En orbite en attendant le meilleur moment pour partir. Arrivée le {dateLocale(plan.arrivee)}.</div>
       {:else if fusee.destination}
         <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen compte">{coupe ? 'MOTEUR COUPÉ' : resteDirect !== null ? dureePrecise(resteDirect) : '—'}</span></div>
+        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span></div>
         <!-- Frise du trajet : du départ à l'arrivée ; la fusée avance avec la route faite. -->
         {#if avancement !== null && fusee.trajet}
           <div class="frise">
@@ -229,7 +236,7 @@
       </div>
     </div>
     <!-- Plaque constructeur, vissée sur la console : le numéro de série de l'appareil. -->
-    <div class="plaque-constructeur"><span>O.N.V.I. · FUSÉE DE CROISIÈRE C-58</span><b>N° SÉRIE {etat.serie}</b></div>
+    <div class="plaque-constructeur"><span>O.N.V.I. · C-58</span><b>N° SÉRIE {etat.serie}</b></div>
   </section>
 
   <!-- Chasse au visiteur. -->
@@ -244,15 +251,18 @@
 
   <!-- Téléscripteur. -->
   <section class="telex" aria-label="Téléscripteur">
-    {#each jeu.telex.slice(-2).reverse() as l}
+    {#each jeu.telex.slice(-1) as l}
       <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
     {/each}
   </section>
 
+  <!-- Les cinq boutons du bas : chacun avec son dessin. -->
   <nav>
-    <button class="bouton cerise" onclick={() => (jeu.volet = 'carte')}>CARTE</button>
-    <button class="bouton moutarde" onclick={() => (jeu.volet = 'office')}>OFFICE</button>
-    <button class="bouton clair" onclick={() => (jeu.volet = 'manuel')}>MANUEL</button>
+    <button class="bouton cerise" onclick={() => (jeu.volet = 'carte')}><Icone nom="carte" /><span>CARTE</span></button>
+    <button class="bouton moutarde" onclick={() => { jeu.ongletOffice = 'contrats'; jeu.volet = 'office' }}><Icone nom="contrats" /><span>CONTRATS</span></button>
+    <button class="bouton tole" onclick={() => { jeu.ongletOffice = 'atelier'; jeu.volet = 'office' }}><Icone nom="atelier" /><span>ATELIER</span></button>
+    <button class="bouton moutarde" onclick={() => { jeu.ongletOffice = 'trophees'; jeu.volet = 'office' }}><Icone nom="trophees" /><span>TROPHÉES</span></button>
+    <button class="bouton clair" onclick={() => (jeu.volet = 'manuel')}><Icone nom="manuel" /><span>MANUEL</span></button>
   </nav>
 </main>
 
@@ -262,9 +272,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     overflow-y: auto;
-    padding: 0 var(--espace) 16px;
+    padding: 0 var(--espace) 10px;
   }
   main > :global(*) {
     flex: none;
@@ -276,7 +286,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    padding-top: 9px;
+    padding-top: 6px;
   }
   .identite {
     display: flex;
@@ -361,16 +371,16 @@
     letter-spacing: 1px;
   }
 
-  /* Hublot : épais cadre sarcelle boulonné, vitre cernée d'encre. */
+  /* Hublot : épais cadre tôle boulonné, vitre cernée d'encre. */
   .hublot {
     position: relative;
     flex: 1 1 auto !important;
-    min-height: 124px;
+    min-height: 104px;
     max-height: 200px;
     padding: 12px;
     border: 3px solid var(--couleur-encre);
     border-radius: 34px;
-    background: var(--sarcelle);
+    background: var(--traits), var(--tole);
     box-shadow: var(--ombre);
     cursor: pointer;
   }
@@ -410,15 +420,24 @@
 
   /* Présence en ligne. */
   .reseau {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 6px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     margin: 0;
-    font-size: 14px;
-    color: var(--couleur-texte-discret);
+    font-size: 11.5px;
+    color: rgba(250, 242, 220, 0.75);
+    pointer-events: none;
   }
   .reseau b {
-    color: var(--couleur-encre);
+    color: var(--couleur-papier);
+  }
+  .reseau .hors {
+    border-color: rgba(250, 242, 220, 0.5);
+    font-size: 9.5px;
   }
   .antenne {
     width: 10px;
@@ -443,12 +462,12 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 12px 12px 12px;
+    gap: 8px;
+    padding: 10px 10px 10px;
     border: 3px solid var(--couleur-encre);
     border-radius: 18px;
-    /* Panneau d'instruments : tôle sarcelle, à plat. */
-    background: var(--sarcelle);
+    /* Panneau d'instruments : tôle peinte, hachures fines. */
+    background: var(--hachures-claires), var(--tole);
     box-shadow: var(--ombre);
     color: var(--couleur-papier);
   }
@@ -532,9 +551,9 @@
   .plaque-constructeur {
     align-self: center;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 3px 14px;
+    align-items: baseline;
+    gap: 10px;
+    padding: 2px 12px;
     border: 2px solid var(--couleur-encre);
     border-radius: 4px;
     background: var(--moutarde);
@@ -558,13 +577,52 @@
   /* Écran de navigation : vitre sombre dans un cadre d'encre, texte vert lumineux, compte à rebours ambré. */
   .ecran {
     position: relative;
-    padding: 8px 12px 9px;
+    padding: 6px 11px 7px;
     border: 3px solid var(--couleur-encre);
     border-radius: 12px;
     background-color: var(--nuit);
     background-image: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
     box-shadow: 0 0 0 3px #0f1822 inset, 3px 3px 0 var(--couleur-encre);
     color: var(--menthe);
+    overflow: hidden;
+    /* Ce qui est affiché fait écran : lueur des caractères, léger scintillement. */
+    text-shadow: 0 0 5px rgba(143, 207, 152, 0.55);
+    animation: scintille 0.12s steps(2) infinite;
+  }
+  /* Lignes de balayage par-dessus l'affichage, et bande de rafraîchissement qui descend. */
+  .ecran::before,
+  .ecran::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .ecran::before {
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px);
+  }
+  .ecran::after {
+    background: linear-gradient(180deg, transparent 0%, rgba(143, 207, 152, 0.1) 45%, rgba(143, 207, 152, 0.16) 50%, transparent 56%);
+    background-size: 100% 300%;
+    animation: rafraichit 3.2s linear infinite;
+  }
+  @keyframes rafraichit {
+    from {
+      background-position: 0 100%;
+    }
+    to {
+      background-position: 0 -200%;
+    }
+  }
+  @keyframes scintille {
+    50% {
+      opacity: 0.94;
+    }
+  }
+  .ecran .compte {
+    text-shadow: 0 0 6px rgba(242, 181, 58, 0.7);
+  }
+  .ecran .grand {
+    text-shadow: 0 0 6px rgba(250, 242, 220, 0.45);
   }
   .ecran .etiquette-encre {
     background: none;
@@ -602,7 +660,7 @@
     padding: 8px 10px 10px;
     border: var(--trait) solid var(--couleur-encre);
     border-radius: 10px;
-    background: var(--couleur-papier);
+    background: var(--points), var(--couleur-papier);
     color: var(--couleur-encre);
   }
   .plaque-papier .lien span {
@@ -640,7 +698,7 @@
 
   /* Frise du trajet. */
   .frise {
-    margin-top: 6px;
+    margin-top: 3px;
   }
   .bouts {
     display: flex;
@@ -683,8 +741,8 @@
     position: relative;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 7px 4px;
-    margin-top: 18px;
+    gap: 4px 4px;
+    margin-top: 15px;
   }
   /* Crochet au-dessus des voyants CH-1 et TU-1 (les deux premières colonnes). */
   .lien {
@@ -722,8 +780,8 @@
   }
   .voyant {
     position: relative;
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     border: var(--trait) solid var(--couleur-encre);
     background: var(--menthe);
@@ -775,19 +833,19 @@
   /* Chasse. */
   .chasse {
     display: flex;
-    gap: 11px;
+    gap: 10px;
     align-items: center;
-    padding: 8px 12px;
+    padding: 5px 12px;
     text-align: left;
   }
   .radar {
     position: relative;
     flex: none;
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: var(--trait) solid var(--couleur-encre);
-    background: var(--sarcelle);
+    background: var(--tole);
     overflow: hidden;
   }
   .radar::before {
@@ -848,8 +906,10 @@
 
   /* Téléscripteur. */
   .telex {
-    min-height: 40px;
     padding: 4px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     border-top: 2px dashed var(--couleur-encre);
     border-bottom: 2px dashed var(--couleur-encre);
     font-family: var(--police-machine);
@@ -864,16 +924,24 @@
   }
 
   nav {
-    display: flex;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 7px;
     margin-top: 2px;
   }
   nav button {
-    flex: 1;
-    height: 54px;
+    height: 56px;
+    min-width: 0;
+    padding: 4px 0 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 12px;
     font-family: var(--police-titre);
-    font-size: 17px;
+    font-size: 9.5px;
     font-weight: 400;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
   }
 </style>

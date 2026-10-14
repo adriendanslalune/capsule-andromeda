@@ -399,6 +399,19 @@ export function tempsRestant(fusee: EtatFusee, t: number, vitesseKmS: number): n
   return Math.max(0, (r.arrivee - t) / 1000 - (seuilArrivee(fusee.destination) * UA_KM) / vitesseKmS + retard)
 }
 
+/**
+ * Temps restant si la fusée gardait la vitesse donnée (s), par défaut sa vitesse du moment : c'est le compteur du
+ * cockpit, qui grimpe ou fond en direct pendant une accélération ou un freinage. null à l'arrêt ou sans destination.
+ */
+export function tempsRestantAVitesse(fusee: EtatFusee, t: number, croisiere: number,
+  vitesseKmS = vitesseDuMoment(fusee, croisiere)): number | null {
+  if (!fusee.destination || croisiere <= 0 || vitesseKmS <= 0) return null
+  const r = planDeVol(fusee, t, croisiere)
+  if (!r) return null
+  const aCroisiere = (r.arrivee - t) / 1000 - (seuilArrivee(fusee.destination) * UA_KM) / croisiere
+  return Math.max(0, (aCroisiere * croisiere) / vitesseKmS)
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Création et commandes
 

@@ -13,6 +13,10 @@
     const a = ((angle(v) - 90) * Math.PI) / 180
     return { x: 60 + r * Math.cos(a), y: 60 + r * Math.sin(a) }
   }
+  const piste = $derived.by(() => {
+    const a = point(0, 45), b = point(max, 45)
+    return `M ${a.x} ${a.y} A 45 45 0 1 1 ${b.x} ${b.y}`
+  })
   const graduations = $derived(Array.from({ length: 21 }, (_, i) => (i * max) / 20))
 </script>
 
@@ -28,16 +32,18 @@
     {/each}
     <g transform="translate(60 60) scale(0.8) translate(-60 -60)">
     <circle cx="60" cy="60" r="56" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="3.5" />
+    <!-- Piste noire du compteur, sur 240°. -->
+    <path d={piste} fill="none" stroke="var(--couleur-encre)" stroke-width="10" />
     <!-- Zone de croisière. -->
     {#if croisiere > 0}
       {@const a = point(croisiere * 0.96, 44)}
       {@const b = point(Math.min(max, croisiere * 1.04), 44)}
-      <path d={`M ${a.x} ${a.y} A 44 44 0 0 1 ${b.x} ${b.y}`} fill="none" stroke="var(--menthe)" stroke-width="8" />
+      <path d={`M ${a.x} ${a.y} A 45 45 0 0 1 ${b.x} ${b.y}`} fill="none" stroke="var(--menthe)" stroke-width="10" />
     {/if}
     {#each graduations as g, i}
-      {@const p = point(g, 48)}
-      {@const q = point(g, i % 4 === 0 ? 38 : i % 2 === 0 ? 41 : 43.5)}
-      <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="var(--couleur-encre)" stroke-width={i % 4 === 0 ? 2.4 : 1.2} stroke-linecap="round" />
+      {@const p = point(g, 49)}
+      {@const q = point(g, i % 4 === 0 ? 40.5 : i % 2 === 0 ? 43 : 45)}
+      <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="var(--couleur-papier)" stroke-width={i % 4 === 0 ? 2.4 : 1.2} stroke-linecap="round" />
       {#if i % 4 === 0}
         {@const c = point(g, 29)}
         <text x={c.x} y={c.y + 3.5} text-anchor="middle" font-size="10" font-weight="700" font-family="var(--police-chiffres)" fill="var(--couleur-encre)">{g}</text>
@@ -63,7 +69,7 @@
   }
   svg {
     width: 100%;
-    max-width: 112px;
+    max-width: 92px;
   }
   .aiguille {
     transform-box: view-box;

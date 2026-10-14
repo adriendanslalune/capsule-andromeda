@@ -1,10 +1,13 @@
 /* Éléments communs aux écrans des modules, à plat : étiquettes d'encre, boutons de bande dessinée, afficheurs,
    témoins. Les couleurs viennent du thème. */
 
+/* La zone d'un module occupe toute la hauteur de l'écran : ses rangées se répartissent du haut en bas. */
 .mod-zone {
-  padding: 14px 18px 0;
+  flex: 1;
+  padding: 14px 18px 8px;
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   gap: 16px;
 }
 .mod-rang {

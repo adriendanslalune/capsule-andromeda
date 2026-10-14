@@ -62,7 +62,7 @@
     padding: 10px;
     border: var(--trait) solid var(--couleur-encre);
     border-radius: 14px;
-    background: var(--sarcelle);
+    background: var(--tole);
     box-shadow: var(--ombre);
   }
   /* Porte-fusible. */

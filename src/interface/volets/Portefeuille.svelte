@@ -168,7 +168,7 @@
     color: var(--couleur-texte-discret);
   }
   .gain {
-    color: var(--sarcelle);
+    color: var(--tole);
   }
   .perte {
     color: var(--cerise);

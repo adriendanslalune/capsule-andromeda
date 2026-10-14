@@ -3,7 +3,7 @@
 
 /* Panneau : papier clair cerné d'encre, ombre dure. */
 .panneau {
-  background: var(--couleur-papier);
+  background: var(--points), var(--couleur-papier);
   border: var(--trait) solid var(--couleur-encre);
   border-radius: var(--rayon);
   box-shadow: var(--ombre);
@@ -13,7 +13,8 @@
 /* Papier : vieux papier avec son grain. */
 .papier {
   background-color: var(--couleur-fond);
-  background-image: var(--grain);
+  background-image: var(--grain), radial-gradient(rgba(42, 30, 23, 0.1) 0.8px, transparent 1.2px);
+  background-size: auto, 7px 7px;
   color: var(--couleur-encre);
 }
 
@@ -21,31 +22,33 @@
 .bouton {
   border: var(--trait) solid var(--couleur-encre);
   border-radius: 14px;
-  background: var(--couleur-encre);
+  background-color: var(--couleur-encre);
   color: var(--couleur-papier);
   box-shadow: var(--ombre-bouton);
   font-weight: 700;
   letter-spacing: 1.5px;
   transition: transform 0.06s, box-shadow 0.06s;
+  /* Hachures fines par-dessus l'aplat. */
+  background-image: var(--hachures);
 }
 .bouton:active {
   transform: translateY(3px);
   box-shadow: 0 1px 0 var(--couleur-encre);
 }
 .bouton.cerise {
-  background: var(--cerise);
+  background-color: var(--cerise);
   color: var(--couleur-papier);
 }
 .bouton.moutarde {
-  background: var(--moutarde);
+  background-color: var(--moutarde);
   color: var(--couleur-encre);
 }
 .bouton.clair {
-  background: var(--couleur-papier);
+  background-color: var(--couleur-papier);
   color: var(--couleur-encre);
 }
-.bouton.sarcelle {
-  background: var(--sarcelle);
+.bouton.tole {
+  background-color: var(--tole);
   color: var(--couleur-papier);
 }
 .bouton:disabled {

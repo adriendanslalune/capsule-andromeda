@@ -28,8 +28,9 @@ UA = unité astronomique = 149 597 870,7 km.
   vitesse de croisière change (avarie, levier L-A, amélioration), la vitesse la rejoint au même rythme. Le bouton
   MOTEUR du cockpit coupe le moteur : la fusée ralentit jusqu'à l'arrêt en 20 s et reste où elle est (entraînée par la
   planète dans un repère de planète), sa destination est gardée ; rallumé, elle repart (20 s pour retrouver sa
-  croisière). Le temps restant tient compte de l'accélération restante : il diminue
-  d'une seconde par seconde, même pendant la rampe ; moteur coupé, il n'y en a pas. *Décisions d'Adrien du 14/10/2026.*
+  croisière). Le compteur du cockpit donne le temps restant **à la vitesse du moment** :
+  il fond pendant une accélération et grimpe pendant un freinage (moteur coupé à l'arrêt : pas de temps restant).
+  *Demande d'Adrien du 14/10/2026.* *Décisions d'Adrien du 14/10/2026.*
 - **Contournement des astres** : la fusée ne traverse jamais un astre. En route, elle ne passe jamais à moins de
   **1,1 rayon** du centre du Soleil, d'une planète ou d'un satellite du système où elle se trouve (sa destination
   exceptée : elle s'y met en orbite avant). Si la route directe coupe un astre, elle suit la tangente à cet astre,

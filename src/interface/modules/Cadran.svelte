@@ -5,7 +5,7 @@
     valeur,
     zones = [],
     nom,
-    taille = 130,
+    taille = 150,
   }: { valeur: number; zones?: [number, number, string][]; nom: string; taille?: number } = $props()
 
   // L'aiguille balaie 240°, de −120° (0) à +120° (100).

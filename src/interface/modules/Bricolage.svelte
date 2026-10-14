@@ -10,7 +10,7 @@
   type Genre = 'scotch' | 'plaque' | 'vis' | 'rayures' | 'danger' | 'tampon' | 'cafe' | 'cable' | 'note' | 'dessin' | 'bosse'
   interface Piece { genre: Genre; x: number; y: number; angle: number; taille: number; couleur: string }
 
-  const COULEURS_CABLES = ['var(--cerise)', 'var(--sarcelle)', 'var(--moutarde)', 'var(--ciel)']
+  const COULEURS_CABLES = ['var(--cerise)', 'var(--tole)', 'var(--moutarde)', 'var(--ciel)']
 
   const graineNum = $derived.by(() => {
     let n = 0

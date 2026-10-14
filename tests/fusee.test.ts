@@ -20,6 +20,7 @@ import {
   seuilArrivee,
   systemeDeLaFusee,
   tempsRestant,
+  tempsRestantAVitesse,
   vitesse,
   vitesseAffichee,
   type Destination,
@@ -502,5 +503,14 @@ describe('temps restant pendant l’accélération', () => {
   it('moteur coupé : pas de temps restant', () => {
     const f = basculerMoteur(choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Lune' }))
     expect(tempsRestant(f, T0, 30)).toBeNull()
+  })
+})
+
+describe('compteur du cockpit : temps restant à la vitesse du moment', () => {
+  it('à mi-vitesse, il faut deux fois plus de temps ; à l’arrêt, pas de temps restant', () => {
+    const f = choisirDestination({ ...creerFusee(T0), orbite: null, position: { x: 3, y: 0 } }, { type: 'point', x: 3.02, y: 0 })
+    const plein = tempsRestantAVitesse(f, T0, 30, 30)!
+    expect(tempsRestantAVitesse(f, T0, 30, 15)! / plein).toBeCloseTo(2, 8)
+    expect(tempsRestantAVitesse({ ...f, vitesseCourante: 0 }, T0, 30)).toBeNull()
   })
 })

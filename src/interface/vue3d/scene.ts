@@ -248,8 +248,9 @@ export class Vue3D {
     this.hauteur = hauteur
     this.rendu.setSize(largeur, hauteur, false)
     this.camera.aspect = largeur / hauteur
-    // Une vue très large (le hublot) garde un champ horizontal raisonnable.
-    this.camera.fov = this.camera.aspect > 1.6 ? 36 : 55
+    // Même « grossissement » partout : la vue plein écran couvre 55° sur sa hauteur (environ 15 px par degré) ;
+    // le hublot, plus petit, couvre un champ plus serré, pour que les astres y paraissent aussi gros.
+    this.camera.fov = this.interieur ? Math.max(6, Math.min(55, hauteur / 15)) : 55
     this.camera.updateProjectionMatrix()
   }
 

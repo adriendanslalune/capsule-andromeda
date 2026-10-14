@@ -53,6 +53,8 @@ class Jeu {
   traces = $state.raw<Trace[]>([])
   /** Page ouverte dans le lecteur du manuel. */
   pageManuel = $state(0)
+  /** Onglet ouvert dans le volet de l'Office. */
+  ongletOffice = $state<'contrats' | 'atelier' | 'trophees'>('contrats')
   /** Vrai pendant l'impression du manuel. */
   impression = $state(false)
 
