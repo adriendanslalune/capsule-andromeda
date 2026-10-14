@@ -22,7 +22,7 @@ export const TAUX_VIRAGE = 4
 /**
  * Distance d'arrivée et d'orbite d'une planète, de la Lune ou d'un satellite : trois rayons de l'astre, depuis son
  * centre (décision d'Adrien du 14/10/2026 : on était beaucoup trop loin, 300 000 km pour toutes les planètes). Le
- * Soleil garde 0,02 UA, l'ISS son amarrage, les engins leur approche.
+ * Soleil garde 0,02 UA ; l'ISS et les engins, leur approche.
  */
 export const ORBITE_RAYONS = 3
 /** Rayon supposé (km) d'un petit satellite dont le rayon n'est pas publié. */
