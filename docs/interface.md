@@ -62,3 +62,12 @@ trouvaille à moins de 300 m.
 - Plus tard : notifications du téléphone (avarie, écho reçu, arrivée).
 - Annonce d'une trouvaille du visiteur à tous les joueurs (phase 4) : photo, nom de la fusée ; couronne et fusée en
   or pour le premier de la saison.
+
+## 7. Les autres commissionnaires
+- Chaque autre fusée est un point de sa couleur sur la carte (son nom peint quand les noms ne se chevauchent pas),
+  et se voit par le hublot et dans la vue 3D : un point de couleur jusqu'à 3 millions de km, son nom jusqu'à
+  300 000 km, le modèle de la C-58 à moins de 30 km.
+- En attendant le serveur (phase 4), une **flotte simulée** de bots (`src/donnees/flotte.ts`, `src/moteur/flotte.ts`)
+  tient leur place : chacun a ses escales habituelles et sa vitesse, et sa position ne dépend que de l'heure (tous les
+  joueurs les voient au même endroit). L'instrument EN LIGNE l'indique (« FLOTTE SIMULÉE »). Quand le serveur
+  existera, seul `src/interface/reseau.ts` changera ; `BOTS_ACTIFS` permet de couper les bots.

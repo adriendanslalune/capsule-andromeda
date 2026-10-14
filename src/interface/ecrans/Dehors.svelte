@@ -110,7 +110,7 @@
     <canvas bind:this={toile} onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher}
       onwheel={(e) => { e.preventDefault(); vue?.zoomer(e.deltaY > 0 ? 1.15 : 1 / 1.15) }}></canvas>
     {#each etiquettes as e}
-      <span class="etiquette" class:cible={e.cible} style={`left: ${e.x}px; top: ${e.y}px`}>{nomAstre(e.nom)}</span>
+      <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
     {/each}
     {#if flash}<div class="flash"></div>{/if}
   </div>
@@ -170,6 +170,11 @@
     color: var(--couleur-texte-clair);
     pointer-events: none;
     white-space: nowrap;
+  }
+  .etiquette.autre {
+    font-family: var(--police-script);
+    letter-spacing: 0;
+    opacity: 0.95;
   }
   .etiquette.cible {
     color: var(--couleur-avarie);

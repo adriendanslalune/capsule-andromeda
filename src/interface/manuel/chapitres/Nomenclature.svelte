@@ -8,14 +8,14 @@
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
     ['Interrupteur de son', 'Coupe ou rétablit les alarmes et les sons du bord.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Onglets', 'CARTE, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est celui de la page affichée. Glisser le doigt vers la gauche ou la droite mène à la page voisine.'],
-    ['Hublot', 'Vue droit devant, depuis le poste. Le toucher ouvre la vue extérieure de l’appareil.'],
+    ['Onglets', 'CARTE, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la page voisine.'],
+    ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination. Il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
     ['Tachymètre', 'Vitesse du moment, en km/s. Le secteur repéré indique la vitesse de croisière.'],
-    ['Compas de cap', 'Aiguille : cap de la fusée. Triangle : direction de la destination. 0° à droite de la carte, sens inverse des aiguilles d’une montre.'],
+    ['Compas de cap', 'Aiguille : cap. Triangle : direction de la destination. 0° à droite de la carte, sens inverse des aiguilles d’une montre.'],
     ['Horloge d’arrivée', 'Heure prévue de l’arrivée (heure du téléphone). À l’arrêt : heure actuelle.'],
     ['Écran de navigation', 'Destination, temps restant à la seconde, frise du trajet (départ et arrivée).'],
-    ['Instruments de bord', 'ROUTE : distance parcourue par l’appareil. SOLEIL : distance au Soleil. RADIO TERRE : délai d’un message jusqu’à la Terre. EN LIGNE : commissionnaires en vol, au total et près de la fusée.'],
+    ['Instruments de bord', 'ROUTE : distance parcourue par l’appareil. SOLEIL : distance au Soleil. RADIO TERRE : délai d’un message jusqu’à la Terre. EN LIGNE : commissionnaires connectés, au total et près de la fusée. Les autres fusées sont des points de couleur sur la carte, et se voient par le hublot.'],
     ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc.'],
     ['Lien PROPULSION', 'CH-1 et TU-1 forment le bloc propulsion (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
@@ -39,14 +39,14 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    font-size: 9.5px;
-    line-height: 1.25;
+    font-size: 8.8px;
+    line-height: 1.2;
   }
   .n {
     display: inline-grid;
     place-items: center;
-    width: 15px;
-    height: 15px;
+    width: 13px;
+    height: 13px;
     margin-right: 5px;
     border: 1px solid #1d1916;
     border-radius: 50%;

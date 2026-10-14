@@ -26,6 +26,7 @@
   import { DUREE_ACCELERATION } from '../../donnees/reglages'
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
+  import { autresFusees } from '../reseau'
 
   /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
   const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
@@ -273,6 +274,19 @@
     return `M ${a.x + dx * t0} ${a.y + dy * t0} L ${a.x + dx * t1} ${a.y + dy * t1}`
   }
 
+  // Les autres commissionnaires : un point de leur couleur ; leur nom quand on zoome assez pour les distinguer.
+  // Les noms ne s'écrivent que s'ils ne se chevauchent pas (sinon, autour de la Terre, ce serait illisible).
+  const autres = $derived.by(() => {
+    const ecrits: { x: number; y: number }[] = [ecran(fl.position)]
+    return autresFusees(tl).map((a) => {
+      const s = ecran(a.position)
+      const visible = s.x > -10 && s.x < L + 10 && s.y > -10 && s.y < Hc + 10
+      const libre = visible && ecrits.every((e) => Math.abs(e.x - s.x) > 70 || Math.abs(e.y - s.y) > 13)
+      if (libre) ecrits.push(s)
+      return { ...a, s, visible, nomVisible: libre }
+    })
+  })
+
   const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
 </script>
@@ -321,6 +335,13 @@
         {/if}
       {/each}
     {/if}
+
+    {#each autres as a}
+      {#if a.visible}
+        <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.fond} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />
+        {#if a.nomVisible}<text x={a.s.x + 5} y={a.s.y + 11} font-size="11" font-family="var(--police-script)" fill={a.couleur}>{a.nom}</text>{/if}
+      {/if}
+    {/each}
 
     {#if visiteur}
       {@const s = ecran(visiteur)}

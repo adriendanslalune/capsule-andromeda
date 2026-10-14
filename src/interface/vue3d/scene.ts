@@ -19,6 +19,7 @@ import { enAttenteDeFenetre, systemeDeLaFusee } from '../../moteur/fusee'
 import { mulberry32 } from '../../moteur/hasard'
 import { CHASSE } from '../../donnees/chasse'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { autresFusees } from '../reseau'
 import { modeleFusee, modeleISS, modeleSoucoupe, refleter } from './modeles'
 
 const COULEURS: Record<string, number> = {
@@ -43,7 +44,12 @@ export interface Etiquette {
   x: number
   y: number
   cible: boolean
+  /** Couleur d'une autre fusée (son nom est alors écrit à sa couleur). */
+  couleur?: string
 }
+
+/** Les autres fusées : un point de couleur jusqu'à 3 millions de km, leur nom jusqu'à 300 000 km, le modèle à 30 km. */
+const AUTRES = { pointKm: 3_000_000, nomKm: 300_000, modeleKm: 30 }
 
 /** Distance de la caméra à la fusée dans la vue extérieure (km) : 90 m. */
 const DISTANCE_CAMERA = 0.09
@@ -75,6 +81,8 @@ export class Vue3D {
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
   private hauteur = 1
+  /** Les autres fusées (bots, puis vrais joueurs) : point de couleur, et modèle quand on est tout près. */
+  private autres = new Map<string, { point: THREE.Points; modele: THREE.Group | null; ecran: THREE.Vector3; nom: string; couleur: string }>()
 
   // Caméra en orbite autour de la fusée.
   lacet = camera.lacet
@@ -291,6 +299,36 @@ export class Vue3D {
     // Feu de position clignotant au bout de l'antenne.
     this.fusee.getObjectByName('feu')!.visible = Math.floor(horloge / 600) % 2 === 0
 
+    // Les autres fusées.
+    const vues = new Set<string>()
+    for (const a of autresFusees(t)) {
+      vues.add(a.serie)
+      let o = this.autres.get(a.serie)
+      if (!o) {
+        o = { point: this.point(new THREE.Color(a.couleur).getHex(), 4), modele: null, ecran: new THREE.Vector3(), nom: a.nom, couleur: a.couleur }
+        this.scene.add(o.point)
+        this.autres.set(a.serie, o)
+      }
+      const pa = relatif(enKm({ ...a.position, z: a.position.z ?? 0 }))
+      const d = pa.length()
+      o.ecran.copy(pa)
+      o.point.position.copy(pa)
+      o.point.visible = d > 0.05 && d < AUTRES.pointKm
+      if (d < AUTRES.modeleKm && !o.modele) {
+        o.modele = modeleFusee()
+        o.modele.getObjectByName('flamme')!.visible = false
+        o.modele.getObjectByName('foyer')!.visible = false
+        refleter(o.modele, this.environnement, 0.9)
+        this.scene.add(o.modele)
+      }
+      if (o.modele) {
+        o.modele.visible = d < AUTRES.modeleKm
+        o.modele.position.copy(pa)
+        o.modele.rotation.y = (a.cap * Math.PI) / 180
+      }
+    }
+    for (const [serie, o] of this.autres) if (!vues.has(serie)) { o.point.visible = false; if (o.modele) o.modele.visible = false }
+
     // Visiteur : la soucoupe de près ; une lueur de loin (et elle clignote si le détecteur DET la signale).
     const v = positionVisiteur(t)
     const pv = relatif({ x: v.x * UA_KM, y: v.y * UA_KM, z: v.z * UA_KM })
@@ -371,6 +409,11 @@ export class Vue3D {
       if (e) this.etiquettes.push({ nom, ...e, cible: nom === cibleNom })
     }
     if (this.iss.visible) { const e = projeter(iss); if (e) this.etiquettes.push({ nom: 'ISS', ...e, cible: cibleNom === 'ISS' }) }
+    for (const o of this.autres.values()) {
+      if (!o.point.visible || o.ecran.length() > AUTRES.nomKm) continue
+      const e = projeter(o.ecran)
+      if (e) this.etiquettes.push({ nom: o.nom, ...e, cible: false, couleur: o.couleur })
+    }
     this.visiteurEcran = this.lueurVisiteur.visible || this.soucoupe.visible ? projeter(pv) : null
   }
 

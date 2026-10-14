@@ -209,7 +209,7 @@
       <div class="lucarne"><small>SOLEIL</small><b>{nombre(Math.hypot(fusee.position.x, fusee.position.y), 3)} UA</b></div>
       <div class="lucarne"><small>RADIO TERRE</small><b>{delaiRadio}</b></div>
       <div class="lucarne en-ligne">
-        <small><span class="antenne" aria-hidden="true"></span>EN LIGNE{#if reseau.horsReseau} · <i>HORS RÉSEAU</i>{/if}</small>
+        <small><span class="antenne" aria-hidden="true"></span>EN LIGNE{#if reseau.horsReseau} · <i>FLOTTE SIMULÉE</i>{/if}</small>
         <b>{reseau.total} en vol{#if reseau.systeme && reseau.ici !== null} · {reseau.ici} {reseau.systeme === 'Terre' ? 'autour de la Terre' : `près de ${reseau.systeme}`}{/if}</b>
       </div>
     </div>

@@ -44,7 +44,7 @@
 <div class="hublot" bind:this={cadre}>
   <canvas bind:this={toile}></canvas>
   {#each etiquettes as e}
-    <span class="etiquette" class:cible={e.cible} style={`left: ${e.x}px; top: ${e.y}px`}>{nomAstre(e.nom)}</span>
+    <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
   {/each}
   {#if indisponible}<p>Vue indisponible sur cet appareil.</p>{/if}
 </div>
@@ -70,6 +70,11 @@
     opacity: 0.8;
     pointer-events: none;
     white-space: nowrap;
+  }
+  .etiquette.autre {
+    font-family: var(--police-script);
+    letter-spacing: 0;
+    opacity: 0.95;
   }
   .etiquette.cible {
     color: var(--moutarde);
