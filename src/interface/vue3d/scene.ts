@@ -5,7 +5,6 @@
 // cap ; la fusée elle-même n'est pas visible).
 
 import * as THREE from 'three'
-import luneUrl from '../../../assets/textures/lune_lc.jpg?url'
 import { corpsDuSysteme, estPlanete, positionCorps } from '../../astro/corps'
 import { satellite } from '../../astro/satellites'
 import { UA_KM } from '../../astro/temps'
@@ -22,6 +21,7 @@ import { autresFusees } from '../reseau'
 import { positionsEngins } from '../../astro/engins'
 import { modeleEngin, modeleISSFidele } from './engins'
 import { creerTerre, type Terre } from './terre'
+import { aspectAstre, orienter } from './astres'
 import { estEngin } from '../../astro/engins'
 import { modeleFusee, modeleSoucoupe, refleter } from './modeles'
 
@@ -223,19 +223,17 @@ export class Vue3D {
   }
 
   private ajouterAstre(nom: string, couleur: number, lumineux = false) {
-    const materiau = lumineux
-      ? new THREE.MeshBasicMaterial({ color: couleur })
-      : new THREE.MeshStandardMaterial({ color: nom === 'Terre' || nom === 'Lune' ? 0xffffff : couleur, roughness: 0.9 })
-    if (nom === 'Lune') (materiau as THREE.MeshStandardMaterial).map = this.chargeur.load(luneUrl)
-    // La Terre : globe réaliste, à sa vraie orientation (voir terre.ts).
-    if (nom === 'Terre') this.terre = creerTerre(this.chargeur)
-    const maillage = nom === 'Terre' ? this.terre!.globe : new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), materiau)
-    maillage.scale.setScalar(rayon(nom))
-    if (nom === 'Saturne') {
-      const anneau = new THREE.Mesh(new THREE.RingGeometry(1.24, 2.27, 96), new THREE.MeshStandardMaterial({ color: 0xd9c08a, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }))
-      anneau.rotation.x = -Math.PI / 2 + 0.47
-      maillage.add(anneau)
+    // La Terre : globe réaliste, à sa vraie orientation (terre.ts) ; les autres astres : astres.ts.
+    let maillage: THREE.Mesh
+    if (nom === 'Terre') {
+      this.terre = creerTerre(this.chargeur)
+      maillage = this.terre.globe
+    } else {
+      const aspect = aspectAstre(nom, rayon(nom), this.chargeur)
+      maillage = new THREE.Mesh(aspect.geometrie, aspect.materiau)
+      if (aspect.anneau) maillage.add(aspect.anneau)
     }
+    maillage.scale.setScalar(rayon(nom))
     const point = this.point(couleur, lumineux ? 6 : 3)
     this.scene.add(maillage, point)
     this.astres.set(nom, { nom, maillage, point })
@@ -295,6 +293,8 @@ export class Vue3D {
       const p = nom === 'Soleil' ? relatif({ x: 0, y: 0, z: 0 }) : relatif(enKm(positionCorps(nom, t)))
       a.maillage.position.copy(p)
       a.point.position.copy(p)
+      // Pôle et rotation réels (UAI) ; la Terre a les siens (terre.ts).
+      if (nom !== 'Terre') orienter(nom, a.maillage, t)
       if (nom === 'Soleil') this.soleil.position.copy(p)
     }
     // La Terre tourne comme la vraie : jour et nuit au bon endroit.
@@ -483,7 +483,7 @@ export class Vue3D {
     const exposition = 1 - 0.96 * f
     this.rendu.toneMappingExposure = exposition
     const soleil = this.astres.get('Soleil')
-    if (soleil) (soleil.maillage.material as THREE.MeshBasicMaterial).color.setHex(0xffd27a).lerp(new THREE.Color(0xffffff), f).multiplyScalar(1 / exposition)
+    if (soleil) (soleil.maillage.material as THREE.MeshBasicMaterial).color.setHex(0xffffff).lerp(new THREE.Color(0xffffff), f).multiplyScalar(1 / exposition)
     // Derrière le filtre, les étoiles disparaissent.
     this.reglerCiel(6.3 - 9 * f, 1)
   }
