@@ -1,5 +1,10 @@
 <script lang="ts">
   // Un module en plein écran : retour à la fenêtre, renvoi au manuel, commandes du module, avarie suivante.
+  // On passe au module voisin en glissant le doigt (à gauche : le suivant, à droite : le précédent) ; leurs noms sont
+  // indiqués sur les bords de l'écran.
+  import { fly } from 'svelte/transition'
+  import { MODULES_A_INSTALLER } from '../../donnees/economie'
+  import { estInstalle } from '../../moteur/economie'
   import { modulesEnPanne } from '../../moteur/modules'
   import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
@@ -42,9 +47,39 @@
   const affiche = $derived(propulsion ? ['CH-1', 'TU-1'] : [code])
   const avarie = $derived(affiche.some((c) => enPanne.includes(c)))
   const autre = $derived(enPanne.find((c) => !affiche.includes(c)) ?? null)
+
+  // Modules installés, dans l'ordre du tableau de bord (CH-1 et TU-1 ne font qu'un écran : la propulsion).
+  const ordre = $derived(['CH-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)].filter((c) => estInstalle(jeu.etat!, c)))
+  const ici = $derived(ordre.indexOf(propulsion ? 'CH-1' : code))
+  const precedent = $derived(ici > 0 ? ordre[ici - 1] : null)
+  const suivant = $derived(ici >= 0 && ici < ordre.length - 1 ? ordre[ici + 1] : null)
+  const nomCourt = (c: string) => (c === 'CH-1' ? 'PROPULSION' : NOMS[c])
+  let sens = $state(1)
+  function aller(c: string | null, s: number) {
+    if (!c) return
+    sens = s
+    jeu.ecran = { nom: 'module', code: c }
+  }
+  // Glisser : geste rapide et franchement horizontal, hors du bord gauche (qui ramène au tableau de bord).
+  let depart: { x: number; y: number; t: number } | null = null
+  function toucher(e: TouchEvent) {
+    const cible = e.target as Element
+    depart = e.touches.length === 1 && !cible.closest('.bord, header, input, select')
+      ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null
+  }
+  function lacher(e: TouchEvent) {
+    const d = e.changedTouches[0]
+    if (!depart || !d) return
+    const dx = d.clientX - depart.x, dy = d.clientY - depart.y
+    const vite = Date.now() - depart.t < 700
+    depart = null
+    if (!vite || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return
+    if (dx < 0) aller(suivant, 1)
+    else aller(precedent, -1)
+  }
 </script>
 
-<main class="papier" bind:this={ecran}>
+<main class="papier" bind:this={ecran} ontouchstart={toucher} ontouchend={lacher} ontouchcancel={() => (depart = null)}>
   <Bricolage graine={code} />
   <!-- Tirer depuis le bord gauche, ou par le bandeau du haut, ramène au tableau de bord. -->
   <div class="bord" use:glisserPourFermer={glisser}></div>
@@ -58,7 +93,12 @@
     {#if avarie}<span class="avarie"><span class="lampe"></span>AVARIE</span>{/if}
   </div>
 
-  <div class="contenu">
+  <!-- Modules voisins, sur les bords : les toucher y mène aussi. -->
+  {#if precedent}<button class="voisin gauche" aria-label={`Module précédent : ${precedent}`} onclick={() => aller(precedent, -1)}><span>‹ {precedent} · {nomCourt(precedent)}</span></button>{/if}
+  {#if suivant}<button class="voisin droite" aria-label={`Module suivant : ${suivant}`} onclick={() => aller(suivant, 1)}><span>{suivant} · {nomCourt(suivant)} ›</span></button>{/if}
+
+  {#key code}
+  <div class="contenu" in:fly={{ x: sens * 80, duration: 180 }}>
     {#if propulsion}<Propulsion />
     {:else if code === 'AL-1'}<Fusibles />
     {:else if code === 'CO-1'}<Codeur />
@@ -72,6 +112,7 @@
     {:else if code === 'SX-1'}<Sextant />
     {/if}
   </div>
+  {/key}
 
   {#if autre}
     <button class="suivante bouton cerise" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
@@ -81,6 +122,44 @@
 </main>
 
 <style>
+  /* Étiquettes des modules voisins, debout sur les bords de l'écran. */
+  .voisin {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 0;
+    min-height: 0;
+    height: 170px;
+    padding: 0;
+    border: 1.5px solid var(--couleur-encre);
+    background: var(--couleur-papier-fonce);
+    color: var(--couleur-encre-discrete);
+    transform: translateY(-50%);
+  }
+  .voisin span {
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+  .voisin.gauche {
+    left: 0;
+    border-left: 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .voisin.gauche span {
+    transform: rotate(180deg);
+  }
+  .voisin.droite {
+    right: 0;
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+  }
   .bord {
     position: absolute;
     top: 0;
