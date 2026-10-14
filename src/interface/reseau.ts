@@ -6,7 +6,7 @@ import type { Vecteur3 } from '../astro/vecteur'
 import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
 import { TELEGRAMMES } from '../donnees/reglages'
-import { botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots } from '../moteur/flotte'
+import { arriveesDesBots, botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots, tropheesDuBot, trouvaillesDesBots, type Annonce } from '../moteur/flotte'
 import { arriveeEn, estDestinataire, estLu, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
 import { systemeDeLaFusee } from '../moteur/fusee'
 
@@ -77,4 +77,28 @@ export function telegrammesRecus(etat: EtatPartie, t: number): TelegrammeRecu[] 
 /** Télégrammes arrivés depuis la dernière lecture. */
 export function nonLus(etat: EtatPartie, recus: TelegrammeRecu[]): number {
   return recus.filter((m) => !estLu(etat, m)).length
+}
+
+/** Annonces des dernières 48 heures, la plus récente en premier : arrivées des commissionnaires, trouvailles. */
+export function annonces(t: number): Annonce[] {
+  if (!BOTS_ACTIFS) return []
+  const depuis = t - 48 * 3_600_000
+  return [...arriveesDesBots(FLOTTE, depuis, t), ...trouvaillesDesBots(FLOTTE, depuis, t)].sort((a, b) => b.t - a.t)
+}
+
+export interface Classe {
+  rang: number
+  nom: string
+  couleur: string | null
+  trophees: number
+  moi: boolean
+}
+
+/** Classement des commissionnaires, au nombre de trophées. */
+export function classement(etat: EtatPartie, t: number): Classe[] {
+  const l = [
+    { nom: etat.nom || etat.serie, couleur: null, trophees: etat.trophees.length, moi: true },
+    ...(BOTS_ACTIFS ? FLOTTE.map((b) => ({ nom: b.nom, couleur: b.couleur, trophees: tropheesDuBot(b, t), moi: false })) : []),
+  ].sort((a, b) => b.trophees - a.trophees || Number(b.moi) - Number(a.moi))
+  return l.map((c, i) => ({ ...c, rang: i + 1 }))
 }

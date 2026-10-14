@@ -21,16 +21,19 @@ Puis « Prendre les commandes », et une première panne guidée.
   compte les avaries. On passe à la page voisine en glissant le doigt à gauche ou à
   droite (sauf sur la carte, qui se déplace au doigt). Le geste « retour » du téléphone ramène au cockpit.
 
-### Page COCKPIT
-- Hublot d'un bord à l'autre de l'écran.
-- La vue sur l'espace (la fusée, le vrai ciel, la route vers la destination). Toucher ouvre la vue 3D complète.
-- Carte « voyage » : destination, temps restant, distance, barre de progression, vitesse et effet des avaries.
-  En orbite ou à l'arrêt : l'indiquer.
-- **Tableau de voyants** : une tuile par module (grille 4 colonnes) — OK (discret), AVARIE (clignote), SCELLÉ (hachuré).
-  Toucher une tuile en avarie ouvre le module.
-- Instruments de bord : route parcourue, distance au Soleil, délai radio jusqu'à la Terre, commissionnaires en ligne.
-- Ligne « chasse » : état du visiteur, dernier indice, jours restants dans la saison.
-- Les derniers messages du téléscripteur, le plus récent en haut ; le toucher déroule le journal entier (100 lignes).
+### Page COCKPIT (refaite le 14/10/2026 : un seul écran, quatre questions)
+- **Hublot** d'un bord à l'autre (toucher : vue 3D extérieure ; bouton FILTRE solaire).
+- **1. Où je vais ?** Panneau PILOTAGE : écran de navigation (destination, temps restant à la seconde, jour et
+  heure d'arrivée, frise) ; trois petits cadrans (vitesse, cap, heure d'arrivée), qui ouvrent le volet INSTRUMENTS
+  (grands cadrans, loupe, relevés : route, Soleil, radio, croisière) ; interrupteur MOTEUR cerné de rayures jaunes et
+  noires ; bande « danger ».
+- **2. Qu'est-ce qui ne va pas ?** Panneau BLOCS DU BORD : phrase d'état (« Tout est en ordre. » / « 2 avaries :
+  touchez un voyant rouge. »), les 12 voyants en grand (trait PROPULSION), plaque constructeur avec le numéro de série.
+- **3. Quel est mon but ?** Carte MISSION (contrat en cours : destination, prime, distance ; ouvre CONTRATS) et carte
+  VISITEUR (radar, jours de saison ; ouvre NAVIGATION).
+- **4. Qui est autour ?** Carte LIAISON : commissionnaires en ligne, rang au classement, dernière annonce ; ouvre le
+  volet LIAISON (télégrammes, en ligne, classement aux trophées, annonces des 48 dernières heures).
+- En pied : la dernière ligne du journal de bord (toucher : tout le journal).
 
 ## 3. Module en plein écran
 - Un seul module à la fois, en grand, commandes à taille de pouce.

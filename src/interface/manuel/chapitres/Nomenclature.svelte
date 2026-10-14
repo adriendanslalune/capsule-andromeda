@@ -11,16 +11,15 @@
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
     ['Onglets', 'NAVIGATION, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
     ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
-    ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination. Il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
-    ['Tachymètre', 'Vitesse (lucarne, km/s) ; secteur vert : croisière. Un cadran touché se montre en grand.'],
-    ['Compas de cap', 'Aiguille : cap. Triangle : destination. 0° à droite de la carte, sens inverse des aiguilles d’une montre.'],
-    ['Horloge d’arrivée', 'Heure prévue de l’arrivée (heure du téléphone). À l’arrêt : heure actuelle.'],
-    ['Écran de navigation', 'Destination, temps restant, frise du trajet.'],
-    ['Instruments de bord', 'ROUTE : distance parcourue par l’appareil. SOLEIL : distance au Soleil. RADIO TERRE : délai d’un message jusqu’à la Terre. EN LIGNE : commissionnaires connectés (au total, et près de la fusée) ; leurs fusées sont des points de couleur sur la carte.'],
+    ['Écran de navigation', 'Destination, temps restant, jour et heure d’arrivée (heure du téléphone), frise du trajet.'],
+    ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher ouvre les instruments en grand et les relevés (route, Soleil, radio).'],
+    ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination ; il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
     ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
-    ['Radar de chasse', 'État de la recherche du visiteur (chapitre XVII). Le toucher ouvre la page NAVIGATION.'],
-    ['Téléscripteur', 'Derniers messages du bord, le plus récent en haut. Le toucher déroule tout le journal.'],
+    ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre les contrats.'],
+    ['Visiteur', 'Radar de la chasse (chapitre XVII), jours de saison. Le toucher ouvre la page NAVIGATION.'],
+    ['Liaison', 'Commissionnaires en ligne, classement, dernière annonce. Le toucher ouvre la liaison (télégrammes, classement, annonces) ; les autres fusées sont des points de couleur sur la carte.'],
+    ['Journal de bord', 'Dernier message du bord. Le toucher déroule tout le journal.'],
   ]
 </script>
 

@@ -1,97 +1,94 @@
 <script lang="ts">
   // I. Le poste de pilotage : planche du cockpit, organes numérotés (nomenclature à la page suivante).
   import Page from '../Page.svelte'
-  import Jauge from '../schemas/Jauge.svelte'
   import Motifs from '../schemas/Motifs.svelte'
   import Repere from '../schemas/Repere.svelte'
   import Voyant from '../schemas/Voyant.svelte'
 
   let { numero }: { numero: number } = $props()
-  const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 92 + (i % 6) * 32, y: 314 + Math.floor(i / 6) * 22 }))
+  const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 88 + (i % 6) * 33.5, y: 236 + Math.floor(i / 6) * 22 }))
   const onglets = ['NAVIG.', 'CONTR.', 'COCKPIT', 'ATEL.', 'TROPH.']
+  const encre = '#1d1916'
+  const police = 'Courier Prime, monospace'
 </script>
 
 <Page {numero} chapitre="I." titre="LE POSTE DE PILOTAGE">
   <p>Vue de face, depuis le siège du commissionnaire. Les numéros renvoient à la nomenclature (chapitre II).</p>
   <svg class="planche" viewBox="0 0 344 420" aria-label="Planche du poste de pilotage">
     <Motifs />
-    <!-- Contour du poste. -->
-    <rect x="62" y="4" width="220" height="412" rx="10" fill="none" stroke="#1d1916" stroke-width="1.6" />
+    <rect x="62" y="4" width="220" height="412" rx="10" fill="none" stroke={encre} stroke-width="1.6" />
     <!-- Barre du haut : nom, voyant des télégrammes, compteur et saison, son, manuel. -->
-    <text x="70" y="22" font-size="11" font-weight="700" font-family="Courier Prime, monospace">C-58</text>
-    <rect x="106" y="10" width="46" height="17" rx="2" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <circle cx="113" cy="16" r="2.6" fill="#1d1916" />
-    <text x="118" y="18" font-size="5.5" font-weight="700" font-family="Courier Prime, monospace">TÉLÉGR.</text>
-    <text x="110" y="24.5" font-size="4.5" font-family="Courier Prime, monospace">1 NOUVEAU</text>
-    <rect x="182" y="10" width="44" height="12" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    {#each [1, 2, 3] as i}<line x1={182 + 11 * i} y1="10" x2={182 + 11 * i} y2="22" stroke="#1d1916" stroke-width="0.6" />{/each}
-    <text x="226" y="28" text-anchor="end" font-size="4.5" font-family="Courier Prime, monospace">SAISON</text>
-    <rect x="238" y="9" width="8" height="17" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <rect x="254" y="9" width="20" height="18" rx="3" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <path d="M 264 13 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 13 v 10" fill="none" stroke="#1d1916" stroke-width="0.8" />
-    <!-- Onglets : celui de la page affichée ressort. -->
-    <line x1="62" y1="48" x2="282" y2="48" stroke="#1d1916" stroke-width="1.6" />
+    <text x="70" y="22" font-size="11" font-weight="700" font-family={police}>C-58</text>
+    <rect x="106" y="10" width="46" height="17" rx="2" fill="none" stroke={encre} stroke-width="1.2" />
+    <circle cx="113" cy="16" r="2.6" fill={encre} />
+    <text x="118" y="18" font-size="5.5" font-weight="700" font-family={police}>TÉLÉGR.</text>
+    <text x="110" y="24.5" font-size="4.5" font-family={police}>1 NOUVEAU</text>
+    <rect x="182" y="10" width="44" height="12" fill="none" stroke={encre} stroke-width="1.2" />
+    {#each [1, 2, 3] as i}<line x1={182 + 11 * i} y1="10" x2={182 + 11 * i} y2="22" stroke={encre} stroke-width="0.6" />{/each}
+    <text x="226" y="28" text-anchor="end" font-size="4.5" font-family={police}>SAISON</text>
+    <rect x="238" y="9" width="8" height="17" rx="4" fill="none" stroke={encre} stroke-width="1.2" />
+    <rect x="254" y="9" width="20" height="18" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <path d="M 264 13 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 13 v 10" fill="none" stroke={encre} stroke-width="0.8" />
+    <!-- Onglets. -->
+    <line x1="62" y1="48" x2="282" y2="48" stroke={encre} stroke-width="1.6" />
     {#each onglets as o, i}
       {@const x = 66 + i * 43}
       <path d={i === 2 ? `M ${x} 48 V 31 Q ${x} 29 ${x + 3} 29 H ${x + 37} Q ${x + 40} 29 ${x + 40} 31 V 48` : `M ${x} 48 V 35 Q ${x} 33 ${x + 3} 33 H ${x + 37} Q ${x + 40} 33 ${x + 40} 35 V 48`}
-        fill={i === 2 ? '#f8f5ec' : 'none'} stroke="#1d1916" stroke-width={i === 2 ? 1.6 : 1} />
-      <text x={x + 20} y="44" text-anchor="middle" font-size="5.5" font-weight="700" font-family="Courier Prime, monospace">{o}</text>
+        fill={i === 2 ? '#f8f5ec' : 'none'} stroke={encre} stroke-width={i === 2 ? 1.6 : 1} />
+      <text x={x + 20} y="44" text-anchor="middle" font-size="5.5" font-weight="700" font-family={police}>{o}</text>
     {/each}
     <line x1="152" y1="48" x2="192" y2="48" stroke="#f8f5ec" stroke-width="2" />
-    <circle cx="191" cy="30" r="4.5" fill="#1d1916" />
-    <text x="191" y="32" text-anchor="middle" font-size="5.5" font-weight="700" fill="#f8f5ec" font-family="Courier Prime, monospace">2</text>
-    <!-- Hublot, d'un bord à l'autre. -->
-    <line x1="62" y1="54" x2="282" y2="54" stroke="#1d1916" stroke-width="1.2" />
-    <rect x="66" y="58" width="212" height="28" rx="5" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
-    <line x1="62" y1="90" x2="282" y2="90" stroke="#1d1916" stroke-width="1.2" />
-    <!-- Panneau A : moteur, cadrans, radar. -->
-    <rect x="66" y="94" width="212" height="122" rx="4" fill="none" stroke="#1d1916" stroke-width="0.8" />
-    <g transform="translate(0 -26)">
-    <!-- Interrupteur MOTEUR. -->
-    <rect x="72" y="124" width="50" height="16" rx="8" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <circle cx="114" cy="132" r="5.5" fill="#1d1916" />
-    <text x="78" y="135" font-size="7" font-weight="700" font-family="Courier Prime, monospace">ON</text>
-    <!-- Cadrans : grand tachymètre, compas et horloge. -->
-    <Jauge x={118} y={182} r={32} />
-    <rect x="106" y="194" width="24" height="9" fill="#1d1916" />
-    <text x="118" y="201" text-anchor="middle" font-size="6" fill="#f8f5ec" font-family="Courier Prime, monospace">13,5</text>
-    <circle cx="236" cy="160" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
-    {#each [0, 90, 180, 270] as a}
-      {@const r = (a * Math.PI) / 180}
-      <line x1={236 + Math.cos(r) * 11} y1={160 - Math.sin(r) * 11} x2={236 + Math.cos(r) * 14} y2={160 - Math.sin(r) * 14} stroke="#1d1916" stroke-width="1.2" />
+    <circle cx="191" cy="30" r="4.5" fill={encre} />
+    <text x="191" y="32" text-anchor="middle" font-size="5.5" font-weight="700" fill="#f8f5ec" font-family={police}>2</text>
+    <!-- Hublot. -->
+    <line x1="62" y1="54" x2="282" y2="54" stroke={encre} stroke-width="1.2" />
+    <rect x="66" y="58" width="212" height="28" rx="5" fill="url(#zone-bleue)" stroke={encre} stroke-width="1" />
+    <line x1="62" y1="90" x2="282" y2="90" stroke={encre} stroke-width="1.2" />
+
+    <!-- Panneau PILOTAGE : écran de navigation, trois petits cadrans, interrupteur MOTEUR. -->
+    <rect x="66" y="96" width="212" height="106" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
+    <text x="74" y="98.5" font-size="5" font-family={police}>PILOTAGE</text>
+    <rect x="72" y="103" width="200" height="40" rx="4" fill={encre} />
+    <text x="78" y="113" font-size="6" fill="#f8f5ec" font-family={police}>EN ROUTE VERS</text>
+    <text x="78" y="125" font-size="9" font-weight="700" fill="#f8f5ec" font-family={police}>LA LUNE</text>
+    <text x="266" y="125" text-anchor="end" font-size="8" fill="#f8f5ec" font-family={police}>02:14:06</text>
+    <text x="78" y="133" font-size="5.5" fill="#f8f5ec" font-family={police}>Arrivée demain 18:39</text>
+    <rect x="78" y="136" width="188" height="3.5" fill="none" stroke="#f8f5ec" stroke-width="0.6" />
+    <rect x="78" y="136" width="70" height="3.5" fill="#f8f5ec" />
+    {#each [92, 132, 172] as x, k}
+      <circle cx={x} cy="162" r="12" fill="#f8f5ec" stroke={encre} stroke-width="1.4" />
+      <line x1={x} y1="162" x2={x + (k === 0 ? -6 : k === 1 ? 5 : 0)} y2={162 - (k === 2 ? 9 : 7)} stroke={encre} stroke-width="1.4" />
+      <text x={x} y="183" text-anchor="middle" font-size="5" font-family={police}>{['KM/S', 'CAP', 'ARRIVÉE'][k]}</text>
     {/each}
-    <path d="M 236 160 L 243 150 L 238 161 Z" fill="#1d1916" />
-    <circle cx="236" cy="200" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
-    <line x1="236" y1="200" x2="236" y2="189" stroke="#1d1916" stroke-width="1.6" />
-    <line x1="236" y1="200" x2="244" y2="203" stroke="#1d1916" stroke-width="1.1" />
-    </g>
-    <!-- Radar du visiteur. -->
-    <rect x="72" y="194" width="200" height="18" rx="3" fill="#1d1916" />
-    <circle cx="82" cy="203" r="6" fill="#f8f5ec" stroke="#1d1916" stroke-width="1" />
-    <path d="M 82 203 L 82 197 A 6 6 0 0 1 87.2 200 Z" fill="#1d1916" />
-    <text x="94" y="205.5" font-size="6.5" fill="#f8f5ec" font-family="Courier Prime, monospace">VISITEUR INTROUVABLE</text>
-    <text x="266" y="205.5" text-anchor="end" font-size="7" font-weight="700" fill="#f8f5ec" font-family="Courier Prime, monospace">18</text>
-    <!-- Écran de navigation. -->
-    <rect x="70" y="222" width="204" height="40" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <text x="76" y="235" font-size="7" font-family="Courier Prime, monospace">EN ROUTE VERS</text>
-    <text x="76" y="248" font-size="9.5" font-weight="700" font-family="Courier Prime, monospace">LA LUNE</text>
-    <text x="268" y="248" text-anchor="end" font-size="8" font-family="Courier Prime, monospace">2 h 14 min 06 s</text>
-    <rect x="76" y="253" width="192" height="5" fill="none" stroke="#1d1916" stroke-width="0.8" />
-    <rect x="76" y="253" width="70" height="5" fill="#1d1916" />
-    <!-- Instruments de bord. -->
-    {#each [0, 1, 2] as i}<rect x={70 + i * 69} y="268" width="64" height="14" rx="2" fill="none" stroke="#1d1916" stroke-width="1" />{/each}
-    <rect x="70" y="285" width="202" height="14" rx="2" fill="none" stroke="#1d1916" stroke-width="1" />
-    <text x="74" y="294.5" font-size="6" font-family="Courier Prime, monospace">EN LIGNE · 3 en vol · 1 autour de la Terre</text>
-    <!-- Voyants des blocs. -->
+    <rect x="200" y="148" width="68" height="34" rx="3" fill="url(#zone-rouge)" stroke={encre} stroke-width="1" />
+    <rect x="206" y="153" width="56" height="16" rx="8" fill="#f8f5ec" stroke={encre} stroke-width="1.2" />
+    <circle cx="254" cy="161" r="5.5" fill={encre} />
+    <text x="212" y="164" font-size="6.5" font-weight="700" font-family={police}>ON</text>
+    <rect x="72" y="190" width="200" height="6" fill="url(#zone-rouge)" stroke={encre} stroke-width="0.6" />
+
+    <!-- Panneau BLOCS DU BORD : phrase d'état, voyants, plaque constructeur. -->
+    <rect x="66" y="208" width="212" height="92" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
+    <text x="74" y="210.5" font-size="5" font-family={police}>BLOCS DU BORD</text>
+    <circle cx="77" cy="220" r="3" fill={encre} />
+    <text x="84" y="222.5" font-size="6.5" font-weight="700" font-family={police}>2 avaries : touchez un voyant rouge.</text>
     {#each voyants as v}<Voyant x={v.x} y={v.y} r={7} />{/each}
-    <path d="M 92 304 L 92 301 L 124 301 L 124 304" fill="none" stroke="#1d1916" stroke-width="0.6" />
-    <rect x="132" y="352" width="80" height="11" fill="none" stroke="#1d1916" stroke-width="1" />
-    <text x="172" y="360" text-anchor="middle" font-size="6.5" font-family="Courier Prime, monospace">N° SÉRIE ___-___</text>
-    <!-- Téléscripteur. -->
-    <rect x="70" y="372" width="204" height="30" fill="none" stroke="#1d1916" stroke-width="0.8" />
-    {#each [378, 384, 390, 396] as y}<circle cx="74" cy={y} r="1.3" fill="none" stroke="#1d1916" stroke-width="0.6" /><circle cx="270" cy={y} r="1.3" fill="none" stroke="#1d1916" stroke-width="0.6" />{/each}
-    <line x1="82" y1="384" x2="262" y2="384" stroke="#1d1916" stroke-width="0.6" stroke-dasharray="3 2" />
-    <line x1="82" y1="392" x2="262" y2="392" stroke="#1d1916" stroke-width="0.6" stroke-dasharray="3 2" />
+    <path d="M 88 229 L 88 226 L 121.5 226 L 121.5 229" fill="none" stroke={encre} stroke-width="0.6" />
+    <rect x="132" y="282" width="80" height="11" fill="none" stroke={encre} stroke-width="1" />
+    <text x="172" y="290" text-anchor="middle" font-size="6.5" font-family={police}>N° SÉRIE ___-___</text>
+
+    <!-- Mission, visiteur, liaison, journal. -->
+    <rect x="66" y="306" width="104" height="30" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <text x="72" y="315" font-size="5" font-family={police}>MISSION</text>
+    <text x="72" y="327" font-size="7.5" font-weight="700" font-family={police}>MARS · 40 CR</text>
+    <rect x="174" y="306" width="104" height="30" rx="3" fill={encre} />
+    <circle cx="189" cy="321" r="9" fill="url(#zone-verte)" stroke="#f8f5ec" stroke-width="1" />
+    <text x="203" y="324" font-size="7" font-weight="700" fill="#f8f5ec" font-family={police}>VISITEUR</text>
+    <rect x="66" y="341" width="212" height="30" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <text x="72" y="350" font-size="5" font-family={police}>LIAISON · 9 en ligne</text>
+    <text x="272" y="350" text-anchor="end" font-size="5.5" font-family={police}>Classement : 7e / 13</text>
+    <text x="72" y="363" font-size="6" font-family={police}>► Mistinguett s’est amarrée à l’ISS.</text>
+    <rect x="66" y="376" width="212" height="16" fill="none" stroke={encre} stroke-width="0.8" />
+    <line x1="74" y1="384" x2="262" y2="384" stroke={encre} stroke-width="0.6" stroke-dasharray="3 2" />
 
     <Repere x={129} y={12} tx={30} ty={12} n={1} />
     <Repere x={204} y={16} tx={316} ty={8} n={2} />
@@ -99,15 +96,14 @@
     <Repere x={270} y={22} tx={316} ty={40} n={4} />
     <Repere x={110} y={40} tx={30} ty={40} n={5} />
     <Repere x={70} y={72} tx={30} ty={72} n={6} />
-    <Repere x={76} y={106} tx={30} ty={106} n={7} />
-    <Repere x={92} y={168} tx={30} ty={164} n={8} />
-    <Repere x={252} y={130} tx={316} ty={130} n={9} />
-    <Repere x={252} y={178} tx={316} ty={178} n={10} />
-    <Repere x={268} y={232} tx={316} ty={232} n={11} />
-    <Repere x={268} y={275} tx={316} ty={275} n={12} />
-    <Repere x={85} y={320} tx={30} ty={320} n={13} />
-    <Repere x={208} y={357} tx={316} ty={357} n={14} />
-    <Repere x={76} y={203} tx={30} ty={203} n={15} />
-    <Repere x={270} y={387} tx={316} ty={387} n={16} />
+    <Repere x={74} y={118} tx={30} ty={118} n={7} />
+    <Repere x={82} y={162} tx={30} ty={162} n={8} />
+    <Repere x={266} y={170} tx={316} ty={170} n={9} />
+    <Repere x={81} y={240} tx={30} ty={240} n={10} />
+    <Repere x={208} y={287} tx={316} ty={287} n={11} />
+    <Repere x={70} y={321} tx={30} ty={321} n={12} />
+    <Repere x={274} y={321} tx={316} ty={321} n={13} />
+    <Repere x={274} y={356} tx={316} ty={356} n={14} />
+    <Repere x={70} y={384} tx={30} ty={384} n={15} />
   </svg>
 </Page>

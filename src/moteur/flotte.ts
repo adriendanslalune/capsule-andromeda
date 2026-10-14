@@ -8,6 +8,7 @@ import type { Vecteur3 } from '../astro/vecteur'
 import type { Bot } from '../donnees/flotte'
 import { PHRASES_BOTS, REPONSES_BOTS } from '../donnees/telegrammes'
 import { mulberry32 } from './hasard'
+import { debutSaison, numeroSaison } from './visiteur'
 import { arriveeEn, estDestinataire, type Portee, type Telegramme } from './telegrammes'
 
 export interface PositionBot {
@@ -136,4 +137,61 @@ export function reponsesDesBots(flotte: readonly Bot[], envoyes: readonly Telegr
     })
   }
   return l
+}
+
+// Vie sociale de la flotte (en attendant le serveur) : annonces (arrivées des bots, visiteur photographié) et
+// classement (trophées). Tout se déduit de l'heure : les mêmes annonces et le même classement pour tous.
+
+export interface Annonce {
+  t: number
+  /** Fusée concernée (nom peint), et sa couleur. */
+  de: string
+  couleur: string
+  texte: string
+  /** Annonce marquante (trouvaille du visiteur) : mise en avant. */
+  majeure?: boolean
+}
+
+const nomLieu = (n: string) => (n === 'Terre' ? 'la Terre' : n === 'Lune' ? 'la Lune' : n === 'ISS' ? 'l’ISS' : n)
+
+/** Arrivées des bots entre depuis et t (fin de chaque trajet réellement accompli). */
+export function arriveesDesBots(flotte: readonly Bot[], depuis: number, t: number): Annonce[] {
+  const l: Annonce[] = []
+  for (const bot of flotte) {
+    const cycle = bot.cycleJours * JOUR
+    for (let n = Math.floor((depuis - ORIGINE) / cycle) - 1; ORIGINE + n * cycle <= t; n++) {
+      const debut = ORIGINE + n * cycle
+      const a = escaleDuCycle(bot, n), b = escaleDuCycle(bot, n + 1)
+      if (a === b) continue
+      const depart = debut + (0.1 + 0.3 * tirage(bot, n, 1)) * cycle
+      const duree = (distanceKm(stationnement(bot, a, depart), stationnement(bot, b, depart)) / bot.vitesse) * 1000
+      const arrivee = depart + duree
+      if (arrivee > debut + cycle || arrivee < depuis || arrivee > t) continue
+      const verbe = b === 'ISS' ? 's’est amarrée à l’ISS' : b === 'Terre' ? 'est revenue autour de la Terre' : `est arrivée à ${nomLieu(b)}`
+      l.push({ t: arrivee, de: bot.nom, couleur: bot.couleur, texte: `${bot.nom} ${verbe}.` })
+    }
+  }
+  return l
+}
+
+/** Trouvailles du visiteur par les bots : chaque saison (un mois), deux ou trois bots le photographient, après le 3e jour. */
+export function trouvaillesDesBots(flotte: readonly Bot[], depuis: number, t: number): Annonce[] {
+  const l: Annonce[] = []
+  for (let s = numeroSaison(depuis); s <= numeroSaison(t); s++) {
+    for (const bot of flotte) {
+      if (tirage(bot, s, 21) > 0.22) continue
+      const quand = debutSaison(s) + (3 + 20 * tirage(bot, s, 22)) * JOUR
+      if (quand < depuis || quand > t) continue
+      l.push({ t: quand, de: bot.nom, couleur: bot.couleur, texte: `${bot.nom} a photographié le visiteur de la saison !`, majeure: true })
+    }
+  }
+  return l
+}
+
+/** Nombre de trophées d'un bot à l'instant t (il en gagne régulièrement, à son rythme). */
+export function tropheesDuBot(bot: Bot, t: number): number {
+  // Mises en service étalées sur 2026 : certains commissionnaires sont des anciens, d'autres des nouveaux venus.
+  const jours = Math.max(0, (t - ORIGINE) / JOUR - 290 * tirage(bot, 0, 24))
+  const rythme = 0.05 + bot.vitesse / 400 + 0.25 * tirage(bot, 0, 23)
+  return Math.min(555, Math.floor(2 + jours * rythme))
 }
