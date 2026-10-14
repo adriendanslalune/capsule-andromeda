@@ -8,7 +8,7 @@ import { creerPartie } from '../src/moteur/etat'
 import { positionBot, reponsesDesBots, telegrammesDesBots } from '../src/moteur/flotte'
 import { mulberry32 } from '../src/moteur/hasard'
 import {
-  arriveeEn, envoisRestants, envoyerTelegramme, estDestinataire, prochainEnvoi, telegrammesDe, telegrammesOffice, type Telegramme,
+  arriveeEn, envoisRestants, estLu, marquerLus, envoyerTelegramme, estDestinataire, prochainEnvoi, telegrammesDe, telegrammesOffice, type Telegramme,
 } from '../src/moteur/telegrammes'
 
 const T0 = Date.UTC(2026, 9, 14, 12)
@@ -97,5 +97,14 @@ describe('télégrammes', () => {
     expect(r[0].serie).toBe(bot.serie)
     expect(r[0].portee).toEqual({ type: 'joueur', serie: e.serie, nom: e.nom })
     expect(r[0].envoye).toBeGreaterThan(arriveeEn(m, positionBot(bot, T0).position))
+  })
+
+  it('un télégramme lu le reste, même si son heure d’arrivée bouge avec la fusée', () => {
+    const e = neuve()
+    const m = { id: 'x', de: 'A', serie: 'AAA', texte: 'x', portee: { type: 'tout' as const }, envoye: T0, origine: { x: 1, y: 0, z: 0 }, systeme: null, arrivee: T0 + 500 }
+    expect(estLu(e, m)).toBe(false)
+    const f = marquerLus(e, [m])
+    expect(estLu(f, { ...m, arrivee: T0 + 900 })).toBe(true)
+    expect(marquerLus(f, [m])).toBe(f)
   })
 })

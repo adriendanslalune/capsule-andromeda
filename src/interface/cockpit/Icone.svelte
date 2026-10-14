@@ -1,6 +1,6 @@
 <script lang="ts">
   // Petits dessins des boutons du cockpit, au trait d'encre : carte, contrats, atelier, trophées, manuel.
-  let { nom }: { nom: 'carte' | 'contrats' | 'cockpit' | 'atelier' | 'trophees' | 'manuel' } = $props()
+  let { nom }: { nom: 'carte' | 'contrats' | 'cockpit' | 'atelier' | 'trophees' | 'manuel' | 'telegramme' } = $props()
 </script>
 
 <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
@@ -33,6 +33,11 @@
     <path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" />
     <path d="M7 5 H3 Q3 10 8 11 M17 5 H21 Q21 10 16 11" stroke-width="1.6" />
     <path d="M12 14 V18 M8 21 H16 L15 18 H9 Z" />
+  {:else if nom === 'telegramme'}
+    <!-- Enveloppe frappée d'un éclair (télégraphe). -->
+    <path d="M2 6 H22 V19 H2 Z" />
+    <path d="M2 6 L12 13 L22 6" stroke-width="1.6" />
+    <path d="M14 13.5 L11 17 H13.5 L11.5 21" stroke-width="1.6" />
   {:else}
     <!-- Livre ouvert. -->
     <path d="M12 6 Q8 3 2 4 V19 Q8 18 12 21 Q16 18 22 19 V4 Q16 3 12 6 Z" />

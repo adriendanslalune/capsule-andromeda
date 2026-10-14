@@ -8,7 +8,7 @@ import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
 import { TELEGRAMMES } from '../donnees/reglages'
 import { botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots } from '../moteur/flotte'
-import { arriveeEn, estDestinataire, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
+import { arriveeEn, estDestinataire, estLu, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
 import { systemeDeLaFusee } from '../moteur/fusee'
 
 /** Une autre fusée, telle qu'on la voit sur la carte et par le hublot. */
@@ -77,6 +77,5 @@ export function telegrammesRecus(etat: EtatPartie, t: number): TelegrammeRecu[] 
 
 /** Télégrammes arrivés depuis la dernière lecture. */
 export function nonLus(etat: EtatPartie, recus: TelegrammeRecu[]): number {
-  const lu = telegrammesDe(etat).luJusqua
-  return recus.filter((m) => m.arrivee > lu).length
+  return recus.filter((m) => !estLu(etat, m)).length
 }

@@ -5,7 +5,7 @@
   import { TELEGRAMMES } from '../../donnees/reglages'
   import { PHRASES } from '../../donnees/telegrammes'
   import {
-    envoisRestants, envoyerTelegramme, prochainEnvoi, systemeDuJoueur, telegrammesDe, type Portee, type Telegramme, type TelegrammeRecu,
+    envoisRestants, envoyerTelegramme, estLu, marquerLus, prochainEnvoi, systemeDuJoueur, telegrammesDe, type Portee, type Telegramme, type TelegrammeRecu,
   } from '../../moteur/telegrammes'
   import { duree, heureLocale, nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
@@ -21,10 +21,10 @@
   const joueurs = $derived(autresFusees(t).map((f) => ({ serie: f.serie, nom: f.nom, couleur: f.couleur })).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')))
 
   // Ce qui était déjà lu à l'ouverture : le reste est marqué « nouveau ». Tout ce qui arrive volet ouvert est lu.
-  const luAvant = telegrammesDe(jeu.etat!).luJusqua
+  const nouveauxALOuverture = new Set(telegrammesRecus(jeu.etat!, jeu.maintenant).filter((m) => !estLu(jeu.etat!, m)).map((m) => m.id))
   function marquerLu() {
-    const tg = telegrammesDe(etat)
-    if (recus.length && recus[0].arrivee > tg.luJusqua) jeu.remplacer({ ...etat, telegrammes: { ...tg, luJusqua: recus[0].arrivee } })
+    const e = marquerLus(etat, recus)
+    if (e !== etat) jeu.remplacer(e)
   }
   $effect(() => { void recus; marquerLu() })
 
@@ -100,7 +100,7 @@
   <!-- Télégrammes reçus et envoyés. -->
   {#each fil as l (l.recu + l.m.id)}
     {#if l.recu}
-      <article class="telegramme" class:nouveau={l.m.arrivee > luAvant}>
+      <article class="telegramme" class:nouveau={nouveauxALOuverture.has(l.m.id)}>
         <header>
           <span class="de"><span class="fanion" style={`background: ${l.m.couleur ?? 'var(--couleur-bandeau)'}`}></span>{l.m.de}</span>
           <span class="heure">{quand(l.m.arrivee)}</span>

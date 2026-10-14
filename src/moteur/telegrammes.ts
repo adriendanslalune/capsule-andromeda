@@ -39,11 +39,29 @@ export interface TelegrammeRecu extends Telegramme {
 export interface EtatTelegrammes {
   /** Télégrammes envoyés par le joueur (le plus récent en premier, 30 au plus). */
   envoyes: Telegramme[]
-  /** Instant jusqu'où les télégrammes reçus ont été lus. */
+  /** Instant jusqu'où les télégrammes reçus ont été lus (anciennes sauvegardes). */
   luJusqua: number
+  /** Identifiants des télégrammes reçus déjà lus (les 100 derniers). L'heure d'arrivée bouge un peu avec la
+   * fusée (le délai de la lumière dépend de sa position) : on retient donc les télégrammes eux-mêmes. */
+  lus?: string[]
 }
 
 export const telegrammesDe = (etat: EtatPartie): EtatTelegrammes => etat.telegrammes ?? { envoyes: [], luJusqua: etat.creeLe - 1 }
+
+/** Le télégramme reçu a-t-il été lu ? */
+export function estLu(etat: EtatPartie, m: TelegrammeRecu): boolean {
+  const tg = telegrammesDe(etat)
+  return tg.lus ? tg.lus.includes(m.id) : m.arrivee <= tg.luJusqua
+}
+
+/** Marque des télégrammes reçus comme lus ; renvoie l'état inchangé s'ils l'étaient déjà. */
+export function marquerLus(etat: EtatPartie, recus: readonly TelegrammeRecu[]): EtatPartie {
+  const nouveaux = recus.filter((m) => !estLu(etat, m))
+  if (!nouveaux.length) return etat
+  const tg = telegrammesDe(etat)
+  const anciens = tg.lus ?? recus.filter((m) => m.arrivee <= tg.luJusqua).map((m) => m.id)
+  return { ...etat, telegrammes: { ...tg, lus: [...nouveaux.map((m) => m.id), ...anciens].slice(0, 100) } }
+}
 
 /** Envois encore permis (24 heures glissantes). */
 export function envoisRestants(etat: EtatPartie, t: number): number {

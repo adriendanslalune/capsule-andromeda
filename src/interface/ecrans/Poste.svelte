@@ -66,7 +66,7 @@
          guichet des télégrammes. -->
     <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => (jeu.volet = 'telegrammes')}
       aria-label={nouveaux ? `${nouveaux} télégramme${nouveaux > 1 ? 's' : ''} reçu${nouveaux > 1 ? 's' : ''}` : 'Télégrammes'}>
-      <span class="utc"><span class="lampe"></span>TÉLÉGR.</span>
+      <span class="utc"><span class="symbole"><Icone nom="telegramme" /></span>TÉLÉGR.<span class="lampe"></span></span>
       <span class="bord">{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN NOUVEAU'}</span>
     </button>
     <div class="instruments">
@@ -141,6 +141,18 @@
     background: rgba(0, 0, 0, 0.25);
     color: inherit;
     font-family: var(--police-chiffres);
+  }
+  .symbole {
+    display: grid;
+    width: 18px;
+    height: 18px;
+  }
+  .symbole :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .etat-bord.alerte .symbole {
+    color: var(--moutarde);
   }
   .utc {
     display: flex;
