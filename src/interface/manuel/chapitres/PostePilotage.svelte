@@ -17,12 +17,8 @@
   <svg class="planche" viewBox="0 0 344 420" aria-label="Planche du poste de pilotage">
     <Motifs />
     <rect x="62" y="4" width="220" height="412" rx="10" fill="none" stroke={encre} stroke-width="1.6" />
-    <!-- Barre du haut : nom, voyant des télégrammes, compteur et saison, son, manuel. -->
+    <!-- Barre du haut : nom, compteur et saison, son, manuel. -->
     <text x="70" y="22" font-size="11" font-weight="700" font-family={police}>C-58</text>
-    <rect x="106" y="10" width="46" height="17" rx="2" fill="none" stroke={encre} stroke-width="1.2" />
-    <circle cx="113" cy="16" r="2.6" fill={encre} />
-    <text x="118" y="18" font-size="5.5" font-weight="700" font-family={police}>TÉLÉGR.</text>
-    <text x="110" y="24.5" font-size="4.5" font-family={police}>1 NOUVEAU</text>
     <rect x="182" y="10" width="44" height="12" fill="none" stroke={encre} stroke-width="1.2" />
     {#each [1, 2, 3] as i}<line x1={182 + 11 * i} y1="10" x2={182 + 11 * i} y2="22" stroke={encre} stroke-width="0.6" />{/each}
     <text x="226" y="28" text-anchor="end" font-size="4.5" font-family={police}>SAISON</text>
@@ -90,20 +86,19 @@
     <rect x="66" y="376" width="212" height="16" fill="none" stroke={encre} stroke-width="0.8" />
     <line x1="74" y1="384" x2="262" y2="384" stroke={encre} stroke-width="0.6" stroke-dasharray="3 2" />
 
-    <Repere x={129} y={12} tx={30} ty={12} n={1} />
-    <Repere x={204} y={16} tx={316} ty={8} n={2} />
-    <Repere x={242} y={18} tx={316} ty={24} n={3} />
-    <Repere x={270} y={22} tx={316} ty={40} n={4} />
-    <Repere x={110} y={40} tx={30} ty={40} n={5} />
-    <Repere x={70} y={72} tx={30} ty={72} n={6} />
-    <Repere x={74} y={118} tx={30} ty={118} n={7} />
-    <Repere x={82} y={162} tx={30} ty={162} n={8} />
-    <Repere x={266} y={170} tx={316} ty={170} n={9} />
-    <Repere x={81} y={240} tx={30} ty={240} n={10} />
-    <Repere x={208} y={287} tx={316} ty={287} n={11} />
-    <Repere x={70} y={321} tx={30} ty={321} n={12} />
-    <Repere x={274} y={321} tx={316} ty={321} n={13} />
-    <Repere x={274} y={356} tx={316} ty={356} n={14} />
-    <Repere x={70} y={384} tx={30} ty={384} n={15} />
+    <Repere x={204} y={16} tx={316} ty={8} n={1} />
+    <Repere x={242} y={18} tx={316} ty={24} n={2} />
+    <Repere x={270} y={22} tx={316} ty={40} n={3} />
+    <Repere x={110} y={40} tx={30} ty={40} n={4} />
+    <Repere x={70} y={72} tx={30} ty={72} n={5} />
+    <Repere x={74} y={118} tx={30} ty={118} n={6} />
+    <Repere x={82} y={162} tx={30} ty={162} n={7} />
+    <Repere x={266} y={170} tx={316} ty={170} n={8} />
+    <Repere x={81} y={240} tx={30} ty={240} n={9} />
+    <Repere x={208} y={287} tx={316} ty={287} n={10} />
+    <Repere x={70} y={321} tx={30} ty={321} n={11} />
+    <Repere x={274} y={321} tx={316} ty={321} n={12} />
+    <Repere x={274} y={356} tx={316} ty={356} n={13} />
+    <Repere x={70} y={384} tx={30} ty={384} n={14} />
   </svg>
 </Page>

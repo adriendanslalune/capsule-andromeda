@@ -5,11 +5,10 @@
 
   let { numero }: { numero: number } = $props()
   const organes = [
-    ['Voyant TÉLÉGR.', 'Allumé : télégramme arrivé. Le toucher ouvre SOCIAL, COMMUNICATION (XVIII).'],
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
     ['Interrupteur de son', 'Coupe ou rétablit les alarmes et les sons du bord.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Onglets', 'NAVIGATION, SOCIAL (classement, contrats, communication), COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
+    ['Onglets', 'NAVIGATION, SOCIAL (classement, contrats, communication), COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge sur COCKPIT : avaries ; jaune sur SOCIAL : télégrammes arrivés (XVIII).'],
     ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
     ['Écran de navigation', 'Destination, temps restant, jour et heure d’arrivée (heure du téléphone), frise du trajet.'],
     ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher ouvre les instruments en grand et les relevés (route, Soleil, radio).'],

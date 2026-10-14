@@ -64,13 +64,6 @@
       <span class="c58 titre-pulp">C-58</span>
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
-    <!-- Voyant des télégrammes (d'un joueur ou de l'Office) : allumé quand il en est arrivé ; le toucher ouvre le
-         guichet des télégrammes. -->
-    <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => jeu.ouvrirSocial('communication')}
-      aria-label={nouveaux ? `${nouveaux} télégramme${nouveaux > 1 ? 's' : ''} reçu${nouveaux > 1 ? 's' : ''}` : 'Télégrammes'}>
-      <span class="utc"><span class="symbole"><Icone nom="telegramme" /></span>TÉLÉGR.</span>
-      <span class="bord"><span class="lampe"></span>{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN'}</span>
-    </button>
     <div class="instruments">
       <div class="caisse">
         <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
@@ -92,6 +85,7 @@
       <button class={`onglet ${p}`} class:actif={jeu.page === p} aria-current={jeu.page === p ? 'page' : undefined} onclick={() => aller(p)}>
         <Icone nom={p} /><span>{NOMS[p]}</span>
         {#if p === 'cockpit' && avaries}<span class="pastille" aria-label={`${avaries} avaries`}>{avaries}</span>{/if}
+        {#if p === 'social' && nouveaux}<span class="pastille telegramme" aria-label={`${nouveaux} télégrammes`}>{nouveaux}</span>{/if}
       </button>
     {/each}
   </nav>
@@ -131,76 +125,12 @@
     gap: 6px;
     padding: 6px 10px 4px var(--espace);
   }
-  .etat-bord {
-    flex: 1;
-    min-width: 0;
-    max-width: 110px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    padding: 3px 6px;
-    border: 1.5px solid var(--couleur-texte-clair);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.25);
-    color: inherit;
-    font-family: var(--police-chiffres);
-  }
-  .symbole {
-    display: grid;
-    width: 18px;
-    height: 18px;
-  }
-  .symbole :global(svg) {
-    width: 18px;
-    height: 18px;
-  }
-  .etat-bord.alerte .symbole {
-    color: var(--moutarde);
-  }
-  .utc {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--police-titre);
-    font-size: 11px;
-    letter-spacing: 1px;
-    line-height: 1;
-  }
-  .bord {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 1;
-  }
-  /* Lampe du télégraphe : éteinte, ou allumée et clignotante quand un télégramme est arrivé. */
-  .lampe {
-    flex: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1.5px solid var(--couleur-encre);
-    background: #4b5a66;
-  }
-  .bord {
-    opacity: 0.75;
-  }
-  .etat-bord.alerte {
-    border-color: var(--moutarde);
-  }
-  .etat-bord.alerte .bord {
-    opacity: 1;
-    color: var(--moutarde);
-  }
-  .etat-bord.alerte .lampe {
+  /* Pastille d'avaries sur l'onglet COCKPIT ; de télégrammes sur l'onglet SOCIAL (jaune, sans clignoter). */
+  .pastille.telegramme {
     background: var(--moutarde);
-    box-shadow: 0 0 6px var(--moutarde);
-    animation: clignote 0.9s steps(2, jump-none) infinite;
+    color: var(--couleur-encre);
+    animation: none;
   }
-  /* Pastille d'avaries sur l'onglet COCKPIT. */
   .pastille {
     position: absolute;
     top: -6px;

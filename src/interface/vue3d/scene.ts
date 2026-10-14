@@ -5,7 +5,6 @@
 // cap ; la fusée elle-même n'est pas visible).
 
 import * as THREE from 'three'
-import terreUrl from '../../../assets/textures/terre_lc.jpg?url'
 import luneUrl from '../../../assets/textures/lune_lc.jpg?url'
 import { corpsDuSysteme, estPlanete, positionCorps } from '../../astro/corps'
 import { satellite } from '../../astro/satellites'
@@ -22,6 +21,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { autresFusees } from '../reseau'
 import { positionsEngins } from '../../astro/engins'
 import { modeleEngin, modeleISSFidele } from './engins'
+import { creerTerre, type Terre } from './terre'
 import { estEngin } from '../../astro/engins'
 import { modeleFusee, modeleSoucoupe, refleter } from './modeles'
 
@@ -84,6 +84,10 @@ export class Vue3D {
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
   private hauteur = 1
+  private terre: Terre | null = null
+  /** Direction du regard par le hublot : elle suit en douceur le virage de la fusée. */
+  private regard: THREE.Vector3 | null = null
+  private horlogePrecedente = 0
   /** Engins humains (Hubble, Webb, Voyager) : point lumineux de loin, modèle de près. */
   private engins = new Map<string, { point: THREE.Points; modele: THREE.Group | null; ecran: THREE.Vector3 }>()
   /** Filtre solaire demandé (bouton) ; l'effet suit en douceur (0 : sans filtre, 1 : filtre en place). */
@@ -220,21 +224,15 @@ export class Vue3D {
     const materiau = lumineux
       ? new THREE.MeshBasicMaterial({ color: couleur })
       : new THREE.MeshStandardMaterial({ color: nom === 'Terre' || nom === 'Lune' ? 0xffffff : couleur, roughness: 0.9 })
-    if (nom === 'Terre') (materiau as THREE.MeshStandardMaterial).map = this.chargeur.load(terreUrl)
     if (nom === 'Lune') (materiau as THREE.MeshStandardMaterial).map = this.chargeur.load(luneUrl)
-    const maillage = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), materiau)
+    // La Terre : globe réaliste, à sa vraie orientation (voir terre.ts).
+    if (nom === 'Terre') this.terre = creerTerre(this.chargeur)
+    const maillage = nom === 'Terre' ? this.terre!.globe : new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), materiau)
     maillage.scale.setScalar(rayon(nom))
     if (nom === 'Saturne') {
       const anneau = new THREE.Mesh(new THREE.RingGeometry(1.24, 2.27, 96), new THREE.MeshStandardMaterial({ color: 0xd9c08a, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }))
       anneau.rotation.x = -Math.PI / 2 + 0.47
       maillage.add(anneau)
-    }
-    if (nom === 'Terre') {
-      maillage.rotation.z = (23.44 * Math.PI) / 180
-      // Halo de l'atmosphère, visible sur le bord du globe.
-      const halo = new THREE.Mesh(new THREE.SphereGeometry(1.025, 64, 32),
-        new THREE.MeshBasicMaterial({ color: 0x6fb6ff, transparent: true, opacity: 0.35, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false }))
-      maillage.add(halo)
     }
     const point = this.point(couleur, lumineux ? 6 : 3)
     this.scene.add(maillage, point)
@@ -296,7 +294,8 @@ export class Vue3D {
       a.point.position.copy(p)
       if (nom === 'Soleil') this.soleil.position.copy(p)
     }
-    if (this.astres.get('Terre')) this.astres.get('Terre')!.maillage.rotation.y = ((t / 86_164_000) % 1) * Math.PI * 2
+    // La Terre tourne comme la vraie : jour et nuit au bon endroit.
+    this.terre?.mettreAJour(t, this.soleil.position)
 
     // ISS : visible si elle est proche.
     const iss = relatif(enKm(positionCorps('ISS', t)))
@@ -398,11 +397,31 @@ export class Vue3D {
         : dest?.type === 'visiteur' ? pv
         : dest?.type === 'point' ? relatif({ x: dest.x * UA_KM, y: dest.y * UA_KM, z: 0 })
         : undefined
-      if (cible && cible.lengthSq() > 0) this.camera.lookAt(cible)
-      else {
-        const a = (etat.fusee.cap * Math.PI) / 180
-        this.camera.lookAt(Math.cos(a), 0, -Math.sin(a))
+      // En route, on regarde droit devant, dans l'axe de la fusée (son cap), à la hauteur de la cible : pendant un
+      // virage, le paysage défile. En orbite ou à l'arrêt, on regarde l'astre visé.
+      const a = (etat.fusee.cap * Math.PI) / 180
+      let voulu: THREE.Vector3
+      if (dest && !etat.fusee.orbite) {
+        const c = cible && cible.lengthSq() > 0 ? cible.clone().normalize() : new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))
+        const horizontal = Math.hypot(c.x, c.z)
+        const hauteur = Math.atan2(c.y, horizontal)
+        voulu = new THREE.Vector3(Math.cos(a) * Math.cos(hauteur), Math.sin(hauteur), -Math.sin(a) * Math.cos(hauteur))
+      } else {
+        voulu = cible && cible.lengthSq() > 0 ? cible.clone().normalize() : new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))
       }
+      // On tourne vers ce regard à 25° par seconde au plus (comme la fusée), sans à-coup.
+      const dt = this.horlogePrecedente ? Math.min(0.2, (horloge - this.horlogePrecedente) / 1000) : 1
+      this.horlogePrecedente = horloge
+      if (!this.regard) this.regard = voulu.clone()
+      const ecart = this.regard.angleTo(voulu)
+      const pas = (25 * Math.PI) / 180 * dt
+      if (ecart <= pas || ecart > Math.PI * 0.999) this.regard.copy(voulu)
+      else {
+        const q = new THREE.Quaternion().setFromUnitVectors(this.regard, voulu)
+        const qPas = new THREE.Quaternion().slerp(q, pas / ecart)
+        this.regard.applyQuaternion(qPas).normalize()
+      }
+      this.camera.lookAt(this.regard)
       this.appliquerSoleil(origine)
       this.rendu.render(this.scene, this.camera)
       this.etiqueter(etat, iss, pv, satellites)
