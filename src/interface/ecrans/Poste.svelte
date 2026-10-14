@@ -66,8 +66,8 @@
          guichet des télégrammes. -->
     <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => (jeu.volet = 'telegrammes')}
       aria-label={nouveaux ? `${nouveaux} télégramme${nouveaux > 1 ? 's' : ''} reçu${nouveaux > 1 ? 's' : ''}` : 'Télégrammes'}>
-      <span class="utc"><span class="symbole"><Icone nom="telegramme" /></span>TÉLÉGR.<span class="lampe"></span></span>
-      <span class="bord">{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN NOUVEAU'}</span>
+      <span class="utc"><span class="symbole"><Icone nom="telegramme" /></span>TÉLÉGR.</span>
+      <span class="bord"><span class="lampe"></span>{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN'}</span>
     </button>
     <div class="instruments">
       <div class="caisse">

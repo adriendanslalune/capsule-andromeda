@@ -115,6 +115,9 @@
     return s < 60 ? `${nombre(s, 1)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, '0')} s`
   })
 
+  /** Cadran montré en grand (loupe), ou null. */
+  let loupe = $state<'tachymetre' | 'compas' | 'horloge' | null>(null)
+
   function etatTuile(code: string): 'ok' | 'avarie' | 'scelle' {
     if (!estInstalle(etat, code)) return 'scelle'
     return enPanne.includes(code) ? 'avarie' : 'ok'
@@ -152,22 +155,30 @@
       <span class="etiquette-encre">MOTEUR</span>
       <span class="regime" class:actif={!coupe && vitesse > 0}>{regime}</span>
     </div>
+    <!-- Cadrans : le toucher les montre en grand (loupe). -->
     <div class="cadrans">
-      <div class="grand-cadran"><Tachymetre valeur={vitesse} {croisiere} /></div>
+      <button class="cadran grand-cadran" aria-label="Voir le tachymètre en grand" onclick={() => (loupe = 'tachymetre')}>
+        <Tachymetre valeur={vitesse} {croisiere} />
+        <span class="gravure" aria-hidden="true">TACHYMÈTRE T-58</span>
+      </button>
       <div class="petits-cadrans">
-        <Compas cap={fusee.cap} {vers} />
-        <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
+        <button class="cadran" aria-label="Voir le compas en grand" onclick={() => (loupe = 'compas')}><Compas cap={fusee.cap} {vers} /></button>
+        <button class="cadran" aria-label="Voir l’horloge en grand" onclick={() => (loupe = 'horloge')}>
+          <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
+        </button>
       </div>
     </div>
-    <!-- Légendes gravées des cadrans, réglet gradué, repères de montage (décor). -->
-    <div class="legendes" aria-hidden="true">
-      <span>TACHYMÈTRE T-58</span>
-      <span class="filet"></span>
-      <span>COMPAS C-4 · CHRONO H-2</span>
-    </div>
     <span class="reglet" aria-hidden="true"></span>
-    <span class="repere r1" aria-hidden="true"></span>
-    <span class="repere r2" aria-hidden="true"></span>
+
+    <!-- Radar du visiteur : petit écran du panneau ; le toucher ouvre la carte. -->
+    <button class="chasse" onclick={() => (jeu.page = 'carte')}>
+      <span class="radar" aria-hidden="true"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span>
+      <span class="texte">
+        <span class="etat">{trouve ? 'VISITEUR PHOTOGRAPHIÉ' : detecte !== null ? `DÉTECTÉ À ${ua(detecte)}` : 'VISITEUR INTROUVABLE'}</span>
+        <span class="indice">{dernierIndice ? `${dernierIndice.texte.toLowerCase()} (${heureLocale(dernierIndice.t)})` : 'Aucun indice pour l’instant.'}</span>
+      </span>
+      <span class="jours"><b>{Math.ceil((finSaison(saison) - t) / 86_400_000)}</b><small>JOURS</small></span>
+    </button>
     <div class="danger" aria-hidden="true"><span>ATTENTION · PIÈCES EN MOUVEMENT</span></div>
     </div>
 
@@ -253,16 +264,6 @@
     </div>
   </section>
 
-  <!-- Chasse au visiteur. -->
-  <button class="chasse panneau" onclick={() => (jeu.page = 'carte')}>
-    <span class="radar" aria-hidden="true"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span>
-    <span class="texte">
-      <span class="etat">{trouve ? 'VISITEUR PHOTOGRAPHIÉ' : detecte !== null ? `DÉTECTÉ À ${ua(detecte)}` : 'VISITEUR INTROUVABLE'}</span>
-      <span class="indice">{dernierIndice ? `${dernierIndice.texte.toLowerCase()} (${heureLocale(dernierIndice.t)})` : 'Aucun indice pour l’instant.'}</span>
-    </span>
-    <span class="jours">{Math.ceil((finSaison(saison) - t) / 86_400_000)} j</span>
-  </button>
-
   <!-- Téléscripteur. -->
   <div class="rubrique"><span>JOURNAL DE BORD</span></div>
   <!-- La bande s'imprime par le haut : la fin de bande est au-dessus de la dernière ligne. La toucher la déroule. -->
@@ -276,6 +277,16 @@
 
   </div>
 
+  {#if loupe}
+    <div class="loupe" role="presentation" onclick={() => (loupe = null)}>
+      <div class="loupe-cadran">
+        {#if loupe === 'tachymetre'}<Tachymetre valeur={vitesse} {croisiere} />
+        {:else if loupe === 'compas'}<Compas cap={fusee.cap} {vers} />
+        {:else}<Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
+        {/if}
+      </div>
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -455,30 +466,78 @@
     font-size: 14px;
     letter-spacing: 2px;
   }
+  /* Cadrans : le grand tachymètre à gauche, compas et horloge empilés à droite, légendes dessous. */
   .cadrans {
     display: grid;
-    grid-template-columns: 1.55fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 4px;
+    align-items: stretch;
+    margin-right: 10px; /* place du réglet */
+  }
+  .cadran {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .cadran:active {
+    transform: scale(0.97);
   }
   .grand-cadran :global(svg) {
-    max-width: 200px;
+    max-width: 196px;
+  }
+  .gravure {
+    font-family: var(--police-machine);
+    font-size: 9px;
+    color: var(--couleur-encre-discrete);
   }
   .petits-cadrans {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-  }
-  .petits-cadrans :global(figure) {
-    flex-direction: row;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 6px;
   }
   .petits-cadrans :global(svg) {
-    max-width: 82px;
+    max-width: 80px;
   }
   .petits-cadrans :global(figcaption) {
-    flex-direction: column;
-    align-items: flex-start;
+    font-size: 13px;
+  }
+  .petits-cadrans :global(figcaption .etiquette-encre) {
+    font-size: 10px;
+  }
+
+  /* Loupe : un cadran en grand, au centre de l'écran. */
+  .loupe {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    background: rgba(42, 30, 23, 0.72);
+    animation: apparait 0.2s ease-out;
+  }
+  .loupe-cadran {
+    width: min(86vw, 380px);
+  }
+  .loupe-cadran :global(svg) {
+    max-width: none !important;
+    width: 100%;
+  }
+  .loupe-cadran :global(figcaption) {
+    font-size: 22px;
+    color: var(--couleur-texte-clair);
+  }
+  @keyframes apparait {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
   }
 
   /* Écran de navigation : vitre sombre dans un cadre d'encre, texte vert lumineux, compte à rebours ambré. */
@@ -798,17 +857,23 @@
     display: flex;
     gap: 10px;
     align-items: center;
-    padding: 5px 12px;
+    padding: 6px 10px 6px 6px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 8px;
+    background: var(--hachures-claires), var(--nuit);
+    color: #9cc7a4;
     text-align: left;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
   }
   .radar {
     position: relative;
     flex: none;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: var(--trait) solid var(--couleur-encre);
-    background: var(--tole);
+    border: 3px solid var(--moutarde);
+    outline: 1.5px solid var(--couleur-encre);
+    background: #10331f;
     overflow: hidden;
   }
   .radar::before {
@@ -847,24 +912,37 @@
     flex-direction: column;
   }
   .chasse .etat {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 1px;
+    color: var(--menthe);
   }
   .chasse .indice {
-    font-size: 14px;
-    color: var(--couleur-texte-discret);
+    font-size: 13px;
+    color: #9cc7a4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .chasse .jours {
-    font-family: var(--police-titre);
-    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: 8px;
+    border-left: 1px solid rgba(156, 199, 164, 0.4);
+    line-height: 1;
+  }
+  .chasse .jours b {
+    font-family: var(--police-chiffres);
+    font-size: 20px;
+    color: var(--moutarde);
+  }
+  .chasse .jours small {
+    font-size: 8px;
+    letter-spacing: 1px;
   }
   .chasse:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--couleur-encre);
+    filter: brightness(1.15);
   }
 
   /* Téléscripteur. */
@@ -948,23 +1026,6 @@
     font-weight: 400;
     letter-spacing: 0.5px;
   }
-  /* Légendes gravées sous les cadrans, reliées par un filet. */
-  .legendes {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: -4px;
-    font-family: var(--police-machine);
-    font-size: 9px;
-    color: var(--couleur-encre-discrete);
-    white-space: nowrap;
-  }
-  .legendes .filet {
-    flex: 1;
-    height: 3px;
-    border-top: 1px solid rgba(42, 30, 23, 0.4);
-    border-bottom: 1px solid rgba(42, 30, 23, 0.4);
-  }
   /* Réglet gradué le long du bord droit du panneau. */
   .reglet {
     position: absolute;
@@ -976,23 +1037,6 @@
     background: repeating-linear-gradient(180deg, rgba(42, 30, 23, 0.55) 0 1px, transparent 1px 6px) left / 4px 100% no-repeat,
       repeating-linear-gradient(180deg, rgba(42, 30, 23, 0.7) 0 1px, transparent 1px 30px) left / 7px 100% no-repeat;
     pointer-events: none;
-  }
-  /* Repères de montage : petites croix d'encre. */
-  .repere {
-    position: absolute;
-    width: 9px;
-    height: 9px;
-    background: linear-gradient(var(--couleur-encre-discrete), var(--couleur-encre-discrete)) center / 1px 100% no-repeat,
-      linear-gradient(var(--couleur-encre-discrete), var(--couleur-encre-discrete)) center / 100% 1px no-repeat;
-    pointer-events: none;
-  }
-  .repere.r1 {
-    left: 50%;
-    top: 74px;
-  }
-  .repere.r2 {
-    left: 14px;
-    bottom: 50px;
   }
   /* Bande « danger » jaune et noire, avec sa consigne. */
   .danger {
