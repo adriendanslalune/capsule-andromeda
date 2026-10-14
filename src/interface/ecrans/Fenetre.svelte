@@ -70,6 +70,7 @@
 </script>
 
 <main>
+  <button class="ouvrir-vue" aria-label="Regarder dehors (vue 3D)" onclick={() => (jeu.ecran = { nom: 'dehors' })}></button>
   <svg class="vue" viewBox="0 0 390 360" aria-hidden="true">
     <rect width="390" height="360" fill="var(--couleur-fond)" />
     {#each etoiles as e}
@@ -175,6 +176,16 @@
     height: 100%;
     min-height: 700px;
     overflow-y: auto;
+  }
+  .ouvrir-vue {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    width: 100%;
+    height: 190px;
+    border: 0;
+    background: none;
+    z-index: 1;
   }
   .vue {
     position: absolute;

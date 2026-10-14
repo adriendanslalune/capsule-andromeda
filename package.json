@@ -15,6 +15,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.3",
+    "@types/three": "^0.186.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
     "typescript": "~6.0.2",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "pdfjs-dist": "^6.3.289",
-    "satellite.js": "^7.1.0"
+    "satellite.js": "^7.1.0",
+    "three": "^0.186.1"
   }
 }

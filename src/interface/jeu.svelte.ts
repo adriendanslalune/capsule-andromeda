@@ -18,7 +18,7 @@ const CLE_TRACES = 'mdv-traces'
 const TELEX_GARDES = 60
 const SAUVEGARDE_TOUTES_LES = 10_000
 
-export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string }
+export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
 export type Volet = 'carte' | 'office' | 'manuel' | null
 
 /** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */

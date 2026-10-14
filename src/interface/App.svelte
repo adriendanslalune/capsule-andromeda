@@ -14,6 +14,11 @@
   <Ouverture />
 {:else if jeu.ecran.nom === 'module'}
   <Module code={jeu.ecran.code} />
+{:else if jeu.ecran.nom === 'dehors'}
+  <!-- La vue 3D (et three.js) n'est chargée qu'à la première ouverture. -->
+  {#await import('./ecrans/Dehors.svelte') then { default: Dehors }}
+    <Dehors />
+  {/await}
 {:else}
   <Fenetre />
 {/if}
