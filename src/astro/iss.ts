@@ -1,7 +1,7 @@
 // Position de la Station spatiale internationale (ISS), par la méthode officielle de suivi des satellites (SGP4),
 // à partir de son orbite publiée (TLE). Le moteur ne télécharge rien : l'orbite lui est fournie (definirOrbiteISS).
 
-import { propagate, twoline2satrec, type SatRec } from 'satellite.js'
+import { propagate, twoline2satrec, type SatRec } from './sgp4'
 import { AGE_MAX_ORBITE_ISS, ORBITE_ISS_SECOURS, type OrbiteTLE } from '../donnees/iss'
 import { MS_PAR_JOUR, sieclesDepuisJ2000 } from './temps'
 import { equatorialVersEcliptique, RAD, type Vecteur3 } from './vecteur'
