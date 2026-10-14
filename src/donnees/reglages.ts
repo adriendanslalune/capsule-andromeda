@@ -30,3 +30,17 @@ export const PANNES = {
   /** Prime de cascade = somme des primes × (1 + 0,5 × (n − 1)). */
   majorationParModule: 0.5,
 } as const
+
+/** Rattrapage après une absence (application fermée). */
+export const ABSENCE = {
+  /** En dessous de cette durée (s), rien à rattraper. */
+  dureeMinimale: 5,
+  /** Pas de la simulation (s). */
+  pas: 600,
+  /** Au plus deux avaries pendant l'absence : si elle dure plus de 2 h et qu'une seule panne simple est survenue,
+   * une seconde panne simple s'y ajoute avec cette probabilité (comme le prototype). */
+  dureeSecondeAvarieHeures: 2,
+  probabiliteSecondeAvarie: 0.6,
+  /** Nombre maximal de messages gardés dans le rapport de vol. */
+  messagesGardes: 30,
+} as const

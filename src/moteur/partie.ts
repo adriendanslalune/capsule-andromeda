@@ -32,8 +32,12 @@ export interface ResultatPasPartie {
   messages: string[]
 }
 
-/** Fait avancer la partie de dt secondes, jusqu'à l'instant t (ms UTC). */
-export function avancerPartie(etat: EtatPartie, t: number, dt: number, hasard: Hasard): ResultatPasPartie {
+/**
+ * Fait avancer la partie de dt secondes, jusqu'à l'instant t (ms UTC). Pendant le rattrapage d'une absence, la chasse
+ * n'est mise à jour qu'à la fin (options.chasse = false), pour ne recevoir que les indices les plus récents.
+ */
+export function avancerPartie(etat: EtatPartie, t: number, dt: number, hasard: Hasard,
+  options: { chasse?: boolean } = {}): ResultatPasPartie {
   const m = evoluerModules(etat.modules, t, dt, (code) => estInstalle(etat, code))
   const traites = traiterEvenements({ ...etat, modules: m.modules }, m.evenements, t, hasard)
   let e = traites.etat
@@ -41,7 +45,7 @@ export function avancerPartie(etat: EtatPartie, t: number, dt: number, hasard: H
   e = { ...e, fusee: r.fusee, vu: t }
   e = r.arrivee ? traiterArrivee(e, r.arrivee, t) : verifierTrophees(e)
   e = planifierPannes(e, t, hasard)
-  const chasse = evoluerChasse(e, t)
+  const chasse = options.chasse === false ? { etat: e, messages: [] } : evoluerChasse(e, t)
   return { etat: chasse.etat, arrivee: r.arrivee, evenements: m.evenements, messages: [...traites.messages, ...chasse.messages] }
 }
 

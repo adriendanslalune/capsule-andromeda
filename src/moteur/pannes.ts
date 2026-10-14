@@ -106,9 +106,7 @@ export function declencherPanne(etat: EtatPartie, t: number, hasard: Hasard): Et
     else m = { ...m, al1: panneAL1(m.al1, hasard) }
     return { ...etat, modules: m, pannes: { ...p, tutoriel: p.tutoriel + 1, prochaine: null } }
   }
-  const enPanne = modulesEnPanne(m)
-  const libres = MODULES_A_PANNE.filter((c) => estInstalle(etat, c) && !enPanne.includes(c)
-    && (c !== 'AN-1' || an1PeutTomberEnPanne(etat.fusee.position, t)))
+  const libres = modulesLibres(etat, t)
   if (libres.length === 0) return { ...etat, pannes: { ...p, prochaine: null } }
   const n = Math.min(libres.length, 1 + entierAuHasard(hasard, tailleMaxCascade(etat.ameliorations)))
   for (let i = libres.length - 1; i > 0; i--) {
@@ -127,6 +125,24 @@ export function declencherPanne(etat: EtatPartie, t: number, hasard: Hasard): Et
       fautes: p.fautes.filter((c) => !choisis.includes(c)),
     },
   }
+}
+
+/** Modules installés, en état de marche, qui peuvent tomber en panne maintenant (AN-1 jamais près de la Terre). */
+function modulesLibres(etat: EtatPartie, t: number): string[] {
+  const enPanne = modulesEnPanne(etat.modules)
+  return MODULES_A_PANNE.filter((c) => estInstalle(etat, c) && !enPanne.includes(c)
+    && (c !== 'AN-1' || an1PeutTomberEnPanne(etat.fusee.position, t)))
+}
+
+/**
+ * Ajoute une panne simple (un seul module, hors cascade) parmi les modules libres. Sert au rattrapage d'une longue
+ * absence (seconde avarie). Sans effet pendant une cascade ou s'il n'y a pas de module libre.
+ */
+export function ajouterPanneSimple(etat: EtatPartie, t: number, hasard: Hasard): { etat: EtatPartie; module: string | null } {
+  const libres = modulesLibres(etat, t)
+  if (etat.pannes.cascade || libres.length === 0) return { etat, module: null }
+  const code = libres[entierAuHasard(hasard, libres.length)]
+  return { etat: { ...etat, modules: mettreEnPanne(etat.modules, code, etat, hasard, contexte(etat, t)) }, module: code }
 }
 
 /** Vrai si une rechute de la tuyère (faux réparé) est en attente : pas de nouvelle avarie d'ici là. */
