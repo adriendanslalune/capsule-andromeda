@@ -35,6 +35,8 @@
     try {
       const p = PAGES_MANUEL[index]
       const page = await (await document(p.fichier)).getPage(p.page)
+      // Volet refermé pendant le chargement : plus rien à dessiner.
+      if (!cadre || !toile) return
       const largeur = cadre.clientWidth
       const base = page.getViewport({ scale: 1 })
       const echelle = (largeur / base.width) * (window.devicePixelRatio || 1)
@@ -46,7 +48,7 @@
       const tache = page.render({ canvas: toile, viewport: vue })
       rendu = tache
       await tache.promise
-      cadre.scrollTop = 0
+      if (cadre) cadre.scrollTop = 0
     } catch (e) {
       if ((e as { name?: string }).name !== 'RenderingCancelledException') {
         console.error('Manuel :', e)

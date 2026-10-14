@@ -56,16 +56,17 @@
 </div>
 
 <style>
+  /* Projecteur de signalisation : lentille de Fresnel dans une lunette chromée. */
   .lampe {
-    width: 90px;
-    height: 90px;
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
-    border: 4px solid var(--couleur-encre);
-    background: #6b6155;
+    background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.07) 0 3px, rgba(0, 0, 0, 0.12) 3px 6px), radial-gradient(circle at 40% 35%, #6b5e4c, #2f2820 70%);
+    box-shadow: 0 0 0 7px var(--chrome), 0 0 0 8px #222, 0 6px 12px 6px rgba(0, 0, 0, 0.35);
   }
   .lampe.allume {
-    background: #ffd27a;
-    box-shadow: 0 0 30px #ffd27a;
+    background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.25) 0 3px, rgba(255, 170, 40, 0.15) 3px 6px), radial-gradient(circle at 45% 40%, #fffbe0, #ffd27a 40%, #e08a1a);
+    box-shadow: 0 0 0 7px var(--chrome), 0 0 0 8px #222, 0 0 40px 14px rgba(255, 200, 90, 0.75);
   }
   .reglages {
     display: grid;

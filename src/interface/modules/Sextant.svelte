@@ -62,8 +62,8 @@
     width: 230px;
     height: 230px;
     align-self: center;
-    border: 3px solid var(--couleur-encre);
     border-radius: 50%;
+    box-shadow: 0 0 0 6px var(--laiton), 0 0 0 7px #3b2a10, 0 6px 12px 6px rgba(0, 0, 0, 0.35);
   }
   .lectures {
     display: flex;
@@ -73,11 +73,12 @@
   }
   .lectures b {
     font-family: var(--police-chiffres);
+    font-size: 18px;
   }
   .reglages {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    gap: 8px;
   }
   .reglages .mod-bouton {
     min-width: 0;

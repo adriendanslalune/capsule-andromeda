@@ -11,13 +11,13 @@
 </script>
 
 <div class="voile" role="presentation" onclick={() => jeu.fermer()}></div>
-<section class="volet" bind:this={volet} aria-label={jeu.volet ? titres[jeu.volet] : ''}>
+<section class="volet papier-pulp" bind:this={volet} aria-label={jeu.volet ? titres[jeu.volet] : ''}>
   <!-- Tirer la poignée vers le bas ferme le volet. -->
   <div class="prise" use:glisserPourFermer={{ sens: 'bas', cible: () => volet, fermer: () => jeu.fermer() }}>
     <div class="poignee"></div>
     <header>
-      <span class="titre">{jeu.volet ? titres[jeu.volet] : ''}</span>
-      <button onclick={() => jeu.fermer()}>FERMER</button>
+      <span class="titre titre-pulp">{jeu.volet ? titres[jeu.volet] : ''}</span>
+      <button class="poussoir" onclick={() => jeu.fermer()}>FERMER</button>
     </header>
   </div>
   {#if jeu.volet === 'carte'}<Carte />
@@ -39,9 +39,8 @@
     right: 0;
     top: 40px;
     bottom: 0;
-    background: var(--couleur-papier);
-    color: var(--couleur-encre);
     border-radius: 22px 22px 0 0;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -57,7 +56,7 @@
     width: 56px;
     height: 6px;
     border-radius: 3px;
-    background: #c9bb98;
+    background: rgba(34, 22, 15, 0.35);
     margin: 10px auto 0;
   }
   header {
@@ -67,18 +66,12 @@
     padding: 8px 16px 0;
   }
   .titre {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-size: 26px;
+    letter-spacing: 1px;
   }
   header button {
-    height: 36px;
-    min-height: 36px;
+    min-height: 40px;
     padding: 0 14px;
-    border-radius: 18px;
-    border: 2px solid var(--couleur-encre);
-    background: none;
-    font-weight: 700;
-    letter-spacing: 1.5px;
+    font-size: 14px;
   }
 </style>

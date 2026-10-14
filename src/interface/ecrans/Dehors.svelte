@@ -118,13 +118,13 @@
 
   <div class="bord" use:glisserPourFermer={glisser}></div>
   <header>
-    <button onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
+    <button class="poussoir" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
     <span class="info">C-58 · CAP {String(Math.round(etat.fusee.cap) % 360).padStart(3, '0')}° · {nombre(etat.fusee.destination ? vitesseActuelle(etat) : 0, 1)} km/s</span>
   </header>
 
   <footer>
-    <button onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
-    {#if peutPhotographier}<button class="photo" onclick={photographier}>PHOTO</button>{/if}
+    <button class="poussoir ivoire" onclick={() => vue?.recentrer(etat.fusee.cap)}>RECENTRER</button>
+    {#if peutPhotographier}<button class="photo poussoir cerise" onclick={photographier}>PHOTO</button>{/if}
   </footer>
 
   {#if photo}
@@ -188,11 +188,7 @@
   footer button {
     min-height: 44px;
     padding: 0 16px;
-    border-radius: 22px;
-    border: 1px solid var(--couleur-bordure-forte);
-    background: rgba(15, 26, 36, 0.8);
-    font-weight: 700;
-    letter-spacing: 1.5px;
+    font-size: 14px;
   }
   .info {
     font-family: var(--police-chiffres);
@@ -209,10 +205,9 @@
     justify-content: space-between;
   }
   footer .photo {
-    background: var(--couleur-texte);
-    color: var(--couleur-encre);
-    border: 0;
-    font-size: 17px;
+    font-family: var(--police-titre);
+    font-size: 18px;
+    padding: 0 22px;
   }
   .flash {
     position: absolute;

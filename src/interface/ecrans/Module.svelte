@@ -43,17 +43,17 @@
   const autre = $derived(enPanne.find((c) => !affiche.includes(c)) ?? null)
 </script>
 
-<main bind:this={ecran}>
+<main class="tole creme" bind:this={ecran}>
   <!-- Tirer depuis le bord gauche, ou par le bandeau du haut, ramène au tableau de bord. -->
   <div class="bord" use:glisserPourFermer={glisser}></div>
-  <header use:glisserPourFermer={glisser}>
-    <button class="retour" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
-    <button class="manuel" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
+  <header class="tole" use:glisserPourFermer={glisser}>
+    <button class="retour poussoir" onclick={() => jeu.fermer()}>‹ TABLEAU DE BORD</button>
+    <button class="manuel poussoir ivoire" onclick={() => { jeu.pageManuel = pageDuChapitre(FICHES[code].chapitre); jeu.volet = 'manuel' }}>MANUEL · {FICHES[code].chapitre}</button>
   </header>
-  <div class="titre">
+  <div class="titre rivets">
     {#each affiche as c}<span class="code">{c}</span>{/each}
     <span class="nom">{propulsion ? 'PROPULSION' : FICHES[code].nom}</span>
-    {#if avarie}<span class="avarie">AVARIE</span>{/if}
+    {#if avarie}<span class="avarie"><span class="lampe"></span>AVARIE</span>{/if}
   </div>
 
   <div class="contenu">
@@ -72,7 +72,7 @@
   </div>
 
   {#if autre}
-    <button class="suivante" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
+    <button class="suivante poussoir cerise" onclick={() => (jeu.ecran = { nom: 'module', code: autre })}>
       <span><span class="pastille"></span>Autre avarie : <b>{autre} {FICHES[autre].nom}</b></span><span>›</span>
     </button>
   {/if}
@@ -92,90 +92,96 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: var(--couleur-papier-fonce);
-    color: var(--couleur-encre);
+    border: 0;
   }
   header {
     display: flex;
     justify-content: space-between;
-    padding: 14px 14px 0;
+    gap: 8px;
+    padding: 12px 12px 10px;
+    border-width: 0 0 1px;
   }
-  .retour {
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 20px;
-    border: 0;
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
-    font-weight: 700;
-    letter-spacing: 1.5px;
-  }
+  .retour,
   .manuel {
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 20px;
-    border: 2px solid var(--couleur-encre);
-    background: none;
-    font-weight: 700;
-    letter-spacing: 1.5px;
+    min-height: 40px;
+    padding: 0 13px;
+    font-size: 14px;
   }
   .titre {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 18px 0;
+    margin: 12px 12px 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 4px rgba(0, 0, 0, 0.25) inset;
   }
   .code {
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
-    padding: 3px 8px;
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-  }
-  .nom {
-    font-size: 20px;
+    padding: 2px 7px 1px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #1b1b1b, #000);
+    color: #f2f2f2;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 2px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .nom {
+    font-family: var(--police-titre);
+    font-size: 17px;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    color: var(--email-sarcelle-sombre);
   }
   .avarie {
     margin-left: auto;
-    background: var(--couleur-avarie);
-    color: var(--couleur-papier);
-    padding: 3px 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px 1px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #c4302a, #8a1712);
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
+  }
+  .lampe {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffd0b0;
+    box-shadow: 0 0 8px 2px #ff5a36;
     animation: clignote 0.8s steps(1) infinite;
   }
   .contenu {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 90px;
+    padding-bottom: 96px;
   }
   .suivante {
     position: absolute;
-    left: 18px;
-    right: 18px;
-    bottom: 20px;
-    height: 52px;
-    border-radius: 14px;
-    border: 0;
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
+    left: 16px;
+    right: 16px;
+    bottom: 22px;
+    height: 54px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
     font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
   }
   .pastille {
     display: inline-block;
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--couleur-avarie);
-    box-shadow: 0 0 8px var(--couleur-avarie);
+    background: #ffd0b0;
+    box-shadow: 0 0 8px 2px #ffb08a;
     margin-right: 10px;
+    animation: clignote 0.8s steps(1) infinite;
   }
 </style>

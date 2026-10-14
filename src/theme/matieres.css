@@ -1,0 +1,142 @@
+/* Matières du cockpit, réutilisables partout : tôle émaillée rivetée, chrome, bakélite, ruban à lettres en relief,
+   compteur à tambours, écran cathodique, papier pulp. Uniquement des dégradés (aucune image à charger). */
+
+/* Tôle émaillée (sarcelle par défaut ; .creme pour la version ivoire), avec grain et biseau. */
+.tole {
+  background-color: var(--email-sarcelle);
+  background-image: var(--grain), linear-gradient(170deg, rgba(255, 255, 255, 0.09), rgba(0, 0, 0, 0.18));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 -2px 0 rgba(0, 0, 0, 0.3) inset, 0 3px 8px rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--email-sarcelle-sombre);
+}
+.tole.creme {
+  background-color: var(--email-creme);
+  border-color: var(--email-creme-sombre);
+  color: var(--couleur-encre);
+}
+
+/* Quatre rivets chromés aux coins. */
+.rivets {
+  position: relative;
+}
+.rivets::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+  --rivet: radial-gradient(circle at 35% 35%, #fff 0 0.7px, #cfd6da 1.3px, #56636a 2.6px, rgba(0, 0, 0, 0.35) 3.2px, transparent 3.8px);
+  background: var(--rivet) left top / 8px 8px no-repeat, var(--rivet) right top / 8px 8px no-repeat,
+    var(--rivet) left bottom / 8px 8px no-repeat, var(--rivet) right bottom / 8px 8px no-repeat;
+}
+
+/* Cerclage chromé (lunette d'un cadran, d'un hublot, d'un voyant). */
+.chrome {
+  background: linear-gradient(150deg, var(--chrome-clair) 0%, var(--chrome) 35%, var(--chrome-sombre) 60%, var(--chrome-clair) 85%, var(--chrome) 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton-poussoir en bakélite : bombé, il s'enfonce au toucher. */
+.poussoir {
+  border: 0;
+  border-radius: 14px;
+  color: var(--couleur-texte);
+  background: linear-gradient(180deg, var(--bakelite-clair), var(--bakelite));
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.2) inset, 0 -4px 0 rgba(0, 0, 0, 0.4) inset, 0 5px 0 #000, 0 7px 12px rgba(0, 0, 0, 0.5);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  transition: transform 0.06s, box-shadow 0.06s;
+}
+.poussoir:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.15) inset, 0 -2px 0 rgba(0, 0, 0, 0.4) inset, 0 1px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.poussoir.cerise {
+  background: linear-gradient(180deg, #ef5a45, var(--cerise) 55%, var(--cerise-sombre));
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.3) inset, 0 -4px 0 rgba(0, 0, 0, 0.3) inset, 0 5px 0 #5a120c, 0 7px 12px rgba(0, 0, 0, 0.5);
+}
+.poussoir.moutarde {
+  color: var(--couleur-encre);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  background: linear-gradient(180deg, #ffd06a, var(--moutarde) 55%, var(--moutarde-sombre));
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.45) inset, 0 -4px 0 rgba(0, 0, 0, 0.25) inset, 0 5px 0 #6b4510, 0 7px 12px rgba(0, 0, 0, 0.5);
+}
+.poussoir.ivoire {
+  color: var(--couleur-encre);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, #fffaf0, var(--email-creme) 55%, var(--email-creme-sombre));
+  box-shadow: 0 2px 0 #fff inset, 0 -4px 0 rgba(0, 0, 0, 0.18) inset, 0 5px 0 #8f7b52, 0 7px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Ruban à lettres en relief (étiqueteuse). */
+.ruban {
+  display: inline-block;
+  padding: 2px 7px 1px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #1b1b1b, #000);
+  color: #f2f2f2;
+  font-family: var(--police-texte);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35), 0 -1px 0 #000;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.ruban.rouge {
+  background: linear-gradient(180deg, #c4302a, #8a1712);
+}
+
+/* Compteur mécanique : chiffres blancs sur tambours noirs. */
+.compteur {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 4px;
+  background: #0b0b0b;
+  box-shadow: 0 0 0 2px var(--chrome-sombre), 0 2px 4px rgba(0, 0, 0, 0.6) inset;
+  font-family: var(--police-chiffres);
+  font-weight: 700;
+  color: #f4f1e8;
+}
+.compteur > span {
+  min-width: 0.8em;
+  text-align: center;
+  padding: 0 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #000 0%, #2b2b2b 30%, #3a3a3a 50%, #2b2b2b 70%, #000 100%);
+}
+
+/* Écran cathodique vert, avec lignes de balayage. */
+.phosphore {
+  background-color: var(--phosphore-fond);
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 40%, rgba(141, 255, 176, 0.14), transparent 70%);
+  color: var(--phosphore);
+  text-shadow: 0 0 6px rgba(141, 255, 176, 0.7);
+  box-shadow: 0 0 0 3px #071510, 0 0 0 5px var(--chrome-sombre), 0 0 18px rgba(0, 0, 0, 0.6) inset;
+}
+
+/* Papier pulp : jauni, grain et trame d'imprimerie. */
+.papier-pulp {
+  background-color: var(--couleur-papier);
+  background-image: var(--grain), var(--trame);
+  background-size: 160px 160px, 4px 4px;
+  color: var(--couleur-encre);
+}
+
+/* Titre de couverture : lettres épaisses, contour et ombre portée décalée. */
+.titre-pulp {
+  font-family: var(--police-titre);
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--moutarde);
+  -webkit-text-stroke: 1px var(--couleur-encre);
+  text-shadow: 3px 3px 0 var(--cerise), 4px 4px 0 var(--couleur-encre);
+}
+
+/* Reflet sur une vitre. */
+.reflet {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 22%, transparent 23%, transparent 60%, rgba(255, 255, 255, 0.05) 61%, transparent 75%);
+}

@@ -59,59 +59,86 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--bakelite-clair), var(--bakelite));
+    box-shadow: 0 0 0 3px var(--chrome-sombre), 0 4px 8px rgba(0, 0, 0, 0.4);
   }
+  /* Porte-fusible en céramique, avec ses pinces en laiton. */
   .fusible {
-    height: 86px;
-    border: 2px solid var(--couleur-encre);
+    height: 92px;
+    border: 0;
     border-radius: 8px;
-    background: #d8cbab;
+    background: linear-gradient(90deg, #d9cfb8, #fbf6ea 40%, #e2d8c0 70%, #c8bc9f);
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.6) inset, 0 3px 6px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
     padding: 4px;
+    color: var(--couleur-encre);
   }
   .fusible small {
     font-size: 12px;
     font-weight: 700;
+    letter-spacing: 1px;
   }
+  /* Tube de verre, filament visible. */
   .verre {
+    position: relative;
     width: 22px;
-    height: 30px;
+    height: 32px;
     border-radius: 6px;
-    border: 2px solid var(--couleur-encre);
-    background: #f6efdc;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), rgba(200, 225, 235, 0.5) 40%, rgba(255, 255, 255, 0.9) 60%, rgba(170, 190, 200, 0.6));
+    box-shadow: 0 0 0 2px #b38a3c, 0 0 0 3px #6d5216;
+  }
+  .verre::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 3px;
+    bottom: 3px;
+    width: 2px;
+    margin-left: -1px;
+    background: #7b6a55;
   }
   .grille .verre {
-    background: #2b2723;
+    background: radial-gradient(circle at 50% 50%, #3a2a1a, #120b06 70%);
+  }
+  .grille .verre::after {
+    background: linear-gradient(180deg, #7b6a55 0 35%, transparent 35% 62%, #7b6a55 62%);
   }
   .bague {
     width: 30px;
     height: 10px;
-    border: 2px solid var(--couleur-encre);
     border-radius: 3px;
+    box-shadow: 0 0 0 1.5px var(--couleur-encre), 0 2px 0 rgba(255, 255, 255, 0.45) inset, 0 -2px 0 rgba(0, 0, 0, 0.3) inset;
   }
   .fusible.vide {
-    background: repeating-linear-gradient(135deg, #cfc1a0 0 4px, #d8cbab 4px 8px);
+    background: radial-gradient(ellipse at 50% 50%, #1a120c, #3b2b20 70%);
+    color: var(--couleur-texte-discret);
   }
+  /* Boîte de fusibles de rechange. */
   .rechange {
     display: flex;
     justify-content: center;
     gap: 14px;
-    padding: 10px;
-    border: 2px dashed var(--couleur-encre);
+    padding: 12px;
     border-radius: 12px;
+    background: var(--grain), linear-gradient(180deg, #8a6a3e, #5a4024);
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.2) inset, 0 4px 8px rgba(0, 0, 0, 0.45);
   }
   .neuf {
     width: 52px;
     height: 52px;
+    border: 0;
     border-radius: 10px;
-    border: 3px solid var(--couleur-encre);
     background: var(--c);
+    box-shadow: 0 0 0 2px #22160f, 0 3px 0 rgba(255, 255, 255, 0.5) inset, 0 -4px 0 rgba(0, 0, 0, 0.3) inset, 0 4px 6px rgba(0, 0, 0, 0.5);
   }
   .neuf.choisi {
-    outline: 4px solid var(--couleur-avarie);
-    outline-offset: 2px;
+    transform: translateY(-4px);
+    box-shadow: 0 0 0 2px #22160f, 0 0 0 5px var(--moutarde), 0 0 16px 4px rgba(242, 179, 61, 0.8);
   }
 </style>

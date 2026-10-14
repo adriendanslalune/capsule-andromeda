@@ -66,13 +66,16 @@
     height: 100%;
     display: block;
   }
+  /* Montants de la verrière : tôle émaillée, rivets tout du long. */
   .montant {
     position: absolute;
     top: 0;
     bottom: 0;
-    background: var(--couleur-fond);
-    border-left: 1px solid var(--couleur-bordure-forte);
-    border-right: 1px solid var(--couleur-bordure-forte);
+    background-color: var(--email-sarcelle);
+    background-image: radial-gradient(circle at 50% 50%, #e9eef0 0 0.8px, #7d8a90 1.6px, rgba(0, 0, 0, 0.4) 2.2px, transparent 2.6px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.45), rgba(255, 255, 255, 0.18) 45%, rgba(0, 0, 0, 0.35));
+    background-size: 100% 22px, 100% 100%;
+    box-shadow: 0 0 0 1px #000;
   }
   .etiquette {
     position: absolute;

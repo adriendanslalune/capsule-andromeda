@@ -9,9 +9,9 @@
 </script>
 
 <div class="voile"></div>
-<div class="rapport" role="dialog" aria-label="Rapport de vol">
+<div class="rapport papier-pulp" role="dialog" aria-label="Rapport de vol">
   <p class="office">Office national des vols interplanétaires</p>
-  <h2>RAPPORT DE VOL</h2>
+  <h2 class="titre-pulp">RAPPORT DE VOL</h2>
   <p class="sous">Absence de {duree((r.jusqua - r.depuis) / 1000)}</p>
   <ul>
     <li>Distance parcourue : <b>{km(r.distanceKm)}</b></li>
@@ -22,7 +22,7 @@
     {#each r.avaries as a}<li class="alerte">Avarie {a.modules.join(' + ')} ({heureLocale(a.t)})</li>{/each}
     {#if r.enPanne.length}<li class="alerte">À réparer : <b>{r.enPanne.join(', ')}</b></li>{/if}
   </ul>
-  <button onclick={() => (jeu.rapport = null)}>REPRENDRE LES COMMANDES</button>
+  <button class="poussoir cerise" onclick={() => (jeu.rapport = null)}>REPRENDRE LES COMMANDES</button>
 </div>
 
 <style>
@@ -39,10 +39,10 @@
     top: 60px;
     max-height: calc(100% - 100px);
     overflow-y: auto;
-    background: var(--couleur-papier);
-    color: var(--couleur-encre);
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 20px 18px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    transform: rotate(-0.8deg);
   }
   .office {
     margin: 0;
@@ -55,7 +55,7 @@
   }
   h2 {
     margin: 14px 0 0;
-    letter-spacing: 3px;
+    font-size: 30px;
   }
   .sous {
     margin: 2px 0 10px;
@@ -63,21 +63,18 @@
   }
   ul {
     padding-left: 18px;
-    font-size: 17px;
-    line-height: 1.5;
+    font-family: var(--police-machine);
+    font-size: 16px;
+    line-height: 1.55;
   }
   .alerte {
     color: var(--couleur-danger);
   }
   button {
     width: 100%;
-    height: 52px;
-    border: 0;
-    border-radius: 14px;
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
+    height: 56px;
+    font-family: var(--police-titre);
     font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
   }
 </style>

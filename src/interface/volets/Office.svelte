@@ -146,32 +146,34 @@
   .onglets {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
     margin: 12px 16px 0;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 12px;
-    overflow: hidden;
+    border-bottom: 3px solid var(--couleur-encre);
   }
   .onglets button {
     min-height: 40px;
-    border: 0;
-    background: none;
+    border: 2px solid var(--couleur-encre);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: var(--couleur-papier-fonce);
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 1.5px;
   }
   .onglets button.actif {
-    background: var(--couleur-encre);
-    color: var(--couleur-texte);
+    background: var(--cerise);
+    color: #fff6e6;
   }
   .caisse {
     margin: 12px 16px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--couleur-encre);
+    background: linear-gradient(180deg, var(--bakelite-clair), var(--bakelite));
     color: var(--couleur-texte);
     border-radius: 14px;
     padding: 12px 16px;
+    box-shadow: 0 0 0 3px var(--chrome-sombre), 0 4px 8px rgba(0, 0, 0, 0.4);
   }
   .col {
     display: flex;
@@ -186,8 +188,9 @@
     color: var(--couleur-texte-discret);
   }
   .montant {
-    font-family: var(--police-chiffres);
+    font-family: var(--police-titre);
     font-size: 24px;
+    color: var(--moutarde);
   }
   .fort {
     font-size: 15px;
@@ -207,21 +210,26 @@
     gap: 10px;
   }
   h3 {
-    margin: 8px 0 0;
-    font-size: 13px;
-    letter-spacing: 2px;
+    margin: 10px 0 0;
+    font-family: var(--police-titre);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: var(--cerise);
   }
   .contrat {
     background: #fffaf0;
-    border: 1px solid #c9bb98;
-    border-radius: 14px;
+    background-image: repeating-linear-gradient(180deg, transparent 0 23px, rgba(31, 95, 168, 0.12) 23px 24px);
+    border: 0;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
   .contrat.encours {
-    border: 2px solid var(--couleur-avarie);
+    box-shadow: 0 0 0 3px var(--cerise), 0 2px 5px rgba(0, 0, 0, 0.3);
   }
   .type {
     font-size: 11px;
@@ -230,8 +238,9 @@
     color: #7a7062;
   }
   .texte {
-    font-size: 17px;
-    line-height: 1.25;
+    font-family: var(--police-machine);
+    font-size: 16px;
+    line-height: 1.3;
   }
   .infos {
     display: flex;
@@ -241,8 +250,9 @@
   }
   .prime {
     padding: 2px 8px;
-    border-radius: 8px;
-    background: var(--couleur-or);
+    border-radius: 2px;
+    background: var(--moutarde);
+    box-shadow: 0 0 0 1.5px var(--couleur-encre);
     font-size: 13px;
     font-weight: 700;
   }

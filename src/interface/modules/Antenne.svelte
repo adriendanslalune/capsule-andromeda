@@ -46,22 +46,25 @@
 
 <style>
   .liaison {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 2px;
-    padding: 4px 12px;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 6px;
+    padding: 2px 10px 1px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #1b1b1b, #000);
+    color: #f2f2f2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
   .liaison.perdue {
-    background: var(--couleur-avarie);
-    color: var(--couleur-papier);
+    background: linear-gradient(180deg, #c4302a, #8a1712);
     animation: clignote 0.8s steps(1) infinite;
   }
   .cadran {
     width: 230px;
     height: 230px;
     align-self: center;
+    border-radius: 50%;
+    box-shadow: 0 0 0 6px var(--chrome), 0 0 0 7px #222, 0 6px 12px 6px rgba(0, 0, 0, 0.35);
   }
   .reglages {
     display: grid;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Levier (ou interrupteur) à deux positions : haut ou bas.
+  // Levier (ou interrupteur) à deux positions : haut ou bas. Plaque chromée à fente, pommeau en bakélite rouge.
   let { haut, nom, onbascule, petit = false }: { haut: boolean; nom: string; onbascule: () => void; petit?: boolean } = $props()
 </script>
 
@@ -20,37 +20,58 @@
 <style>
   .levier {
     position: relative;
-    width: 56px;
-    height: 120px;
+    width: 58px;
+    height: 124px;
     border: 0;
-    background: none;
     padding: 0;
+    border-radius: 10px;
+    background: linear-gradient(150deg, var(--chrome-clair), var(--chrome) 40%, var(--chrome-sombre) 70%, var(--chrome) 100%);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.5);
   }
   .levier.petit {
-    width: 48px;
-    height: 84px;
+    width: 50px;
+    height: 88px;
+  }
+  /* Vis de la plaque. */
+  .levier::before,
+  .levier::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    margin-left: -3.5px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, transparent 42%, #333 43% 57%, transparent 58%), radial-gradient(circle at 35% 35%, #fff, #8a959b);
+  }
+  .levier::before {
+    top: 3px;
+  }
+  .levier::after {
+    bottom: 3px;
   }
   .fente {
     position: absolute;
     left: 50%;
-    top: 8px;
-    bottom: 8px;
-    width: 14px;
-    margin-left: -7px;
-    border-radius: 7px;
-    background: var(--couleur-encre);
+    top: 14px;
+    bottom: 14px;
+    width: 12px;
+    margin-left: -6px;
+    border-radius: 6px;
+    background: #080808;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.8) inset, 0 1px 0 rgba(255, 255, 255, 0.6);
   }
   .manche {
     position: absolute;
     left: 50%;
-    top: 4px;
+    top: 8px;
     width: 40px;
     height: 40px;
     margin-left: -20px;
     border-radius: 50%;
-    background: var(--couleur-avarie);
-    border: 2px solid var(--couleur-encre);
-    transition: top 0.18s;
+    background: radial-gradient(circle at 34% 30%, #ffd8c8 0 6%, #f05a44 22%, var(--cerise) 55%, #5a120c 100%);
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.55);
+    transition: top 0.18s cubic-bezier(0.5, 1.6, 0.6, 1);
   }
   .petit .manche {
     width: 32px;
@@ -58,9 +79,9 @@
     margin-left: -16px;
   }
   .manche.bas {
-    top: calc(100% - 44px);
+    top: calc(100% - 48px);
   }
   .petit .manche.bas {
-    top: calc(100% - 36px);
+    top: calc(100% - 40px);
   }
 </style>

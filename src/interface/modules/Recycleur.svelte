@@ -34,18 +34,23 @@
     align-items: center;
     gap: 40px;
   }
+  /* Grosse pompe à main en bakélite sarcelle. */
   .pompe {
-    width: 110px;
-    height: 110px;
+    width: 112px;
+    height: 112px;
+    border: 0;
     border-radius: 50%;
-    border: 4px solid var(--couleur-encre);
-    background: #5e7d96;
-    color: var(--couleur-papier);
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    background: radial-gradient(circle at 38% 30%, #7fc4c8 0 6%, var(--email-sarcelle-clair) 25%, var(--email-sarcelle) 55%, var(--email-sarcelle-sombre));
+    box-shadow: 0 0 0 6px var(--chrome), 0 0 0 7px #222, 0 7px 0 4px #0c262c, 0 10px 14px 4px rgba(0, 0, 0, 0.45);
+    color: var(--couleur-texte);
+    font-family: var(--police-titre);
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    transition: transform 0.06s, box-shadow 0.06s;
   }
   .pompe:active {
-    transform: scale(0.96);
+    transform: translateY(6px);
+    box-shadow: 0 0 0 6px var(--chrome), 0 0 0 7px #222, 0 1px 0 4px #0c262c, 0 3px 6px 4px rgba(0, 0, 0, 0.45);
   }
 </style>

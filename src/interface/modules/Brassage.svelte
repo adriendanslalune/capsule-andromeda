@@ -57,17 +57,18 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 2px solid var(--couleur-encre);
-    background: var(--c);
-    opacity: 0.45;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8) 0 10%, var(--c) 35%, #111 120%);
+    box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222;
+    opacity: 0.5;
   }
   .temoin.clignote {
     opacity: 1;
-    box-shadow: 0 0 12px var(--c);
+    box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 0 16px 4px var(--c);
     animation: clignote 0.6s steps(1) infinite;
   }
   .tableau {
     width: 100%;
+    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4));
   }
   .prise {
     cursor: pointer;
@@ -75,7 +76,8 @@
   .main {
     margin: 0;
     text-align: center;
-    font-size: 16px;
+    font-family: var(--police-machine);
+    font-size: 15px;
     min-height: 20px;
   }
 </style>

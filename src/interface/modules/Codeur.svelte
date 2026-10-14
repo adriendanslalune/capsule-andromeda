@@ -57,26 +57,34 @@
     flex: 1;
     align-items: stretch;
   }
+  /* Tubes Nixie. */
   .saisie {
     display: flex;
     gap: 4px;
-    background: var(--couleur-encre);
-    padding: 5px;
-    border-radius: 4px;
+    padding: 6px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #2a2a2a, #0b0b0b);
+    box-shadow: 0 0 0 3px var(--chrome), 0 0 0 4px #222, 0 3px 6px 4px rgba(0, 0, 0, 0.35);
   }
   .saisie span {
     width: 28px;
-    height: 40px;
-    background: var(--couleur-papier);
+    height: 42px;
+    border-radius: 12px 12px 4px 4px;
     font-family: var(--police-chiffres);
-    font-size: 24px;
-    line-height: 40px;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 42px;
     text-align: center;
+    background: radial-gradient(ellipse at 50% 40%, #2a1408, #0c0603 75%);
+    color: #ffb04a;
+    text-shadow: 0 0 4px #ff8a1f, 0 0 10px #ff6a00, 0 0 18px rgba(255, 90, 0, 0.6);
+    box-shadow: 0 0 0 1px #000, 0 2px 4px rgba(255, 255, 255, 0.08) inset, 0 -6px 10px rgba(255, 120, 30, 0.08) inset;
   }
   .disque {
     width: 280px;
     height: 280px;
     align-self: center;
+    filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
   }
   .trou {
     cursor: pointer;

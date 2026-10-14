@@ -52,33 +52,51 @@
     align-items: flex-end;
     gap: 16px;
   }
+  /* Molette crantée en chrome, chiffre dans une fenêtre. */
   .molette {
-    width: 84px;
-    height: 84px;
+    display: grid;
+    place-items: center;
+    width: 86px;
+    height: 86px;
+    padding: 0;
+    border: 0;
     border-radius: 50%;
-    border: 4px solid var(--couleur-encre);
-    background: repeating-conic-gradient(var(--couleur-papier) 0 10deg, #d8cbab 10deg 20deg);
+    background: radial-gradient(circle, transparent 0 52%, rgba(0, 0, 0, 0.25) 53% 56%, transparent 57%),
+      repeating-conic-gradient(#f4f7f8 0 6deg, #7d888e 6deg 12deg);
+    box-shadow: 0 0 0 3px #2b2b2b, 0 5px 8px rgba(0, 0, 0, 0.5);
     font-family: var(--police-chiffres);
     font-size: 30px;
     font-weight: 700;
-    color: var(--couleur-encre);
   }
   .molette span {
-    background: var(--couleur-papier);
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    padding: 4px 12px;
+    background: radial-gradient(circle at 40% 35%, #fffaf0, var(--email-creme) 60%, var(--email-creme-sombre));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) inset;
+    color: var(--couleur-encre);
   }
+  .molette:active span {
+    transform: rotate(25deg);
+  }
+  /* Gros bouton P en bakélite rouge, dans une collerette chromée. */
   .bouton-p {
-    width: 72px;
-    height: 72px;
+    width: 76px;
+    height: 76px;
+    border: 0;
     border-radius: 50%;
-    border: 4px solid var(--couleur-encre);
-    background: var(--couleur-danger);
-    color: var(--couleur-papier);
+    background: radial-gradient(circle at 38% 30%, #ff9a85 0 6%, #ef5a45 22%, var(--cerise) 55%, var(--cerise-sombre) 100%);
+    box-shadow: 0 0 0 5px var(--chrome), 0 0 0 6px #222, 0 6px 0 3px #5a120c, 0 9px 12px 3px rgba(0, 0, 0, 0.45);
+    color: #fff6e6;
+    font-family: var(--police-titre);
     font-size: 26px;
-    font-weight: 700;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    transition: transform 0.06s, box-shadow 0.06s;
   }
   .bouton-p:active {
-    transform: translateY(2px);
+    transform: translateY(5px);
+    box-shadow: 0 0 0 5px var(--chrome), 0 0 0 6px #222, 0 1px 0 3px #5a120c, 0 3px 5px 3px rgba(0, 0, 0, 0.45);
   }
 </style>

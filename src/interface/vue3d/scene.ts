@@ -19,7 +19,8 @@ import type { EtatPartie } from '../../moteur/etat'
 import { enAttenteDeFenetre, systemeDeLaFusee } from '../../moteur/fusee'
 import { mulberry32 } from '../../moteur/hasard'
 import { CHASSE } from '../../donnees/chasse'
-import { modeleFusee, modeleISS, modeleSoucoupe } from './modeles'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { modeleFusee, modeleISS, modeleSoucoupe, refleter } from './modeles'
 
 const COULEURS: Record<string, number> = {
   Mercure: 0xcfc6b6, Vénus: 0xefdfae, Terre: 0x7fa4cf, Mars: 0xe07a5c,
@@ -55,7 +56,7 @@ const VITRES = [60, 0, -60]
 /** Champ horizontal d'une vitre (degrés). */
 const CHAMP_VITRE = 60
 /** Largeur des montants entre les vitres (px). */
-export const MONTANT = 8
+export const MONTANT = 12
 
 /** Position (x, largeur) de chaque vitre dans le hublot. */
 export function disposerVitres(largeur: number): { x: number; l: number }[] {
@@ -81,6 +82,8 @@ export class Vue3D {
   private astres = new Map<string, Astre>()
   private chargeur = new THREE.TextureLoader()
   private largeur = 1
+  private ciel!: THREE.ShaderMaterial
+  private environnement: THREE.Texture
   private hauteur = 1
   /** Caméras des trois vitres du hublot (null pour la vue « orbite »). */
   private vitres: THREE.PerspectiveCamera[] | null = null
@@ -104,6 +107,14 @@ export class Vue3D {
     this.soleil = new THREE.PointLight(0xfff3dd, 2.2, 0, 0)
     this.scene.add(this.soleil)
     this.scene.add(this.fusee, this.iss, this.soucoupe)
+    // Reflets du chrome et de la peinture : une pièce éclairée, réduite en carte d'environnement (seulement pour les
+    // modèles ; les astres n'en ont pas, leur face nuit reste noire).
+    const pmrem = new THREE.PMREMGenerator(this.rendu)
+    this.environnement = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    pmrem.dispose()
+    refleter(this.fusee, this.environnement, 0.9)
+    refleter(this.iss, this.environnement, 0.6)
+    refleter(this.soucoupe, this.environnement, 1)
     this.ajouterEtoiles()
     this.ajouterAstre('Soleil', 0xffd27a, true)
     for (const nom of NOMS_PLANETES) this.ajouterAstre(nom, COULEURS[nom])
@@ -119,26 +130,78 @@ export class Vue3D {
     return new THREE.Points(geo, new THREE.PointsMaterial({ color: couleur, size: taille, sizeAttenuation: false, transparent: true }))
   }
 
+  /**
+   * Le ciel étoilé : quelques étoiles brillantes et une multitude de faibles (comme le vrai ciel, le nombre
+   * d'étoiles triple à chaque magnitude), rondes, légèrement teintées. La magnitude limite et la taille dépendent
+   * de la vue (le hublot, très large, en montre moins de faibles).
+   */
   private ajouterEtoiles() {
     const h = mulberry32(58)
     const positions: number[] = []
+    const magnitudes: number[] = []
+    const teintes: number[] = []
     const D = 1e11
-    const direction = (lon: number, lat: number) => {
+    const ajouter = (lon: number, lat: number, m: number) => {
       const l = (lon * Math.PI) / 180, b = (lat * Math.PI) / 180
-      return versThree({ x: D * Math.cos(b) * Math.cos(l), y: D * Math.cos(b) * Math.sin(l), z: D * Math.sin(b) })
-    }
-    for (let i = 0; i < 2500; i++) {
-      const p = direction(h() * 360, (Math.asin(h() * 2 - 1) * 180) / Math.PI)
+      const p = versThree({ x: D * Math.cos(b) * Math.cos(l), y: D * Math.cos(b) * Math.sin(l), z: D * Math.sin(b) })
       positions.push(p.x, p.y, p.z)
+      magnitudes.push(m)
+      // Teinte : bleutée, blanche ou orangée.
+      const k = h()
+      const c = k < 0.18 ? [0.78, 0.86, 1] : k > 0.85 ? [1, 0.85, 0.7] : [1, 0.97, 0.92]
+      teintes.push(c[0], c[1], c[2])
     }
-    const fond = new THREE.BufferGeometry()
-    fond.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-    this.scene.add(new THREE.Points(fond, new THREE.PointsMaterial({ color: 0xdfe6f0, size: 1.2, sizeAttenuation: false })))
-    const brillantes: number[] = []
-    for (const e of ETOILES) { const p = direction(e.azimut, e.hauteur); brillantes.push(p.x, p.y, p.z) }
+    for (let i = 0; i < 9000; i++) {
+      const m = Math.max(-0.5, 6.8 + 2.2 * Math.log10(h()))
+      ajouter(h() * 360, (Math.asin(h() * 2 - 1) * 180) / Math.PI, m)
+    }
+    for (const e of ETOILES) ajouter(e.azimut, e.hauteur, 0.4)
     const geo = new THREE.BufferGeometry()
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(brillantes, 3))
-    this.scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xfff3cf, size: 3, sizeAttenuation: false })))
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+    geo.setAttribute('magnitude', new THREE.Float32BufferAttribute(magnitudes, 1))
+    geo.setAttribute('teinte', new THREE.Float32BufferAttribute(teintes, 3))
+    this.ciel = new THREE.ShaderMaterial({
+      uniforms: { limite: { value: 6.5 }, echelle: { value: 1 }, pixels: { value: 1 } },
+      vertexShader: `
+        attribute float magnitude;
+        attribute vec3 teinte;
+        uniform float limite;
+        uniform float echelle;
+        uniform float pixels;
+        varying float vEclat;
+        varying vec3 vTeinte;
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vEclat = magnitude > limite ? 0.0 : clamp(0.12 + 0.88 * pow((limite - magnitude) / (limite + 1.0), 1.4), 0.0, 1.0);
+          gl_PointSize = pixels * echelle * (1.6 + 3.4 * clamp((3.0 - magnitude) / 4.0, 0.0, 1.0));
+          vTeinte = teinte;
+        }`,
+      fragmentShader: `
+        varying float vEclat;
+        varying vec3 vTeinte;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          float r2 = dot(c, c) * 4.0;
+          float a = exp(-r2 * 3.5) * vEclat;
+          if (a < 0.01) discard;
+          gl_FragColor = vec4(vTeinte, a);
+        }`,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+    const etoiles = new THREE.Points(geo, this.ciel)
+    etoiles.renderOrder = -1 // dessinées d'abord : tout le reste passe devant
+    etoiles.frustumCulled = false
+    this.scene.add(etoiles)
+  }
+
+  /** Règle le ciel pour la vue : magnitude limite et taille des étoiles. */
+  private reglerCiel(limite: number, echelle: number) {
+    this.ciel.uniforms.limite.value = limite
+    this.ciel.uniforms.echelle.value = echelle
+    this.ciel.uniforms.pixels.value = this.rendu.getPixelRatio()
   }
 
   private ajouterAstre(nom: string, couleur: number, lumineux = false) {
@@ -154,7 +217,13 @@ export class Vue3D {
       anneau.rotation.x = -Math.PI / 2 + 0.47
       maillage.add(anneau)
     }
-    if (nom === 'Terre') maillage.rotation.z = (23.44 * Math.PI) / 180
+    if (nom === 'Terre') {
+      maillage.rotation.z = (23.44 * Math.PI) / 180
+      // Halo de l'atmosphère, visible sur le bord du globe.
+      const halo = new THREE.Mesh(new THREE.SphereGeometry(1.025, 64, 32),
+        new THREE.MeshBasicMaterial({ color: 0x6fb6ff, transparent: true, opacity: 0.35, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false }))
+      maillage.add(halo)
+    }
     const point = this.point(couleur, lumineux ? 6 : 3)
     this.scene.add(maillage, point)
     this.astres.set(nom, { nom, maillage, point })
@@ -229,7 +298,10 @@ export class Vue3D {
     const pousse = etat.fusee.destination !== null && !enAttenteDeFenetre(etat.fusee) && etat.modules.propulsion.levierAHaut
     const flamme = this.fusee.getObjectByName('flamme')!
     flamme.visible = pousse
-    flamme.scale.setScalar(0.85 + Math.sin(horloge / 60) * 0.15)
+    flamme.scale.set(0.85 + Math.sin(horloge / 60) * 0.15 + Math.sin(horloge / 23) * 0.05, 1, 1)
+    this.fusee.getObjectByName('foyer')!.visible = pousse
+    // Feu de position clignotant au bout de l'antenne.
+    this.fusee.getObjectByName('feu')!.visible = Math.floor(horloge / 600) % 2 === 0
 
     // Visiteur : la soucoupe de près ; une lueur de loin (et elle clignote si le détecteur DET la signale).
     const v = positionVisiteur(t)
@@ -262,6 +334,7 @@ export class Vue3D {
     ).multiplyScalar(this.distance)
     this.camera.position.copy(c)
     this.camera.lookAt(0, 0, 0)
+    this.reglerCiel(6.3, 1)
     this.rendu.render(this.scene, this.camera)
 
     // Étiquettes et position du visiteur à l'écran.
@@ -290,6 +363,7 @@ export class Vue3D {
     const cap = etat.fusee.cap
     const regard = (deg: number) => { const a = (deg * Math.PI) / 180; return new THREE.Vector3(Math.cos(a), 0, -Math.sin(a)) }
     this.fusee.visible = false // on est dedans
+    this.reglerCiel(5.4, 0.85)
     this.rendu.setScissorTest(true)
     vitres.forEach((c, i) => {
       c.position.set(0, 0, 0)
@@ -357,6 +431,7 @@ export class Vue3D {
   }
 
   liberer() {
+    this.environnement.dispose()
     this.rendu.dispose()
   }
 }
