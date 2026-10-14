@@ -21,6 +21,8 @@
   import { jeu } from '../jeu.svelte'
   import Trophees from './Trophees.svelte'
 
+  let { onglet }: { onglet: 'contrats' | 'atelier' | 'trophees' } = $props()
+
   let refus = $state<string | null>(null)
 
   const etat = $derived(jeu.etat!)
@@ -38,8 +40,8 @@
     const o = optionsDeDepart(etat.fusee, { type: 'astre', astre: exemple }, t, vitesseKmS)
     return o.maintenant ? (o.maintenant.arrivee - t) / 1000 : null
   }
-  const voyageAvant = $derived(jeu.ongletOffice === 'atelier' ? voyage(vitesseAvant) : null)
-  const voyageApres = $derived(jeu.ongletOffice === 'atelier' ? voyage(vitesseApres) : null)
+  const voyageAvant = $derived(onglet === 'atelier' ? voyage(vitesseAvant) : null)
+  const voyageApres = $derived(onglet === 'atelier' ? voyage(vitesseApres) : null)
   /** Prochain palier de cascade (nombre d'améliorations), s'il en reste un. */
   const palier = $derived(PANNES.paliersCascade.find((n) => n > etat.ameliorations) ?? null)
   const aVenir = $derived(MODULES_A_INSTALLER.filter((m) => !estInstalle(etat, m.code) && m.code !== module?.code))
@@ -56,7 +58,7 @@
 
 <div class="office">
 
-  {#if jeu.ongletOffice !== 'trophees'}
+  {#if onglet !== 'trophees'}
     <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
       <div class="col"><span class="etiquette">CAISSE · PORTEFEUILLE ›</span><span class="montant">{etat.credits} CR</span></div>
       <div class="col droite"><span class="etiquette">PROCHAINE AMÉLIORATION</span><span class="fort">{cout} CR · +10 % de vitesse</span></div>
@@ -66,7 +68,7 @@
   {#if refus}<p class="refus" role="alert">{refus}</p>{/if}
 
   <div class="liste">
-    {#if jeu.ongletOffice === 'contrats'}
+    {#if onglet === 'contrats'}
       {#if etat.contrats.length}
         <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours})</h3>
         {#each etat.contrats as c}
@@ -116,7 +118,7 @@
           </article>
         {/each}
       {/if}
-    {:else if jeu.ongletOffice === 'atelier'}
+    {:else if onglet === 'atelier'}
       <h3>MOTEUR</h3>
       <article class="contrat">
         <span class="type">AMÉLIORATION N° {etat.ameliorations + 1}</span>

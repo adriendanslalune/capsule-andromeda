@@ -2,10 +2,10 @@
   // Racine de l'interface : choisit l'écran à montrer.
   import { onMount } from 'svelte'
   import AnnonceContrat from './ecrans/AnnonceContrat.svelte'
-  import Fenetre from './ecrans/Fenetre.svelte'
   import Impression from './manuel/Impression.svelte'
   import Module from './ecrans/Module.svelte'
   import Ouverture from './ecrans/Ouverture.svelte'
+  import Poste from './ecrans/Poste.svelte'
   import RapportVol from './ecrans/RapportVol.svelte'
   import Volet from './ecrans/Volet.svelte'
   import { jeu } from './jeu.svelte'
@@ -25,7 +25,7 @@
     <Dehors />
   {/await}
 {:else}
-  <Fenetre />
+  <Poste />
 {/if}
 
 {#if jeu.etat && jeu.volet}

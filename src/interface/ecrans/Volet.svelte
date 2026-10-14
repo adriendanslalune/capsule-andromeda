@@ -1,13 +1,11 @@
 <script lang="ts">
-  // Volets qui montent du bas : Carte, Office, Manuel, Portefeuille.
+  // Volets qui montent du bas : le manuel et le portefeuille.
   import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
-  import Carte from '../volets/Carte.svelte'
   import Manuel from '../volets/Manuel.svelte'
-  import Office from '../volets/Office.svelte'
   import Portefeuille from '../volets/Portefeuille.svelte'
 
-  const titres = { carte: 'CARTE', office: 'OFFICE', manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE' } as const
+  const titres = { manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE' } as const
   let volet = $state<HTMLElement>()
 </script>
 
@@ -17,13 +15,11 @@
   <div class="prise" use:glisserPourFermer={{ sens: 'bas', cible: () => volet, fermer: () => jeu.fermer() }}>
     <div class="poignee"></div>
     <header>
-      <span class="titre titre-pulp">{jeu.volet === 'office' ? { contrats: 'CONTRATS', atelier: 'ATELIER', trophees: 'TROPHÉES' }[jeu.ongletOffice] : jeu.volet ? titres[jeu.volet] : ''}</span>
+      <span class="titre titre-pulp">{jeu.volet ? titres[jeu.volet] : ''}</span>
       <button class="bouton" onclick={() => jeu.fermer()}>FERMER</button>
     </header>
   </div>
-  {#if jeu.volet === 'carte'}<Carte />
-  {:else if jeu.volet === 'office'}<Office />
-  {:else if jeu.volet === 'manuel'}<Manuel />
+  {#if jeu.volet === 'manuel'}<Manuel />
   {:else if jeu.volet === 'portefeuille'}<Portefeuille />
   {/if}
 </section>

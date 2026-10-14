@@ -1,14 +1,14 @@
 <script lang="ts">
   // I. Le poste de pilotage : planche du cockpit, organes numérotés (nomenclature à la page suivante).
   import Page from '../Page.svelte'
-  import Bouton from '../schemas/Bouton.svelte'
   import Jauge from '../schemas/Jauge.svelte'
   import Motifs from '../schemas/Motifs.svelte'
   import Repere from '../schemas/Repere.svelte'
   import Voyant from '../schemas/Voyant.svelte'
 
   let { numero }: { numero: number } = $props()
-  const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 92 + (i % 6) * 32, y: 270 + Math.floor(i / 6) * 26 }))
+  const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 92 + (i % 6) * 32, y: 314 + Math.floor(i / 6) * 22 }))
+  const onglets = ['CARTE', 'CONTR.', 'COCKPIT', 'ATEL.', 'TROPH.']
 </script>
 
 <Page {numero} chapitre="I." titre="LE POSTE DE PILOTAGE">
@@ -17,65 +17,80 @@
     <Motifs />
     <!-- Contour du poste. -->
     <rect x="62" y="4" width="220" height="412" rx="10" fill="none" stroke="#1d1916" stroke-width="1.6" />
-    <!-- En-tête : nom, compteur, saison, son. -->
-    <text x="72" y="22" font-size="11" font-weight="700" font-family="Courier Prime, monospace">C-58</text>
-    <rect x="178" y="12" width="52" height="14" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    {#each [0, 1, 2, 3] as i}<line x1={178 + 13 * i} y1="12" x2={178 + 13 * i} y2="26" stroke="#1d1916" stroke-width="0.6" />{/each}
-    <rect x="258" y="10" width="10" height="18" rx="5" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <!-- Hublot. -->
-    <rect x="72" y="34" width="200" height="66" rx="18" fill="none" stroke="#1d1916" stroke-width="1.6" />
-    <rect x="80" y="42" width="184" height="50" rx="12" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
-    <text x="76" y="112" font-size="7.5" font-family="Courier Prime, monospace">● 1 en vol · 1 autour de la Terre</text>
-    <!-- Console. -->
-    <rect x="70" y="118" width="204" height="216" rx="8" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <rect x="78" y="124" width="50" height="18" rx="9" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <circle cx="119" cy="133" r="6" fill="#1d1916" />
-    <text x="84" y="136" font-size="7" font-weight="700" font-family="Courier Prime, monospace">ON</text>
-    <Jauge x={104} y={170} r={22} />
-    <!-- Compas de cap. -->
-    <circle cx="172" cy="170" r="22" fill="#f8f5ec" stroke="#1d1916" stroke-width="2" />
+    <!-- Barre du haut : nom, compteur, saison, son, manuel. -->
+    <text x="70" y="22" font-size="11" font-weight="700" font-family="Courier Prime, monospace">C-58</text>
+    <rect x="150" y="12" width="44" height="13" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    {#each [1, 2, 3] as i}<line x1={150 + 11 * i} y1="12" x2={150 + 11 * i} y2="25" stroke="#1d1916" stroke-width="0.6" />{/each}
+    <rect x="200" y="13" width="30" height="11" fill="#1d1916" />
+    <text x="215" y="21" text-anchor="middle" font-size="5" fill="#f8f5ec" font-family="Courier Prime, monospace">SAISON</text>
+    <rect x="238" y="9" width="8" height="17" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <rect x="254" y="9" width="20" height="18" rx="3" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <path d="M 264 13 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 13 v 10" fill="none" stroke="#1d1916" stroke-width="0.8" />
+    <!-- Onglets : celui de la page affichée ressort. -->
+    <line x1="62" y1="48" x2="282" y2="48" stroke="#1d1916" stroke-width="1.6" />
+    {#each onglets as o, i}
+      {@const x = 66 + i * 43}
+      <path d={i === 2 ? `M ${x} 48 V 31 Q ${x} 29 ${x + 3} 29 H ${x + 37} Q ${x + 40} 29 ${x + 40} 31 V 48` : `M ${x} 48 V 35 Q ${x} 33 ${x + 3} 33 H ${x + 37} Q ${x + 40} 33 ${x + 40} 35 V 48`}
+        fill={i === 2 ? '#f8f5ec' : 'none'} stroke="#1d1916" stroke-width={i === 2 ? 1.6 : 1} />
+      <text x={x + 20} y="44" text-anchor="middle" font-size="5.5" font-weight="700" font-family="Courier Prime, monospace">{o}</text>
+    {/each}
+    <line x1="152" y1="48" x2="192" y2="48" stroke="#f8f5ec" stroke-width="2" />
+    <!-- Hublot, d'un bord à l'autre. -->
+    <line x1="62" y1="54" x2="282" y2="54" stroke="#1d1916" stroke-width="1.2" />
+    <rect x="66" y="58" width="212" height="56" rx="6" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
+    <line x1="62" y1="118" x2="282" y2="118" stroke="#1d1916" stroke-width="1.2" />
+    <!-- Interrupteur MOTEUR. -->
+    <rect x="72" y="124" width="50" height="16" rx="8" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <circle cx="114" cy="132" r="5.5" fill="#1d1916" />
+    <text x="78" y="135" font-size="7" font-weight="700" font-family="Courier Prime, monospace">ON</text>
+    <!-- Cadrans : grand tachymètre, compas et horloge. -->
+    <Jauge x={118} y={182} r={32} />
+    <circle cx="236" cy="160" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
     {#each [0, 90, 180, 270] as a}
       {@const r = (a * Math.PI) / 180}
-      <line x1={172 + Math.cos(r) * 16} y1={170 - Math.sin(r) * 16} x2={172 + Math.cos(r) * 20} y2={170 - Math.sin(r) * 20} stroke="#1d1916" stroke-width="1.4" />
-      <text x={172 + Math.cos(r) * 10} y={172.5 - Math.sin(r) * 10} text-anchor="middle" font-size="5" font-family="Courier Prime, monospace">{a}</text>
+      <line x1={236 + Math.cos(r) * 11} y1={160 - Math.sin(r) * 11} x2={236 + Math.cos(r) * 14} y2={160 - Math.sin(r) * 14} stroke="#1d1916" stroke-width="1.2" />
     {/each}
-    <path d="M 172 170 L 182 156 L 175 171 Z" fill="#1d1916" />
-    <path d="M 172 147 l 3 5 h -6 Z" fill="#1d1916" />
-    <circle cx="240" cy="170" r="22" fill="#f8f5ec" stroke="#1d1916" stroke-width="2" />
-    <line x1="240" y1="170" x2="240" y2="154" stroke="#1d1916" stroke-width="1.8" />
-    <line x1="240" y1="170" x2="252" y2="174" stroke="#1d1916" stroke-width="1.2" />
-    <rect x="80" y="204" width="184" height="48" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <text x="86" y="220" font-size="7.5" font-family="Courier Prime, monospace">EN ROUTE VERS</text>
-    <text x="86" y="234" font-size="10" font-weight="700" font-family="Courier Prime, monospace">LA LUNE</text>
-    <rect x="86" y="240" width="172" height="6" fill="none" stroke="#1d1916" stroke-width="0.8" />
-    <rect x="86" y="240" width="60" height="6" fill="#1d1916" />
+    <path d="M 236 160 L 243 150 L 238 161 Z" fill="#1d1916" />
+    <circle cx="236" cy="200" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
+    <line x1="236" y1="200" x2="236" y2="189" stroke="#1d1916" stroke-width="1.6" />
+    <line x1="236" y1="200" x2="244" y2="203" stroke="#1d1916" stroke-width="1.1" />
+    <!-- Écran de navigation. -->
+    <rect x="70" y="222" width="204" height="40" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <text x="76" y="235" font-size="7" font-family="Courier Prime, monospace">EN ROUTE VERS</text>
+    <text x="76" y="248" font-size="9.5" font-weight="700" font-family="Courier Prime, monospace">LA LUNE</text>
+    <text x="268" y="248" text-anchor="end" font-size="8" font-family="Courier Prime, monospace">2 h 14 min 06 s</text>
+    <rect x="76" y="253" width="192" height="5" fill="none" stroke="#1d1916" stroke-width="0.8" />
+    <rect x="76" y="253" width="70" height="5" fill="#1d1916" />
+    <!-- Instruments de bord. -->
+    {#each [0, 1, 2] as i}<rect x={70 + i * 69} y="268" width="64" height="14" rx="2" fill="none" stroke="#1d1916" stroke-width="1" />{/each}
+    <rect x="70" y="285" width="202" height="14" rx="2" fill="none" stroke="#1d1916" stroke-width="1" />
+    <text x="74" y="294.5" font-size="6" font-family="Courier Prime, monospace">EN LIGNE · 3 en vol · 1 autour de la Terre</text>
+    <!-- Voyants des blocs. -->
     {#each voyants as v}<Voyant x={v.x} y={v.y} r={7} />{/each}
-    <path d="M 92 258 L 92 255 L 124 255 L 124 258" fill="none" stroke="#1d1916" stroke-width="0.6" />
-    <rect x="132" y="318" width="80" height="12" fill="none" stroke="#1d1916" stroke-width="1" />
-    <text x="172" y="327" text-anchor="middle" font-size="6.5" font-family="Courier Prime, monospace">N° SÉRIE ___-___</text>
-    <!-- Chasse, téléscripteur, boutons. -->
-    <rect x="70" y="340" width="204" height="24" rx="5" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    <circle cx="84" cy="352" r="8" fill="url(#zone-rouge)" stroke="#1d1916" stroke-width="1" />
-    <line x1="70" y1="370" x2="274" y2="370" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
-    <line x1="70" y1="384" x2="274" y2="384" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
-    <Bouton x={102} y={400} r={9} largeur={58} texte="CARTE" />
-    <Bouton x={172} y={400} r={9} largeur={58} texte="OFFICE" />
-    <Bouton x={242} y={400} r={9} largeur={58} texte="MANUEL" />
+    <path d="M 92 304 L 92 301 L 124 301 L 124 304" fill="none" stroke="#1d1916" stroke-width="0.6" />
+    <rect x="132" y="352" width="80" height="11" fill="none" stroke="#1d1916" stroke-width="1" />
+    <text x="172" y="360" text-anchor="middle" font-size="6.5" font-family="Courier Prime, monospace">N° SÉRIE ___-___</text>
+    <!-- Chasse, téléscripteur. -->
+    <rect x="70" y="369" width="204" height="20" rx="5" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <circle cx="82" cy="379" r="6.5" fill="url(#zone-rouge)" stroke="#1d1916" stroke-width="1" />
+    <line x1="70" y1="398" x2="274" y2="398" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
+    <line x1="70" y1="408" x2="274" y2="408" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
 
-    <Repere x={204} y={19} tx={316} ty={19} n={1} />
-    <Repere x={263} y={19} tx={316} ty={40} n={2} />
-    <Repere x={80} y={67} tx={30} ty={67} n={3} />
-    <Repere x={76} y={110} tx={30} ty={110} n={4} />
-    <Repere x={84} y={133} tx={30} ty={133} n={5} />
-    <Repere x={90} y={180} tx={30} ty={175} n={6} />
-    <Repere x={190} y={156} tx={316} ty={140} n={7} />
-    <Repere x={258} y={176} tx={316} ty={176} n={8} />
-    <Repere x={262} y={228} tx={316} ty={228} n={9} />
-    <Repere x={85} y={276} tx={30} ty={276} n={10} />
-    <Repere x={108} y={256} tx={30} ty={252} n={11} />
-    <Repere x={208} y={324} tx={316} ty={324} n={12} />
-    <Repere x={78} y={352} tx={30} ty={352} n={13} />
-    <Repere x={270} y={377} tx={316} ty={377} n={14} />
-    <Repere x={242} y={400} tx={316} ty={404} n={15} />
+    <Repere x={172} y={18} tx={30} ty={18} n={1} />
+    <Repere x={242} y={18} tx={316} ty={12} n={2} />
+    <Repere x={270} y={22} tx={316} ty={32} n={3} />
+    <Repere x={172} y={36} tx={316} ty={52} n={4} />
+    <Repere x={70} y={86} tx={30} ty={86} n={5} />
+    <Repere x={76} y={132} tx={30} ty={132} n={6} />
+    <Repere x={92} y={194} tx={30} ty={190} n={7} />
+    <Repere x={252} y={156} tx={316} ty={156} n={8} />
+    <Repere x={252} y={204} tx={316} ty={204} n={9} />
+    <Repere x={268} y={232} tx={316} ty={232} n={10} />
+    <Repere x={268} y={275} tx={316} ty={275} n={11} />
+    <Repere x={85} y={320} tx={30} ty={320} n={12} />
+    <Repere x={108} y={302} tx={30} ty={298} n={13} />
+    <Repere x={208} y={357} tx={316} ty={357} n={14} />
+    <Repere x={76} y={379} tx={30} ty={379} n={15} />
+    <Repere x={270} y={403} tx={316} ty={403} n={16} />
   </svg>
 </Page>

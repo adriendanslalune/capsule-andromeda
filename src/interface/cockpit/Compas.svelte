@@ -24,14 +24,14 @@
 <figure>
   <svg viewBox="0 0 120 120" role="img" aria-label={`Cap : ${Math.round(cap)}°`}>
     <!-- Lunette boulonnée, puis le cadran (réduit à l'intérieur). -->
-    <circle cx="62.5" cy="62.5" r="57" fill="var(--couleur-encre)" />
-    <circle cx="60" cy="60" r="57" fill="var(--moutarde)" stroke="var(--couleur-encre)" stroke-width="3" />
+    <circle cx="61.5" cy="61.5" r="57" fill="var(--couleur-encre)" />
+    <circle cx="60" cy="60" r="57" fill="var(--moutarde)" stroke="var(--couleur-encre)" stroke-width="2" />
     {#each [45, 135, 225, 315] as v}
       {@const r = (v * Math.PI) / 180}
-      <circle cx={60 + Math.cos(r) * 51.5} cy={60 + Math.sin(r) * 51.5} r="2.6" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="1.2" />
-      <line x1={60 + Math.cos(r) * 51.5 - 1.6} y1={60 + Math.sin(r) * 51.5} x2={60 + Math.cos(r) * 51.5 + 1.6} y2={60 + Math.sin(r) * 51.5} stroke="var(--couleur-encre)" stroke-width="0.9" />
+      <circle cx={60 + Math.cos(r) * 54} cy={60 + Math.sin(r) * 54} r="1.5" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="1.2" />
+      
     {/each}
-    <g transform="translate(60 60) scale(0.8) translate(-60 -60)">
+    <g transform="translate(60 60) scale(0.9) translate(-60 -60)">
     <circle cx="60" cy="60" r="56" fill="var(--nuit)" stroke="var(--couleur-encre)" stroke-width="3.5" />
     <!-- Rose des vents. -->
     <path d="M 60 18 L 66 54 L 102 60 L 66 66 L 60 102 L 54 66 L 18 60 L 54 54 Z" fill="rgba(250, 242, 220, 0.12)" stroke="rgba(250, 242, 220, 0.35)" stroke-width="1" />

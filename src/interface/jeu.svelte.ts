@@ -21,7 +21,10 @@ const TELEX_GARDES = 60
 const SAUVEGARDE_TOUTES_LES = 10_000
 
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
-export type Volet = 'carte' | 'office' | 'manuel' | 'portefeuille' | null
+export type Volet = 'manuel' | 'portefeuille' | null
+/** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
+export const PAGES_POSTE = ['carte', 'contrats', 'cockpit', 'atelier', 'trophees'] as const
+export type PagePoste = (typeof PAGES_POSTE)[number]
 
 /** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */
 export type Trace = { type: 'cercle'; x: number; y: number; rayon: number } | { type: 'droite'; x: number; y: number; angle: number }
@@ -53,8 +56,8 @@ class Jeu {
   traces = $state.raw<Trace[]>([])
   /** Page ouverte dans le lecteur du manuel. */
   pageManuel = $state(0)
-  /** Onglet ouvert dans le volet de l'Office. */
-  ongletOffice = $state<'contrats' | 'atelier' | 'trophees'>('contrats')
+  /** Page affichée dans le poste de pilotage. */
+  page = $state<PagePoste>('cockpit')
   /** Vrai pendant l'impression du manuel. */
   impression = $state(false)
 
@@ -112,7 +115,7 @@ class Jeu {
 
   /** Étages ouverts au-dessus du tableau de bord : un écran (module, dehors), puis un volet. */
   private etages(): number {
-    return (this.ecran.nom === 'module' || this.ecran.nom === 'dehors' ? 1 : 0) + (this.volet ? 1 : 0)
+    return (this.page !== 'cockpit' ? 1 : 0) + (this.ecran.nom === 'module' || this.ecran.nom === 'dehors' ? 1 : 0) + (this.volet ? 1 : 0)
   }
 
   /**
@@ -134,7 +137,8 @@ class Jeu {
     this.dernierChangement = Date.now()
     while (this.etages() > etage) {
       if (this.volet) this.volet = null
-      else this.ecran = { nom: 'fenetre' }
+      else if (this.ecran.nom !== 'fenetre') this.ecran = { nom: 'fenetre' }
+      else this.page = 'cockpit'
     }
   }
 

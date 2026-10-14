@@ -21,17 +21,16 @@
   import { vitesseActuelle } from '../../moteur/partie'
   import Compas from '../cockpit/Compas.svelte'
   import Horloge from '../cockpit/Horloge.svelte'
-  import Icone from '../cockpit/Icone.svelte'
   import Tachymetre from '../cockpit/Tachymetre.svelte'
   import { onMount } from 'svelte'
-  import { dateLocale, duree, dureePrecise, heureLocale, nomAstre, ua } from '../format'
+  import { delaiLumiere } from '../../astro/lumiere'
+  import { positionCorps } from '../../astro/corps'
+  import { dateLocale, duree, dureePrecise, heureLocale, km, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { presence } from '../reseau'
-  import { basculerSon, sonActif } from '../sons'
 
   const TOUS_LES_MODULES = ['CH-1', 'TU-1', 'AL-1', ...MODULES_A_INSTALLER.map((m) => m.code)]
 
-  let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
   const fusee = $derived(etat.fusee)
@@ -109,35 +108,22 @@
   const detecte = $derived(visiteurDetecte(etat, t))
   const dernierIndice = $derived(etat.chasse.indices[0] ?? null)
   const reseau = $derived(presence(etat, t))
+  /** Délai d'un message radio jusqu'à la Terre (vrai délai de la lumière). */
+  const delaiRadio = $derived.by(() => {
+    const terre = positionCorps('Terre', t)
+    const s = delaiLumiere(Math.hypot(fusee.position.x - terre.x, fusee.position.y - terre.y))
+    return s < 60 ? `${nombre(s, 1)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, '0')} s`
+  })
 
   function etatTuile(code: string): 'ok' | 'avarie' | 'scelle' {
     if (!estInstalle(etat, code)) return 'scelle'
     return enPanne.includes(code) ? 'avarie' : 'ok'
   }
 
-  /** Crédits sur le compteur (au moins 4 chiffres). */
-  const tambours = $derived(String(Math.max(0, Math.floor(etat.credits))).padStart(4, '0').split(''))
 </script>
 
 <main>
   <div class="defile">
-  <!-- En-tête : nom de la fusée, compteur de crédits, saison, son. -->
-  <header>
-    <div class="identite">
-      <span class="c58 titre-pulp">C-58</span>
-      <span class="nom">{etat.nom || etat.serie}</span>
-    </div>
-    <div class="instruments">
-      <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
-        <span class="compteur">{#each tambours as c}<span>{c}</span>{/each}</span>
-        <span class="unite">CR</span>
-      </button>
-      <span class="etiquette-encre">SAISON {saison}</span>
-      <button class="interrupteur" class:coupe={!son} aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>
-        <span class="bascule"></span><span class="mot">{son ? 'SON' : 'MUET'}</span>
-      </button>
-    </div>
-  </header>
 
   <!-- Hublot de la fusée, boulonné. Le toucher fait sortir en vue extérieure. -->
   <div class="hublot" role="button" tabindex="0" aria-label="Regarder dehors (vue extérieure)"
@@ -147,12 +133,6 @@
     <div class="vitre">
       <!-- Le hublot (et three.js) se charge sans retarder l'affichage du tableau de bord. -->
       {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
-      <!-- Présence des autres commissionnaires, inscrite au bas de la vitre. -->
-      <p class="reseau">
-        <span class="antenne" aria-hidden="true"></span>
-        <b>{reseau.total}</b> en vol dans le système solaire{#if reseau.systeme && reseau.ici !== null} · <b>{reseau.ici}</b> autour {reseau.systeme === 'Terre' ? 'de la Terre' : `de ${reseau.systeme}`}{/if}
-        {#if reseau.horsReseau}<span class="hors">HORS RÉSEAU</span>{/if}
-      </p>
     </div>
   </div>
 
@@ -216,6 +196,19 @@
       {/if}
     </div>
 
+    <!-- Instruments de bord : petites lucarnes à chiffres. -->
+    <div class="rubrique"><span>INSTRUMENTS DE BORD</span></div>
+    <div class="lucarnes">
+      <div class="lucarne"><small>ROUTE</small><b>{km(fusee.distanceParcourue)}</b></div>
+      <div class="lucarne"><small>SOLEIL</small><b>{nombre(Math.hypot(fusee.position.x, fusee.position.y), 3)} UA</b></div>
+      <div class="lucarne"><small>RADIO TERRE</small><b>{delaiRadio}</b></div>
+      <div class="lucarne en-ligne">
+        <small><span class="antenne" aria-hidden="true"></span>EN LIGNE{#if reseau.horsReseau} · <i>HORS RÉSEAU</i>{/if}</small>
+        <b>{reseau.total} en vol{#if reseau.systeme && reseau.ici !== null} · {reseau.ici} {reseau.systeme === 'Terre' ? 'autour de la Terre' : `près de ${reseau.systeme}`}{/if}</b>
+      </div>
+    </div>
+
+    <div class="rubrique"><span>BLOCS DU BORD</span></div>
     <div class="tableau plaque-papier">
       <div class="ligne">
         <span class="etiquette-encre">MODULES</span>
@@ -243,7 +236,7 @@
   </section>
 
   <!-- Chasse au visiteur. -->
-  <button class="chasse panneau" onclick={() => (jeu.volet = 'carte')}>
+  <button class="chasse panneau" onclick={() => (jeu.page = 'carte')}>
     <span class="radar" aria-hidden="true"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span>
     <span class="texte">
       <span class="etat">{trouve ? 'VISITEUR PHOTOGRAPHIÉ' : detecte !== null ? `DÉTECTÉ À ${ua(detecte)}` : 'VISITEUR INTROUVABLE'}</span>
@@ -253,6 +246,7 @@
   </button>
 
   <!-- Téléscripteur. -->
+  <div class="rubrique"><span>JOURNAL DE BORD</span></div>
   <section class="telex" aria-label="Téléscripteur">
     {#each jeu.telex.slice(-6).reverse() as l}
       <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
@@ -261,14 +255,6 @@
 
   </div>
 
-  <!-- Les cinq boutons du bas, toujours fixés : chacun avec son dessin. -->
-  <nav>
-    <button class="bouton cerise" onclick={() => (jeu.volet = 'carte')}><Icone nom="carte" /><span>CARTE</span></button>
-    <button class="bouton moutarde" onclick={() => { jeu.ongletOffice = 'contrats'; jeu.volet = 'office' }}><Icone nom="contrats" /><span>CONTRATS</span></button>
-    <button class="bouton tole" onclick={() => { jeu.ongletOffice = 'atelier'; jeu.volet = 'office' }}><Icone nom="atelier" /><span>ATELIER</span></button>
-    <button class="bouton moutarde" onclick={() => { jeu.ongletOffice = 'trophees'; jeu.volet = 'office' }}><Icone nom="trophees" /><span>TROPHÉES</span></button>
-    <button class="bouton clair" onclick={() => (jeu.volet = 'manuel')}><Icone nom="manuel" /><span>MANUEL</span></button>
-  </nav>
 </main>
 
 <style>
@@ -292,163 +278,52 @@
     flex: none;
   }
 
-  /* En-tête. */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    padding-top: 6px;
-  }
-  .identite {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .c58 {
-    font-size: 24px;
-    line-height: 1;
-  }
-  .nom {
-    font-family: var(--police-script);
-    font-size: 17px;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
-  }
-  .instruments {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .credits {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0;
-    border: 0;
-    background: none;
-  }
-  .credits:active {
-    transform: translateY(2px);
-  }
-  .credits .compteur {
-    font-size: 17px;
-  }
-  .unite {
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .interrupteur {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    width: 44px;
-    border: 0;
-    background: none;
-    padding: 0;
-  }
-  .bascule {
-    position: relative;
-    width: 20px;
-    height: 30px;
-    border-radius: 10px;
-    border: var(--trait) solid var(--couleur-encre);
-    background: var(--menthe);
-  }
-  .bascule::after {
-    content: '';
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    border: 2px solid var(--couleur-encre);
-    background: var(--couleur-papier);
-    transition: top 0.12s;
-  }
-  .interrupteur.coupe .bascule {
-    background: var(--couleur-papier-fonce);
-  }
-  .interrupteur.coupe .bascule::after {
-    top: 13px;
-  }
-  .interrupteur .mot {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
 
   /* Hublot : épais cadre tôle boulonné, vitre cernée d'encre. */
+  /* Hublot : d'un bord à l'autre de l'écran, cadre fin. */
   .hublot {
     position: relative;
-    height: clamp(130px, 24vh, 210px);
-    padding: 12px;
-    border: 3px solid var(--couleur-encre);
-    border-radius: 34px;
+    height: clamp(140px, 26vh, 230px);
+    margin: 0 calc(-1 * var(--espace));
+    padding: 7px 7px;
+    border-top: 2px solid var(--couleur-encre);
+    border-bottom: 2px solid var(--couleur-encre);
     background: var(--traits), var(--couleur-papier-fonce);
-    box-shadow: var(--ombre);
     cursor: pointer;
   }
-  .hublot:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--couleur-encre);
+  .hublot:active .vitre {
+    filter: brightness(1.15);
   }
   /* Boulons : une rangée en haut et en bas, une colonne de chaque côté. */
   .boulons-h,
   .boulons-v {
     position: absolute;
     pointer-events: none;
-    --boulon: radial-gradient(circle, var(--couleur-papier) 0 2.2px, var(--couleur-encre) 2.7px 3.7px, transparent 4.1px);
+    --boulon: radial-gradient(circle, var(--couleur-papier) 0 1.2px, var(--couleur-encre) 1.6px 2.2px, transparent 2.5px);
   }
   .boulons-h {
-    left: 30px;
-    right: 30px;
+    left: 16px;
+    right: 16px;
     top: 0;
     bottom: 0;
-    background: var(--boulon) top / 32px 12px space no-repeat, var(--boulon) bottom / 32px 12px space no-repeat;
+    background: var(--boulon) top / 26px 7px space no-repeat, var(--boulon) bottom / 26px 7px space no-repeat;
   }
   .boulons-v {
-    top: 30px;
-    bottom: 30px;
+    top: 14px;
+    bottom: 14px;
     left: 0;
     right: 0;
-    background: var(--boulon) left / 12px 30px no-repeat space, var(--boulon) right / 12px 30px no-repeat space;
+    background: var(--boulon) left / 7px 26px no-repeat space, var(--boulon) right / 7px 26px no-repeat space;
   }
   .vitre {
     position: relative;
     height: 100%;
     overflow: hidden;
-    border: 3px solid var(--couleur-encre);
-    border-radius: 22px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 10px;
     background: var(--nuit);
   }
 
-  /* Présence en ligne. */
-  .reseau {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 0;
-    font-size: 11.5px;
-    color: rgba(250, 242, 220, 0.75);
-    pointer-events: none;
-  }
-  .reseau b {
-    color: var(--couleur-papier);
-  }
-  .reseau .hors {
-    border-color: rgba(250, 242, 220, 0.5);
-    font-size: 9.5px;
-  }
   .antenne {
     width: 10px;
     height: 10px;
@@ -667,6 +542,67 @@
   /* Plaque de papier vissée sur la console (voyants des blocs). */
   .plaque-papier {
     position: relative;
+  }
+  .defile > .rubrique,
+  .rubrique {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--couleur-encre-discrete);
+  }
+  .rubrique::before,
+  .rubrique::after {
+    content: '';
+    flex: 1;
+    height: 4px;
+    border-top: 1px solid var(--couleur-encre);
+    border-bottom: 1px solid var(--couleur-encre);
+  }
+  .rubrique::before {
+    flex: 0 0 14px;
+  }
+  .lucarnes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .lucarne {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px 7px;
+    border: 1.5px solid var(--couleur-encre);
+    border-radius: 6px;
+    background: var(--points), var(--couleur-papier);
+    box-shadow: 2px 2px 0 var(--couleur-encre);
+    min-width: 0;
+  }
+  .lucarne small {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--couleur-encre-discrete);
+  }
+  .lucarne b {
+    font-family: var(--police-chiffres);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lucarne.en-ligne {
+    grid-column: 1 / -1;
+  }
+  .lucarne i {
+    font-style: normal;
+    color: var(--cerise);
   }
   .plaque-papier .lien span {
     background: var(--couleur-fond);
@@ -926,28 +862,4 @@
     color: var(--cerise);
   }
 
-  nav {
-    flex: none;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 7px;
-    padding: 8px var(--espace) 10px;
-    border-top: 3px solid var(--couleur-encre);
-    background: var(--points), var(--couleur-fond);
-  }
-  nav button {
-    height: 56px;
-    min-width: 0;
-    padding: 4px 0 2px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    border-radius: 12px;
-    font-family: var(--police-titre);
-    font-size: 9.5px;
-    font-weight: 400;
-    letter-spacing: 0.3px;
-  }
 </style>

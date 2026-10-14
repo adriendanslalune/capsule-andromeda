@@ -235,6 +235,44 @@
     jeu.sauvegarder()
   }
 
+  // Un cercle pointillé de plusieurs millions de pixels (une orbite vue de très près) fige le dessin :
+  // on ne trace que la partie visible, en petits segments. Même chose pour la route.
+  const DEMI_DIAG = Math.hypot(L, Hc) / 2 + 20
+  function arcVisible(c: Point2, r: number): string | null {
+    const R = r * k
+    const s = ecran(c)
+    const dx = L / 2 - s.x
+    const dy = Hc / 2 - s.y
+    const d = Math.hypot(dx, dy)
+    if (Math.abs(d - R) > DEMI_DIAG) return null
+    if (R < 2000) return `M ${s.x - R} ${s.y} a ${R} ${R} 0 1 0 ${2 * R} 0 a ${R} ${R} 0 1 0 ${-2 * R} 0`
+    const milieu = Math.atan2(dy, dx)
+    const cos = (d * d + R * R - DEMI_DIAG * DEMI_DIAG) / (2 * d * R)
+    const ouverture = cos <= -1 ? Math.PI : Math.acos(Math.min(1, cos))
+    const n = 48
+    let chemin = ''
+    for (let i = 0; i <= n; i++) {
+      const a = milieu - ouverture + (2 * ouverture * i) / n
+      chemin += `${i ? 'L' : 'M'} ${s.x + Math.cos(a) * R} ${s.y + Math.sin(a) * R} `
+    }
+    return chemin
+  }
+  /** Segment coupé au cadre de la carte (méthode de Liang et Barsky), ou null s'il n'y passe pas. */
+  function segmentVisible(a: { x: number; y: number }, b: { x: number; y: number }): string | null {
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    let t0 = 0
+    let t1 = 1
+    for (const [q, r] of [[-dx, a.x + 20], [dx, L + 20 - a.x], [-dy, a.y + 20], [dy, Hc + 20 - a.y]]) {
+      if (q === 0) { if (r < 0) return null; continue }
+      const u = r / q
+      if (q < 0) t0 = Math.max(t0, u)
+      else t1 = Math.min(t1, u)
+      if (t0 > t1) return null
+    }
+    return `M ${a.x + dx * t0} ${a.y + dy * t0} L ${a.x + dx * t1} ${a.y + dy * t1}`
+  }
+
   const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
 </script>
@@ -255,8 +293,9 @@
     {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
     {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
     {#each NOMS_PLANETES as nom}
-      {@const c = ecran({ x: 0, y: 0 })}
-      <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />
+      {@const p = positionAstre(nom, tl)}
+      {@const d = arcVisible({ x: 0, y: 0 }, Math.hypot(p.x, p.y))}
+      {#if d}<path {d} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />{/if}
     {/each}
     {#if true}
       {@const s = ecran({ x: 0, y: 0 })}
@@ -274,7 +313,8 @@
       {#each jeu.traces as tr}
         {@const s = ecran(tr)}
         {#if tr.type === 'cercle'}
-          <circle cx={s.x} cy={s.y} r={tr.rayon * k} fill="none" stroke={PLAN.chasse} stroke-width="1.6" stroke-dasharray="6 4" />
+          {@const d = arcVisible(tr, tr.rayon)}
+          {#if d}<path {d} fill="none" stroke={PLAN.chasse} stroke-width="1.6" stroke-dasharray="6 4" />{/if}
         {:else}
           {@const a = (tr.angle * Math.PI) / 180}
           <line x1={s.x} y1={s.y} x2={s.x + Math.cos(a) * 2000} y2={s.y - Math.sin(a) * 2000} stroke={PLAN.chasse} stroke-width="1.6" stroke-dasharray="6 4" />
@@ -290,7 +330,8 @@
     {#if fusee.destination}
       {@const cible = ecran(positionDestination(fusee.destination, tl))}
       {@const point = plan ? ecran(plan.point) : cible}
-      <path d={`M ${posFusee.x} ${posFusee.y} L ${point.x} ${point.y}`} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />
+      {@const route = segmentVisible(posFusee, point)}
+      {#if route}<path d={route} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
       <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
     {/if}

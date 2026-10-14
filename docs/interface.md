@@ -13,16 +13,22 @@ le manuel est votre seul guide) ; 2. améliorez (les crédits rendent la fusée 
 chose rôde entre les planètes).
 Puis « Prendre les commandes », et une première panne guidée.
 
-## 2. Écran principal : la fenêtre
-- Barre du haut : C-58, n° de commissionnaire, crédits, n° de saison.
+## 2. Écran principal : le poste de pilotage
+- Barre du haut, toujours fixe : C-58, nom de la fusée, crédits (ouvre le portefeuille), n° de saison, son, manuel.
+- Cinq onglets en intercalaires sous la barre : CARTE, CONTRATS, **COCKPIT** (au milieu, page d'accueil), ATELIER,
+  TROPHÉES. L'onglet de la page affichée ressort. On passe à la page voisine en glissant le doigt à gauche ou à
+  droite (sauf sur la carte, qui se déplace au doigt). Le geste « retour » du téléphone ramène au cockpit.
+
+### Page COCKPIT
+- Hublot d'un bord à l'autre de l'écran.
 - La vue sur l'espace (la fusée, le vrai ciel, la route vers la destination). Toucher ouvre la vue 3D complète.
 - Carte « voyage » : destination, temps restant, distance, barre de progression, vitesse et effet des avaries.
   En orbite ou à l'arrêt : l'indiquer.
 - **Tableau de voyants** : une tuile par module (grille 4 colonnes) — OK (discret), AVARIE (clignote), SCELLÉ (hachuré).
   Toucher une tuile en avarie ouvre le module.
+- Instruments de bord : route parcourue, distance au Soleil, délai radio jusqu'à la Terre, commissionnaires en ligne.
 - Ligne « chasse » : état du visiteur, dernier indice, jours restants dans la saison.
-- Les deux derniers messages du téléscripteur.
-- Trois gros boutons : CARTE, OFFICE, MANUEL.
+- Les derniers messages du téléscripteur, le plus récent en haut.
 
 ## 3. Module en plein écran
 - Un seul module à la fois, en grand, commandes à taille de pouce.
@@ -30,16 +36,16 @@ Puis « Prendre les commandes », et une première panne guidée.
 - En bas : raccourci vers l'avarie suivante (« Autre avarie : TU-1 »).
 - Les modules sans panne restent consultables depuis le tableau de voyants (pour vérifier un interrupteur, etc.).
 
-## 4. Volets (montent du bas)
-- **Carte** : zoom libre, positions réelles, grille et échelle, cadran de cap autour de la fusée (avec la cible, le
+## 4. Pages du poste et volets
+- **Carte** (page) : zoom libre, positions réelles, grille et échelle, cadran de cap autour de la fusée (avec la cible, le
   point de rencontre visé et la trajectoire de rencontre), choix de destination (planète, Lune, satellite, ISS,
   point libre) ; depuis une orbite, deux boutons : « Partir maintenant — arrivée le … » et, s'il y en a une,
   « Attendre la fenêtre de tir — départ le …, arrivée le … » ; en attente, afficher le compte à rebours du départ,
   ping, tracés de chasse (cercle autour du dernier ping, droite depuis la dernière visée).
-- **Office** : caisse et prochaine amélioration ; onglets Contrats (contrats de la semaine avec leur prime pour ce
+- **Contrats, Atelier, Trophées** (pages) : caisse et prochaine amélioration ; Contrats (contrats de la semaine avec leur prime pour ce
   joueur, 3 contrats en cours au plus, boutons « Accepter », « Y aller », « Abandonner »), Atelier (améliorations,
   modules, instruments), Trophées.
-- **Manuel** : lecteur page par page.
+- **Manuel** (volet qui monte du bas) : lecteur page par page. Le portefeuille est aussi un volet.
 
 ## 5. Vue 3D (dehors)
 Fusée détaillée, vrai ciel, Soleil, planètes et satellites à leurs vraies directions et tailles apparentes,
