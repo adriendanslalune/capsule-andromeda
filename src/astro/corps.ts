@@ -2,7 +2,7 @@
 // Chaque corps appartient au système d'une planète (la planète elle-même, ses satellites ; la Lune et l'ISS pour
 // la Terre).
 
-import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, type NomPlanete } from '../donnees/planetes'
+import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, RAYON_LUNE, type NomPlanete } from '../donnees/planetes'
 import { demiGrandAxeISS, periodeISS, positionISSGeocentrique } from './iss'
 import { positionLune } from './lune'
 import { positionPlanete } from './planetes'
@@ -89,4 +89,17 @@ export function rayonInfluence(planete: NomPlanete): number {
 /** Distance (km) convertie en UA. */
 export function enUA(km: number): number {
   return km / UA_KM
+}
+
+/** Rayon du Soleil (km). */
+export const RAYON_SOLEIL = 696_000
+
+/** Rayon d'un corps (km) : le Soleil, une planète, la Lune, un satellite (null s'il est inconnu) ; 0 pour l'ISS. */
+export function rayonCorps(nom: NomCorps): number | null {
+  if (nom === 'Soleil') return RAYON_SOLEIL
+  if (nom === 'Lune') return RAYON_LUNE
+  if (nom === 'ISS') return 0
+  const p = PLANETES.find((x) => x.nom === nom)
+  if (p) return p.rayon
+  return satellite(nom)?.rayon ?? null
 }

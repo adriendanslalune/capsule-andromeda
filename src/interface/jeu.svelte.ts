@@ -10,6 +10,7 @@ import { modulesEnPanne, type EtatModules } from '../moteur/modules'
 import { agir as agirMoteur, avancerPartie, basculerInterrupteur } from '../moteur/partie'
 import type { NumeroInterrupteur } from '../moteur/interrupteurs'
 import { charger, sauvegarder } from '../moteur/sauvegarde'
+import { ecartAngle } from '../moteur/fusee'
 import { nomAstre } from './format'
 import { ALARMES, SONS } from './sons'
 
@@ -52,6 +53,8 @@ class Jeu {
   pageManuel = $state(0)
 
   private minuterie: ReturnType<typeof setInterval> | null = null
+  /** Partie au pas précédent, pour dessiner les mouvements en douceur entre deux pas. */
+  private precedent: EtatPartie | null = null
   private prochaineAlarme = 0
   /** Nombre d'étages ouverts au-dessus du tableau de bord, tels que l'historique du navigateur les connaît. */
   private etagesHistorique = 0
@@ -69,6 +72,7 @@ class Jeu {
     if (lu?.etat) {
       const r = rattraper(lu.etat, horlogeReelle(), hasardReel)
       this.etat = r.etat
+      this.precedent = null
       if (r.rapport) {
         this.rapport = r.rapport
         for (const m of r.rapport.messages) this.ajouterTelex(m, r.rapport.jusqua)
@@ -154,6 +158,7 @@ class Jeu {
     if (t - this.etat.vu > 60_000) {
       const r = rattraper(this.etat, t, hasardReel)
       this.etat = r.etat
+      this.precedent = null
       if (r.rapport) {
         this.rapport = r.rapport
         for (const m of r.rapport.messages) this.ajouterTelex(m, t)
@@ -169,6 +174,7 @@ class Jeu {
     if (dt <= 0) return
     const avant = this.etat
     const r = avancerPartie(avant, t, dt, hasardReel)
+    this.precedent = avant
     this.etat = r.etat
     this.maintenant = t
     this.annoncer(avant, r.etat, r.messages, t)
@@ -191,6 +197,30 @@ class Jeu {
       // Première avarie de la carrière : l'Office renvoie au manuel, sans rien expliquer de plus.
       if (avant.pannes.tutoriel === 0 && apres.pannes.tutoriel === 1) this.ajouterTelex('OFFICE : TOUTE AVARIE SE RÉPARE SELON LE MANUEL DE VOL. CONSULTEZ-LE.', t)
     }
+  }
+
+  /**
+   * La partie telle qu'on la dessine à l'instant `horloge` (ms) : le moteur avance d'un pas par seconde ; entre
+   * deux pas, la fusée glisse de sa position précédente à la nouvelle (avec une seconde de retard), pour que les
+   * mouvements soient fluides. Renvoie aussi l'instant correspondant, pour placer les astres au même moment.
+   */
+  affichage(horloge = Date.now()): { etat: EtatPartie; t: number } {
+    const e = this.etat!
+    const p = this.precedent
+    if (!p || e.vu <= p.vu || e.vu - p.vu > 5000) return { etat: e, t: e.vu }
+    const duree = e.vu - p.vu
+    const a = Math.max(0, Math.min(1, (horloge - e.vu) / duree))
+    const f0 = p.fusee
+    const f1 = e.fusee
+    // Départ ou arrivée pendant ce pas : pas de glissement (il passerait à travers l'astre).
+    if (f0.orbite !== f1.orbite) return { etat: e, t: e.vu }
+    const fusee = {
+      ...f1,
+      position: { x: f0.position.x + (f1.position.x - f0.position.x) * a, y: f0.position.y + (f1.position.y - f0.position.y) * a },
+      cap: (f0.cap + ecartAngle(f0.cap, f1.cap) * a + 360) % 360,
+      z: (f0.z ?? 0) + ((f1.z ?? 0) - (f0.z ?? 0)) * a,
+    }
+    return { etat: { ...e, fusee }, t: p.vu + duree * a }
   }
 
   ajouterTelex(texte: string, t: number, alerte = false) {

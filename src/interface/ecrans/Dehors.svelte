@@ -39,7 +39,8 @@
     let image = 0
     const boucle = (horloge: number) => {
       if (vue && jeu.etat) {
-        vue.dessiner(jeu.etat, jeu.maintenant, horloge)
+        const a = jeu.affichage()
+        vue.dessiner(a.etat, a.t, horloge)
         etiquettes = vue.etiquettes
       }
       image = requestAnimationFrame(boucle)

@@ -1,5 +1,6 @@
 <script lang="ts">
   // Volet de la carte : vraies positions, zoom au doigt, cadran de cap, destination, rencontre, ping, tracés.
+  import { onMount } from 'svelte'
   import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES } from '../../donnees/planetes'
@@ -34,6 +35,18 @@
   const fusee = $derived(etat.fusee)
   const v = $derived(vitesseActuelle(etat))
 
+  // Dessin fluide : à chaque image, la fusée et les astres sont placés à l'instant lissé (voir jeu.affichage).
+  // Les calculs plus lourds (plan de vol, départs) restent à un par seconde.
+  let lisse = $state.raw(jeu.affichage())
+  onMount(() => {
+    let image = 0
+    const boucle = () => { lisse = jeu.affichage(); image = requestAnimationFrame(boucle) }
+    image = requestAnimationFrame(boucle)
+    return () => cancelAnimationFrame(image)
+  })
+  const tl = $derived(lisse.t)
+  const fl = $derived(lisse.etat.fusee)
+
   // Vue : centre (UA) et demi-largeur (UA).
   let centre = $state<Point2>({ x: 0, y: 0 })
   let demi = $state(2.2)
@@ -55,16 +68,16 @@
   type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean }
   const marques = $derived.by(() => {
     const l: Marque[] = []
-    for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, t), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
+    for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
     for (const planete of NOMS_PLANETES) {
-      const c = positionAstre(planete, t)
+      const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
       if (Math.abs(c.x - centre.x) > demi * 1.6 || Math.abs(c.y - centre.y) > demi * 1.8) continue
       for (const nom of corpsDuSysteme(planete)) {
         if (estPlanete(nom)) continue
         const a = demiGrandAxeAutourDeLaPlanete(nom)! / UA_KM
         if (a * k < 6) continue
-        l.push({ nom, p: positionAstre(nom, t), r: 3, couleur: '#cfc8b8', etiquette: a * k > 26 })
+        l.push({ nom, p: positionAstre(nom, tl), r: 3, couleur: '#cfc8b8', etiquette: a * k > 26 })
       }
     }
     return l
@@ -160,7 +173,7 @@
     jeu.sauvegarder()
   }
 
-  const posFusee = $derived(ecran(fusee.position))
+  const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
 </script>
 
@@ -175,7 +188,7 @@
     <rect width={L} height={Hc} fill="#efe6d2" />
     {#each NOMS_PLANETES as nom}
       {@const c = ecran({ x: 0, y: 0 })}
-      <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, t).x, positionAstre(nom, t).y) * k} fill="none" stroke="#2b2723" stroke-width="0.8" opacity=".35" />
+      <circle cx={c.x} cy={c.y} r={Math.hypot(positionAstre(nom, tl).x, positionAstre(nom, tl).y) * k} fill="none" stroke="#2b2723" stroke-width="0.8" opacity=".35" />
     {/each}
     {#if true}
       {@const s = ecran({ x: 0, y: 0 })}
@@ -207,14 +220,14 @@
     {/if}
 
     {#if fusee.destination}
-      {@const cible = ecran(positionDestination(fusee.destination, t))}
+      {@const cible = ecran(positionDestination(fusee.destination, tl))}
       {@const point = plan ? ecran(plan.point) : cible}
       <path d={`M ${posFusee.x} ${posFusee.y} L ${point.x} ${point.y}`} fill="none" stroke="#e0743f" stroke-width="2" stroke-dasharray="7 5" />
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke="#e0743f" stroke-width="2" />
       <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke="#2b2723" stroke-width="1.5" stroke-dasharray="3 3" />
     {/if}
     {#if choix}
-      {@const s = ecran(positionDestination(choix, t))}
+      {@const s = ecran(positionDestination(choix, tl))}
       <circle cx={s.x} cy={s.y} r="12" fill="none" stroke="#c9452f" stroke-width="2.5" />
     {/if}
 
@@ -225,7 +238,7 @@
         <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke="#2b2723" stroke-width={g % 90 === 0 ? 2 : 1} />
         {#if g % 90 === 0}<text x={Math.cos(a) * 50} y={-Math.sin(a) * 50 + 4} text-anchor="middle" font-size="10" font-family="var(--police-chiffres)" fill="#2b2723">{g}</text>{/if}
       {/each}
-      <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e0743f" stroke="#2b2723" stroke-width="1.3" transform={`rotate(${-fusee.cap})`} />
+      <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e0743f" stroke="#2b2723" stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
 
     <text x="8" y={Hc - 8} font-size="11" font-family="var(--police-chiffres)" fill="#2b2723">{nombre(demi * 2, demi < 0.05 ? 4 : 2)} UA de large</text>

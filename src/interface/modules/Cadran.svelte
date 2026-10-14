@@ -32,10 +32,20 @@
     />
   {/each}
   <text x="60" y="92" text-anchor="middle" font-size="12" font-weight="700" fill="var(--couleur-encre)">{nom}</text>
+  <!-- L'aiguille glisse d'une valeur à l'autre (le moteur avance d'un pas par seconde). -->
   <line
+    class="aiguille"
     x1="60" y1="60" x2="60" y2="18"
     stroke="var(--couleur-danger)" stroke-width="3" stroke-linecap="round"
-    transform={`rotate(${angle(valeur)} 60 60)`}
+    style={`transform: rotate(${angle(valeur)}deg)`}
   />
   <circle cx="60" cy="60" r="5" fill="var(--couleur-encre)" />
 </svg>
+
+<style>
+  .aiguille {
+    transform-box: view-box;
+    transform-origin: 60px 60px;
+    transition: transform 1s linear;
+  }
+</style>

@@ -23,6 +23,15 @@ UA = unité astronomique = 149 597 870,7 km.
 - **Départ** : nouvelle partie en orbite autour de la Terre, à 400 km d'altitude, près de l'ISS (voir ci-dessous).
 - **Cap** : angle en degrés, 0° vers +x (point vernal), sens trigonométrique.
 - **Virage** : la fusée tourne vers son point de visée à **4° par seconde**.
+- **Contournement des astres** : la fusée ne traverse jamais un astre. En route, elle ne passe jamais à moins de
+  **1,1 rayon** du centre du Soleil, d'une planète ou d'un satellite du système où elle se trouve (sa destination
+  exceptée : elle s'y met en orbite avant). Si la route directe coupe un astre, elle suit la tangente à cet astre,
+  du côté le plus proche de la route, puis reprend la route directe dès qu'elle est libre. Au départ d'une orbite,
+  elle part du bord de cette marge et s'oriente aussitôt (manœuvre de dégagement). Un long pas (rattrapage hors
+  ligne) qui passe près d'un astre est découpé en petits pas. Le détour allonge un peu le voyage ; le temps
+  restant affiché est recalculé à chaque pas. Pour la vue 3D, la fusée garde en route la hauteur de l'astre quitté,
+  qui rejoint peu à peu celle de sa destination.
+  *Demandé par Adrien le 14/10/2026 (la fusée traversait la Terre en allant vers la Lune).*
 - **Systèmes** : chaque planète a son système (elle-même, ses satellites ; la Lune pour la Terre). La fusée est dans
   un système quand elle est en orbite autour d'un de ses corps, ou dans la sphère d'influence de la planète
   (rayon de Hill : a × (m / 3M)^(1/3) ; Terre ≈ 0,010 UA, Jupiter ≈ 0,35 UA, Neptune ≈ 0,78 UA).

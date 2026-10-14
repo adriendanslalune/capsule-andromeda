@@ -10,8 +10,8 @@
 // - Depuis une orbite, la machine propose deux départs : maintenant, ou à la fenêtre de tir (le moment de départ
 //   qui fait arriver le plus tôt, la fusée attendant en orbite). Le joueur choisit.
 
-import { demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe, positionCorps,
-  rayonInfluence, type NomCorps } from '../astro/corps'
+import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, enUA, estPlanete, periodeOrbitale, planeteDe,
+  positionCorps, rayonCorps, rayonInfluence, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import { RAD } from '../astro/vecteur'
 import { CHASSE } from '../donnees/chasse'
@@ -57,6 +57,11 @@ export interface EtatFusee {
   fenetre: FenetreDeTir | null
   /** Fusée stationnée à côté du visiteur (en orbite autour de son astre, à environ 200 m de lui). */
   presDuVisiteur: boolean
+  /**
+   * Hauteur au-dessus du plan de l'écliptique (UA), en route : celle de l'astre quitté au départ, puis elle rejoint
+   * peu à peu celle de la destination. Sert à la vue 3D ; absente des anciennes sauvegardes (0).
+   */
+  z?: number
 }
 
 export interface FenetreDeTir {
@@ -370,6 +375,75 @@ export function annulerDestination(fusee: EtatFusee): EtatFusee {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Contournement des astres
+
+/**
+ * Marge de contournement : en route, la fusée ne passe jamais à moins de 1,1 rayon du centre d'un astre (Soleil,
+ * planètes, satellites du système où elle se trouve). Seule sa destination est exclue : elle s'y met en orbite
+ * bien avant d'en toucher la surface.
+ */
+export const MARGE_ASTRE = 1.1
+
+export interface Obstacle {
+  nom: NomCorps
+  centre: Point2
+  /** Rayon de sécurité (UA) : le rayon de l'astre multiplié par la marge. */
+  rayon: number
+}
+
+/** Astres à contourner, à l'instant t, pour une fusée en position p qui vise le point `vise`. */
+export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number): Obstacle[] {
+  const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
+  const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
+  if (systeme) noms.push(...corpsDuSysteme(systeme).filter((n) => !estPlanete(n)))
+  const liste: Obstacle[] = []
+  for (const nom of noms) {
+    if (dest.type === 'astre' && nom === dest.astre) continue
+    const r = rayonCorps(nom)
+    if (!r) continue
+    const centre = nom === 'Soleil' ? { x: 0, y: 0 } : positionAstre(nom, t)
+    const rayon = enUA(r) * MARGE_ASTRE
+    // Un point libre choisi à l'intérieur d'un astre : on ne peut que s'en approcher.
+    if (distance(vise, centre) < rayon) continue
+    liste.push({ nom, centre, rayon })
+  }
+  return liste
+}
+
+/**
+ * Cap à suivre pour aller vers `vise` sans traverser d'astre : tout droit si la route est libre ; sinon, la
+ * tangente à l'astre gênant, du côté le plus proche de la route directe. Dans la marge d'un astre, la fusée ne
+ * s'en rapproche pas : elle file le long de lui.
+ */
+export function capDeContournement(p: Point2, vise: Point2, liste: Obstacle[]): number {
+  let cap = direction(p, vise)
+  const portee = distance(p, vise)
+  for (let essai = 0; essai < 3; essai++) {
+    let change = false
+    for (const o of liste) {
+      const d = distance(p, o.centre)
+      if (d < 1e-12 || d - o.rayon > portee) continue
+      const versCentre = direction(p, o.centre)
+      const ecart = ecartAngle(versCentre, cap)
+      if (d <= o.rayon) {
+        if (Math.abs(ecart) < 90 - 1e-9) { cap = (versCentre + (ecart >= 0 ? 90 : -90) + 360) % 360; change = true }
+        continue
+      }
+      const demiAngle = Math.asin(o.rayon / d) / RAD
+      if (Math.abs(ecart) >= demiAngle - 1e-9) continue
+      // La route coupe l'astre ; si la cible est avant lui, rien à faire.
+      const lateral = d * Math.sin(ecart * RAD)
+      const entree = d * Math.cos(ecart * RAD) - Math.sqrt(Math.max(0, o.rayon ** 2 - lateral ** 2))
+      if (entree > portee) continue
+      cap = (versCentre + (ecart >= 0 ? demiAngle : -demiAngle) + 360) % 360
+      change = true
+    }
+    if (!change) break
+  }
+  return cap
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Avance
 
 export interface ResultatPas {
@@ -378,12 +452,46 @@ export interface ResultatPas {
   arrivee: Destination | null
 }
 
+/** Hauteur au-dessus du plan de l'écliptique (UA) d'une destination. */
+function hauteurDestination(d: Destination, t: number, actuelle: number): number {
+  if (d.type === 'point') return actuelle
+  if (d.type === 'visiteur') return positionVisiteur(t).z
+  return positionCorps(d.astre, t).z
+}
+
+/** Plus grand nombre de sous-pas d'un pas (rattrapage hors ligne près d'un astre). */
+const SOUS_PAS_MAX = 200
+
 /**
  * Fait avancer la fusée pendant dt secondes, jusqu'à l'instant t (ms UTC) : la fusée est entraînée par son
- * repère (la planète du système, ou rien pour le Soleil), tourne vers le point de rencontre (4°/s au plus),
- * puis avance tout droit selon son cap. Si elle attend sa fenêtre de tir, elle reste en orbite.
+ * repère (la planète du système, ou rien pour le Soleil), tourne vers le point de rencontre (4°/s au plus) en
+ * contournant les astres, puis avance tout droit selon son cap. Si elle attend sa fenêtre de tir, elle reste en
+ * orbite. Un long pas qui passe près d'un astre est découpé, pour ne jamais le traverser.
  */
 export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
+  const dest = fusee.destination
+  if (!dest || fusee.orbite || dt <= 0) return avancerUnPas(fusee, t, dt, vitesseKmS)
+  const longueur = (vitesseKmS * dt) / UA_KM
+  const proches = obstacles(fusee.position, dest, positionDestination(dest, t), t)
+    .filter((o) => distance(fusee.position, o.centre) - o.rayon < longueur * 1.5)
+  if (!proches.length) return avancerUnPas(fusee, t, dt, vitesseKmS)
+  const plusPetit = Math.min(...proches.map((o) => o.rayon))
+  const n = Math.min(SOUS_PAS_MAX, Math.max(1, Math.ceil(longueur / (0.2 * plusPetit))))
+  if (n === 1) return avancerUnPas(fusee, t, dt, vitesseKmS)
+  let r: ResultatPas = { fusee, arrivee: null }
+  const debut = t - dt * 1000
+  for (let i = 1; i <= n; i++) {
+    r = avancerUnPas(r.fusee, debut + (i * dt * 1000) / n, dt / n, vitesseKmS)
+    if (r.arrivee || !r.fusee.destination) {
+      // Arrivée (ou approche abandonnée) en cours de pas : le reste du pas se passe en orbite ou à l'arrêt.
+      if (i < n) r = { ...avancerUnPas(r.fusee, t, ((n - i) * dt) / n, vitesseKmS), arrivee: r.arrivee }
+      break
+    }
+  }
+  return r
+}
+
+function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
   const dest = fusee.destination
   if (!dest) {
     // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
@@ -420,30 +528,50 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
   const repere = repereDuTrajet(fusee, dest, t - dt * 1000)
   const c = centre(repere, t)
   const cAvant = centre(repere, t - dt * 1000)
-  const entrainee = { x: fusee.position.x + (c.x - cAvant.x), y: fusee.position.y + (c.y - cAvant.y) }
+  let entrainee = { x: fusee.position.x + (c.x - cAvant.x), y: fusee.position.y + (c.y - cAvant.y) }
   const distanceParcourue = fusee.distanceParcourue + vitesseKmS * dt
   const pas = (vitesseKmS * dt) / UA_KM
+  // Au départ d'une orbite, la fusée part de son orbite (hors de l'astre), à la hauteur de l'astre quitté.
+  const quitte = fusee.orbite
+  let z = quitte ? positionCorps(quitte, t).z : (fusee.z ?? 0)
 
   const cible = positionDestination(dest, t)
   const arrive = distance(entrainee, cible) <= Math.max(pas, seuilArrivee(dest))
   // À l'arrivée, la fusée finit de tourner vers la cible elle-même ; sinon, vers le point de rencontre.
   const rencontre = arrive ? null : calculerRencontre(entrainee, dest, repere, t, vitesseKmS)
   const vise = rencontre ? rencontre.point : cible
-  const ecart = ecartAngle(fusee.cap, direction(entrainee, vise))
-  const rotation = Math.max(-TAUX_VIRAGE * dt, Math.min(TAUX_VIRAGE * dt, ecart))
+  if (quitte && !arrive) {
+    const r = rayonCorps(quitte)
+    const o = positionAstre(quitte, t)
+    const marge = r ? enUA(r) * MARGE_ASTRE * 1.001 : 0
+    if (distance(entrainee, o) < marge) {
+      const a = direction(o, vise) * RAD
+      entrainee = { x: o.x + Math.cos(a) * marge, y: o.y + Math.sin(a) * marge }
+    }
+  }
+  const liste = arrive ? [] : obstacles(entrainee, dest, vise, t)
+  const voulu = arrive ? direction(entrainee, vise) : capDeContournement(entrainee, vise, liste)
+  const ecart = ecartAngle(fusee.cap, voulu)
+  // Au départ d'une orbite, ou dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement).
+  const degagement = quitte !== null || liste.some((o) => distance(entrainee, o.centre) <= o.rayon)
+  const rotation = degagement ? ecart : Math.max(-TAUX_VIRAGE * dt, Math.min(TAUX_VIRAGE * dt, ecart))
   const cap = (fusee.cap + rotation + 360) % 360
-  const virage = dt > 0 ? rotation / dt : 0
+  const virage = dt > 0 && !degagement ? rotation / dt : 0
   if (arrive) {
     const orbite = dest.type === 'point' ? null : dest.astre
     const presDuVisiteur = dest.type === 'visiteur'
     return {
-      fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur },
+      fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur,
+        z: hauteurDestination(dest, t, z) },
       arrivee: dest,
     }
   }
   const position = { x: entrainee.x + Math.cos(cap * RAD) * pas, y: entrainee.y + Math.sin(cap * RAD) * pas }
+  // La hauteur rejoint peu à peu celle de la destination, pour y arriver en même temps.
+  const reste = distance(position, cible)
+  z += (hauteurDestination(dest, t, z) - z) * Math.min(1, pas / Math.max(reste, pas))
   return {
-    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false },
+    fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false, z },
     arrivee: null,
   }
 }
