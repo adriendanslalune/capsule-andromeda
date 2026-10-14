@@ -10,6 +10,12 @@ export const FACTEUR_LEVIER_A = 0.2
 /** Multiplicateur de vitesse quand au moins un module est en avarie. */
 export const FACTEUR_AVARIE = 0.45
 
+/**
+ * Durée (s) pour passer de l'arrêt à la vitesse de croisière, ou de la croisière à l'arrêt : la vitesse change
+ * linéairement (décision d'Adrien du 14/10/2026).
+ */
+export const DUREE_ACCELERATION = 20
+
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4
 

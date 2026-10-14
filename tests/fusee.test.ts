@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { UA_KM } from '../src/astro/temps'
 import {
   annulerDestination,
+  basculerMoteur,
+  rampeVitesse,
   avancerFusee,
   choisirDestination,
   choisirDestinationAvecFenetre,
@@ -381,7 +383,8 @@ describe('compteur de route', () => {
   it('tourne à la vitesse de la fusée tant qu’une destination est choisie', () => {
     const f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Neptune' })
     const r = avancerFusee(f, T0 + 100_000, 100, 17.4)
-    expect(r.fusee.distanceParcourue).toBeCloseTo(1740, 10)
+    // Au départ de l'orbite, 20 s d'accélération linéaire (10 s « à pleine vitesse »), puis 80 s de croisière.
+    expect(r.fusee.distanceParcourue).toBeCloseTo(17.4 * 90, 8)
   })
 
   it('annuler la destination coupe le moteur : la fusée reste sur place', () => {
@@ -439,5 +442,47 @@ describe('identique au prototype', () => {
     }
     expect(f.destination).toBeNull()
     expect(distance(f.position, { x: 1.2, y: -0.4 })).toBe(0)
+  })
+})
+
+describe('moteur : accélération en 20 s, bouton MOTEUR', () => {
+  const croisiere = 30
+  it('au départ, la vitesse monte linéairement jusqu’à la croisière en 20 s', () => {
+    let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Mars' })
+    const vitesses: number[] = []
+    for (let s = 1; s <= 25; s++) {
+      f = avancerFusee(f, T0 + s * 1000, 1, croisiere).fusee
+      vitesses.push(f.vitesseCourante!)
+    }
+    expect(vitesses[0]).toBeCloseTo(1.5, 8)
+    expect(vitesses[9]).toBeCloseTo(15, 8)
+    expect(vitesses[19]).toBeCloseTo(30, 8)
+    expect(vitesses[24]).toBe(30)
+  })
+
+  it('moteur coupé : la fusée ralentit en 20 s, s’arrête, garde sa destination ; rallumé, elle repart', () => {
+    let f: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 3, y: 0 }, cap: 0 }
+    f = choisirDestination(f, { type: 'point', x: 4, y: 0 })
+    f = avancerFusee(f, T0 + 1000, 1, croisiere).fusee
+    expect(f.vitesseCourante).toBe(croisiere)
+    f = basculerMoteur(f)
+    let t = T0 + 1000
+    for (let s = 1; s <= 10; s++) f = avancerFusee(f, (t += 1000), 1, croisiere).fusee
+    expect(f.vitesseCourante).toBeCloseTo(15, 8)
+    for (let s = 1; s <= 10; s++) f = avancerFusee(f, (t += 1000), 1, croisiere).fusee
+    expect(f.vitesseCourante).toBe(0)
+    const ici = { ...f.position }
+    f = avancerFusee(f, (t += 3_600_000), 3600, croisiere).fusee
+    expect(f.position).toEqual(ici)
+    expect(f.destination).toEqual({ type: 'point', x: 4, y: 0 })
+    f = basculerMoteur(f)
+    f = avancerFusee(f, (t += 5000), 5, croisiere).fusee
+    expect(f.vitesseCourante).toBeCloseTo(7.5, 8)
+  })
+
+  it('un long pas (absence) intègre la rampe : 20 s de montée puis la croisière', () => {
+    const r = rampeVitesse(0, 30, 30, 600)
+    expect(r.fin).toBe(30)
+    expect(r.moyenne * 600).toBeCloseTo(30 * 590, 6)
   })
 })

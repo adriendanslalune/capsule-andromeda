@@ -7,12 +7,14 @@
   import { estInstalle } from '../../moteur/economie'
   import {
     avancementTrajet,
+    basculerMoteur,
     direction,
     distanceRestante,
     enAttenteDeFenetre,
     planDeVol,
     positionDestination,
     tempsRestant,
+    vitesseDuMoment,
     type Destination,
   } from '../../moteur/fusee'
   import { modulesEnPanne } from '../../moteur/modules'
@@ -34,7 +36,18 @@
   const enPanne = $derived(modulesEnPanne(etat.modules))
   const croisiere = $derived(vitesseActuelle(etat))
   const attente = $derived(enAttenteDeFenetre(fusee))
-  const vitesse = $derived(fusee.destination && !attente ? croisiere : 0)
+  /** Vitesse du moment : elle suit la rampe d'accélération (20 s), et tombe à 0 moteur coupé. */
+  const vitesse = $derived(vitesseDuMoment(fusee, croisiere))
+  const coupe = $derived(!!fusee.moteurCoupe)
+  /** État du moteur, pour la plaque à côté du bouton. */
+  const regime = $derived(
+    coupe ? (vitesse > 0 ? 'RALENTIT' : 'À L’ARRÊT')
+      : !fusee.destination || attente ? 'EN ATTENTE'
+      : vitesse < croisiere - 0.01 ? 'ACCÉLÈRE' : vitesse > croisiere + 0.01 ? 'RALENTIT' : 'EN POUSSÉE',
+  )
+  function basculer() {
+    jeu.remplacer({ ...etat, fusee: basculerMoteur(fusee) }, [coupe ? 'MOTEUR RALLUMÉ.' : 'MOTEUR COUPÉ.'])
+  }
 
   const majuscule = (s: string) => s.replace(/^./, (c) => c.toUpperCase())
   function nomDestination(d: Destination): string {
@@ -44,7 +57,7 @@
   }
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, croisiere) : null)
-  const reste = $derived(fusee.destination ? tempsRestant(fusee, t, croisiere) : null)
+  const reste = $derived(fusee.destination && !coupe ? tempsRestant(fusee, t, croisiere) : null)
   /** Instant d'arrivée prévu (ms), ou null. */
   const arrivee = $derived(reste !== null ? t + reste * 1000 : null)
   /** Direction de la destination (point de rencontre), pour le compas. */
@@ -113,6 +126,15 @@
 
   <!-- Console : instruments, navigation, voyants. -->
   <section class="console">
+    <div class="moteur">
+      <button class="interrupteur-moteur" class:coupe aria-pressed={!coupe} aria-label={coupe ? 'Rallumer le moteur' : 'Couper le moteur'} onclick={basculer}>
+        <span class="position on">ON</span>
+        <span class="levier-moteur"></span>
+        <span class="position off">OFF</span>
+      </button>
+      <span class="etiquette-encre">MOTEUR</span>
+      <span class="regime" class:actif={!coupe && vitesse > 0}>{regime}</span>
+    </div>
     <div class="cadrans">
       <Tachymetre valeur={vitesse} {croisiere} />
       <Compas cap={fusee.cap} {vers} />
@@ -126,7 +148,7 @@
         <div class="sous">En orbite en attendant le meilleur moment pour partir. Arrivée le {dateLocale(plan.arrivee)}.</div>
       {:else if fusee.destination}
         <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{reste !== null ? duree(reste) : '—'}</span></div>
+        <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span><span class="moyen">{coupe ? 'moteur coupé' : reste !== null ? duree(reste) : '—'}</span></div>
         <!-- Frise du trajet : du départ à l'arrivée ; la fusée avance avec la route faite. -->
         {#if avancement !== null && fusee.trajet}
           <div class="frise">
@@ -165,6 +187,8 @@
         {#if enPanne.length}<span class="etiquette-encre cerise clignotant">{enPanne.length} AVARIE{enPanne.length > 1 ? 'S' : ''}</span>{/if}
       </div>
       <div class="grille">
+        <!-- CH-1 et TU-1 forment ensemble la propulsion : un trait fin les relie. -->
+        <span class="lien" aria-hidden="true"><span>PROPULSION</span></span>
         {#each TOUS_LES_MODULES as code}
           {@const e = etatTuile(code)}
           <button
@@ -408,6 +432,66 @@
     background: var(--vis) left top / 8px 8px no-repeat, var(--vis) right top / 8px 8px no-repeat,
       var(--vis) left bottom / 8px 8px no-repeat, var(--vis) right bottom / 8px 8px no-repeat;
   }
+  /* Bouton MOTEUR : interrupteur à bascule, ON à gauche, OFF à droite. */
+  .moteur {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .interrupteur-moteur {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 112px;
+    height: 44px;
+    padding: 0 10px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 22px;
+    background: var(--menthe);
+    box-shadow: var(--ombre-bouton);
+  }
+  .interrupteur-moteur.coupe {
+    background: var(--couleur-papier);
+  }
+  .position {
+    font-family: var(--police-titre);
+    font-size: 13px;
+  }
+  .interrupteur-moteur:not(.coupe) .off,
+  .interrupteur-moteur.coupe .on {
+    opacity: 0.35;
+  }
+  .levier-moteur {
+    position: absolute;
+    top: 4px;
+    left: calc(100% - 40px);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: var(--trait) solid var(--couleur-encre);
+    background: var(--cerise);
+    transition: left 0.15s;
+    z-index: 1;
+  }
+  .interrupteur-moteur.coupe .levier-moteur {
+    left: 4px;
+    background: var(--couleur-papier-fonce);
+  }
+  .interrupteur-moteur:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--couleur-encre);
+  }
+  .regime {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--couleur-texte-discret);
+  }
+  .regime.actif {
+    color: var(--sarcelle);
+  }
   .cadrans {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -490,10 +574,35 @@
     animation: clignote 0.8s steps(1) infinite;
   }
   .grille {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 7px 4px;
-    margin-top: 8px;
+    margin-top: 18px;
+  }
+  /* Crochet au-dessus des voyants CH-1 et TU-1 (les deux premières colonnes). */
+  .lien {
+    position: absolute;
+    top: -9px;
+    left: calc((100% - 20px) / 12);
+    width: calc((100% - 20px) / 6 + 4px);
+    height: 12px;
+    border: 1.5px solid var(--couleur-encre);
+    border-bottom: 0;
+    border-radius: 4px 4px 0 0;
+    pointer-events: none;
+  }
+  .lien span {
+    position: absolute;
+    left: 50%;
+    top: -7px;
+    transform: translateX(-50%);
+    padding: 0 3px;
+    background: var(--couleur-papier-fonce);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
   }
   .tuile {
     display: flex;

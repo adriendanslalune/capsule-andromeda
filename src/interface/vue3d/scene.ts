@@ -275,6 +275,7 @@ export class Vue3D {
     // Fusée au centre, orientée selon son cap ; flamme quand le moteur pousse.
     this.fusee.rotation.y = (etat.fusee.cap * Math.PI) / 180
     const pousse = etat.fusee.destination !== null && !enAttenteDeFenetre(etat.fusee) && etat.modules.propulsion.levierAHaut
+      && !etat.fusee.moteurCoupe && (etat.fusee.vitesseCourante ?? 1) > 0
     const flamme = this.fusee.getObjectByName('flamme')!
     flamme.visible = pousse
     flamme.scale.set(0.85 + Math.sin(horloge / 60) * 0.15 + Math.sin(horloge / 23) * 0.05, 1, 1)

@@ -20,6 +20,7 @@ import {
   FACTEUR_AMELIORATION,
   FACTEUR_AVARIE,
   FACTEUR_LEVIER_A,
+  DUREE_ACCELERATION,
   SEUIL_ARRIVEE,
   SEUIL_ARRIVEE_LUNE,
   SEUIL_ARRIVEE_POINT_KM,
@@ -65,6 +66,13 @@ export interface EtatFusee {
   z?: number
   /** Trajet en cours (pour l'affichage) : d'où et quand la fusée est partie ; absent hors trajet. */
   trajet?: Trajet
+  /** Moteur coupé par le joueur (bouton MOTEUR) : la fusée ralentit jusqu'à l'arrêt, sa destination est gardée. */
+  moteurCoupe?: boolean
+  /**
+   * Vitesse du moment (km/s) : elle monte vers la vitesse de croisière, ou descend vers 0, linéairement, en
+   * 20 s depuis l'arrêt ou depuis la croisière. Absente des anciennes sauvegardes (la fusée était à sa croisière).
+   */
+  vitesseCourante?: number
 }
 
 export interface Trajet {
@@ -111,6 +119,32 @@ export function vitesse(f: FacteursVitesse): number {
 /** Vitesse affichée (km/s) : nulle quand la fusée n'a pas de destination ou attend sa fenêtre de tir. */
 export function vitesseAffichee(fusee: EtatFusee, f: FacteursVitesse): number {
   return fusee.destination && !enAttenteDeFenetre(fusee) ? vitesse(f) : 0
+}
+
+/** Allume ou coupe le moteur. */
+export function basculerMoteur(fusee: EtatFusee): EtatFusee {
+  return { ...fusee, moteurCoupe: !fusee.moteurCoupe }
+}
+
+/** Vitesse du moment (km/s) : 0 sans destination, en orbite ou en attente ; sinon celle de la rampe. */
+export function vitesseDuMoment(fusee: EtatFusee, croisiere: number): number {
+  if (!fusee.destination || fusee.orbite) return 0
+  return fusee.vitesseCourante ?? croisiere
+}
+
+/**
+ * Fait évoluer la vitesse pendant dt secondes, de v0 vers la cible, linéairement : il faut 20 s pour aller de
+ * l'arrêt à la croisière (ou l'inverse). Renvoie la vitesse à la fin du pas et la vitesse moyenne pendant le pas.
+ */
+export function rampeVitesse(v0: number, cible: number, croisiere: number, dt: number): { fin: number; moyenne: number } {
+  const taux = Math.max(croisiere, v0) / DUREE_ACCELERATION
+  if (taux <= 0 || dt <= 0 || v0 === cible) return { fin: cible, moyenne: dt > 0 ? (v0 + cible) / 2 : cible }
+  const duree = Math.abs(cible - v0) / taux
+  if (duree >= dt) {
+    const fin = v0 + Math.sign(cible - v0) * taux * dt
+    return { fin, moyenne: (v0 + fin) / 2 }
+  }
+  return { fin: cible, moyenne: (((v0 + cible) / 2) * duree + cible * (dt - duree)) / dt }
 }
 
 /** Vrai si la fusée attend en orbite sa fenêtre de tir. */
@@ -493,28 +527,46 @@ const SOUS_PAS_MAX = 200
  */
 export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
   const dest = fusee.destination
-  if (!dest || fusee.orbite || dt <= 0) return avancerUnPas(fusee, t, dt, vitesseKmS)
-  const longueur = (vitesseKmS * dt) / UA_KM
+  if (!dest || fusee.orbite || dt <= 0) return avancerAvecRampe(fusee, t, dt, vitesseKmS)
+  const longueur = (Math.max(vitesseKmS, vitesseDuMoment(fusee, vitesseKmS)) * dt) / UA_KM
   const proches = obstacles(fusee.position, dest, positionDestination(dest, t), t)
     .filter((o) => distance(fusee.position, o.centre) - o.rayon < longueur * 1.5)
-  if (!proches.length) return avancerUnPas(fusee, t, dt, vitesseKmS)
+  if (!proches.length) return avancerAvecRampe(fusee, t, dt, vitesseKmS)
   const plusPetit = Math.min(...proches.map((o) => o.rayon))
   const n = Math.min(SOUS_PAS_MAX, Math.max(1, Math.ceil(longueur / (0.2 * plusPetit))))
-  if (n === 1) return avancerUnPas(fusee, t, dt, vitesseKmS)
+  if (n === 1) return avancerAvecRampe(fusee, t, dt, vitesseKmS)
   let r: ResultatPas = { fusee, arrivee: null }
   const debut = t - dt * 1000
   for (let i = 1; i <= n; i++) {
-    r = avancerUnPas(r.fusee, debut + (i * dt * 1000) / n, dt / n, vitesseKmS)
+    r = avancerAvecRampe(r.fusee, debut + (i * dt * 1000) / n, dt / n, vitesseKmS)
     if (r.arrivee || !r.fusee.destination) {
       // Arrivée (ou approche abandonnée) en cours de pas : le reste du pas se passe en orbite ou à l'arrêt.
-      if (i < n) r = { ...avancerUnPas(r.fusee, t, ((n - i) * dt) / n, vitesseKmS), arrivee: r.arrivee }
+      if (i < n) r = { ...avancerAvecRampe(r.fusee, t, ((n - i) * dt) / n, vitesseKmS), arrivee: r.arrivee }
       break
     }
   }
   return r
 }
 
-function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number): ResultatPas {
+/**
+ * Un pas, avec la rampe de vitesse : la vitesse du moment va vers la croisière (moteur allumé, en route) ou vers 0
+ * (moteur coupé). En orbite et sans destination, elle est nulle.
+ */
+function avancerAvecRampe(fusee: EtatFusee, t: number, dt: number, croisiere: number): ResultatPas {
+  const v0 = vitesseDuMoment(fusee, croisiere)
+  const cible = fusee.destination && !fusee.moteurCoupe ? croisiere : 0
+  const rampe = rampeVitesse(v0, cible, croisiere, dt)
+  const r = avancerUnPas(fusee, t, dt, croisiere, rampe.moyenne)
+  const enRoute = r.fusee.destination !== null && r.fusee.orbite === null
+  // Le bouton MOTEUR garde sa position (le pas reconstruit l'état de la fusée).
+  return { ...r, fusee: { ...r.fusee, moteurCoupe: fusee.moteurCoupe, vitesseCourante: enRoute ? rampe.fin : 0 } }
+}
+
+/**
+ * Un pas : vitesseKmS est la vitesse de croisière (pour viser et pour la fenêtre de tir), vitesseMoyenne celle
+ * à laquelle la fusée avance pendant ce pas (rampe d'accélération ou de freinage).
+ */
+function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number, vitesseMoyenne = vitesseKmS): ResultatPas {
   const dest = fusee.destination
   if (!dest) {
     // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
@@ -552,8 +604,8 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const c = centre(repere, t)
   const cAvant = centre(repere, t - dt * 1000)
   let entrainee = { x: fusee.position.x + (c.x - cAvant.x), y: fusee.position.y + (c.y - cAvant.y) }
-  const distanceParcourue = fusee.distanceParcourue + vitesseKmS * dt
-  const pas = (vitesseKmS * dt) / UA_KM
+  const distanceParcourue = fusee.distanceParcourue + vitesseMoyenne * dt
+  const pas = (vitesseMoyenne * dt) / UA_KM
   // Au départ d'une orbite, la fusée part de son orbite (hors de l'astre), à la hauteur de l'astre quitté.
   const quitte = fusee.orbite
   let z = quitte ? positionCorps(quitte, t).z : (fusee.z ?? 0)
