@@ -156,8 +156,30 @@ export function verifierTropheesPaliers(etat: EtatPartie): EtatPartie {
 
   const changeStats = stats.distanceMaxSoleil !== s.distanceMaxSoleil || stats.distanceMinSoleil !== s.distanceMinSoleil
   const changeTrophees = ont.size !== etat.trophees.length || etat.trophees.some((id) => ANCIENS[id])
-  if (!changeStats && !changeTrophees) return etat
+  const quand = etat.tropheesQuand
+  const sansDate = !quand || [...ont].some((id) => quand[id] === undefined)
+  if (!changeStats && !changeTrophees && !sansDate) return etat
   // Ordre d'obtention conservé : les anciens d'abord, les nouveaux à la suite.
   const ordre = [...avant, ...[...ont].filter((id) => !avant.has(id))]
-  return { ...etat, stats, trophees: changeTrophees ? ordre : etat.trophees }
+  // Date d'obtention de chaque trophée (pour les classements de la semaine et du mois). Ceux des sauvegardes
+  // d'avant les dates comptent comme obtenus à la mise en service de la fusée.
+  const dates: Record<string, number> = { ...(quand ?? Object.fromEntries(etat.trophees.map((id) => [ANCIENS[id] ?? id, etat.creeLe]))) }
+  for (const id of ordre) if (dates[id] === undefined) dates[id] = etat.vu
+  return { ...etat, stats, trophees: changeTrophees ? ordre : etat.trophees, tropheesQuand: dates }
+}
+
+/** Trophées obtenus depuis l'instant debut. */
+export function tropheesDepuis(etat: EtatPartie, debut: number): number {
+  const q = etat.tropheesQuand ?? {}
+  return etat.trophees.filter((id) => (q[id] ?? etat.creeLe) >= debut).length
+}
+
+export type PeriodeClassement = 'semaine' | 'mois' | 'general'
+
+/** Début de la période de classement contenant t : lundi 00:00 UTC, 1er du mois 00:00 UTC, ou le début des temps. */
+export function debutPeriode(periode: PeriodeClassement, t: number): number {
+  const d = new Date(t)
+  if (periode === 'mois') return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)
+  if (periode === 'semaine') return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  return -Infinity
 }

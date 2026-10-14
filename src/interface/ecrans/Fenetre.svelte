@@ -236,7 +236,7 @@
 
     <!-- 3. Quel est mon but ? -->
     <div class="buts">
-      <button class="carte mission" onclick={() => (jeu.page = 'contrats')}>
+      <button class="carte mission" onclick={() => jeu.ouvrirSocial('contrats')}>
         <small>MISSION</small>
         {#if mission}
           <b>{majuscule(nomAstre(mission.destination))}</b>
@@ -257,7 +257,7 @@
     </div>
 
     <!-- 4. Qui est autour ? -->
-    <button class="carte liaison" onclick={() => (jeu.volet = 'liaison')}>
+    <button class="carte liaison" onclick={() => jeu.ouvrirSocial('classement')}>
       <span class="entete">
         <small><span class="antenne" aria-hidden="true"></span>LIAISON</small>
         <span>{reseau.total} en ligne</span>

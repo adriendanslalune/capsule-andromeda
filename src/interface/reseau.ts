@@ -6,6 +6,7 @@ import type { Vecteur3 } from '../astro/vecteur'
 import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
 import { TELEGRAMMES } from '../donnees/reglages'
+import { debutPeriode, tropheesDepuis, type PeriodeClassement } from '../moteur/trophees'
 import { arriveesDesBots, botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots, tropheesDuBot, trouvaillesDesBots, type Annonce } from '../moteur/flotte'
 import { arriveeEn, estDestinataire, estLu, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
 import { systemeDeLaFusee } from '../moteur/fusee'
@@ -94,11 +95,13 @@ export interface Classe {
   moi: boolean
 }
 
-/** Classement des commissionnaires, au nombre de trophées. */
-export function classement(etat: EtatPartie, t: number): Classe[] {
+/** Classement des commissionnaires : trophées obtenus dans la semaine, le mois, ou en tout. */
+export function classement(etat: EtatPartie, t: number, periode: PeriodeClassement = 'general'): Classe[] {
+  const debut = debutPeriode(periode, t)
+  const duBot = (b: (typeof FLOTTE)[number]) => tropheesDuBot(b, t) - (Number.isFinite(debut) ? tropheesDuBot(b, debut) : 0)
   const l = [
-    { nom: etat.nom || etat.serie, couleur: null, trophees: etat.trophees.length, moi: true },
-    ...(BOTS_ACTIFS ? FLOTTE.map((b) => ({ nom: b.nom, couleur: b.couleur, trophees: tropheesDuBot(b, t), moi: false })) : []),
+    { nom: etat.nom || etat.serie, couleur: null, trophees: tropheesDepuis(etat, debut), moi: true },
+    ...(BOTS_ACTIFS ? FLOTTE.map((b) => ({ nom: b.nom, couleur: b.couleur, trophees: duBot(b), moi: false })) : []),
   ].sort((a, b) => b.trophees - a.trophees || Number(b.moi) - Number(a.moi))
   return l.map((c, i) => ({ ...c, rang: i + 1 }))
 }

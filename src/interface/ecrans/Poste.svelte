@@ -11,9 +11,10 @@
   import { basculerSon, sonActif } from '../sons'
   import Carte from '../volets/Carte.svelte'
   import Office from '../volets/Office.svelte'
+  import Social from '../social/Social.svelte'
   import Fenetre from './Fenetre.svelte'
 
-  const NOMS: Record<PagePoste, string> = { carte: 'NAVIGATION', contrats: 'CONTRATS', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
+  const NOMS: Record<PagePoste, string> = { carte: 'NAVIGATION', social: 'SOCIAL', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
 
   let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
@@ -64,7 +65,7 @@
     </div>
     <!-- Voyant des télégrammes (d'un joueur ou de l'Office) : allumé quand il en est arrivé ; le toucher ouvre le
          guichet des télégrammes. -->
-    <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => (jeu.volet = 'telegrammes')}
+    <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => jeu.ouvrirSocial('communication')}
       aria-label={nouveaux ? `${nouveaux} télégramme${nouveaux > 1 ? 's' : ''} reçu${nouveaux > 1 ? 's' : ''}` : 'Télégrammes'}>
       <span class="utc"><span class="symbole"><Icone nom="telegramme" /></span>TÉLÉGR.</span>
       <span class="bord"><span class="lampe"></span>{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN'}</span>
@@ -100,6 +101,7 @@
       <div class="contenu" in:fly={{ x: sens * 120, duration: 180 }}>
         {#if jeu.page === 'cockpit'}<Fenetre />
         {:else if jeu.page === 'carte'}<Carte />
+        {:else if jeu.page === 'social'}<Social />
         {:else}<Office onglet={jeu.page} />
         {/if}
       </div>

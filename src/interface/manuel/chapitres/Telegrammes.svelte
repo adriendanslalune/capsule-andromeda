@@ -13,18 +13,18 @@
 <Page {numero} chapitre="XVIII." titre="TÉLÉGRAMMES">
   <p>
     Le voyant TÉLÉGR., au centre de la barre du haut, s’allume quand un télégramme est arrivé (d’un commissionnaire ou
-    de l’Office). Le toucher ouvre le guichet : télégrammes reçus et envoyés, et formulaire de rédaction. Les messages
+    de l’Office). Le toucher ouvre SOCIAL, COMMUNICATION : l’écran des transmissions (le plus récent en haut) et le pupitre d’émission. Les messages
     de la fusée elle-même s’impriment au journal de bord, pas ici.
   </p>
   <h3>Rédaction</h3>
   <ol>
-    <li>Choisir les destinataires : MON SYSTÈME (ceux qui se trouvent dans le même système planétaire), UN JOUEUR (une fusée désignée par son nom), ou TOUT LE SYSTÈME solaire.</li>
+    <li>Choisir les destinataires : SYSTÈME (ceux qui se trouvent dans le même système planétaire), UN JOUEUR (une fusée désignée par son nom), ou TOUS (tout le système solaire).</li>
     <li>Écrire le texte ({T.longueur} caractères au plus), ou toucher une phrase toute faite, comprise de tous.</li>
-    <li>Presser ENVOYER.</li>
+    <li>Presser ÉMETTRE.</li>
   </ol>
   <p>
     <b>{T.parJour} envois gratuits par 24 heures</b> (glissantes : chaque timbre utilisé se libère
-    24 heures après son envoi). Hors de tout système planétaire, MON SYSTÈME n’est pas disponible.
+    24 heures après son envoi). Hors de tout système planétaire, SYSTÈME n’est pas disponible.
   </p>
   <h3>Délai de transmission</h3>
   <p>

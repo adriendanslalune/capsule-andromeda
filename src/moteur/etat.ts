@@ -94,6 +94,8 @@ export interface EtatPartie {
   journal: EntreeJournal[]
   /** Trophées obtenus (identifiants), dans l'ordre d'obtention. */
   trophees: string[]
+  /** Instant d'obtention de chaque trophée ; absent des anciennes sauvegardes. */
+  tropheesQuand?: Record<string, number>
   stats: Statistiques
   /** Télégrammes envoyés et lecture des reçus ; absent des anciennes sauvegardes. */
   telegrammes?: EtatTelegrammes

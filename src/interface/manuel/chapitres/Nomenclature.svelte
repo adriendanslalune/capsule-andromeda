@@ -5,20 +5,20 @@
 
   let { numero }: { numero: number } = $props()
   const organes = [
-    ['Voyant TÉLÉGR.', 'Allumé : télégramme arrivé. Le toucher ouvre les télégrammes (XVIII).'],
+    ['Voyant TÉLÉGR.', 'Allumé : télégramme arrivé. Le toucher ouvre SOCIAL, COMMUNICATION (XVIII).'],
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
     ['Interrupteur de son', 'Coupe ou rétablit les alarmes et les sons du bord.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Onglets', 'NAVIGATION, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
+    ['Onglets', 'NAVIGATION, SOCIAL (classement, contrats, communication), COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
     ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
     ['Écran de navigation', 'Destination, temps restant, jour et heure d’arrivée (heure du téléphone), frise du trajet.'],
     ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher ouvre les instruments en grand et les relevés (route, Soleil, radio).'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination ; il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
     ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
-    ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre les contrats.'],
+    ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre SOCIAL, CONTRATS.'],
     ['Visiteur', 'Radar de la chasse (chapitre XVII), jours de saison. Le toucher ouvre la page NAVIGATION.'],
-    ['Liaison', 'Commissionnaires en ligne, classement, dernière annonce. Le toucher ouvre la liaison (télégrammes, classement, annonces) ; les autres fusées sont des points de couleur sur la carte.'],
+    ['Liaison', 'Commissionnaires en ligne, classement, dernière annonce. Le toucher ouvre SOCIAL, CLASSEMENT (semaine, mois, général) ; les autres fusées sont des points de couleur sur la carte.'],
     ['Journal de bord', 'Dernier message du bord. Le toucher déroule tout le journal.'],
   ]
 </script>

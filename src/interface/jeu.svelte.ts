@@ -21,9 +21,9 @@ const TELEX_GARDES = 100
 const SAUVEGARDE_TOUTES_LES = 10_000
 
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
-export type Volet = 'manuel' | 'portefeuille' | 'telegrammes' | 'journal' | 'instruments' | 'liaison' | null
+export type Volet = 'manuel' | 'portefeuille' | 'journal' | 'instruments' | null
 /** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
-export const PAGES_POSTE = ['carte', 'contrats', 'cockpit', 'atelier', 'trophees'] as const
+export const PAGES_POSTE = ['carte', 'social', 'cockpit', 'atelier', 'trophees'] as const
 export type PagePoste = (typeof PAGES_POSTE)[number]
 
 /** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */
@@ -58,6 +58,13 @@ class Jeu {
   pageManuel = $state(0)
   /** Page affichée dans le poste de pilotage. */
   page = $state<PagePoste>('cockpit')
+  /** Sous-onglet de la page SOCIAL (COMMUNICATION par défaut). */
+  ongletSocial = $state<'classement' | 'contrats' | 'communication'>('communication')
+  /** Ouvre la page SOCIAL sur un sous-onglet. */
+  ouvrirSocial(onglet: 'classement' | 'contrats' | 'communication') {
+    this.ongletSocial = onglet
+    this.page = 'social'
+  }
   /** Filtre solaire du hublot et de la vue extérieure (lunettes de soleil). */
   filtreSolaire = $state(false)
   /** Vrai pendant l'impression du manuel. */

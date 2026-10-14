@@ -70,3 +70,31 @@ describe('trophées', () => {
     expect(e.trophees).toEqual(expect.arrayContaining(['interieur', 'icare']))
   })
 })
+
+describe('dates des trophées et classements par période', () => {
+  it('chaque trophée garde sa date d’obtention ; on compte ceux de la semaine et du mois', async () => {
+    const { tropheesDepuis, debutPeriode } = await import('../src/moteur/trophees')
+    let e = verifierTrophees(neuve())
+    const debut = e.trophees.length
+    expect(Object.keys(e.tropheesQuand ?? {}).length).toBe(debut)
+    // Huit jours plus tard, une arrivée sur Mars.
+    const plusTard = T0 + 8 * 86_400_000
+    e = traiterArrivee({ ...e, vu: plusTard }, { type: 'astre', astre: 'Mars' }, plusTard)
+    expect(e.tropheesQuand!['astre:Mars']).toBe(plusTard)
+    expect(tropheesDepuis(e, debutPeriode('semaine', plusTard))).toBeGreaterThanOrEqual(1)
+    expect(tropheesDepuis(e, debutPeriode('semaine', plusTard))).toBeLessThan(e.trophees.length)
+    expect(tropheesDepuis(e, -Infinity)).toBe(e.trophees.length)
+  })
+
+  it('début des périodes : lundi 00:00 UTC, 1er du mois', async () => {
+    const { debutPeriode } = await import('../src/moteur/trophees')
+    const mercredi = Date.UTC(2026, 9, 14, 15)
+    expect(new Date(debutPeriode('semaine', mercredi)).toISOString()).toBe('2026-10-12T00:00:00.000Z')
+    expect(new Date(debutPeriode('mois', mercredi)).toISOString()).toBe('2026-10-01T00:00:00.000Z')
+  })
+
+  it('les anciennes sauvegardes : leurs trophées datent de la mise en service', () => {
+    const e = verifierTrophees({ ...neuve(), trophees: ['kuiper'], tropheesQuand: undefined })
+    expect(e.tropheesQuand!.kuiper).toBe(e.creeLe)
+  })
+})

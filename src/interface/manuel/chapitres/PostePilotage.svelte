@@ -7,7 +7,7 @@
 
   let { numero }: { numero: number } = $props()
   const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 88 + (i % 6) * 33.5, y: 236 + Math.floor(i / 6) * 22 }))
-  const onglets = ['NAVIG.', 'CONTR.', 'COCKPIT', 'ATEL.', 'TROPH.']
+  const onglets = ['NAVIG.', 'SOCIAL', 'COCKPIT', 'ATEL.', 'TROPH.']
   const encre = '#1d1916'
   const police = 'Courier Prime, monospace'
 </script>

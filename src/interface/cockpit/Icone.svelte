@@ -1,6 +1,6 @@
 <script lang="ts">
   // Petits dessins des boutons du cockpit, au trait d'encre : carte, contrats, atelier, trophées, manuel.
-  let { nom }: { nom: 'carte' | 'contrats' | 'cockpit' | 'atelier' | 'trophees' | 'manuel' | 'telegramme' } = $props()
+  let { nom }: { nom: 'carte' | 'contrats' | 'social' | 'cockpit' | 'atelier' | 'trophees' | 'manuel' | 'telegramme' } = $props()
 </script>
 
 <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
@@ -15,6 +15,11 @@
     <path d="M15 3 V7 H19" />
     <path d="M8 10 H15 M8 13 H15" stroke-width="1.5" />
     <circle cx="14" cy="17.5" r="2.5" />
+  {:else if nom === 'social'}
+    <!-- Antenne qui émet, et deux silhouettes. -->
+    <path d="M12 3 V9 M8.5 5.5 Q12 2 15.5 5.5 M6 3.5 Q12 -2 18 3.5" stroke-width="1.5" />
+    <circle cx="7" cy="14" r="2.6" /><path d="M2.5 21 Q7 16 11.5 21" />
+    <circle cx="17" cy="14" r="2.6" /><path d="M12.5 21 Q17 16 21.5 21" />
   {:else if nom === 'cockpit'}
     <!-- Hublot boulonné et son cadran. -->
     <circle cx="12" cy="12" r="9.5" />

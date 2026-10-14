@@ -316,3 +316,8 @@ avec un contact à moins de 0,01 UA).*
   plus près), en rejoignant peu à peu la hauteur de sa cible, jusqu'à ce que la route se dégage.
 - Garde : la fusée ne descend jamais sous 1,02 rayon d'un astre ; elle passe au-dessus (ou au-dessous).
 - Testé : de la Lune vers l'ISS, Hubble ou Tiangong, à toute heure, jamais à travers la Terre.
+
+## 14. Classements (décision d'Adrien du 14/10/2026)
+- Trois classements aux trophées : de la **semaine** (obtenus depuis lundi 00:00 UTC), du **mois** (depuis le 1er,
+  00:00 UTC) et **général** (tous). Chaque trophée garde sa date d'obtention ; ceux des anciennes sauvegardes datent
+  de la mise en service de la fusée.
