@@ -109,9 +109,12 @@ UA = unité astronomique = 149 597 870,7 km.
   Prime de cascade = somme des primes × (1 + 0,5 × (n − 1)), versée à la fin.
 - **Faute de pilotage** : une avarie provoquée par une fausse manœuvre (surpression ou sous-pression déclenchée
   par le joueur sur CH-1, asphyxie de RE-1 purge ouverte) doit être réparée mais **ne rapporte rien**.
-- **Hors connexion** : à la reprise, simulation par pas de 600 s (avance de la fusée, usure de RE-1, avaries,
-  contact). Plafond : au plus deux avaries accumulées pendant l'absence (à généraliser proprement).
-  Puis un **rapport de vol** résume l'absence.
+- **Retour après une absence** (application fermée ; le jeu lui-même exige une connexion) : simulation par pas de
+  600 s (vol, usure de RE-1, avaries, arrivées, contrats, trophées). Une avarie bloque les suivantes, comme en jeu ;
+  si l'absence dépasse 2 h et qu'une seule panne simple est survenue, une seconde panne simple s'ajoute 60 % du temps
+  (au plus deux avaries pendant l'absence, sans compter l'usure de RE-1). La chasse n'est mise à jour qu'au retour
+  (bulletin et transmission les plus récents, échos revenus). Puis un **rapport de vol** résume l'absence : durée,
+  distance, vitesse, avaries et leur heure, arrivées, contrats, crédits, trophées, messages, modules en panne.
 - Chaque module a sa propre **alarme sonore** (voir prototype, objet `ALARMES`).
 
 ## 4. Repères éparpillés
@@ -238,5 +241,6 @@ avec un contact à moins de 0,01 UA).*
 
 ## 7. Sauvegarde
 
-- Tout l'état de la partie est sérialisable (JSON), avec un horodatage « vu » pour le rattrapage hors ligne
-  et un numéro de version de format.
+- Tout l'état de la partie est sérialisable (JSON), avec un horodatage « vu » pour le rattrapage après une absence
+  et un numéro de version de format (1). Quand la structure change, on augmente le numéro et on écrit une migration.
+  Une sauvegarde abîmée, d'un autre jeu ou d'une version plus récente est refusée avec une explication.
