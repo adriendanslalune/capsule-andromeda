@@ -1,11 +1,13 @@
 <script lang="ts">
-  // Volets qui montent du bas : le manuel et le portefeuille.
+  // Volets qui montent du bas : le manuel, le portefeuille, les télégrammes, le journal de bord.
   import { glisserPourFermer } from '../glisser'
   import { jeu } from '../jeu.svelte'
   import Manuel from '../volets/Manuel.svelte'
+  import Journal from '../volets/Journal.svelte'
   import Portefeuille from '../volets/Portefeuille.svelte'
+  import Telegrammes from '../volets/Telegrammes.svelte'
 
-  const titres = { manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE' } as const
+  const titres = { manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE', telegrammes: 'TÉLÉGRAMMES', journal: 'JOURNAL' } as const
   let volet = $state<HTMLElement>()
 </script>
 
@@ -21,6 +23,8 @@
   </div>
   {#if jeu.volet === 'manuel'}<Manuel />
   {:else if jeu.volet === 'portefeuille'}<Portefeuille />
+  {:else if jeu.volet === 'telegrammes'}<Telegrammes />
+  {:else if jeu.volet === 'journal'}<Journal />
   {/if}
 </section>
 

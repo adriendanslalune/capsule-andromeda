@@ -14,9 +14,11 @@ chose rôde entre les planètes).
 Puis « Prendre les commandes », et une première panne guidée.
 
 ## 2. Écran principal : le poste de pilotage
-- Barre du haut, toujours fixe : C-58, nom de la fusée, crédits (ouvre le portefeuille), n° de saison, son, manuel.
+- Barre du haut, toujours fixe (bandeau bleu) : C-58, nom de la fusée, voyant TÉLÉGR. (s'allume quand un télégramme
+  est arrivé ; ouvre le guichet des télégrammes), crédits (ouvre le portefeuille) et saison, son, manuel.
 - Cinq onglets en intercalaires sous la barre : CARTE, CONTRATS, **COCKPIT** (au milieu, page d'accueil), ATELIER,
-  TROPHÉES. L'onglet de la page affichée ressort. On passe à la page voisine en glissant le doigt à gauche ou à
+  TROPHÉES. COCKPIT est plus grand que les autres. L'onglet de la page affichée ressort ; une pastille rouge sur COCKPIT
+  compte les avaries. On passe à la page voisine en glissant le doigt à gauche ou à
   droite (sauf sur la carte, qui se déplace au doigt). Le geste « retour » du téléphone ramène au cockpit.
 
 ### Page COCKPIT
@@ -28,7 +30,7 @@ Puis « Prendre les commandes », et une première panne guidée.
   Toucher une tuile en avarie ouvre le module.
 - Instruments de bord : route parcourue, distance au Soleil, délai radio jusqu'à la Terre, commissionnaires en ligne.
 - Ligne « chasse » : état du visiteur, dernier indice, jours restants dans la saison.
-- Les derniers messages du téléscripteur, le plus récent en haut.
+- Les derniers messages du téléscripteur, le plus récent en haut ; le toucher déroule le journal entier (100 lignes).
 
 ## 3. Module en plein écran
 - Un seul module à la fois, en grand, commandes à taille de pouce.
@@ -71,3 +73,8 @@ trouvaille à moins de 300 m.
   tient leur place : chacun a ses escales habituelles et sa vitesse, et sa position ne dépend que de l'heure (tous les
   joueurs les voient au même endroit). L'instrument EN LIGNE l'indique (« FLOTTE SIMULÉE »). Quand le serveur
   existera, seul `src/interface/reseau.ts` changera ; `BOTS_ACTIFS` permet de couper les bots.
+
+## 8. Télégrammes
+Volet « TÉLÉGRAMMES » : formulaire (destinataires MON SYSTÈME / UN JOUEUR / TOUT LE SYSTÈME, phrases toutes faites,
+texte libre, timbres du quota), puis le fil des télégrammes reçus et envoyés, le plus récent en haut ; chaque reçu
+porte l'émetteur (fanion à sa couleur), le lieu d'émission et la durée du trajet de la lumière. Règles : regles.md §8.

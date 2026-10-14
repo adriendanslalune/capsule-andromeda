@@ -22,6 +22,7 @@ import Recycleur from './chapitres/Recycleur.svelte'
 import Reperes from './chapitres/Reperes.svelte'
 import Sextant from './chapitres/Sextant.svelte'
 import Sommaire from './chapitres/Sommaire.svelte'
+import Telegrammes from './chapitres/Telegrammes.svelte'
 import Visiteur from './chapitres/Visiteur.svelte'
 import Visiteur2 from './chapitres/Visiteur2.svelte'
 import Visiteur3 from './chapitres/Visiteur3.svelte'
@@ -59,6 +60,7 @@ export const PAGES: PageManuel[] = [
   { composant: Visiteur, chapitre: 'XVII', titre: 'Recherche du visiteur' },
   { composant: Visiteur2, chapitre: 'XVII', titre: 'Recherche du visiteur (suite)', suite: true },
   { composant: Visiteur3, chapitre: 'XVII', titre: 'Chasse : mode d’emploi pas à pas', suite: true },
+  { composant: Telegrammes, chapitre: 'XVIII', titre: 'Télégrammes' },
   { composant: Notes, titre: 'Notes de bord' },
 ]
 

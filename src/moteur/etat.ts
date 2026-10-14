@@ -11,6 +11,7 @@ import type { Hasard } from './hasard'
 import { creerModules, type EtatModules } from './modules'
 import { creerPannes, type EtatPannes } from './pannes'
 import { genererSerie } from './serie'
+import type { EtatTelegrammes } from './telegrammes'
 
 /** Version du format de sauvegarde. À augmenter à chaque changement de structure, avec une migration. */
 export const VERSION_FORMAT = 1
@@ -90,6 +91,8 @@ export interface EtatPartie {
   /** Trophées obtenus (identifiants), dans l'ordre d'obtention. */
   trophees: string[]
   stats: Statistiques
+  /** Télégrammes envoyés et lecture des reçus ; absent des anciennes sauvegardes. */
+  telegrammes?: EtatTelegrammes
 }
 
 /** Crée une nouvelle partie à l'instant t. */

@@ -17,11 +17,11 @@ import { ALARMES, SONS } from './sons'
 const CLE_PARTIE = 'mdv-partie'
 const CLE_TELEX = 'mdv-telex'
 const CLE_TRACES = 'mdv-traces'
-const TELEX_GARDES = 60
+const TELEX_GARDES = 100
 const SAUVEGARDE_TOUTES_LES = 10_000
 
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
-export type Volet = 'manuel' | 'portefeuille' | null
+export type Volet = 'manuel' | 'portefeuille' | 'telegrammes' | 'journal' | null
 /** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
 export const PAGES_POSTE = ['carte', 'contrats', 'cockpit', 'atelier', 'trophees'] as const
 export type PagePoste = (typeof PAGES_POSTE)[number]

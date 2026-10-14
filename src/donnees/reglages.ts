@@ -52,3 +52,17 @@ export const ABSENCE = {
   /** Nombre maximal de messages gardés dans le rapport de vol. */
   messagesGardes: 30,
 } as const
+
+/**
+ * Télégrammes entre commissionnaires (décisions d'Adrien du 14/10/2026) : texte libre ou phrase toute faite,
+ * 3 envois gratuits par 24 heures, adressés à son système, à un joueur, ou à tout le système solaire ; chacun les
+ * reçoit au vrai délai de la lumière depuis le point d'émission.
+ */
+export const TELEGRAMMES = {
+  /** Envois permis sur 24 heures glissantes. */
+  parJour: 3,
+  /** Longueur maximale d'un télégramme (caractères). */
+  longueur: 140,
+  /** Télégrammes reçus gardés à l'écran (jours). */
+  gardesJours: 3,
+} as const

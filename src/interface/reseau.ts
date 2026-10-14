@@ -6,7 +6,9 @@ import { planeteDe } from '../astro/corps'
 import type { Vecteur3 } from '../astro/vecteur'
 import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
-import { botEnLigne, positionBot } from '../moteur/flotte'
+import { TELEGRAMMES } from '../donnees/reglages'
+import { botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots } from '../moteur/flotte'
+import { arriveeEn, estDestinataire, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
 import { systemeDeLaFusee } from '../moteur/fusee'
 
 /** Une autre fusée, telle qu'on la voit sur la carte et par le hublot. */
@@ -50,4 +52,31 @@ export function presence(etat: EtatPartie, t: number): Presence {
     systeme,
     horsReseau: true,
   }
+}
+
+/**
+ * Télégrammes reçus par le joueur et déjà arrivés (vrai délai de la lumière depuis le point d'émission), le plus
+ * récent en premier : ceux de l'Office et, en attendant le serveur, ceux de la flotte et ses réponses.
+ */
+export function telegrammesRecus(etat: EtatPartie, t: number): TelegrammeRecu[] {
+  const depuis = t - TELEGRAMMES.gardesJours * 86_400_000
+  const avance = depuis - 3_600_000 // émis un peu avant, arrivés dans la fenêtre
+  const ici = { ...etat.fusee.position, z: etat.fusee.z ?? 0 }
+  const systeme = systemeDuJoueur(etat, t)
+  const emis = [
+    ...telegrammesOffice(etat, avance, t),
+    ...(BOTS_ACTIFS ? telegrammesDesBots(FLOTTE, avance, t) : []),
+    ...(BOTS_ACTIFS ? reponsesDesBots(FLOTTE, telegrammesDe(etat).envoyes.filter((m) => m.envoye > avance), { serie: etat.serie, nom: etat.nom }) : []),
+  ]
+  return emis
+    .filter((m) => m.serie === 'ONVI' || estDestinataire(m, etat.serie, systeme))
+    .map((m) => ({ ...m, arrivee: arriveeEn(m, ici) }))
+    .filter((m) => m.arrivee <= t && m.arrivee >= depuis)
+    .sort((a, b) => b.arrivee - a.arrivee)
+}
+
+/** Télégrammes arrivés depuis la dernière lecture. */
+export function nonLus(etat: EtatPartie, recus: TelegrammeRecu[]): number {
+  const lu = telegrammesDe(etat).luJusqua
+  return recus.filter((m) => m.arrivee > lu).length
 }

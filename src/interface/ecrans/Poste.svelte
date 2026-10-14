@@ -7,6 +7,7 @@
   import { modulesEnPanne } from '../../moteur/modules'
   import Icone from '../cockpit/Icone.svelte'
   import { jeu, PAGES_POSTE, type PagePoste } from '../jeu.svelte'
+  import { nonLus, telegrammesRecus } from '../reseau'
   import { basculerSon, sonActif } from '../sons'
   import Carte from '../volets/Carte.svelte'
   import Office from '../volets/Office.svelte'
@@ -17,8 +18,8 @@
   let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
   const saison = $derived(numeroSaison(jeu.maintenant))
-  /** Vraie heure UTC, celle de l'Office. */
-  const utc = $derived(new Date(jeu.maintenant).toISOString().slice(11, 19))
+  /** Télégrammes arrivés et pas encore lus. */
+  const nouveaux = $derived(nonLus(etat, telegrammesRecus(etat, jeu.maintenant)))
   const avaries = $derived(modulesEnPanne(etat.modules).length)
   const tambours = $derived(String(Math.max(0, Math.floor(etat.credits))).padStart(4, '0').split(''))
 
@@ -61,11 +62,12 @@
       <span class="c58 titre-pulp">C-58</span>
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
-    <!-- Plaque centrale : l'heure UTC de l'Office et l'état du bord (le toucher ramène au cockpit). -->
-    <button class="etat-bord" class:alerte={avaries > 0} onclick={() => aller('cockpit')}
-      aria-label={avaries ? `${avaries} avarie${avaries > 1 ? 's' : ''} : aller au cockpit` : 'Bord en ordre'}>
-      <span class="utc"><small>UTC</small>{utc}</span>
-      <span class="bord"><span class="lampe"></span>{avaries ? `${avaries} AVARIE${avaries > 1 ? 'S' : ''}` : 'EN ORDRE'}</span>
+    <!-- Voyant des télégrammes (d'un joueur ou de l'Office) : allumé quand il en est arrivé ; le toucher ouvre le
+         guichet des télégrammes. -->
+    <button class="etat-bord" class:alerte={nouveaux > 0} onclick={() => (jeu.volet = 'telegrammes')}
+      aria-label={nouveaux ? `${nouveaux} télégramme${nouveaux > 1 ? 's' : ''} reçu${nouveaux > 1 ? 's' : ''}` : 'Télégrammes'}>
+      <span class="utc"><span class="lampe"></span>TÉLÉGR.</span>
+      <span class="bord">{nouveaux ? `${nouveaux} NOUVEAU${nouveaux > 1 ? 'X' : ''}` : 'AUCUN NOUVEAU'}</span>
     </button>
     <div class="instruments">
       <div class="caisse">
@@ -87,6 +89,7 @@
     {#each PAGES_POSTE as p}
       <button class={`onglet ${p}`} class:actif={jeu.page === p} aria-current={jeu.page === p ? 'page' : undefined} onclick={() => aller(p)}>
         <Icone nom={p} /><span>{NOMS[p]}</span>
+        {#if p === 'cockpit' && avaries}<span class="pastille" aria-label={`${avaries} avaries`}>{avaries}</span>{/if}
       </button>
     {/each}
   </nav>
@@ -141,17 +144,12 @@
   }
   .utc {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 15px;
-    font-weight: 700;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--police-titre);
+    font-size: 11px;
     letter-spacing: 1px;
     line-height: 1;
-  }
-  .utc small {
-    font-size: 8px;
-    letter-spacing: 1px;
-    opacity: 0.7;
   }
   .bord {
     display: flex;
@@ -162,19 +160,54 @@
     letter-spacing: 1px;
     line-height: 1;
   }
+  /* Lampe du télégraphe : éteinte, ou allumée et clignotante quand un télégramme est arrivé. */
   .lampe {
-    width: 7px;
-    height: 7px;
+    flex: none;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    border: 1px solid var(--couleur-encre);
-    background: var(--menthe);
+    border: 1.5px solid var(--couleur-encre);
+    background: #4b5a66;
+  }
+  .bord {
+    opacity: 0.75;
+  }
+  .etat-bord.alerte {
+    border-color: var(--moutarde);
   }
   .etat-bord.alerte .bord {
-    color: var(--rose);
+    opacity: 1;
+    color: var(--moutarde);
   }
   .etat-bord.alerte .lampe {
-    background: var(--cerise);
+    background: var(--moutarde);
+    box-shadow: 0 0 6px var(--moutarde);
     animation: clignote 0.9s steps(2, jump-none) infinite;
+  }
+  /* Pastille d'avaries sur l'onglet COCKPIT. */
+  .pastille {
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 9px;
+    background: var(--cerise);
+    color: var(--couleur-papier);
+    font-family: var(--police-chiffres);
+    font-size: 11px;
+    font-weight: 700;
+    animation: clignote-pastille 0.9s steps(2, jump-none) infinite;
+  }
+  @keyframes clignote-pastille {
+    50% {
+      background: var(--couleur-encre);
+    }
   }
   @keyframes clignote {
     50% {
@@ -298,7 +331,8 @@
   .onglets {
     flex: none;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr;
+    align-items: end;
     gap: 3px;
     padding: 4px 8px 0;
     margin-bottom: -3px;
@@ -351,11 +385,23 @@
     background: var(--couleur-fond);
     color: var(--cerise);
   }
+  /* COCKPIT, l'écran principal : plus grand que ses voisins, liseré moutarde, même quand il n'est pas affiché. */
   .onglet.cockpit {
-    font-size: 9px;
+    height: 58px;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    color: var(--couleur-encre);
+    background: var(--hachures), var(--moutarde);
+  }
+  .onglet.cockpit :global(svg) {
+    width: 28px;
+    height: 28px;
   }
   .onglet.actif.cockpit {
+    height: 62px;
     color: var(--cerise);
+    background: var(--couleur-fond);
+    box-shadow: inset 0 4px 0 var(--moutarde);
   }
 
   .page {

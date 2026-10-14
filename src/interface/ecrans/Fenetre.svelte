@@ -159,6 +159,15 @@
         <Horloge instant={arrivee ?? maintenantDirect} arrivee={arrivee !== null} maintenant={maintenantDirect} />
       </div>
     </div>
+    <!-- Légendes gravées des cadrans, réglet gradué, repères de montage (décor). -->
+    <div class="legendes" aria-hidden="true">
+      <span>TACHYMÈTRE T-58</span>
+      <span class="filet"></span>
+      <span>COMPAS C-4 · CHRONO H-2</span>
+    </div>
+    <span class="reglet" aria-hidden="true"></span>
+    <span class="repere r1" aria-hidden="true"></span>
+    <span class="repere r2" aria-hidden="true"></span>
     <div class="danger" aria-hidden="true"><span>ATTENTION · PIÈCES EN MOUVEMENT</span></div>
     </div>
 
@@ -256,12 +265,14 @@
 
   <!-- Téléscripteur. -->
   <div class="rubrique"><span>JOURNAL DE BORD</span></div>
-  <section class="telex" aria-label="Téléscripteur">
+  <!-- La bande s'imprime par le haut : la fin de bande est au-dessus de la dernière ligne. La toucher la déroule. -->
+  <button class="telex" aria-label="Téléscripteur : dérouler tout le journal" onclick={() => (jeu.volet = 'journal')}>
+    <div class="fin-bande">— FIN DE BANDE —</div>
     {#each jeu.telex.slice(-6).reverse() as l}
       <div><span class="heure" class:alerte={l.alerte}>{heureLocale(l.t)}</span> {l.texte}</div>
     {/each}
-    <div class="fin-bande">— FIN DE BANDE —</div>
-  </section>
+    {#if jeu.telex.length > 6}<div class="derouler">▾ DÉROULER LA BANDE · {jeu.telex.length} LIGNES</div>{/if}
+  </button>
 
   </div>
 
@@ -874,8 +885,24 @@
   .heure {
     color: var(--couleur-texte-discret);
   }
+  .telex {
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+  }
+  .telex:active {
+    filter: brightness(0.96);
+  }
+  .derouler {
+    margin-top: 3px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--couleur-encre-discrete);
+  }
   .fin-bande {
-    margin-top: 2px;
+    margin-bottom: 2px;
     text-align: center;
     font-size: 10px;
     letter-spacing: 2px;
@@ -920,6 +947,52 @@
     font-family: var(--police-machine);
     font-weight: 400;
     letter-spacing: 0.5px;
+  }
+  /* Légendes gravées sous les cadrans, reliées par un filet. */
+  .legendes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: -4px;
+    font-family: var(--police-machine);
+    font-size: 9px;
+    color: var(--couleur-encre-discrete);
+    white-space: nowrap;
+  }
+  .legendes .filet {
+    flex: 1;
+    height: 3px;
+    border-top: 1px solid rgba(42, 30, 23, 0.4);
+    border-bottom: 1px solid rgba(42, 30, 23, 0.4);
+  }
+  /* Réglet gradué le long du bord droit du panneau. */
+  .reglet {
+    position: absolute;
+    right: 9px;
+    top: 66px;
+    bottom: 52px;
+    width: 7px;
+    border-left: 1px solid rgba(42, 30, 23, 0.5);
+    background: repeating-linear-gradient(180deg, rgba(42, 30, 23, 0.55) 0 1px, transparent 1px 6px) left / 4px 100% no-repeat,
+      repeating-linear-gradient(180deg, rgba(42, 30, 23, 0.7) 0 1px, transparent 1px 30px) left / 7px 100% no-repeat;
+    pointer-events: none;
+  }
+  /* Repères de montage : petites croix d'encre. */
+  .repere {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: linear-gradient(var(--couleur-encre-discrete), var(--couleur-encre-discrete)) center / 1px 100% no-repeat,
+      linear-gradient(var(--couleur-encre-discrete), var(--couleur-encre-discrete)) center / 100% 1px no-repeat;
+    pointer-events: none;
+  }
+  .repere.r1 {
+    left: 50%;
+    top: 74px;
+  }
+  .repere.r2 {
+    left: 14px;
+    bottom: 50px;
   }
   /* Bande « danger » jaune et noire, avec sa consigne. */
   .danger {

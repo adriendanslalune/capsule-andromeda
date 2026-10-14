@@ -17,12 +17,15 @@
     <Motifs />
     <!-- Contour du poste. -->
     <rect x="62" y="4" width="220" height="412" rx="10" fill="none" stroke="#1d1916" stroke-width="1.6" />
-    <!-- Barre du haut : nom, compteur, saison, son, manuel. -->
+    <!-- Barre du haut : nom, voyant des télégrammes, compteur et saison, son, manuel. -->
     <text x="70" y="22" font-size="11" font-weight="700" font-family="Courier Prime, monospace">C-58</text>
-    <rect x="150" y="12" width="44" height="13" fill="none" stroke="#1d1916" stroke-width="1.2" />
-    {#each [1, 2, 3] as i}<line x1={150 + 11 * i} y1="12" x2={150 + 11 * i} y2="25" stroke="#1d1916" stroke-width="0.6" />{/each}
-    <rect x="200" y="13" width="30" height="11" fill="#1d1916" />
-    <text x="215" y="21" text-anchor="middle" font-size="5" fill="#f8f5ec" font-family="Courier Prime, monospace">SAISON</text>
+    <rect x="106" y="10" width="46" height="17" rx="2" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    <circle cx="113" cy="16" r="2.6" fill="#1d1916" />
+    <text x="118" y="18" font-size="5.5" font-weight="700" font-family="Courier Prime, monospace">TÉLÉGR.</text>
+    <text x="110" y="24.5" font-size="4.5" font-family="Courier Prime, monospace">1 NOUVEAU</text>
+    <rect x="182" y="10" width="44" height="12" fill="none" stroke="#1d1916" stroke-width="1.2" />
+    {#each [1, 2, 3] as i}<line x1={182 + 11 * i} y1="10" x2={182 + 11 * i} y2="22" stroke="#1d1916" stroke-width="0.6" />{/each}
+    <text x="226" y="28" text-anchor="end" font-size="4.5" font-family="Courier Prime, monospace">SAISON</text>
     <rect x="238" y="9" width="8" height="17" rx="4" fill="none" stroke="#1d1916" stroke-width="1.2" />
     <rect x="254" y="9" width="20" height="18" rx="3" fill="none" stroke="#1d1916" stroke-width="1.2" />
     <path d="M 264 13 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 13 v 10" fill="none" stroke="#1d1916" stroke-width="0.8" />
@@ -35,6 +38,8 @@
       <text x={x + 20} y="44" text-anchor="middle" font-size="5.5" font-weight="700" font-family="Courier Prime, monospace">{o}</text>
     {/each}
     <line x1="152" y1="48" x2="192" y2="48" stroke="#f8f5ec" stroke-width="2" />
+    <circle cx="191" cy="30" r="4.5" fill="#1d1916" />
+    <text x="191" y="32" text-anchor="middle" font-size="5.5" font-weight="700" fill="#f8f5ec" font-family="Courier Prime, monospace">2</text>
     <!-- Hublot, d'un bord à l'autre. -->
     <line x1="62" y1="54" x2="282" y2="54" stroke="#1d1916" stroke-width="1.2" />
     <rect x="66" y="58" width="212" height="56" rx="6" fill="url(#zone-bleue)" stroke="#1d1916" stroke-width="1" />
@@ -45,6 +50,8 @@
     <text x="78" y="135" font-size="7" font-weight="700" font-family="Courier Prime, monospace">ON</text>
     <!-- Cadrans : grand tachymètre, compas et horloge. -->
     <Jauge x={118} y={182} r={32} />
+    <rect x="106" y="194" width="24" height="9" fill="#1d1916" />
+    <text x="118" y="201" text-anchor="middle" font-size="6" fill="#f8f5ec" font-family="Courier Prime, monospace">13,5</text>
     <circle cx="236" cy="160" r="16" fill="#f8f5ec" stroke="#1d1916" stroke-width="1.6" />
     {#each [0, 90, 180, 270] as a}
       {@const r = (a * Math.PI) / 180}
@@ -76,19 +83,19 @@
     <line x1="70" y1="398" x2="274" y2="398" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
     <line x1="70" y1="408" x2="274" y2="408" stroke="#1d1916" stroke-width="0.8" stroke-dasharray="3 2" />
 
-    <Repere x={172} y={18} tx={30} ty={18} n={1} />
-    <Repere x={242} y={18} tx={316} ty={12} n={2} />
-    <Repere x={270} y={22} tx={316} ty={32} n={3} />
-    <Repere x={172} y={36} tx={316} ty={52} n={4} />
-    <Repere x={70} y={86} tx={30} ty={86} n={5} />
-    <Repere x={76} y={132} tx={30} ty={132} n={6} />
-    <Repere x={92} y={194} tx={30} ty={190} n={7} />
-    <Repere x={252} y={156} tx={316} ty={156} n={8} />
-    <Repere x={252} y={204} tx={316} ty={204} n={9} />
-    <Repere x={268} y={232} tx={316} ty={232} n={10} />
-    <Repere x={268} y={275} tx={316} ty={275} n={11} />
-    <Repere x={85} y={320} tx={30} ty={320} n={12} />
-    <Repere x={108} y={302} tx={30} ty={298} n={13} />
+    <Repere x={129} y={12} tx={30} ty={12} n={1} />
+    <Repere x={204} y={16} tx={316} ty={8} n={2} />
+    <Repere x={242} y={18} tx={316} ty={24} n={3} />
+    <Repere x={270} y={22} tx={316} ty={40} n={4} />
+    <Repere x={110} y={40} tx={30} ty={40} n={5} />
+    <Repere x={70} y={86} tx={30} ty={86} n={6} />
+    <Repere x={76} y={132} tx={30} ty={132} n={7} />
+    <Repere x={92} y={194} tx={30} ty={190} n={8} />
+    <Repere x={252} y={156} tx={316} ty={156} n={9} />
+    <Repere x={252} y={204} tx={316} ty={204} n={10} />
+    <Repere x={268} y={232} tx={316} ty={232} n={11} />
+    <Repere x={268} y={275} tx={316} ty={275} n={12} />
+    <Repere x={85} y={320} tx={30} ty={320} n={13} />
     <Repere x={208} y={357} tx={316} ty={357} n={14} />
     <Repere x={76} y={379} tx={30} ty={379} n={15} />
     <Repere x={270} y={403} tx={316} ty={403} n={16} />

@@ -5,22 +5,22 @@
 
   let { numero }: { numero: number } = $props()
   const organes = [
+    ['Voyant TÉLÉGR.', 'Allumé : télégramme arrivé. Le toucher ouvre le guichet des télégrammes (XVIII).'],
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
     ['Interrupteur de son', 'Coupe ou rétablit les alarmes et les sons du bord.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Onglets', 'CARTE, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la page voisine.'],
+    ['Onglets', 'CARTE, CONTRATS, COCKPIT, ATELIER, TROPHÉES. L’onglet qui ressort est la page affichée ; glisser le doigt mène à la voisine. Pastille rouge : avaries.'],
     ['Hublot', 'Vue droit devant, vers la destination. Le toucher ouvre la vue extérieure.'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination. Il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],
-    ['Tachymètre', 'Vitesse du moment, en km/s. Le secteur repéré indique la vitesse de croisière.'],
+    ['Tachymètre', 'Vitesse du moment (lucarne, en km/s). Secteur vert : vitesse de croisière.'],
     ['Compas de cap', 'Aiguille : cap. Triangle : direction de la destination. 0° à droite de la carte, sens inverse des aiguilles d’une montre.'],
     ['Horloge d’arrivée', 'Heure prévue de l’arrivée (heure du téléphone). À l’arrêt : heure actuelle.'],
-    ['Écran de navigation', 'Destination, temps restant à la seconde, frise du trajet (départ et arrivée).'],
-    ['Instruments de bord', 'ROUTE : distance parcourue par l’appareil. SOLEIL : distance au Soleil. RADIO TERRE : délai d’un message jusqu’à la Terre. EN LIGNE : commissionnaires connectés, au total et près de la fusée. Les autres fusées sont des points de couleur sur la carte, et se voient par le hublot.'],
-    ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc.'],
-    ['Lien PROPULSION', 'CH-1 et TU-1 forment le bloc propulsion (IV).'],
+    ['Écran de navigation', 'Destination, temps restant, frise du trajet.'],
+    ['Instruments de bord', 'ROUTE : distance parcourue par l’appareil. SOLEIL : distance au Soleil. RADIO TERRE : délai d’un message jusqu’à la Terre. EN LIGNE : commissionnaires connectés (au total, et près de la fusée) ; leurs fusées sont des points de couleur sur la carte.'],
+    ['Voyants des blocs', 'Vert : en ordre. Rouge clignotant : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
     ['Radar de chasse', 'État de la recherche du visiteur (chapitre XVII). Le toucher ouvre la carte.'],
-    ['Téléscripteur', 'Derniers messages du bord et de l’Office, le plus récent en haut.'],
+    ['Téléscripteur', 'Derniers messages du bord, le plus récent en haut. Le toucher déroule tout le journal.'],
   ]
 </script>
 

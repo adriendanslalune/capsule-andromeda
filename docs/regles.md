@@ -265,3 +265,16 @@ avec un contact à moins de 0,01 UA).*
 - Tout l'état de la partie est sérialisable (JSON), avec un horodatage « vu » pour le rattrapage après une absence
   et un numéro de version de format (1). Quand la structure change, on augmente le numéro et on écrit une migration.
   Une sauvegarde abîmée, d'un autre jeu ou d'une version plus récente est refusée avec une explication.
+
+## 8. Télégrammes (décisions d'Adrien du 14/10/2026)
+- Texte libre (140 caractères au plus, espaces resserrés) ou phrases toutes faites (`src/donnees/telegrammes.ts`).
+- **3 envois gratuits par 24 heures glissantes** : chaque envoi se libère 24 h après avoir été fait.
+- Destinataires, au choix de l'émetteur : son système planétaire (impossible hors de tout système), un joueur
+  (désigné par sa fusée), ou tout le système solaire. On ne reçoit jamais ses propres télégrammes.
+- Réception au **vrai délai de la lumière** depuis le point d'émission : chacun le reçoit à son heure.
+- Les télégrammes reçus restent affichés 3 jours. L'Office (depuis la Terre) envoie l'accueil, puis chaque lundi
+  00:00 UTC l'annonce des nouveaux contrats.
+- En attendant le serveur : les bots écrivent avec modération (au plus 3 par jour, phrases sans indice de chasse)
+  et répondent aux télégrammes du joueur qui leur parviennent (toujours à un télégramme personnel, une fois sur
+  deux à un télégramme collectif), quelques minutes après l'avoir reçu.
+- Moteur : `src/moteur/telegrammes.ts` ; constantes : `TELEGRAMMES` dans `src/donnees/reglages.ts`.

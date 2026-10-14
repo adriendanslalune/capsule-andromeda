@@ -6,7 +6,9 @@ import { planeteDe, positionCorps, rayonCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import type { Vecteur3 } from '../astro/vecteur'
 import type { Bot } from '../donnees/flotte'
+import { PHRASES_BOTS, REPONSES_BOTS } from '../donnees/telegrammes'
 import { mulberry32 } from './hasard'
+import { arriveeEn, estDestinataire, type Portee, type Telegramme } from './telegrammes'
 
 export interface PositionBot {
   /** Position héliocentrique (UA). */
@@ -82,4 +84,56 @@ export function positionBot(bot: Bot, t: number): PositionBot {
 /** Le bot est-il connecté à l'heure de t ? (tiré heure par heure). */
 export function botEnLigne(bot: Bot, t: number): boolean {
   return tirage(bot, Math.floor(t / 3_600_000), 11) < bot.enLigne
+}
+
+// Télégrammes des bots : chacun en envoie de temps en temps (une phrase toute faite, sans indice de chasse), à tout le
+// système solaire ou à son système ; il répond parfois aux télégrammes du joueur qui lui parviennent.
+
+/** Télégrammes émis par les bots entre depuis et t. */
+export function telegrammesDesBots(flotte: readonly Bot[], depuis: number, t: number): Telegramme[] {
+  const l: Telegramme[] = []
+  for (const bot of flotte) {
+    // Un créneau toutes les 12 à 36 heures ; un sur deux seulement donne un télégramme.
+    const periode = (12 + 24 * tirage(bot, 0, 13)) * 3_600_000
+    for (let k = Math.floor((depuis - ORIGINE) / periode) - 1; ORIGINE + k * periode <= t; k++) {
+      if (tirage(bot, k, 15) > 0.5) continue
+      const envoye = ORIGINE + (k + tirage(bot, k, 14)) * periode
+      if (envoye < depuis || envoye > t) continue
+      const p = positionBot(bot, envoye)
+      const portee: Portee = tirage(bot, k, 16) < 0.3 && p.systeme ? { type: 'systeme', systeme: p.systeme } : { type: 'tout' }
+      l.push({
+        id: `${bot.serie}-${k}`, de: bot.nom, serie: bot.serie, couleur: bot.couleur, envoye, portee, origine: p.position, systeme: p.systeme,
+        texte: PHRASES_BOTS[Math.floor(tirage(bot, k, 17) * PHRASES_BOTS.length)],
+      })
+    }
+  }
+  return l
+}
+
+/** Nombre au hasard reproductible tiré d'un texte (identifiant de télégramme). */
+function tirageTexte(s: string, k: number): number {
+  let h = 2166136261 ^ k
+  for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
+  return mulberry32(h)()
+}
+
+/** Réponses des bots aux télégrammes du joueur : un bot qui l'a reçu répond, quelques minutes après l'avoir reçu. */
+export function reponsesDesBots(flotte: readonly Bot[], envoyes: readonly Telegramme[], joueur: { serie: string; nom: string }): Telegramme[] {
+  const l: Telegramme[] = []
+  for (const m of envoyes) {
+    const candidats = flotte.filter((b) => estDestinataire(m, b.serie, positionBot(b, m.envoye).systeme))
+    if (!candidats.length) continue
+    // Un télégramme adressé à un bot reçoit toujours sa réponse ; un télégramme collectif, une fois sur deux.
+    if (m.portee.type !== 'joueur' && tirageTexte(m.id, 1) > 0.5) continue
+    const bot = candidats[Math.floor(tirageTexte(m.id, 2) * candidats.length)]
+    const recu = arriveeEn(m, positionBot(bot, m.envoye).position)
+    const envoye = recu + (2 + 18 * tirageTexte(m.id, 3)) * 60_000
+    const p = positionBot(bot, envoye)
+    l.push({
+      id: `re-${m.id}`, de: bot.nom, serie: bot.serie, couleur: bot.couleur, envoye, origine: p.position, systeme: p.systeme,
+      portee: { type: 'joueur', serie: joueur.serie, nom: joueur.nom },
+      texte: REPONSES_BOTS[Math.floor(tirageTexte(m.id, 4) * REPONSES_BOTS.length)],
+    })
+  }
+  return l
 }

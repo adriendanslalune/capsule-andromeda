@@ -49,14 +49,17 @@
         <text x={c.x} y={c.y + 3.5} text-anchor="middle" font-size="10" font-weight="700" font-family="var(--police-chiffres)" fill="var(--couleur-encre)">{g}</text>
       {/if}
     {/each}
-    <text x="60" y="84" text-anchor="middle" font-size="8.5" font-weight="700" letter-spacing="1" font-family="var(--police-texte)" fill="var(--couleur-encre)">KM/S</text>
+    <!-- Lucarne de la vitesse, sous le pivot. -->
+    <rect x="40" y="74" width="40" height="15" rx="2" fill="var(--couleur-encre)" />
+    <rect x="41.5" y="75.5" width="37" height="12" rx="1.5" fill="none" stroke="var(--couleur-papier)" stroke-width="0.5" opacity="0.5" />
+    <text x="60" y="85.5" text-anchor="middle" font-size="11" font-weight="700" font-family="var(--police-chiffres)" fill="var(--couleur-papier)">{nombre(valeur, 1)}</text>
+    <text x="60" y="97" text-anchor="middle" font-size="7.5" font-weight="700" letter-spacing="1" font-family="var(--police-texte)" fill="var(--couleur-encre)">KM/S</text>
     <g class="aiguille" style={`transform: rotate(${angle(valeur)}deg)`}>
       <path d="M 57.6 64 L 59 19 L 60 14 L 61 19 L 62.4 64 Z" fill="var(--cerise)" stroke="var(--couleur-encre)" stroke-width="1.6" stroke-linejoin="round" />
     </g>
     <circle cx="60" cy="60" r="5.5" fill="var(--couleur-encre)" />
     </g>
   </svg>
-  <figcaption><span class="etiquette-encre">VITESSE</span><b>{nombre(valeur, 1)}</b></figcaption>
 </figure>
 
 <style>
@@ -75,12 +78,5 @@
     transform-box: view-box;
     transform-origin: 60px 60px;
     transition: transform 1s linear;
-  }
-  figcaption {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 15px;
-    white-space: nowrap;
   }
 </style>
