@@ -1,25 +1,34 @@
-/* Thème provisoire, volontairement neutre.
-   Toute la direction artistique passe par ces variables :
-   pour changer de style, on ne touche qu'à ce fichier. */
+/* Thème provisoire, volontairement neutre (d'après la maquette « piste A »).
+   Toute la direction artistique passe par ces variables : pour changer de style, on ne touche qu'à ce fichier. */
 
 :root {
   /* Couleurs */
-  --couleur-fond: #0e1116;
-  --couleur-surface: #171b22;
-  --couleur-bordure: #2a303a;
-  --couleur-texte: #e6e8eb;
-  --couleur-texte-discret: #8a919c;
-  --couleur-ok: #5fae7b;
-  --couleur-avarie: #e0a43a;
-  --couleur-danger: #e05a4f;
+  --couleur-fond: #0f1a24;
+  --couleur-surface: #1a2836;
+  --couleur-surface-alerte: rgba(224, 116, 63, 0.14);
+  --couleur-bordure: #2f4152;
+  --couleur-bordure-forte: #3b4d5e;
+  --couleur-texte: #efe6d2;
+  --couleur-texte-discret: #9fb0bf;
+  --couleur-texte-eteint: #5d6f80;
+  --couleur-ok: #6fbf73;
+  --couleur-avarie: #e0743f;
+  --couleur-danger: #c9452f;
+  --couleur-or: #e9b04a;
+  --couleur-papier: #f6efdc;
+  --couleur-papier-fonce: #e9dfc6;
+  --couleur-encre: #2b2723;
+  --couleur-encre-discrete: #6b6155;
+  --couleur-trace: #3c6fa8;
 
   /* Polices */
-  --police-texte: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --police-chiffres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --police-texte: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --police-chiffres: 'Space Mono', ui-monospace, 'Courier New', monospace;
 
   /* Formes et tailles */
-  --rayon: 8px;
-  --espace: 16px;
+  --rayon: 12px;
+  --rayon-grand: 16px;
+  --espace: 14px;
   --cible-tactile: 44px;
   --largeur-ecran: 390px;
 }

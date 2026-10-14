@@ -1,0 +1,175 @@
+// Le jeu côté interface : il tient la partie, la fait avancer chaque seconde, garde le téléscripteur, sauvegarde
+// dans le téléphone et rattrape le temps écoulé quand on revient. Les écrans lisent cet objet et lui demandent d'agir.
+
+import { rattraper, type RapportDeVol } from '../moteur/absence'
+import { creerPartie, type EtatPartie } from '../moteur/etat'
+import { horlogeReelle } from '../moteur/horloge'
+import { hasardReel } from '../moteur/hasard'
+import type { Contexte, Evenement } from '../moteur/modules/commun'
+import { modulesEnPanne, type EtatModules } from '../moteur/modules'
+import { agir as agirMoteur, avancerPartie, basculerInterrupteur } from '../moteur/partie'
+import type { NumeroInterrupteur } from '../moteur/interrupteurs'
+import { charger, sauvegarder } from '../moteur/sauvegarde'
+import { nomAstre } from './format'
+
+const CLE_PARTIE = 'mdv-partie'
+const CLE_TELEX = 'mdv-telex'
+const TELEX_GARDES = 60
+const SAUVEGARDE_TOUTES_LES = 10_000
+
+export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string }
+export type Volet = 'carte' | 'office' | 'manuel' | null
+
+export interface LigneTelex {
+  t: number
+  texte: string
+  alerte?: boolean
+}
+
+function lire(cle: string): string | null {
+  try { return localStorage.getItem(cle) } catch { return null }
+}
+function ecrire(cle: string, valeur: string) {
+  try { localStorage.setItem(cle, valeur) } catch { /* stockage indisponible : la partie continue */ }
+}
+
+class Jeu {
+  /** La partie en cours (null avant l'ouverture). */
+  etat = $state.raw<EtatPartie | null>(null)
+  /** Instant présent (ms UTC), rafraîchi chaque seconde. */
+  maintenant = $state(horlogeReelle())
+  telex = $state.raw<LigneTelex[]>([])
+  rapport = $state.raw<RapportDeVol | null>(null)
+  ecran = $state.raw<Ecran>({ nom: 'ouverture' })
+  volet = $state<Volet>(null)
+
+  private minuterie: ReturnType<typeof setInterval> | null = null
+  private derniereSauvegarde = 0
+
+  /** Au lancement : reprend la partie sauvegardée (avec rattrapage), sinon montre l'ouverture. */
+  demarrer() {
+    const texte = lire(CLE_PARTIE)
+    const lu = texte ? charger(texte) : null
+    try { this.telex = JSON.parse(lire(CLE_TELEX) ?? '[]') } catch { this.telex = [] }
+    if (lu?.etat) {
+      const r = rattraper(lu.etat, horlogeReelle(), hasardReel)
+      this.etat = r.etat
+      if (r.rapport) {
+        this.rapport = r.rapport
+        for (const m of r.rapport.messages) this.ajouterTelex(m, r.rapport.jusqua)
+      }
+      this.ecran = { nom: 'fenetre' }
+      this.lancerBoucle()
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') this.sauvegarder()
+        else this.revenir()
+      })
+      window.addEventListener('pagehide', () => this.sauvegarder())
+    }
+  }
+
+  /** Nouvelle partie, après la lettre de l'Office et le baptême de la fusée. */
+  nouvellePartie(nom: string) {
+    const t = horlogeReelle()
+    this.etat = creerPartie(t, hasardReel, nom)
+    this.telex = []
+    this.ajouterTelex('OFFICE : BON VOL, COMMISSIONNAIRE.', t)
+    this.ecran = { nom: 'fenetre' }
+    this.sauvegarder()
+    this.lancerBoucle()
+  }
+
+  private lancerBoucle() {
+    if (this.minuterie) return
+    this.minuterie = setInterval(() => this.pas(), 1000)
+  }
+
+  /** Retour au premier plan après une longue mise en veille : on rattrape comme après une absence. */
+  private revenir() {
+    if (!this.etat) return
+    const t = horlogeReelle()
+    if (t - this.etat.vu > 60_000) {
+      const r = rattraper(this.etat, t, hasardReel)
+      this.etat = r.etat
+      if (r.rapport) {
+        this.rapport = r.rapport
+        for (const m of r.rapport.messages) this.ajouterTelex(m, t)
+      }
+    }
+  }
+
+  /** Une seconde de jeu. */
+  private pas() {
+    if (!this.etat) return
+    const t = horlogeReelle()
+    const dt = Math.min(60, Math.max(0, (t - this.etat.vu) / 1000))
+    if (dt <= 0) return
+    const avant = this.etat
+    const r = avancerPartie(avant, t, dt, hasardReel)
+    this.etat = r.etat
+    this.maintenant = t
+    this.annoncer(avant, r.etat, r.messages, t)
+    if (r.arrivee) {
+      const nom = r.arrivee.type === 'point' ? 'POINT LIBRE' : r.arrivee.type === 'visiteur' ? 'OBJET INCONNU' : nomAstre(r.arrivee.astre).toUpperCase()
+      this.ajouterTelex(`ARRIVÉE : ${nom}. ${r.arrivee.type === 'point' ? 'MOTEUR COUPÉ.' : 'MISE EN ORBITE.'}`, t)
+    }
+    if (t - this.derniereSauvegarde > SAUVEGARDE_TOUTES_LES) this.sauvegarder()
+  }
+
+  /** Messages du moteur, et nouvelles avaries, au téléscripteur. */
+  private annoncer(avant: EtatPartie, apres: EtatPartie, messages: string[], t: number) {
+    for (const m of messages) this.ajouterTelex(m, t, m.startsWith('FAUTE') || m.startsWith('ORDRE'))
+    const anciennes = new Set(modulesEnPanne(avant.modules))
+    const nouvelles = modulesEnPanne(apres.modules).filter((c) => !anciennes.has(c))
+    if (nouvelles.length) {
+      const cascade = apres.pannes.cascade && nouvelles.length > 1
+      this.ajouterTelex(`${cascade ? 'AVARIE EN CASCADE' : 'AVARIE'} : ${nouvelles.join(' + ')}.`, t, true)
+    }
+  }
+
+  ajouterTelex(texte: string, t: number, alerte = false) {
+    this.telex = [...this.telex, { t, texte, alerte }].slice(-TELEX_GARDES)
+  }
+
+  /** Action du joueur sur un module. */
+  agir(action: (modules: EtatModules, ctx: Contexte) => { modules: EtatModules; evenements: Evenement[] }) {
+    if (!this.etat) return []
+    const t = horlogeReelle()
+    const avant = this.etat
+    const r = agirMoteur(avant, t, hasardReel, action)
+    this.etat = r.etat
+    this.annoncer(avant, r.etat, r.messages, t)
+    for (const ev of r.evenements) if (ev.type === 'reparation') this.ajouterTelex(`${ev.module} RÉPARÉ.`, t)
+    return r.evenements
+  }
+
+  /** Bascule un interrupteur S-1 à S-4. */
+  interrupteur(n: NumeroInterrupteur) {
+    if (!this.etat) return
+    const t = horlogeReelle()
+    const avant = this.etat
+    const r = basculerInterrupteur(avant, n, t, hasardReel)
+    this.etat = r.etat
+    this.annoncer(avant, r.etat, r.messages, t)
+    for (const ev of r.evenements) if (ev.type === 'reparation') this.ajouterTelex(`${ev.module} RÉPARÉ.`, t)
+  }
+
+  /** Remplace la partie (actions de l'Office, de la carte…). */
+  remplacer(etat: EtatPartie, messages: string[] = []) {
+    this.etat = etat
+    for (const m of messages) this.ajouterTelex(m, horlogeReelle())
+    this.sauvegarder()
+  }
+
+  sauvegarder() {
+    if (!this.etat) return
+    const t = horlogeReelle()
+    ecrire(CLE_PARTIE, sauvegarder(this.etat, t))
+    ecrire(CLE_TELEX, JSON.stringify(this.telex))
+    this.derniereSauvegarde = t
+  }
+}
+
+export const jeu = new Jeu()
