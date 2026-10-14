@@ -195,3 +195,10 @@ export function tropheesDuBot(bot: Bot, t: number): number {
   const rythme = 0.05 + bot.vitesse / 400 + 0.25 * tirage(bot, 0, 23)
   return Math.min(555, Math.floor(2 + jours * rythme))
 }
+
+/** Points de commissionnaire d'un bot à l'instant t (il en gagne chaque jour, à son rythme). */
+export function pointsDuBot(bot: Bot, t: number): number {
+  const jours = Math.max(0, (t - ORIGINE) / JOUR - 290 * tirage(bot, 0, 24))
+  const rythme = 4 + bot.vitesse / 8 + 14 * tirage(bot, 0, 25)
+  return Math.floor(jours * rythme)
+}

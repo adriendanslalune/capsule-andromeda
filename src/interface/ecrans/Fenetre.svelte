@@ -121,7 +121,7 @@
 
   // Liaison.
   const reseau = $derived(presence(etat, t))
-  const rangs = $derived(classement(etat, t))
+  const rangs = $derived(classement(etat, t, 'semaine'))
   const moi = $derived(rangs.find((c) => c.moi)!)
   const derniere = $derived(annonces(t)[0] ?? null)
   const ligneJournal = $derived(jeu.telex.at(-1) ?? null)
@@ -261,7 +261,7 @@
       <span class="entete">
         <small><span class="antenne" aria-hidden="true"></span>LIAISON</small>
         <span>{reseau.total} en ligne</span>
-        <span class="rang">Classement : <b>{moi.rang}<sup>{moi.rang === 1 ? 'er' : 'e'}</sup></b> / {rangs.length}</span>
+        <span class="rang">Semaine : <b>{moi.rang}<sup>{moi.rang === 1 ? 'er' : 'e'}</sup></b> / {rangs.length}</span>
       </span>
       {#if derniere}
         <span class="annonce" class:majeure={derniere.majeure}><span class="fanion" style={`background: ${derniere.couleur}`}></span><span class="texte-annonce">{derniere.texte}</span><span class="quand">{heureLocale(derniere.t)}</span></span>

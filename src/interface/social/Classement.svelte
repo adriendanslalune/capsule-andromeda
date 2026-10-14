@@ -1,7 +1,9 @@
 <script lang="ts">
-  // CLASSEMENT : tableau des commissionnaires aux trophées obtenus dans la semaine (depuis lundi), le mois, ou en
-  // tout ; puis qui est en ligne en ce moment, et où.
-  import type { PeriodeClassement } from '../../moteur/trophees'
+  // CLASSEMENT : tableau des commissionnaires aux points gagnés dans la semaine (depuis lundi), le mois, ou en tout ;
+  // le détail de vos points (ce qui vous fait monter), le barème, et qui est en ligne.
+  import { BAREME, LIGNES_BAREME } from '../../donnees/classement'
+  import { compteursDepuis, detailPoints } from '../../moteur/classement'
+  import { debutPeriode, type PeriodeClassement } from '../../moteur/trophees'
   import { nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
   import { autresFusees, classement, presence } from '../reseau'
@@ -10,11 +12,15 @@
   const t = $derived(jeu.maintenant)
   let periode = $state<PeriodeClassement>('semaine')
   const rangs = $derived(classement(etat, t, periode))
+  const moi = $derived(rangs.find((c) => c.moi)!)
+  const devant = $derived(moi.rang > 1 ? rangs[moi.rang - 2] : null)
+  const detail = $derived(detailPoints(compteursDepuis(etat, debutPeriode(periode, t))))
   const reseau = $derived(presence(etat, t))
   const enLigne = $derived(autresFusees(t).filter((f) => f.enLigne))
   const PERIODES: { id: PeriodeClassement; nom: string }[] = [
     { id: 'semaine', nom: 'SEMAINE' }, { id: 'mois', nom: 'MOIS' }, { id: 'general', nom: 'GÉNÉRAL' },
   ]
+  const nomLigne = (cle: string) => LIGNES_BAREME.find((l) => l.cle === cle)!.nom
   const lieu = (f: { escale: string | null; systeme: string | null }) =>
     f.escale ? (f.escale === 'ISS' ? 'amarrée à l’ISS' : `autour de ${nomAstre(f.escale)}`) : f.systeme ? `près de ${nomAstre(f.systeme)}` : 'en route'
   const medaille = (r: number) => (r === 1 ? 'or' : r === 2 ? 'argent' : r === 3 ? 'bronze' : '')
@@ -26,7 +32,25 @@
       <button role="radio" aria-checked={periode === p.id} class:enfoncee={periode === p.id} onclick={() => (periode = p.id)}>{p.nom}</button>
     {/each}
   </div>
-  <p class="aide">{periode === 'semaine' ? 'Trophées obtenus depuis lundi.' : periode === 'mois' ? 'Trophées obtenus depuis le 1er du mois.' : 'Tous les trophées.'}</p>
+
+  <!-- Votre place, et ce qui vous a fait monter. -->
+  <section class="vous">
+    <div class="place">
+      <span class={`rang grand ${medaille(moi.rang)}`}>{moi.rang}</span>
+      <span class="titre">
+        <b>{moi.points} points</b>
+        <small>{periode === 'semaine' ? 'depuis lundi' : periode === 'mois' ? 'depuis le 1er du mois' : 'depuis la mise en service'}</small>
+      </span>
+      {#if devant}<span class="ecart">{devant.points - moi.points + 1} pts pour passer {devant.rang}<sup>{devant.rang === 1 ? 'er' : 'e'}</sup></span>{:else}<span class="ecart">en tête !</span>{/if}
+    </div>
+    <table>
+      <tbody>
+        {#each detail as l}
+          <tr class:nul={l.nombre === 0}><td>{nomLigne(l.cle)}</td><td class="n">{l.nombre} × {BAREME[l.cle]}</td><td class="p">{l.points}</td></tr>
+        {/each}
+      </tbody>
+    </table>
+  </section>
 
   <!-- Tableau d'affichage. -->
   <ol class="tableau">
@@ -35,7 +59,7 @@
         <span class={`rang ${medaille(c.rang)}`}>{c.rang}</span>
         <span class="fanion" style={`background: ${c.couleur ?? 'var(--cerise)'}`}></span>
         <b>{c.nom}</b>{#if c.moi}<small>vous</small>{/if}
-        <span class="score">{c.trophees}</span>
+        <span class="score">{c.points}</span>
       </li>
     {/each}
   </ol>
@@ -75,10 +99,62 @@
     background: var(--couleur-bandeau);
     color: var(--couleur-texte-clair);
   }
-  .aide {
-    margin: 0;
-    font-size: 13px;
+  .vous {
+    padding: 8px 10px;
+    border: 2px solid var(--couleur-encre);
+    border-left: 6px solid var(--moutarde);
+    border-radius: 8px;
+    background: var(--couleur-papier);
+  }
+  .place {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .titre {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .titre b {
+    font-family: var(--police-titre);
+    font-weight: 400;
+    font-size: 18px;
+  }
+  .titre small {
+    font-size: 12px;
     color: var(--couleur-texte-discret);
+  }
+  .ecart {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cerise);
+    text-align: right;
+  }
+  table {
+    width: 100%;
+    margin-top: 6px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  td {
+    padding: 2px 0;
+    border-bottom: 1px dotted var(--couleur-texte-eteint);
+  }
+  td.n {
+    text-align: right;
+    font-family: var(--police-chiffres);
+    color: var(--couleur-texte-discret);
+  }
+  td.p {
+    width: 44px;
+    text-align: right;
+    font-family: var(--police-chiffres);
+    font-weight: 700;
+  }
+  tr.nul td {
+    color: var(--couleur-texte-eteint);
   }
   ol,
   ul {
@@ -114,6 +190,7 @@
     color: var(--moutarde);
   }
   .rang {
+    flex: none;
     display: grid;
     place-items: center;
     width: 24px;
@@ -121,6 +198,12 @@
     border-radius: 50%;
     font-family: var(--police-chiffres);
     font-weight: 700;
+  }
+  .rang.grand {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--couleur-encre);
+    font-size: 20px;
   }
   .rang.or {
     background: var(--moutarde);

@@ -1,6 +1,6 @@
 <script lang="ts">
   // COMMUNICATION : le poste de transmissions du bord. En haut, l'écran des transmissions (télégrammes reçus et
-  // envoyés, bulletins de la flotte), une ligne chacun, le plus récent en haut ; en bas, le pupitre d'émission
+  // envoyés, bulletins de la flotte), une ligne chacun, le plus récent en bas ; en bas, le pupitre d'émission
   // (destinataires, phrases toutes faites, ligne de saisie, timbres du quota).
   import { TELEGRAMMES } from '../../donnees/reglages'
   import { PHRASES } from '../../donnees/telegrammes'
@@ -33,7 +33,7 @@
   const lieu = (s: string | null) => (s ? (s === 'Terre' ? 'TERRE' : nomAstre(s).replace(/^la /, '').toUpperCase()) : 'ESPACE')
   const aQui = (p: Portee) => (p.type === 'tout' ? 'TOUS' : p.type === 'systeme' ? `SYSTÈME ${lieu(p.systeme)}` : p.nom.toUpperCase())
 
-  /** Le fil des transmissions, le plus récent en haut. */
+  /** Le fil des transmissions, le plus récent en bas (comme sur un téléscripteur). */
   type Ligne = { id: string; quand: number; sorte: 'recu' | 'envoye' | 'bulletin'; de: string; couleur?: string; meta: string; texte: string; nouveau?: boolean; majeur?: boolean }
   const fil = $derived<Ligne[]>([
     ...recus.map((m) => ({
@@ -43,7 +43,14 @@
     })),
     ...envoyes.map((m) => ({ id: `e-${m.id}`, quand: m.envoye, sorte: 'envoye' as const, de: `→ ${aQui(m.portee)}`, meta: '', texte: m.texte })),
     ...bulletins.map((a, i) => ({ id: `b-${i}-${a.t}`, quand: a.t, sorte: 'bulletin' as const, de: 'BULLETIN', couleur: a.couleur, meta: '', texte: a.texte.toUpperCase(), majeur: a.majeure })),
-  ].sort((a, b) => b.quand - a.quand))
+  ].sort((a, b) => a.quand - b.quand))
+
+  // L'écran descend tout seul jusqu'au dernier message (à l'ouverture et à chaque nouveau).
+  let filEl = $state<HTMLDivElement>()
+  $effect(() => {
+    void fil.length
+    queueMicrotask(() => filEl?.scrollTo({ top: filEl.scrollHeight }))
+  })
 
   // Pupitre d'émission.
   let texte = $state('')
@@ -71,7 +78,7 @@
       <span>TRANSMISSIONS</span>
       <span>{reseau.total} EN LIGNE{reseau.horsReseau ? ' · SIMUL.' : ''}</span>
     </div>
-    <div class="fil">
+    <div class="fil" bind:this={filEl}>
       {#each fil as l (l.id)}
         <p class={`tx ${l.sorte}`} class:nouveau={l.nouveau} class:majeur={l.majeur}>
           <span class="h">{heureLocale(l.quand)}</span>

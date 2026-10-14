@@ -1,10 +1,10 @@
 <script lang="ts">
   // Page SOCIAL : trois sous-onglets, CLASSEMENT, CONTRATS et COMMUNICATION (ouvert par défaut).
-  import Office from '../volets/Office.svelte'
   import { jeu } from '../jeu.svelte'
   import { nonLus, telegrammesRecus } from '../reseau'
   import Classement from './Classement.svelte'
   import Communication from './Communication.svelte'
+  import Contrats from './Contrats.svelte'
 
   const etat = $derived(jeu.etat!)
   const nouveaux = $derived(nonLus(etat, telegrammesRecus(etat, jeu.maintenant)))
@@ -27,7 +27,7 @@
   </div>
   <div class="contenu" class:plein={jeu.ongletSocial === 'communication'}>
     {#if jeu.ongletSocial === 'classement'}<Classement />
-    {:else if jeu.ongletSocial === 'contrats'}<Office onglet="contrats" />
+    {:else if jeu.ongletSocial === 'contrats'}<Contrats />
     {:else}<Communication />{/if}
   </div>
 </div>

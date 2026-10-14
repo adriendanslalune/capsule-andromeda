@@ -12,6 +12,7 @@ import { creerModules, type EtatModules } from './modules'
 import { creerPannes, type EtatPannes } from './pannes'
 import { genererSerie } from './serie'
 import type { EtatTelegrammes } from './telegrammes'
+import type { Compteurs } from './classement'
 
 /** Version du format de sauvegarde. À augmenter à chaque changement de structure, avec une migration. */
 export const VERSION_FORMAT = 1
@@ -96,6 +97,8 @@ export interface EtatPartie {
   trophees: string[]
   /** Instant d'obtention de chaque trophée ; absent des anciennes sauvegardes. */
   tropheesQuand?: Record<string, number>
+  /** Relevés quotidiens des compteurs (jour UTC → compteurs), pour les points de la semaine et du mois. */
+  releves?: Record<string, Compteurs>
   stats: Statistiques
   /** Télégrammes envoyés et lecture des reçus ; absent des anciennes sauvegardes. */
   telegrammes?: EtatTelegrammes

@@ -1,41 +1,25 @@
 <script lang="ts">
-  // Volet de l'Office : caisse, prochaine amélioration ; une page à la fois (contrats, atelier ou trophées), choisie
-  // par le bouton du cockpit.
-  import { CONTRATS, DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, PRIMES_REPARATION } from '../../donnees/economie'
+  // Pages ATELIER et TROPHÉES : caisse, prochaine amélioration, puis l'atelier ou la vitrine des trophées.
+  import { DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, PRIMES_REPARATION } from '../../donnees/economie'
   import { PANNES } from '../../donnees/reglages'
   import {
-    abandonnerContrat,
-    accepterContrat,
     acheterAmelioration,
-    contratsProposes,
     coutAmelioration,
-    destinationDuContrat,
     estInstalle,
     installer,
-    primeContrat,
     prochainModule,
   } from '../../moteur/economie'
-  import { choisirDestination, distance, optionsDeDepart, positionAstre, vitesse as vitesseMoteur } from '../../moteur/fusee'
-  import { vitesseActuelle } from '../../moteur/partie'
-  import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
+  import { optionsDeDepart, vitesse as vitesseMoteur } from '../../moteur/fusee'
+  import { duree, nombre, nomAstre } from '../format'
   import { jeu } from '../jeu.svelte'
-  import ApercuCarte from './ApercuCarte.svelte'
   import Trophees from './Trophees.svelte'
 
-  let { onglet }: { onglet: 'contrats' | 'atelier' | 'trophees' } = $props()
+  let { onglet }: { onglet: 'atelier' | 'trophees' } = $props()
 
   let refus = $state<string | null>(null)
-  /** Aperçu de la carte pour un contrat touché (hors de ses boutons). */
-  let apercu = $state<{ astre: string; titre: string } | null>(null)
-  function montrer(e: MouseEvent, astre: string, titre: string) {
-    if ((e.target as Element).closest('button')) return
-    apercu = { astre, titre }
-  }
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
-  const v = $derived(vitesseActuelle(etat))
-  const proposes = $derived(contratsProposes(etat, t))
   const cout = $derived(coutAmelioration(etat.ameliorations))
   const module = $derived(prochainModule(etat))
 
@@ -57,14 +41,10 @@
     refus = r.refus
     if (!r.refus) jeu.remplacer(r.etat, [message])
   }
-  const dureeVers = (astre: string) => {
-    const o = optionsDeDepart(etat.fusee, { type: 'astre', astre }, t, v)
-    return o.maintenant ? duree((o.maintenant.arrivee - t) / 1000) : '—'
-  }
+
 </script>
 
 <div class="office">
-  {#if apercu}<ApercuCarte astre={apercu.astre} titre={apercu.titre} fermer={() => (apercu = null)} />{/if}
 
   {#if onglet !== 'trophees'}
     <button class="caisse" onclick={() => (jeu.volet = 'portefeuille')}>
@@ -76,57 +56,7 @@
   {#if refus}<p class="refus" role="alert">{refus}</p>{/if}
 
   <div class="liste">
-    {#if onglet === 'contrats'}
-      {#if etat.contrats.length}
-        <h3>EN COURS ({etat.contrats.length}/{CONTRATS.maxEnCours}) <small class="sans-limite">· sans limite de temps</small></h3>
-        {#each etat.contrats as c}
-          <article class="contrat encours" role="presentation" onclick={(e) => montrer(e, c.destination, c.texte)}>
-            <span class="type">{c.type}</span>
-            <span class="texte">{c.texte}</span>
-            <div class="infos">
-              <span class="prime">{c.prime} CR</span>
-              <span class="chiffres">{ua(distance(etat.fusee.position, positionAstre(c.destination, t)))}</span>
-              <span class="boutons">
-                {#if etat.fusee.destination?.type === 'astre' && etat.fusee.destination.astre === c.destination}
-                  <!-- La fusée y va déjà. -->
-                  <span class="en-route">EN ROUTE</span>
-                {:else}
-                  <button class="petit" onclick={() => jeu.remplacer({ ...etat, fusee: choisirDestination(etat.fusee, destinationDuContrat(c)) }, [`NOUVEAU CAP : ${c.destination.toUpperCase()}.`])}>Y ALLER</button>
-                {/if}
-                <button class="petit clair" onclick={() => resultat(abandonnerContrat(etat, c.id), 'CONTRAT ABANDONNÉ.')}>ABANDONNER</button>
-              </span>
-            </div>
-          </article>
-        {/each}
-      {/if}
-      <h3>PROPOSÉS</h3>
-      {#each proposes as c}
-        <article class="contrat" role="presentation" onclick={(e) => montrer(e, c.destination, c.texte)}>
-          <span class="type">{c.type}</span>
-          <span class="texte">{c.texte}</span>
-          <div class="infos">
-            <span class="prime">{primeContrat(etat, c, t)} CR</span>
-            <span class="chiffres">{ua(distance(etat.fusee.position, positionAstre(c.destination, t)))} · {dureeVers(c.destination)}</span>
-            <span class="boutons">
-              <button class="petit" disabled={etat.contrats.length >= CONTRATS.maxEnCours}
-                onclick={() => resultat(accepterContrat(etat, c.id, t), `CONTRAT ACCEPTÉ : ${c.texte.toUpperCase()}`)}>ACCEPTER</button>
-            </span>
-          </div>
-        </article>
-      {:else}
-        <p class="vide">Plus de contrats cette semaine. Nouveaux contrats lundi.</p>
-      {/each}
-      {#if etat.contratsAccomplis?.length}
-        <h3>ACCOMPLIS ({etat.contratsAccomplis.length})</h3>
-        {#each etat.contratsAccomplis as c}
-          <article class="contrat accompli">
-            <span class="type">{c.type} · {dateLocale(c.t)}, {heureLocale(c.t)}</span>
-            <span class="texte">{c.texte}</span>
-            <div class="infos"><span class="prime">+{c.prime} CR</span><span class="paye">PAYÉ</span></div>
-          </article>
-        {/each}
-      {/if}
-    {:else if onglet === 'atelier'}
+    {#if onglet === 'atelier'}
       <h3>MOTEUR</h3>
       <article class="contrat">
         <span class="type">AMÉLIORATION N° {etat.ameliorations + 1}</span>
@@ -261,10 +191,7 @@
     flex-direction: column;
     gap: 6px;
   }
-  .contrat.encours {
-    border-color: var(--cerise);
-    box-shadow: 3px 3px 0 var(--cerise);
-  }
+
   .type {
     font-size: 11px;
     font-weight: 700;
@@ -312,35 +239,10 @@
     font-weight: 700;
     letter-spacing: 1.5px;
   }
-  .contrat.accompli {
-    opacity: 0.75;
-  }
-  .paye {
-    margin-left: auto;
-    padding: 0 8px;
-    border: 2.5px solid var(--cerise);
-    border-radius: 6px;
-    color: var(--cerise);
-    font-family: var(--police-titre);
-    font-size: 14px;
-    transform: rotate(-6deg);
-  }
-  .en-route {
-    display: inline-flex;
-    align-items: center;
-    min-height: 36px;
-    padding: 0 10px;
-    border-radius: 10px;
-    border: var(--trait) dashed var(--tole);
-    color: var(--tole);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-  }
-  .petit.clair {
-    background: var(--couleur-papier);
-    color: var(--couleur-encre);
-  }
+
+
+
+
   .petit:active {
     transform: translateY(2px);
     box-shadow: 0 1px 0 var(--couleur-encre);
@@ -402,10 +304,5 @@
   .vide {
     color: var(--couleur-encre-discrete);
   }
-  .sans-limite {
-    font-family: var(--police-texte);
-    font-size: 12px;
-    letter-spacing: 0;
-    color: var(--couleur-texte-discret);
-  }
+
 </style>

@@ -15,6 +15,7 @@ import {
 } from '../donnees/economie'
 import type { ContratEnCours, EtatPartie, OffreContrat } from './etat'
 import { tropheesDArrivee, verifierTropheesPaliers } from './trophees'
+import { releverCompteurs } from './classement'
 import { distance, lieuDArrivee, positionAstre, seuilArrivee, type Destination } from './fusee'
 import { choisirAuHasard, entierAuHasard, mulberry32 } from './hasard'
 
@@ -249,5 +250,5 @@ export function traiterArrivee(etat: EtatPartie, arrivee: Destination, t: number
 
 /** Records et trophées de palier et de collection (voir src/moteur/trophees.ts). */
 export function verifierTrophees(etat: EtatPartie): EtatPartie {
-  return verifierTropheesPaliers(etat)
+  return releverCompteurs(verifierTropheesPaliers(etat))
 }

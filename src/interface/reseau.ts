@@ -6,8 +6,9 @@ import type { Vecteur3 } from '../astro/vecteur'
 import { BOTS_ACTIFS, FLOTTE } from '../donnees/flotte'
 import type { EtatPartie } from '../moteur/etat'
 import { TELEGRAMMES } from '../donnees/reglages'
-import { debutPeriode, tropheesDepuis, type PeriodeClassement } from '../moteur/trophees'
-import { arriveesDesBots, botEnLigne, positionBot, reponsesDesBots, telegrammesDesBots, tropheesDuBot, trouvaillesDesBots, type Annonce } from '../moteur/flotte'
+import { debutPeriode, type PeriodeClassement } from '../moteur/trophees'
+import { compteursDepuis, points } from '../moteur/classement'
+import { arriveesDesBots, botEnLigne, positionBot, pointsDuBot, reponsesDesBots, telegrammesDesBots, trouvaillesDesBots, type Annonce } from '../moteur/flotte'
 import { arriveeEn, estDestinataire, estLu, systemeDuJoueur, telegrammesDe, telegrammesOffice, type TelegrammeRecu } from '../moteur/telegrammes'
 import { systemeDeLaFusee } from '../moteur/fusee'
 
@@ -91,17 +92,17 @@ export interface Classe {
   rang: number
   nom: string
   couleur: string | null
-  trophees: number
+  points: number
   moi: boolean
 }
 
-/** Classement des commissionnaires : trophées obtenus dans la semaine, le mois, ou en tout. */
+/** Classement des commissionnaires aux points gagnés dans la semaine, le mois, ou en tout. */
 export function classement(etat: EtatPartie, t: number, periode: PeriodeClassement = 'general'): Classe[] {
   const debut = debutPeriode(periode, t)
-  const duBot = (b: (typeof FLOTTE)[number]) => tropheesDuBot(b, t) - (Number.isFinite(debut) ? tropheesDuBot(b, debut) : 0)
+  const duBot = (b: (typeof FLOTTE)[number]) => pointsDuBot(b, t) - (Number.isFinite(debut) ? pointsDuBot(b, debut) : 0)
   const l = [
-    { nom: etat.nom || etat.serie, couleur: null, trophees: tropheesDepuis(etat, debut), moi: true },
-    ...(BOTS_ACTIFS ? FLOTTE.map((b) => ({ nom: b.nom, couleur: b.couleur, trophees: duBot(b), moi: false })) : []),
-  ].sort((a, b) => b.trophees - a.trophees || Number(b.moi) - Number(a.moi))
+    { nom: etat.nom || etat.serie, couleur: null, points: points(compteursDepuis(etat, debut)), moi: true },
+    ...(BOTS_ACTIFS ? FLOTTE.map((b) => ({ nom: b.nom, couleur: b.couleur, points: duBot(b), moi: false })) : []),
+  ].sort((a, b) => b.points - a.points || Number(b.moi) - Number(a.moi))
   return l.map((c, i) => ({ ...c, rang: i + 1 }))
 }

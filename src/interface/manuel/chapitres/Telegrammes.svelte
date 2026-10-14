@@ -13,7 +13,7 @@
 <Page {numero} chapitre="XVIII." titre="TÉLÉGRAMMES">
   <p>
     Le voyant TÉLÉGR., au centre de la barre du haut, s’allume quand un télégramme est arrivé (d’un commissionnaire ou
-    de l’Office). Le toucher ouvre SOCIAL, COMMUNICATION : l’écran des transmissions (le plus récent en haut) et le pupitre d’émission. Les messages
+    de l’Office). Le toucher ouvre SOCIAL, COMMUNICATION : l’écran des transmissions (le plus récent en bas) et le pupitre d’émission. Les messages
     de la fusée elle-même s’impriment au journal de bord, pas ici.
   </p>
   <h3>Rédaction</h3>

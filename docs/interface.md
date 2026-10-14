@@ -90,11 +90,13 @@ Amarrée à l'ISS, la fusée se dessine au port avant (PMA-2), le nez contre la 
 
 ## 10. Page SOCIAL (14/10/2026)
 L'onglet SOCIAL remplace CONTRATS ; trois sous-onglets :
-- **CLASSEMENT** : tableau des commissionnaires aux trophées obtenus dans la **semaine** (depuis lundi 00:00 UTC), le
-  **mois** (depuis le 1er), ou en **général** ; puis la liste des connectés et où ils sont.
-- **CONTRATS** : la caisse, les contrats en cours (sans limite de temps), proposés, accomplis.
+- **CLASSEMENT** : vos points de la période (rang, écart avec le suivant, détail ligne par ligne du barème), le
+  tableau aux points de la **semaine**, du **mois** ou **général**, puis la liste des connectés et où ils sont.
+- **CONTRATS** : résumé (en cours, primes à toucher, caisse), puis des fiches identiques — genre de mission,
+  destination en gros, prime en gros, distance et durée du voyage, un seul bouton (Y ALLER / ACCEPTER) ; proposés
+  du plus proche au plus lointain ; accomplis repliés.
 - **COMMUNICATION** (ouvert par défaut) : l'écran des transmissions, vert phosphore, une ligne par message
-  (télégrammes reçus et envoyés, bulletins de la flotte en jaune), et le pupitre d'émission (touches SYSTÈME, UN
+  (télégrammes reçus et envoyés, bulletins de la flotte en jaune ; le plus récent en bas), et le pupitre d'émission (touches SYSTÈME, UN
   JOUEUR, TOUS ; phrases toutes faites ; ligne de saisie ; ÉMETTRE ; timbres du quota).
 Le voyant TÉLÉGR. ouvre COMMUNICATION ; la carte MISSION du cockpit ouvre CONTRATS ; la carte LIAISON, CLASSEMENT.
 Les trophées gardent leur date d'obtention (`tropheesQuand`) pour les classements par période.
