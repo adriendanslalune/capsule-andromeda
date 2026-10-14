@@ -1,5 +1,5 @@
 // Modèles 3D fabriqués à partir de formes et de textures peintes à la volée (aucun fichier à charger).
-// Unités : kilomètres (la fusée mesure 30 m, l'ISS 109 m d'envergure, la soucoupe 20 m).
+// Unités : kilomètres (la fusée mesure 30 m, la soucoupe 20 m ; l'ISS et les autres engins sont dans engins.ts).
 // Axe de la fusée : +X (le nez). Style « pulp des années 50 » : carrosserie crème et rouge cerise, chrome, laiton.
 
 import * as THREE from 'three'
@@ -130,57 +130,6 @@ function textureAileron(): THREE.CanvasTexture {
   for (let x = 20; x < 512; x += 26) { g.beginPath(); g.arc(x, 470, 3, 0, Math.PI * 2); g.fill() }
   salir(g, 512, 512, 0.08, 3)
   return texture(c)
-}
-
-/** Tôle matelassée blanche des modules de l'ISS (couverture isolante). */
-function textureMatelassee(): THREE.CanvasTexture {
-  const [c, g] = toile(512, 512)
-  g.fillStyle = '#e9e7e1'
-  g.fillRect(0, 0, 512, 512)
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      const d = g.createRadialGradient(i * 64 + 32, j * 64 + 32, 4, i * 64 + 32, j * 64 + 32, 46)
-      d.addColorStop(0, 'rgba(255,255,255,0.6)')
-      d.addColorStop(1, 'rgba(120,115,105,0.35)')
-      g.fillStyle = d
-      g.fillRect(i * 64 + 1, j * 64 + 1, 62, 62)
-    }
-  }
-  salir(g, 512, 512, 0.05, 11)
-  const t = texture(c, true)
-  t.repeat.set(4, 2)
-  return t
-}
-
-/** Panneau solaire : cellules bleu nuit dans une grille dorée. */
-function texturePanneau(): THREE.CanvasTexture {
-  const [c, g] = toile(256, 1024)
-  g.fillStyle = '#b8892e'
-  g.fillRect(0, 0, 256, 1024)
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 40; j++) {
-      const d = g.createLinearGradient(0, j * 25.6, 0, j * 25.6 + 24)
-      d.addColorStop(0, '#2d4f8f')
-      d.addColorStop(1, '#16274f')
-      g.fillStyle = d
-      g.fillRect(i * 32 + 2, j * 25.6 + 2, 28, 21.6)
-    }
-  }
-  return texture(c)
-}
-
-/** Treillis de la poutre de l'ISS (transparent entre les barres). */
-function textureTreillis(): THREE.CanvasTexture {
-  const [c, g] = toile(512, 64)
-  g.strokeStyle = '#d7d4cc'
-  g.lineWidth = 5
-  g.strokeRect(2, 2, 508, 60)
-  for (let x = 0; x < 512; x += 64) {
-    g.beginPath(); g.moveTo(x, 2); g.lineTo(x + 64, 62); g.moveTo(x, 62); g.lineTo(x, 2); g.stroke()
-  }
-  const t = texture(c, true)
-  t.repeat.set(6, 1)
-  return t
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -321,69 +270,6 @@ export function modeleFusee(): THREE.Group {
   panache.position.x = -0.65 * L
   flamme.add(coeur, panache)
   g.add(flamme)
-  return g
-}
-
-// ---------------------------------------------------------------------------------------------------------------
-// L'ISS
-
-/** La Station spatiale internationale : modules matelassés, poutre en treillis, 8 ailes solaires, radiateurs. */
-export function modeleISS(): THREE.Group {
-  const g = new THREE.Group()
-  const matelasse = peint({ map: textureMatelassee(), roughness: 0.75, metalness: 0.05 })
-  const metal = new THREE.MeshStandardMaterial({ color: 0xb9b6ae, metalness: 0.7, roughness: 0.4 })
-
-  // Poutre principale (109 m), en treillis, avec un caisson plein au centre.
-  const treillis = new THREE.MeshStandardMaterial({ map: textureTreillis(), alphaTest: 0.5, transparent: false, side: THREE.DoubleSide, metalness: 0.6, roughness: 0.4 })
-  const poutre = new THREE.Mesh(new THREE.BoxGeometry(0.109, 0.0045, 0.0045), treillis)
-  g.add(poutre)
-  const caisson = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.004, 0.004), metal)
-  g.add(caisson)
-
-  // Modules pressurisés, en enfilade perpendiculaire à la poutre (Zvezda, Zarya, Unity, Destiny, Harmony).
-  const modules: [number, number, number][] = [[-0.036, 0.0021, 0.013], [-0.022, 0.0021, 0.013], [-0.01, 0.0023, 0.007], [0.002, 0.0022, 0.0085], [0.014, 0.0022, 0.007]]
-  for (const [z, r, l] of modules) {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l, 32), matelasse)
-    m.rotation.x = Math.PI / 2
-    m.position.set(0, -0.0045, z + l / 2)
-    g.add(m)
-    const anneau = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.00012, 6, 32), metal)
-    anneau.position.set(0, -0.0045, z)
-    g.add(anneau)
-  }
-  // Modules latéraux (Columbus, Kibo).
-  for (const cote of [-1, 1]) {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, cote > 0 ? 0.011 : 0.007, 32), matelasse)
-    m.rotation.z = Math.PI / 2
-    m.position.set(cote * 0.007, -0.0045, 0.02)
-    g.add(m)
-  }
-
-  // Ailes solaires : 4 paires aux extrémités de la poutre.
-  const panneau = new THREE.MeshStandardMaterial({ map: texturePanneau(), metalness: 0.45, roughness: 0.32, side: THREE.DoubleSide })
-  const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.00012, 0.00012, 0.073, 6), metal)
-  for (const x of [-0.05, -0.036, 0.036, 0.05]) {
-    for (const z of [-1, 1]) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(0.0115, 0.034), panneau)
-      p.rotation.x = Math.PI / 2
-      p.position.set(x, 0, z * 0.0195)
-      g.add(p)
-    }
-    const m = mat.clone()
-    m.rotation.x = Math.PI / 2
-    m.position.set(x, 0, 0)
-    g.add(m)
-  }
-  // Radiateurs blancs, en accordéon.
-  const radiateur = new THREE.MeshStandardMaterial({ color: 0xf4f2ec, roughness: 0.6, side: THREE.DoubleSide })
-  for (const x of [-0.016, 0.016]) {
-    for (let k = 0; k < 3; k++) {
-      const r = new THREE.Mesh(new THREE.PlaneGeometry(0.0035, 0.022), radiateur)
-      r.position.set(x + (k - 1) * 0.0036, 0.013, 0)
-      r.rotation.y = k % 2 ? 0.25 : -0.25
-      g.add(r)
-    }
-  }
   return g
 }
 

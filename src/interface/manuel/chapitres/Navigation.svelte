@@ -30,6 +30,7 @@
     La Terre se rejoint par l’ISS : choisir la Terre mène à la station, où la fusée s’amarre à
     {Math.round(AMARRAGE_ISS_KM * 1000)} m du module d’amarrage. Les contrats pour la Terre se remplissent à l’amarrage.
   </p>
+  <p class="discret">Sur la carte, les losanges blancs sont des engins : Hubble, James Webb, Voyager 1 et 2.</p>
   <h3>Approche du Soleil</h3>
   <p>
     À moins de 0,6 UA du Soleil (entre Vénus et Mercure), la lumière éblouit peu à peu le hublot et la vue extérieure. Le bouton FILTRE (au

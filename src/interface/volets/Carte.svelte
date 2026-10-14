@@ -28,6 +28,7 @@
   import { dateLocale, duree, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { autresFusees } from '../reseau'
+  import { positionsEngins } from '../../astro/engins'
 
   /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
   const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
@@ -288,6 +289,9 @@
     })
   })
 
+  /** Engins humains (Hubble, Webb, Voyager) à l'écran. */
+  const engins = $derived(positionsEngins(tl).map((e) => ({ nom: e.nom, s: ecran(e.position) })).filter((e) => e.s.x > -10 && e.s.x < L + 10 && e.s.y > -10 && e.s.y < Hc + 10))
+
   const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
 </script>
@@ -333,6 +337,10 @@
       {/each}
     {/if}
 
+    {#each engins as e}
+      <path d={`M ${e.s.x} ${e.s.y - 4} L ${e.s.x + 4} ${e.s.y} L ${e.s.x} ${e.s.y + 4} L ${e.s.x - 4} ${e.s.y} Z`} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.3" />
+      <text x={e.s.x + 7} y={e.s.y + 4} font-size="9.5" font-family="var(--police-machine)" fill={PLAN.trait} opacity=".9">{e.nom.toUpperCase()}</text>
+    {/each}
     {#each autres as a}
       {#if a.visible}
         <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.fond} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />

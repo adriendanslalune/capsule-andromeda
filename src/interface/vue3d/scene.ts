@@ -20,7 +20,9 @@ import { mulberry32 } from '../../moteur/hasard'
 import { CHASSE } from '../../donnees/chasse'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { autresFusees } from '../reseau'
-import { modeleFusee, modeleISS, modeleSoucoupe, refleter } from './modeles'
+import { positionsEngins } from '../../astro/engins'
+import { modeleHubble, modeleISSFidele, modeleVoyager, modeleWebb } from './engins'
+import { modeleFusee, modeleSoucoupe, refleter } from './modeles'
 
 const COULEURS: Record<string, number> = {
   Mercure: 0xcfc6b6, Vénus: 0xefdfae, Terre: 0x7fa4cf, Mars: 0xe07a5c,
@@ -71,7 +73,7 @@ export class Vue3D {
   private scene = new THREE.Scene()
   private camera: THREE.PerspectiveCamera
   private fusee = modeleFusee()
-  private iss = modeleISS()
+  private iss = modeleISSFidele()
   private soucoupe = modeleSoucoupe()
   private lueurVisiteur: THREE.Points
   private soleil: THREE.PointLight
@@ -81,6 +83,8 @@ export class Vue3D {
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
   private hauteur = 1
+  /** Engins humains (Hubble, Webb, Voyager) : point lumineux de loin, modèle de près. */
+  private engins = new Map<string, { point: THREE.Points; modele: THREE.Group | null; ecran: THREE.Vector3 }>()
   /** Filtre solaire demandé (bouton) ; l'effet suit en douceur (0 : sans filtre, 1 : filtre en place). */
   filtreSolaire = false
   private filtre = 0
@@ -252,9 +256,11 @@ export class Vue3D {
     const o = f.orbite ? positionCorps(f.orbite, t) : { ...f.position, z: f.z ?? 0 }
     const base = { x: o.x * UA_KM, y: o.y * UA_KM, z: o.z * UA_KM }
     if (f.presDuVisiteur) return { ...base, x: base.x + CHASSE.distanceApprocheKm }
+    // Amarrée à l'ISS : au port avant (PMA-2), au bout de l'enfilade des modules, nez contre le port.
+    // (Axes du modèle de l'ISS : +Z de three.js, soit -y de l'écliptique ; modules 4,6 m sous la poutre.)
+    if (f.orbite === 'ISS') return { x: base.x, y: base.y - 0.0286, z: base.z - 0.0046 }
     // En orbite, là où la fusée est arrivée (à sa vraie distance de l'astre).
     if (f.orbite && f.ecartOrbite) return { x: base.x + f.ecartOrbite.x * UA_KM, y: base.y + f.ecartOrbite.y * UA_KM, z: base.z + f.ecartOrbite.z * UA_KM }
-    if (f.orbite === 'ISS') return { x: base.x + 0.03, y: base.y, z: base.z - 0.05 } // à quelques dizaines de mètres, sous l'ISS
     if (f.orbite) return { ...base, x: base.x + rayon(f.orbite) * 1.6 + 300 }
     return base
   }
@@ -297,7 +303,8 @@ export class Vue3D {
     this.iss.position.copy(iss)
 
     // Fusée au centre, orientée selon son cap ; flamme quand le moteur pousse.
-    this.fusee.rotation.y = (etat.fusee.cap * Math.PI) / 180
+    // Amarrée à l'ISS, le nez tourné vers la station ; sinon, selon son cap.
+    this.fusee.rotation.y = etat.fusee.orbite === 'ISS' ? Math.PI / 2 : (etat.fusee.cap * Math.PI) / 180
     const pousse = etat.fusee.destination !== null && !enAttenteDeFenetre(etat.fusee) && etat.modules.propulsion.levierAHaut
       && !etat.fusee.moteurCoupe && (etat.fusee.vitesseCourante ?? 1) > 0
     const flamme = this.fusee.getObjectByName('flamme')!
@@ -306,6 +313,29 @@ export class Vue3D {
     this.fusee.getObjectByName('foyer')!.visible = pousse
     // Feu de position clignotant au bout de l'antenne.
     this.fusee.getObjectByName('feu')!.visible = Math.floor(horloge / 600) % 2 === 0
+
+    // Engins humains : un point jusqu'à 3 millions de km, leur nom jusqu'à 300 000 km, le modèle à moins de 50 km.
+    for (const e of positionsEngins(t)) {
+      let o = this.engins.get(e.nom)
+      if (!o) {
+        o = { point: this.point(0xdfe8ff, 3), modele: null, ecran: new THREE.Vector3() }
+        this.scene.add(o.point)
+        this.engins.set(e.nom, o)
+      }
+      const pe = relatif(enKm(e.position))
+      const d = pe.length()
+      o.ecran.copy(pe)
+      o.point.position.copy(pe)
+      o.point.visible = d > 0.2 && d < AUTRES.pointKm
+      if (d < 50 && !o.modele) {
+        o.modele = e.nom === 'Hubble' ? modeleHubble() : e.nom === 'James Webb' ? modeleWebb() : modeleVoyager()
+        this.scene.add(o.modele)
+      }
+      if (o.modele) {
+        o.modele.visible = d < 50
+        o.modele.position.copy(pe)
+      }
+    }
 
     // Les autres fusées.
     const vues = new Set<string>()
@@ -438,6 +468,11 @@ export class Vue3D {
       if (e) this.etiquettes.push({ nom, ...e, cible: nom === cibleNom })
     }
     if (this.iss.visible) { const e = projeter(iss); if (e) this.etiquettes.push({ nom: 'ISS', ...e, cible: cibleNom === 'ISS' }) }
+    for (const [nom, o] of this.engins) {
+      if (!(o.point.visible || o.modele?.visible) || o.ecran.length() > AUTRES.nomKm) continue
+      const e = projeter(o.ecran)
+      if (e && this.etiquettes.every((x) => Math.abs(x.x - e.x) > 70 || Math.abs(x.y - e.y) > 15)) this.etiquettes.push({ nom, ...e, cible: false })
+    }
     for (const o of this.autres.values()) {
       if (!o.point.visible || o.ecran.length() > AUTRES.nomKm) continue
       const e = projeter(o.ecran)

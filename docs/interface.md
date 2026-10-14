@@ -78,3 +78,9 @@ trouvaille à moins de 300 m.
 Volet « TÉLÉGRAMMES » : formulaire (destinataires MON SYSTÈME / UN JOUEUR / TOUT LE SYSTÈME, phrases toutes faites,
 texte libre, timbres du quota), puis le fil des télégrammes reçus et envoyés, le plus récent en haut ; chaque reçu
 porte l'émetteur (fanion à sa couleur), le lieu d'émission et la durée du trajet de la lumière. Règles : regles.md §8.
+
+## 9. Engins humains
+Hubble (orbite basse), James Webb (halo autour de L2), Voyager 1 et 2 (aux confins), à leur place
+(`src/donnees/engins.ts`, `src/astro/engins.ts`) : losanges blancs sur la carte ; dans la vue 3D, point lumineux jusqu'à
+3 millions de km, nom jusqu'à 300 000 km, modèle fidèle à moins de 50 km (`src/interface/vue3d/engins.ts`, avec l'ISS).
+Amarrée à l'ISS, la fusée se dessine au port avant (PMA-2), le nez contre la station.
