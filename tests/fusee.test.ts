@@ -103,7 +103,26 @@ describe('départ', () => {
 })
 
 describe('manœuvre de départ d’une orbite', () => {
-  it('la fusée recule lentement 5 s, tourne vers sa destination à 8°/s au plus, puis accélère en douceur sur 30 s', () => {
+  it('en quittant l’ISS, on la voit s’éloigner doucement : la fusée suit la station pendant la manœuvre', () => {
+    const iss = positionAstre('ISS', T0)
+    let f: EtatFusee = { ...creerFusee(T0), suit: undefined, orbite: 'ISS', position: iss, ecartOrbite: { x: 0.1 / UA_KM, y: 0, z: 0 } }
+    f = choisirDestination(f, { type: 'astre', astre: 'Lune' })
+    let t = T0
+    const km: number[] = []
+    for (let s = 1; s <= 40; s++) {
+      t += 1000
+      f = avancerFusee(f, t, 1, 30).fusee
+      const i = positionAstre('ISS', t)
+      km.push(Math.hypot(f.position.x - i.x, f.position.y - i.y) * UA_KM)
+    }
+    expect(km[4]).toBeLessThan(0.5) // après le recul : à quelques centaines de mètres
+    // Puis l'accélération douce, toujours en suivant l'ISS : 10 s plus tard, à une vingtaine de km au plus (puis son point lumineux reste visible).
+    const debut = km.findIndex((k, i) => i > 4 && k > 0.5)
+    expect(km[debut + 10]).toBeLessThan(25)
+    expect(km[debut + 10]).toBeGreaterThan(2)
+  })
+
+  it('la fusée recule lentement 5 s, tourne vers sa destination à 8°/s au plus, puis accélère en douceur sur 45 s', () => {
     // En orbite autour de la Terre, le nez vers l'ISS ; destination : Jupiter, dans une autre direction.
     let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Jupiter' })
     const cap0 = f.cap
@@ -123,10 +142,10 @@ describe('manœuvre de départ d’une orbite', () => {
     const debutAcceleration = pas.findIndex((p) => p.phase === 'acceleration')
     expect(debutAcceleration).toBeGreaterThan(4)
     expect(pas[debutAcceleration - 1].v).toBe(0)
-    // Accélération douce : lente au début (moins de 1 km/s après 5 s), la croisière au bout de 30 s.
+    // Accélération douce : lente au début (moins de 1 km/s après 5 s), la croisière au bout de 45 s.
     expect(pas[debutAcceleration + 4].v).toBeLessThan(1)
-    expect(pas[debutAcceleration + 31].v).toBe(30)
-    expect(pas[debutAcceleration + 31].phase).toBeNull()
+    expect(pas[debutAcceleration + 46].v).toBe(30)
+    expect(pas[debutAcceleration + 46].phase).toBeNull()
   })
 })
 

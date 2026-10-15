@@ -22,6 +22,12 @@ export const DUREE_ACCELERATION = 20
  */
 export const DEPART_AU_DESSUS_ISS_KM = 1500
 
+/**
+ * Altitude de sécurité (km) au-dessus de certains astres : la fusée ne descend jamais plus bas, sauf pour rejoindre
+ * une destination plus basse (décision d'Adrien du 15/10/2026 : jamais à moins de 400 km de la Terre).
+ */
+export const ALTITUDE_SECURITE_KM: Readonly<Record<string, number>> = { Terre: 400 }
+
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4
 
@@ -36,8 +42,8 @@ export const MANOEUVRE_DEPART = {
   reculKmS: 0.02,
   /** Virage : au plus cette durée (s), puis l'accélération commence quoi qu'il arrive. */
   virageMaxS: 40,
-  /** Accélération douce jusqu'à la croisière (s). */
-  accelerationS: 30,
+  /** Accélération douce jusqu’à la croisière (s). */
+  accelerationS: 45,
   /** Estimation du virage, pour le temps restant (s). */
   virageEstimeS: 10,
 } as const
@@ -76,13 +82,11 @@ export const PANNES = {
    */
   delaiTutoriel: 18,
   /**
-   * Ensuite, environ une par voyage : elle est programmée entre 25 % et 85 % du temps de trajet restant (compté sur
-   * 24 h au plus pour les longs voyages), jamais moins de 60 s après le départ ou la réparation.
+   * Ensuite, une avarie tous les X km parcourus (demande d'Adrien du 15/10/2026) : la prochaine survient après une
+   * distance tirée entre ces bornes (km), comptée depuis la dernière réparation. Valeurs proposées par Claude.
    */
-  fractionMin: 0.25,
-  fractionMax: 0.85,
-  horizonHeures: 24,
-  delaiMin: 60,
+  kmMin: 1_500_000,
+  kmMax: 4_500_000,
   /** Au plus 3 avaries par 24 heures glissantes (hors tutoriel). */
   maxParJour: 3,
   /** Taille maximale d'une cascade selon les améliorations : < 8 → 1 ; < 20 → 2 ; < 35 → 3 ; sinon 4. */

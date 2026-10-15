@@ -56,24 +56,32 @@ describe('tutoriel des pannes', () => {
     expect(e.stats.pannes).toBe(5)
   })
 
-  it('après le tutoriel, en voyage : entre 25 % et 85 % du trajet restant (24 h au plus), au moins 60 s plus tard', () => {
-    const delais: number[] = []
+  it('après le tutoriel : une avarie tous les 1,5 à 4,5 millions de km parcourus', () => {
+    const ecarts: number[] = []
     for (let graine = 1; graine <= 20; graine++) {
       const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0, graine)
-      p.attendre(1) // programme la prochaine avarie
-      delais.push((p.etat.pannes.prochaine! - p.t) / 1000)
+      p.attendre(1) // tire la distance de la prochaine avarie
+      ecarts.push(p.etat.pannes.prochaineKm! - p.etat.fusee.distanceParcourue)
     }
-    expect(Math.min(...delais)).toBeGreaterThanOrEqual(0.25 * 86_400 - 2)
-    expect(Math.max(...delais)).toBeLessThanOrEqual(0.85 * 86_400 + 2)
+    expect(Math.min(...ecarts)).toBeGreaterThanOrEqual(1_500_000 - 100)
+    expect(Math.max(...ecarts)).toBeLessThanOrEqual(4_500_000)
+    expect(Math.max(...ecarts) - Math.min(...ecarts)).toBeGreaterThan(1_000_000)
+    // Elle survient quand le compteur l'atteint.
+    const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0, 1)
+    p.attendre(1)
+    const vise = p.etat.pannes.prochaineKm!
+    const juste = new Pilote({ ...p.etat, fusee: { ...p.etat.fusee, distanceParcourue: vise - 0.05 } }, p.t) // 50 m avant (la fusée recule à 20 m/s)
+    juste.attendre(1)
+    expect(modulesEnPanne(juste.m)).toEqual([])
+    juste.attendre(10)
+    expect(modulesEnPanne(juste.m).length).toBeGreaterThan(0)
   })
 
-  it('en orbite ou moteur coupé : l’avarie programmée est oubliée', () => {
-    const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0)
-    p.attendre(1)
-    expect(p.etat.pannes.prochaine).not.toBeNull()
-    const arret = new Pilote({ ...p.etat, fusee: { ...p.etat.fusee, destination: null } }, p.t)
-    arret.attendre(1)
-    expect(arret.etat.pannes.prochaine).toBeNull()
+  it('en orbite : aucune avarie, même si le compteur a dépassé la distance prévue', () => {
+    const e = apresTutoriel('KE4-70B', [])
+    const p = new Pilote({ ...e, pannes: { ...e.pannes, prochaineKm: 0 } }, T0)
+    p.attendre(600, 10)
+    expect(modulesEnPanne(p.m)).toEqual([])
   })
 
   it('pas plus de 3 avaries par 24 heures', () => {
@@ -234,14 +242,13 @@ describe('long vol : tous les modules installés, cascades jusqu’à 4', () => 
 describe('agir', () => {
   it('une action sans effet ne change rien', () => {
     const base = enVoyage(apresTutoriel())
-    const e = { ...base, pannes: { ...base.pannes, prochaine: T0 + 100_000 } } // avarie déjà programmée
+    const e = { ...base, pannes: { ...base.pannes, prochaineKm: 1e12 } } // avarie déjà programmée
     const r = agir(e, T0, mulberry32(1), (m) => ({ modules: m, evenements: [] }))
     expect(r.etat).toEqual(e)
   })
 
-  it('en voyage, un geste qui répare tout programme aussitôt la prochaine avarie ; en orbite, rien', () => {
+  it('un geste qui répare tout tire aussitôt la distance de la prochaine avarie', () => {
     const r = agir(enVoyage(apresTutoriel()), T0, mulberry32(1), (m) => ({ modules: m, evenements: [] }))
-    expect(r.etat.pannes.prochaine).toBeGreaterThanOrEqual(T0 + 60_000)
-    expect(agir(apresTutoriel(), T0, mulberry32(1), (m) => ({ modules: m, evenements: [] })).etat.pannes.prochaine).toBeNull()
+    expect(r.etat.pannes.prochaineKm).toBeGreaterThanOrEqual(1_500_000)
   })
 })

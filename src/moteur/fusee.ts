@@ -27,6 +27,7 @@ import {
   SEUIL_ARRIVEE_SOLEIL,
   TAUX_VIRAGE,
   TAUX_VIRAGE_DEPART,
+  ALTITUDE_SECURITE_KM,
   DEPART_AU_DESSUS_ISS_KM,
   MANOEUVRE_DEPART,
   VITESSE_BASE,
@@ -550,6 +551,19 @@ function routeTraverse(a: Vecteur3, b: Vecteur3, c: Vecteur3, r: number): boolea
 }
 
 /** Hauteur corrigée pour que le point (p, z) reste hors de la sphère de sécurité de chaque astre proche. */
+/**
+ * Rayon de sécurité d'un astre (UA) : 2 % de plus que son rayon, ou son altitude de sécurité (400 km pour la Terre),
+ * abaissé à 5 km sous la destination si elle vole plus bas (Tiangong, sous les 400 km).
+ */
+function rayonSecurite(nom: NomCorps, r: number, dest: Destination, t: number): number {
+  const base = enUA(Math.max(r * MARGE_ASTRE_3D, r + (ALTITUDE_SECURITE_KM[nom] ?? 0)))
+  if (dest.type !== 'astre') return base
+  const c = positionCorps(nom, t)
+  const d = positionCorps(dest.astre, t)
+  const dDest = Math.hypot(d.x - c.x, d.y - c.y, d.z - c.z)
+  return dDest < base ? Math.max(enUA(r * MARGE_ASTRE_3D), dDest - enUA(5)) : base
+}
+
 function horsDesAstres(p: Point2, z: number, dest: Destination, t: number): number {
   const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
   const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
@@ -558,7 +572,7 @@ function horsDesAstres(p: Point2, z: number, dest: Destination, t: number): numb
     if (dest.type === 'astre' && nom === dest.astre) continue
     const r = rayonCorps(nom)
     if (!r) continue
-    const r3 = enUA(r) * MARGE_ASTRE_3D
+    const r3 = rayonSecurite(nom, r, dest, t)
     const c = positionCorps(nom, t)
     const d2 = Math.hypot(p.x - c.x, p.y - c.y)
     if (d2 >= r3) continue
@@ -587,7 +601,7 @@ export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number,
     const centre = { x: c3.x, y: c3.y }
     const rayon = enUA(r) * MARGE_ASTRE
     if (hauteurs) {
-      const r3 = enUA(r) * MARGE_ASTRE_3D
+      const r3 = rayonSecurite(nom, r, dest, t)
       const b = { x: vise.x, y: vise.y, z: hauteurs.zVise }
       // Cible dans l'astre lui-même (point libre) : on ne peut que s'en approcher.
       if (Math.hypot(b.x - c3.x, b.y - c3.y, b.z - c3.z) < r3) continue
@@ -708,7 +722,10 @@ function avancerAvecRampe(fusee: EtatFusee, t: number, dt: number, croisiere: nu
       moyenne = (croisiere * (parcoursAcceleration(ph.duree + dt) - parcoursAcceleration(ph.duree))) / dt
       fin = croisiere * Math.min(1, ((ph.duree + dt) / M.accelerationS) ** 2)
     }
-    const r = avancerUnPas(fusee, t, dt, croisiere, moyenne, ph.phase)
+    // Pendant toute la manœuvre (recul, virage, accélération), la fusée reste entraînée par le lieu quitté : on le
+    // voit s'éloigner peu à peu (l'ISS file à 7,7 km/s autour de la Terre). Ensuite, seul compte le repère.
+    const lien = 1
+    const r = avancerUnPas(fusee, t, dt, croisiere, moyenne, ph.phase, lien)
     const enRoute = r.fusee.destination !== null && r.fusee.orbite === null
     return { ...r, fusee: { ...r.fusee, moteurCoupe: fusee.moteurCoupe, vitesseCourante: enRoute ? fin : 0 } }
   }
@@ -726,7 +743,7 @@ function avancerAvecRampe(fusee: EtatFusee, t: number, dt: number, croisiere: nu
  * à laquelle la fusée avance pendant ce pas (rampe d'accélération ou de freinage).
  */
 function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number, vitesseMoyenne = vitesseKmS,
-  phase: PhaseDepart = null): ResultatPas {
+  phase: PhaseDepart = null, lienOrigine = 0): ResultatPas {
   const dest = fusee.destination
   if (!dest) {
     // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
@@ -776,6 +793,14 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   if (quitte && fusee.ecartOrbite) {
     const o = positionAstre(quitte, t)
     entrainee = { x: o.x + fusee.ecartOrbite.x, y: o.y + fusee.ecartOrbite.y }
+  } else if (lienOrigine > 0 && fusee.trajet?.origine) {
+    // Manœuvre de départ : la fusée suit encore le mouvement du lieu quitté (au lieu de celui du repère).
+    const o = fusee.trajet.origine
+    const a = positionAstre(o, t - dt * 1000), b = positionAstre(o, t)
+    entrainee = {
+      x: entrainee.x + lienOrigine * (b.x - a.x - (c.x - cAvant.x)),
+      y: entrainee.y + lienOrigine * (b.y - a.y - (c.y - cAvant.y)),
+    }
   }
   // Nouveau trajet : au départ d'une orbite, ou quand la destination change en vol.
   const vers = JSON.stringify(dest)

@@ -39,6 +39,8 @@ export interface EtatPannes {
   fautes: string[]
   /** Instants des dernières avaries (hors tutoriel), pour n'en avoir que 3 par 24 h ; absent des anciennes parties. */
   recentes?: number[]
+  /** Compteur de route (km) auquel survient la prochaine avarie (hors tutoriel), ou null : à tirer. */
+  prochaineKm?: number | null
 }
 
 /** Nombre de pannes scénarisées du tutoriel. */
@@ -123,6 +125,7 @@ export function declencherPanne(etat: EtatPartie, t: number, hasard: Hasard): Et
     pannes: {
       ...p,
       prochaine: null,
+      prochaineKm: null,
       recentes: [...(p.recentes ?? []).filter((x) => x > t - 86_400_000), t],
       cascade: n > 1 ? { modules: choisis, faits: [], total: 0 } : null,
       fautes: p.fautes.filter((c) => !choisis.includes(c)),
@@ -155,28 +158,32 @@ function rechuteEnAttente(etat: EtatPartie): boolean {
 
 /**
  * Programme et déclenche les avaries, en voyage seulement. `reste` : temps de trajet restant (s), ou null si la
- * fusée ne voyage pas (en orbite, à l'arrêt, moteur coupé, en attente d'une fenêtre) : alors aucune avarie, et celle
- * qui était programmée est oubliée. En voyage, quand tout est réparé : pendant le tutoriel, la panne scénarisée du
- * voyage 18 s plus tard (une par contrat du tutoriel) ; ensuite, entre 25 % et 85 % du trajet restant (24 h au plus),
- * au moins 60 s plus tard, et pas plus de 3 par 24 h.
+ * fusée ne voyage pas (en orbite, à l'arrêt, moteur coupé, en attente d'une fenêtre) : alors aucune avarie. Pendant
+ * le tutoriel, la panne scénarisée du voyage survient 18 s après le départ (une par contrat du tutoriel). Ensuite,
+ * une avarie tous les 1,5 à 4,5 millions de km parcourus (comptés depuis la dernière réparation), 3 au plus par 24 h.
  */
 export function planifierPannes(etat: EtatPartie, t: number, hasard: Hasard, reste: number | null): EtatPartie {
   if (modulesEnPanne(etat.modules).length > 0 || rechuteEnAttente(etat)) return etat
   const p = etat.pannes
-  if (reste === null) return p.prochaine === null ? etat : { ...etat, pannes: { ...p, prochaine: null } }
-  if (p.prochaine === null) {
-    if (p.tutoriel < PANNES_TUTORIEL) {
+  const km = etat.fusee.distanceParcourue
+  if (p.tutoriel < PANNES_TUTORIEL) {
+    if (reste === null) return p.prochaine === null ? etat : { ...etat, pannes: { ...p, prochaine: null } }
+    if (p.prochaine === null) {
       // Une panne du tutoriel par voyage : la n-ième pendant le voyage du n-ième contrat du tutoriel.
       if (p.tutoriel > contratsTutorielFaits(etat)) return etat
       return { ...etat, pannes: { ...p, prochaine: t + PANNES.delaiTutoriel * 1000 } }
     }
-    let delai = Math.max(PANNES.delaiMin, (PANNES.fractionMin + hasard() * (PANNES.fractionMax - PANNES.fractionMin))
-      * Math.min(reste, PANNES.horizonHeures * 3600))
-    const recentes = (p.recentes ?? []).filter((x) => x > t - 86_400_000)
-    if (recentes.length >= PANNES.maxParJour) delai = Math.max(delai, (recentes[0] + 86_400_000 - t) / 1000)
-    return { ...etat, pannes: { ...p, prochaine: t + delai * 1000 } }
+    return t >= p.prochaine ? declencherPanne(etat, t, hasard) : etat
   }
-  return t >= p.prochaine ? declencherPanne(etat, t, hasard) : etat
+  // La distance de la prochaine avarie se tire dès que tout est réparé.
+  if (p.prochaineKm === undefined || p.prochaineKm === null) {
+    const prochaineKm = km + PANNES.kmMin + hasard() * (PANNES.kmMax - PANNES.kmMin)
+    return { ...etat, pannes: { ...p, prochaine: null, prochaineKm } }
+  }
+  if (reste === null || km < p.prochaineKm) return etat
+  const recentes = (p.recentes ?? []).filter((x) => x > t - 86_400_000)
+  if (recentes.length >= PANNES.maxParJour) return etat
+  return declencherPanne(etat, t, hasard)
 }
 
 /** Résultat du traitement des événements : messages pour le téléscripteur. */

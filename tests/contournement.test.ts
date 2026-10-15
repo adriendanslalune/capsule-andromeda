@@ -95,25 +95,28 @@ describe('Contournement des astres', () => {
 })
 
 describe('Vers les engins qui frôlent la Terre', () => {
-  it('de la Lune vers l’ISS, Hubble ou Tiangong, à toute heure : jamais à travers la Terre (en 3D)', () => {
+  it('de la Lune vers l’ISS, Hubble ou Tiangong, à toute heure : jamais sous 400 km d’altitude (ni sous la cible)', () => {
     const pires: string[] = []
     for (let h = 0; h < 48; h += 9) {
       for (const cible of ['ISS', 'Hubble', 'Tiangong']) {
         const t0 = Date.UTC(2026, 9, 14) + h * 3_600_000
         const lune = positionCorps('Lune', t0)
-        let f: EtatFusee = { ...creerFusee(t0), position: { x: lune.x, y: lune.y }, orbite: 'Lune', destination: { type: 'astre', astre: cible } }
+        let f: EtatFusee = { ...creerFusee(t0), suit: undefined, ecartOrbite: undefined, position: { x: lune.x, y: lune.y }, orbite: 'Lune', destination: { type: 'astre', astre: cible } }
+        let altitudeCible = Infinity
         let t = t0, mini = Infinity, arrive = false
         for (let n = 0; n < 40000 && !arrive; n++) {
           t += 2000
           const r = avancerFusee(f, t, 2, 30)
           f = r.fusee
           arrive = r.arrivee !== null
+          const e = positionCorps('Terre', t)
+          const c = positionCorps(cible, t)
+          altitudeCible = Math.min(altitudeCible, Math.hypot(c.x - e.x, c.y - e.y, c.z - e.z) * UA_KM - RAYON_TERRE)
           if (!f.orbite) {
-            const e = positionCorps('Terre', t)
-            mini = Math.min(mini, Math.hypot((f.position.x - e.x) * UA_KM, (f.position.y - e.y) * UA_KM, ((f.z ?? 0) - e.z) * UA_KM))
+            mini = Math.min(mini, Math.hypot((f.position.x - e.x) * UA_KM, (f.position.y - e.y) * UA_KM, ((f.z ?? 0) - e.z) * UA_KM) - RAYON_TERRE)
           }
         }
-        if (mini < RAYON_TERRE || !arrive) pires.push(`${h} h, ${cible} : ${Math.round(mini)} km${arrive ? '' : ', pas arrivée'}`)
+        if (mini < Math.min(400, altitudeCible) - 10 || !arrive) pires.push(`${h} h, ${cible} : ${Math.round(mini)} km d’altitude${arrive ? '' : ', pas arrivée'}`)
       }
     }
     expect(pires).toEqual([])
