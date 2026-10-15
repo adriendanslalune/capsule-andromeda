@@ -142,3 +142,10 @@ le point de rencontre (là où la fusée la rejoindra) ; légende au-dessus du c
 VERS LA LUNE — LE PREMIER GRAND VOYAGE », lettre du Directeur des commissions (distance Terre-Lune du jour), tampon
 « BON POUR LE DÉPART », prime du voyage, fanfare lente ; bouton CAP SUR LA LUNE (accepte le contrat et met le cap),
 lien « plus tard » (l'annonce revient à la prochaine visite).
+
+## 16. Approche et départ (15/10/2026)
+- L'ISS se voit de loin comme les autres engins : point lumineux jusqu'à 3 millions de km, nom jusqu'à 300 000 km,
+  modèle à moins de 2 000 km (le point s'efface à 3 km) ; le hublot la vise jusqu'au bout (avant, il visait la Terre
+  et l'ISS apparaissait d'un coup).
+- Départ d'une orbite : la fusée pivote vers sa destination à 12° par seconde pendant sa mise en vitesse (20 s), au
+  lieu de s'orienter d'un coup (`TAUX_VIRAGE_DEPART`).

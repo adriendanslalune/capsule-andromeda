@@ -26,6 +26,7 @@ import {
   SEUIL_ARRIVEE_POINT_KM,
   SEUIL_ARRIVEE_SOLEIL,
   TAUX_VIRAGE,
+  TAUX_VIRAGE_DEPART,
   VITESSE_BASE,
   SEUIL_ARRIVEE_ENGIN_KM,
 } from '../donnees/reglages'
@@ -719,9 +720,12 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const liste = arrive ? [] : obstacles(entrainee, dest, vise, t, { z, zVise: hauteurDestination(dest, t, z) })
   const voulu = arrive ? direction(entrainee, vise) : capDeContournement(entrainee, vise, liste)
   const ecart = ecartAngle(fusee.cap, voulu)
-  // Au départ d'une orbite, ou dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement).
-  const degagement = quitte !== null || liste.some((o) => distance(entrainee, o.centre) <= o.rayon)
-  const rotation = degagement ? ecart : Math.max(-TAUX_VIRAGE * dt, Math.min(TAUX_VIRAGE * dt, ecart))
+  // Dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement). Au départ d'une orbite, pendant
+  // la mise en vitesse, elle pivote plus vite qu'en croisière ; ensuite, 4° par seconde.
+  const degagement = liste.some((o) => distance(entrainee, o.centre) <= o.rayon)
+  const auDepart = trajet.origine !== null && t - trajet.depart < DUREE_ACCELERATION * 1000
+  const taux = auDepart ? TAUX_VIRAGE_DEPART : TAUX_VIRAGE
+  const rotation = degagement ? ecart : Math.max(-taux * dt, Math.min(taux * dt, ecart))
   const cap = (fusee.cap + rotation + 360) % 360
   const virage = dt > 0 && !degagement ? rotation / dt : 0
   if (arrive) {

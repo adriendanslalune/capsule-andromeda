@@ -40,3 +40,5 @@ Chaque phase se termine par une version jouable, testée, commitée et poussée 
   cœur sans ouvrir le manuel. Pistes : règles qui dépendent davantage des repères (série, interrupteurs, autres
   modules, heure, lieu), variantes tirées au hasard, éditions du manuel.
 - Radio : canal de détresse (5,00, sauvetages) et monolithes (7,50, 10 à rassembler) — usages à définir.
+- **Tutoriel à refaire entièrement** (remarque d'Adrien du 15/10/2026) : il est loin d'être complet. Se mettre à la
+  place d'un nouveau joueur qui découvre l'interface pour la première fois : chaque écran, chaque geste, dans l'ordre.

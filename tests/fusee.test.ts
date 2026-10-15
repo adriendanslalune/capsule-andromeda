@@ -98,6 +98,24 @@ describe('départ', () => {
   })
 })
 
+describe('départ d’une orbite', () => {
+  it('la fusée pivote vers sa destination à 12° par seconde au plus, pendant qu’elle prend de la vitesse', () => {
+    // En orbite autour de la Terre, le nez vers l'ISS ; destination : Jupiter, dans une autre direction.
+    let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Jupiter' })
+    const cap0 = f.cap
+    let t = T0
+    const caps: number[] = [cap0]
+    for (let s = 0; s < 30; s++) {
+      t += 1000
+      f = avancerFusee(f, t, 1, 30).fusee
+      caps.push(f.cap)
+    }
+    const ecart = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
+    for (let i = 1; i < caps.length; i++) expect(ecart(caps[i], caps[i - 1])).toBeLessThanOrEqual(12.0001)
+    expect(ecart(caps[1], cap0)).toBeGreaterThan(0)
+  })
+})
+
 describe('virage', () => {
   it('tourne vers la destination à 4° par seconde, pas plus', () => {
     const f: EtatFusee = { ...creerFusee(T0), orbite: null, position: { x: 0, y: 1 }, cap: 0 }

@@ -20,6 +20,13 @@ export const DUREE_ACCELERATION = 20
 export const TAUX_VIRAGE = 4
 
 /**
+ * Au départ d'une orbite, pendant la mise en vitesse (DUREE_ACCELERATION), la fusée pivote plus vite vers sa
+ * destination (degrés par seconde) : on la voit se tourner vers sa cible, puis accélérer (15/10/2026 ; avant, elle
+ * s'orientait d'un coup).
+ */
+export const TAUX_VIRAGE_DEPART = 12
+
+/**
  * Distance d'arrivée et d'orbite d'une planète, de la Lune ou d'un satellite : trois rayons de l'astre, depuis son
  * centre (décision d'Adrien du 14/10/2026 : on était beaucoup trop loin, 300 000 km pour toutes les planètes). Le
  * Soleil garde 0,02 UA ; l'ISS et les engins, leur approche.

@@ -79,6 +79,8 @@ export class Vue3D {
   private camera: THREE.PerspectiveCamera
   private fusee = modeleFusee()
   private iss = modeleISSFidele()
+  /** L'ISS de loin : un point lumineux (elle brille au soleil), comme les autres engins. */
+  private pointISS!: THREE.Points
   private soucoupe = modeleSoucoupe()
   private lueurVisiteur: THREE.Points
   private soleil: THREE.PointLight
@@ -145,6 +147,8 @@ export class Vue3D {
     this.ajouterAstre('Soleil', 0xffd27a, true)
     for (const nom of NOMS_PLANETES) this.ajouterAstre(nom, COULEURS[nom])
     this.ajouterAstre('Lune', 0xcfc8b8)
+    this.pointISS = this.point(0xffffff, 3.5)
+    this.scene.add(this.pointISS)
     this.lueurVisiteur = this.point(0xbfffd0, 5)
     this.scene.add(this.lueurVisiteur)
   }
@@ -319,10 +323,14 @@ export class Vue3D {
     // La Terre tourne comme la vraie : jour et nuit au bon endroit.
     this.terre?.mettreAJour(t, this.soleil.position)
 
-    // ISS : visible si elle est proche.
+    // ISS : un point lumineux de loin (jusqu'à 3 millions de km), le modèle à moins de 2 000 km ; près d'elle, le
+    // point s'efface quand le modèle devient assez grand pour se voir (à quelques km).
     const iss = relatif(enKm(positionCorps('ISS', t)))
-    this.iss.visible = iss.length() < 2000
+    const dIss = iss.length()
+    this.iss.visible = dIss < 2000
     this.iss.position.copy(iss)
+    this.pointISS.visible = dIss > 3 && dIss < AUTRES.pointKm
+    this.pointISS.position.copy(iss)
 
     // Fusée au centre, orientée selon son cap ; flamme quand le moteur pousse.
     this.fusee.rotation.y = (etat.fusee.cap * Math.PI) / 180
@@ -407,11 +415,10 @@ export class Vue3D {
       this.fusee.visible = false
       this.camera.position.set(0, 0, 0)
       this.camera.up.set(0, 1, 0)
-      // L'ISS, trop petite pour être vue de loin : on vise la Terre tant qu'elle n'est pas en vue. Un point libre :
-      // on vise le point lui-même.
+      // L'ISS se vise comme un engin, de loin (son point lumineux) jusqu'à l'arrivée. Un point libre : on vise le
+      // point lui-même.
       const dest = etat.fusee.destination
-      let vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
-      if (vise === 'ISS' && !this.iss.visible) vise = 'Terre'
+      const vise = dest?.type === 'astre' ? dest.astre : etat.fusee.orbite
       const cible = vise === 'ISS' ? iss
         : vise && estEngin(vise) ? this.engins.get(vise)?.ecran
         : vise ? this.astres.get(vise)?.maillage.position
@@ -523,7 +530,7 @@ export class Vue3D {
       const e = projeter(a.maillage.position)
       if (e) this.etiquettes.push({ nom, ...e, cible: nom === cibleNom })
     }
-    if (this.iss.visible) { const e = projeter(iss); if (e) this.etiquettes.push({ nom: 'ISS', ...e, cible: cibleNom === 'ISS' }) }
+    if ((this.iss.visible || this.pointISS.visible) && iss.length() < AUTRES.nomKm) { const e = projeter(iss); if (e) this.etiquettes.push({ nom: 'ISS', ...e, cible: cibleNom === 'ISS' }) }
     for (const [nom, o] of this.engins) {
       if (!(o.point.visible || o.modele?.visible) || o.ecran.length() > AUTRES.nomKm) continue
       const e = projeter(o.ecran)
