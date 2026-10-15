@@ -126,31 +126,39 @@ Le premier arrivé (ou tous ceux qui arrivent à temps, à décider) est récomp
 - **Maisons** : chacune a une spécialité ; tout le monde peut faire toutes les missions, mais on appartient
   **automatiquement** à la maison dont on fait le plus les missions (affinité). Les avantages restent à voir ensemble.
 
-## 11. Les maisons (proposition à discuter)
+## 11. Les maisons (décisions d'Adrien du 16/10/2026, chiffres proposés par Claude)
 
-Trois maisons, une spécialité chacune (noms provisoires) :
+Trois maisons, une spécialité chacune. Tout le monde peut faire toutes les missions ; on appartient
+**automatiquement** à la maison dont on fait le plus les missions.
 
 | Maison | Spécialité | Missions qui comptent |
 |---|---|---|
-| **Le Bureau des recherches** | La recherche | monolithes, visiteur, artefacts, épaves, relevés |
-| **Les Messageries** | La livraison | contrats de livraison et de courrier, services (secours) |
-| **La Compagnie des comptoirs** | Le commerce | achats, ventes, exploitation des ressources |
+| **Les Explorateurs** | la recherche | monolithes, visiteur, artefacts, épaves, relevés |
+| **Les Coursiers** | la livraison | contrats de livraison et de courrier, services (secours) |
+| **Les Commerçants** | le commerce | achats, ventes, exploitation des ressources |
 
-**Affinité** : chaque mission accomplie donne des points d'affinité à sa maison (par exemple : un monolithe 50, un
-artefact 10, une livraison 10, un secours 15, une vente rentable 5). On appartient à la maison où l'on a le plus de
-points sur les 30 derniers jours ; on peut donc en changer en changeant de façon de jouer. Un insigne et une couleur
-de maison s'affichent dans le classement et sur la fusée vue par les autres.
+**Affinité** : chaque mission accomplie donne des points à sa maison (monolithe 50, secours 15, livraison 10,
+artefact 10, épave 10, vente rentable 5…). On appartient à la maison qui a le plus de points sur les **30 derniers
+jours**. Trois **rangs** selon ces points : membre (100), confirmé (400), maître (1 000).
 
-**Avantages proposés** (un par rang, trois rangs par maison : membre, confirmé, maître) :
+**Avantages** (idées d'Adrien, en gras ; le reste, propositions de Claude), par rang membre / confirmé / maître :
 
-- **Bureau des recherches** : détecteur à plus longue portée ; indices radio plus nets (les monolithes et le visiteur
-  s'entendent de plus loin) ; au rang maître, le télescope donne aussi une distance.
-- **Messageries** : primes de livraison et de secours majorées (+10 %, +20 %, +30 %) ; appels de détresse reçus avant
-  les autres ; au rang maître, un contrat exclusif chaque semaine.
-- **Compagnie des comptoirs** : meilleurs prix au marché (achat moins cher, vente plus chère) ; cale plus grande ; au
-  rang maître, accès aux marchandises rares.
-- **Pour tous** : un classement par maison (la maison de la semaine), des télégrammes de la maison (nouvelles,
-  missions spéciales).
+- **Explorateurs** — *les transmissions* : **plus de télégrammes par jour** (+1 / +2 / +3) ; **signal radio plus
+  précis** (on capte net de plus loin : tolérance 0,05 → 0,07 → 0,09 → 0,11 ; monolithes et visiteur audibles de plus
+  loin) ; télescope plus précis (±3° → ±2° → ±1°) ; bulletins de l'Observatoire avec 2 h d'avance au rang maître.
+- **Coursiers** — *la vitesse* : **déplacement plus rapide** (+5 % / +10 % / +15 % de vitesse de croisière) ; appels de
+  détresse reçus avant les autres ; un 4e contrat en cours au rang confirmé.
+- **Commerçants** — *l'argent* : **améliorations et instruments moins chers** (−10 % / −20 % / −30 % à l'atelier) ;
+  meilleurs prix au marché (achat −5 %, vente +5 % par rang) ; cale plus grande ; le télégramme des cours (prix du
+  lendemain) au rang maître.
 
-Questions : les noms des maisons ? les avantages ? faut-il que l'appartenance ait aussi un inconvénient (par exemple,
-des prix moins bons chez les autres maisons) ?
+**Inconvénients** (pour équilibrer ; chaque maison est faible là où une autre est forte) :
+
+- **Explorateurs** : l'atelier leur coûte **10 % plus cher** (ils dépensent tout en expéditions).
+- **Coursiers** : au marché, **5 % moins bons prix** (ils n'ont pas le temps de marchander).
+- **Commerçants** : **5 % plus lents** (la cale chargée alourdit la fusée).
+
+**Pour tous** : un insigne et une couleur de maison (classement, fusée vue par les autres), un classement des maisons
+chaque semaine, des télégrammes de la maison (nouvelles, missions spéciales).
+
+À confirmer par Adrien : les chiffres, et si l'on garde les inconvénients.
