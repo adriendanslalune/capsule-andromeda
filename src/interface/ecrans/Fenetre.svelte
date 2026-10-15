@@ -131,6 +131,8 @@
   // Poste radio : fréquence et force du signal capté.
   const signal = $derived.by(() => { const r = capter(etat, t); return Math.round((r.emission ? r.nettete : 0) * 5) })
   const ligneJournal = $derived(jeu.telex.at(-1) ?? null)
+  /** Hauteur de l'écran de navigation posé sur le hublot (le hublot vise au-dessus). */
+  let hautHud = $state(0)
 </script>
 
 <main>
@@ -141,40 +143,41 @@
       <div class="boulons-h"></div>
       <div class="boulons-v"></div>
       <div class="vitre">
-        {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+        {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot masqueBas={hautHud} />{/await}
+        <!-- 1. Où je vais ? L'écran de navigation, en surimpression au bas du hublot. -->
+        <div class="ecran hud" bind:clientHeight={hautHud}>
+          {#if fusee.destination && attente && plan}
+            <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
+            <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span></div>
+            <div class="sous">Départ {jourEtHeure(plan.depart, t)} · arrivée <b>{jourEtHeure(plan.arrivee, t)}</b></div>
+          {:else if fusee.destination}
+            <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
+            <div class="ligne">
+              <span class="nom-picto">
+                <span class="grand">{nomDestination(fusee.destination)}</span>
+                <!-- Dessin de la destination, à côté de son nom. -->
+                <span class="picto"><Pictogramme destination={fusee.destination} /></span>
+              </span>
+              <span class="compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span>
+            </div>
+            <div class="sous">Arrivée <b>{arrivee !== null ? jourEtHeure(arrivee, maintenantDirect) : '—'}</b></div>
+            {#if avancement !== null}
+              <div class="piste"><div class="fait" style={`width: ${avancement * 100}%`}></div></div>
+            {/if}
+          {:else if fusee.orbite}
+            <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : estEngin(fusee.orbite) || fusee.orbite === 'ISS' ? 'AUPRÈS DE' : 'EN ORBITE'}</span></div>
+            <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
+            <div class="sous">Choisis une destination (page NAVIGATION).</div>
+          {:else}
+            <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span></div>
+            <div class="ligne"><span class="grand">Point libre</span></div>
+            <div class="sous">Choisis une destination (page NAVIGATION).</div>
+          {/if}
+        </div>
       </div>
     </div>
 
-    <!-- 1. Où je vais ? -->
     <section class="panneau-fin" data-titre="PILOTAGE" data-ref="réf. TB-12">
-      <div class="ecran">
-        {#if fusee.destination && attente && plan}
-          <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
-          <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span></div>
-          <div class="sous">Départ {jourEtHeure(plan.depart, t)} · arrivée <b>{jourEtHeure(plan.arrivee, t)}</b></div>
-        {:else if fusee.destination}
-          <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-          <div class="ligne">
-            <span class="grand">{nomDestination(fusee.destination)}</span>
-            <!-- Dessin de la destination, au milieu, au-dessus de la frise. -->
-            <span class="picto"><Pictogramme destination={fusee.destination} /></span>
-            <span class="compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span>
-          </div>
-          <div class="sous">Arrivée <b>{arrivee !== null ? jourEtHeure(arrivee, maintenantDirect) : '—'}</b></div>
-          {#if avancement !== null}
-            <div class="piste"><div class="fait" style={`width: ${avancement * 100}%`}></div></div>
-          {/if}
-        {:else if fusee.orbite}
-          <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : estEngin(fusee.orbite) || fusee.orbite === 'ISS' ? 'AUPRÈS DE' : 'EN ORBITE'}</span></div>
-          <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
-          <div class="sous">Choisis une destination (page NAVIGATION).</div>
-        {:else}
-          <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span></div>
-          <div class="ligne"><span class="grand">Point libre</span></div>
-          <div class="sous">Choisis une destination (page NAVIGATION).</div>
-        {/if}
-      </div>
-
       <div class="commandes">
         <!-- Trois petits cadrans ; les toucher ouvre les instruments en grand. -->
         <button class="cadrans" aria-label="Ouvrir les instruments" onclick={() => (jeu.volet = 'instruments')}>
@@ -325,7 +328,7 @@
   /* Hublot : d'un bord à l'autre de l'écran, cadre fin boulonné. */
   .hublot {
     position: relative;
-    height: clamp(76px, 11vh, 120px);
+    height: clamp(176px, 25vh, 230px);
     margin: 0 calc(-1 * var(--espace));
     padding: 7px;
     border-top: 2px solid var(--couleur-encre);
@@ -412,6 +415,25 @@
     color: var(--menthe);
     overflow: hidden;
     text-shadow: 0 0 5px rgba(143, 207, 152, 0.55);
+  }
+  /* En surimpression au bas du hublot : un bandeau d'écran à demi transparent, le ciel passe au-dessus. */
+  .ecran.hud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-width: 2px 0 0;
+    border-radius: 0;
+    background-color: rgba(13, 26, 20, 0.74);
+    box-shadow: none;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+  }
+  .nom-picto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
   }
   .ecran::before {
     content: '';

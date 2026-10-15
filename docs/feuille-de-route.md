@@ -36,3 +36,7 @@ Chaque phase se termine par une version jouable, testée, commitée et poussée 
 - Direction artistique définitive.
 - Manuel généré depuis les données du jeu (une seule source de vérité).
 - Nouveaux modules (mémoire à tores, batteries, gyroscope, sas, imprimante à cartes…).
+- **Difficulté des pannes à revoir** (remarque d'Adrien du 15/10/2026) : trop simples, on finit par les connaître par
+  cœur sans ouvrir le manuel. Pistes : règles qui dépendent davantage des repères (série, interrupteurs, autres
+  modules, heure, lieu), variantes tirées au hasard, éditions du manuel.
+- Radio : canal de détresse (5,00, sauvetages) et monolithes (7,50, 10 à rassembler) — usages à définir.

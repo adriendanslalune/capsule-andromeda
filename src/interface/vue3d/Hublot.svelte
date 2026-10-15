@@ -6,6 +6,8 @@
   import { jeu } from '../jeu.svelte'
   import { Vue3D, type Etiquette } from './scene'
 
+  /** Hauteur (px) cachée en bas par l'écran de navigation posé sur le hublot. */
+  let { masqueBas = 0 }: { masqueBas?: number } = $props()
   let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
   let etiquettes = $state<Etiquette[]>([])
@@ -20,7 +22,7 @@
       indisponible = true
       return
     }
-    const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight)
+    const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight, masqueBas)
     ajuster()
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
@@ -36,7 +38,10 @@
       eblouissement = vue.eblouissement
     }
     image = requestAnimationFrame(boucle)
+    let masque = masqueBas
+    const surveiller = setInterval(() => { if (masqueBas !== masque) { masque = masqueBas; ajuster() } }, 250)
     return () => {
+      clearInterval(surveiller)
       cancelAnimationFrame(image)
       observateur.disconnect()
       vue.liberer()
@@ -108,7 +113,7 @@
   .filtre {
     position: absolute;
     right: 6px;
-    bottom: 6px;
+    top: 6px;
     display: flex;
     align-items: center;
     gap: 3px;

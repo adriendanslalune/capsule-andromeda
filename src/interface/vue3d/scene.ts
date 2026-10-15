@@ -276,14 +276,21 @@ export class Vue3D {
     return base
   }
 
-  taille(largeur: number, hauteur: number) {
+  /**
+   * Taille de la vue. `masqueBas` : hauteur (px) cachée en bas par un écran posé dessus (hublot du cockpit) ; le
+   * centre de visée remonte au milieu de la partie visible.
+   */
+  taille(largeur: number, hauteur: number, masqueBas = 0) {
     this.largeur = largeur
     this.hauteur = hauteur
     this.rendu.setSize(largeur, hauteur, false)
-    this.camera.aspect = largeur / hauteur
+    const pleine = hauteur + masqueBas
+    this.camera.aspect = largeur / pleine
+    if (masqueBas > 0) this.camera.setViewOffset(largeur, pleine, 0, masqueBas, largeur, hauteur)
+    else this.camera.clearViewOffset()
     // Même « grossissement » partout : la vue plein écran couvre 55° sur sa hauteur (environ 15 px par degré) ;
     // le hublot, plus petit, couvre un champ plus serré, pour que les astres y paraissent aussi gros.
-    this.fovBase = this.interieur ? Math.max(6, Math.min(55, hauteur / 15)) : 55
+    this.fovBase = this.interieur ? Math.max(6, Math.min(55, pleine / 15)) : 55
     this.camera.fov = this.fovBase
     this.camera.updateProjectionMatrix()
   }

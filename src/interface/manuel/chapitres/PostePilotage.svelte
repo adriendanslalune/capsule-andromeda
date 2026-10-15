@@ -36,15 +36,15 @@
     <line x1="152" y1="48" x2="192" y2="48" stroke="#f8f5ec" stroke-width="2" />
     <circle cx="191" cy="30" r="4.5" fill={encre} />
     <text x="191" y="32" text-anchor="middle" font-size="5.5" font-weight="700" fill="#f8f5ec" font-family={police}>2</text>
-    <!-- Hublot. -->
+    <!-- Hublot, avec l'écran de navigation posé à son pied. -->
     <line x1="62" y1="54" x2="282" y2="54" stroke={encre} stroke-width="1.2" />
-    <rect x="66" y="58" width="212" height="28" rx="5" fill="url(#zone-bleue)" stroke={encre} stroke-width="1" />
-    <line x1="62" y1="90" x2="282" y2="90" stroke={encre} stroke-width="1.2" />
+    <rect x="66" y="58" width="212" height="86" rx="5" fill="url(#zone-bleue)" stroke={encre} stroke-width="1" />
+    <path d="M 66 103 H 278 V 139 Q 278 144 273 144 H 71 Q 66 144 66 139 Z" fill={encre} />
+    <line x1="62" y1="147" x2="282" y2="147" stroke={encre} stroke-width="1.2" />
 
-    <!-- Panneau PILOTAGE : écran de navigation, trois petits cadrans, interrupteur MOTEUR. -->
-    <rect x="66" y="96" width="212" height="106" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
-    <text x="74" y="98.5" font-size="5" font-family={police}>PILOTAGE</text>
-    <rect x="72" y="103" width="200" height="40" rx="4" fill={encre} />
+    <!-- Panneau PILOTAGE : trois petits cadrans, interrupteur MOTEUR. -->
+    <rect x="66" y="149" width="212" height="53" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
+    <text x="74" y="151.5" font-size="5" font-family={police}>PILOTAGE</text>
     <text x="78" y="113" font-size="6" fill="#f8f5ec" font-family={police}>EN ROUTE VERS</text>
     <text x="78" y="125" font-size="9" font-weight="700" fill="#f8f5ec" font-family={police}>LA LUNE</text>
     <text x="266" y="125" text-anchor="end" font-size="8" fill="#f8f5ec" font-family={police}>02:14:06</text>
@@ -52,15 +52,15 @@
     <rect x="78" y="136" width="188" height="3.5" fill="none" stroke="#f8f5ec" stroke-width="0.6" />
     <rect x="78" y="136" width="70" height="3.5" fill="#f8f5ec" />
     {#each [92, 132, 172] as x, k}
-      <circle cx={x} cy="162" r="12" fill="#f8f5ec" stroke={encre} stroke-width="1.4" />
-      <line x1={x} y1="162" x2={x + (k === 0 ? -6 : k === 1 ? 5 : 0)} y2={162 - (k === 2 ? 9 : 7)} stroke={encre} stroke-width="1.4" />
-      <text x={x} y="183" text-anchor="middle" font-size="5" font-family={police}>{['KM/S', 'CAP', 'ARRIVÉE'][k]}</text>
+      <circle cx={x} cy="167" r="11" fill="#f8f5ec" stroke={encre} stroke-width="1.4" />
+      <line x1={x} y1="167" x2={x + (k === 0 ? -6 : k === 1 ? 5 : 0)} y2={167 - (k === 2 ? 8 : 6)} stroke={encre} stroke-width="1.4" />
+      <text x={x} y="186" text-anchor="middle" font-size="5" font-family={police}>{['KM/S', 'CAP', 'ARRIVÉE'][k]}</text>
     {/each}
-    <rect x="200" y="148" width="68" height="34" rx="3" fill="url(#zone-rouge)" stroke={encre} stroke-width="1" />
-    <rect x="206" y="153" width="56" height="16" rx="8" fill="#f8f5ec" stroke={encre} stroke-width="1.2" />
-    <circle cx="254" cy="161" r="5.5" fill={encre} />
-    <text x="212" y="164" font-size="6.5" font-weight="700" font-family={police}>ON</text>
-    <rect x="72" y="190" width="200" height="6" fill="url(#zone-rouge)" stroke={encre} stroke-width="0.6" />
+    <rect x="200" y="155" width="68" height="30" rx="3" fill="url(#zone-rouge)" stroke={encre} stroke-width="1" />
+    <rect x="206" y="159" width="56" height="16" rx="8" fill="#f8f5ec" stroke={encre} stroke-width="1.2" />
+    <circle cx="254" cy="167" r="5.5" fill={encre} />
+    <text x="212" y="170" font-size="6.5" font-weight="700" font-family={police}>ON</text>
+    <rect x="72" y="192" width="200" height="6" fill="url(#zone-rouge)" stroke={encre} stroke-width="0.6" />
 
     <!-- Panneau BLOCS DU BORD : phrase d'état, voyants, plaque constructeur. -->
     <rect x="66" y="208" width="212" height="92" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
@@ -96,8 +96,8 @@
     <Repere x={110} y={40} tx={30} ty={40} n={4} />
     <Repere x={70} y={72} tx={30} ty={72} n={5} />
     <Repere x={74} y={118} tx={30} ty={118} n={6} />
-    <Repere x={82} y={162} tx={30} ty={162} n={7} />
-    <Repere x={266} y={170} tx={316} ty={170} n={8} />
+    <Repere x={82} y={167} tx={30} ty={167} n={7} />
+    <Repere x={266} y={176} tx={316} ty={176} n={8} />
     <Repere x={81} y={240} tx={30} ty={240} n={9} />
     <Repere x={208} y={287} tx={316} ty={287} n={10} />
     <Repere x={70} y={321} tx={30} ty={321} n={11} />

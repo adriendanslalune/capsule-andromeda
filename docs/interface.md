@@ -22,9 +22,10 @@ Puis « Prendre les commandes », et une première panne guidée.
   droite (sauf sur la carte, qui se déplace au doigt). Le geste « retour » du téléphone ramène au cockpit.
 
 ### Page COCKPIT (refaite le 14/10/2026 : un seul écran, quatre questions)
-- **Hublot** d'un bord à l'autre (toucher : vue 3D extérieure ; boutons NOMS et FILTRE solaire).
-- **1. Où je vais ?** Panneau PILOTAGE : écran de navigation (destination, temps restant à la seconde, jour et
-  heure d'arrivée, frise) ; trois petits cadrans (vitesse, cap, heure d'arrivée), qui ouvrent le volet INSTRUMENTS
+- **Hublot** d'un bord à l'autre, plus haut (toucher : vue 3D extérieure ; boutons NOMS et FILTRE en haut).
+- **1. Où je vais ?** L'écran de navigation est posé au pied du hublot, à demi transparent (destination et son
+  dessin à côté du nom, temps restant à la seconde, jour et heure d'arrivée, frise) ; le hublot vise le milieu de
+  la partie restée visible (15/10/2026). Panneau PILOTAGE : trois petits cadrans (vitesse, cap, heure d'arrivée), qui ouvrent le volet INSTRUMENTS
   (grands cadrans, loupe, relevés : route, Soleil, radio, croisière) ; interrupteur MOTEUR cerné de rayures jaunes et
   noires ; bande « danger ».
 - **2. Qu'est-ce qui ne va pas ?** Panneau BLOCS DU BORD : phrase d'état (« Tout est en ordre. » / « 2 avaries :
@@ -130,3 +131,7 @@ Volet POSTE RADIO (depuis la réglette du cockpit ou l'onglet CHASSE de NAVIGATI
 SIGNAL, bande de lecture (message en clair, ou mangé de signes quand c'est brouillé), cadran gradué 0–12 avec aiguille
 rouge, bouton GROS (2,00 par tour) et FIN (0,10 par tour) à tourner au doigt, − / + au centième, gros bouton rouge
 ÉMETTRE (compte à rebours de recharge). Le haut-parleur fait entendre le souffle et les signaux (si le son est actif).
+
+## 14. Carte : deux traits (15/10/2026)
+Depuis la fusée, un trait blanc pointillé fin vers la destination là où elle est maintenant, et le trait jaune vers
+le point de rencontre (là où la fusée la rejoindra) ; légende au-dessus du cartouche.

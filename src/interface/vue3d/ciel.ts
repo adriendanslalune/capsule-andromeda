@@ -1,7 +1,8 @@
 // La Voie lactée : la vraie photographie panoramique du ciel entier (ESO/S. Brunier, CC BY 4.0), en coordonnées
 // galactiques (projection équirectangulaire, centre de la Galaxie au milieu, longitude croissante vers la gauche),
-// posée sur une sphère infiniment lointaine, à sa vraie place dans le repère écliptique du jeu. Elle donne la lueur
-// diffuse (bandes de poussière, bulbe du Sagittaire, nuages de Magellan) ; les étoiles nettes sont dessinées par-dessus.
+// posée sur une sphère infiniment lointaine, à sa vraie place dans le repère écliptique du jeu. Floutée, presque sans
+// couleur et atténuée (demande d'Adrien du 15/10/2026) : elle ne donne qu'une brume diffuse (bulbe du Sagittaire,
+// bandes de poussière), sans cacher les astres ; les étoiles nettes sont dessinées par-dessus.
 
 import * as THREE from 'three'
 import voieLacteeUrl from '../../../assets/textures/voie_lactee_eso0932a.jpg?url'
@@ -42,9 +43,19 @@ export function creerCiel(chargeur: THREE.TextureLoader): Ciel {
       void main() {
         vec3 g = normalize(versGal * normalize(vDirection));
         vec2 uv = vec2(0.5 - atan(g.y, g.x) / (2.0 * PI), 0.5 + asin(clamp(g.z, -1.0, 1.0)) / PI);
-        vec3 c = texture2D(carte, uv).rgb;
-        // Le fond du ciel noir, la lueur ravivée (sans quoi elle se perd dans un petit écran).
-        c = max(c - 0.02, 0.0) * 1.35 * eclat;
+        // Flou doux (13 échantillons sur environ 2°) : ni pixels, ni étoiles de la photo, seulement la lueur.
+        vec2 r = vec2(0.008, 0.016);
+        vec3 c = texture2D(carte, uv).rgb * 0.16;
+        for (int i = 0; i < 6; i++) {
+          float a = float(i) * 1.0471976;
+          vec2 d = vec2(cos(a), sin(a));
+          c += texture2D(carte, uv + d * r * 0.5).rgb * 0.08;
+          c += texture2D(carte, uv + d * r).rgb * 0.06;
+        }
+        // Presque sans couleur, discrète : le fond noir reste noir, la bande n'est qu'une brume.
+        float l = dot(c, vec3(0.299, 0.587, 0.114));
+        c = mix(vec3(l), c, 0.3) * vec3(0.95, 0.97, 1.0);
+        c = max(c - 0.04, 0.0) * 0.42 * eclat;
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>
       }`,

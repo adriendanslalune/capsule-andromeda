@@ -393,6 +393,10 @@
       {@const cible = ecran(positionDestination(fusee.destination, tl))}
       {@const point = plan ? ecran(plan.point) : cible}
       {@const route = segmentVisible(posFusee, point)}
+      {@const visee = segmentVisible(posFusee, cible)}
+      <!-- Deux traits : vers la destination là où elle est maintenant (blanc, fin), et vers le point de rencontre,
+           là où la fusée la rejoindra (jaune). -->
+      {#if visee}<path d={visee} fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" opacity=".85" />{/if}
       {#if route}<path d={route} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
       <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
@@ -411,6 +415,17 @@
       {/each}
       <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e04b37" stroke={PLAN.trait} stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
+
+    <!-- Légende des deux traits. -->
+    {#if fusee.destination}
+      <g transform={`translate(${L - 150} ${Hc - 68})`}>
+        <rect width="144" height="26" fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.2" />
+        <line x1="6" y1="8" x2="26" y2="8" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" />
+        <text x="32" y="11" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>DESTINATION, MAINTENANT</text>
+        <line x1="6" y1="19" x2="26" y2="19" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />
+        <text x="32" y="22" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>POINT DE RENCONTRE</text>
+      </g>
+    {/if}
 
     <!-- Cartouche du plan, comme sur un bleu d'architecte. -->
     <g transform={`translate(${L - 150} ${Hc - 40})`}>
