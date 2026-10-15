@@ -170,12 +170,25 @@
   }
   .etiquette {
     position: absolute;
-    transform: translate(8px, -18px);
+    transform: translate(14px, -26px);
     font-size: 13px;
     letter-spacing: 1px;
     color: var(--couleur-texte-clair);
     pointer-events: none;
     white-space: nowrap;
+  }
+  /* Trait fin de l'astre au nom (le nom est 14 px à droite et 26 px au-dessus). */
+  .etiquette::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 24px;
+    width: 13px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+    transform-origin: 0 0;
+    transform: rotate(-58deg);
   }
   .etiquette.autre {
     font-family: var(--police-script);

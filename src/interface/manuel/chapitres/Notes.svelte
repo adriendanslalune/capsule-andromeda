@@ -7,7 +7,7 @@
 
 <Page {numero} titre="NOTES DE BORD">
   <div class="lignes"></div>
-  <p class="credits">Images des astres : Solar System Scope (solarsystemscope.com, licence CC BY 4.0) et NASA (Terre : Blue Marble et Black Marble, par three.js). Voie lactée : ESO/S. Brunier (CC BY 4.0).</p>
+  <p class="credits">Images des astres : Solar System Scope (solarsystemscope.com, licence CC BY 4.0) et NASA (Terre : Blue Marble et Black Marble, par three.js).</p>
 </Page>
 
 <style>

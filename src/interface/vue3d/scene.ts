@@ -44,6 +44,43 @@ function rayon(nom: string): number {
 /** Passe de l'écliptique (x, y, z nord) aux axes de three.js (y vers le haut). */
 /** Le fond du ciel : presque noir (la lueur vient de la Voie lactée). */
 const FOND_DU_CIEL = 0x020306
+/**
+ * Un point au hasard dans la Voie lactée (longitude et latitude écliptiques, degrés) : la bande suit le plan de la
+ * Galaxie ; elle est plus dense et plus épaisse vers le centre (bulbe du Sagittaire), un peu plus dense vers le Cygne,
+ * et la grande faille de poussière (du Cygne au Sagittaire) y creuse un sillon sombre.
+ */
+function pointDeLaVoieLactee(h: () => number): { lon: number; lat: number } {
+  for (;;) {
+    const l = h() * 360 - 180
+    const poids = 0.3 + 0.7 * Math.exp(-((l / 38) ** 2)) + 0.25 * Math.exp(-(((l - 78) / 22) ** 2))
+    if (h() > poids) continue
+    const epaisseur = 3.2 + 5.5 * Math.exp(-((l / 22) ** 2))
+    const gauss = Math.sqrt(-2 * Math.log(1 - h() * 0.999999)) * Math.cos(2 * Math.PI * h())
+    const b = gauss * epaisseur
+    // La grande faille : de l = 80° (Cygne) à l = −10° (Sagittaire), juste au-dessus du plan.
+    if (l > -12 && l < 82 && Math.abs(b - 0.8 - 0.012 * l) < 1.6 && h() < 0.7) continue
+    const e = galactiqueVersEcliptique(l, b)
+    return { lon: e.lon, lat: e.lat }
+  }
+}
+
+/** Texture d'un point rond aux bords doux (partagée par tous les points). */
+let texturePoint: THREE.Texture | null = null
+function pointRond(): THREE.Texture {
+  if (texturePoint) return texturePoint
+  const c = document.createElement('canvas')
+  c.width = c.height = 32
+  const g = c.getContext('2d')!
+  const d = g.createRadialGradient(16, 16, 0, 16, 16, 16)
+  d.addColorStop(0, 'rgba(255,255,255,1)')
+  d.addColorStop(0.45, 'rgba(255,255,255,0.85)')
+  d.addColorStop(1, 'rgba(255,255,255,0)')
+  g.fillStyle = d
+  g.fillRect(0, 0, 32, 32)
+  texturePoint = new THREE.CanvasTexture(c)
+  return texturePoint
+}
+
 const versThree = (v: Vecteur3) => new THREE.Vector3(v.x, v.z, -v.y)
 
 export interface Etiquette {
@@ -86,7 +123,8 @@ export class Vue3D {
   private soleil: THREE.PointLight
   private astres = new Map<string, Astre>()
   private chargeur = new THREE.TextureLoader()
-  private voieLactee!: Ciel
+  /** La lueur de la Voie lactée (calculée, sans image), éteinte derrière le filtre solaire. */
+  private lueur!: Ciel
   private largeur = 1
   private ciel!: THREE.ShaderMaterial
   private environnement: THREE.Texture
@@ -141,8 +179,8 @@ export class Vue3D {
     refleter(this.fusee, this.environnement, 0.9)
     refleter(this.iss, this.environnement, 0.6)
     refleter(this.soucoupe, this.environnement, 1)
-    this.voieLactee = creerCiel(this.chargeur)
-    this.scene.add(this.voieLactee.maillage)
+    this.lueur = creerCiel()
+    this.scene.add(this.lueur.maillage)
     this.ajouterEtoiles()
     this.ajouterAstre('Soleil', 0xffd27a, true)
     for (const nom of NOMS_PLANETES) this.ajouterAstre(nom, COULEURS[nom])
@@ -153,10 +191,13 @@ export class Vue3D {
     this.scene.add(this.lueurVisiteur)
   }
 
+  /** Un astre ou un engin vu de loin : un point rond et doux, comme une étoile (plus de carré). */
   private point(couleur: number, taille: number): THREE.Points {
     const geo = new THREE.BufferGeometry()
     geo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3))
-    return new THREE.Points(geo, new THREE.PointsMaterial({ color: couleur, size: taille, sizeAttenuation: false, transparent: true }))
+    return new THREE.Points(geo, new THREE.PointsMaterial({
+      color: couleur, size: taille * 1.4, sizeAttenuation: false, transparent: true, map: pointRond(), alphaTest: 0.02, depthWrite: false,
+    }))
   }
 
   /**
@@ -184,13 +225,10 @@ export class Vue3D {
       const m = Math.max(-0.5, 6.8 + 2.2 * Math.log10(h()))
       ajouter(h() * 360, (Math.asin(h() * 2 - 1) * 180) / Math.PI, m)
     }
-    // Les étoiles faibles se pressent le long de la Voie lactée (disque de la Galaxie), surtout vers son centre.
-    for (let i = 0; i < 6000; i++) {
-      const m = Math.max(2.5, 6.8 + 2.2 * Math.log10(h()))
-      const l = h() < 0.4 ? (h() - 0.5) * 120 : h() * 360
-      const gauss = Math.sqrt(-2 * Math.log(1 - h())) * Math.cos(2 * Math.PI * h())
-      const e = galactiqueVersEcliptique(l, gauss * 7)
-      ajouter(e.lon, e.lat, m)
+    // La Voie lactée : une multitude d'étoiles très faibles, serrées le long du plan de la Galaxie (voir pointDeLaVoieLactee).
+    for (let i = 0; i < 36000; i++) {
+      const p = pointDeLaVoieLactee(h)
+      ajouter(p.lon, p.lat, 4.7 + h() * 1.5)
     }
     for (const e of ETOILES) ajouter(e.azimut, e.hauteur, 0.4)
     const geo = new THREE.BufferGeometry()
@@ -517,7 +555,7 @@ export class Vue3D {
     if (soleil) (soleil.maillage.material as THREE.MeshBasicMaterial).color.setHex(0xffffff).lerp(new THREE.Color(0xffffff), f).multiplyScalar(1 / exposition)
     // Derrière le filtre, les étoiles disparaissent.
     this.reglerCiel(6.3 - 9 * f, 1)
-    this.voieLactee.regler(1 - f)
+    this.lueur.regler(1 - f)
   }
 
   /** Étiquettes des astres et position du visiteur à l'écran. */

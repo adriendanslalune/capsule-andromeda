@@ -171,3 +171,15 @@ La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un
 - La carte VISITEUR est supprimée : le radar de navigation du pupitre, plus grand (136 px), a un balayage qui tourne
   et montre l'écho du visiteur quand DET le repère.
 - Le volet POSTE RADIO est supprimé : la radio du pupitre est la seule radio du bord.
+
+## 19. Écran de caméra et ciel (15/10/2026, nuit)
+- Le hublot devient l'**écran de la caméra extérieure** : l'image d'un bord à l'autre (cadre d'encre, coins
+  arrondis, légères lignes de balayage), les informations incrustées dessus sans bandeau (en haut la destination et
+  son dessin, à droite le compte à rebours et la distance restante, dessous l'arrivée, la frise au bas de l'image) ;
+  NOMS et FILTRE dans les coins du bas, « ● CAM. AVANT » au milieu.
+- En-tête sur une seule ligne : C-58, barre de bord (vitesse, cap, arrivée empilés ; interrupteur MOTEUR vertical),
+  crédits, manuel. L'interrupteur SON est retiré (les sons et alarmes ne se coupent plus depuis l'en-tête).
+- Vue 3D et caméra : les astres et engins lointains sont des points ronds et doux (plus de carrés) ; leur nom est
+  écrit à l'écart, relié par un trait fin.
+- Voie lactée sans image : une lueur calculée en coordonnées galactiques (bande, bulbe du Sagittaire, Cygne, grande
+  faille, nuages de bruit doux ; `vue3d/ciel.ts`) et 36 000 étoiles faibles réparties de même (`scene.ts`).

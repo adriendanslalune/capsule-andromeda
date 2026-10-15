@@ -18,25 +18,17 @@
   <svg class="planche" viewBox="0 0 344 410" aria-label="Planche du poste de pilotage">
     <Motifs />
     <rect x="62" y="4" width="220" height="402" rx="10" fill="none" stroke={encre} stroke-width="1.6" />
-    <!-- Barre du haut : nom, compteur et saison, son, manuel. -->
-    <text x="70" y="20" font-size="11" font-weight="700" font-family={police}>C-58</text>
-    <rect x="182" y="9" width="44" height="12" fill="none" stroke={encre} stroke-width="1.2" />
-    {#each [1, 2, 3] as i}<line x1={182 + 11 * i} y1="9" x2={182 + 11 * i} y2="21" stroke={encre} stroke-width="0.6" />{/each}
-    <rect x="238" y="8" width="8" height="15" rx="4" fill="none" stroke={encre} stroke-width="1.2" />
-    <rect x="254" y="7" width="20" height="17" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
-    <path d="M 264 11 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 11 v 10" fill="none" stroke={encre} stroke-width="0.8" />
-    <!-- Barre de bord : trois petits cadrans, interrupteur MOTEUR. -->
-    <rect x="66" y="27" width="212" height="15" rx="3" fill={encre} />
-    {#each [76, 116, 156] as x, k}
-      <circle cx={x} cy="34.5" r="5" fill={k === 1 ? encre : papier} stroke={papier} stroke-width="0.8" />
-      <line x1={x} y1="34.5" x2={x + (k === 0 ? -3 : k === 1 ? 2.5 : 0)} y2={34.5 - (k === 2 ? 4 : 3)} stroke={k === 1 ? papier : encre} stroke-width="1" />
-      <text x={x + 8} y="37" font-size="5.5" fill={papier} font-family={police}>{['13,5', '265°', '05:00'][k]}</text>
-    {/each}
-    <rect x="216" y="29" width="58" height="11" rx="2" fill="url(#zone-rouge)" stroke={papier} stroke-width="0.6" />
-    <rect x="219" y="31" width="16" height="7" rx="3.5" fill={papier} stroke={encre} stroke-width="0.8" />
-    <circle cx="231.5" cy="34.5" r="2.5" fill={encre} />
-    <rect x="238" y="31" width="33" height="7" fill={encre} />
-    <text x="254.5" y="36.5" text-anchor="middle" font-size="4.5" fill={papier} font-family={police}>MOTEUR ON</text>
+    <!-- Barre du haut, sur une ligne : C-58, cadrans et MOTEUR, compteur de crédits, manuel. -->
+    <text x="70" y="21" font-size="10" font-weight="700" font-family={police}>C-58</text>
+    <rect x="102" y="8" width="62" height="20" rx="2" fill={encre} />
+    {#each ['13,5 KM/S', '▲ 265°', '05:00 ARR.'] as v, k}<text x="106" y={14 + k * 6} font-size="4.5" fill={papier} font-family={police}>{v}</text>{/each}
+    <rect x="167" y="8" width="13" height="20" rx="2" fill="url(#zone-rouge)" stroke={encre} stroke-width="0.8" />
+    <rect x="170" y="10" width="7" height="12" rx="3.5" fill={papier} stroke={encre} stroke-width="0.8" />
+    <circle cx="173.5" cy="13.5" r="2.5" fill={encre} />
+    <rect x="198" y="11" width="44" height="12" fill="none" stroke={encre} stroke-width="1.2" />
+    {#each [1, 2, 3] as i}<line x1={198 + 11 * i} y1="11" x2={198 + 11 * i} y2="23" stroke={encre} stroke-width="0.6" />{/each}
+    <rect x="254" y="8" width="20" height="18" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <path d="M 264 12 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 12 v 10" fill="none" stroke={encre} stroke-width="0.8" />
     <!-- Onglets. -->
     <line x1="62" y1="64" x2="282" y2="64" stroke={encre} stroke-width="1.6" />
     {#each onglets as o, i}
@@ -48,15 +40,23 @@
     <line x1="152" y1="64" x2="192" y2="64" stroke={papier} stroke-width="2" />
     <circle cx="191" cy="46" r="4.5" fill={encre} />
     <text x="191" y="48" text-anchor="middle" font-size="5.5" font-weight="700" fill={papier} font-family={police}>2</text>
-    <!-- Hublot, avec l'écran de navigation posé à son pied. -->
-    <rect x="66" y="70" width="212" height="82" rx="5" fill="url(#zone-bleue)" stroke={encre} stroke-width="1" />
-    <path d="M 66 113 H 278 V 147 Q 278 152 273 152 H 71 Q 66 152 66 147 Z" fill={encre} opacity="0.8" />
-    <text x="78" y="122" font-size="6" fill={papier} font-family={police}>EN ROUTE VERS</text>
-    <text x="78" y="134" font-size="9" font-weight="700" fill={papier} font-family={police}>LA LUNE</text>
-    <text x="266" y="134" text-anchor="end" font-size="8" fill={papier} font-family={police}>02:14:06</text>
-    <text x="78" y="142" font-size="5.5" fill={papier} font-family={police}>Arrivée demain 18:39</text>
-    <rect x="78" y="145" width="188" height="3" fill="none" stroke={papier} stroke-width="0.6" />
-    <rect x="78" y="145" width="70" height="3" fill={papier} />
+    <!-- Écran de la caméra extérieure : l'image entière, les informations incrustées dessus. -->
+    <rect x="64" y="68" width="216" height="86" rx="3" fill={encre} />
+    <rect x="68" y="72" width="208" height="78" rx="6" fill="url(#zone-bleue)" stroke={papier} stroke-width="0.6" />
+    <rect x="74" y="76" width="44" height="7" fill={papier} />
+    <text x="76" y="81.5" font-size="5" font-family={police}>EN ROUTE VERS</text>
+    <rect x="74" y="85" width="40" height="10" fill={papier} />
+    <text x="76" y="93" font-size="8" font-weight="700" font-family={police}>LA LUNE</text>
+    <rect x="228" y="76" width="44" height="10" fill={papier} />
+    <text x="270" y="84" text-anchor="end" font-size="7.5" font-family={police}>02:14:06</text>
+    <rect x="74" y="98" width="66" height="7" fill={papier} />
+    <text x="76" y="103.5" font-size="5" font-family={police}>Arrivée demain 18:39</text>
+    <rect x="72" y="138" width="22" height="8" rx="4" fill={papier} stroke={encre} stroke-width="0.6" />
+    <text x="83" y="144" text-anchor="middle" font-size="4.5" font-family={police}>NOMS</text>
+    <rect x="250" y="138" width="22" height="8" rx="4" fill={papier} stroke={encre} stroke-width="0.6" />
+    <text x="261" y="144" text-anchor="middle" font-size="4.5" font-family={police}>FILTRE</text>
+    <rect x="68" y="147" width="208" height="3" fill={papier} opacity="0.4" />
+    <rect x="68" y="147" width="80" height="3" fill={papier} />
     <!-- Pupitre : la radio (écran, boutons GROS et FIN, ÉMETTRE, − fréquence +, haut-parleur) et le radar. -->
     <rect x="66" y="158" width="212" height="58" rx="4" fill="none" stroke={encre} stroke-width="0.8" />
     <text x="74" y="160.5" font-size="5" font-family={police}>RADIO · NAVIGATION</text>
@@ -98,20 +98,19 @@
     <rect x="66" y="362" width="212" height="16" fill="none" stroke={encre} stroke-width="0.8" />
     <line x1="74" y1="370" x2="262" y2="370" stroke={encre} stroke-width="0.6" stroke-dasharray="3 2" />
 
-    <Repere x={204} y={15} tx={316} ty={8} n={1} />
-    <Repere x={242} y={16} tx={316} ty={20} n={2} />
-    <Repere x={270} y={16} tx={316} ty={32} n={3} />
-    <Repere x={82} y={34.5} tx={30} ty={30} n={4} />
-    <Repere x={268} y={40} tx={316} ty={46} n={5} />
-    <Repere x={110} y={56} tx={30} ty={56} n={6} />
-    <Repere x={70} y={88} tx={30} ty={88} n={7} />
-    <Repere x={74} y={128} tx={30} ty={128} n={8} />
-    <Repere x={74} y={173} tx={30} ty={172} n={9} />
-    <Repere x={246} y={190} tx={316} ty={190} n={10} />
-    <Repere x={81} y={262} tx={30} ty={262} n={11} />
-    <Repere x={208} y={292} tx={316} ty={292} n={12} />
-    <Repere x={70} y={321} tx={30} ty={321} n={13} />
-    <Repere x={274} y={347} tx={316} ty={347} n={14} />
-    <Repere x={70} y={370} tx={30} ty={370} n={15} />
+    <Repere x={104} y={18} tx={30} ty={18} n={1} />
+    <Repere x={174} y={26} tx={316} ty={34} n={2} />
+    <Repere x={220} y={17} tx={316} ty={8} n={3} />
+    <Repere x={268} y={22} tx={316} ty={21} n={4} />
+    <Repere x={110} y={56} tx={30} ty={56} n={5} />
+    <Repere x={70} y={128} tx={30} ty={128} n={6} />
+    <Repere x={76} y={90} tx={30} ty={90} n={7} />
+    <Repere x={74} y={173} tx={30} ty={172} n={8} />
+    <Repere x={246} y={190} tx={316} ty={190} n={9} />
+    <Repere x={81} y={262} tx={30} ty={262} n={10} />
+    <Repere x={208} y={292} tx={316} ty={292} n={11} />
+    <Repere x={70} y={321} tx={30} ty={321} n={12} />
+    <Repere x={274} y={347} tx={316} ty={347} n={13} />
+    <Repere x={70} y={370} tx={30} ty={370} n={14} />
   </svg>
 </Page>

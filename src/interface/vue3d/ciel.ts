@@ -1,32 +1,25 @@
-// La Voie lactée : la vraie photographie panoramique du ciel entier (ESO/S. Brunier, CC BY 4.0), en coordonnées
-// galactiques (projection équirectangulaire, centre de la Galaxie au milieu, longitude croissante vers la gauche),
-// posée sur une sphère infiniment lointaine, à sa vraie place dans le repère écliptique du jeu. Floutée, presque sans
-// couleur et atténuée (demande d'Adrien du 15/10/2026) : elle ne donne qu'une brume diffuse (bulbe du Sagittaire,
-// bandes de poussière), sans cacher les astres ; les étoiles nettes sont dessinées par-dessus.
+// La lueur de la Voie lactée, calculée par le jeu (sans image) : pour chaque point du ciel, ses coordonnées
+// galactiques, puis la lumière de la bande — plus forte et plus épaisse vers le centre (bulbe du Sagittaire), un peu
+// plus vive vers le Cygne, creusée par la grande faille de poussière, et marbrée d'un bruit doux. Peinte sur une
+// sphère attachée à la caméra (à l'infini) ; les étoiles nettes sont dessinées par-dessus (scene.ts).
 
 import * as THREE from 'three'
-import voieLacteeUrl from '../../../assets/textures/voie_lactee_eso0932a.jpg?url'
 import { ECL_VERS_GAL } from '../../astro/galaxie'
 
 export interface Ciel {
   maillage: THREE.Mesh
-  /** Éclat de la Voie lactée (0 : éteinte, derrière le filtre solaire ; 1 : normale). */
+  /** Éclat de la lueur (0 : éteinte, derrière le filtre solaire ; 1 : normale). */
   regler(eclat: number): void
 }
 
-export function creerCiel(chargeur: THREE.TextureLoader): Ciel {
-  const tx = chargeur.load(voieLacteeUrl)
-  // Pas de mipmaps : la couture de la longitude 180° ne laisse pas de trait.
-  tx.generateMipmaps = false
-  tx.minFilter = THREE.LinearFilter
-  tx.wrapS = THREE.RepeatWrapping
+export function creerCiel(): Ciel {
   // Direction de three.js (x, y, z) = écliptique (x, z, −y) : écliptique = T · three, puis galactique = M · écliptique.
   const m = ECL_VERS_GAL
   const g = (i: number) => [m[i][0], m[i][2], -m[i][1]] as const
   const [a, b, c] = [g(0), g(1), g(2)]
   const versGal = new THREE.Matrix3().set(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2])
   const materiau = new THREE.ShaderMaterial({
-    uniforms: { carte: { value: tx }, versGal: { value: versGal }, eclat: { value: 1 } },
+    uniforms: { versGal: { value: versGal }, eclat: { value: 1 } },
     vertexShader: `
       varying vec3 vDirection;
       void main() {
@@ -35,28 +28,35 @@ export function creerCiel(chargeur: THREE.TextureLoader): Ciel {
         gl_Position = projectionMatrix * vec4(mat3(viewMatrix) * position, 1.0);
       }`,
     fragmentShader: `
-      uniform sampler2D carte;
       uniform mat3 versGal;
       uniform float eclat;
       varying vec3 vDirection;
-      const float PI = 3.141592653589793;
+      const float DEG = 57.29577951;
+      // Bruit doux en 3D (sur la direction : pas de couture).
+      float hache(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+      float bruit(vec3 p) {
+        vec3 i = floor(p), f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(hache(i), hache(i + vec3(1, 0, 0)), f.x), mix(hache(i + vec3(0, 1, 0)), hache(i + vec3(1, 1, 0)), f.x), f.y),
+                   mix(mix(hache(i + vec3(0, 0, 1)), hache(i + vec3(1, 0, 1)), f.x), mix(hache(i + vec3(0, 1, 1)), hache(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+      }
       void main() {
-        vec3 g = normalize(versGal * normalize(vDirection));
-        vec2 uv = vec2(0.5 - atan(g.y, g.x) / (2.0 * PI), 0.5 + asin(clamp(g.z, -1.0, 1.0)) / PI);
-        // Flou doux (13 échantillons sur environ 2°) : ni pixels, ni étoiles de la photo, seulement la lueur.
-        vec2 r = vec2(0.008, 0.016);
-        vec3 c = texture2D(carte, uv).rgb * 0.16;
-        for (int i = 0; i < 6; i++) {
-          float a = float(i) * 1.0471976;
-          vec2 d = vec2(cos(a), sin(a));
-          c += texture2D(carte, uv + d * r * 0.5).rgb * 0.08;
-          c += texture2D(carte, uv + d * r).rgb * 0.06;
-        }
-        // Presque sans couleur, discrète : le fond noir reste noir, la bande n'est qu'une brume.
-        float l = dot(c, vec3(0.299, 0.587, 0.114));
-        c = mix(vec3(l), c, 0.3) * vec3(0.95, 0.97, 1.0);
-        c = max(c - 0.04, 0.0) * 0.42 * eclat;
-        gl_FragColor = vec4(c, 1.0);
+        vec3 d = normalize(versGal * normalize(vDirection));
+        float l = atan(d.y, d.x) * DEG;
+        float b = asin(clamp(d.z, -1.0, 1.0)) * DEG;
+        // La bande : plus forte vers le centre et le Cygne, plus épaisse dans le bulbe.
+        float poids = 0.3 + 0.7 * exp(-pow(l / 38.0, 2.0)) + 0.25 * exp(-pow((l - 78.0) / 22.0, 2.0));
+        float epaisseur = 3.2 + 5.5 * exp(-pow(l / 22.0, 2.0));
+        float lum = poids * exp(-0.5 * pow(b / epaisseur, 2.0));
+        // La grande faille de poussière, du Cygne au Sagittaire, juste au-dessus du plan.
+        float dansFaille = smoothstep(-16.0, -8.0, l) * (1.0 - smoothstep(78.0, 86.0, l));
+        lum *= 1.0 - 0.42 * dansFaille * exp(-0.5 * pow((b - 0.8 - 0.012 * l) / 1.8, 2.0));
+        // Des nuages plus ou moins denses.
+        float n = bruit(d * 9.0) * 0.6 + bruit(d * 23.0) * 0.4;
+        lum *= 0.55 + 0.9 * n;
+        // Couleur : chaude vers le bulbe, plus froide ailleurs.
+        vec3 teinte = mix(vec3(0.82, 0.88, 1.0), vec3(1.0, 0.92, 0.8), exp(-pow(l / 30.0, 2.0)));
+        gl_FragColor = vec4(teinte * lum * 0.11 * eclat, 1.0);
         #include <tonemapping_fragment>
       }`,
     side: THREE.BackSide,
@@ -64,7 +64,7 @@ export function creerCiel(chargeur: THREE.TextureLoader): Ciel {
     depthWrite: false,
   })
   const maillage = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), materiau)
-  maillage.renderOrder = -2 // tout au fond, avant les étoiles
+  maillage.renderOrder = -3 // tout au fond, avant les étoiles
   maillage.frustumCulled = false
   return { maillage, regler: (eclat) => (materiau.uniforms.eclat.value = eclat) }
 }

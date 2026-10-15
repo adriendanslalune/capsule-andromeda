@@ -8,7 +8,6 @@
   import Icone from '../cockpit/Icone.svelte'
   import { jeu, PAGES_POSTE, type PagePoste } from '../jeu.svelte'
   import { nonLus, telegrammesRecus } from '../reseau'
-  import { basculerSon, sonActif } from '../sons'
   import Carte from '../volets/Carte.svelte'
   import Atelier from '../volets/Atelier.svelte'
   import Trophees from '../volets/Trophees.svelte'
@@ -18,7 +17,6 @@
 
   const NOMS: Record<PagePoste, string> = { carte: 'NAVIGATION', social: 'SOCIAL', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
 
-  let son = $state(sonActif())
   const etat = $derived(jeu.etat!)
   const saison = $derived(numeroSaison(jeu.maintenant))
   /** Télégrammes arrivés et pas encore lus. */
@@ -65,6 +63,8 @@
       <span class="c58 titre-pulp">C-58</span>
       <span class="nom">{etat.nom || etat.serie}</span>
     </div>
+    <!-- Pilotage en miniature : vitesse, cap, arrivée, moteur. -->
+    <BarreBord />
     <div class="instruments">
       <div class="caisse">
         <button class="credits" aria-label={`${etat.credits} crédits : ouvrir le portefeuille`} onclick={() => (jeu.volet = 'portefeuille')}>
@@ -73,14 +73,9 @@
         </button>
         <span class="saison">SAISON {saison}</span>
       </div>
-      <button class="interrupteur" class:coupe={!son} aria-label={son ? 'Couper le son' : 'Remettre le son'} onclick={() => (son = basculerSon())}>
-        <span class="bascule"></span><span class="mot">{son ? 'SON' : 'MUET'}</span>
-      </button>
       <button class="manuel" aria-label="Ouvrir le manuel" onclick={() => (jeu.volet = 'manuel')}><Icone nom="manuel" /></button>
     </div>
   </header>
-  <!-- Pilotage en miniature : vitesse, cap, arrivée, moteur. -->
-  <BarreBord />
 
   <!-- Onglets : celui de la page affichée ressort, comme un intercalaire. -->
   <nav class="onglets" aria-label="Pages du poste">
@@ -191,7 +186,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 96px;
+    max-width: 72px;
   }
   .instruments {
     display: flex;
@@ -216,48 +211,6 @@
   .unite {
     font-size: 11px;
     font-weight: 700;
-  }
-  .interrupteur {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    width: 40px;
-    border: 0;
-    background: none;
-    padding: 0;
-    color: inherit;
-  }
-  .bascule {
-    position: relative;
-    width: 18px;
-    height: 26px;
-    border-radius: 9px;
-    border: 2px solid var(--couleur-encre);
-    background: var(--menthe);
-  }
-  .bascule::after {
-    content: '';
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid var(--couleur-encre);
-    background: var(--couleur-papier);
-    transition: top 0.12s;
-  }
-  .interrupteur.coupe .bascule {
-    background: var(--couleur-papier-fonce);
-  }
-  .interrupteur.coupe .bascule::after {
-    top: 11px;
-  }
-  .interrupteur .mot {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
   }
   .manuel {
     color: var(--couleur-encre);

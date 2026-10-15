@@ -6,8 +6,6 @@
   import { jeu } from '../jeu.svelte'
   import { Vue3D, type Etiquette } from './scene'
 
-  /** Hauteur (px) cachée en bas par l'écran de navigation posé sur le hublot. */
-  let { masqueBas = 0 }: { masqueBas?: number } = $props()
   let toile: HTMLCanvasElement
   let cadre: HTMLDivElement
   let etiquettes = $state<Etiquette[]>([])
@@ -22,7 +20,7 @@
       indisponible = true
       return
     }
-    const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight, masqueBas)
+    const ajuster = () => vue.taille(cadre.clientWidth, cadre.clientHeight)
     ajuster()
     const observateur = new ResizeObserver(ajuster)
     observateur.observe(cadre)
@@ -38,10 +36,7 @@
       eblouissement = vue.eblouissement
     }
     image = requestAnimationFrame(boucle)
-    let masque = masqueBas
-    const surveiller = setInterval(() => { if (masqueBas !== masque) { masque = masqueBas; ajuster() } }, 250)
     return () => {
-      clearInterval(surveiller)
       cancelAnimationFrame(image)
       observateur.disconnect()
       vue.liberer()
@@ -84,13 +79,26 @@
   }
   .etiquette {
     position: absolute;
-    transform: translate(7px, -16px);
+    transform: translate(14px, -26px);
     font-size: 12px;
     letter-spacing: 1px;
     color: var(--couleur-texte-clair);
     opacity: 0.8;
     pointer-events: none;
     white-space: nowrap;
+  }
+  /* Trait fin de l'astre au nom (le nom est 14 px à droite et 26 px au-dessus). */
+  .etiquette::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 24px;
+    width: 13px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+    transform-origin: 0 0;
+    transform: rotate(-58deg);
   }
   .etiquette.autre {
     font-family: var(--police-script);
@@ -112,8 +120,9 @@
   }
   .filtre {
     position: absolute;
-    right: 6px;
-    top: 6px;
+    z-index: 2;
+    right: 8px;
+    bottom: 8px;
     display: flex;
     align-items: center;
     gap: 3px;
@@ -129,7 +138,7 @@
   }
   .filtre.noms {
     right: auto;
-    left: 6px;
+    left: 8px;
   }
   .filtre.actif {
     background: var(--moutarde);

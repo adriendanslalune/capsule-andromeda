@@ -5,14 +5,13 @@
 
   let { numero }: { numero: number } = $props()
   const organes = [
+    ['Cadrans', 'Vitesse (km/s) ; cap (flèche rouge : cap ; jaune : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher : instruments en grand.'],
+    ['Interrupteur MOTEUR', `En haut, ON : poussée. En bas, OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination.`],
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
-    ['Interrupteur de son', 'Coupe ou rétablit les alarmes et les sons du bord.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher : instruments en grand.'],
-    ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination.`],
     ['Onglets', 'NAVIGATION, SOCIAL, COCKPIT, ATELIER, TROPHÉES ; glisser le doigt mène à la page voisine. Pastilles : avaries (rouge), télégrammes (jaune, XVIII).'],
-    ['Hublot', 'Vue droit devant ; boutons NOMS et FILTRE. Le toucher : vue extérieure.'],
-    ['Écran de navigation', 'Au pied du hublot : destination, temps restant, arrivée (heure du téléphone), frise.'],
+    ['Écran de la caméra', 'L’extérieur, droit devant ; boutons NOMS et FILTRE. Le toucher : vue extérieure.'],
+    ['Navigation incrustée', 'Destination, temps restant, arrivée (heure du téléphone) ; frise au bas de l’image.'],
     ['Radio', 'Écran des ondes (le message y défile), boutons GROS et FIN, − et +, ÉMETTRE, haut-parleur (XX).'],
     ['Navigation', 'Radar : destination (blanc), point de rencontre (jaune), écho du visiteur si DET le repère (XVII). Le toucher ouvre NAVIGATION.'],
     ['Voyants des blocs', 'Vert : en ordre. Rouge : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],

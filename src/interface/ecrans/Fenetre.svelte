@@ -103,49 +103,59 @@
   const derniers = $derived(fil.slice(-3))
   const aLire = $derived(fil.filter((l) => l.nouveau).length)
   const ligneJournal = $derived(jeu.telex.at(-1) ?? null)
-  /** Hauteur de l'écran de navigation posé sur le hublot (le hublot vise au-dessus). */
-  let hautHud = $state(0)
 </script>
 
 <main>
   <div class="defile">
-    <!-- Hublot : le toucher fait sortir en vue extérieure. -->
-    <div class="hublot" role="button" tabindex="0" aria-label="Regarder dehors (vue extérieure)"
+    <!-- Écran de la caméra extérieure : l'image d'un bord à l'autre, les informations incrustées dessus.
+         Le toucher fait sortir en vue extérieure. -->
+    <div class="camera" role="button" tabindex="0" aria-label="Regarder dehors (vue extérieure)"
       onclick={regarderDehors} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') regarderDehors() }}>
-      <div class="boulons-h"></div>
-      <div class="boulons-v"></div>
-      <div class="vitre">
-        {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot masqueBas={hautHud} />{/await}
-        <!-- 1. Où je vais ? L'écran de navigation, en surimpression au bas du hublot. -->
-        <div class="ecran hud" bind:clientHeight={hautHud}>
+      <div class="ecran-camera">
+        {#await import('../vue3d/Hublot.svelte') then { default: Hublot }}<Hublot />{/await}
+        <!-- 1. Où je vais ? -->
+        <div class="incrustation">
           {#if fusee.destination && attente && plan}
-            <div class="ligne"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="discret">départ dans {duree((plan.depart - t) / 1000)}</span></div>
-            <div class="ligne"><span class="grand">{nomDestination(fusee.destination)}</span></div>
+            <div class="haut">
+              <span class="titre-incruste"><span class="etiquette-encre">FENÊTRE DE TIR</span><span class="grand">{nomDestination(fusee.destination)}</span></span>
+              <span class="droite"><span class="compte">{duree((plan.depart - t) / 1000)}</span><span class="discret">avant le départ</span></span>
+            </div>
             <div class="sous">Départ {jourEtHeure(plan.depart, t)} · arrivée <b>{jourEtHeure(plan.arrivee, t)}</b></div>
           {:else if fusee.destination}
-            <div class="ligne"><span class="etiquette-encre">EN ROUTE VERS</span><span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span></div>
-            <div class="ligne">
-              <span class="nom-picto">
-                <span class="grand">{nomDestination(fusee.destination)}</span>
-                <!-- Dessin de la destination, à côté de son nom. -->
-                <span class="picto"><Pictogramme destination={fusee.destination} /></span>
+            <div class="haut">
+              <span class="titre-incruste">
+                <span class="etiquette-encre">EN ROUTE VERS</span>
+                <span class="nom-picto">
+                  <span class="grand">{nomDestination(fusee.destination)}</span>
+                  <!-- Dessin de la destination, à côté de son nom. -->
+                  <span class="picto"><Pictogramme destination={fusee.destination} /></span>
+                </span>
               </span>
-              <span class="compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span>
+              <span class="droite">
+                <span class="compte">{resteDirect !== null ? dureePrecise(resteDirect) : coupe ? 'MOTEUR COUPÉ' : '—'}</span>
+                <span class="discret">reste {ua(distanceRestante(fusee, t) ?? 0)}</span>
+              </span>
             </div>
             <div class="sous">Arrivée <b>{arrivee !== null ? jourEtHeure(arrivee, maintenantDirect) : '—'}</b></div>
             {#if avancement !== null}
               <div class="piste"><div class="fait" style={`width: ${avancement * 100}%`}></div></div>
             {/if}
           {:else if fusee.orbite}
-            <div class="ligne"><span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : estEngin(fusee.orbite) || fusee.orbite === 'ISS' ? 'AUPRÈS DE' : 'EN ORBITE'}</span></div>
-            <div class="ligne"><span class="grand">{majuscule(nomAstre(fusee.orbite))}</span></div>
+            <div class="haut">
+              <span class="titre-incruste">
+                <span class="etiquette-encre">{fusee.presDuVisiteur ? 'À CÔTÉ DE L’OBJET INCONNU' : estEngin(fusee.orbite) || fusee.orbite === 'ISS' ? 'AUPRÈS DE' : 'EN ORBITE'}</span>
+                <span class="grand">{majuscule(nomAstre(fusee.orbite))}</span>
+              </span>
+            </div>
             <div class="sous">Choisis une destination (page NAVIGATION).</div>
           {:else}
-            <div class="ligne"><span class="etiquette-encre">À L’ARRÊT</span></div>
-            <div class="ligne"><span class="grand">Point libre</span></div>
+            <div class="haut">
+              <span class="titre-incruste"><span class="etiquette-encre">À L’ARRÊT</span><span class="grand">Point libre</span></span>
+            </div>
             <div class="sous">Choisis une destination (page NAVIGATION).</div>
           {/if}
         </div>
+        <span class="rec" aria-hidden="true">● CAM. AVANT</span>
       </div>
     </div>
 
@@ -243,43 +253,49 @@
     color: inherit;
   }
 
-  /* Hublot : d'un bord à l'autre de l'écran, cadre fin boulonné. */
-  .hublot {
+  /* Écran de la caméra extérieure : un moniteur d'un bord à l'autre, cadre d'encre, coins arrondis. */
+  .camera {
     position: relative;
-    height: clamp(176px, 25vh, 230px);
+    height: clamp(200px, 27vh, 250px);
     margin: 0 calc(-1 * var(--espace));
-    padding: 7px;
+    padding: 6px;
     border-top: 2px solid var(--couleur-encre);
     border-bottom: 2px solid var(--couleur-encre);
-    background: var(--traits), var(--couleur-papier-fonce);
+    background: var(--couleur-encre);
     cursor: pointer;
   }
-  .hublot:active .vitre {
+  .camera:active .ecran-camera {
     filter: brightness(1.15);
   }
-  .boulons-h,
-  .boulons-v {
-    position: absolute;
-    pointer-events: none;
-    --boulon: radial-gradient(circle, var(--couleur-papier) 0 1.2px, var(--couleur-encre) 1.6px 2.2px, transparent 2.5px);
-  }
-  .boulons-h {
-    inset: 0 16px;
-    background: var(--boulon) top / 26px 7px space no-repeat, var(--boulon) bottom / 26px 7px space no-repeat;
-  }
-  .boulons-v {
-    inset: 14px 0;
-    background: var(--boulon) left / 7px 26px no-repeat space, var(--boulon) right / 7px 26px no-repeat space;
-  }
-  .vitre {
+  .ecran-camera {
     position: relative;
     height: 100%;
     overflow: hidden;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--nuit);
+    box-shadow: 0 0 0 2px #2b3440 inset;
   }
-
+  /* Lignes de balayage légères et coins assombris : l'image d'une caméra, vue sur un écran. */
+  .ecran-camera::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45));
+  }
+  .rec {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    font-family: var(--police-machine);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: rgba(250, 242, 220, 0.6);
+    pointer-events: none;
+  }
   /* Panneaux : double filet d'encre, vis aux coins, légende gravée dans le cadre. */
   .panneau-fin {
     position: relative;
@@ -319,40 +335,38 @@
     letter-spacing: 0.5px;
   }
 
-  /* Écran de navigation : vert phosphore, lignes de balayage. */
-  .ecran {
-    position: relative;
+  /* Informations incrustées sur l'image : en haut la destination et le compte à rebours, dessous l'arrivée et la
+     frise ; pas de fond, un liseré sombre sous les lettres pour qu'elles restent lisibles sur le ciel. */
+  .incrustation {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 6px 11px 8px;
-    border: 3px solid var(--couleur-encre);
-    border-radius: 10px;
-    background-color: var(--nuit);
-    box-shadow: 0 0 0 3px #0f1822 inset;
+    padding: 8px 12px 0;
     color: var(--menthe);
-    overflow: hidden;
-    text-shadow: 0 0 5px rgba(143, 207, 152, 0.55);
-  }
-  /* En surimpression au bas du hublot : un bandeau d'écran à demi transparent, le ciel passe au-dessus. */
-  .ecran.hud {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-width: 2px 0 0;
-    border-radius: 0;
-    background-color: rgba(13, 26, 20, 0.45);
-    box-shadow: none;
-    backdrop-filter: blur(0.5px);
     pointer-events: none;
+    text-shadow: 0 0 5px rgba(143, 207, 152, 0.5), 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, 0.8);
   }
-  /* Lignes de balayage plus légères sur le hublot, et un liseré sombre sous les lettres pour qu'elles restent lisibles. */
-  .ecran.hud::before {
-    opacity: 0.45;
+  .haut {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
   }
-  .ecran.hud {
-    text-shadow: 0 0 5px rgba(143, 207, 152, 0.55), 0 1px 2px rgba(0, 0, 0, 0.9);
+  .titre-incruste {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+  }
+  .droite {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: none;
   }
   .nom-picto {
     display: flex;
@@ -360,12 +374,16 @@
     gap: 8px;
     min-width: 0;
   }
-  .ecran::before {
-    content: '';
+  .incrustation .piste {
     position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    height: 4px;
+    border: 0;
+    border-radius: 0;
+    background: rgba(143, 207, 152, 0.2);
   }
   .ligne {
     display: flex;
@@ -373,7 +391,7 @@
     align-items: baseline;
     gap: 8px;
   }
-  .ecran .etiquette-encre {
+  .incrustation .etiquette-encre {
     background: none;
     border: 1.5px solid var(--menthe);
     color: var(--menthe);
