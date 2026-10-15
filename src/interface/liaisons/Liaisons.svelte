@@ -1,39 +1,39 @@
 <script lang="ts">
-  // Page SOCIAL : trois sous-onglets, CLASSEMENT, CONTRATS et COMMUNICATION (ouvert par défaut).
+  // Intercalaire LIAISONS (ex-SOCIAL) : le côté social du jeu, en trois sous-onglets — COMMUNICATION (télégrammes et
+  // bulletins, ouvert par défaut), CLASSEMENT et TROPHÉES.
   import { jeu } from '../jeu.svelte'
   import { nonLus, telegrammesRecus } from '../reseau'
-  import Classement from './Classement.svelte'
-  import Communication from './Communication.svelte'
-  import Contrats from './Contrats.svelte'
+  import Classement from '../social/Classement.svelte'
+  import Communication from '../social/Communication.svelte'
+  import Trophees from '../volets/Trophees.svelte'
 
   const etat = $derived(jeu.etat!)
   const nouveaux = $derived(nonLus(etat, telegrammesRecus(etat, jeu.maintenant)))
   const ONGLETS = [
-    { id: 'classement', nom: 'CLASSEMENT' },
-    { id: 'contrats', nom: 'CONTRATS' },
     { id: 'communication', nom: 'COMMUNICATION' },
+    { id: 'classement', nom: 'CLASSEMENT' },
+    { id: 'trophees', nom: 'TROPHÉES' },
   ] as const
 </script>
 
-<div class="social">
+<div class="page-onglets">
   <div class="sous-onglets" role="tablist">
     {#each ONGLETS as o}
-      <button role="tab" aria-selected={jeu.ongletSocial === o.id} class:actif={jeu.ongletSocial === o.id} onclick={() => (jeu.ongletSocial = o.id)}>
+      <button role="tab" aria-selected={jeu.ongletLiaisons === o.id} class:actif={jeu.ongletLiaisons === o.id} onclick={() => (jeu.ongletLiaisons = o.id)}>
         {o.nom}
         {#if o.id === 'communication' && nouveaux}<span class="pastille">{nouveaux}</span>{/if}
-        {#if o.id === 'contrats' && etat.contrats.length}<span class="pastille neutre">{etat.contrats.length}</span>{/if}
       </button>
     {/each}
   </div>
-  <div class="contenu" class:plein={jeu.ongletSocial === 'communication'}>
-    {#if jeu.ongletSocial === 'classement'}<Classement />
-    {:else if jeu.ongletSocial === 'contrats'}<Contrats />
-    {:else}<Communication />{/if}
+  <div class="contenu" class:plein={jeu.ongletLiaisons === 'communication'}>
+    {#if jeu.ongletLiaisons === 'communication'}<Communication />
+    {:else if jeu.ongletLiaisons === 'classement'}<Classement />
+    {:else}<Trophees />{/if}
   </div>
 </div>
 
 <style>
-  .social {
+  .page-onglets {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -44,7 +44,7 @@
   .sous-onglets {
     flex: none;
     display: grid;
-    grid-template-columns: 1fr 1fr 1.25fr;
+    grid-template-columns: 1.3fr 1fr 1fr;
     gap: 4px;
     border-bottom: 3px solid var(--couleur-encre);
   }
@@ -79,9 +79,6 @@
     color: var(--couleur-encre);
     font-family: var(--police-chiffres);
     font-size: 10px;
-  }
-  .pastille.neutre {
-    background: var(--couleur-papier);
   }
   .contenu {
     flex: 1;

@@ -1,7 +1,7 @@
 # Maître de son destin — document de conception (proposition du 16/10/2026)
 
-*Proposition de Claude, à valider ou corriger par Adrien avant tout code. Rien ici n'est décidé tant qu'Adrien ne
-l'a pas dit. Les chiffres sont des points de départ, faciles à changer.*
+*Proposition de Claude, à valider ou corriger par Adrien avant tout code. Les chiffres sont des points de départ,
+faciles à changer. Les décisions d'Adrien sont reportées au §10.*
 
 ## 1. L'idée
 
@@ -17,7 +17,7 @@ radio et la carte sont les outils de tout le reste.
 
 Cinq intercalaires. Ordre proposé, le cockpit au milieu :
 
-| MISSIONS | COMMUNICATION | **COCKPIT** | COMMERCE | ATELIER |
+| MISSIONS | LIAISONS | **COCKPIT** | COMMERCE | ATELIER |
 |---|---|---|---|---|
 
 - **COCKPIT** : comme aujourd'hui (caméra, radio, radar, blocs, mission en cours, transmissions, journal).
@@ -26,8 +26,7 @@ Cinq intercalaires. Ordre proposé, le cockpit au milieu :
   - **SERVICES** — les appels à l'aide captés à la radio (voir §5) ;
   - **DÉCOUVERTES** — artefacts, monolithes, visiteur, épaves (voir §4) ;
   - **HISTOIRES** — les fils d'histoire choisis (voir §3).
-- **COMMUNICATION** : la messagerie (télégrammes, bulletins) et le **classement** ; les **trophées** aussi (à
-  confirmer, voir §9).
+- **LIAISONS** (le côté social) : la messagerie (télégrammes, bulletins), le **classement** et les **trophées**.
 - **COMMERCE** : la cale (ce qu'on transporte) et le marché du lieu où l'on se trouve (voir §6).
 - **ATELIER** : moteur, modules débloqués, instruments, et les nouveaux équipements (cale agrandie, scanner…).
 
@@ -115,3 +114,43 @@ Le premier arrivé (ou tous ceux qui arrivent à temps, à décider) est récomp
 7. Par quoi commencer ? Ma proposition : (a) les cinq intercalaires et les sous-onglets de MISSIONS, avec ce qui
    existe déjà rangé dedans ; (b) les monolithes (la radio est prête) ; (c) les services ; (d) le commerce ; (e) les
    histoires ; (f) artefacts et épaves.
+
+## 10. Décisions d'Adrien (16/10/2026)
+
+- Ordre des intercalaires : MISSIONS · LIAISONS · **COCKPIT** · COMMERCE · ATELIER (posés le 16/10/2026 ; services,
+  histoires et commerce y sont annoncés « bientôt »). LIAISONS remplace COMMUNICATION et SOCIAL ; les trophées y sont.
+- Les quatre fils d'histoire plaisent.
+- **Monolithes** : les dix trouvés donnent accès à une technologie extraterrestre : se téléporter n'importe où dans le
+  système solaire, une fois par jour.
+- **Services** : tous ceux qui arrivent à temps sont récompensés.
+- **Maisons** : chacune a une spécialité ; tout le monde peut faire toutes les missions, mais on appartient
+  **automatiquement** à la maison dont on fait le plus les missions (affinité). Les avantages restent à voir ensemble.
+
+## 11. Les maisons (proposition à discuter)
+
+Trois maisons, une spécialité chacune (noms provisoires) :
+
+| Maison | Spécialité | Missions qui comptent |
+|---|---|---|
+| **Le Bureau des recherches** | La recherche | monolithes, visiteur, artefacts, épaves, relevés |
+| **Les Messageries** | La livraison | contrats de livraison et de courrier, services (secours) |
+| **La Compagnie des comptoirs** | Le commerce | achats, ventes, exploitation des ressources |
+
+**Affinité** : chaque mission accomplie donne des points d'affinité à sa maison (par exemple : un monolithe 50, un
+artefact 10, une livraison 10, un secours 15, une vente rentable 5). On appartient à la maison où l'on a le plus de
+points sur les 30 derniers jours ; on peut donc en changer en changeant de façon de jouer. Un insigne et une couleur
+de maison s'affichent dans le classement et sur la fusée vue par les autres.
+
+**Avantages proposés** (un par rang, trois rangs par maison : membre, confirmé, maître) :
+
+- **Bureau des recherches** : détecteur à plus longue portée ; indices radio plus nets (les monolithes et le visiteur
+  s'entendent de plus loin) ; au rang maître, le télescope donne aussi une distance.
+- **Messageries** : primes de livraison et de secours majorées (+10 %, +20 %, +30 %) ; appels de détresse reçus avant
+  les autres ; au rang maître, un contrat exclusif chaque semaine.
+- **Compagnie des comptoirs** : meilleurs prix au marché (achat moins cher, vente plus chère) ; cale plus grande ; au
+  rang maître, accès aux marchandises rares.
+- **Pour tous** : un classement par maison (la maison de la semaine), des télégrammes de la maison (nouvelles,
+  missions spéciales).
+
+Questions : les noms des maisons ? les avantages ? faut-il que l'appartenance ait aussi un inconvénient (par exemple,
+des prix moins bons chez les autres maisons) ?

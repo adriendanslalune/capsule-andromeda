@@ -9,15 +9,15 @@
     ['Interrupteur MOTEUR', `En haut, ON : poussée. En bas, OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination.`],
     ['Compteur de crédits', 'Solde du commissionnaire. Le toucher ouvre le portefeuille.'],
     ['Manuel', 'Ouvre le présent manuel à l’écran.'],
-    ['Onglets', 'Intercalaires SOCIAL, COCKPIT, ATELIER, TROPHÉES ; glisser le doigt mène à la page voisine. Pastilles : avaries (rouge), télégrammes (jaune, XVIII).'],
+    ['Intercalaires', 'MISSIONS, LIAISONS, COCKPIT, COMMERCE, ATELIER ; glisser le doigt mène à la page voisine. Pastilles : avaries (rouge), télégrammes (jaune, XVIII).'],
     ['Écran de la caméra', 'L’extérieur, droit devant ; boutons NOMS et FILTRE. Le toucher : vue extérieure.'],
     ['Navigation incrustée', 'Destination, temps restant, arrivée (heure du téléphone) ; frise au bas de l’image.'],
     ['Radio', 'Écran des ondes (le message y défile), boutons GROS et FIN, − et +, ÉMETTRE, haut-parleur (XX).'],
     ['Navigation', 'Radar : destination (blanc), point de rencontre (jaune), écho du visiteur si DET le repère (XVII). Le toucher ouvre la carte.'],
     ['Voyants des blocs', 'Vert : en ordre. Rouge : avarie. Pointillés : non installé. Le toucher ouvre le bloc. Trait PROPULSION : CH-1 et TU-1 (IV).'],
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
-    ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre SOCIAL, CONTRATS.'],
-    ['Transmissions', 'Les 3 derniers messages et les connectés. Le toucher ouvre SOCIAL, COMMUNICATION (XVIII).'],
+    ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre MISSIONS, CONTRATS.'],
+    ['Transmissions', 'Les 3 derniers messages et les connectés. Le toucher ouvre LIAISONS, COMMUNICATION (XVIII).'],
     ['Journal de bord', 'Dernier message du bord. Le toucher déroule tout le journal.'],
   ]
 </script>

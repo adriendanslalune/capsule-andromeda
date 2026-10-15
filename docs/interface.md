@@ -195,3 +195,13 @@ La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un
   l'intercalaire COCKPIT reste en avant pendant ce temps).
 - Testeur (provisoire) : TOUT DÉBLOQUER installe les 9 modules, le télescope et le détecteur.
 - Vue 3D : un nom d'astre qui en recouvrirait un autre ne s'écrit pas (sauf la destination).
+
+## 21. Cinq intercalaires (16/10/2026, décision d'Adrien)
+MISSIONS · LIAISONS · **COCKPIT** · COMMERCE · ATELIER (cartons rose, lavande, moutarde, vert, bleu ; étiquette avec
+l'icône au-dessus du nom).
+- **MISSIONS** : CONTRATS (les commissions de la semaine), SERVICES (canal de détresse, « bientôt »), DÉCOUVERTES (le
+  visiteur de la saison avec son radar et un accès à la carte de chasse ; monolithes 0/10, artefacts, épaves
+  « bientôt »), HISTOIRES (les quatre fils, « bientôt »). La carte MISSION du cockpit ouvre CONTRATS.
+- **LIAISONS** (ex-SOCIAL) : COMMUNICATION (par défaut), CLASSEMENT, TROPHÉES. Les transmissions du cockpit l'ouvrent.
+- **COMMERCE** : la cale (vide) et le marché, « bientôt ».
+Voir docs/conception-destin.md.

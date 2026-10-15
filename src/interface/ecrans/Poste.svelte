@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Le poste de pilotage : une barre fixe en haut (nom de la fusée, crédits, saison, son, manuel), les cinq onglets
-  // (CARTE, CONTRATS, COCKPIT au milieu, ATELIER, TROPHÉES), et la page choisie. On passe d'une page à sa voisine
-  // en glissant le doigt vers la gauche ou la droite.
+  // Le poste de pilotage : une barre fixe en haut (nom de la fusée, cadrans et moteur, crédits, manuel), les cinq
+  // intercalaires (MISSIONS, LIAISONS, COCKPIT au milieu, COMMERCE, ATELIER), et la page choisie. On passe d'une page
+  // à sa voisine en glissant le doigt vers la gauche ou la droite. La carte s'ouvre depuis le radar du cockpit.
   import { fly } from 'svelte/transition'
   import { numeroSaison } from '../../moteur/chasse'
   import { modulesEnPanne } from '../../moteur/modules'
@@ -10,12 +10,13 @@
   import { nonLus, telegrammesRecus } from '../reseau'
   import Carte from '../volets/Carte.svelte'
   import Atelier from '../volets/Atelier.svelte'
-  import Trophees from '../volets/Trophees.svelte'
   import BarreBord from '../cockpit/BarreBord.svelte'
-  import Social from '../social/Social.svelte'
+  import Commerce from '../commerce/Commerce.svelte'
+  import Liaisons from '../liaisons/Liaisons.svelte'
+  import Missions from '../missions/Missions.svelte'
   import Fenetre from './Fenetre.svelte'
 
-  const NOMS: Record<PagePoste, string> = { carte: 'NAVIGATION', social: 'SOCIAL', cockpit: 'COCKPIT', atelier: 'ATELIER', trophees: 'TROPHÉES' }
+  const NOMS: Record<PagePoste, string> = { missions: 'MISSIONS', liaisons: 'LIAISONS', cockpit: 'COCKPIT', commerce: 'COMMERCE', atelier: 'ATELIER', carte: 'NAVIGATION' }
 
   const etat = $derived(jeu.etat!)
   const saison = $derived(numeroSaison(jeu.maintenant))
@@ -89,7 +90,7 @@
         <span class="carton" aria-hidden="true"></span>
         <span class="etiquette"><Icone nom={p} /><span>{NOMS[p]}</span></span>
         {#if p === 'cockpit' && avaries}<span class="pastille" aria-label={`${avaries} avaries`}>{avaries}</span>{/if}
-        {#if p === 'social' && nouveaux}<span class="pastille telegramme" aria-label={`${nouveaux} télégrammes`}>{nouveaux}</span>{/if}
+        {#if p === 'liaisons' && nouveaux}<span class="pastille telegramme" aria-label={`${nouveaux} télégrammes`}>{nouveaux}</span>{/if}
       </button>
     {/each}
   </nav>
@@ -100,9 +101,10 @@
       <div class="contenu" in:fly={{ x: sens * 120, duration: 180 }}>
         {#if jeu.page === 'cockpit'}<Fenetre />
         {:else if jeu.page === 'carte'}<Carte />
-        {:else if jeu.page === 'social'}<Social />
-        {:else if jeu.page === 'atelier'}<Atelier />
-        {:else}<div class="vitrine-defile"><Trophees /></div>
+        {:else if jeu.page === 'missions'}<Missions />
+        {:else if jeu.page === 'liaisons'}<Liaisons />
+        {:else if jeu.page === 'commerce'}<Commerce />
+        {:else}<Atelier />
         {/if}
       </div>
     {/key}
@@ -129,7 +131,7 @@
     gap: 6px;
     padding: 6px 10px 4px var(--espace);
   }
-  /* Pastille d'avaries sur l'onglet COCKPIT ; de télégrammes sur l'onglet SOCIAL (jaune, sans clignoter). */
+  /* Pastille d'avaries sur l'intercalaire COCKPIT ; de télégrammes sur LIAISONS (jaune, sans clignoter). */
   .pastille.telegramme {
     background: var(--moutarde);
     color: var(--couleur-encre);
@@ -241,7 +243,7 @@
   .onglets {
     flex: none;
     display: grid;
-    grid-template-columns: 1fr 1.25fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr;
     align-items: end;
     gap: 0;
     padding: 4px 6px 0;
@@ -250,9 +252,9 @@
   .onglet {
     position: relative;
     min-width: 0;
-    height: 46px;
+    height: 48px;
     margin: 0 -3px;
-    padding: 6px 7px 3px;
+    padding: 6px 5px 3px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -264,7 +266,7 @@
     transition: transform 0.15s;
   }
   .onglet:nth-child(2n) {
-    height: 50px;
+    height: 52px;
   }
   .carton {
     position: absolute;
@@ -273,8 +275,14 @@
     border-radius: 4px 4px 0 0;
     background: repeating-linear-gradient(0deg, rgba(42, 30, 23, 0.06) 0 1px, transparent 1px 4px), var(--carton);
   }
-  .onglet.social {
+  .onglet.missions {
     --carton: #efc0b0;
+  }
+  .onglet.liaisons {
+    --carton: #d6c6ea;
+  }
+  .onglet.commerce {
+    --carton: #c3e0bf;
   }
   .onglet.cockpit {
     --carton: var(--moutarde);
@@ -282,24 +290,23 @@
   .onglet.atelier {
     --carton: #b7dbe3;
   }
-  .onglet.trophees {
-    --carton: #c3e0bf;
-  }
   /* L'étiquette de papier, glissée dans le carton. */
   .etiquette {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 0;
     max-width: 100%;
     padding: 2px 4px;
     border: 1.5px solid var(--couleur-encre);
     border-radius: 2px;
     background: var(--couleur-papier);
     font-family: var(--police-machine);
-    font-size: 8.5px;
+    font-size: 7.5px;
     font-weight: 700;
     letter-spacing: 0;
+    line-height: 1.1;
     box-shadow: 1px 1px 0 rgba(42, 30, 23, 0.35);
   }
   .etiquette > span {
@@ -317,7 +324,7 @@
      le liseré de sa couleur en haut). */
   .onglet.actif {
     z-index: 2;
-    height: 56px;
+    height: 58px;
   }
   .onglet.actif .carton {
     background: linear-gradient(var(--carton) 0 5px, var(--couleur-fond) 5px);
@@ -332,7 +339,7 @@
     background: var(--couleur-fond);
   }
   .onglet.actif .etiquette {
-    font-size: 10px;
+    font-size: 8px;
     transform: translateY(-2px);
   }
   /* COCKPIT, l'écran principal : un peu plus grand. */
@@ -356,10 +363,5 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-  }
-  .vitrine-defile {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px var(--espace) 20px;
   }
 </style>

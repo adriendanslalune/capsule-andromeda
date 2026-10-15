@@ -7,7 +7,7 @@
 
   let { numero }: { numero: number } = $props()
   const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 88 + (i % 6) * 33.5, y: 246 + Math.floor(i / 6) * 21 }))
-  const onglets = ['SOCIAL', 'COCKPIT', 'ATELIER', 'TROPHÉES']
+  const onglets = ['MISSIONS', 'LIAISONS', 'COCKPIT', 'COMMERCE', 'ATELIER']
   const encre = '#1d1916'
   const papier = '#f8f5ec'
   const police = 'Courier Prime, monospace'
@@ -38,15 +38,15 @@
     <line x1="62" y1="64" x2="282" y2="64" stroke={encre} stroke-width="1.6" />
     <!-- Intercalaires en trapèze, chacun son étiquette ; celui de la page affichée (COCKPIT) passe devant. -->
     {#each onglets as o, i}
-      {@const x = 64 + i * 54}
-      {@const haut = i === 1 ? 44 : i % 2 ? 48 : 50}
-      <path d={`M ${x} 64 L ${x + 5} ${haut} H ${x + 51} L ${x + 56} 64`} fill={i === 1 ? papier : 'none'} stroke={encre} stroke-width={i === 1 ? 1.6 : 1} />
-      <rect x={x + 11} y={haut + 5} width="34" height="8" fill={papier} stroke={encre} stroke-width="0.6" />
-      <text x={x + 28} y={haut + 11} text-anchor="middle" font-size="5" font-weight="700" font-family={police}>{o}</text>
+      {@const x = 64 + i * 43}
+      {@const haut = i === 2 ? 44 : i % 2 ? 48 : 50}
+      <path d={`M ${x} 64 L ${x + 4} ${haut} H ${x + 40} L ${x + 44} 64`} fill={i === 2 ? papier : 'none'} stroke={encre} stroke-width={i === 2 ? 1.6 : 1} />
+      <rect x={x + 5} y={haut + 5} width="34" height="8" fill={papier} stroke={encre} stroke-width="0.6" />
+      <text x={x + 22} y={haut + 11} text-anchor="middle" font-size="4.6" font-weight="700" font-family={police}>{o}</text>
     {/each}
-    <line x1="119" y1="64" x2="173" y2="64" stroke={papier} stroke-width="2" />
-    <circle cx="168" cy="45" r="4.5" fill={encre} />
-    <text x="168" y="47" text-anchor="middle" font-size="5.5" font-weight="700" fill={papier} font-family={police}>2</text>
+    <line x1="151" y1="64" x2="193" y2="64" stroke={papier} stroke-width="2" />
+    <circle cx="190" cy="45" r="4.5" fill={encre} />
+    <text x="190" y="47" text-anchor="middle" font-size="5.5" font-weight="700" fill={papier} font-family={police}>2</text>
     <!-- Écran de la caméra extérieure : l'image entière, les informations incrustées dessus. -->
     <rect x="64" y="68" width="216" height="86" rx="3" fill={encre} />
     <rect x="68" y="72" width="208" height="78" rx="6" fill="url(#zone-bleue)" stroke={papier} stroke-width="0.6" />

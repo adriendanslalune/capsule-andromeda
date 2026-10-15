@@ -190,7 +190,7 @@
 
     <!-- 3. Quel est mon but ? -->
     <div class="buts">
-      <button class="carte mission" onclick={() => jeu.ouvrirSocial('contrats')}>
+      <button class="carte mission" onclick={() => jeu.ouvrirMissions('contrats')}>
         <small>MISSION</small>
         {#if mission}
           <b>{majuscule(nomAstre(mission.destination))}</b>
@@ -203,7 +203,7 @@
     </div>
 
     <!-- 4. Qui est autour ? -->
-    <button class="transmissions" onclick={() => jeu.ouvrirSocial('communication')} aria-label="Transmissions : ouvrir COMMUNICATION">
+    <button class="transmissions" onclick={() => jeu.ouvrirLiaisons('communication')} aria-label="Transmissions : ouvrir LIAISONS">
       <span class="bandeau-tx">
         <span><span class="antenne" aria-hidden="true"></span>TRANSMISSIONS</span>
         {#if aLire}<span class="a-lire">{aLire} NOUVEAU{aLire > 1 ? 'X' : ''}</span>{/if}

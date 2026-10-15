@@ -26,10 +26,10 @@ export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module';
 export type Volet = 'manuel' | 'portefeuille' | 'journal' | 'instruments' | null
 /** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
 /** Pages du poste : celles des onglets, et la carte de navigation (ouverte depuis le radar du cockpit, sans onglet). */
-export const PAGES_POSTE = ['social', 'cockpit', 'atelier', 'trophees', 'carte'] as const
+export const PAGES_POSTE = ['missions', 'liaisons', 'cockpit', 'commerce', 'atelier', 'carte'] as const
 export type PagePoste = (typeof PAGES_POSTE)[number]
-/** Onglets, dans l'ordre (on glisse le doigt de l'un à l'autre). */
-export const ONGLETS: readonly PagePoste[] = ['social', 'cockpit', 'atelier', 'trophees']
+/** Intercalaires, dans l'ordre (on glisse le doigt de l'un à l'autre) ; décision d'Adrien du 16/10/2026. */
+export const ONGLETS: readonly PagePoste[] = ['missions', 'liaisons', 'cockpit', 'commerce', 'atelier']
 
 /** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */
 export type Trace = { type: 'cercle'; x: number; y: number; rayon: number } | { type: 'droite'; x: number; y: number; angle: number }
@@ -63,12 +63,19 @@ class Jeu {
   pageManuel = $state(0)
   /** Page affichée dans le poste de pilotage. */
   page = $state<PagePoste>('cockpit')
-  /** Sous-onglet de la page SOCIAL (COMMUNICATION par défaut). */
-  ongletSocial = $state<'classement' | 'contrats' | 'communication'>('communication')
-  /** Ouvre la page SOCIAL sur un sous-onglet. */
-  ouvrirSocial(onglet: 'classement' | 'contrats' | 'communication') {
-    this.ongletSocial = onglet
-    this.page = 'social'
+  /** Sous-onglet de l'intercalaire MISSIONS (CONTRATS par défaut). */
+  ongletMissions = $state<'contrats' | 'services' | 'decouvertes' | 'histoires'>('contrats')
+  /** Sous-onglet de l'intercalaire LIAISONS (COMMUNICATION par défaut). */
+  ongletLiaisons = $state<'communication' | 'classement' | 'trophees'>('communication')
+  /** Ouvre MISSIONS sur un sous-onglet. */
+  ouvrirMissions(onglet: 'contrats' | 'services' | 'decouvertes' | 'histoires') {
+    this.ongletMissions = onglet
+    this.page = 'missions'
+  }
+  /** Ouvre LIAISONS sur un sous-onglet. */
+  ouvrirLiaisons(onglet: 'communication' | 'classement' | 'trophees') {
+    this.ongletLiaisons = onglet
+    this.page = 'liaisons'
   }
   /** Haut-parleur de la radio du cockpit : on entend la radio sans ouvrir le poste (allumé par défaut, retenu). */
   hautParleur = $state(lire(CLE_HAUT_PARLEUR) !== 'non')

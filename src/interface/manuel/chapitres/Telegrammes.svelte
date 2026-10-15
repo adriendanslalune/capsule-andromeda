@@ -12,8 +12,8 @@
 
 <Page {numero} chapitre="XVIII." titre="TÉLÉGRAMMES">
   <p>
-    Une pastille jaune sur l’onglet SOCIAL compte les télégrammes arrivés (d’un commissionnaire ou de l’Office).
-    SOCIAL, COMMUNICATION : l’écran des transmissions (le plus récent en bas) et le pupitre d’émission. Les messages
+    Une pastille jaune sur l’intercalaire LIAISONS compte les télégrammes arrivés (d’un commissionnaire ou de l’Office).
+    LIAISONS, COMMUNICATION : l’écran des transmissions (le plus récent en bas) et le pupitre d’émission. Les messages
     de la fusée elle-même s’impriment au journal de bord, pas ici.
   </p>
   <h3>Rédaction</h3>
