@@ -17,7 +17,8 @@
     ['Plaque constructeur', 'Numéro de série de l’appareil (chapitre III).'],
     ['Mission', 'Contrat en cours : destination, prime, distance. Le toucher ouvre SOCIAL, CONTRATS.'],
     ['Visiteur', 'Radar de la chasse (chapitre XVII), jours de saison. Le toucher ouvre la page NAVIGATION.'],
-    ['Liaison', 'Commissionnaires en ligne, classement, dernière annonce. Le toucher ouvre SOCIAL, CLASSEMENT (semaine, mois, général) ; les autres fusées sont des points de couleur sur la carte.'],
+    ['Poste radio', 'Fréquence réglée et force du signal. Le toucher ouvre le poste (XX).'],
+    ['Transmissions', 'Les 3 derniers messages et les connectés. Le toucher ouvre SOCIAL, COMMUNICATION (XVIII).'],
     ['Journal de bord', 'Dernier message du bord. Le toucher déroule tout le journal.'],
   ]
 </script>

@@ -16,6 +16,7 @@ import {
   ping,
   positionVisiteur,
   reglerRadio,
+  reglerRadioSur,
   viserTelescope,
   visiteurAPortee,
   visiteurDetecte,
@@ -24,12 +25,16 @@ import { baptiserFusee, creerPartie, type EtatPartie } from '../src/moteur/etat'
 import { direction, distance, positionAstre, type Point2 } from '../src/moteur/fusee'
 import { mulberry32 } from '../src/moteur/hasard'
 import { avancerPartie } from '../src/moteur/partie'
+import { STATIONS_RADIO } from '../src/donnees/radio'
+import { frequenceVisiteur } from '../src/moteur/radio'
 
 const T0 = Date.UTC(2026, 9, 13, 12)
 const H = 3_600_000
 const JOUR = 24 * H
 const partie = (t = T0, modules: string[] = []): EtatPartie =>
   ({ ...creerPartie(t, mulberry32(1), 'La Pie voleuse'), modulesInstalles: modules })
+/** La même, radio réglée sur une fréquence. */
+const regle = (e: EtatPartie, f: number) => reglerRadioSur(e, f)
 const placer = (e: EtatPartie, p: Point2): EtatPartie => ({ ...e, fusee: { ...e.fusee, orbite: null, position: p } })
 /** Partie en orbite autour de l'astre de l'escale du jour, à l'instant t. */
 const surEscale = (t: number): EtatPartie => {
@@ -233,11 +238,17 @@ describe('le nom de la fusée', () => {
 })
 
 describe('ping radio', () => {
+  it('la fréquence du visiteur change chaque mois (octobre 2026 : 11,05)', () => {
+    expect(frequenceVisiteur(T0)).toBe(11.05)
+    expect(frequenceVisiteur(Date.UTC(2026, 0, 10))).toBe(7.13)
+    expect(frequenceVisiteur(Date.UTC(2027, 9, 10))).toBe(11.05)
+  })
+
   it('écho après l’aller-retour de la lumière : 2 × distance × 499 s ; recharge de 5 minutes', () => {
-    const e = partie()
+    const e = regle(partie(), 11.05)
     const d = distance(e.fusee.position, positionVisiteur(T0))
     const r = ping(e, T0)
-    expect(r.messages).toEqual(['PING ÉMIS SUR 7,13. ÉCOUTE EN COURS…'])
+    expect(r.messages).toEqual(['PING ÉMIS SUR 11,05. ÉCOUTE EN COURS…'])
     const attendu = 2 * d * 499.0048 * 1000
     expect(r.etat.chasse.pings[0].duree).toBeCloseTo(attendu, 3)
     expect(ping(r.etat, T0 + 60_000).messages).toEqual(['RADIO EN RECHARGE.'])
@@ -246,10 +257,14 @@ describe('ping radio', () => {
     expect(retour.etat.chasse.pings).toEqual([])
   })
 
-  it('hors de 7,13 ± 0,05 : aucun écho', () => {
-    const e = reglerRadio(partie(), 0.06)
-    expect(ping(e, T0).messages).toEqual(['PING ÉMIS SUR 7,19.', 'AUCUN ÉCHO SUR 7,19.'])
-    expect(ping(reglerRadio(partie(), 0.05), T0).etat.chasse.pings).toHaveLength(1)
+  it('hors de la fréquence du visiteur ± 0,05 : aucun écho ; la radio part de 6,00', () => {
+    expect(partie().chasse.frequenceRadio).toBe(6)
+    expect(ping(partie(), T0).messages).toEqual(['PING ÉMIS SUR 6,00.', 'AUCUN ÉCHO SUR 6,00.'])
+    const e = reglerRadio(regle(partie(), 11.05), 0.06)
+    expect(ping(e, T0).messages).toEqual(['PING ÉMIS SUR 11,11.', 'AUCUN ÉCHO SUR 11,11.'])
+    expect(ping(reglerRadio(regle(partie(), 11.05), 0.05), T0).etat.chasse.pings).toHaveLength(1)
+    // L'ancienne fréquence fixe ne marche plus en octobre.
+    expect(ping(regle(partie(), 7.13), T0).etat.chasse.pings).toHaveLength(0)
   })
 
   it('le dernier ping garde la position de la fusée ; durée en clair', () => {
@@ -262,16 +277,26 @@ describe('Observatoire et transmissions', () => {
   it('bulletin toutes les 6 h : le système où se trouvait le visiteur 6 h plus tôt', () => {
     const creneau = Math.floor(T0 / (6 * H))
     const t = (creneau + 1) * 6 * H + 1000
-    const r = evoluerChasse(partie(), t)
+    const r = evoluerChasse(regle(partie(), STATIONS_RADIO.observatoire), t)
     const v = positionVisiteur((creneau + 1) * 6 * H - 6 * H)
     expect(r.messages).toContain(`OBSERVATOIRE : PERTURBATIONS DANS LE SYSTÈME DE ${planeteDe(v.astre).toUpperCase()}.`)
     expect(evoluerChasse(r.etat, t + 1000).messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toEqual([])
   })
 
-  it('après une longue absence : un seul bulletin et une seule transmission, les plus récents', () => {
-    const r = evoluerChasse(partie(), T0 + 3 * JOUR)
+  it('il faut écouter : radio ailleurs, rien ; sur l’Observatoire ou les transmissions, le dernier message, une fois', () => {
+    expect(evoluerChasse(partie(), T0 + 3 * JOUR).messages).toEqual([])
+    const r = evoluerChasse(regle(partie(), STATIONS_RADIO.observatoire), T0 + 3 * JOUR)
     expect(r.messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toHaveLength(1)
-    expect(r.messages.filter((m) => m.includes('SIGNALE UNE LUEUR'))).toHaveLength(1)
+    expect(evoluerChasse(r.etat, T0 + 3 * JOUR + 1000).messages).toEqual([])
+    const s = evoluerChasse(regle(partie(), STATIONS_RADIO.transmissions + 0.04), T0 + 3 * JOUR)
+    expect(s.messages.filter((m) => m.includes('SIGNALE UNE LUEUR'))).toHaveLength(1)
+    // Brouillé (à 0,10 de la station) : on ne comprend rien.
+    expect(evoluerChasse(regle(partie(), STATIONS_RADIO.transmissions + 0.1), T0 + 3 * JOUR).messages).toEqual([])
+  })
+
+  it('dès la première écoute, l’Observatoire donne son dernier bulletin', () => {
+    const r = evoluerChasse(regle(partie(), STATIONS_RADIO.observatoire), T0 + 1000)
+    expect(r.messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toHaveLength(1)
   })
 
   it('transmissions toutes les 8 h ; plus d’une fois sur deux la planète la plus proche du visiteur', () => {
@@ -281,7 +306,7 @@ describe('Observatoire et transmissions', () => {
       const creneau = Math.floor(T0 / (8 * H)) + k
       const t = creneau * 8 * H + 1000
       if (positionVisiteur(t).enVoyage) continue // créneau de minuit : il vient de partir
-      const avant = { ...e, chasse: { ...e.chasse, transmission: creneau - 1, bulletin: Infinity } }
+      const avant = { ...regle(e, STATIONS_RADIO.transmissions), chasse: { ...regle(e, STATIONS_RADIO.transmissions).chasse, transmission: creneau - 1 } }
       const m = evoluerChasse(avant, t).messages.find((x) => x.includes('LUEUR'))!
       const v = positionVisiteur(t)
       const plusProche = NOMS_PLANETES.reduce((a, b) => (distance(v, positionAstre(a, t)) <= distance(v, positionAstre(b, t)) ? a : b))

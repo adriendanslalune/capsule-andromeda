@@ -11,7 +11,7 @@
 <Page {numero} chapitre="XVII." titre="RECHERCHE DU VISITEUR">
   <p>
     Le visiteur ne figure sur aucune carte. Un seul croise le système solaire à la fois, pendant une <b>saison d’un
-    mois</b> (du 1er au dernier jour du mois) ; puis un autre lui succède. Tous les commissionnaires chassent le même.
+    mois</b> ; puis un autre lui succède. Tous les commissionnaires chassent le même.
   </p>
   <h3>Ses habitudes</h3>
   <p>
@@ -20,8 +20,8 @@
   </p>
   <h3>Radio — le ping</h3>
   <p>
-    Le visiteur ne répond que sur {virgule(C.frequencePing)}. Régler la radio (NAVIGATION, onglet CHASSE), presser PING. L’écho revient au
-    rythme de la lumière (aller et retour, depuis la position de l’émission). Un ping toutes les {C.rechargePingMinutes} min.
+    Le visiteur ne répond que sur sa fréquence du mois (table, XX). Y régler le poste radio, presser ÉMETTRE. L’écho
+    revient au rythme de la lumière (aller et retour, depuis la position de l’émission). Un ping toutes les {C.rechargePingMinutes} min.
   </p>
   <p class="attention">distance (UA) = délai de l’écho (minutes) ÷ 16,6 — le calculateur de l’onglet CHASSE la donne.</p>
   <p>
@@ -29,10 +29,11 @@
     comme le cap. Une visée toutes les {C.rechargeTelescopeMinutes} minutes.
   </p>
   <p><b>Détecteur (DET).</b> Signale le visiteur, avec sa distance, à moins de {virgule(C.porteeDetecteur)} UA de la fusée.</p>
-  <h3>Observatoire et transmissions</h3>
+  <h3>Observatoire et transmissions (à l’écoute, XX)</h3>
   <p>
     Toutes les {C.bulletinHeures} heures, l’Observatoire signale le <b>système</b> (la planète) où le visiteur se
     trouvait {C.bulletinHeures} heures plus tôt ; l’astre exact n’est pas donné. Les transmissions interceptées
     (toutes les {C.transmissionHeures} heures) sont des témoignages non vérifiés.
   </p>
 </Page>
+

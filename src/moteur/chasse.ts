@@ -1,19 +1,20 @@
 // Chasse au visiteur. Chaque mois (saison), un visiteur fait une boucle de 3 ou 4 escales, une par jour (voir
-// visiteur.ts). Indices : ping radio, bulletins de l'Observatoire, transmissions, télescope TEL, détecteur DET.
+// visiteur.ts). Indices : ping radio, bulletins de l'Observatoire et transmissions (à écouter sur le poste radio,
+// radio.ts), télescope TEL, détecteur DET.
 // Trouvaille (décisions d'Adrien du 13/10/2026) : repérer la soucoupe dans la vue 3D (on ne peut la toucher qu'à
 // moins de 300 000 km), s'en approcher (la fusée s'arrête à environ 200 m), puis la photographier à moins de 300 m.
 // Chaque trouvaille est annoncée à tous les joueurs ; le premier de la saison reçoit la couronne et la fusée en or
 // (attribuées par le serveur, en phase 4).
 
-import { planeteDe } from '../astro/corps'
 import { delaiLumiere, SECONDES_LUMIERE_PAR_UA } from '../astro/lumiere'
 import { UA_KM } from '../astro/temps'
-import { AUTEURS_TRANSMISSIONS, CHASSE as C } from '../donnees/chasse'
-import { NOMS_PLANETES } from '../donnees/planetes'
+import { CHASSE as C } from '../donnees/chasse'
+import { RADIO } from '../donnees/radio'
 import { crediter, estInstalle } from './economie'
 import type { EtatPartie } from './etat'
-import { direction, distance, positionAstre, type Point2 } from './fusee'
-import { choisirAuHasard, entierAuHasard, mulberry32, type Hasard } from './hasard'
+import { direction, distance, type Point2 } from './fusee'
+import { type Hasard } from './hasard'
+import { bornerFrequence, capter, frequenceVisiteur, surFrequence } from './radio'
 import { numeroSaison, positionVisiteur } from './visiteur'
 
 export { boucleSaison, debutSaison, escaleDuJour, finSaison, numeroSaison, positionVisiteur } from './visiteur'
@@ -37,7 +38,7 @@ export interface Trouvaille {
 }
 
 export interface EtatChasse {
-  /** Fréquence de la radio (pour le ping). */
+  /** Fréquence du poste radio. */
   frequenceRadio: number
   /** Échos attendus : instant de retour et durée de l'aller-retour (ms). */
   pings: { retour: number; duree: number }[]
@@ -62,15 +63,15 @@ export interface EtatChasse {
 
 export function creerChasse(t: number): EtatChasse {
   return {
-    frequenceRadio: C.frequenceRadioDepart,
+    frequenceRadio: RADIO.depart,
     pings: [],
     radioPrete: t,
     dernierPing: null,
     telescopePret: t,
     derniereVisee: null,
-    // Pas de bulletin ni de transmission en retard au premier lancement.
-    bulletin: Math.floor(t / (C.bulletinHeures * HEURE)),
-    transmission: Math.floor(t / (C.transmissionHeures * HEURE)),
+    // Rien d'entendu encore : la première écoute de l'Observatoire ou des transmissions donne leur dernier message.
+    bulletin: Math.floor(t / (C.bulletinHeures * HEURE)) - 2,
+    transmission: Math.floor(t / (C.transmissionHeures * HEURE)) - 1,
     trouvailles: [],
     indices: [],
   }
@@ -103,15 +104,20 @@ export function dureeEcho(ms: number): string {
 // ---------------------------------------------------------------------------------------------------------------
 // Instruments
 
-/** Règle la fréquence de la radio (au centième, de 0 à 12). */
+/** Décale la fréquence de la radio (au centième, de 0 à 12). */
 export function reglerRadio(etat: EtatPartie, ecart: number): EtatPartie {
-  const f = Math.max(0, Math.min(12, Math.round((etat.chasse.frequenceRadio + ecart) * 100) / 100))
-  return { ...etat, chasse: { ...etat.chasse, frequenceRadio: f } }
+  return reglerRadioSur(etat, etat.chasse.frequenceRadio + ecart)
+}
+
+/** Règle la radio sur une fréquence (au centième, de 0 à 12). */
+export function reglerRadioSur(etat: EtatPartie, f: number): EtatPartie {
+  const b = bornerFrequence(f)
+  return b === etat.chasse.frequenceRadio ? etat : { ...etat, chasse: { ...etat.chasse, frequenceRadio: b } }
 }
 
 /**
- * Ping radio. Recharge de 5 minutes. Sur 7,13 (± 0,05), un écho reviendra après l'aller-retour de la lumière entre la
- * fusée et le visiteur ; sur une autre fréquence, aucun écho.
+ * Ping radio (bouton ÉMETTRE du poste). Recharge de 5 minutes. Sur la fréquence du visiteur de la saison (± 0,05), un
+ * écho reviendra après l'aller-retour de la lumière entre la fusée et le visiteur ; sur une autre fréquence, aucun écho.
  */
 export function ping(etat: EtatPartie, t: number): ResultatChasse {
   const c = etat.chasse
@@ -121,13 +127,13 @@ export function ping(etat: EtatPartie, t: number): ResultatChasse {
     ...etat,
     chasse: { ...c, radioPrete: t + C.rechargePingMinutes * 60_000, dernierPing: { ...etat.fusee.position } },
   }
-  if (Math.abs(c.frequenceRadio - C.frequencePing) > C.toleranceFrequence + 1e-9) {
+  if (!surFrequence(c.frequenceRadio, frequenceVisiteur(t))) {
     return { etat: e, messages: [`PING ÉMIS SUR ${f}.`, `AUCUN ÉCHO SUR ${f}.`] }
   }
   const d = distance(etat.fusee.position, positionVisiteur(t))
   const duree = 2 * delaiLumiere(d) * 1000
   e = { ...e, chasse: { ...e.chasse, pings: [...e.chasse.pings, { retour: t + duree, duree }] } }
-  return { etat: e, messages: ['PING ÉMIS SUR 7,13. ÉCOUTE EN COURS…'] }
+  return { etat: e, messages: [`PING ÉMIS SUR ${f}. ÉCOUTE EN COURS…`] }
 }
 
 /** Distance du visiteur (UA) d'après la durée d'un écho (ms) : la moitié de l'aller-retour, à la vitesse de la lumière. */
@@ -208,21 +214,10 @@ export function photographierVisiteur(etat: EtatPartie, t: number): ResultatChas
 // ---------------------------------------------------------------------------------------------------------------
 // Indices qui arrivent tout seuls
 
-/** Planète la plus proche d'un point (parmi les 8). */
-function planeteLaPlusProche(p: Point2, t: number): string {
-  let meilleure: string = NOMS_PLANETES[0]
-  let dMin = Infinity
-  for (const nom of NOMS_PLANETES) {
-    const d = distance(p, positionAstre(nom, t))
-    if (d < dMin) { dMin = d; meilleure = nom }
-  }
-  return meilleure
-}
-
 /**
- * Fait vivre la chasse à l'instant t : échos qui reviennent, bulletin de l'Observatoire (toutes les 6 h : le système
- * où se trouvait le visiteur 6 h plus tôt), transmissions (toutes les 8 h). Après une longue absence, un seul bulletin
- * et une seule transmission : les plus récents.
+ * Fait vivre la chasse à l'instant t : échos qui reviennent ; et, si la radio est réglée sur l'Observatoire ou sur
+ * les transmissions, leur dernier message (une seule fois chacun). Après une longue absence, radio restée sur l'une
+ * d'elles : le plus récent seulement.
  */
 export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
   let e = etat
@@ -239,23 +234,14 @@ export function evoluerChasse(etat: EtatPartie, t: number): ResultatChasse {
     }
   }
 
-  const b = Math.floor(t / (C.bulletinHeures * HEURE))
-  if (b > e.chasse.bulletin) {
-    const v = positionVisiteur(b * C.bulletinHeures * HEURE - C.bulletinHeures * HEURE)
-    const m = `OBSERVATOIRE : PERTURBATIONS DANS LE SYSTÈME DE ${planeteDe(v.astre).toUpperCase()}.`
-    e = avecIndice({ ...e, chasse: { ...e.chasse, bulletin: b } }, t, m)
-    messages.push(m)
+  const r = capter(e, t)
+  if (r.nettete === 1 && r.emission?.sorte === 'observatoire' && r.emission.creneau > e.chasse.bulletin) {
+    e = avecIndice({ ...e, chasse: { ...e.chasse, bulletin: r.emission.creneau } }, t, r.emission.texte)
+    messages.push(r.emission.texte)
   }
-
-  const tr = Math.floor(t / (C.transmissionHeures * HEURE))
-  if (tr > e.chasse.transmission) {
-    const r = mulberry32(tr * C.transmissionMultiplicateur + C.transmissionDecalage)
-    const v = positionVisiteur(t)
-    const planete = r() < 0.5 ? planeteLaPlusProche(v, t) : NOMS_PLANETES[entierAuHasard(r, NOMS_PLANETES.length)]
-    const qui = choisirAuHasard(r, AUTEURS_TRANSMISSIONS)
-    const m = `${qui} SIGNALE UNE LUEUR PRÈS DE ${planete.toUpperCase()}.`
-    e = avecIndice({ ...e, chasse: { ...e.chasse, transmission: tr } }, t, m)
-    messages.push(m)
+  if (r.nettete === 1 && r.emission?.sorte === 'transmissions' && r.emission.creneau > e.chasse.transmission) {
+    e = avecIndice({ ...e, chasse: { ...e.chasse, transmission: r.emission.creneau } }, t, r.emission.texte)
+    messages.push(r.emission.texte)
   }
   return { etat: e, messages }
 }

@@ -27,6 +27,8 @@ import Telegrammes from './chapitres/Telegrammes.svelte'
 import Visiteur from './chapitres/Visiteur.svelte'
 import Visiteur2 from './chapitres/Visiteur2.svelte'
 import Visiteur3 from './chapitres/Visiteur3.svelte'
+import Radio from './chapitres/Radio.svelte'
+import Radio2 from './chapitres/Radio2.svelte'
 
 export interface PageManuel {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,6 +65,8 @@ export const PAGES: PageManuel[] = [
   { composant: Visiteur3, chapitre: 'XVII', titre: 'Chasse : mode d’emploi pas à pas', suite: true },
   { composant: Telegrammes, chapitre: 'XVIII', titre: 'Télégrammes' },
   { composant: Navigation, chapitre: 'XIX', titre: 'Navigation' },
+  { composant: Radio, chapitre: 'XX', titre: 'Poste radio R-12' },
+  { composant: Radio2, chapitre: 'XX', titre: 'Poste radio (suite)', suite: true },
   { composant: Notes, titre: 'Notes de bord' },
 ]
 

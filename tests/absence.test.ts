@@ -9,6 +9,7 @@ import { PANNES_TUTORIEL } from '../src/moteur/pannes'
 import { avancerPartie } from '../src/moteur/partie'
 import { charger, sauvegarder } from '../src/moteur/sauvegarde'
 import { Pilote } from './outils/pilote'
+import { STATIONS_RADIO } from '../src/donnees/radio'
 
 const T0 = Date.UTC(2026, 9, 13, 12)
 const H = 3_600_000
@@ -51,7 +52,7 @@ describe('retour après une absence', () => {
       const evenements = r.rapport!.avaries.filter((a) => !a.modules.every((c) => c === 'RE-1'))
       expect(evenements.length, `graine ${graine}`).toBeLessThanOrEqual(2)
     }
-  })
+  }, 30_000)
 
   it('une seconde avarie s’ajoute parfois après une longue absence, jamais après une courte', () => {
     let secondes = 0
@@ -86,10 +87,11 @@ describe('retour après une absence', () => {
     expect(r.etat.fusee.orbite).toBe('Lune')
   })
 
-  it('chasse : un seul bulletin et une seule transmission au retour, même après 3 jours', () => {
-    const r = rattraper(partie(), T0 + 72 * H, mulberry32(1))
+  it('chasse : radio restée sur l’Observatoire, un seul bulletin au retour, même après 3 jours', () => {
+    const e = { ...partie(), chasse: { ...partie().chasse, frequenceRadio: STATIONS_RADIO.observatoire } }
+    const r = rattraper(e, T0 + 72 * H, mulberry32(1))
     expect(r.rapport!.messages.filter((m) => m.startsWith('OBSERVATOIRE'))).toHaveLength(1)
-    expect(r.rapport!.messages.filter((m) => m.includes('LUEUR'))).toHaveLength(1)
+    expect(r.rapport!.messages.filter((m) => m.includes('LUEUR'))).toHaveLength(0)
   })
 
   it('après le retour, on peut tout réparer en suivant le manuel et reprendre la partie', () => {

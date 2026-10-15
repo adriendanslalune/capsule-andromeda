@@ -64,3 +64,58 @@ export const ALARMES: Record<string, () => void> = {
   'AN-1': () => bip(1600, 0.5, 'sine', 0.04, 300),
   'SX-1': () => { bip(1320, 0.25, 'sine', 0.04); plus(160, () => bip(1760, 0.35, 'sine', 0.035)) },
 }
+
+/**
+ * Haut-parleur du poste radio : un souffle continu (bruit filtré) et une tonalité (bips, morse, porteuse), dont on
+ * règle le volume à chaque image. Muet si le son est coupé.
+ */
+let radio: { souffle: GainNode; ton: GainNode; oscillateur: OscillatorNode; source: AudioBufferSourceNode } | null = null
+
+export const sonRadio = {
+  /** souffle et ton : 0 à 1 ; frequence : hauteur de la tonalité (Hz). */
+  regler(souffle: number, ton: number, frequence: number) {
+    if (!actif) { this.couper(); return }
+    try {
+      contexte ??= new AudioContext()
+      if (contexte.state === 'suspended') void contexte.resume()
+    } catch {
+      return
+    }
+    const c = contexte
+    if (!radio) {
+      const tampon = c.createBuffer(1, c.sampleRate * 2, c.sampleRate)
+      const d = tampon.getChannelData(0)
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1
+      const source = c.createBufferSource()
+      source.buffer = tampon
+      source.loop = true
+      const filtre = c.createBiquadFilter()
+      filtre.type = 'bandpass'
+      filtre.frequency.value = 1800
+      filtre.Q.value = 0.6
+      const gs = c.createGain()
+      gs.gain.value = 0
+      source.connect(filtre).connect(gs).connect(c.destination)
+      const oscillateur = c.createOscillator()
+      oscillateur.type = 'sine'
+      const gt = c.createGain()
+      gt.gain.value = 0
+      oscillateur.connect(gt).connect(c.destination)
+      source.start()
+      oscillateur.start()
+      radio = { souffle: gs, ton: gt, oscillateur, source }
+    }
+    const t = c.currentTime
+    radio.souffle.gain.setTargetAtTime(0.05 * souffle, t, 0.03)
+    radio.ton.gain.setTargetAtTime(0.06 * ton, t, 0.008)
+    radio.oscillateur.frequency.setTargetAtTime(frequence, t, 0.01)
+  },
+  couper() {
+    if (!radio) return
+    radio.source.stop()
+    radio.oscillateur.stop()
+    radio.souffle.disconnect()
+    radio.ton.disconnect()
+    radio = null
+  },
+}

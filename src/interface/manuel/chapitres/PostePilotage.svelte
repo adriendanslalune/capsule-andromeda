@@ -72,17 +72,21 @@
     <rect x="132" y="282" width="80" height="11" fill="none" stroke={encre} stroke-width="1" />
     <text x="172" y="290" text-anchor="middle" font-size="6.5" font-family={police}>N° SÉRIE ___-___</text>
 
-    <!-- Mission, visiteur, liaison, journal. -->
-    <rect x="66" y="306" width="104" height="30" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
-    <text x="72" y="315" font-size="5" font-family={police}>MISSION</text>
-    <text x="72" y="327" font-size="7.5" font-weight="700" font-family={police}>MARS · 40 CR</text>
-    <rect x="174" y="306" width="104" height="30" rx="3" fill={encre} />
-    <circle cx="189" cy="321" r="9" fill="url(#zone-verte)" stroke="#f8f5ec" stroke-width="1" />
-    <text x="203" y="324" font-size="7" font-weight="700" fill="#f8f5ec" font-family={police}>VISITEUR</text>
-    <rect x="66" y="341" width="212" height="30" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
-    <text x="72" y="350" font-size="5" font-family={police}>LIAISON · 9 en ligne</text>
-    <text x="272" y="350" text-anchor="end" font-size="5.5" font-family={police}>Classement : 7e / 13</text>
-    <text x="72" y="363" font-size="6" font-family={police}>► Mistinguett est arrivée auprès de l’ISS.</text>
+    <!-- Mission, visiteur, poste radio, transmissions, journal. -->
+    <rect x="66" y="306" width="104" height="26" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <text x="72" y="314" font-size="5" font-family={police}>MISSION</text>
+    <text x="72" y="325" font-size="7.5" font-weight="700" font-family={police}>MARS · 40 CR</text>
+    <rect x="174" y="306" width="104" height="26" rx="3" fill={encre} />
+    <circle cx="189" cy="319" r="8" fill="url(#zone-verte)" stroke="#f8f5ec" stroke-width="1" />
+    <text x="203" y="322" font-size="7" font-weight="700" fill="#f8f5ec" font-family={police}>VISITEUR</text>
+    <rect x="66" y="335" width="212" height="13" rx="3" fill="none" stroke={encre} stroke-width="1.2" />
+    <circle cx="75" cy="341.5" r="4" fill={encre} />
+    <text x="84" y="344" font-size="5.5" font-weight="700" font-family={police}>POSTE RADIO R-12</text>
+    <rect x="226" y="337" width="22" height="9" fill={encre} />
+    <text x="237" y="344" text-anchor="middle" font-size="5.5" fill="#f8f5ec" font-family={police}>6,00</text>
+    <rect x="66" y="351" width="212" height="22" rx="3" fill={encre} />
+    <text x="72" y="359" font-size="5" fill="#f8f5ec" font-family={police}>TRANSMISSIONS · 9 EN LIGNE</text>
+    <text x="72" y="368" font-size="5.5" fill="#f8f5ec" font-family={police}>20:49 ZÉPHYR  AVARIE À BORD, JE RALENTIS.</text>
     <rect x="66" y="376" width="212" height="16" fill="none" stroke={encre} stroke-width="0.8" />
     <line x1="74" y1="384" x2="262" y2="384" stroke={encre} stroke-width="0.6" stroke-dasharray="3 2" />
 
@@ -97,8 +101,9 @@
     <Repere x={81} y={240} tx={30} ty={240} n={9} />
     <Repere x={208} y={287} tx={316} ty={287} n={10} />
     <Repere x={70} y={321} tx={30} ty={321} n={11} />
-    <Repere x={274} y={321} tx={316} ty={321} n={12} />
-    <Repere x={274} y={356} tx={316} ty={356} n={13} />
-    <Repere x={70} y={384} tx={30} ty={384} n={14} />
+    <Repere x={274} y={319} tx={316} ty={316} n={12} />
+    <Repere x={274} y={341} tx={316} ty={338} n={13} />
+    <Repere x={274} y={362} tx={316} ty={360} n={14} />
+    <Repere x={70} y={384} tx={30} ty={384} n={15} />
   </svg>
 </Page>

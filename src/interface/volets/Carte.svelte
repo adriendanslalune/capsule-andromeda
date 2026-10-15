@@ -4,7 +4,7 @@
   import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES } from '../../donnees/planetes'
-  import { distanceEcho, ping, positionVisiteur, reglerRadio, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
+  import { distanceEcho, positionVisiteur, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
     annulerDestination,
@@ -464,16 +464,8 @@
         {/each}
       </select>
     {:else}
-      <div class="radio">
-        <span class="etiquette">RADIO</span>
-        <button onclick={() => jeu.remplacer(reglerRadio(etat, -0.1))}>−0,1</button>
-        <button onclick={() => jeu.remplacer(reglerRadio(etat, -0.01))}>−</button>
-        <span class="chiffres">{nombre(etat.chasse.frequenceRadio, 2)}</span>
-        <button onclick={() => jeu.remplacer(reglerRadio(etat, 0.01))}>+</button>
-        <button onclick={() => jeu.remplacer(reglerRadio(etat, 0.1))}>+0,1</button>
-      </div>
       <div class="boutons">
-        <button class="action clair" onclick={() => { const r = ping(etat, t); jeu.remplacer(r.etat, r.messages) }}>PING</button>
+        <button class="action clair" onclick={() => (jeu.volet = 'radio')}>POSTE RADIO · {nombre(etat.chasse.frequenceRadio, 2)}</button>
         {#if estInstalle(etat, 'TEL')}
           <button class="action" onclick={() => { const r = viserTelescope(etat, t, hasardReel); jeu.remplacer(r.etat, r.messages) }}>TÉLESCOPE</button>
         {/if}
@@ -680,24 +672,6 @@
   .boutons {
     display: flex;
     gap: 8px;
-  }
-  .radio {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .radio button {
-    min-height: 36px;
-    min-width: 44px;
-    border-radius: 10px;
-    border: var(--trait) solid var(--couleur-encre);
-    background: var(--couleur-papier);
-    font-weight: 700;
-  }
-  .radio .chiffres {
-    font-size: 18px;
-    min-width: 56px;
-    text-align: center;
   }
   .tracer {
     display: grid;

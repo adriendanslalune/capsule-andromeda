@@ -1,6 +1,7 @@
 <script lang="ts">
   // XVII (suite). Mode d'emploi de la chasse, pas à pas, avec un exemple chiffré.
   import { CHASSE } from '../../../donnees/chasse'
+  import { FREQUENCES_VISITEUR } from '../../../donnees/radio'
   import Page from '../Page.svelte'
 
   let { numero }: { numero: number } = $props()
@@ -10,9 +11,9 @@
 
 <Page {numero} chapitre="XVII." titre="CHASSE : MODE D’EMPLOI PAS À PAS">
   <ol class="etapes">
-    <li><b>Régler la radio.</b> NAVIGATION, onglet CHASSE, ligne RADIO : amener la fréquence sur {virgule(C.frequencePing)} avec les boutons.</li>
+    <li><b>Régler la radio.</b> POSTE RADIO : GROS puis FIN, sur la fréquence du mois (XX).</li>
     <li>
-      <b>Pinger.</b> Presser PING. Le téléscripteur répond « PING ÉMIS SUR {virgule(C.frequencePing)}. ÉCOUTE EN COURS… ». La
+      <b>Pinger.</b> Presser ÉMETTRE. Le téléscripteur répond « PING ÉMIS SUR {virgule(FREQUENCES_VISITEUR[0])}. ÉCOUTE EN COURS… ». La
       carte retient l’endroit où se trouvait la fusée.
     </li>
     <li>

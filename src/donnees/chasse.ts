@@ -26,10 +26,8 @@ export const CHASSE = {
   /** Prime d'une trouvaille (une par saison et par joueur). */
   primeTrouvaille: 250,
 
-  /** Ping radio : sur 7,13 (± 0,05) ; écho après l'aller-retour de la lumière ; recharge 5 minutes. */
-  frequencePing: 7.13,
-  toleranceFrequence: 0.05,
-  frequenceRadioDepart: 7.13,
+  /** Ping radio : sur la fréquence du visiteur de la saison (donnees/radio.ts) ; écho après l'aller-retour de la
+   * lumière ; recharge 5 minutes. */
   rechargePingMinutes: 5,
 
   /** Observatoire : un bulletin toutes les 6 heures, sur la position du visiteur 6 heures plus tôt. */

@@ -243,11 +243,12 @@ avec un contact à moins de 0,01 UA).*
   place du jour, où il arrive à **06:00 UTC** ; sa vitesse dépend donc de la distance. Il reste ensuite à son escale
   jusqu'au minuit suivant. Pendant le voyage, on peut le repérer (ping, TEL, DET) mais pas l'approcher.
   *Décision d'Adrien du 14/10/2026.*
-- **Ping** sur 7,13 (± 0,05) : écho après 2 × distance × 499,0048 s ; recharge 5 min ; hors fréquence : aucun écho.
-- **Observatoire** toutes les 6 h : le **système** (la planète) où se trouvait le visiteur 6 h plus tôt
+- **Ping** (bouton ÉMETTRE du poste radio, §16) sur la **fréquence du visiteur du mois** (± 0,05) : écho après
+  2 × distance × 499,0048 s ; recharge 5 min ; hors fréquence : aucun écho.
+- **Observatoire** (à écouter sur le poste radio, §16) toutes les 6 h : le **système** (la planète) où se trouvait le visiteur 6 h plus tôt
   (« PERTURBATIONS DANS LE SYSTÈME DE SATURNE »). L'astre exact n'est pas donné.
-- **Transmissions** toutes les 8 h (graine = index × 31 + 7) : une fois sur deux la planète la plus proche du visiteur,
-  sinon une planète au hasard.
+- **Transmissions** (à écouter, §16) toutes les 8 h (graine = index × 31 + 7) : une fois sur deux la planète la plus
+  proche du visiteur (à l'instant d'émission), sinon une planète au hasard.
 - **TEL** : direction ± 3° si le visiteur est à moins de 3 UA ; recharge 30 min.
 - **DET** : visiteur signalé à moins de 1,5 UA (dans la vue 3D, la soucoupe clignote).
 - **Trouvaille** :
@@ -331,3 +332,17 @@ avec un contact à moins de 0,01 UA).*
   planète, 0,0002 UA pour la Lune, au plus le quart de l'orbite d'un satellite).
 - Inchangés : le Soleil (0,02 UA), les engins et l'ISS (trois fois leur taille, de 25 à 100 m).
 - Hublot : près d'un gros astre, le champ s'élargit en douceur (jusqu'à 40°) pour que l'astre reste lisible.
+
+## 16. Poste radio R-12 (décisions d'Adrien du 15/10/2026 ; fréquences provisoires)
+- Une radio réglée de 0,00 à 12,00 au centième (`src/donnees/radio.ts`, `src/moteur/radio.ts`) ; nouvelle partie : 6,00.
+  Réception nette à ± 0,05 d'une station, brouillée (texte mangé, signal faible) jusqu'à ± 0,30, souffle au-delà.
+- Stations : Radio-Terre 0,30 (nouvelles de l'Office, une toutes les 20 min, et top horaire en TU, reçus avec le retard
+  de la lumière depuis la Terre) ; Observatoire 0,62 (dernier bulletin, depuis la Terre, avec le retard de la
+  lumière) ; transmissions 11,68 (dernier signalement) ; les 10 stations morse du MO-1 sur leur fréquence de
+  l'annuaire (indicatif en morse seulement).
+- Les indices de chasse ne tombent plus tout seuls : Observatoire et transmissions ne sont reçus (journal de bord,
+  indices) que si la radio est réglée nette dessus ; chacun une seule fois ; radio laissée dessus, les nouveaux
+  arrivent, même hors ligne (le plus récent seulement au retour).
+- Fréquence du visiteur, mois par mois (janvier → décembre) : 7,13 · 4,02 · 9,74 · 2,31 · 6,27 · 10,88 · 1,46 ·
+  8,55 · 3,12 · 11,05 · 5,71 · 0,97. Elle ne s'entend pas : seule la table du manuel (XX) la donne.
+- Réservées pour plus tard : canal de détresse 5,00 (sauvetages) ; monolithes (10 à rassembler, à peaufiner).

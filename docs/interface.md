@@ -31,6 +31,7 @@ Puis « Prendre les commandes », et une première panne guidée.
   touchez un voyant rouge. »), les 12 voyants en grand (trait PROPULSION), plaque constructeur avec le numéro de série.
 - **3. Quel est mon but ?** Carte MISSION (contrat en cours : destination, prime, distance ; ouvre CONTRATS) et carte
   VISITEUR (radar, jours de saison ; ouvre NAVIGATION).
+- Réglette **POSTE RADIO** (fréquence, force du signal) : ouvre le volet POSTE RADIO.
 - **4. Qui est autour ?** Écran TRANSMISSIONS (vert phosphore, comme COMMUNICATION) : les 3 derniers messages
   (télégrammes reçus et envoyés, bulletins), le nombre de nouveaux et de connectés ; le toucher ouvre COMMUNICATION.
 - En pied : la dernière ligne du journal de bord (toucher : tout le journal).
@@ -122,3 +123,10 @@ installés en pastilles.
 - Chasse : calculateur de l'écho (durée de l'aller-retour → distance en UA, bouton TRACER).
 - **PROVISOIRE** : saut d'essai (page NAVIGATION) vers n'importe quelle destination, à retirer sur ordre d'Adrien
   (`src/interface/provisoire/` et la ligne « PROVISOIRE » de Carte.svelte).
+
+## 13. Poste radio (15/10/2026)
+Volet POSTE RADIO (depuis la réglette du cockpit ou l'onglet CHASSE de NAVIGATION) : écran des ondes vert phosphore
+(souffle ; onde chantante, bips, paroles hachées, morse selon la station ; salve au moment d'émettre), barres de
+SIGNAL, bande de lecture (message en clair, ou mangé de signes quand c'est brouillé), cadran gradué 0–12 avec aiguille
+rouge, bouton GROS (2,00 par tour) et FIN (0,10 par tour) à tourner au doigt, − / + au centième, gros bouton rouge
+ÉMETTRE (compte à rebours de recharge). Le haut-parleur fait entendre le souffle et les signaux (si le son est actif).
