@@ -1,7 +1,7 @@
 <script lang="ts">
   // Pupitre du cockpit, à gauche : la radio, complète. Petit écran des ondes (le message reçu y défile en entier),
   // deux boutons à tourner (GROS : 2,00 par tour ; FIN : 0,10 par tour), − et + au centième, la fréquence, ÉMETTRE,
-  // et le haut-parleur (on l'allume ou on l'éteint ici ; réglage retenu). Toucher l'écran ouvre le poste en grand.
+  // et le haut-parleur (on l'allume ou on l'éteint ici ; réglage retenu). C'est la seule radio du bord.
   import { onMount } from 'svelte'
   import { RADIO } from '../../donnees/radio'
   import { ping, reglerRadioSur } from '../../moteur/chasse'
@@ -60,7 +60,7 @@
     const c = toile!.getContext('2d')!
     const dessiner = (horloge: number) => {
       image = requestAnimationFrame(dessiner)
-      // Quand un volet couvre le cockpit (le poste en grand, par exemple), c'est lui qui dessine et qui parle.
+      // Quand un volet couvre le cockpit, la radio se tait et ne dessine plus.
       if (jeu.volet) return
       if (horloge - dernierGrain > 250) { grain++; dernierGrain = horloge }
       const W = (toile!.width = toile!.clientWidth * devicePixelRatio)
@@ -78,11 +78,11 @@
 </script>
 
 <div class="instrument radio">
-  <button class="ecran" onclick={() => (jeu.volet = 'radio')} aria-label="Ouvrir le poste radio en grand">
+  <div class="ecran">
     <canvas bind:this={toile} aria-hidden="true"></canvas>
     <span class="haut"><span>RADIO</span><span class="barres" aria-label={`Signal : ${barres} sur 5`}>{#each [1, 2, 3, 4, 5] as b}<i class:allumee={b <= barres} style={`height: ${3 + b * 2}px`}></i>{/each}</span></span>
     <span class="bande"><span class:defile style={defile ? `animation-duration: ${Math.max(6, texte.length / 6)}s` : ''}>{texte || '…'}</span></span>
-  </button>
+  </div>
   <div class="rangee">
     <span class="molette"><BoutonRotatif parTour={2} taille={46} label="Réglage grossier" {changer} lacher={enregistrer} /><small>GROS</small></span>
     <span class="molette"><BoutonRotatif parTour={0.1} taille={36} label="Réglage fin" {changer} lacher={enregistrer} /><small>FIN</small></span>

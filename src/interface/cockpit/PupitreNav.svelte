@@ -2,9 +2,11 @@
   // Pupitre du cockpit, à droite : la navigation, en radar. La fusée au centre (flèche selon son cap), la destination
   // là où elle est maintenant (trait blanc pointillé) et le point de rencontre (trait jaune), comme sur la carte ;
   // distances en échelle logarithmique (la plus lointaine au bord). Sans destination : le Soleil et la Terre.
+  // Un balayage tourne en permanence ; le visiteur y fait un écho quand le détecteur DET le repère.
   // Le toucher ouvre la page NAVIGATION.
   import { direction, distance, enAttenteDeFenetre, planDeVol, positionAstre, positionDestination, type Point2 } from '../../moteur/fusee'
   import { vitesseActuelle } from '../../moteur/partie'
+  import { positionVisiteur, visiteurDetecte } from '../../moteur/chasse'
   import { nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
 
@@ -33,11 +35,19 @@
     const a = (direction(ici, p) * Math.PI) / 180
     return { x: 50 + Math.cos(a) * r, y: 50 - Math.sin(a) * r }
   }
+  // Le visiteur, s'il est détecté (DET) : un écho qui clignote, à sa place sur le radar.
+  const echo = $derived(visiteurDetecte(etat, t) !== null ? placer(positionVisiteur(t)) : null)
   const nom = $derived(dest?.type === 'astre' ? nomAstre(dest.astre) : dest?.type === 'visiteur' ? 'objet inconnu' : dest ? 'point libre' : null)
 </script>
 
 <button class="instrument nav" onclick={() => (jeu.page = 'carte')} aria-label="Ouvrir la page NAVIGATION">
   <svg viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <linearGradient id="balayage" x1="1" y1="1" x2="0.7" y2="0">
+        <stop offset="0" stop-color="#cfe9ff" stop-opacity="0.55" />
+        <stop offset="1" stop-color="#cfe9ff" stop-opacity="0" />
+      </linearGradient>
+    </defs>
     <circle cx="50" cy="50" r={R} fill="#0f2747" stroke="var(--couleur-encre)" stroke-width="3" />
     {#each [0.33, 0.66] as k}<circle cx="50" cy="50" r={R * k} fill="none" stroke="#9fc1e8" stroke-width="0.5" opacity=".5" />{/each}
     <line x1="4" y1="50" x2="96" y2="50" stroke="#9fc1e8" stroke-width="0.4" opacity=".5" />
@@ -56,6 +66,11 @@
         <circle cx={q.x} cy={q.y} r="2.5" fill="#7fa4cf" />
       {/if}
     {/each}
+    <!-- Balayage : un secteur clair qui tourne autour de la fusée. -->
+    <g class="balayage">
+      <path d={`M 50 50 L ${50 + R} 50 A ${R} ${R} 0 0 0 ${50 + R * Math.cos(0.7)} ${50 - R * Math.sin(0.7)} Z`} fill="url(#balayage)" />
+    </g>
+    {#if echo}<circle class="echo" cx={echo.x} cy={echo.y} r="3.2" fill="var(--menthe)" stroke="var(--couleur-encre)" stroke-width="0.8" />{/if}
     <path d="M 7 0 L -5 4 L -2.5 0 L -5 -4 Z" fill="var(--cerise)" stroke="#f8f5ec" stroke-width="0.8" transform={`translate(50 50) rotate(${-fusee.cap})`} />
   </svg>
   <span class="legende">
@@ -82,9 +97,26 @@
     transform: scale(0.97);
   }
   svg {
-    width: 104px;
-    height: 104px;
+    width: 136px;
+    height: 136px;
     filter: drop-shadow(2px 2px 0 var(--couleur-encre));
+  }
+  .balayage {
+    transform-origin: 50px 50px;
+    animation: tourne 4s linear infinite;
+  }
+  @keyframes tourne {
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+  .echo {
+    animation: clignote 1.2s steps(1) infinite;
+  }
+  @keyframes clignote {
+    50% {
+      opacity: 0;
+    }
   }
   .legende {
     display: flex;

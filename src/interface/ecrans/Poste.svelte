@@ -12,6 +12,7 @@
   import Carte from '../volets/Carte.svelte'
   import Atelier from '../volets/Atelier.svelte'
   import Trophees from '../volets/Trophees.svelte'
+  import BarreBord from '../cockpit/BarreBord.svelte'
   import Social from '../social/Social.svelte'
   import Fenetre from './Fenetre.svelte'
 
@@ -78,6 +79,8 @@
       <button class="manuel" aria-label="Ouvrir le manuel" onclick={() => (jeu.volet = 'manuel')}><Icone nom="manuel" /></button>
     </div>
   </header>
+  <!-- Pilotage en miniature : vitesse, cap, arrivée, moteur. -->
+  <BarreBord />
 
   <!-- Onglets : celui de la page affichée ressort, comme un intercalaire. -->
   <nav class="onglets" aria-label="Pages du poste">

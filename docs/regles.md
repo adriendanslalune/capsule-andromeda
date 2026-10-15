@@ -372,3 +372,11 @@ avec un contact à moins de 0,01 UA).*
   sans manœuvre, d'emblée à la croisière.
 - *À corriger plus tard* : le temps annoncé ne compte pas le détour autour d'un astre ni le mouvement d'un engin
   proche (exemple : vers l'ISS depuis l'ancien départ, 4 min annoncées pour 12 réelles).
+- **Avaries tous les X km** (15/10/2026, remplace « environ une par voyage ») : hors tutoriel, la prochaine avarie
+  survient quand le compteur de route a fait 1,5 à 4,5 millions de km depuis la dernière réparation (moyenne
+  3 millions ; valeurs proposées par Claude), en voyage seulement, 3 au plus par 24 h. Au moteur de départ
+  (30 km/s), environ une par jour de vol ; un aller Terre-Lune n'en donne presque jamais.
+- **Altitude de sécurité** : jamais à moins de 400 km de la Terre (`ALTITUDE_SECURITE_KM`), sauf pour rejoindre une
+  destination plus basse (Tiangong, vers 385 km : jusqu'à 5 km sous elle).
+- **Manœuvre de départ** (correction du 15/10/2026) : pendant toute la manœuvre (recul, virage, accélération de
+  45 s), la fusée suit le mouvement du lieu quitté (l'ISS va à 7,7 km/s autour de la Terre) ; on la voit s'éloigner.

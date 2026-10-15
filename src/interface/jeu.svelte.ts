@@ -23,7 +23,7 @@ const TELEX_GARDES = 100
 const SAUVEGARDE_TOUTES_LES = 10_000
 
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
-export type Volet = 'manuel' | 'portefeuille' | 'journal' | 'instruments' | 'radio' | null
+export type Volet = 'manuel' | 'portefeuille' | 'journal' | 'instruments' | null
 /** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
 export const PAGES_POSTE = ['carte', 'social', 'cockpit', 'atelier', 'trophees'] as const
 export type PagePoste = (typeof PAGES_POSTE)[number]

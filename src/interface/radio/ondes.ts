@@ -1,4 +1,4 @@
-// L'écran des ondes du poste radio, partagé par le poste complet (volet POSTE RADIO) et le pupitre du cockpit : la
+// L'écran des ondes de la radio du pupitre (cockpit) : la
 // forme du signal de chaque station, son dessin (souffle + porteuse), et le texte reçu (en clair ou brouillé).
 
 import { ALPHABET_MORSE } from '../../donnees/modules'

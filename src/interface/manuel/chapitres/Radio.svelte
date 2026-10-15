@@ -11,7 +11,7 @@
 
 <Page {numero} chapitre="XX." titre="POSTE RADIO R-12">
   <p>
-    Au cockpit, le pupitre porte la radio complète : écran, haut-parleur, boutons GROS et FIN, − et +, ÉMETTRE ; toucher l’écran l’ouvre en grand (aussi depuis l’onglet CHASSE). Le bouton <b>GROS</b> fait
+    La radio est au cockpit, sur le pupitre : écran, haut-parleur, boutons GROS et FIN, − et +, ÉMETTRE. Le bouton <b>GROS</b> fait
     2,00 par tour, le bouton <b>FIN</b> 0,10 par tour ; − et + : un centième. L’aiguille court sur le cadran de
     {RADIO.min} à {RADIO.max}.
   </p>

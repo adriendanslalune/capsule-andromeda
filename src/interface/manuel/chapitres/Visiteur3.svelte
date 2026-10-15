@@ -11,7 +11,7 @@
 
 <Page {numero} chapitre="XVII." titre="CHASSE : MODE D’EMPLOI PAS À PAS">
   <ol class="etapes">
-    <li><b>Régler la radio.</b> POSTE RADIO : GROS puis FIN, sur la fréquence du mois (XX).</li>
+    <li><b>Régler la radio.</b> Radio du pupitre : GROS puis FIN, sur la fréquence du mois (XX).</li>
     <li>
       <b>Pinger.</b> Presser ÉMETTRE. Le téléscripteur répond « PING ÉMIS SUR {virgule(FREQUENCES_VISITEUR[0])}. ÉCOUTE EN COURS… ». La
       carte retient l’endroit où se trouvait la fusée.

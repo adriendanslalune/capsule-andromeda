@@ -481,7 +481,6 @@
       </select>
     {:else}
       <div class="boutons">
-        <button class="action clair" onclick={() => (jeu.volet = 'radio')}>POSTE RADIO · {nombre(etat.chasse.frequenceRadio, 2)}</button>
         {#if estInstalle(etat, 'TEL')}
           <button class="action" onclick={() => { const r = viserTelescope(etat, t, hasardReel); jeu.remplacer(r.etat, r.messages) }}>TÉLESCOPE</button>
         {/if}

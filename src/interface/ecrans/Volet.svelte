@@ -6,9 +6,8 @@
   import Instruments from '../volets/Instruments.svelte'
   import Journal from '../volets/Journal.svelte'
   import Portefeuille from '../volets/Portefeuille.svelte'
-  import Radio from '../volets/Radio.svelte'
 
-  const titres = { manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE', journal: 'JOURNAL', instruments: 'INSTRUMENTS', radio: 'POSTE RADIO' } as const
+  const titres = { manuel: 'MANUEL', portefeuille: 'PORTEFEUILLE', journal: 'JOURNAL', instruments: 'INSTRUMENTS' } as const
   let volet = $state<HTMLElement>()
 </script>
 
@@ -26,7 +25,6 @@
   {:else if jeu.volet === 'portefeuille'}<Portefeuille />
   {:else if jeu.volet === 'journal'}<Journal />
   {:else if jeu.volet === 'instruments'}<Instruments />
-  {:else if jeu.volet === 'radio'}<Radio />
 
   {/if}
 </section>

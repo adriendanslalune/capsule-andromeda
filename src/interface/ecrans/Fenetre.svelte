@@ -1,22 +1,21 @@
 <script lang="ts">
-  // Le cockpit, sur un seul écran, répond à quatre questions, de haut en bas :
-  //  1. Où je vais ?              le hublot, puis le panneau de pilotage (destination, temps restant, jour d'arrivée,
-  //                               trois petits cadrans, interrupteur MOTEUR) ;
+  // Le cockpit, sur un seul écran, de haut en bas (les cadrans de pilotage et le MOTEUR sont dans l'en-tête) :
+  //  1. Où je vais ?              le hublot et son écran de navigation (destination, temps restant, jour d'arrivée),
+  //                               puis le pupitre : la radio et le radar de navigation (où passe aussi le visiteur) ;
   //  2. Qu'est-ce qui ne va pas ? les voyants des blocs, en grand, avec une phrase d'état et la plaque constructeur ;
-  //  3. Quel est mon but ?        la mission en cours et le radar du visiteur ;
+  //  3. Quel est mon but ?        la mission en cours ;
   //  4. Qui est autour ?          les transmissions (les 3 derniers messages ; ouvre COMMUNICATION).
-  // En pied, la dernière ligne du journal de bord. Les instruments détaillés s'ouvrent d'un toucher sur les cadrans.
+  // En pied, la dernière ligne du journal de bord.
   import { onMount } from 'svelte'
   import { MODULES_A_INSTALLER } from '../../donnees/economie'
-  import { finSaison, numeroSaison, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
-    avancementTrajet, basculerMoteur, direction, distance, distanceRestante, enAttenteDeFenetre, planDeVol, positionAstre,
-    positionDestination, tempsRestantAVitesse, vitesseDuMoment, type Destination,
+    avancementTrajet, distance, distanceRestante, enAttenteDeFenetre, planDeVol, positionAstre, tempsRestantAVitesse,
+    vitesseDuMoment, type Destination,
   } from '../../moteur/fusee'
   import { modulesEnPanne } from '../../moteur/modules'
   import { vitesseActuelle } from '../../moteur/partie'
-  import { duree, dureePrecise, heureLocale, jourEtHeure, nombre, nomAstre, ua } from '../format'
+  import { duree, dureePrecise, heureLocale, jourEtHeure, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import { presence } from '../reseau'
   import { filDesTransmissions } from '../social/fil'
@@ -33,17 +32,7 @@
   const enPanne = $derived(modulesEnPanne(etat.modules))
   const croisiere = $derived(vitesseActuelle(etat))
   const attente = $derived(enAttenteDeFenetre(fusee))
-  /** Vitesse du moment : elle suit la rampe d'accélération (20 s), et tombe à 0 moteur coupé. */
-  const vitesse = $derived(vitesseDuMoment(fusee, croisiere))
   const coupe = $derived(!!fusee.moteurCoupe)
-  const regime = $derived(
-    coupe ? (vitesse > 0 ? 'RALENTIT' : 'À L’ARRÊT')
-      : !fusee.destination || attente ? 'EN ATTENTE'
-      : vitesse < croisiere - 0.01 ? 'ACCÉLÈRE' : vitesse > croisiere + 0.01 ? 'RALENTIT' : 'EN POUSSÉE',
-  )
-  function basculer() {
-    jeu.remplacer({ ...etat, fusee: basculerMoteur(fusee) }, [coupe ? 'MOTEUR RALLUMÉ.' : 'MOTEUR COUPÉ.'])
-  }
 
   const majuscule = (s: string) => s.replace(/^./, (c) => c.toUpperCase())
   function nomDestination(d: Destination): string {
@@ -84,7 +73,6 @@
     return () => cancelAnimationFrame(image)
   })
   const arrivee = $derived(resteDirect !== null ? maintenantDirect + resteDirect * 1000 : null)
-  const vers = $derived(fusee.destination ? direction(fusee.position, plan?.point ?? positionDestination(fusee.destination, t)) : null)
   const avancement = $derived(avancementTrajet(fusee, t))
 
   /** Vue extérieure ; un toucher arrivé juste après un changement d'écran est ignoré (toucher « fantôme »). */
@@ -92,15 +80,6 @@
     if (Date.now() - jeu.dernierChangement < 500) return
     jeu.ecran = { nom: 'dehors' }
   }
-
-  // Petits cadrans : vitesse (échelle qui grandit avec le moteur), cap, heure (d'arrivée, ou actuelle).
-  const maxVitesse = $derived.by(() => {
-    for (let p = 10; ; p *= 10) for (const m of [5, 10, 20]) if (m * p >= croisiere * 1.25) return m * p
-  })
-  const angleVitesse = $derived(-120 + (Math.min(maxVitesse, vitesse) / maxVitesse) * 240)
-  const instant = $derived(new Date(arrivee ?? maintenantDirect))
-  const angleHeures = $derived(((instant.getHours() % 12) + instant.getMinutes() / 60) * 30)
-  const angleMinutes = $derived(instant.getMinutes() * 6)
 
   // État du bord.
   function etatTuile(code: string): 'ok' | 'avarie' | 'scelle' {
@@ -117,12 +96,6 @@
   const mission = $derived(
     etat.contrats.find((c) => fusee.destination?.type === 'astre' && fusee.destination.astre === c.destination) ?? etat.contrats[0] ?? null,
   )
-
-  // Visiteur.
-  const saison = $derived(numeroSaison(t))
-  const trouve = $derived(etat.chasse.trouvailles.some((x) => x.saison === saison))
-  const detecte = $derived(visiteurDetecte(etat, t))
-  const joursSaison = $derived(Math.ceil((finSaison(saison) - t) / 86_400_000))
 
   // Transmissions : les trois derniers messages (le plus récent en bas, comme sur l'écran COMMUNICATION).
   const reseau = $derived(presence(etat, t))
@@ -183,51 +156,6 @@
       <PupitreNav />
     </section>
 
-    <section class="panneau-fin" data-titre="PILOTAGE" data-ref="réf. TB-12">
-      <div class="commandes">
-        <!-- Trois petits cadrans ; les toucher ouvre les instruments en grand. -->
-        <button class="cadrans" aria-label="Ouvrir les instruments" onclick={() => (jeu.volet = 'instruments')}>
-          <span class="mini">
-            <svg viewBox="0 0 60 60" aria-hidden="true">
-              <circle cx="30" cy="30" r="27" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="2.5" />
-              <path d="M 12.7 40 A 20 20 0 1 1 47.3 40" fill="none" stroke="var(--couleur-encre)" stroke-width="5" />
-              <line x1="30" y1="30" x2="30" y2="11" stroke="var(--cerise)" stroke-width="2.6" stroke-linecap="round" style={`transform: rotate(${angleVitesse}deg); transform-origin: 30px 30px; transition: transform 1s linear`} />
-              <circle cx="30" cy="30" r="3.5" fill="var(--couleur-encre)" />
-            </svg>
-            <b>{nombre(vitesse, 1)}</b><small>KM/S</small>
-          </span>
-          <span class="mini">
-            <svg viewBox="0 0 60 60" aria-hidden="true">
-              <circle cx="30" cy="30" r="27" fill="var(--nuit)" stroke="var(--couleur-encre)" stroke-width="2.5" />
-              {#each [0, 90, 180, 270] as a}<line x1="30" y1="5" x2="30" y2="10" stroke="var(--couleur-papier)" stroke-width="2" style={`transform: rotate(${a}deg); transform-origin: 30px 30px`} />{/each}
-              {#if vers !== null}<path d="M 30 4 l 4 6 h -8 Z" fill="var(--moutarde)" style={`transform: rotate(${90 - vers}deg); transform-origin: 30px 30px`} />{/if}
-              <path d="M 30 12 L 34 30 L 30 27 L 26 30 Z" fill="var(--cerise)" style={`transform: rotate(${90 - fusee.cap}deg); transform-origin: 30px 30px; transition: transform 0.4s ease-out`} />
-              <circle cx="30" cy="30" r="3" fill="var(--couleur-papier)" />
-            </svg>
-            <b>{String(Math.round(fusee.cap) % 360).padStart(3, '0')}°</b><small>CAP</small>
-          </span>
-          <span class="mini">
-            <svg viewBox="0 0 60 60" aria-hidden="true">
-              <circle cx="30" cy="30" r="27" fill="var(--couleur-papier)" stroke="var(--couleur-encre)" stroke-width="2.5" />
-              {#each Array.from({ length: 12 }, (_, i) => i * 30) as a}<line x1="30" y1="5" x2="30" y2={a % 90 ? 8 : 10} stroke="var(--couleur-encre)" stroke-width="1.6" style={`transform: rotate(${a}deg); transform-origin: 30px 30px`} />{/each}
-              <line x1="30" y1="30" x2="30" y2="17" stroke="var(--couleur-encre)" stroke-width="3" stroke-linecap="round" style={`transform: rotate(${angleHeures}deg); transform-origin: 30px 30px`} />
-              <line x1="30" y1="30" x2="30" y2="10" stroke="var(--couleur-encre)" stroke-width="1.8" stroke-linecap="round" style={`transform: rotate(${angleMinutes}deg); transform-origin: 30px 30px`} />
-              <circle cx="30" cy="30" r="3" fill="var(--cerise)" />
-            </svg>
-            <b>{heureLocale(arrivee ?? maintenantDirect)}</b><small>{arrivee !== null ? 'ARRIVÉE' : 'HEURE'}</small>
-          </span>
-        </button>
-        <!-- Interrupteur MOTEUR, cerné de rayures jaunes et noires. -->
-        <div class="moteur">
-          <button class="interrupteur-moteur" class:coupe aria-pressed={!coupe} aria-label={coupe ? 'Rallumer le moteur' : 'Couper le moteur'} onclick={basculer}>
-            <span class="position on">ON</span><span class="levier-moteur"></span><span class="position off">OFF</span>
-          </button>
-          <span class="regime" class:actif={!coupe && vitesse > 0}>{regime}</span>
-        </div>
-      </div>
-      <div class="danger" aria-hidden="true"><span>ATTENTION · PIÈCES EN MOUVEMENT</span></div>
-    </section>
-
     <!-- 2. Qu'est-ce qui ne va pas ? -->
     <section class="panneau-fin bord" class:alerte={enPanne.length > 0} data-titre="BLOCS DU BORD"
       data-ref={`${TOUS_LES_MODULES.filter((c) => estInstalle(etat, c)).length} / ${TOUS_LES_MODULES.length} installés`}>
@@ -262,14 +190,6 @@
         {:else}
           <b>Aucune</b><span>Voir les contrats ›</span>
         {/if}
-      </button>
-      <button class="carte visiteur" onclick={() => (jeu.page = 'carte')}>
-        <span class="radar" aria-hidden="true"><span class="balayage"></span>{#if detecte !== null || trouve}<span class="echo"></span>{/if}</span>
-        <span class="texte">
-          <small>VISITEUR</small>
-          <b>{trouve ? 'Photographié' : detecte !== null ? `À ${ua(detecte)}` : 'Introuvable'}</b>
-          <span>{joursSaison} j de saison</span>
-        </span>
       </button>
     </div>
 
@@ -505,123 +425,6 @@
     background: var(--menthe);
   }
 
-  /* Commandes : trois petits cadrans, interrupteur MOTEUR. */
-  .commandes {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .cadrans {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-    padding: 0;
-    border: 0;
-    background: none;
-  }
-  .cadrans:active {
-    transform: scale(0.98);
-  }
-  .mini {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1.05;
-  }
-  .mini svg {
-    width: 50px;
-    height: 50px;
-  }
-  .mini b {
-    font-family: var(--police-chiffres);
-    font-size: 15px;
-  }
-  .mini small {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--couleur-encre-discrete);
-  }
-  .moteur {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-    border: 1px solid var(--couleur-encre);
-    border-radius: 6px;
-    background: repeating-linear-gradient(-45deg, var(--moutarde) 0 5px, var(--couleur-encre) 5px 10px);
-  }
-  .interrupteur-moteur {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100px;
-    height: 44px;
-    padding: 0 9px;
-    border: var(--trait) solid var(--couleur-encre);
-    border-radius: 22px;
-    background: var(--menthe);
-  }
-  .interrupteur-moteur.coupe {
-    background: var(--couleur-papier);
-  }
-  .position {
-    font-family: var(--police-titre);
-    font-size: 12px;
-  }
-  .interrupteur-moteur:not(.coupe) .off,
-  .interrupteur-moteur.coupe .on {
-    opacity: 0.35;
-  }
-  .levier-moteur {
-    position: absolute;
-    top: 4px;
-    left: calc(100% - 39px);
-    width: 31px;
-    height: 31px;
-    border-radius: 50%;
-    border: var(--trait) solid var(--couleur-encre);
-    background: var(--cerise);
-    transition: left 0.15s;
-  }
-  .interrupteur-moteur.coupe .levier-moteur {
-    left: 4px;
-    background: var(--couleur-papier-fonce);
-  }
-  .regime {
-    padding: 1px 6px;
-    border: 1.5px solid var(--couleur-encre);
-    border-radius: 4px;
-    background: var(--nuit);
-    color: #9cc7a4;
-    font-family: var(--police-chiffres);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-  .regime.actif {
-    color: var(--menthe);
-  }
-  .danger {
-    display: flex;
-    justify-content: center;
-    height: 11px;
-    border: 1px solid var(--couleur-encre);
-    background: repeating-linear-gradient(-45deg, var(--moutarde) 0 6px, var(--couleur-encre) 6px 12px);
-  }
-  .danger span {
-    padding: 0 6px;
-    background: var(--moutarde);
-    font-size: 7.5px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    line-height: 9px;
-  }
-
   /* État du bord. */
   .bord.alerte {
     border-color: var(--cerise);
@@ -764,11 +567,10 @@
     font-size: 6px;
   }
 
-  /* Cartes : mission, visiteur, liaison. */
+  /* Carte de la mission. */
   .buts {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
   }
   .carte {
     display: flex;
@@ -812,64 +614,10 @@
   .mission {
     border-left: 6px solid var(--moutarde);
   }
-  .visiteur {
-    flex-direction: row;
-    align-items: center;
-    gap: 9px;
-    background: var(--nuit);
-    color: var(--menthe);
-  }
-  .visiteur small {
-    color: #9cc7a4;
-  }
-  .visiteur .texte {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .radar {
-    position: relative;
-    flex: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 3px solid var(--moutarde);
-    background: #10331f;
-    overflow: hidden;
-  }
-  .radar::before {
-    content: '';
-    position: absolute;
-    inset: 8px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(250, 242, 220, 0.5);
-  }
-  .balayage {
-    position: absolute;
-    inset: 0;
-    background: conic-gradient(from 0deg, rgba(250, 242, 220, 0.65) 0 40deg, transparent 40deg);
-    animation: tourne 3s linear infinite;
-  }
-  .echo {
-    position: absolute;
-    left: 60%;
-    top: 26%;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--moutarde);
-    border: 1.5px solid var(--couleur-encre);
-    animation: clignote 1.2s steps(1) infinite;
-  }
-  @keyframes tourne {
-    to {
-      transform: rotate(360deg);
-    }
-  }
   /* Pupitre central : radio à gauche, navigation à droite, un filet entre les deux. */
   .pupitre {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.8fr);
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 10px;
   }

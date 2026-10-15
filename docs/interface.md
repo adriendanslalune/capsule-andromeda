@@ -163,3 +163,11 @@ La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un
   centième, ÉMETTRE, haut-parleur (allumé par défaut, retenu ; il ne parle que sur la page COCKPIT) ; le message reçu
   défile sur l'écran. Écran de navigation du hublot plus transparent. Carte : le plan garde ses proportions (plus de
   marges variables). Vue 3D : les étoiles passent derrière les astres.
+
+## 18. Cockpit allégé (15/10/2026, soir)
+- En-tête : sous la ligne C-58 / crédits / son / manuel, une **barre de bord** (vitesse, cap, heure d'arrivée en
+  petits cadrans — le toucher ouvre les instruments — et l'interrupteur MOTEUR avec son régime). Le panneau PILOTAGE
+  du cockpit est supprimé.
+- La carte VISITEUR est supprimée : le radar de navigation du pupitre, plus grand (136 px), a un balayage qui tourne
+  et montre l'écho du visiteur quand DET le repère.
+- Le volet POSTE RADIO est supprimé : la radio du pupitre est la seule radio du bord.
