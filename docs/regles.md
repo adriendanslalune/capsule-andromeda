@@ -90,10 +90,17 @@ UA = unité astronomique = 149 597 870,7 km.
   L'accélération DV-1 (× (1 + 0,5 × accélérations)) est supprimée, avec le grand-père.*
 - Coût de l'amélioration n (n commence à 0) : arrondi(20 × 1,07^n) si n ≤ 45 ; sinon arrondi(20 × 1,07^45 × 1,12^(n−45)).
 - Améliorations achetées dans l'ordre, une par une.
-- **Primes de réparation** : CH-1 2, TU-1 2, AL-1 5, CO-1 8, PB-1 10, LP-1 8, HY-1 10, RE-1 6, MO-1 12,
-  CR-1 8, AN-1 10, SX-1 12 crédits (CR).
-- **Contrats du tutoriel** : d'abord ISS → Lune, puis Lune → ISS, proposés seuls et dans l'ordre.
-- **Contrats de la semaine** (après le tutoriel) : 6 par semaine, renouvelés le **lundi à 00:00 UTC**, identiques
+- **Les réparations ne rapportent plus rien** (décision d'Adrien du 15/10/2026 ; avant : CH-1 2, TU-1 2, AL-1 5,
+  CO-1 8, PB-1 10, LP-1 8, HY-1 10, RE-1 6, MO-1 12, CR-1 8, AN-1 10, SX-1 12 CR). Une avarie est un obstacle : elle
+  ralentit la fusée ; elle compte pour le classement. L'argent vient des commissions (et, à venir : missions
+  variées, photos, signaux radio, commerce).
+- **Départ** : en orbite autour de la Terre (trois rayons, côté du Soleil).
+- **Contrats du tutoriel** (15/10/2026), proposés seuls et dans l'ordre, primes fixes : ISS (30 CR), Hubble (40),
+  Tiangong (50 ; « écoutez Radio-Terre »), puis le **premier grand voyage**, la Lune (120), annoncé en plein écran
+  (lettre de l'Office, fanfare ; bouton « CAP SUR LA LUNE » qui accepte le contrat et met le cap). Une partie qui
+  avait fini l'ancien tutoriel (ISS → Lune → ISS) a fini le nouveau.
+- **Contrats de la semaine** (après le tutoriel) : **12** par semaine (*renforcés à titre provisoire le 15/10/2026,
+  6 auparavant*), renouvelés le **lundi à 00:00 UTC**, identiques
   pour tous les joueurs (graine = AAAAMMJJ du lundi). Pour chacun : un système tiré au hasard (une chance sur 8),
   puis un corps de ce système (la planète, un de ses satellites ; la Lune ou l'ISS pour la Terre), sans doublon
   dans la semaine. Tous les corps sont possibles, petits satellites compris. Un contrat rempli n'est plus proposé
@@ -103,8 +110,8 @@ UA = unité astronomique = 149 597 870,7 km.
   (décision d'Adrien du 14/10/2026). Accepter un contrat ne change pas la destination (bouton
   « Y aller » dans l'interface) ; la destination reste libre. Chaque contrat est rempli en arrivant à sa
   destination ; il reste valable après la fin de sa semaine ; on peut l'abandonner sans pénalité.
-- **Prime** = arrondi(10 × cours + 10 × distance_UA), figée à l'acceptation : une **base** de 10 CR, la même pour
-  tous (soumise au cours), et un **bonus** de 10 CR par UA entre la fusée du joueur et la destination au moment où
+- **Prime** = arrondi(40 × cours + 20 × distance_UA), figée à l'acceptation (*provisoire depuis le 15/10/2026 ; 10 et
+  10 auparavant*) : une **base** de 40 CR, la même pour tous (soumise au cours), et un **bonus** de 20 CR par UA entre la fusée du joueur et la destination au moment où
   il accepte. Chaque joueur voit donc un bonus différent ; la prime suit la longueur du voyage.
 - **Contrat sur place** : si la fusée, qui ne vole pas, est déjà à destination (en orbite autour de l'astre, ou
   assez près pour y être arrivée : par exemple à côté de l'ISS pour un contrat vers la Terre), le contrat peut
@@ -121,21 +128,25 @@ UA = unité astronomique = 149 597 870,7 km.
 
 ## 3. Pannes : déclenchement, cascades, fautes
 
-- **Tutoriel** (pannes scénarisées) : n°0 surchauffe TU-1 ; n°1 pression CH-1 (sur ou sous au hasard) ;
-  n°2 surchauffe + surpression ; n°3 fusible AL-1. La première arrive 18 s après le début ; pendant le tutoriel,
-  la suivante arrive 18 s après la réparation.
-- **Ensuite** : une nouvelle avarie 120 à 300 s après que tout est réparé.
+- **En voyage seulement** (décision d'Adrien du 15/10/2026) : jamais d'avarie en orbite, à l'arrêt, moteur coupé ou
+  en attente d'une fenêtre de tir ; une avarie programmée est oubliée si le voyage s'arrête.
+- **Tutoriel** (pannes scénarisées), une par voyage du tutoriel, 18 s après le départ : n°0 surchauffe TU-1 (vers
+  l'ISS) ; n°1 pression CH-1, sur ou sous au hasard (vers Hubble) ; n°2 surchauffe + surpression (vers Tiangong) ;
+  n°3 fusible AL-1 (vers la Lune).
+- **Ensuite** : environ une par voyage. Quand tout est réparé, la prochaine est programmée entre 25 % et 85 % du
+  trajet restant (compté sur 24 h au plus), au moins 60 s plus tard ; **3 au plus par 24 heures glissantes**.
+  *Avant : une avarie 120 à 300 s après chaque réparation.*
 - **Cascades** : nombre maximum de modules simultanés selon les améliorations : <8 → 1 ; <20 → 2 ; <35 → 3 ; sinon 4.
   Taille tirée = 1 + aléa × max, bornée par le nombre de modules installés, éligibles et pas déjà en panne.
 - **Ordre de réparation d'une cascade** : ordre alphabétique des codes ; inversé si le dernier chiffre du n° de série
   est impair ; TU-1 toujours en premier. Un module réparé hors de son tour **retombe en panne** (sa panne est relancée).
-  Prime de cascade = somme des primes × (1 + 0,5 × (n − 1)), versée à la fin.
+  (Plus de prime de cascade.)
 - **Faute de pilotage** : une avarie provoquée par une fausse manœuvre (surpression ou sous-pression déclenchée
-  par le joueur sur CH-1, asphyxie de RE-1 purge ouverte) doit être réparée mais **ne rapporte rien**.
+  par le joueur sur CH-1, asphyxie de RE-1 purge ouverte) doit être réparée.
 - **Retour après une absence** (application fermée ; le jeu lui-même exige une connexion) : simulation par pas de
-  600 s (vol, usure de RE-1, avaries, arrivées, contrats, trophées). Une avarie bloque les suivantes, comme en jeu ;
-  si l'absence dépasse 2 h et qu'une seule panne simple est survenue, une seconde panne simple s'ajoute 60 % du temps
-  (au plus deux avaries pendant l'absence, sans compter l'usure de RE-1). La chasse n'est mise à jour qu'au retour
+  600 s (vol, usure de RE-1, avaries, arrivées, contrats, trophées). Une avarie bloque les suivantes, comme en jeu
+  (donc une seule avarie pendant l'absence, sans compter l'usure de RE-1 ; la « seconde avarie » ajoutée d'office
+  après 2 h a été supprimée le 15/10/2026). La chasse n'est mise à jour qu'au retour
   (bulletin et transmission les plus récents, échos revenus). Puis un **rapport de vol** résume l'absence : durée,
   distance, vitesse, avaries et leur heure, arrivées, contrats, crédits, trophées, messages, modules en panne.
 - Chaque module a sa propre **alarme sonore** (voir prototype, objet `ALARMES`).

@@ -47,6 +47,11 @@ export const SONS = {
   erreur: () => { bip(90, 0.35, 'sawtooth', 0.1); bip(95, 0.35, 'sawtooth', 0.08) },
   bon: () => { bip(660, 0.08, 'triangle', 0.08); plus(90, () => bip(990, 0.12, 'triangle', 0.08)) },
   echo: () => bip(700, 0.18, 'sine', 0.06, 1100),
+  /** Fanfare lente du premier grand voyage : quatre accords qui montent, le dernier tenu. */
+  solennel: () => {
+    const accords = [[196, 247, 294], [220, 277, 330], [247, 311, 370], [294, 370, 440, 587]]
+    accords.forEach((a, i) => plus(600 + i * 900, () => a.forEach((f) => bip(f, i === 3 ? 3.2 : 1.1, 'triangle', 0.035))))
+  },
 }
 
 /** Alarme de chaque module en avarie. */

@@ -43,11 +43,22 @@ export const SEUIL_ARRIVEE_LUNE = 0.0002
 
 /** Pannes. */
 export const PANNES = {
-  /** Première panne : 18 s après le début ; pendant le tutoriel, la suivante 18 s après la réparation. */
+  /**
+   * Les avaries ne surviennent qu'en voyage (décision d'Adrien du 15/10/2026) : jamais en orbite, à l'arrêt, moteur
+   * coupé ou en attente d'une fenêtre de tir. Tutoriel : une panne scénarisée par voyage du tutoriel, 18 s après le
+   * départ.
+   */
   delaiTutoriel: 18,
-  /** Ensuite : une nouvelle avarie entre 120 et 300 s après que tout est réparé. */
-  delaiMin: 120,
-  delaiMax: 300,
+  /**
+   * Ensuite, environ une par voyage : elle est programmée entre 25 % et 85 % du temps de trajet restant (compté sur
+   * 24 h au plus pour les longs voyages), jamais moins de 60 s après le départ ou la réparation.
+   */
+  fractionMin: 0.25,
+  fractionMax: 0.85,
+  horizonHeures: 24,
+  delaiMin: 60,
+  /** Au plus 3 avaries par 24 heures glissantes (hors tutoriel). */
+  maxParJour: 3,
   /** Taille maximale d'une cascade selon les améliorations : < 8 → 1 ; < 20 → 2 ; < 35 → 3 ; sinon 4. */
   paliersCascade: [8, 20, 35] as readonly number[],
   /** Prime de cascade = somme des primes × (1 + 0,5 × (n − 1)). */
@@ -60,10 +71,6 @@ export const ABSENCE = {
   dureeMinimale: 5,
   /** Pas de la simulation (s). */
   pas: 600,
-  /** Au plus deux avaries pendant l'absence : si elle dure plus de 2 h et qu'une seule panne simple est survenue,
-   * une seconde panne simple s'y ajoute avec cette probabilité (comme le prototype). */
-  dureeSecondeAvarieHeures: 2,
-  probabiliteSecondeAvarie: 0.6,
   /** Nombre maximal de messages gardés dans le rapport de vol. */
   messagesGardes: 30,
 } as const

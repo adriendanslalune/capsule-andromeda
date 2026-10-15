@@ -36,7 +36,7 @@
       L’Office vous confie la fusée de croisière <b>C-58</b>. Elle est vieille, lente, et elle tombe en panne.
     </p>
     <ol>
-      <li><b>Réparez.</b> Chaque avarie réparée est payée. Le manuel de vol est votre seul guide.</li>
+      <li><b>Livrez.</b> Chaque commission remplie est payée. Pour les pannes, le manuel de vol est votre seul guide.</li>
       <li><b>Améliorez.</b> Les crédits rendent la fusée plus rapide. Le système solaire est immense.</li>
       <li>
         <b>Ouvrez l’œil.</b> Quelque chose rôde entre les planètes. Le premier qui le photographie entre dans

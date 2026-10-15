@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MODULES_A_INSTALLER } from '../src/donnees/economie'
+import { CONTRATS_TUTORIEL, MODULES_A_INSTALLER } from '../src/donnees/economie'
+import { choisirDestination } from '../src/moteur/fusee'
 import { creerPartie, type EtatPartie } from '../src/moteur/etat'
 import { mulberry32 } from '../src/moteur/hasard'
 import { modulesEnPanne } from '../src/moteur/modules'
@@ -19,46 +20,73 @@ const apresTutoriel = (serie = 'KE4-70B', modules: string[] = TOUS, amelioration
   const e = partie(serie, modules, ameliorations)
   return { ...e, pannes: { ...e.pannes, tutoriel: PANNES_TUTORIEL, prochaine: null } }
 }
+/** La même, en route vers Jupiter (un très long voyage). */
+const enVoyage = (e: EtatPartie): EtatPartie => ({ ...e, fusee: choisirDestination(e.fusee, { type: 'astre', astre: 'Jupiter' }) })
+/** Contrats du tutoriel déjà remplis (les n premiers). */
+const tutorielFait = (e: EtatPartie, n: number): EtatPartie => ({ ...e, contratsFaits: CONTRATS_TUTORIEL.slice(0, n).map((c) => c.id) })
 
 describe('tutoriel des pannes', () => {
-  it('première avarie 18 s après le début : surchauffe de TU-1', () => {
+  it('jamais d’avarie en orbite ; la première 18 s après le premier départ : surchauffe de TU-1', () => {
     const p = new Pilote(partie(), T0)
-    p.attendre(17)
+    p.attendre(600, 10)
     expect(modulesEnPanne(p.m)).toEqual([])
-    p.attendre(1)
-    expect(modulesEnPanne(p.m)).toEqual(['TU-1'])
+    const q = new Pilote(enVoyage(partie()), T0)
+    q.attendre(17)
+    expect(modulesEnPanne(q.m)).toEqual([])
+    q.attendre(1)
+    expect(modulesEnPanne(q.m)).toEqual(['TU-1'])
   })
 
-  it('les 4 pannes du tutoriel : TU-1 ; CH-1 ; TU-1 + CH-1 en surpression ; AL-1 — 18 s après chaque réparation', () => {
-    const p = new Pilote(partie(), T0)
+  it('les 4 pannes du tutoriel, une par voyage du tutoriel : TU-1 ; CH-1 ; TU-1 + CH-1 en surpression ; AL-1', () => {
     const vues: string[][] = []
+    let e = enVoyage(partie())
     for (let n = 0; n < 4; n++) {
+      const p = new Pilote(tutorielFait(e, n), T0 + n * 3_600_000)
       while (modulesEnPanne(p.m).length === 0) p.attendre(1)
       vues.push(modulesEnPanne(p.m))
       if (n === 2) expect(p.m.propulsion.avariePression).toBe('sur')
       p.toutReparer()
-      const repare = p.derniereReparation
-      while (modulesEnPanne(p.m).length === 0 && p.t - repare < 400_000) p.attendre(1)
-      if (n < 3) expect((p.t - repare) / 1000, `panne n° ${n + 2}`).toBe(18)
+      // Le même voyage ne donne pas d'autre panne du tutoriel.
+      p.attendre(400, 5)
+      expect(modulesEnPanne(p.m), `voyage ${n + 1}`).toEqual([])
+      e = p.etat
     }
     expect(vues).toEqual([['TU-1'], ['CH-1'], ['CH-1', 'TU-1'], ['AL-1']])
-    expect(p.etat.credits).toBe(2 + 2 + 2 + 2 + 5) // pas une cascade : chaque bloc payé à part
-    expect(p.etat.stats.pannes).toBe(5)
+    expect(e.credits).toBe(0) // les réparations ne rapportent rien
+    expect(e.stats.pannes).toBe(5)
   })
 
-  it('après le tutoriel : une avarie 120 à 300 s après que tout est réparé', () => {
+  it('après le tutoriel, en voyage : entre 25 % et 85 % du trajet restant (24 h au plus), au moins 60 s plus tard', () => {
     const delais: number[] = []
-    for (let graine = 1; graine <= 30; graine++) {
-      const p = new Pilote(apresTutoriel('KE4-70B', []), T0, graine)
+    for (let graine = 1; graine <= 20; graine++) {
+      const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0, graine)
       p.attendre(1) // programme la prochaine avarie
-      const debut = p.t
-      while (modulesEnPanne(p.m).length === 0) p.attendre(1)
-      delais.push((p.t - debut) / 1000)
+      delais.push((p.etat.pannes.prochaine! - p.t) / 1000)
     }
-    expect(Math.min(...delais)).toBeGreaterThanOrEqual(120)
-    expect(Math.max(...delais)).toBeLessThanOrEqual(301)
-    expect(Math.max(...delais) - Math.min(...delais)).toBeGreaterThan(60)
+    expect(Math.min(...delais)).toBeGreaterThanOrEqual(0.25 * 86_400 - 2)
+    expect(Math.max(...delais)).toBeLessThanOrEqual(0.85 * 86_400 + 2)
   })
+
+  it('en orbite ou moteur coupé : l’avarie programmée est oubliée', () => {
+    const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0)
+    p.attendre(1)
+    expect(p.etat.pannes.prochaine).not.toBeNull()
+    const arret = new Pilote({ ...p.etat, fusee: { ...p.etat.fusee, destination: null } }, p.t)
+    arret.attendre(1)
+    expect(arret.etat.pannes.prochaine).toBeNull()
+  })
+
+  it('pas plus de 3 avaries par 24 heures', () => {
+    const p = new Pilote(enVoyage(apresTutoriel('KE4-70B', [])), T0, 3)
+    const instants: number[] = []
+    const fin = T0 + 6 * 86_400_000
+    while (p.t < fin) {
+      p.attendre(600, 60)
+      if (modulesEnPanne(p.m).length) { instants.push(p.t); p.toutReparer() }
+    }
+    expect(instants.length).toBeGreaterThan(3)
+    for (const x of instants) expect(instants.filter((y) => y >= x && y < x + 86_400_000).length).toBeLessThanOrEqual(3)
+  }, 120_000)
 })
 
 describe('déclenchement au hasard', () => {
@@ -127,16 +155,15 @@ describe('cascades', () => {
     }
   }
 
-  it('dans l’ordre : prime versée à la fin seulement, majorée de 50 % par bloc supplémentaire', () => {
+  it('dans l’ordre : la cascade est résolue (sans prime)', () => {
     const p = new Pilote(cascadeAlCo('KE4-70B'), T0)
     p.reparer('AL-1')
-    expect(p.etat.credits).toBe(0)
     expect(p.etat.pannes.cascade!.faits).toEqual(['AL-1'])
     p.reparer('CO-1')
-    expect(p.etat.credits).toBe(Math.round((5 + 8) * 1.5))
+    expect(p.etat.credits).toBe(0)
     expect(p.etat.pannes.cascade).toBeNull()
     expect(p.etat.stats.pannes).toBe(2)
-    expect(p.messages).toContain('CASCADE RÉSOLUE. PRIME : 20 CR.')
+    expect(p.messages).toContain('CASCADE RÉSOLUE.')
   })
 
   it('hors de son tour : le bloc retombe aussitôt en panne', () => {
@@ -148,19 +175,19 @@ describe('cascades', () => {
     expect(p.etat.credits).toBe(0)
     void motAvant
     p.toutReparer()
-    expect(p.etat.credits).toBe(20)
+    expect(p.etat.pannes.cascade).toBeNull()
   })
 
   it('n° de série impair : l’ordre est inversé (CO-1 avant AL-1)', () => {
     const p = new Pilote(cascadeAlCo('KE4-71B'), T0)
     p.toutReparer()
     expect(p.messages.filter((m) => m.startsWith('ORDRE INCORRECT'))).toEqual([])
-    expect(p.etat.credits).toBe(20)
+    expect(p.etat.pannes.cascade).toBeNull()
   })
 })
 
 describe('fautes de pilotage', () => {
-  it('une avarie provoquée par le joueur doit être réparée, mais ne rapporte rien', () => {
+  it('une avarie provoquée par le joueur doit être réparée', () => {
     const p = new Pilote(apresTutoriel('KE4-70B', []), T0)
     // Molette sur 9 : la pression monte au-dessus de 90 → surpression provoquée.
     for (let i = 0; i < 4; i++) {
@@ -173,31 +200,31 @@ describe('fautes de pilotage', () => {
     expect(p.etat.credits).toBe(0)
     expect(p.etat.stats.pannes).toBe(1)
     expect(p.etat.pannes.fautes).toEqual([])
-    expect(p.messages.some((m) => m.includes('AUCUNE PRIME'))).toBe(true)
+    expect(p.messages.some((m) => m.includes('FAUTE DE PILOTAGE'))).toBe(true)
   })
 
-  it('une réparation normale rapporte la prime du module', () => {
+  it('une réparation ne rapporte rien, mais compte (classement)', () => {
     const e = apresTutoriel('KE4-70B', ['CO-1'])
     const avecPanne = { ...e, modules: { ...e.modules, co1: panneCO1(e.modules.co1, mulberry32(1)) } }
     const p = new Pilote(avecPanne, T0)
     p.toutReparer()
-    expect(p.etat.credits).toBe(8)
+    expect(p.etat.credits).toBe(0)
+    expect(p.etat.stats.pannes).toBe(1)
   })
 })
 
 describe('long vol : tous les modules installés, cascades jusqu’à 4', () => {
   for (const serie of ['KE4-70B', 'EZ9-05A']) {
-    it(`6 heures de vol (${serie}) : le pilote qui suit le manuel répare tout, sans erreur d'ordre ni faute`, () => {
-      const p = new Pilote(apresTutoriel(serie, TOUS, 40), T0, serie.length)
-      const fin = T0 + 6 * 3600 * 1000
+    it(`8 jours de vol (${serie}) : le pilote qui suit le manuel répare tout, sans erreur d'ordre ni faute`, () => {
+      const p = new Pilote(enVoyage(apresTutoriel(serie, TOUS, 40)), T0, serie.length)
+      const fin = T0 + 8 * 86_400_000
       while (p.t < fin) {
-        p.attendre(10)
+        p.attendre(600, 60)
         p.toutReparer()
       }
-      expect(p.etat.stats.pannes).toBeGreaterThan(40)
+      expect(p.etat.stats.pannes).toBeGreaterThan(12)
       expect(p.messages.filter((m) => m.startsWith('ORDRE INCORRECT'))).toEqual([])
       expect(p.evenements.filter((x) => x.type === 'faute')).toEqual([])
-      expect(p.etat.credits).toBeGreaterThan(300)
       const erreurs = p.evenements.filter((x) => x.type === 'erreur')
       expect(erreurs, JSON.stringify(erreurs.slice(0, 3))).toEqual([])
     }, 120_000)
@@ -206,14 +233,15 @@ describe('long vol : tous les modules installés, cascades jusqu’à 4', () => 
 
 describe('agir', () => {
   it('une action sans effet ne change rien', () => {
-    const base = apresTutoriel()
+    const base = enVoyage(apresTutoriel())
     const e = { ...base, pannes: { ...base.pannes, prochaine: T0 + 100_000 } } // avarie déjà programmée
     const r = agir(e, T0, mulberry32(1), (m) => ({ modules: m, evenements: [] }))
     expect(r.etat).toEqual(e)
   })
 
-  it('un geste qui répare tout programme aussitôt la prochaine avarie', () => {
-    const r = agir(apresTutoriel(), T0, mulberry32(1), (m) => ({ modules: m, evenements: [] }))
-    expect(r.etat.pannes.prochaine).toBeGreaterThanOrEqual(T0 + 120_000)
+  it('en voyage, un geste qui répare tout programme aussitôt la prochaine avarie ; en orbite, rien', () => {
+    const r = agir(enVoyage(apresTutoriel()), T0, mulberry32(1), (m) => ({ modules: m, evenements: [] }))
+    expect(r.etat.pannes.prochaine).toBeGreaterThanOrEqual(T0 + 60_000)
+    expect(agir(apresTutoriel(), T0, mulberry32(1), (m) => ({ modules: m, evenements: [] })).etat.pannes.prochaine).toBeNull()
   })
 })

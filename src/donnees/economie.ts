@@ -37,14 +37,15 @@ export const TAILLE_JOURNAL = 40
 
 /** Contrats (décisions d'Adrien du 13/10/2026). */
 export const CONTRATS = {
-  /** Contrats proposés chaque semaine (après le tutoriel), renouvelés le lundi à 00:00 UTC. */
-  parSemaine: 6,
+  /** Contrats proposés chaque semaine (après le tutoriel), renouvelés le lundi à 00:00 UTC.
+   * Renforcés à titre provisoire le 15/10/2026 (les pannes ne rapportent plus) : 12 au lieu de 6. */
+  parSemaine: 12,
   /** Nombre maximal de contrats en cours en même temps. */
   maxEnCours: 3,
-  /** Prime = arrondi(base × cours + bonusParUA × distance en UA), figée à l'acceptation. */
-  primeBase: 10,
-  /** Bonus selon la distance entre le joueur et la destination, au moment où il accepte (CR par UA). */
-  bonusParUA: 10,
+  /** Prime = arrondi(base × cours + bonusParUA × distance en UA), figée à l'acceptation (provisoire : 40 au lieu de 10). */
+  primeBase: 40,
+  /** Bonus selon la distance entre le joueur et la destination, au moment où il accepte (CR par UA ; provisoire : 20). */
+  bonusParUA: 20,
   /** Contrat vers l'astre où la fusée est déjà en orbite : prime divisée par ce nombre (au moins 1 CR). */
   diviseurSurPlace: 10,
 } as const
@@ -62,11 +63,20 @@ export const TYPES_CONTRATS: readonly { type: string; texte: string; objets: rea
     objets: ['un pli scellé', 'des lettres', 'un colis de l’Office'] },
 ]
 
-/** Contrats du tutoriel, proposés seuls et dans l'ordre avant les contrats du jour (décision d'Adrien, 13/10/2026). */
-export const CONTRATS_TUTORIEL: readonly { id: string; type: string; texte: string; destination: string }[] = [
-  { id: 'tutoriel-1', type: 'LIVRAISON', texte: 'Livrer des pièces détachées au relais de la Lune.', destination: 'Lune' },
-  { id: 'tutoriel-2', type: 'COURRIER', texte: 'Rapporter le courrier de la Lune jusqu’à l’ISS.', destination: 'ISS' },
+/**
+ * Contrats du tutoriel, proposés seuls et dans l'ordre avant les contrats de la semaine (décision d'Adrien du
+ * 15/10/2026, remplace le tutoriel Terre-Lune) : trois courtes missions autour de la Terre pour apprendre, puis le
+ * premier grand voyage, vers la Lune, annoncé solennellement. Primes fixes.
+ */
+export const CONTRATS_TUTORIEL: readonly { id: string; type: string; texte: string; destination: string; prime: number; grandVoyage?: boolean }[] = [
+  { id: 'tutoriel-iss', type: 'COURRIER', texte: 'Porter le premier pli de l’Office à l’ISS.', destination: 'ISS', prime: 30 },
+  { id: 'tutoriel-hubble', type: 'LIVRAISON', texte: 'Livrer un gyroscope de rechange au télescope Hubble.', destination: 'Hubble', prime: 40 },
+  { id: 'tutoriel-tiangong', type: 'LIVRAISON', texte: 'Livrer des pièces détachées à la station Tiangong. En route, écoutez Radio-Terre.', destination: 'Tiangong', prime: 50 },
+  { id: 'tutoriel-lune', type: 'COURRIER', texte: 'Le premier grand voyage : porter le courrier de l’Office au relais de la Lune.', destination: 'Lune', prime: 120, grandVoyage: true },
 ]
+
+/** Ancien tutoriel (Terre-Lune) : une partie qui l'a fini a fini le tutoriel. */
+export const FIN_ANCIEN_TUTORIEL = 'tutoriel-2'
 
 /**
  * Ce que l'atelier dit de chaque module et instrument, pour donner envie de l'acheter (textes du jeu).

@@ -36,6 +36,6 @@
   <p class="discret">
     Refermée trop tôt, la vanne laisse le CO2 repasser {R.co2Repare} pendant que l’on pompe : la réparation échoue. Une
     avarie survenue purge ouverte est une faute de pilotage. Le recycleur ne participe jamais aux cascades. Un entretien
-    régulier évite l’avarie, mais ne rapporte rien.
+    régulier évite l’avarie.
   </p>
 </Page>

@@ -132,7 +132,7 @@ describe('Trajet en cours (frise du cockpit)', () => {
       f = r.fusee
       arrivee = r.arrivee !== null
       if (n === 0) {
-        expect(f.trajet?.origine).toBe('ISS')
+        expect(f.trajet?.origine).toBe('Terre')
         expect(f.trajet?.depart).toBe(T0)
       }
       const a = avancementTrajet(f, t)

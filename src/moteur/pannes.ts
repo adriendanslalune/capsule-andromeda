@@ -1,9 +1,9 @@
-// Gestion des pannes : déclenchement (tutoriel, puis au hasard), cascades et leur ordre de réparation, fautes de
-// pilotage, primes de réparation.
+// Gestion des pannes : déclenchement (en voyage seulement : tutoriel, puis environ une par voyage), cascades et leur
+// ordre de réparation, fautes de pilotage. Les réparations ne rapportent plus rien (décision d'Adrien du 15/10/2026) :
+// une avarie ralentit la fusée, c'est un obstacle ; elle compte pour le classement.
 
-import { PRIMES_REPARATION } from '../donnees/economie'
 import { PANNES } from '../donnees/reglages'
-import { crediter, estInstalle } from './economie'
+import { contratsTutorielFaits, estInstalle } from './economie'
 import type { EtatPartie } from './etat'
 import { entierAuHasard, type Hasard } from './hasard'
 import type { Contexte, Evenement } from './modules/commun'
@@ -35,8 +35,10 @@ export interface EtatPannes {
   /** Instant de la prochaine avarie (ms UTC), ou null : elle sera programmée quand tout sera réparé. */
   prochaine: number | null
   cascade: Cascade | null
-  /** Modules en avarie par faute de pilotage : leur réparation ne rapporte rien. */
+  /** Modules en avarie par faute de pilotage. */
   fautes: string[]
+  /** Instants des dernières avaries (hors tutoriel), pour n'en avoir que 3 par 24 h ; absent des anciennes parties. */
+  recentes?: number[]
 }
 
 /** Nombre de pannes scénarisées du tutoriel. */
@@ -121,6 +123,7 @@ export function declencherPanne(etat: EtatPartie, t: number, hasard: Hasard): Et
     pannes: {
       ...p,
       prochaine: null,
+      recentes: [...(p.recentes ?? []).filter((x) => x > t - 86_400_000), t],
       cascade: n > 1 ? { modules: choisis, faits: [], total: 0 } : null,
       fautes: p.fautes.filter((c) => !choisis.includes(c)),
     },
@@ -151,16 +154,26 @@ function rechuteEnAttente(etat: EtatPartie): boolean {
 }
 
 /**
- * Programme et déclenche les avaries : quand tout est réparé, la prochaine est programmée (18 s pendant le
- * tutoriel, 120 à 300 s ensuite) ; à l'heure dite, elle survient.
+ * Programme et déclenche les avaries, en voyage seulement. `reste` : temps de trajet restant (s), ou null si la
+ * fusée ne voyage pas (en orbite, à l'arrêt, moteur coupé, en attente d'une fenêtre) : alors aucune avarie, et celle
+ * qui était programmée est oubliée. En voyage, quand tout est réparé : pendant le tutoriel, la panne scénarisée du
+ * voyage 18 s plus tard (une par contrat du tutoriel) ; ensuite, entre 25 % et 85 % du trajet restant (24 h au plus),
+ * au moins 60 s plus tard, et pas plus de 3 par 24 h.
  */
-export function planifierPannes(etat: EtatPartie, t: number, hasard: Hasard): EtatPartie {
+export function planifierPannes(etat: EtatPartie, t: number, hasard: Hasard, reste: number | null): EtatPartie {
   if (modulesEnPanne(etat.modules).length > 0 || rechuteEnAttente(etat)) return etat
   const p = etat.pannes
+  if (reste === null) return p.prochaine === null ? etat : { ...etat, pannes: { ...p, prochaine: null } }
   if (p.prochaine === null) {
-    const delai = p.tutoriel < PANNES_TUTORIEL
-      ? PANNES.delaiTutoriel
-      : PANNES.delaiMin + hasard() * (PANNES.delaiMax - PANNES.delaiMin)
+    if (p.tutoriel < PANNES_TUTORIEL) {
+      // Une panne du tutoriel par voyage : la n-ième pendant le voyage du n-ième contrat du tutoriel.
+      if (p.tutoriel > contratsTutorielFaits(etat)) return etat
+      return { ...etat, pannes: { ...p, prochaine: t + PANNES.delaiTutoriel * 1000 } }
+    }
+    let delai = Math.max(PANNES.delaiMin, (PANNES.fractionMin + hasard() * (PANNES.fractionMax - PANNES.fractionMin))
+      * Math.min(reste, PANNES.horizonHeures * 3600))
+    const recentes = (p.recentes ?? []).filter((x) => x > t - 86_400_000)
+    if (recentes.length >= PANNES.maxParJour) delai = Math.max(delai, (recentes[0] + 86_400_000 - t) / 1000)
     return { ...etat, pannes: { ...p, prochaine: t + delai * 1000 } }
   }
   return t >= p.prochaine ? declencherPanne(etat, t, hasard) : etat
@@ -173,9 +186,8 @@ export interface ResultatEvenements {
 }
 
 /**
- * Traite les événements des modules : une faute de pilotage est notée (réparation non rémunérée) ; une réparation
- * rapporte sa prime, sauf faute ; dans une cascade, un module réparé hors de son tour retombe aussitôt en panne, et la
- * prime majorée n'est versée qu'à la fin.
+ * Traite les événements des modules : une faute de pilotage est notée ; une réparation est comptée (classement) ;
+ * dans une cascade, un module réparé hors de son tour retombe aussitôt en panne. Les réparations ne rapportent rien.
  */
 export function traiterEvenements(etat: EtatPartie, evenements: Evenement[], t: number, hasard: Hasard): ResultatEvenements {
   let e = etat
@@ -183,7 +195,7 @@ export function traiterEvenements(etat: EtatPartie, evenements: Evenement[], t: 
   for (const ev of evenements) {
     if (ev.type === 'faute') {
       e = { ...e, pannes: { ...e.pannes, fautes: [...new Set([...e.pannes.fautes, ev.module])] } }
-      messages.push(`FAUTE DE PILOTAGE : AVARIE ${ev.module} PROVOQUÉE. RÉPARATION NON RÉMUNÉRÉE.`)
+      messages.push(`FAUTE DE PILOTAGE : AVARIE ${ev.module} PROVOQUÉE.`)
       continue
     }
     if (ev.type !== 'reparation') continue
@@ -191,10 +203,9 @@ export function traiterEvenements(etat: EtatPartie, evenements: Evenement[], t: 
     const stats = (n: number) => ({ ...e.stats, pannes: e.stats.pannes + n })
     if (e.pannes.fautes.includes(code)) {
       e = { ...e, stats: stats(1), pannes: { ...e.pannes, fautes: e.pannes.fautes.filter((c) => c !== code) } }
-      messages.push(`${code} RÉPARÉ. AUCUNE PRIME : FAUTE DE PILOTAGE.`)
+      messages.push(`${code} RÉPARÉ.`)
       continue
     }
-    const prime = PRIMES_REPARATION[code] ?? 0
     const cascade = e.pannes.cascade
     if (cascade && cascade.modules.includes(code) && !cascade.faits.includes(code)) {
       const attendu = ordreCascade(cascade.modules, e.serie).find((c) => !cascade.faits.includes(c))
@@ -203,18 +214,17 @@ export function traiterEvenements(etat: EtatPartie, evenements: Evenement[], t: 
         messages.push(`ORDRE INCORRECT : ${code} RETOMBE EN PANNE.`)
         continue
       }
-      const suite: Cascade = { ...cascade, faits: [...cascade.faits, code], total: cascade.total + prime }
+      const suite: Cascade = { ...cascade, faits: [...cascade.faits, code], total: 0 }
       if (suite.faits.length < suite.modules.length) {
         e = { ...e, pannes: { ...e.pannes, cascade: suite } }
         continue
       }
       const n = suite.modules.length
-      const bonus = Math.round(suite.total * (1 + PANNES.majorationParModule * (n - 1)))
-      e = crediter({ ...e, stats: stats(n), pannes: { ...e.pannes, cascade: null } }, bonus, `Cascade de ${n} blocs`, t)
-      messages.push(`CASCADE RÉSOLUE. PRIME : ${bonus} CR.`)
+      e = { ...e, stats: stats(n), pannes: { ...e.pannes, cascade: null } }
+      messages.push('CASCADE RÉSOLUE.')
       continue
     }
-    e = crediter({ ...e, stats: stats(1) }, prime, `Réparation ${code}`, t)
+    e = { ...e, stats: stats(1) }
   }
   return { etat: e, messages }
 }

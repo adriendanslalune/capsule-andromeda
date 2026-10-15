@@ -28,8 +28,7 @@
   <p>Si le dernier chiffre du n° de série est IMPAIR, dans l’ordre inverse.</p>
   <p class="exception">une surchauffe (TU-1) se traite TOUJOURS en premier, quel que soit l’ordre.</p>
   <p>
-    Un bloc réparé hors de son tour retombe aussitôt en panne. La prime d’une cascade est versée à la fin, majorée de
-    {PANNES.majorationParModule * 100} % par bloc supplémentaire.
+    Un bloc réparé hors de son tour retombe aussitôt en panne.
   </p>
   <p class="discret">Le recycleur RE-1 ne participe jamais aux cascades.</p>
 </Page>

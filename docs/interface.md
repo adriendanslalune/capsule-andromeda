@@ -135,3 +135,9 @@ rouge, bouton GROS (2,00 par tour) et FIN (0,10 par tour) à tourner au doigt, �
 ## 14. Carte : deux traits (15/10/2026)
 Depuis la fusée, un trait blanc pointillé fin vers la destination là où elle est maintenant, et le trait jaune vers
 le point de rencontre (là où la fusée la rejoindra) ; légende au-dessus du cartouche.
+
+## 15. Le premier grand voyage (15/10/2026)
+À la fin du tutoriel (ISS, Hubble, Tiangong), une page plein écran : nuit étoilée, la Lune qui se lève, « EN ROUTE
+VERS LA LUNE — LE PREMIER GRAND VOYAGE », lettre du Directeur des commissions (distance Terre-Lune du jour), tampon
+« BON POUR LE DÉPART », prime du voyage, fanfare lente ; bouton CAP SUR LA LUNE (accepte le contrat et met le cap),
+lien « plus tard » (l'annonce revient à la prochaine visite).

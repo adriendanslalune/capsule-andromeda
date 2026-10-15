@@ -8,6 +8,7 @@ import {
   contratsDeLaSemaine,
   contratsProposes,
   contratsTutorielFaits,
+  grandVoyageAAnnoncer,
   coutAmelioration,
   crediter,
   destinationDuContrat,
@@ -29,7 +30,7 @@ const SEMAINE = 7 * 86_400_000
 const neuve = () => creerPartie(T0, mulberry32(1))
 const riche = (cr: number) => ({ ...neuve(), credits: cr })
 /** Partie dont le tutoriel des contrats est terminé. */
-const apresTutoriel = (): EtatPartie => ({ ...neuve(), contratsFaits: ['tutoriel-1', 'tutoriel-2'] })
+const apresTutoriel = (): EtatPartie => ({ ...neuve(), contratsFaits: ['tutoriel-iss', 'tutoriel-hubble', 'tutoriel-tiangong', 'tutoriel-lune'] })
 /** Contrats de la semaine qui ne sont pas « sur place » pour une fusée à côté de l'ISS (ni la Terre, ni l'ISS). */
 const lointains = (e: EtatPartie, t = T0) => contratsProposes(e, t).filter((c) => c.destination !== 'Terre' && c.destination !== 'ISS')
 
@@ -121,32 +122,45 @@ describe('installation des modules', () => {
 })
 
 describe('contrats du tutoriel', () => {
-  it("d'abord ISS → Lune, seul contrat proposé", () => {
-    const offres = contratsProposes(neuve(), T0)
-    expect(offres).toHaveLength(1)
-    expect(offres[0].id).toBe('tutoriel-1')
-    expect(offres[0].destination).toBe('Lune')
+  it('la partie commence en orbite autour de la Terre ; premier contrat : l’ISS, seul proposé', () => {
+    const e = neuve()
+    expect(e.fusee.orbite).toBe('Terre')
+    const offres = contratsProposes(e, T0)
+    expect(offres.map((c) => c.id)).toEqual(['tutoriel-iss'])
+    expect(offres[0].destination).toBe('ISS')
   })
 
-  it('le voyage vers la Lune remplit le contrat ; puis Lune → ISS ; puis les contrats de la semaine', () => {
-    const acc = accepterContrat(neuve(), 'tutoriel-1', T0)
-    expect(acc.refus).toBeNull()
-    expect(acc.etat.fusee.destination).toBeNull() // accepter ne change pas la destination
-    expect(contratsProposes(acc.etat, T0)).toEqual([]) // déjà accepté
-    const prime = acc.etat.contrats[0].prime
-    const enRoute = { ...acc.etat, fusee: choisirDestination(acc.etat.fusee, destinationDuContrat(acc.etat.contrats[0])) }
-    const { etat } = voyager(enRoute, 2 * 86_400)
-    expect(etat.fusee.orbite).toBe('Lune')
-    expect(etat.contrats).toEqual([])
-    expect(etat.credits).toBe(prime)
-    expect(etat.stats.contrats).toBe(1)
-    expect(etat.trophees).toContain('premier')
-    expect(contratsTutorielFaits(etat)).toBe(1)
-    const suivant = contratsProposes(etat, T0)
-    expect(suivant.map((c) => c.id)).toEqual(['tutoriel-2'])
-    expect(suivant[0].destination).toBe('ISS')
-    const fini = { ...etat, contratsFaits: [...etat.contratsFaits, 'tutoriel-2'] }
-    expect(contratsProposes(fini, T0)).toHaveLength(6)
+  it('ISS, Hubble, Tiangong, à primes fixes, l’un après l’autre ; puis le grand voyage vers la Lune ; puis la semaine', () => {
+    let e = neuve()
+    const vus: string[] = []
+    for (const [id, astre, prime] of [['tutoriel-iss', 'ISS', 30], ['tutoriel-hubble', 'Hubble', 40], ['tutoriel-tiangong', 'Tiangong', 50]] as const) {
+      expect(grandVoyageAAnnoncer(e)).toBe(false)
+      const acc = accepterContrat(e, id, T0)
+      expect(acc.refus).toBeNull()
+      expect(acc.etat.fusee.destination).toBeNull() // accepter ne change pas la destination
+      expect(acc.etat.contrats[0].prime).toBe(prime)
+      expect(contratsProposes(acc.etat, T0)).toEqual([]) // déjà accepté
+      const enRoute = { ...acc.etat, fusee: choisirDestination(acc.etat.fusee, destinationDuContrat(acc.etat.contrats[0])) }
+      e = voyager(enRoute, 86_400).etat
+      expect(e.fusee.orbite).toBe(astre)
+      vus.push(astre)
+    }
+    expect(e.credits).toBe(30 + 40 + 50)
+    expect(contratsTutorielFaits(e)).toBe(3)
+    expect(grandVoyageAAnnoncer(e)).toBe(true)
+    expect(contratsProposes(e, T0).map((c) => c.id)).toEqual(['tutoriel-lune'])
+    const lune = accepterContrat(e, 'tutoriel-lune', T0).etat
+    expect(lune.contrats[0].prime).toBe(120)
+    expect(grandVoyageAAnnoncer(lune)).toBe(false)
+    const fini = { ...lune, contrats: [], contratsFaits: [...lune.contratsFaits, 'tutoriel-lune'] }
+    expect(contratsProposes(fini, T0)).toHaveLength(12)
+  }, 60_000)
+
+  it('une partie qui avait fini l’ancien tutoriel (Terre-Lune) a fini le nouveau', () => {
+    const ancienne = { ...neuve(), contratsFaits: ['tutoriel-1', 'tutoriel-2'] }
+    expect(contratsTutorielFaits(ancienne)).toBe(4)
+    expect(grandVoyageAAnnoncer(ancienne)).toBe(false)
+    expect(contratsProposes(ancienne, T0)).toHaveLength(12)
   })
 })
 
@@ -159,12 +173,12 @@ describe('contrats de la semaine', () => {
     expect(semaineUTC(Date.UTC(2026, 0, 5))).toBe('2026-01-05') // départ des saisons de la chasse
   })
 
-  it('6 contrats, mêmes toute la semaine et pour tous, destinations toutes différentes et existantes', () => {
+  it('12 contrats, mêmes toute la semaine et pour tous, destinations toutes différentes et existantes', () => {
     const a = contratsDeLaSemaine('2026-10-12')
-    expect(a).toHaveLength(6)
+    expect(a).toHaveLength(12)
     expect(contratsDeLaSemaine('2026-10-12')).toEqual(a)
     expect(contratsProposes(apresTutoriel(), T0)).toEqual(contratsProposes(apresTutoriel(), T0 + 4 * 86_400_000))
-    expect(new Set(a.map((c) => c.destination)).size).toBe(6)
+    expect(new Set(a.map((c) => c.destination)).size).toBe(12)
     for (const c of a) {
       expect(corpsExiste(c.destination), c.destination).toBe(true)
       expect(c.id.startsWith('2026-10-12-')).toBe(true)
@@ -185,7 +199,7 @@ describe('contrats de la semaine', () => {
     }
     for (const p of [...NOMS_PLANETES, 'Soleil']) {
       // Mercure, Vénus et le Soleil n'ont qu'un corps : le refus des doublons d'une même semaine les rend un peu plus rares.
-      expect(compte[p] / total, p).toBeGreaterThan(0.07)
+      expect(compte[p] / total, p).toBeGreaterThan(0.05)
       expect(compte[p] / total, p).toBeLessThan(0.16)
     }
   })
@@ -200,11 +214,11 @@ describe('contrats de la semaine', () => {
 })
 
 describe('prime', () => {
-  it('base de 10 CR + 10 CR par UA entre le joueur et la destination, figée à l’acceptation', () => {
+  it('base de 40 CR + 20 CR par UA entre le joueur et la destination, figée à l’acceptation', () => {
     const e = apresTutoriel()
     const offre = lointains(e)[0]
     const d = distance(e.fusee.position, positionAstre(offre.destination, T0))
-    expect(primeContrat(e, offre, T0)).toBe(Math.round(10 + 10 * d))
+    expect(primeContrat(e, offre, T0)).toBe(Math.round(40 + 20 * d))
     const acc = accepterContrat(e, offre.id, T0)
     expect(acc.etat.contrats[0].prime).toBe(primeContrat(e, offre, T0))
   })
@@ -214,7 +228,7 @@ describe('prime', () => {
     const offre = lointains(e)[0]
     const loin: EtatPartie = { ...e, fusee: { ...e.fusee, orbite: null, position: { x: 40, y: 0 } } }
     const d2 = distance(loin.fusee.position, positionAstre(offre.destination, T0))
-    expect(primeContrat(loin, offre, T0)).toBe(Math.round(10 + 10 * d2))
+    expect(primeContrat(loin, offre, T0)).toBe(Math.round(40 + 20 * d2))
     expect(primeContrat(loin, offre, T0)).not.toBe(primeContrat(e, offre, T0))
   })
 
@@ -223,8 +237,8 @@ describe('prime', () => {
     const offre = lointains(e)[0]
     const d = distance(e.fusee.position, positionAstre(offre.destination, T0))
     expect(primeContrat(e, offre, T0, 1)).toBe(primeContrat(e, offre, T0))
-    expect(primeContrat(e, offre, T0, 2)).toBe(Math.round(20 + 10 * d))
-    expect(primeContrat(e, offre, T0, 0)).toBe(Math.round(10 * d))
+    expect(primeContrat(e, offre, T0, 2)).toBe(Math.round(80 + 20 * d))
+    expect(primeContrat(e, offre, T0, 0)).toBe(Math.round(20 * d))
     expect(accepterContrat(e, offre.id, T0, 1.5).etat.contrats[0].prime).toBe(primeContrat(e, offre, T0, 1.5))
   })
 })
@@ -239,7 +253,7 @@ describe('plusieurs contrats', () => {
       e = r.etat
     }
     expect(e.contrats).toHaveLength(3)
-    expect(contratsProposes(e, T0)).toHaveLength(3) // les 3 autres
+    expect(contratsProposes(e, T0)).toHaveLength(contratsProposes(apresTutoriel(), T0).length - 3) // les autres
     expect(accepterContrat(e, offres[3].id, T0).refus).toBe('3 contrats au plus en même temps.')
     expect(accepterContrat(e, '1999-01-04-0', T0).refus).toBe("Ce contrat n'est pas proposé.")
     expect(accepterContrat(e, offres[0].id, T0).refus).toBe("Ce contrat n'est pas proposé.") // déjà accepté
@@ -293,11 +307,11 @@ describe('contrat vers l’astre où l’on est déjà en orbite', () => {
       ...base,
       fusee: { ...base.fusee, orbite: offre.destination, position: positionAstre(offre.destination, T0) },
     }
-    expect(primeContrat(surPlace, offre, T0)).toBe(1) // 10 / 10
+    expect(primeContrat(surPlace, offre, T0)).toBe(4) // 40 / 10
     const r = accepterContrat(surPlace, offre.id, T0)
     expect(r.refus).toBeNull()
     expect(r.etat.contrats).toEqual([])
-    expect(r.etat.credits).toBe(1)
+    expect(r.etat.credits).toBe(4)
     expect(r.etat.contratsFaits).toContain(offre.id)
     expect(r.etat.stats.contrats).toBe(1)
   })
@@ -307,7 +321,7 @@ describe('trophées', () => {
   it('arrivées : un trophée par astre', () => {
     let e = neuve()
     for (const astre of ['Mars', 'Lune', 'Jupiter', 'Neptune']) e = traiterArrivee(e, { type: 'astre', astre }, T0)
-    // (La partie commence amarrée à l'ISS : la Terre et l'ISS comptent déjà.)
+    // (La partie commence en orbite autour de la Terre : elle compte déjà.)
     expect(e.trophees.filter((id) => id.startsWith('astre:') && id !== 'astre:Terre')).toEqual(['astre:Mars', 'astre:Lune', 'astre:Jupiter', 'astre:Neptune'])
     expect(traiterArrivee(e, { type: 'astre', astre: 'Mars' }, T0).trophees).toEqual(e.trophees) // pas en double
   })
@@ -315,7 +329,7 @@ describe('trophées', () => {
   it('distance au Soleil : 40 UA (Kuiper), 120 UA (héliopause), 170 UA (Voyager 1)', () => {
     const loin = (ua: number): EtatPartie => {
       const e = neuve()
-      return { ...e, fusee: { ...e.fusee, orbite: null, position: { x: ua, y: 0 } } }
+      return { ...e, fusee: { ...e.fusee, orbite: null, ecartOrbite: undefined, position: { x: ua, y: 0 } } }
     }
     const eloignement = (e: EtatPartie) => verifierTrophees(e).trophees.filter((id) => ['kuiper', 'helio', 'voyager'].includes(id))
     expect(eloignement(loin(39.9))).toEqual([])
@@ -337,10 +351,10 @@ describe('textes et cas particuliers des contrats', () => {
     expect(textes.some((t) => t.includes('d’'))).toBe(true)
   })
 
-  it('à côté de l’ISS, un contrat vers la Terre compte comme « sur place »', () => {
-    const e = apresTutoriel() // en orbite à côté de l'ISS
+  it('en orbite autour de la Terre, un contrat vers la Terre compte comme « sur place »', () => {
+    const e = apresTutoriel() // en orbite autour de la Terre
     const versTerre = { id: 'essai', type: 'RELEVÉ', texte: 'essai', destination: 'Terre' }
-    expect(primeContrat(e, versTerre, T0)).toBe(1)
+    expect(primeContrat(e, versTerre, T0)).toBe(4)
   })
 })
 

@@ -2,7 +2,7 @@
   // ATELIER, lisible d'un coup d'œil, comme les contrats : un bandeau de résumé (caisse, moteur, modules), puis des
   // fiches toutes bâties pareil — à gauche la pièce, au centre son nom en gros, à droite le prix en gros, dessous ce
   // qu'elle change et l'unique bouton utile (ou ce qu'il manque pour l'acheter).
-  import { DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE, PRIMES_REPARATION } from '../../donnees/economie'
+  import { DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE } from '../../donnees/economie'
   import { PANNES } from '../../donnees/reglages'
   import { acheterAmelioration, coutAmelioration, estInstalle, installer, prochainModule } from '../../moteur/economie'
   import { optionsDeDepart, vitesse as vitesseMoteur } from '../../moteur/fusee'
@@ -64,7 +64,7 @@
     <span class="nom">Amélioration</span>
     <span class="prix">{cout}<small> CR</small></span>
     <span class="effet"><b>{nombre(avant, 1)} → {nombre(apres, 1)} km/s</b> (+10 %){#if voyageAvant !== null && voyageApres !== null} · vers {nomAstre(exemple)} : {duree(voyageAvant)} → <b>{duree(voyageApres)}</b>{/if}</span>
-    {#if palier !== null}<span class="note">À {palier} améliorations, les avaries pourront arriver en cascade (plusieurs à la fois, mieux payées).</span>{/if}
+    {#if palier !== null}<span class="note">À {palier} améliorations, les avaries pourront arriver en cascade (plusieurs à la fois).</span>{/if}
     <span class="actions">{@render bouton('AMÉLIORER', cout, () => resultat(acheterAmelioration(etat, t), `ATELIER : AMÉLIORATION N° ${etat.ameliorations + 1} INSTALLÉE.`))}</span>
   </div>
 
@@ -76,7 +76,6 @@
       <span class="nom">{module.nom}</span>
       <span class="prix">{module.prix}<small> CR</small></span>
       <span class="effet">{DESCRIPTIONS_ATELIER[module.code]}</span>
-      <span class="note">Ses avaries rapportent <b>{PRIMES_REPARATION[module.code]} CR</b> chacune.</span>
       <span class="actions">{@render bouton('INSTALLER', module.prix, () => resultat(installer(etat, module.code, t), `ATELIER : MODULE ${module.code} INSTALLÉ.`))}</span>
     </div>
     {#each aVenir as m, i}

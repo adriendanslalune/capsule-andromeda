@@ -66,6 +66,8 @@ class Jeu {
     this.ongletSocial = onglet
     this.page = 'social'
   }
+  /** Annonce du premier grand voyage remise à plus tard (pour cette visite seulement). */
+  grandVoyageRemis = $state(false)
   /** Filtre solaire du hublot et de la vue extérieure (lunettes de soleil). */
   filtreSolaire = $state(false)
   /** Noms des astres écrits dans le hublot et la vue extérieure (sans eux : la vue naturelle du ciel). Retenu. */

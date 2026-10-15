@@ -7,6 +7,7 @@ import {
   AMELIORATION,
   CONTRATS,
   CONTRATS_TUTORIEL,
+  FIN_ANCIEN_TUTORIEL,
   INSTRUMENTS,
   MODULES_A_INSTALLER,
   MODULES_DE_BASE,
@@ -143,9 +144,17 @@ export function contratsDeLaSemaine(lundi: string): OffreContrat[] {
   return offres
 }
 
-/** Nombre de contrats du tutoriel déjà remplis. */
+/** Nombre de contrats du tutoriel déjà remplis (tous, pour une partie qui avait fini l'ancien tutoriel). */
 export function contratsTutorielFaits(etat: EtatPartie): number {
+  if (etat.contratsFaits.includes(FIN_ANCIEN_TUTORIEL)) return CONTRATS_TUTORIEL.length
   return CONTRATS_TUTORIEL.filter((c) => etat.contratsFaits.includes(c.id)).length
+}
+
+/** Vrai quand les trois petites missions sont faites et que le grand voyage vers la Lune n'est ni accepté ni fait. */
+export function grandVoyageAAnnoncer(etat: EtatPartie): boolean {
+  const lune = CONTRATS_TUTORIEL.find((c) => c.grandVoyage)!
+  return contratsTutorielFaits(etat) === CONTRATS_TUTORIEL.length - 1
+    && !etat.contratsFaits.includes(lune.id) && !etat.contrats.some((c) => c.id === lune.id)
 }
 
 /**
@@ -154,8 +163,12 @@ export function contratsTutorielFaits(etat: EtatPartie): number {
  */
 export function contratsProposes(etat: EtatPartie, t: number): OffreContrat[] {
   const pris = new Set([...etat.contratsFaits, ...etat.contrats.map((c) => c.id)])
-  const tutoriel = CONTRATS_TUTORIEL.find((c) => !etat.contratsFaits.includes(c.id))
-  if (tutoriel) return pris.has(tutoriel.id) ? [] : [{ ...tutoriel }]
+  const tutoriel = contratsTutorielFaits(etat) < CONTRATS_TUTORIEL.length
+    ? CONTRATS_TUTORIEL.find((c) => !etat.contratsFaits.includes(c.id)) : undefined
+  if (tutoriel) {
+    const { grandVoyage: _, ...offre } = tutoriel
+    return pris.has(tutoriel.id) ? [] : [offre]
+  }
   return contratsDeLaSemaine(semaineUTC(t)).filter((c) => !pris.has(c.id))
 }
 
@@ -177,6 +190,7 @@ export function contratSurPlace(etat: EtatPartie, offre: OffreContrat, t: number
  * Si la fusée est déjà en orbite autour de la destination : prime divisée par 10 (au moins 1 CR).
  */
 export function primeContrat(etat: EtatPartie, offre: OffreContrat, t: number, cours = 1): number {
+  if (offre.prime !== undefined) return offre.prime
   const d = distance(etat.fusee.position, positionAstre(offre.destination, t))
   const prime = Math.round(CONTRATS.primeBase * cours + CONTRATS.bonusParUA * d)
   return contratSurPlace(etat, offre, t) ? Math.max(1, Math.round(prime / CONTRATS.diviseurSurPlace)) : prime

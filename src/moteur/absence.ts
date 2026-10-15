@@ -9,7 +9,6 @@ import type { EtatPartie } from './etat'
 import type { Destination } from './fusee'
 import type { Hasard } from './hasard'
 import { modulesEnPanne } from './modules'
-import { ajouterPanneSimple } from './pannes'
 import { avancerPartie, vitesseActuelle } from './partie'
 
 export interface RapportDeVol {
@@ -52,7 +51,6 @@ export function rattraper(etat: EtatPartie, maintenant: number, hasard: Hasard):
   const messages: string[] = []
   let avant = new Set(modulesEnPanne(e.modules))
   let evenementsDePanne = 0
-  let panneSimple = false
 
   let ecoule = 0
   while (ecoule < total) {
@@ -67,20 +65,9 @@ export function rattraper(etat: EtatPartie, maintenant: number, hasard: Hasard):
     const nouvelles = apres.filter((c) => !avant.has(c))
     if (nouvelles.length) {
       avaries.push({ t, modules: nouvelles })
-      if (!nouvelles.every((c) => c === 'RE-1')) {
-        evenementsDePanne++
-        panneSimple = nouvelles.length === 1 && !e.pannes.cascade
-      }
+      if (!nouvelles.every((c) => c === 'RE-1')) evenementsDePanne++
     }
     avant = new Set(apres)
-  }
-
-  // Au plus deux avaries pendant l'absence : après une longue absence, une seconde panne simple peut s'ajouter.
-  if (total > ABSENCE.dureeSecondeAvarieHeures * 3600 && evenementsDePanne === 1 && panneSimple
-    && hasard() < ABSENCE.probabiliteSecondeAvarie) {
-    const r = ajouterPanneSimple(e, maintenant, hasard)
-    e = r.etat
-    if (r.module) avaries.push({ t: maintenant, modules: [r.module] })
   }
 
   const chasse = evoluerChasse({ ...e, vu: maintenant }, maintenant)

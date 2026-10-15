@@ -431,13 +431,17 @@ export function tempsRestantAVitesse(fusee: EtatFusee, t: number, croisiere: num
  * vers Jupiter.
  */
 export function creerFusee(t: number): EtatFusee {
-  const depart = positionAstre('ISS', t)
+  // Départ en orbite autour de la Terre (décision d'Adrien du 15/10/2026), à trois rayons, côté du Soleil.
+  const depart = positionAstre('Terre', t)
+  const vers = Math.hypot(depart.x, depart.y) || 1
+  const r = enUA(ORBITE_RAYONS * (rayonCorps('Terre') ?? RAYON_INCONNU_KM))
   return {
     position: depart,
-    cap: direction(depart, positionAstre('Jupiter', t)),
+    cap: direction(depart, positionAstre('ISS', t)),
+    ecartOrbite: { x: (-depart.x / vers) * r, y: (-depart.y / vers) * r, z: 0 },
     virage: 0,
     destination: null,
-    orbite: 'ISS',
+    orbite: 'Terre',
     distanceParcourue: 0,
     fenetre: null,
     presDuVisiteur: false,

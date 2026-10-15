@@ -5,7 +5,7 @@
 import { evoluerChasse } from './chasse'
 import { estInstalle, traiterArrivee, verifierTrophees } from './economie'
 import type { EtatPartie } from './etat'
-import { avancerFusee, vitesse, type Destination } from './fusee'
+import { avancerFusee, enAttenteDeFenetre, tempsRestant, vitesse, type Destination } from './fusee'
 import type { Hasard } from './hasard'
 import { basculer, type NumeroInterrupteur } from './interrupteurs'
 import { apresBasculeInterrupteur } from './modules/al1'
@@ -32,6 +32,13 @@ export interface ResultatPasPartie {
   messages: string[]
 }
 
+/** Temps de trajet restant (s) si la fusée voyage (en route, moteur allumé, pas en attente d'une fenêtre), sinon null. */
+export function resteDuVoyage(etat: EtatPartie, t: number): number | null {
+  const f = etat.fusee
+  if (!f.destination || enAttenteDeFenetre(f)) return null
+  return tempsRestant(f, t, vitesseActuelle(etat))
+}
+
 /**
  * Fait avancer la partie de dt secondes, jusqu'à l'instant t (ms UTC). Pendant le rattrapage d'une absence, la chasse
  * n'est mise à jour qu'à la fin (options.chasse = false), pour ne recevoir que les indices les plus récents.
@@ -44,7 +51,7 @@ export function avancerPartie(etat: EtatPartie, t: number, dt: number, hasard: H
   const r = avancerFusee(e.fusee, t, dt, vitesseActuelle(e))
   e = { ...e, fusee: r.fusee, vu: t }
   e = r.arrivee ? traiterArrivee(e, r.arrivee, t) : verifierTrophees(e)
-  e = planifierPannes(e, t, hasard)
+  e = planifierPannes(e, t, hasard, resteDuVoyage(e, t))
   const chasse = options.chasse === false ? { etat: e, messages: [] } : evoluerChasse(e, t)
   return { etat: chasse.etat, arrivee: r.arrivee, evenements: m.evenements, messages: [...traites.messages, ...chasse.messages] }
 }
@@ -64,7 +71,7 @@ export function agir(etat: EtatPartie, t: number, hasard: Hasard,
   const r = action(etat.modules, contexte(etat, t))
   const traites = traiterEvenements({ ...etat, modules: r.modules }, r.evenements, t, hasard)
   // Si ce geste a tout réparé, la prochaine avarie est programmée dès maintenant.
-  return { etat: planifierPannes(traites.etat, t, hasard), evenements: r.evenements, messages: traites.messages }
+  return { etat: planifierPannes(traites.etat, t, hasard, resteDuVoyage(traites.etat, t)), evenements: r.evenements, messages: traites.messages }
 }
 
 /** Bascule l'interrupteur S-n (bloc AL-1). Remettre S-4 en haut avec le bon fusible répare AL-1. */

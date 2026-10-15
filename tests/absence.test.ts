@@ -44,27 +44,23 @@ describe('retour après une absence', () => {
     expect(r.etat.fusee.destination).not.toBeNull()
   })
 
-  it('au plus deux avaries pendant l’absence (sans compter l’usure du recycleur)', () => {
-    for (let graine = 1; graine <= 40; graine++) {
-      const r = rattraper(enRoute(), T0 + 3 * 24 * H, mulberry32(graine))
-      const sansRecycleur = modulesEnPanne(r.etat.modules).filter((c) => c !== 'RE-1')
-      expect(sansRecycleur.length).toBeGreaterThanOrEqual(1)
+  it('au plus une avarie pendant l’absence (sans compter l’usure du recycleur) : une avarie bloque les suivantes', () => {
+    let avecAvarie = 0
+    for (let graine = 1; graine <= 30; graine++) {
+      // Sans recycleur, pour voir les avaries du voyage.
+      const e = { ...enRoute(), modulesInstalles: TOUS.filter((c) => c !== 'RE-1') }
+      const r = rattraper(e, T0 + 3 * 24 * H, mulberry32(graine))
       const evenements = r.rapport!.avaries.filter((a) => !a.modules.every((c) => c === 'RE-1'))
-      expect(evenements.length, `graine ${graine}`).toBeLessThanOrEqual(2)
+      expect(evenements.length, `graine ${graine}`).toBeLessThanOrEqual(1)
+      if (evenements.length) avecAvarie++
     }
-  }, 30_000)
+    expect(avecAvarie).toBeGreaterThan(20) // en voyage, il y en a presque toujours une
+  }, 60_000)
 
-  it('une seconde avarie s’ajoute parfois après une longue absence, jamais après une courte', () => {
-    let secondes = 0
-    for (let graine = 1; graine <= 60; graine++) {
-      const e = { ...enRoute(), ameliorations: 0 } // pas de cascades : une panne simple
-      const r = rattraper(e, T0 + 10 * H, mulberry32(graine))
-      if (r.rapport!.avaries.filter((a) => !a.modules.every((c) => c === 'RE-1')).length === 2) secondes++
-      const court = rattraper(e, T0 + H, mulberry32(graine))
-      expect(court.rapport!.avaries.filter((a) => !a.modules.every((c) => c === 'RE-1')).length).toBeLessThanOrEqual(1)
-    }
-    expect(secondes).toBeGreaterThan(15)
-    expect(secondes).toBeLessThan(55)
+  it('en orbite : aucune avarie pendant l’absence (sauf l’usure du recycleur)', () => {
+    const e = { ...enRoute(), fusee: partie().fusee }
+    const r = rattraper(e, T0 + 2 * 24 * H, mulberry32(1))
+    expect(r.rapport!.avaries.filter((a) => !a.modules.every((c) => c === 'RE-1'))).toEqual([])
   })
 
   it('le recycleur s’use pendant l’absence', () => {

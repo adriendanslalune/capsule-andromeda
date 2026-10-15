@@ -1,13 +1,11 @@
 <script lang="ts">
-  // III. Repères du bord : numéro de série, interrupteurs S-1 à S-4, primes de l'Office.
-  import { PRIMES_REPARATION } from '../../../donnees/economie'
+  // III. Repères du bord : numéro de série, interrupteurs S-1 à S-4, quand surviennent les avaries.
   import { PANNES } from '../../../donnees/reglages'
   import Page from '../Page.svelte'
   import Levier from '../schemas/Levier.svelte'
   import Plaque from '../schemas/Plaque.svelte'
 
   let { numero }: { numero: number } = $props()
-  const primes = Object.entries(PRIMES_REPARATION)
 </script>
 
 <Page {numero} chapitre="III." titre="REPÈRES DU BORD">
@@ -35,18 +33,11 @@
     Chaque interrupteur est en position HAUTE ou BASSE. S-4 commande l’alimentation des fusibles : en position
     basse, le circuit est coupé. Les autres modifient certaines procédures (voir chaque bloc).
   </p>
-  <h3>Primes de l’Office</h3>
-  <table>
-    <tbody>
-      <tr>{#each primes.slice(0, 6) as [code]}<th>{code}</th>{/each}</tr>
-      <tr>{#each primes.slice(0, 6) as [, p]}<td>{p} CR</td>{/each}</tr>
-      <tr>{#each primes.slice(6) as [code]}<th>{code}</th>{/each}</tr>
-      <tr>{#each primes.slice(6) as [, p]}<td>{p} CR</td>{/each}</tr>
-    </tbody>
-  </table>
-  <p class="discret">
-    Toute réparation réussie est payée. Une avarie provoquée par une fausse manœuvre du commissionnaire (faute de
-    pilotage) doit être réparée, mais ne rapporte rien. Prime d’une cascade : chapitre XVI (+{PANNES.majorationParModule * 100} % par bloc supplémentaire).
+  <h3>Avaries</h3>
+  <p>
+    Les avaries ne surviennent qu’en voyage : jamais en orbite, à l’arrêt, moteur coupé ou en attente d’une fenêtre
+    de tir. Environ une par voyage, {PANNES.maxParJour} au plus par 24 heures. Une avarie ne rapporte rien : tant
+    qu’elle dure, la fusée avance moins vite. Seules les commissions remplies sont payées par l’Office.
   </p>
 </Page>
 

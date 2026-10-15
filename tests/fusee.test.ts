@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { rayonCorps } from '../src/astro/corps'
 import { UA_KM } from '../src/astro/temps'
 import {
   annulerDestination,
@@ -68,20 +69,25 @@ describe('vitesse', () => {
 })
 
 describe('départ', () => {
-  it("une nouvelle partie commence en orbite autour de la Terre, à côté de l'ISS, cap vers Jupiter", () => {
+  it('une nouvelle partie commence en orbite autour de la Terre, à trois rayons, côté Soleil, cap vers l’ISS', () => {
     const etat = creerPartie(T0, mulberry32(1))
-    expect(etat.fusee.orbite).toBe('ISS')
+    expect(etat.fusee.orbite).toBe('Terre')
     expect(systemeDeLaFusee(etat.fusee, T0)).toBe('Terre')
     expect(etat.fusee.destination).toBeNull()
-    expect(etat.fusee.position).toEqual(positionAstre('ISS', T0))
-    expect(etat.fusee.cap).toBeCloseTo(direction(positionAstre('ISS', T0), positionAstre('Jupiter', T0)), 10)
+    expect(etat.fusee.position).toEqual(positionAstre('Terre', T0))
+    const o = etat.fusee.ecartOrbite!
+    expect(Math.hypot(o.x, o.y, o.z) * UA_KM).toBeCloseTo(3 * rayonCorps('Terre')!, 3)
+    // Du côté du Soleil (le jour).
+    const terre = positionAstre('Terre', T0)
+    expect(o.x * terre.x + o.y * terre.y).toBeLessThan(0)
+    expect(etat.fusee.cap).toBeCloseTo(direction(positionAstre('Terre', T0), positionAstre('ISS', T0)), 10)
   })
 
-  it("en orbite sans destination, la fusée suit l'ISS et le compteur ne tourne pas", () => {
+  it('en orbite sans destination, la fusée suit la Terre et le compteur ne tourne pas', () => {
     const f = creerFusee(T0)
     const un_jour = T0 + 86_400_000
     const r = avancerFusee(f, un_jour, 86_400, 17.4)
-    expect(r.fusee.position).toEqual(positionAstre('ISS', un_jour))
+    expect(r.fusee.position).toEqual(positionAstre('Terre', un_jour))
     expect(r.fusee.distanceParcourue).toBe(0)
     expect(r.arrivee).toBeNull()
   })
@@ -335,7 +341,7 @@ describe('fenêtre de tir', () => {
     expect(enAttenteDeFenetre(f)).toBe(true)
     const unMois = T0 + 30 * 86_400_000
     f = avancerFusee(f, unMois, 30 * 86_400, 17.4).fusee
-    expect(f.position).toEqual(positionAstre('ISS', unMois))
+    expect(f.position).toEqual(positionAstre('Terre', unMois))
     expect(f.distanceParcourue).toBe(0)
     expect(vitesseAffichee(f, NORMAL)).toBe(0)
     // Le temps restant compte l'attente et le vol.

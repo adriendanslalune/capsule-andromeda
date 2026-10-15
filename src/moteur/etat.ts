@@ -24,6 +24,8 @@ export interface OffreContrat {
   type: string
   texte: string
   destination: NomCorps
+  /** Prime fixe (contrats du tutoriel) ; sinon calculée à l'acceptation. */
+  prime?: number
 }
 
 /** Un contrat accepté, avec sa prime figée à l'acceptation. */

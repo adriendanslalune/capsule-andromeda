@@ -2,6 +2,8 @@
   // Racine de l'interface : choisit l'écran à montrer.
   import { onMount } from 'svelte'
   import AnnonceContrat from './ecrans/AnnonceContrat.svelte'
+  import GrandVoyage from './ecrans/GrandVoyage.svelte'
+  import { grandVoyageAAnnoncer } from '../moteur/economie'
   import Impression from './manuel/Impression.svelte'
   import Module from './ecrans/Module.svelte'
   import Ouverture from './ecrans/Ouverture.svelte'
@@ -36,6 +38,9 @@
   <RapportVol />
 {:else if jeu.etat && jeu.annonces.length}
   <AnnonceContrat />
+{:else if jeu.etat && jeu.ecran.nom !== 'ouverture' && !jeu.grandVoyageRemis && grandVoyageAAnnoncer(jeu.etat)}
+  <!-- Fin du tutoriel : l'annonce solennelle du départ vers la Lune. -->
+  <GrandVoyage />
 {/if}
 
 {#if jeu.impression}
