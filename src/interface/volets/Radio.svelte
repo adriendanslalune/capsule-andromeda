@@ -5,11 +5,11 @@
   import { onMount } from 'svelte'
   import { RADIO } from '../../donnees/radio'
   import { ping, reglerRadioSur } from '../../moteur/chasse'
-  import { sequenceMorse } from '../../moteur/modules/mo1'
-  import { ALPHABET_MORSE } from '../../donnees/modules'
-  import { bornerFrequence, capter, type Emission } from '../../moteur/radio'
+  import { bornerFrequence, capter } from '../../moteur/radio'
   import { nombre } from '../format'
   import { jeu } from '../jeu.svelte'
+  import BoutonRotatif from '../radio/BoutonRotatif.svelte'
+  import { dessinerOndes, texteRecu } from '../radio/ondes'
   import { sonRadio } from '../sons'
 
   const etat = $derived(jeu.etat!)
@@ -17,52 +17,26 @@
 
   // Réglage en direct pendant qu'on tourne un bouton ; enregistré quand on lâche.
   let reglage = $state(jeu.etat!.chasse.frequenceRadio)
+  let brut = jeu.etat!.chasse.frequenceRadio
   let tourne = $state(false)
   $effect(() => {
-    if (!tourne) reglage = etat.chasse.frequenceRadio
+    if (!tourne) { reglage = etat.chasse.frequenceRadio; brut = reglage }
   })
   const reception = $derived(capter(etat, t, reglage))
   function enregistrer() {
-    const e = reglerRadioSur(etat, reglage)
-    if (e !== etat) jeu.remplacer(e)
+    tourne = false
+    const e = reglerRadioSur(jeu.etat!, reglage)
+    if (e !== jeu.etat) jeu.remplacer(e)
+  }
+  function changer(ecart: number) {
+    tourne = true
+    brut = Math.max(RADIO.min, Math.min(RADIO.max, brut + ecart))
+    reglage = bornerFrequence(brut)
   }
   function pas(ecart: number) {
     reglage = bornerFrequence(reglage + ecart)
+    brut = reglage
     enregistrer()
-  }
-
-  // Boutons rotatifs : l'angle parcouru autour du centre fait varier la fréquence.
-  let angleGros = $state(0)
-  let angleFin = $state(0)
-  function tourner(e: PointerEvent, parTour: number, quel: 'gros' | 'fin') {
-    const el = e.currentTarget as HTMLElement
-    el.setPointerCapture(e.pointerId)
-    const r = el.getBoundingClientRect()
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2
-    let precedent = Math.atan2(e.clientY - cy, e.clientX - cx)
-    let brut = reglage
-    tourne = true
-    const bouger = (m: PointerEvent) => {
-      const a = Math.atan2(m.clientY - cy, m.clientX - cx)
-      let d = a - precedent
-      if (d > Math.PI) d -= 2 * Math.PI
-      if (d < -Math.PI) d += 2 * Math.PI
-      precedent = a
-      brut = Math.max(RADIO.min, Math.min(RADIO.max, brut + (d / (2 * Math.PI)) * parTour))
-      reglage = bornerFrequence(brut)
-      if (quel === 'gros') angleGros += (d * 180) / Math.PI
-      else angleFin += (d * 180) / Math.PI
-    }
-    const lacher = () => {
-      el.removeEventListener('pointermove', bouger)
-      el.removeEventListener('pointerup', lacher)
-      el.removeEventListener('pointercancel', lacher)
-      tourne = false
-      enregistrer()
-    }
-    el.addEventListener('pointermove', bouger)
-    el.addEventListener('pointerup', lacher)
-    el.addEventListener('pointercancel', lacher)
   }
 
   // ÉMETTRE : le ping (sur la fréquence du visiteur, il revient en écho).
@@ -75,35 +49,11 @@
     emissionDepuis = performance.now()
   }
 
-  // Ce qui s'entend, en clair (net) ou mangé par le souffle (brouillé).
-  const heureTU = (ms: number) => {
-    const d = new Date(ms)
-    const p = (n: number) => String(n).padStart(2, '0')
-    return `${p(d.getUTCHours())} H ${p(d.getUTCMinutes())} MIN ${p(d.getUTCSeconds())} S TU`
-  }
-  /** Le signal des monolithes : des groupes d'impulsions de 2, 3, 5, 7 et 11. */
-  const PREMIERS = [2, 3, 5, 7, 11]
-  const enMorse = (indicatif: string) => [...indicatif].map((l) => ALPHABET_MORSE[l].replaceAll('.', '·').replaceAll('-', '−')).join('   ')
-  function texteClair(e: Emission): string {
-    switch (e.sorte) {
-      case 'radio-terre': return `ICI RADIO-TERRE. ${e.texte} TOP : ${heureTU(e.topHoraire)}.`
-      case 'observatoire': return `${e.texte} FIN DU BULLETIN.`
-      case 'transmissions': return e.texte
-      case 'morse': return enMorse(e.indicatif)
-      case 'detresse': return e.texte
-      case 'monolithe': return PREMIERS.map((n) => '▮'.repeat(n)).join('  ')
-    }
-  }
+  // Ce qui s'entend, en clair (net) ou mangé par le souffle (brouillé) ; le brouillage change 4 fois par seconde.
   let grain = $state(0)
   const texte = $derived.by(() => {
     void grain
-    const e = reception.emission
-    if (!e) return ''
-    const clair = texteClair(e)
-    const n = reception.nettete
-    if (n >= 1) return clair
-    const perte = Math.pow(1 - n, 0.6)
-    return [...clair].map((c) => (c === ' ' || Math.random() > perte ? c : '#%&*?/'[Math.floor(Math.random() * 6)])).join('')
+    return texteRecu(reception)
   })
 
   // Écran des ondes et haut-parleur, à chaque image.
@@ -117,70 +67,8 @@
       if (horloge - dernierGrain > 250) { grain++; dernierGrain = horloge }
       const W = (toile!.width = toile!.clientWidth * devicePixelRatio)
       const H = (toile!.height = toile!.clientHeight * devicePixelRatio)
-      const s = horloge / 1000
-      const r = reception
-      const n = r.emission ? r.nettete : 0
-      // Le signal du moment : porteuse allumée ou non, sa forme, sa hauteur (son).
-      let allume = 0, hauteur = 600, forme = (x: number) => Math.sin(x)
-      const e = r.emission
-      if (e?.sorte === 'morse') {
-        const seq = sequenceMorse(e.indicatif)
-        const total = seq.reduce((a, [, d]) => a + d, 0)
-        let k = s % total
-        for (const [on, d] of seq) { if (k < d) { allume = on ? 1 : 0; break } k -= d }
-        hauteur = 700
-      } else if (e?.sorte === 'observatoire') {
-        allume = s % 1 < 0.18 ? 1 : 0
-        hauteur = 880
-        forme = (x) => (Math.sin(x) > 0 ? 1 : -1) * 0.8
-      } else if (e?.sorte === 'transmissions') {
-        const bloc = Math.floor(s / 0.14)
-        allume = ((bloc * 2654435761) >>> 0) % 7 < 4 ? 0.9 : 0.15
-        hauteur = 420 + (((bloc * 40503) >>> 0) % 5) * 40
-        forme = (x) => Math.sin(x) * 0.7 + Math.sin(x * 2.3) * 0.3
-      } else if (e?.sorte === 'detresse') {
-        // Veille : une porteuse faible et régulière, sans appel.
-        allume = 0.25
-        hauteur = 520
-      } else if (e?.sorte === 'monolithe') {
-        // Groupes d'impulsions (2, 3, 5, 7, 11), une impulsion toutes les 0,25 s, une pause entre deux groupes.
-        const sequence = PREMIERS.flatMap((n) => [...Array(n).fill(1), 0, 0, 0])
-        const k = Math.floor(s / 0.25) % sequence.length
-        allume = sequence[k] && s % 0.25 < 0.12 ? 1 : 0
-        hauteur = 1320
-        forme = (x) => Math.sin(x) * 0.6 + Math.sin(x * 3) * 0.4
-      } else if (e?.sorte === 'radio-terre') {
-        allume = 0.55 + 0.45 * Math.abs(Math.sin(s * 2.1) * Math.sin(s * 0.7 + 1))
-        hauteur = 330 + 60 * Math.sin(s * 1.3)
-        forme = (x) => Math.sin(x) * 0.6 + Math.sin(x * 1.5 + s * 3) * 0.4
-      }
-      const ping = Math.max(0, 1 - (horloge - emissionDepuis) / 700)
-      // Fond, quadrillage.
-      c.fillStyle = '#0d1a14'
-      c.fillRect(0, 0, W, H)
-      c.strokeStyle = 'rgba(143, 207, 152, 0.15)'
-      c.lineWidth = 1
-      for (let i = 1; i < 10; i++) { c.beginPath(); c.moveTo((W * i) / 10, 0); c.lineTo((W * i) / 10, H); c.stroke() }
-      for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(0, (H * i) / 4); c.lineTo(W, (H * i) / 4); c.stroke() }
-      // L'onde : du souffle, plus le signal capté (d'autant plus net qu'on est près de la fréquence).
-      c.strokeStyle = '#8fcf98'
-      c.shadowColor = '#8fcf98'
-      c.shadowBlur = 6 * devicePixelRatio
-      c.lineWidth = 2 * devicePixelRatio
-      c.beginPath()
-      const souffle = 0.08 + 0.32 * (1 - n)
-      for (let x = 0; x <= W; x += 2) {
-        const u = x / W
-        let y = (Math.random() * 2 - 1) * souffle
-        y += n * allume * 0.75 * forme(u * 40 + s * 18)
-        if (ping) y = (Math.sin(u * 90 - s * 40) > 0 ? 1 : -1) * 0.9 * ping + y * (1 - ping)
-        const py = H / 2 - y * H * 0.42
-        if (x === 0) c.moveTo(x, py)
-        else c.lineTo(x, py)
-      }
-      c.stroke()
-      c.shadowBlur = 0
-      sonRadio.regler(souffle, n * allume + ping, ping ? 1200 : hauteur)
+      const son = dessinerOndes(c, W, H, reception, horloge, Math.max(0, 1 - (horloge - emissionDepuis) / 700))
+      sonRadio.regler(son.souffle, son.ton, son.hauteur)
     }
     image = requestAnimationFrame(dessiner)
     return () => {
@@ -220,13 +108,11 @@
 
     <div class="commandes">
       <div class="molette">
-        <div class="bouton-rotatif gros" role="slider" tabindex="0" aria-label="Réglage grossier" aria-valuemin={RADIO.min} aria-valuemax={RADIO.max} aria-valuenow={reglage}
-          onpointerdown={(e) => tourner(e, 2, 'gros')} style={`--angle: ${angleGros}deg`}><span class="repere"></span></div>
+        <BoutonRotatif parTour={2} taille={84} label="Réglage grossier" {changer} lacher={enregistrer} />
         <small>GROS</small>
       </div>
       <div class="molette">
-        <div class="bouton-rotatif fin" role="slider" tabindex="0" aria-label="Réglage fin" aria-valuemin={RADIO.min} aria-valuemax={RADIO.max} aria-valuenow={reglage}
-          onpointerdown={(e) => tourner(e, 0.1, 'fin')} style={`--angle: ${angleFin}deg`}><span class="repere"></span></div>
+        <BoutonRotatif parTour={0.1} taille={64} label="Réglage fin" {changer} lacher={enregistrer} />
         <small>FIN</small>
         <span class="pas">
           <button aria-label="Moins un centième" onclick={() => pas(-0.01)}>−</button>
@@ -360,47 +246,6 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
-  }
-  .bouton-rotatif {
-    position: relative;
-    width: 84px;
-    height: 84px;
-    border: 3px solid var(--couleur-encre);
-    border-radius: 50%;
-    background: repeating-conic-gradient(var(--couleur-encre) 0 6deg, #2b3440 6deg 12deg);
-    box-shadow: 3px 3px 0 var(--couleur-encre);
-    transform: rotate(var(--angle));
-    touch-action: none;
-    cursor: grab;
-  }
-  .bouton-rotatif::before {
-    content: '';
-    position: absolute;
-    inset: 12px;
-    border-radius: 50%;
-    background: var(--couleur-papier);
-    border: 2px solid var(--couleur-encre);
-  }
-  .bouton-rotatif.fin {
-    width: 64px;
-    height: 64px;
-  }
-  .bouton-rotatif.fin::before {
-    inset: 9px;
-  }
-  .repere {
-    position: absolute;
-    left: 50%;
-    top: 14px;
-    width: 4px;
-    height: 16px;
-    margin-left: -2px;
-    border-radius: 2px;
-    background: var(--cerise);
-  }
-  .fin .repere {
-    top: 11px;
-    height: 12px;
   }
   .pas {
     display: flex;

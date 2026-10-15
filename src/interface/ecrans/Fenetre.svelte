@@ -20,7 +20,8 @@
   import { jeu } from '../jeu.svelte'
   import { presence } from '../reseau'
   import { filDesTransmissions } from '../social/fil'
-  import { capter } from '../../moteur/radio'
+  import PupitreNav from '../cockpit/PupitreNav.svelte'
+  import PupitreRadio from '../cockpit/PupitreRadio.svelte'
   import Pictogramme from '../cockpit/Pictogramme.svelte'
   import { estEngin } from '../../astro/engins'
 
@@ -128,8 +129,6 @@
   const fil = $derived(filDesTransmissions(etat, t))
   const derniers = $derived(fil.slice(-3))
   const aLire = $derived(fil.filter((l) => l.nouveau).length)
-  // Poste radio : fréquence et force du signal capté.
-  const signal = $derived.by(() => { const r = capter(etat, t); return Math.round((r.emission ? r.nettete : 0) * 5) })
   const ligneJournal = $derived(jeu.telex.at(-1) ?? null)
   /** Hauteur de l'écran de navigation posé sur le hublot (le hublot vise au-dessus). */
   let hautHud = $state(0)
@@ -176,6 +175,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Pupitre central : la radio et la navigation, côte à côte. -->
+    <section class="panneau-fin pupitre" data-titre="RADIO · NAVIGATION" data-ref="réf. PC-2">
+      <PupitreRadio />
+      <span class="separation" aria-hidden="true"></span>
+      <PupitreNav />
+    </section>
 
     <section class="panneau-fin" data-titre="PILOTAGE" data-ref="réf. TB-12">
       <div class="commandes">
@@ -266,14 +272,6 @@
         </span>
       </button>
     </div>
-
-    <!-- Poste radio (ping de chasse, Observatoire, Radio-Terre…). -->
-    <button class="poste-radio" onclick={() => (jeu.volet = 'radio')} aria-label="Ouvrir le poste radio">
-      <span class="haut-parleur" aria-hidden="true"></span>
-      <span class="nom-radio"><small>POSTE RADIO</small><b>R-12</b></span>
-      <span class="freq">{nombre(etat.chasse.frequenceRadio, 2)}</span>
-      <span class="barres" aria-label={`Signal : ${signal} sur 5`}>{#each [1, 2, 3, 4, 5] as b}<i class:allumee={b <= signal} style={`height: ${4 + b * 3}px`}></i>{/each}</span>
-    </button>
 
     <!-- 4. Qui est autour ? -->
     <button class="transmissions" onclick={() => jeu.ouvrirSocial('communication')} aria-label="Transmissions : ouvrir COMMUNICATION">
@@ -861,69 +859,17 @@
       transform: rotate(360deg);
     }
   }
-  /* Poste radio : une réglette, haut-parleur à gauche, fréquence au milieu, force du signal à droite. */
-  .poste-radio {
-    display: flex;
+  /* Pupitre central : radio à gauche, navigation à droite, un filet entre les deux. */
+  .pupitre {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.8fr);
     align-items: center;
     gap: 10px;
-    width: 100%;
-    min-height: 52px;
-    padding: 6px 12px;
-    border: 2.5px solid var(--couleur-encre);
-    border-radius: 10px;
-    background: var(--couleur-bandeau);
-    box-shadow: 3px 3px 0 var(--couleur-encre);
-    color: var(--couleur-texte-clair);
   }
-  .haut-parleur {
-    flex: none;
-    width: 34px;
-    height: 34px;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--couleur-encre) 1.2px, transparent 1.6px) 0 0 / 6px 6px, #2b3440;
-  }
-  .nom-radio {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-    text-align: left;
-  }
-  .nom-radio small {
-    font-size: 10px;
-    letter-spacing: 1px;
-  }
-  .nom-radio b {
-    font-family: var(--police-titre);
-    font-weight: 400;
-    font-size: 16px;
-  }
-  .freq {
-    margin-left: auto;
-    padding: 2px 8px;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 6px;
-    background: #0d1a14;
-    color: var(--menthe);
-    font-family: var(--police-chiffres);
-    font-size: 18px;
-    font-weight: 700;
-    text-shadow: 0 0 5px rgba(143, 207, 152, 0.5);
-  }
-  .barres {
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-    height: 20px;
-  }
-  .barres i {
-    width: 5px;
-    border: 1px solid var(--menthe);
-    opacity: 0.5;
-  }
-  .barres i.allumee {
-    background: var(--menthe);
-    opacity: 1;
+  .separation {
+    align-self: stretch;
+    width: 0;
+    border-left: 1px dashed var(--couleur-encre-discrete);
   }
 
   /* Transmissions : petit écran vert phosphore, comme celui de COMMUNICATION. */

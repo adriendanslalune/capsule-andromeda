@@ -149,3 +149,13 @@ lien « plus tard » (l'annonce revient à la prochaine visite).
   et l'ISS apparaissait d'un coup).
 - Départ d'une orbite : la fusée pivote vers sa destination à 12° par seconde pendant sa mise en vitesse (20 s), au
   lieu de s'orienter d'un coup (`TAUX_VIRAGE_DEPART`).
+
+## 17. Pupitre central (15/10/2026)
+Sous le hublot, le panneau RADIO · NAVIGATION, avant PILOTAGE :
+- **Radio** (à gauche) : petit écran des ondes vivant (barres de signal, texte reçu sur une ligne), bouton d'accord à
+  tourner sur place (1,00 par tour), fréquence, ÉMETTRE (compte à rebours de recharge). Toucher l'écran ouvre le poste
+  complet (réglage fin, cadran, haut-parleur) ; le pupitre est muet.
+- **Navigation** (à droite) : radar centré sur la fusée (flèche selon le cap), destination maintenant (trait blanc
+  pointillé) et point de rencontre (trait jaune), distances en échelle logarithmique ; sans destination, le Soleil et
+  la Terre. Le toucher ouvre la page NAVIGATION.
+La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un toutes les 5 améliorations (regles.md §2).

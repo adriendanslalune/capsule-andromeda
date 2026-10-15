@@ -11,7 +11,7 @@
 
 <Page {numero} chapitre="XX." titre="POSTE RADIO R-12">
   <p>
-    Le poste s’ouvre depuis le cockpit (réglette POSTE RADIO) ou l’onglet CHASSE. Le bouton <b>GROS</b> fait
+    Au cockpit, le pupitre porte la radio : son écran, un bouton d’accord (1,00 par tour) et ÉMETTRE ; toucher l’écran ouvre le poste complet (aussi depuis l’onglet CHASSE). Le bouton <b>GROS</b> fait
     2,00 par tour, le bouton <b>FIN</b> 0,10 par tour ; − et + : un centième. L’aiguille court sur le cadran de
     {RADIO.min} à {RADIO.max}.
   </p>
