@@ -123,7 +123,8 @@ installés en pastilles.
 - Terre : images NASA (jour, lumières de nuit, océans, nuages), orientation réelle (temps sidéral, axe incliné).
 - Chasse : calculateur de l'écho (durée de l'aller-retour → distance en UA, bouton TRACER).
 - **PROVISOIRE** : saut d'essai (page NAVIGATION) vers n'importe quelle destination, à retirer sur ordre d'Adrien
-  (`src/interface/provisoire/` et la ligne « PROVISOIRE » de Carte.svelte).
+  (`src/interface/provisoire/` et la ligne « PROVISOIRE » de Carte.svelte). Avec lui, le bouton du testeur
+  RÉINITIALISER LE JEU (15/10/2026) : efface la partie de l’appareil, après confirmation, et revient à la lettre.
 
 ## 13. Poste radio (15/10/2026)
 Volet POSTE RADIO (depuis la réglette du cockpit ou l'onglet CHASSE de NAVIGATION) : écran des ondes vert phosphore

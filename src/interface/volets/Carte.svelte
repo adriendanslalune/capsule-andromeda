@@ -27,6 +27,7 @@
   import { dateLocale, duree, dureePrecise, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
+  import Reinitialiser from '../provisoire/Reinitialiser.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
   import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
   import { satellitesDe } from '../../astro/satellites'
@@ -504,6 +505,7 @@
   </div>
   <!-- PROVISOIRE (à retirer sur ordre d'Adrien) : saut d'essai vers n'importe quelle destination. -->
   <Saut />
+  <Reinitialiser />
 </div>
 
 <style>

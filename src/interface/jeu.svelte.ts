@@ -131,6 +131,18 @@ class Jeu {
     this.lancerBoucle()
   }
 
+  /**
+   * PROVISOIRE (bouton du testeur, src/interface/provisoire/) : efface la partie de cet appareil et recharge la page,
+   * qui revient à la lettre de l'Office. Les réglages d'affichage (son, noms des astres) sont gardés.
+   */
+  reinitialiser() {
+    this.etat = null // plus rien à sauvegarder en quittant la page
+    for (const cle of [CLE_PARTIE, CLE_TELEX, CLE_TRACES]) {
+      try { localStorage.removeItem(cle) } catch { /* stockage indisponible */ }
+    }
+    location.reload()
+  }
+
   /** Étages ouverts au-dessus du tableau de bord : un écran (module, dehors), puis un volet. */
   private etages(): number {
     return (this.page !== 'cockpit' ? 1 : 0) + (this.ecran.nom === 'module' || this.ecran.nom === 'dehors' ? 1 : 0) + (this.volet ? 1 : 0)
