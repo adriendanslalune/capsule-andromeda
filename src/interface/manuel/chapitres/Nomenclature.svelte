@@ -11,7 +11,7 @@
     ['Onglets', 'NAVIGATION, SOCIAL, COCKPIT, ATELIER, TROPHÉES ; glisser le doigt mène à la page voisine. Pastilles : avaries (rouge), télégrammes (jaune, XVIII).'],
     ['Hublot', 'Vue droit devant ; boutons NOMS et FILTRE. Le toucher : vue extérieure.'],
     ['Écran de navigation', 'Au pied du hublot : destination, temps restant, arrivée (heure du téléphone), frise.'],
-    ['Radio', 'Écran des ondes (le toucher : poste complet, XX), bouton d’accord (1,00 par tour), fréquence, ÉMETTRE.'],
+    ['Radio', 'Écran des ondes (le message y défile), boutons GROS et FIN, − et +, ÉMETTRE, haut-parleur (XX).'],
     ['Navigation', 'Radar : destination (blanc) et point de rencontre (jaune). Le toucher ouvre NAVIGATION.'],
     ['Cadrans', 'Vitesse (km/s) ; cap (aiguille : cap ; triangle : destination ; 0° à droite de la carte, sens inverse des aiguilles d’une montre) ; heure d’arrivée. Les toucher : instruments en grand.'],
     ['Interrupteur MOTEUR', `ON : poussée. OFF : la fusée s’arrête en ${DUREE_ACCELERATION} s et garde sa destination ; il lui faut ${DUREE_ACCELERATION} s pour reprendre sa vitesse.`],

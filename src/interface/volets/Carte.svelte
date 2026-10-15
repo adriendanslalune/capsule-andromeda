@@ -517,6 +517,10 @@
     overflow-y: auto;
     flex: 1;
   }
+  /* Rien ne rétrécit dans la colonne : elle défile si elle est trop haute. */
+  .carte > :global(*) {
+    flex-shrink: 0;
+  }
   .vues {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -627,8 +631,14 @@
     font-size: 13px;
     color: var(--couleur-texte-discret);
   }
+  /* Le plan garde toujours ses proportions (largeur pleine, hauteur selon le dessin) : jamais écrasé par le panneau
+     du dessous, donc ni bords coupés ni marges qui changent selon la vue. */
   .plan {
+    display: block;
+    flex: none;
     width: 100%;
+    height: auto;
+    aspect-ratio: 362 / 400;
     touch-action: none;
     border: var(--trait) solid var(--couleur-encre);
     border-radius: 10px;

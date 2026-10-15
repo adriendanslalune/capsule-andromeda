@@ -207,8 +207,11 @@ export class Vue3D {
         uniform float pixels;
         varying float vEclat;
         varying vec3 vTeinte;
+        #include <common>
+        #include <logdepthbuf_pars_vertex>
         void main() {
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          #include <logdepthbuf_vertex>
           vEclat = magnitude > limite ? 0.0 : clamp(0.12 + 0.88 * pow((limite - magnitude) / (limite + 1.0), 1.4), 0.0, 1.0);
           gl_PointSize = pixels * echelle * (1.6 + 3.4 * clamp((3.0 - magnitude) / 4.0, 0.0, 1.0));
           vTeinte = teinte;
@@ -216,7 +219,9 @@ export class Vue3D {
       fragmentShader: `
         varying float vEclat;
         varying vec3 vTeinte;
+        #include <logdepthbuf_pars_fragment>
         void main() {
+          #include <logdepthbuf_fragment>
           vec2 c = gl_PointCoord - 0.5;
           float r2 = dot(c, c) * 4.0;
           float a = exp(-r2 * 3.5) * vEclat;
@@ -224,12 +229,13 @@ export class Vue3D {
           gl_FragColor = vec4(vTeinte, a);
         }`,
       transparent: true,
-      depthTest: false,
+      // Au fond du ciel : les astres (opaques, déjà dessinés) les cachent.
+      depthTest: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     })
     const etoiles = new THREE.Points(geo, this.ciel)
-    etoiles.renderOrder = -1 // dessinées d'abord : tout le reste passe devant
+    etoiles.renderOrder = -1
     etoiles.frustumCulled = false
     this.scene.add(etoiles)
   }

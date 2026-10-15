@@ -361,3 +361,14 @@ avec un contact à moins de 0,01 UA).*
 - Canal de détresse 5,00 : à l'écoute, pour l'instant « aucun appel en cours » (sauvetages à venir). Signal des
   monolithes 7,50 : impulsions groupées par 2, 3, 5, 7 et 11, sans autre usage pour l'instant (10 monolithes à
   rassembler, à peaufiner). *Décision d'Adrien du 15/10/2026 : une seule fréquence pour les monolithes.*
+
+## 17. Départs (décisions d'Adrien du 15/10/2026)
+- **Nouvelle partie** : en orbite autour de la Terre, 1 500 km au-dessus de l'ISS, qu'elle suit tant qu'elle n'est pas
+  partie (`DEPART_AU_DESSUS_ISS_KM`) : le premier contrat (l'ISS) se fait en 1 à 2 minutes, 4 au plus avec l'avarie
+  du tutoriel.
+- **Manœuvre de départ** d'une orbite (`MANOEUVRE_DEPART`) : la fusée recule 5 s à 20 m/s, tourne vers sa destination
+  (8°/s, 40 s au plus), puis accélère en douceur : vitesse = croisière × (t / 30 s)², la croisière au bout de 30 s.
+  Le temps restant l'inclut (estimation du virage : 10 s). En rattrapage hors ligne (pas de plus de 5 s), départ
+  sans manœuvre, d'emblée à la croisière.
+- *À corriger plus tard* : le temps annoncé ne compte pas le détour autour d'un astre ni le mouvement d'un engin
+  proche (exemple : vers l'ISS depuis l'ancien départ, 4 min annoncées pour 12 réelles).

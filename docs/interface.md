@@ -159,3 +159,7 @@ Sous le hublot, le panneau RADIO · NAVIGATION, avant PILOTAGE :
   pointillé) et point de rencontre (trait jaune), distances en échelle logarithmique ; sans destination, le Soleil et
   la Terre. Le toucher ouvre la page NAVIGATION.
 La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un toutes les 5 améliorations (regles.md §2).
+- (15/10/2026, soir) Radio du pupitre complète : boutons GROS (2,00 par tour) et FIN (0,10 par tour), − et + au
+  centième, ÉMETTRE, haut-parleur (allumé par défaut, retenu ; il ne parle que sur la page COCKPIT) ; le message reçu
+  défile sur l'écran. Écran de navigation du hublot plus transparent. Carte : le plan garde ses proportions (plus de
+  marges variables). Vue 3D : les étoiles passent derrière les astres.

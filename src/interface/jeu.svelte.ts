@@ -18,6 +18,7 @@ const CLE_PARTIE = 'mdv-partie'
 const CLE_TELEX = 'mdv-telex'
 const CLE_TRACES = 'mdv-traces'
 const CLE_NOMS = 'mdv-noms'
+const CLE_HAUT_PARLEUR = 'mdv-haut-parleur'
 const TELEX_GARDES = 100
 const SAUVEGARDE_TOUTES_LES = 10_000
 
@@ -65,6 +66,12 @@ class Jeu {
   ouvrirSocial(onglet: 'classement' | 'contrats' | 'communication') {
     this.ongletSocial = onglet
     this.page = 'social'
+  }
+  /** Haut-parleur de la radio du cockpit : on entend la radio sans ouvrir le poste (allumé par défaut, retenu). */
+  hautParleur = $state(lire(CLE_HAUT_PARLEUR) !== 'non')
+  basculerHautParleur() {
+    this.hautParleur = !this.hautParleur
+    ecrire(CLE_HAUT_PARLEUR, this.hautParleur ? 'oui' : 'non')
   }
   /** Annonce du premier grand voyage remise à plus tard (pour cette visite seulement). */
   grandVoyageRemis = $state(false)

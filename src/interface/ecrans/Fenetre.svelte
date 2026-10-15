@@ -422,10 +422,17 @@
     bottom: 0;
     border-width: 2px 0 0;
     border-radius: 0;
-    background-color: rgba(13, 26, 20, 0.74);
+    background-color: rgba(13, 26, 20, 0.45);
     box-shadow: none;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(0.5px);
     pointer-events: none;
+  }
+  /* Lignes de balayage plus légères sur le hublot, et un liseré sombre sous les lettres pour qu'elles restent lisibles. */
+  .ecran.hud::before {
+    opacity: 0.45;
+  }
+  .ecran.hud {
+    text-shadow: 0 0 5px rgba(143, 207, 152, 0.55), 0 1px 2px rgba(0, 0, 0, 0.9);
   }
   .nom-picto {
     display: flex;
