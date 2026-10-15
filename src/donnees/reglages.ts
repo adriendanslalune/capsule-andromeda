@@ -16,15 +16,34 @@ export const FACTEUR_AVARIE = 0.45
  */
 export const DUREE_ACCELERATION = 20
 
+/**
+ * Départ d'une nouvelle partie (demande d'Adrien du 15/10/2026 : la première mission à moins de 5 minutes) : en orbite
+ * autour de la Terre, à cette distance au-dessus de l'ISS (km), et qui la suit tant que la fusée n'est pas partie.
+ */
+export const DEPART_AU_DESSUS_ISS_KM = 1500
+
 /** Vitesse de virage de la fusée (degrés par seconde). */
 export const TAUX_VIRAGE = 4
 
 /**
- * Au départ d'une orbite, pendant la mise en vitesse (DUREE_ACCELERATION), la fusée pivote plus vite vers sa
- * destination (degrés par seconde) : on la voit se tourner vers sa cible, puis accélérer (15/10/2026 ; avant, elle
- * s'orientait d'un coup).
+ * Manœuvre de départ d'une orbite (demande d'Adrien du 15/10/2026) : la fusée recule lentement, tourne vers sa
+ * destination, puis accélère en douceur (vitesse = croisière × (temps / durée)², on voit le lieu quitté s'éloigner).
+ * En rattrapage hors ligne (pas longs), le départ se fait sans manœuvre.
  */
-export const TAUX_VIRAGE_DEPART = 12
+export const MANOEUVRE_DEPART = {
+  /** Recul : durée (s) et vitesse (km/s). */
+  reculS: 5,
+  reculKmS: 0.02,
+  /** Virage : au plus cette durée (s), puis l'accélération commence quoi qu'il arrive. */
+  virageMaxS: 40,
+  /** Accélération douce jusqu'à la croisière (s). */
+  accelerationS: 30,
+  /** Estimation du virage, pour le temps restant (s). */
+  virageEstimeS: 10,
+} as const
+
+/** Vitesse de virage pendant la manœuvre de départ (degrés par seconde). */
+export const TAUX_VIRAGE_DEPART = 8
 
 /**
  * Distance d'arrivée et d'orbite d'une planète, de la Lune ou d'un satellite : trois rayons de l'astre, depuis son

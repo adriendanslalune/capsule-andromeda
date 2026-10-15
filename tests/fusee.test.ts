@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { rayonCorps } from '../src/astro/corps'
+import { positionCorps } from '../src/astro/corps'
 import { UA_KM } from '../src/astro/temps'
 import {
+  phaseDepart,
   annulerDestination,
   basculerMoteur,
   rampeVitesse,
@@ -69,18 +70,21 @@ describe('vitesse', () => {
 })
 
 describe('départ', () => {
-  it('une nouvelle partie commence en orbite autour de la Terre, à trois rayons, côté Soleil, cap vers l’ISS', () => {
+  it('une nouvelle partie commence en orbite autour de la Terre, 1 500 km au-dessus de l’ISS, qu’elle suit', () => {
     const etat = creerPartie(T0, mulberry32(1))
     expect(etat.fusee.orbite).toBe('Terre')
+    expect(etat.fusee.suit).toBe('ISS')
     expect(systemeDeLaFusee(etat.fusee, T0)).toBe('Terre')
     expect(etat.fusee.destination).toBeNull()
-    expect(etat.fusee.position).toEqual(positionAstre('Terre', T0))
-    const o = etat.fusee.ecartOrbite!
-    expect(Math.hypot(o.x, o.y, o.z) * UA_KM).toBeCloseTo(3 * rayonCorps('Terre')!, 3)
-    // Du côté du Soleil (le jour).
-    const terre = positionAstre('Terre', T0)
-    expect(o.x * terre.x + o.y * terre.y).toBeLessThan(0)
-    expect(etat.fusee.cap).toBeCloseTo(direction(positionAstre('Terre', T0), positionAstre('ISS', T0)), 10)
+    const ici = (f: typeof etat.fusee) => ({ x: f.position.x + f.ecartOrbite!.x, y: f.position.y + f.ecartOrbite!.y, z: f.ecartOrbite!.z })
+    const versIss = (f: typeof etat.fusee, t: number) => {
+      const p = ici(f), i = positionAstre('ISS', t), terre = positionCorps('Terre', t), iss = positionCorps('ISS', t)
+      return Math.hypot(p.x - i.x, p.y - i.y, p.z + terre.z - iss.z) * UA_KM
+    }
+    expect(versIss(etat.fusee, T0)).toBeCloseTo(1500, 0)
+    // Dix minutes plus tard, sans être partie, elle est toujours au-dessus de l'ISS.
+    const plusTard = avancerFusee(etat.fusee, T0 + 600_000, 600, 30).fusee
+    expect(versIss(plusTard, T0 + 600_000)).toBeCloseTo(1500, 0)
   })
 
   it('en orbite sans destination, la fusée suit la Terre et le compteur ne tourne pas', () => {
@@ -98,21 +102,31 @@ describe('départ', () => {
   })
 })
 
-describe('départ d’une orbite', () => {
-  it('la fusée pivote vers sa destination à 12° par seconde au plus, pendant qu’elle prend de la vitesse', () => {
+describe('manœuvre de départ d’une orbite', () => {
+  it('la fusée recule lentement 5 s, tourne vers sa destination à 8°/s au plus, puis accélère en douceur sur 30 s', () => {
     // En orbite autour de la Terre, le nez vers l'ISS ; destination : Jupiter, dans une autre direction.
     let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Jupiter' })
     const cap0 = f.cap
+    const ecart = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
     let t = T0
-    const caps: number[] = [cap0]
-    for (let s = 0; s < 30; s++) {
+    const pas: { cap: number; v: number; km: number; phase: string | null }[] = []
+    for (let s = 0; s < 90; s++) {
       t += 1000
       f = avancerFusee(f, t, 1, 30).fusee
-      caps.push(f.cap)
+      pas.push({ cap: f.cap, v: f.vitesseCourante ?? 0, km: f.distanceParcourue, phase: phaseDepart(f, t).phase })
     }
-    const ecart = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
-    for (let i = 1; i < caps.length; i++) expect(ecart(caps[i], caps[i - 1])).toBeLessThanOrEqual(12.0001)
-    expect(ecart(caps[1], cap0)).toBeGreaterThan(0)
+    // Recul : le cap ne bouge pas, la fusée fait 20 m par seconde.
+    for (let i = 0; i < 4; i++) expect(pas[i].cap).toBeCloseTo(cap0, 8)
+    expect(pas[3].km).toBeCloseTo(4 * 0.02, 6)
+    // Virage : 8° par seconde au plus, à l'arrêt.
+    for (let i = 1; i < pas.length; i++) expect(ecart(pas[i].cap, pas[i - 1].cap)).toBeLessThanOrEqual(8.0001)
+    const debutAcceleration = pas.findIndex((p) => p.phase === 'acceleration')
+    expect(debutAcceleration).toBeGreaterThan(4)
+    expect(pas[debutAcceleration - 1].v).toBe(0)
+    // Accélération douce : lente au début (moins de 1 km/s après 5 s), la croisière au bout de 30 s.
+    expect(pas[debutAcceleration + 4].v).toBeLessThan(1)
+    expect(pas[debutAcceleration + 31].v).toBe(30)
+    expect(pas[debutAcceleration + 31].phase).toBeNull()
   })
 })
 
@@ -412,8 +426,8 @@ describe('compteur de route', () => {
   it('tourne à la vitesse de la fusée tant qu’une destination est choisie', () => {
     const f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Neptune' })
     const r = avancerFusee(f, T0 + 100_000, 100, 17.4)
-    // Au départ de l'orbite, 20 s d'accélération linéaire (10 s « à pleine vitesse »), puis 80 s de croisière.
-    expect(r.fusee.distanceParcourue).toBeCloseTo(17.4 * 90, 8)
+    // Un long pas (rattrapage hors ligne) : départ sans manœuvre, d'emblée à la croisière.
+    expect(r.fusee.distanceParcourue).toBeCloseTo(17.4 * 100, 8)
   })
 
   it('annuler la destination coupe le moteur : la fusée reste sur place', () => {
@@ -476,8 +490,9 @@ describe('identique au prototype', () => {
 
 describe('moteur : accélération en 20 s, bouton MOTEUR', () => {
   const croisiere = 30
-  it('au départ, la vitesse monte linéairement jusqu’à la croisière en 20 s', () => {
-    let f = choisirDestination(creerFusee(T0), { type: 'astre', astre: 'Mars' })
+  it('d’un point libre (sans orbite), la vitesse monte linéairement jusqu’à la croisière en 20 s', () => {
+    let f: EtatFusee = { ...creerFusee(T0), orbite: null, ecartOrbite: undefined, position: { x: 3, y: 0 }, cap: 0 }
+    f = { ...choisirDestination(f, { type: 'point', x: 6, y: 0 }), vitesseCourante: 0 }
     const vitesses: number[] = []
     for (let s = 1; s <= 25; s++) {
       f = avancerFusee(f, T0 + s * 1000, 1, croisiere).fusee

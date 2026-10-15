@@ -27,6 +27,8 @@ import {
   SEUIL_ARRIVEE_SOLEIL,
   TAUX_VIRAGE,
   TAUX_VIRAGE_DEPART,
+  DEPART_AU_DESSUS_ISS_KM,
+  MANOEUVRE_DEPART,
   VITESSE_BASE,
   SEUIL_ARRIVEE_ENGIN_KM,
 } from '../donnees/reglages'
@@ -83,6 +85,8 @@ export interface EtatFusee {
    * elle est arrivée. Elle y reste, et repart de là. Absent au départ de la partie (à côté de l'ISS).
    */
   ecartOrbite?: { x: number; y: number; z: number }
+  /** En orbite : l'engin qu'elle accompagne (au départ de la partie, l'ISS) ; son écart d'orbite le suit. */
+  suit?: NomCorps
 }
 
 export interface Trajet {
@@ -94,6 +98,31 @@ export interface Trajet {
   depart: number
   /** Compteur de route au départ (km). */
   kmAuDepart: number
+  /** Manœuvre de départ : instant où la fusée s'est trouvée tournée vers sa destination (début de l'accélération). */
+  aligne?: number
+}
+
+/** Phase de la manœuvre de départ : recul, virage, accélération douce, ou aucune (croisière, ou départ d'un point libre). */
+export type PhaseDepart = 'recul' | 'virage' | 'acceleration' | null
+
+/** Phase de la manœuvre de départ à l'instant t, et le temps écoulé dans cette phase (s). */
+export function phaseDepart(fusee: EtatFusee, t: number): { phase: PhaseDepart; duree: number } {
+  const M = MANOEUVRE_DEPART
+  if (!fusee.destination || fusee.moteurCoupe) return { phase: null, duree: 0 }
+  // Encore en orbite : la manœuvre commence (ou commencera à la fenêtre de tir).
+  if (fusee.orbite) return { phase: 'recul', duree: 0 }
+  const tr = fusee.trajet
+  if (!tr || tr.origine === null) return { phase: null, duree: 0 }
+  const tau = (t - tr.depart) / 1000
+  if (tr.aligne === undefined) return tau < M.reculS ? { phase: 'recul', duree: tau } : { phase: 'virage', duree: tau - M.reculS }
+  const ta = (t - tr.aligne) / 1000
+  return ta < M.accelerationS ? { phase: 'acceleration', duree: Math.max(0, ta) } : { phase: null, duree: 0 }
+}
+
+/** Distance parcourue (en secondes de croisière) après ta secondes d'accélération douce. */
+function parcoursAcceleration(ta: number): number {
+  const T = MANOEUVRE_DEPART.accelerationS
+  return ta < T ? ta ** 3 / (3 * T * T) : T / 3 + (ta - T)
 }
 
 /** Avancement du trajet en cours (0 au départ, 1 à l'arrivée), d'après la route faite et la distance restante. */
@@ -407,7 +436,16 @@ export function tempsRestant(fusee: EtatFusee, t: number, vitesseKmS: number): n
   // L'accélération restante fait perdre du temps : partir de v0 au lieu de la croisière coûte
   // (durée d'accélération) / 2 × (1 − v0 / croisière)² (20 s de rampe depuis l'arrêt : 10 s de plus).
   const v0 = r.enAttente ? 0 : vitesseDuMoment(fusee, vitesseKmS)
-  const retard = (DUREE_ACCELERATION / 2) * Math.max(0, 1 - v0 / vitesseKmS) ** 2
+  let retard = (DUREE_ACCELERATION / 2) * Math.max(0, 1 - v0 / vitesseKmS) ** 2
+  // Manœuvre de départ : recul et virage, puis l'accélération douce fait perdre 2/3 de sa durée.
+  const M = MANOEUVRE_DEPART
+  const T = M.accelerationS
+  // Temps encore perdu par l'accélération douce, après ta secondes : intégrale de (1 − (τ/T)²) de ta à T.
+  const perteAcceleration = (ta: number) => (ta >= T ? 0 : T - ta - (T ** 3 - ta ** 3) / (3 * T * T))
+  const ph = phaseDepart(fusee, t)
+  if (ph.phase === 'recul') retard = M.reculS - ph.duree + M.virageEstimeS + (M.accelerationS * 2) / 3
+  else if (ph.phase === 'virage') retard = Math.max(0, M.virageEstimeS - ph.duree) + (M.accelerationS * 2) / 3
+  else if (ph.phase === 'acceleration') retard = Math.max(0, perteAcceleration(ph.duree))
   return Math.max(0, (r.arrivee - t) / 1000 - (seuilArrivee(fusee.destination) * UA_KM) / vitesseKmS + retard)
 }
 
@@ -431,15 +469,29 @@ export function tempsRestantAVitesse(fusee: EtatFusee, t: number, croisiere: num
  * Fusée neuve : en orbite autour de la Terre à 400 km d'altitude, à côté de l'ISS (elle la suit), le nez tourné
  * vers Jupiter.
  */
+/**
+ * Écart d'orbite (UA, autour de la Terre) qui accompagne l'ISS : à la verticale de la station, 1 500 km plus haut.
+ */
+export function ecartAuDessusISS(t: number): { x: number; y: number; z: number } {
+  const terre = positionCorps('Terre', t)
+  const iss = positionCorps('ISS', t)
+  const rel = { x: iss.x - terre.x, y: iss.y - terre.y, z: iss.z - terre.z }
+  const d = Math.hypot(rel.x, rel.y, rel.z) || 1e-12
+  const k = 1 + enUA(DEPART_AU_DESSUS_ISS_KM) / d
+  return { x: rel.x * k, y: rel.y * k, z: rel.z * k }
+}
+
 export function creerFusee(t: number): EtatFusee {
-  // Départ en orbite autour de la Terre (décision d'Adrien du 15/10/2026), à trois rayons, côté du Soleil.
+  // Départ en orbite autour de la Terre, 1 500 km au-dessus de l'ISS, en la suivant (15/10/2026) : la première mission
+  // (l'ISS) prend moins de 5 minutes.
   const depart = positionAstre('Terre', t)
-  const vers = Math.hypot(depart.x, depart.y) || 1
-  const r = enUA(ORBITE_RAYONS * (rayonCorps('Terre') ?? RAYON_INCONNU_KM))
+  const ecart = ecartAuDessusISS(t)
+  const ici = { x: depart.x + ecart.x, y: depart.y + ecart.y }
   return {
     position: depart,
-    cap: direction(depart, positionAstre('ISS', t)),
-    ecartOrbite: { x: (-depart.x / vers) * r, y: (-depart.y / vers) * r, z: 0 },
+    cap: direction(ici, positionAstre('ISS', t)),
+    ecartOrbite: ecart,
+    suit: 'ISS',
     virage: 0,
     destination: null,
     orbite: 'Terre',
@@ -637,6 +689,29 @@ export function avancerFusee(fusee: EtatFusee, t: number, dt: number, vitesseKmS
  * (moteur coupé). En orbite et sans destination, elle est nulle.
  */
 function avancerAvecRampe(fusee: EtatFusee, t: number, dt: number, croisiere: number): ResultatPas {
+  const M = MANOEUVRE_DEPART
+  const debut = t - dt * 1000
+  const ph = enAttenteDeFenetre(fusee) && fusee.orbite ? { phase: null, duree: 0 } : phaseDepart(fusee, debut)
+  if (ph.phase && dt > 5) {
+    // Rattrapage hors ligne : départ sans manœuvre, la fusée est aussitôt tournée et lancée.
+    const r = avancerUnPas(fusee, t, dt, croisiere, croisiere, null)
+    const tr = r.fusee.trajet
+    const trajet = tr && tr.aligne === undefined ? { ...tr, aligne: debut - M.accelerationS * 1000 } : tr
+    const enRoute = r.fusee.destination !== null && r.fusee.orbite === null
+    return { ...r, fusee: { ...r.fusee, trajet, moteurCoupe: fusee.moteurCoupe, vitesseCourante: enRoute ? croisiere : 0 } }
+  }
+  if (ph.phase) {
+    let moyenne = 0
+    let fin = 0
+    if (ph.phase === 'recul') moyenne = -M.reculKmS
+    else if (ph.phase === 'acceleration') {
+      moyenne = (croisiere * (parcoursAcceleration(ph.duree + dt) - parcoursAcceleration(ph.duree))) / dt
+      fin = croisiere * Math.min(1, ((ph.duree + dt) / M.accelerationS) ** 2)
+    }
+    const r = avancerUnPas(fusee, t, dt, croisiere, moyenne, ph.phase)
+    const enRoute = r.fusee.destination !== null && r.fusee.orbite === null
+    return { ...r, fusee: { ...r.fusee, moteurCoupe: fusee.moteurCoupe, vitesseCourante: enRoute ? fin : 0 } }
+  }
   const v0 = vitesseDuMoment(fusee, croisiere)
   const cible = fusee.destination && !fusee.moteurCoupe ? croisiere : 0
   const rampe = rampeVitesse(v0, cible, croisiere, dt)
@@ -650,7 +725,8 @@ function avancerAvecRampe(fusee: EtatFusee, t: number, dt: number, croisiere: nu
  * Un pas : vitesseKmS est la vitesse de croisière (pour viser et pour la fenêtre de tir), vitesseMoyenne celle
  * à laquelle la fusée avance pendant ce pas (rampe d'accélération ou de freinage).
  */
-function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number, vitesseMoyenne = vitesseKmS): ResultatPas {
+function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: number, vitesseMoyenne = vitesseKmS,
+  phase: PhaseDepart = null): ResultatPas {
   const dest = fusee.destination
   if (!dest) {
     // Stationnée à côté du visiteur : elle le suit tant qu'il reste à cette escale, puis revient en orbite simple.
@@ -661,8 +737,12 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       }
       return { fusee: { ...fusee, position: positionAstre(fusee.orbite, t), virage: 0, presDuVisiteur: false }, arrivee: null }
     }
-    // À l'arrêt ou en orbite : en orbite, la fusée suit son astre.
+    // À l'arrêt ou en orbite : en orbite, la fusée suit son astre (et l'ISS, au départ de la partie).
     const position = fusee.orbite ? positionAstre(fusee.orbite, t) : fusee.position
+    if (fusee.orbite === 'Terre' && fusee.suit === 'ISS') {
+      return { fusee: { ...fusee, position, virage: 0, ecartOrbite: ecartAuDessusISS(t), cap: direction(
+        { x: position.x + ecartAuDessusISS(t).x, y: position.y + ecartAuDessusISS(t).y }, positionAstre('ISS', t)) }, arrivee: null }
+    }
     return { fusee: { ...fusee, position, virage: 0 }, arrivee: null }
   }
 
@@ -688,7 +768,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const c = centre(repere, t)
   const cAvant = centre(repere, t - dt * 1000)
   let entrainee = { x: fusee.position.x + (c.x - cAvant.x), y: fusee.position.y + (c.y - cAvant.y) }
-  const distanceParcourue = fusee.distanceParcourue + vitesseMoyenne * dt
+  const distanceParcourue = fusee.distanceParcourue + Math.abs(vitesseMoyenne) * dt
   const pas = (vitesseMoyenne * dt) / UA_KM
   // Au départ d'une orbite, la fusée part de son orbite (hors de l'astre), à la hauteur de l'astre quitté.
   const quitte = fusee.orbite
@@ -699,7 +779,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   }
   // Nouveau trajet : au départ d'une orbite, ou quand la destination change en vol.
   const vers = JSON.stringify(dest)
-  const trajet: Trajet = quitte || fusee.trajet?.vers !== vers
+  let trajet: Trajet = quitte || fusee.trajet?.vers !== vers
     ? { vers, origine: quitte, depart: t - dt * 1000, kmAuDepart: fusee.distanceParcourue }
     : fusee.trajet!
 
@@ -720,12 +800,16 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const liste = arrive ? [] : obstacles(entrainee, dest, vise, t, { z, zVise: hauteurDestination(dest, t, z) })
   const voulu = arrive ? direction(entrainee, vise) : capDeContournement(entrainee, vise, liste)
   const ecart = ecartAngle(fusee.cap, voulu)
-  // Dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement). Au départ d'une orbite, pendant
-  // la mise en vitesse, elle pivote plus vite qu'en croisière ; ensuite, 4° par seconde.
+  // Dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement). Manœuvre de départ : pas de
+  // virage pendant le recul, puis 8° par seconde ; ensuite, 4° par seconde.
   const degagement = liste.some((o) => distance(entrainee, o.centre) <= o.rayon)
-  const auDepart = trajet.origine !== null && t - trajet.depart < DUREE_ACCELERATION * 1000
-  const taux = auDepart ? TAUX_VIRAGE_DEPART : TAUX_VIRAGE
+  const taux = phase === 'recul' ? 0 : phase ? TAUX_VIRAGE_DEPART : TAUX_VIRAGE
   const rotation = degagement ? ecart : Math.max(-taux * dt, Math.min(taux * dt, ecart))
+  // Fin du virage de départ : tournée vers sa destination (ou virage trop long), la fusée commence à accélérer.
+  if (phase === 'virage' && trajet.aligne === undefined
+    && (Math.abs(ecart - rotation) < 1 || (t - trajet.depart) / 1000 > MANOEUVRE_DEPART.reculS + MANOEUVRE_DEPART.virageMaxS)) {
+    trajet = { ...trajet, aligne: t }
+  }
   const cap = (fusee.cap + rotation + 360) % 360
   const virage = dt > 0 && !degagement ? rotation / dt : 0
   if (arrive) {
