@@ -81,6 +81,8 @@
     const p = (n: number) => String(n).padStart(2, '0')
     return `${p(d.getUTCHours())} H ${p(d.getUTCMinutes())} MIN ${p(d.getUTCSeconds())} S TU`
   }
+  /** Le signal des monolithes : des groupes d'impulsions de 2, 3, 5, 7 et 11. */
+  const PREMIERS = [2, 3, 5, 7, 11]
   const enMorse = (indicatif: string) => [...indicatif].map((l) => ALPHABET_MORSE[l].replaceAll('.', '·').replaceAll('-', '−')).join('   ')
   function texteClair(e: Emission): string {
     switch (e.sorte) {
@@ -88,6 +90,8 @@
       case 'observatoire': return `${e.texte} FIN DU BULLETIN.`
       case 'transmissions': return e.texte
       case 'morse': return enMorse(e.indicatif)
+      case 'detresse': return e.texte
+      case 'monolithe': return PREMIERS.map((n) => '▮'.repeat(n)).join('  ')
     }
   }
   let grain = $state(0)
@@ -134,6 +138,17 @@
         allume = ((bloc * 2654435761) >>> 0) % 7 < 4 ? 0.9 : 0.15
         hauteur = 420 + (((bloc * 40503) >>> 0) % 5) * 40
         forme = (x) => Math.sin(x) * 0.7 + Math.sin(x * 2.3) * 0.3
+      } else if (e?.sorte === 'detresse') {
+        // Veille : une porteuse faible et régulière, sans appel.
+        allume = 0.25
+        hauteur = 520
+      } else if (e?.sorte === 'monolithe') {
+        // Groupes d'impulsions (2, 3, 5, 7, 11), une impulsion toutes les 0,25 s, une pause entre deux groupes.
+        const sequence = PREMIERS.flatMap((n) => [...Array(n).fill(1), 0, 0, 0])
+        const k = Math.floor(s / 0.25) % sequence.length
+        allume = sequence[k] && s % 0.25 < 0.12 ? 1 : 0
+        hauteur = 1320
+        forme = (x) => Math.sin(x) * 0.6 + Math.sin(x * 3) * 0.4
       } else if (e?.sorte === 'radio-terre') {
         allume = 0.55 + 0.45 * Math.abs(Math.sin(s * 2.1) * Math.sin(s * 0.7 + 1))
         hauteur = 330 + 60 * Math.sin(s * 1.3)

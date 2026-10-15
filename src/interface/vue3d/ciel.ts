@@ -21,8 +21,9 @@ export function creerCiel(chargeur: THREE.TextureLoader): Ciel {
   tx.wrapS = THREE.RepeatWrapping
   // Direction de three.js (x, y, z) = écliptique (x, z, −y) : écliptique = T · three, puis galactique = M · écliptique.
   const m = ECL_VERS_GAL
-  const g = (i: number) => [m[i][0], m[i][2], -m[i][1]]
-  const versGal = new THREE.Matrix3().set(...g(0), ...g(1), ...g(2))
+  const g = (i: number) => [m[i][0], m[i][2], -m[i][1]] as const
+  const [a, b, c] = [g(0), g(1), g(2)]
+  const versGal = new THREE.Matrix3().set(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2])
   const materiau = new THREE.ShaderMaterial({
     uniforms: { carte: { value: tx }, versGal: { value: versGal }, eclat: { value: 1 } },
     vertexShader: `

@@ -95,6 +95,10 @@ export type Emission =
   | { sorte: 'transmissions'; texte: string; creneau: number }
   /** Une station morse : on n'entend que son indicatif, en morse. */
   | { sorte: 'morse'; indicatif: string }
+  /** Canal de détresse : veille de l'Office (les appels viendront plus tard). */
+  | { sorte: 'detresse'; texte: string }
+  /** Signal des monolithes : impulsions groupées par nombres premiers (2, 3, 5, 7, 11). */
+  | { sorte: 'monolithe' }
 
 export interface Reception {
   /** Station la plus proche du réglage (null : rien que du souffle). */
@@ -130,6 +134,8 @@ export function capter(etat: EtatPartie, t: number, reglage = etat.chasse.freque
         return { sorte: 'transmissions', texte: texteTransmission(tr), creneau: tr }
       },
     },
+    { f: STATIONS_RADIO.detresse, emission: () => ({ sorte: 'detresse', texte: 'CANAL DE DÉTRESSE DE L’OFFICE. AUCUN APPEL EN COURS.' }) },
+    { f: STATIONS_RADIO.monolithe, emission: () => ({ sorte: 'monolithe' }) },
     ...Object.entries(STATIONS_MORSE).map(([indicatif, f]) => ({ f, emission: (): Emission => ({ sorte: 'morse', indicatif }) })),
   ]
   let proche: (typeof stations)[number] | null = null

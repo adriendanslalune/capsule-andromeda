@@ -345,4 +345,6 @@ avec un contact à moins de 0,01 UA).*
   arrivent, même hors ligne (le plus récent seulement au retour).
 - Fréquence du visiteur, mois par mois (janvier → décembre) : 7,13 · 4,02 · 9,74 · 2,31 · 6,27 · 10,88 · 1,46 ·
   8,55 · 3,12 · 11,05 · 5,71 · 0,97. Elle ne s'entend pas : seule la table du manuel (XX) la donne.
-- Réservées pour plus tard : canal de détresse 5,00 (sauvetages) ; monolithes (10 à rassembler, à peaufiner).
+- Canal de détresse 5,00 : à l'écoute, pour l'instant « aucun appel en cours » (sauvetages à venir). Signal des
+  monolithes 7,50 : impulsions groupées par 2, 3, 5, 7 et 11, sans autre usage pour l'instant (10 monolithes à
+  rassembler, à peaufiner). *Décision d'Adrien du 15/10/2026 : une seule fréquence pour les monolithes.*

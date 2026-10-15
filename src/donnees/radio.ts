@@ -28,10 +28,11 @@ export const STATIONS_RADIO = {
   observatoire: 0.62,
   /** Transmissions : le dernier signalement d'une lueur, répété en boucle. */
   transmissions: 11.68,
+  /** Canal de détresse de l'Office : pour l'instant, aucun appel (les sauvetages viendront plus tard). */
+  detresse: 5,
+  /** Signal des monolithes : impulsions en nombres premiers, venues d'on ne sait où (usage à définir). */
+  monolithe: 7.5,
 } as const
-
-/** Fréquences réservées pour plus tard : canal de détresse (sauvetages), monolithes (à peaufiner). */
-export const FREQUENCES_RESERVEES = { detresse: 5 } as const
 
 /** Radio-Terre : une nouvelle toutes les 20 minutes, tirée de cette liste (la même pour tous). */
 export const RADIO_TERRE = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { STATIONS_MORSE } from '../src/donnees/modules'
-import { FREQUENCES_RESERVEES, FREQUENCES_VISITEUR, RADIO, STATIONS_RADIO } from '../src/donnees/radio'
+import { FREQUENCES_VISITEUR, RADIO, STATIONS_RADIO } from '../src/donnees/radio'
 import { reglerRadioSur } from '../src/moteur/chasse'
 import { creerPartie, type EtatPartie } from '../src/moteur/etat'
 import { distance, positionAstre } from '../src/moteur/fusee'
@@ -13,7 +13,7 @@ const sur = (f: number) => reglerRadioSur(partie(), f)
 
 describe('poste radio', () => {
   it('toutes les fréquences sont distinctes : deux stations ne se brouillent jamais', () => {
-    const toutes = [...Object.values(STATIONS_RADIO), ...Object.values(STATIONS_MORSE), ...Object.values(FREQUENCES_RESERVEES), ...FREQUENCES_VISITEUR]
+    const toutes = [...Object.values(STATIONS_RADIO), ...Object.values(STATIONS_MORSE), ...FREQUENCES_VISITEUR]
     for (let i = 0; i < toutes.length; i++) {
       expect(toutes[i]).toBeGreaterThanOrEqual(RADIO.min)
       expect(toutes[i]).toBeLessThanOrEqual(RADIO.max)
@@ -41,6 +41,11 @@ describe('poste radio', () => {
     for (const [indicatif, f] of Object.entries(STATIONS_MORSE)) {
       expect(capter(sur(f), T0).emission).toEqual({ sorte: 'morse', indicatif })
     }
+  })
+
+  it('canal de détresse (5,00) et signal des monolithes (7,50) s’entendent', () => {
+    expect(capter(sur(5), T0).emission?.sorte).toBe('detresse')
+    expect(capter(sur(7.5), T0).emission?.sorte).toBe('monolithe')
   })
 
   it('le visiteur ne s’entend pas : sur sa fréquence, rien que du souffle', () => {
