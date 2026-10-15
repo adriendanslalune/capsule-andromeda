@@ -162,3 +162,58 @@ jours**. Trois **rangs** selon ces points : membre (100), confirmé (400), maît
 chaque semaine, des télégrammes de la maison (nouvelles, missions spéciales).
 
 À confirmer par Adrien : les chiffres, et si l'on garde les inconvénients.
+
+## 12. Les monolithes en détail (proposition du 16/10/2026)
+
+### Où ils sont
+Dix monolithes, aux mêmes endroits pour tous, chacun près d'un astre (il le suit sur son orbite), sauf le dernier,
+perdu dans le vide. Du plus proche au plus lointain :
+
+| N° | Près de | Pourquoi là |
+|---|---|---|
+| 1 | la Lune (face cachée) | le premier, à portée dès la fin du tutoriel |
+| 2 | Phobos | |
+| 3 | Vénus | |
+| 4 | Mercure | au ras du Soleil, sous le filtre |
+| 5 | Europe (Jupiter) | |
+| 6 | Japet (Saturne) | |
+| 7 | Miranda (Uranus) | |
+| 8 | Triton (Neptune) | |
+| 9 | Encelade (Saturne) | |
+| 10 | le vide, à 45 UA du Soleil (ceinture de Kuiper) | le plus dur : aucun astre pour se repérer |
+
+Chacun se tient à une distance de son astre (de 20 000 à 200 000 km, tirée une fois pour toutes). Aucun ordre
+imposé ; mais chaque monolithe trouvé livre, avec son fragment, le **système** où dort le suivant (le plus proche
+non trouvé).
+
+### Comment on les cherche (la radio et le manuel)
+- Sur **7,50**, la radio capte le monolithe **non trouvé le plus proche**. Au-delà de 6 UA, rien que du souffle.
+- Plus on approche, plus les **impulsions sont rapides** : le manuel donne une table « impulsions par seconde →
+  distance » (de 0,5 impulsion/s à 6 UA jusqu'à 8 impulsions/s à 1 million de km). On compte, on lit la table, on
+  trace un **cercle** sur la carte autour de sa position (comme pour le ping du visiteur). Deux ou trois mesures prises
+  à différents endroits, et les cercles se coupent près du monolithe. C'est le cœur du jeu : la radio, la carte, le
+  manuel.
+- Les Explorateurs captent de plus loin et plus net (voir §11).
+
+### La trouvaille
+- À moins de **300 000 km**, le monolithe se voit dans la vue 3D : une dalle noire aux proportions 1 × 4 × 9, mate,
+  qui ne reflète rien. On le touche : la fusée s'en approche (elle s'arrête à 200 m).
+- Là, on le **photographie** (comme le visiteur) : trouvaille enregistrée.
+- Récompense : **500 CR**, un **fragment** du message (un court texte qui s'ajoute à HISTOIRES), le système du suivant,
+  un trophée ; et 50 points d'affinité pour les Explorateurs.
+- Le premier joueur à trouver chaque monolithe est annoncé à tous (bulletin dans LIAISONS).
+
+### Les dix réunis
+Le message complet se lit, et la fusée reçoit la **technologie extraterrestre** : un **saut** par jour, n'importe où
+dans le système solaire (on choisit la destination, on arrive aussitôt en orbite). Un voyant « SAUT PRÊT » au cockpit ;
+24 heures d'attente entre deux sauts.
+
+### Le manuel
+Un nouveau chapitre « Monolithes » : la table impulsions → distance, la façon de tracer les cercles, la forme du
+monolithe (pour le reconnaître dans la vue 3D). Le manuel ne dit jamais où ils sont.
+
+### À valider par Adrien
+1. Les dix emplacements (on peut en changer).
+2. La recherche par la radio : compter les impulsions, la table du manuel, les cercles sur la carte.
+3. 500 CR par monolithe.
+4. Le message des dix fragments : à écrire ensemble (Claude peut proposer un texte).
