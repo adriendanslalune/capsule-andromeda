@@ -3,7 +3,7 @@
   // là où elle est maintenant (trait blanc pointillé) et le point de rencontre (trait jaune), comme sur la carte ;
   // distances en échelle logarithmique (la plus lointaine au bord). Sans destination : le Soleil et la Terre.
   // Un balayage tourne en permanence ; le visiteur y fait un écho quand le détecteur DET le repère.
-  // Le toucher ouvre la page NAVIGATION.
+  // Le toucher ouvre la carte de navigation.
   import { direction, distance, enAttenteDeFenetre, planDeVol, positionAstre, positionDestination, type Point2 } from '../../moteur/fusee'
   import { vitesseActuelle } from '../../moteur/partie'
   import { positionVisiteur, visiteurDetecte } from '../../moteur/chasse'
@@ -40,7 +40,7 @@
   const nom = $derived(dest?.type === 'astre' ? nomAstre(dest.astre) : dest?.type === 'visiteur' ? 'objet inconnu' : dest ? 'point libre' : null)
 </script>
 
-<button class="instrument nav" onclick={() => (jeu.page = 'carte')} aria-label="Ouvrir la page NAVIGATION">
+<button class="instrument nav" onclick={() => (jeu.page = 'carte')} aria-label="Ouvrir la carte de navigation">
   <svg viewBox="0 0 100 100" aria-hidden="true">
     <defs>
       <linearGradient id="balayage" x1="1" y1="1" x2="0.7" y2="0">

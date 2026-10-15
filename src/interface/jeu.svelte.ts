@@ -25,8 +25,11 @@ const SAUVEGARDE_TOUTES_LES = 10_000
 export type Ecran = { nom: 'ouverture' } | { nom: 'fenetre' } | { nom: 'module'; code: string } | { nom: 'dehors' }
 export type Volet = 'manuel' | 'portefeuille' | 'journal' | 'instruments' | null
 /** Pages du poste de pilotage, dans l'ordre des onglets (le cockpit au milieu). */
-export const PAGES_POSTE = ['carte', 'social', 'cockpit', 'atelier', 'trophees'] as const
+/** Pages du poste : celles des onglets, et la carte de navigation (ouverte depuis le radar du cockpit, sans onglet). */
+export const PAGES_POSTE = ['social', 'cockpit', 'atelier', 'trophees', 'carte'] as const
 export type PagePoste = (typeof PAGES_POSTE)[number]
+/** Onglets, dans l'ordre (on glisse le doigt de l'un à l'autre). */
+export const ONGLETS: readonly PagePoste[] = ['social', 'cockpit', 'atelier', 'trophees']
 
 /** Tracé de chasse sur la carte : cercle autour du point du dernier ping, ou droite depuis la dernière visée. */
 export type Trace = { type: 'cercle'; x: number; y: number; rayon: number } | { type: 'droite'; x: number; y: number; angle: number }

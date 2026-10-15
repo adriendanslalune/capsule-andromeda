@@ -147,15 +147,14 @@
                 <span class="grand">{majuscule(nomAstre(fusee.orbite))}</span>
               </span>
             </div>
-            <div class="sous">Choisis une destination (page NAVIGATION).</div>
+            <div class="sous">Touche le radar pour choisir une destination.</div>
           {:else}
             <div class="haut">
               <span class="titre-incruste"><span class="etiquette-encre">À L’ARRÊT</span><span class="grand">Point libre</span></span>
             </div>
-            <div class="sous">Choisis une destination (page NAVIGATION).</div>
+            <div class="sous">Touche le radar pour choisir une destination.</div>
           {/if}
         </div>
-        <span class="rec" aria-hidden="true">● CAM. AVANT</span>
       </div>
     </div>
 
@@ -284,17 +283,6 @@
     border-radius: 12px;
     background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
       radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45));
-  }
-  .rec {
-    position: absolute;
-    left: 50%;
-    bottom: 8px;
-    transform: translateX(-50%);
-    font-family: var(--police-machine);
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    color: rgba(250, 242, 220, 0.6);
-    pointer-events: none;
   }
   /* Panneaux : double filet d'encre, vis aux coins, légende gravée dans le cadre. */
   .panneau-fin {

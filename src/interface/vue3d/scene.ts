@@ -155,6 +155,9 @@ export class Vue3D {
   /** Position du visiteur à l'écran (pour savoir si on l'a touché), ou null s'il n'est pas visible. */
   visiteurEcran: { x: number; y: number } | null = null
 
+  /** Caméra arrière (écran du cockpit) : elle regarde à l'opposé de la caméra avant. */
+  arriere = false
+  private arrierePrecedent = false
   /** Vue de l'intérieur (hublot du cockpit). */
   private interieur: boolean
 
@@ -481,10 +484,14 @@ export class Vue3D {
       } else {
         voulu = cible && cible.lengthSq() > 0 ? cible.clone().normalize() : new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))
       }
+      // Caméra arrière : exactement à l'opposé ; on bascule d'une caméra à l'autre d'un coup.
+      if (this.arriere) voulu.negate()
+      const bascule = this.arriere !== this.arrierePrecedent
+      this.arrierePrecedent = this.arriere
       // On tourne vers ce regard à 25° par seconde au plus (comme la fusée), sans à-coup.
       const dt = this.horlogePrecedente ? Math.min(0.2, (horloge - this.horlogePrecedente) / 1000) : 1
       this.horlogePrecedente = horloge
-      if (!this.regard) this.regard = voulu.clone()
+      if (!this.regard || bascule) this.regard = voulu.clone()
       const ecart = this.regard.angleTo(voulu)
       const pas = (25 * Math.PI) / 180 * dt
       if (ecart <= pas || ecart > Math.PI * 0.999) this.regard.copy(voulu)
@@ -498,7 +505,7 @@ export class Vue3D {
       // que l'astre remplisse un peu plus que la hauteur de la vitre, sa courbure visible.
       const corps = vise && !estEngin(vise) && vise !== 'ISS' ? this.astres.get(vise)?.maillage : undefined
       let fovVoulu = this.fovBase
-      if (corps && corps.visible) {
+      if (corps && corps.visible && !this.arriere) {
         const d = corps.position.length()
         const r = corps.scale.x
         if (d > r) fovVoulu = Math.min(40, Math.max(this.fovBase, ((2 * Math.asin(r / d)) * 180) / Math.PI * 0.9))
@@ -572,7 +579,9 @@ export class Vue3D {
       const a = this.astres.get(nom)
       if (!a?.maillage.visible) continue
       const e = projeter(a.maillage.position)
-      if (e) this.etiquettes.push({ nom, ...e, cible: nom === cibleNom })
+      // Un nom qui en recouvrirait un autre ne s'écrit pas (sauf celui de la destination).
+      const libre = (x: Etiquette) => Math.abs(x.x - (e?.x ?? 0)) > 70 || Math.abs(x.y - (e?.y ?? 0)) > 15
+      if (e && (nom === cibleNom || this.etiquettes.every(libre))) this.etiquettes.push({ nom, ...e, cible: nom === cibleNom })
     }
     if ((this.iss.visible || this.pointISS.visible) && iss.length() < AUTRES.nomKm) { const e = projeter(iss); if (e) this.etiquettes.push({ nom: 'ISS', ...e, cible: cibleNom === 'ISS' }) }
     for (const [nom, o] of this.engins) {

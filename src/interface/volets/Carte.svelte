@@ -332,6 +332,7 @@
 </script>
 
 <div class="carte">
+  <button class="retour-cockpit" onclick={() => (jeu.page = 'cockpit')}>‹ COCKPIT</button>
   <!-- Vues de la carte. -->
   <div class="vues" role="group" aria-label="Vue de la carte">
     <button class:actif={vue === 'fusee'} onclick={() => choisirVue('fusee')}>FUSÉE</button>
@@ -519,6 +520,18 @@
   /* Rien ne rétrécit dans la colonne : elle défile si elle est trop haute. */
   .carte > :global(*) {
     flex-shrink: 0;
+  }
+  .retour-cockpit {
+    align-self: flex-start;
+    min-height: 40px;
+    padding: 0 14px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--couleur-encre);
+    color: var(--couleur-texte-clair);
+    font-family: var(--police-chiffres);
+    font-weight: 700;
+    letter-spacing: 1px;
   }
   .vues {
     display: grid;

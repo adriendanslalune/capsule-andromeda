@@ -3,7 +3,16 @@
   // À RETIRER DÈS QU'IL LE DEMANDE, avec le saut d'essai : supprimer ce dossier (src/interface/provisoire/) et les
   // lignes « PROVISOIRE » de src/interface/volets/Carte.svelte et de src/interface/jeu.svelte.ts.
   // Efface la partie de cet appareil (après confirmation) et revient à la lettre de l'Office.
+  // TOUT DÉBLOQUER (demandé le 16/10/2026) : installe tous les modules et les instruments, pour tout voir.
+  import { INSTRUMENTS, MODULES_A_INSTALLER } from '../../donnees/economie'
   import { jeu } from '../jeu.svelte'
+
+  const tout = [...MODULES_A_INSTALLER.map((m) => m.code), ...INSTRUMENTS.map((i) => i.code)]
+  const toutInstalle = $derived(tout.every((c) => jeu.etat!.modulesInstalles.includes(c)))
+  function debloquer() {
+    const e = jeu.etat!
+    jeu.remplacer({ ...e, modulesInstalles: [...new Set([...e.modulesInstalles, ...tout])] }, ['TESTEUR : TOUS LES MODULES ET INSTRUMENTS SONT INSTALLÉS.'])
+  }
 
   let confirmer = $state(false)
 </script>
@@ -11,6 +20,7 @@
 <div class="testeur">
   <span class="titre">TESTEUR <small>provisoire</small></span>
   {#if !confirmer}
+    <button class="non" disabled={toutInstalle} onclick={debloquer}>{toutInstalle ? 'TOUT EST DÉBLOQUÉ' : 'TOUT DÉBLOQUER'}</button>
     <button class="principal" onclick={() => (confirmer = true)}>RÉINITIALISER LE JEU</button>
   {:else}
     <span class="question">Tout effacer et recommencer depuis le début ?</span>

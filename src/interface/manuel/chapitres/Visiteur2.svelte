@@ -11,7 +11,7 @@
 <Page {numero} chapitre="XVII." titre="RECHERCHE DU VISITEUR (SUITE)">
   <h3>Traçage</h3>
   <p>
-    Sur la page NAVIGATION, l’onglet CHASSE donne accès au traçage : un cercle autour du point du dernier ping (rayon
+    Sur la carte de navigation (le radar du cockpit), l’onglet CHASSE donne accès au traçage : un cercle autour du point du dernier ping (rayon
     en UA), une droite depuis le point de la dernière visée (angle en degrés). Le visiteur se trouve à leur croisement.
   </p>
   <svg class="planche" viewBox="0 0 344 120" aria-label="Exemple de traçage">

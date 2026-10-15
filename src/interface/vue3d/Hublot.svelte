@@ -10,6 +10,9 @@
   let cadre: HTMLDivElement
   let etiquettes = $state<Etiquette[]>([])
   let eblouissement = $state(0)
+  /** Caméra avant ou arrière : l'écran bascule de l'une à l'autre toutes les 10 secondes. */
+  let arriere = $state(false)
+  let gresille = $state(false)
   let indisponible = $state(false)
 
   onMount(() => {
@@ -31,12 +34,19 @@
       if (!jeu.etat || jeu.volet) return
       const a = jeu.affichage()
       vue.filtreSolaire = jeu.filtreSolaire
+      vue.arriere = arriere
       vue.dessiner(a.etat, a.t, horloge)
       etiquettes = vue.etiquettes
       eblouissement = vue.eblouissement
     }
     image = requestAnimationFrame(boucle)
+    const minuterie = setInterval(() => {
+      arriere = !arriere
+      gresille = true
+      setTimeout(() => (gresille = false), 220)
+    }, 10_000)
     return () => {
+      clearInterval(minuterie)
       cancelAnimationFrame(image)
       observateur.disconnect()
       vue.liberer()
@@ -50,6 +60,8 @@
     <span class="etiquette" class:cible={e.cible} class:autre={!!e.couleur} style={`left: ${e.x}px; top: ${e.y}px${e.couleur ? `; color: ${e.couleur}` : ''}`}>{nomAstre(e.nom)}</span>
   {/each}
   <div class="eblouissement" style={`opacity: ${eblouissement}`}></div>
+  {#if gresille}<div class="gresillement" aria-hidden="true"></div>{/if}
+  <span class="rec" aria-hidden="true">● CAM. {arriere ? 'ARRIÈRE' : 'AVANT'}</span>
   <!-- Noms des astres : on les écrit ou on les retire (vue naturelle du ciel). -->
   <button class="filtre noms" class:actif={!jeu.nomsAstres} aria-pressed={!jeu.nomsAstres} aria-label="Retirer les noms des astres"
     onclick={(e) => { e.stopPropagation(); jeu.basculerNoms() }}>
@@ -117,6 +129,35 @@
     pointer-events: none;
     background: radial-gradient(circle at 50% 50%, #ffffff 0 30%, #fff6d8 60%, #ffe9a8);
     transition: opacity 0.3s linear;
+  }
+  .rec {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    font-family: var(--police-machine);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: rgba(250, 242, 220, 0.7);
+    text-shadow: 0 1px 2px #000;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  /* Bascule d'une caméra à l'autre : un bref grésillement. */
+  .gresillement {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(250, 242, 220, 0.25) 0 2px, rgba(0, 0, 0, 0.5) 2px 4px);
+    animation: gresille 0.22s steps(4) both;
+  }
+  @keyframes gresille {
+    to {
+      opacity: 0;
+      transform: translateY(6px);
+    }
   }
   .filtre {
     position: absolute;

@@ -183,3 +183,15 @@ La réglette POSTE RADIO est supprimée. Modules : débloqués par le moteur, un
   écrit à l'écart, relié par un trait fin.
 - Voie lactée sans image : une lueur calculée en coordonnées galactiques (bande, bulbe du Sagittaire, Cygne, grande
   faille, nuages de bruit doux ; `vue3d/ciel.ts`) et 36 000 étoiles faibles réparties de même (`scene.ts`).
+
+## 20. Caméras, intercalaires, testeur (16/10/2026)
+- L'écran du cockpit bascule toutes les 10 s entre la caméra avant et la caméra arrière (regard opposé), avec un bref
+  grésillement ; la légende « ● CAM. AVANT / ARRIÈRE » le dit.
+- En-tête : l'heure d'arrivée (déjà sur l'écran de la caméra) laisse la place à deux mini cadrans, vitesse et cap.
+- Onglets en intercalaires de vieux classeur : cartons en trapèze de couleur (SOCIAL rose, COCKPIT moutarde,
+  ATELIER bleu, TROPHÉES vert), hauteurs décalées, étiquette de papier avec l'icône et le nom ; celui de la page
+  affichée passe devant et se soude à la page.
+- L'onglet NAVIGATION est supprimé : la carte s'ouvre depuis le radar du pupitre (bouton « ‹ COCKPIT » pour revenir ;
+  l'intercalaire COCKPIT reste en avant pendant ce temps).
+- Testeur (provisoire) : TOUT DÉBLOQUER installe les 9 modules, le télescope et le détecteur.
+- Vue 3D : un nom d'astre qui en recouvrirait un autre ne s'écrit pas (sauf la destination).

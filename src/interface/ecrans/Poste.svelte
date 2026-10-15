@@ -6,7 +6,7 @@
   import { numeroSaison } from '../../moteur/chasse'
   import { modulesEnPanne } from '../../moteur/modules'
   import Icone from '../cockpit/Icone.svelte'
-  import { jeu, PAGES_POSTE, type PagePoste } from '../jeu.svelte'
+  import { jeu, ONGLETS, type PagePoste } from '../jeu.svelte'
   import { nonLus, telegrammesRecus } from '../reseau'
   import Carte from '../volets/Carte.svelte'
   import Atelier from '../volets/Atelier.svelte'
@@ -28,7 +28,9 @@
   let sens = $state(1)
   function aller(page: PagePoste) {
     if (page === jeu.page) return
-    sens = PAGES_POSTE.indexOf(page) > PAGES_POSTE.indexOf(jeu.page) ? 1 : -1
+    // La carte (sans onglet) se range du côté du cockpit.
+    const rang = (p: PagePoste) => (p === 'carte' ? ONGLETS.indexOf('cockpit') : ONGLETS.indexOf(p))
+    sens = rang(page) >= rang(jeu.page) ? 1 : -1
     jeu.page = page
   }
 
@@ -46,8 +48,9 @@
     const vite = Date.now() - depart.t < 800
     depart = null
     if (!vite || Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    const i = PAGES_POSTE.indexOf(jeu.page) + (dx < 0 ? 1 : -1)
-    if (i >= 0 && i < PAGES_POSTE.length) aller(PAGES_POSTE[i])
+    if (jeu.page === 'carte') return
+    const i = ONGLETS.indexOf(jeu.page) + (dx < 0 ? 1 : -1)
+    if (i >= 0 && i < ONGLETS.length) aller(ONGLETS[i])
   }
   const toucher = (e: TouchEvent) => { if (e.touches.length === 1) commencer(e.touches[0].clientX, e.touches[0].clientY, e.target); else depart = null }
   const lacher = (e: TouchEvent) => { const d = e.changedTouches[0]; if (d) finir(d.clientX, d.clientY) }
@@ -77,11 +80,14 @@
     </div>
   </header>
 
-  <!-- Onglets : celui de la page affichée ressort, comme un intercalaire. -->
+  <!-- Onglets : les intercalaires d'un vieux classeur, en carton de couleur, chacun son étiquette ; celui de la page
+       affichée passe devant les autres. -->
   <nav class="onglets" aria-label="Pages du poste">
-    {#each PAGES_POSTE as p}
-      <button class={`onglet ${p}`} class:actif={jeu.page === p} aria-current={jeu.page === p ? 'page' : undefined} onclick={() => aller(p)}>
-        <Icone nom={p} /><span>{NOMS[p]}</span>
+    {#each ONGLETS as p}
+      {@const actif = jeu.page === p || (p === 'cockpit' && jeu.page === 'carte')}
+      <button class={`onglet ${p}`} class:actif aria-current={actif ? 'page' : undefined} onclick={() => aller(p)}>
+        <span class="carton" aria-hidden="true"></span>
+        <span class="etiquette"><Icone nom={p} /><span>{NOMS[p]}</span></span>
         {#if p === 'cockpit' && avaries}<span class="pastille" aria-label={`${avaries} avaries`}>{avaries}</span>{/if}
         {#if p === 'social' && nouveaux}<span class="pastille telegramme" aria-label={`${nouveaux} télégrammes`}>{nouveaux}</span>{/if}
       </button>
@@ -229,85 +235,113 @@
     box-shadow: none;
   }
 
-  /* Onglets en intercalaires. */
+  /* Onglets : intercalaires de vieux classeur. Chaque onglet est un carton en trapèze (bords biseautés), de sa
+     couleur, cerné d'encre ; une petite étiquette de papier, rivée, porte l'icône et le nom. Ils dépassent à des
+     hauteurs un peu différentes, comme des intercalaires décalés ; celui de la page affichée passe devant. */
   .onglets {
     flex: none;
     display: grid;
-    grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr;
+    grid-template-columns: 1fr 1.25fr 1fr 1fr;
     align-items: end;
-    gap: 3px;
-    padding: 4px 8px 0;
+    gap: 0;
+    padding: 4px 6px 0;
     margin-bottom: -3px;
   }
   .onglet {
     position: relative;
     min-width: 0;
-    height: 50px;
-    padding: 4px 0 2px;
+    height: 46px;
+    margin: 0 -3px;
+    padding: 6px 7px 3px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    gap: 1px;
-    border: 2px solid var(--couleur-encre);
-    border-bottom: 0;
-    border-radius: 10px 10px 0 0;
-    background: var(--hachures), var(--couleur-papier-fonce);
-    color: var(--couleur-encre-discrete);
-    font-family: var(--police-titre);
-    font-size: 8.5px;
-    letter-spacing: 0.2px;
-    transform: translateY(4px);
+    border: 0;
+    background: none;
+    color: var(--couleur-encre);
+    /* Le trait d'encre suit la forme du carton. */
+    filter: drop-shadow(0 -2px 0 var(--couleur-encre)) drop-shadow(2px 0 0 var(--couleur-encre)) drop-shadow(-2px 0 0 var(--couleur-encre));
     transition: transform 0.15s;
   }
-  .onglet :global(svg) {
-    width: 22px;
-    height: 22px;
+  .onglet:nth-child(2n) {
+    height: 50px;
   }
-  /* L'onglet de la page affichée : plus haut, en couleur, soudé à la page. */
+  .carton {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(9% 0, 91% 0, 100% 100%, 0 100%);
+    border-radius: 4px 4px 0 0;
+    background: repeating-linear-gradient(0deg, rgba(42, 30, 23, 0.06) 0 1px, transparent 1px 4px), var(--carton);
+  }
+  .onglet.social {
+    --carton: #efc0b0;
+  }
+  .onglet.cockpit {
+    --carton: var(--moutarde);
+  }
+  .onglet.atelier {
+    --carton: #b7dbe3;
+  }
+  .onglet.trophees {
+    --carton: #c3e0bf;
+  }
+  /* L'étiquette de papier, glissée dans le carton. */
+  .etiquette {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    padding: 2px 4px;
+    border: 1.5px solid var(--couleur-encre);
+    border-radius: 2px;
+    background: var(--couleur-papier);
+    font-family: var(--police-machine);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0;
+    box-shadow: 1px 1px 0 rgba(42, 30, 23, 0.35);
+  }
+  .etiquette > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .etiquette :global(svg) {
+    flex: none;
+    width: 14px;
+    height: 14px;
+  }
+  /* L'intercalaire de la page affichée : devant les autres, plus haut, soudé à la page (même couleur qu'elle, avec
+     le liseré de sa couleur en haut). */
   .onglet.actif {
-    transform: translateY(3px);
-    height: 54px;
-    margin-top: -4px;
-    color: var(--couleur-encre);
-    background: var(--couleur-fond);
-    border-width: 3px;
-    z-index: 1;
+    z-index: 2;
+    height: 56px;
+  }
+  .onglet.actif .carton {
+    background: linear-gradient(var(--carton) 0 5px, var(--couleur-fond) 5px);
   }
   .onglet.actif::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 2px;
+    right: 2px;
     bottom: -3px;
-    height: 4px;
+    height: 5px;
     background: var(--couleur-fond);
   }
-  .onglet.carte span {
-    font-size: 7.6px;
-    letter-spacing: -0.2px;
+  .onglet.actif .etiquette {
+    font-size: 10px;
+    transform: translateY(-2px);
   }
-  .onglet.actif.carte {
-    background: var(--couleur-fond);
-    color: var(--cerise);
+  /* COCKPIT, l'écran principal : un peu plus grand. */
+  .onglet.cockpit .etiquette :global(svg) {
+    width: 20px;
+    height: 20px;
   }
-  /* COCKPIT, l'écran principal : plus grand que ses voisins, liseré moutarde, même quand il n'est pas affiché. */
-  .onglet.cockpit {
-    height: 58px;
-    font-size: 10.5px;
-    letter-spacing: 0.5px;
-    color: var(--couleur-encre);
-    background: var(--hachures), var(--moutarde);
-  }
-  .onglet.cockpit :global(svg) {
-    width: 28px;
-    height: 28px;
-  }
-  .onglet.actif.cockpit {
-    height: 62px;
-    color: var(--cerise);
-    background: var(--couleur-fond);
-    box-shadow: inset 0 4px 0 var(--moutarde);
+  .onglet:not(.actif):active {
+    transform: translateY(2px);
   }
 
   .page {

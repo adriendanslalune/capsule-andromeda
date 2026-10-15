@@ -7,7 +7,7 @@
 
   let { numero }: { numero: number } = $props()
   const voyants = Array.from({ length: 12 }, (_, i) => ({ x: 88 + (i % 6) * 33.5, y: 246 + Math.floor(i / 6) * 21 }))
-  const onglets = ['NAVIG.', 'SOCIAL', 'COCKPIT', 'ATEL.', 'TROPH.']
+  const onglets = ['SOCIAL', 'COCKPIT', 'ATELIER', 'TROPHÉES']
   const encre = '#1d1916'
   const papier = '#f8f5ec'
   const police = 'Courier Prime, monospace'
@@ -21,7 +21,12 @@
     <!-- Barre du haut, sur une ligne : C-58, cadrans et MOTEUR, compteur de crédits, manuel. -->
     <text x="70" y="21" font-size="10" font-weight="700" font-family={police}>C-58</text>
     <rect x="102" y="8" width="62" height="20" rx="2" fill={encre} />
-    {#each ['13,5 KM/S', '▲ 265°', '05:00 ARR.'] as v, k}<text x="106" y={14 + k * 6} font-size="4.5" fill={papier} font-family={police}>{v}</text>{/each}
+    {#each [0, 1] as k}
+      {@const x = 117 + k * 31}
+      <circle cx={x} cy="16" r="6" fill={k === 0 ? papier : encre} stroke={papier} stroke-width="0.8" />
+      <line x1={x} y1="16" x2={x + (k === 0 ? -3.5 : 3)} y2={k === 0 ? 12.5 : 12} stroke={k === 0 ? encre : papier} stroke-width="1" />
+      <text x={x} y="26" text-anchor="middle" font-size="4" fill={papier} font-family={police}>{k === 0 ? '13,5' : '265°'}</text>
+    {/each}
     <rect x="167" y="8" width="13" height="20" rx="2" fill="url(#zone-rouge)" stroke={encre} stroke-width="0.8" />
     <rect x="170" y="10" width="7" height="12" rx="3.5" fill={papier} stroke={encre} stroke-width="0.8" />
     <circle cx="173.5" cy="13.5" r="2.5" fill={encre} />
@@ -31,15 +36,17 @@
     <path d="M 264 12 q -3 -2 -7 -1 v 10 q 4 -1 7 1 q 3 -2 7 -1 v -10 q -4 -1 -7 1 z M 264 12 v 10" fill="none" stroke={encre} stroke-width="0.8" />
     <!-- Onglets. -->
     <line x1="62" y1="64" x2="282" y2="64" stroke={encre} stroke-width="1.6" />
+    <!-- Intercalaires en trapèze, chacun son étiquette ; celui de la page affichée (COCKPIT) passe devant. -->
     {#each onglets as o, i}
-      {@const x = 66 + i * 43}
-      <path d={i === 2 ? `M ${x} 64 V 47 Q ${x} 45 ${x + 3} 45 H ${x + 37} Q ${x + 40} 45 ${x + 40} 47 V 64` : `M ${x} 64 V 51 Q ${x} 49 ${x + 3} 49 H ${x + 37} Q ${x + 40} 49 ${x + 40} 51 V 64`}
-        fill={i === 2 ? papier : 'none'} stroke={encre} stroke-width={i === 2 ? 1.6 : 1} />
-      <text x={x + 20} y="60" text-anchor="middle" font-size="5.5" font-weight="700" font-family={police}>{o}</text>
+      {@const x = 64 + i * 54}
+      {@const haut = i === 1 ? 44 : i % 2 ? 48 : 50}
+      <path d={`M ${x} 64 L ${x + 5} ${haut} H ${x + 51} L ${x + 56} 64`} fill={i === 1 ? papier : 'none'} stroke={encre} stroke-width={i === 1 ? 1.6 : 1} />
+      <rect x={x + 11} y={haut + 5} width="34" height="8" fill={papier} stroke={encre} stroke-width="0.6" />
+      <text x={x + 28} y={haut + 11} text-anchor="middle" font-size="5" font-weight="700" font-family={police}>{o}</text>
     {/each}
-    <line x1="152" y1="64" x2="192" y2="64" stroke={papier} stroke-width="2" />
-    <circle cx="191" cy="46" r="4.5" fill={encre} />
-    <text x="191" y="48" text-anchor="middle" font-size="5.5" font-weight="700" fill={papier} font-family={police}>2</text>
+    <line x1="119" y1="64" x2="173" y2="64" stroke={papier} stroke-width="2" />
+    <circle cx="168" cy="45" r="4.5" fill={encre} />
+    <text x="168" y="47" text-anchor="middle" font-size="5.5" font-weight="700" fill={papier} font-family={police}>2</text>
     <!-- Écran de la caméra extérieure : l'image entière, les informations incrustées dessus. -->
     <rect x="64" y="68" width="216" height="86" rx="3" fill={encre} />
     <rect x="68" y="72" width="208" height="78" rx="6" fill="url(#zone-bleue)" stroke={papier} stroke-width="0.6" />
