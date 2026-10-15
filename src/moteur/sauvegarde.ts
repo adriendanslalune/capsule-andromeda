@@ -3,6 +3,7 @@
 // les anciennes sauvegardes restent lisibles.
 
 import { VERSION_FORMAT, type EtatPartie } from './etat'
+import { debloquerModules } from './economie'
 
 /** Enveloppe d'une sauvegarde. */
 interface Fichier {
@@ -52,5 +53,5 @@ export function charger(texte: string): ResultatChargement {
   }
   const manquants = CHAMPS.filter((c) => !(c in etat))
   if (manquants.length) return { etat: null, erreur: `Sauvegarde incomplète (${manquants.join(', ')}).` }
-  return { etat: { ...(etat as unknown as EtatPartie), version: VERSION_FORMAT }, erreur: null }
+  return { etat: debloquerModules({ ...(etat as unknown as EtatPartie), version: VERSION_FORMAT }), erreur: null }
 }

@@ -121,8 +121,10 @@ UA = unité astronomique = 149 597 870,7 km.
   le serveur). *Formule à décider.*
 - *Toutes les règles de contrats ci-dessus : décisions d'Adrien du 13/10/2026. Le prototype proposait 6 contrats par
   jour (la Lune puis 5 planètes), un seul à la fois, qui fixait la destination ; prime = max(6, arrondi(8 + 30 × √d)).*
-- **Installation des modules** (dans l'ordre) : CO-1 40, PB-1 70, LP-1 110, HY-1 160, RE-1 230, MO-1 320,
-  CR-1 420, AN-1 540, SX-1 680. Instruments de chasse : TEL 250, puis DET 1 200 (DET exige TEL).
+- **Modules** (décision d'Adrien du 15/10/2026) : ils ne s'achètent plus ; chacun se débloque et s'installe tout seul quand
+  le moteur atteint son palier, un toutes les 5 améliorations, dans l'ordre : CO-1 (5ᵉ), PB-1 (10ᵉ), LP-1 (15ᵉ),
+  HY-1 (20ᵉ), RE-1 (25ᵉ), MO-1 (30ᵉ), CR-1 (35ᵉ), AN-1 (40ᵉ), SX-1 (45ᵉ). Une partie qui en avait acheté les garde.
+  *Avant : achetés de 40 à 680 CR.* Instruments de chasse (achetés) : TEL 250, puis DET 1 200 (DET exige TEL).
 - **Trophées** : premier contrat, Mars, Jupiter, Neptune (arrivées), Kuiper (40 UA du Soleil), héliopause (120 UA),
   plus loin que Voyager 1 (170 UA), premier contact.
 

@@ -2,7 +2,7 @@
   // ATELIER, lisible d'un coup d'œil, comme les contrats : un bandeau de résumé (caisse, moteur, modules), puis des
   // fiches toutes bâties pareil — à gauche la pièce, au centre son nom en gros, à droite le prix en gros, dessous ce
   // qu'elle change et l'unique bouton utile (ou ce qu'il manque pour l'acheter).
-  import { DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE } from '../../donnees/economie'
+  import { DESCRIPTIONS_ATELIER, INSTRUMENTS, MODULES_A_INSTALLER, MODULES_DE_BASE, MODULES_PAR_AMELIORATIONS } from '../../donnees/economie'
   import { PANNES } from '../../donnees/reglages'
   import { acheterAmelioration, coutAmelioration, estInstalle, installer, prochainModule } from '../../moteur/economie'
   import { optionsDeDepart, vitesse as vitesseMoteur } from '../../moteur/fusee'
@@ -35,7 +35,10 @@
   let refus = $state<string | null>(null)
   function resultat(r: { etat: typeof etat; refus: string | null }, message: string) {
     refus = r.refus
-    if (!r.refus) jeu.remplacer(r.etat, [message])
+    if (r.refus) return
+    // Un module débloqué par cette amélioration ?
+    const debloques = r.etat.modulesInstalles.filter((c) => !etat.modulesInstalles.includes(c) && MODULES_A_INSTALLER.some((m) => m.code === c))
+    jeu.remplacer(r.etat, [message, ...debloques.map((c) => `ATELIER : NOUVEAU MODULE ${c} DÉBLOQUÉ ET INSTALLÉ AU TABLEAU DE BORD.`)])
   }
 </script>
 
@@ -65,23 +68,25 @@
     <span class="prix">{cout}<small> CR</small></span>
     <span class="effet"><b>{nombre(avant, 1)} → {nombre(apres, 1)} km/s</b> (+10 %){#if voyageAvant !== null && voyageApres !== null} · vers {nomAstre(exemple)} : {duree(voyageAvant)} → <b>{duree(voyageApres)}</b>{/if}</span>
     {#if palier !== null}<span class="note">À {palier} améliorations, les avaries pourront arriver en cascade (plusieurs à la fois).</span>{/if}
+    {#if module && module.ameliorations === etat.ameliorations + 1}<span class="note">Cette amélioration débloque le module <b>{module.code}</b> ({module.nom}).</span>{/if}
     <span class="actions">{@render bouton('AMÉLIORER', cout, () => resultat(acheterAmelioration(etat, t), `ATELIER : AMÉLIORATION N° ${etat.ameliorations + 1} INSTALLÉE.`))}</span>
   </div>
 
   <!-- Modules. -->
-  <h3>MODULES <small>{installes} sur {tousModules.length} au tableau de bord · un à la fois, dans l’ordre</small></h3>
+  <h3>MODULES <small>{installes} sur {tousModules.length} au tableau de bord · un toutes les {MODULES_PAR_AMELIORATIONS} améliorations du moteur</small></h3>
   {#if module}
+    {@const reste = module.ameliorations - etat.ameliorations}
     <div class="fiche">
       <span class="piece"><span class="code">{module.code}</span><small>SUIVANT</small></span>
       <span class="nom">{module.nom}</span>
-      <span class="prix">{module.prix}<small> CR</small></span>
+      <span class="prix palier">{module.ameliorations}<small>ᵉ amél.</small></span>
       <span class="effet">{DESCRIPTIONS_ATELIER[module.code]}</span>
-      <span class="actions">{@render bouton('INSTALLER', module.prix, () => resultat(installer(etat, module.code, t), `ATELIER : MODULE ${module.code} INSTALLÉ.`))}</span>
+      <span class="actions"><span class="bloque">débloqué à la {module.ameliorations}ᵉ amélioration · encore {reste}</span></span>
     </div>
-    {#each aVenir as m, i}
+    {#each aVenir as m}
       <div class="ligne-a-venir">
         <span class="code petit">{m.code}</span><span class="nom-a-venir">{m.nom}</span>
-        <span class="apres">après {i === 0 ? module.code : aVenir[i - 1].code}</span><b>{m.prix} CR</b>
+        <span class="apres">à la</span><b>{m.ameliorations}ᵉ amél.</b>
       </div>
     {/each}
   {:else}

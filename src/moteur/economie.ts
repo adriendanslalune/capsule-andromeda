@@ -50,12 +50,21 @@ export function coutAmelioration(n: number): number {
   return Math.round(n <= palier ? base * facteur ** n : base * facteur ** palier * facteurApresPalier ** (n - palier))
 }
 
-/** Achète l'amélioration suivante (une à la fois, dans l'ordre). */
+/** Achète l'amélioration suivante (une à la fois, dans l'ordre) ; le module de ce palier se débloque avec elle. */
 export function acheterAmelioration(etat: EtatPartie, t: number): Resultat {
   const cout = coutAmelioration(etat.ameliorations)
   if (etat.credits < cout) return refuse(etat, `Il manque ${cout - etat.credits} CR.`)
   const n = etat.ameliorations + 1
-  return accepte({ ...crediter(etat, -cout, `Amélioration n° ${n}`, t), ameliorations: n })
+  return accepte(debloquerModules({ ...crediter(etat, -cout, `Amélioration n° ${n}`, t), ameliorations: n }))
+}
+
+/**
+ * Installe les modules débloqués par les améliorations du moteur (un toutes les 5), dans l'ordre. Un module déjà
+ * installé le reste (les anciennes parties les achetaient).
+ */
+export function debloquerModules(etat: EtatPartie): EtatPartie {
+  const nouveaux = MODULES_A_INSTALLER.filter((m) => m.ameliorations <= etat.ameliorations && !estInstalle(etat, m.code))
+  return nouveaux.length ? { ...etat, modulesInstalles: [...etat.modulesInstalles, ...nouveaux.map((m) => m.code)] } : etat
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -65,26 +74,23 @@ export function estInstalle(etat: EtatPartie, code: string): boolean {
   return (MODULES_DE_BASE as readonly string[]).includes(code) || etat.modulesInstalles.includes(code)
 }
 
-/** Prochain module à installer (ils s'installent dans l'ordre), ou null s'ils le sont tous. */
-export function prochainModule(etat: EtatPartie): { code: string; nom: string; prix: number } | null {
+/** Prochain module à débloquer (dans l'ordre), avec son palier d'améliorations, ou null s'ils le sont tous. */
+export function prochainModule(etat: EtatPartie): { code: string; nom: string; ameliorations: number } | null {
   return MODULES_A_INSTALLER.find((m) => !estInstalle(etat, m.code)) ?? null
 }
 
-/** Installe un module (le prochain dans l'ordre) ou un instrument de chasse (DET exige TEL). */
+/** Achète et installe un instrument de chasse (DET exige TEL). Les modules, eux, se débloquent par le moteur. */
 export function installer(etat: EtatPartie, code: string, t: number): Resultat {
   if (estInstalle(etat, code)) return refuse(etat, `${code} est déjà installé.`)
   const instrument = INSTRUMENTS.find((i) => i.code === code)
   const module = MODULES_A_INSTALLER.find((m) => m.code === code)
-  if (!instrument && !module) return refuse(etat, `${code} n'existe pas.`)
-  if (module && prochainModule(etat)?.code !== code) {
-    return refuse(etat, `Il faut d'abord installer ${prochainModule(etat)!.code}.`)
-  }
-  if (instrument?.exige && !estInstalle(etat, instrument.exige)) {
+  if (module) return refuse(etat, `${code} se débloque à la ${module.ameliorations}ᵉ amélioration du moteur.`)
+  if (!instrument) return refuse(etat, `${code} n'existe pas.`)
+  if (instrument.exige && !estInstalle(etat, instrument.exige)) {
     return refuse(etat, `Il faut d'abord installer ${instrument.exige}.`)
   }
-  const prix = (instrument ?? module)!.prix
-  if (etat.credits < prix) return refuse(etat, `Il manque ${prix - etat.credits} CR.`)
-  const apres = crediter(etat, -prix, `Installation ${code}`, t)
+  if (etat.credits < instrument.prix) return refuse(etat, `Il manque ${instrument.prix - etat.credits} CR.`)
+  const apres = crediter(etat, -instrument.prix, `Installation ${code}`, t)
   return accepte({ ...apres, modulesInstalles: [...apres.modulesInstalles, code] })
 }
 

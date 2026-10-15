@@ -5,6 +5,7 @@ import {
   abandonnerContrat,
   accepterContrat,
   acheterAmelioration,
+  debloquerModules,
   contratsDeLaSemaine,
   contratsProposes,
   contratsTutorielFaits,
@@ -85,23 +86,27 @@ describe('installation des modules', () => {
     const e = neuve()
     for (const m of ['CH-1', 'TU-1', 'AL-1']) expect(estInstalle(e, m)).toBe(true)
     for (const m of ['CO-1', 'SX-1', 'TEL', 'DET']) expect(estInstalle(e, m)).toBe(false)
-    expect(prochainModule(e)).toEqual({ code: 'CO-1', nom: 'Codeur', prix: 40 })
+    expect(prochainModule(e)).toEqual({ code: 'CO-1', nom: 'Codeur', ameliorations: 5 })
   })
 
-  it('dans l’ordre : CO-1 40, PB-1 70, LP-1 110, HY-1 160, RE-1 230, MO-1 320, CR-1 420, AN-1 540, SX-1 680', () => {
-    let e = riche(10_000)
-    expect(installer(e, 'PB-1', T0).refus).toBe("Il faut d'abord installer CO-1.")
-    const ordre = [['CO-1', 40], ['PB-1', 70], ['LP-1', 110], ['HY-1', 160], ['RE-1', 230], ['MO-1', 320],
-      ['CR-1', 420], ['AN-1', 540], ['SX-1', 680]] as const
-    for (const [code, prix] of ordre) {
-      const avant = e.credits
-      const r = installer(e, code, T0)
-      expect(r.refus, code).toBeNull()
-      expect(avant - r.etat.credits).toBe(prix)
-      e = r.etat
+  it('les modules ne s’achètent pas : un se débloque toutes les 5 améliorations, dans l’ordre', () => {
+    let e = riche(1_000_000)
+    expect(installer(e, 'CO-1', T0).refus).toBe('CO-1 se débloque à la 5ᵉ amélioration du moteur.')
+    const ordre = ['CO-1', 'PB-1', 'LP-1', 'HY-1', 'RE-1', 'MO-1', 'CR-1', 'AN-1', 'SX-1']
+    for (let n = 1; n <= 45; n++) {
+      e = acheterAmelioration(e, T0).etat
+      const attendus = ordre.slice(0, Math.floor(n / 5))
+      expect(e.modulesInstalles.filter((c) => ordre.includes(c)), `amélioration ${n}`).toEqual(attendus)
     }
     expect(prochainModule(e)).toBeNull()
     expect(installer(e, 'SX-1', T0).refus).toBe('SX-1 est déjà installé.')
+  })
+
+  it('une partie qui avait acheté des modules les garde ; au chargement, ceux dus par le moteur s’ajoutent', () => {
+    const achete = { ...neuve(), modulesInstalles: ['CO-1', 'PB-1'], ameliorations: 3 }
+    expect(debloquerModules(achete).modulesInstalles).toEqual(['CO-1', 'PB-1'])
+    const avance = { ...neuve(), ameliorations: 12 }
+    expect(debloquerModules(avance).modulesInstalles).toEqual(['CO-1', 'PB-1'])
   })
 
   it('instruments de chasse : TEL 250, puis DET 1 200 (DET exige TEL)', () => {
@@ -116,7 +121,7 @@ describe('installation des modules', () => {
   })
 
   it('refusé si les crédits manquent', () => {
-    expect(installer(riche(39), 'CO-1', T0).refus).toBe('Il manque 1 CR.')
+    expect(installer(riche(249), 'TEL', T0).refus).toBe('Il manque 1 CR.')
     expect(installer(riche(39), 'XX-9', T0).refus).toBe("XX-9 n'existe pas.")
   })
 })

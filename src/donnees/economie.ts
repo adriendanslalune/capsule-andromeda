@@ -13,18 +13,23 @@ export const PRIMES_REPARATION: Readonly<Record<string, number>> = {
 /** Modules présents sur une fusée neuve. */
 export const MODULES_DE_BASE = ['CH-1', 'TU-1', 'AL-1'] as const
 
-/** Modules à installer, dans l'ordre obligatoire, avec leur prix (CR). */
-export const MODULES_A_INSTALLER: readonly { code: string; nom: string; prix: number }[] = [
-  { code: 'CO-1', nom: 'Codeur', prix: 40 },
-  { code: 'PB-1', nom: 'Tableau de brassage', prix: 70 },
-  { code: 'LP-1', nom: 'Lampes à vide', prix: 110 },
-  { code: 'HY-1', nom: 'Circuit hydraulique', prix: 160 },
-  { code: 'RE-1', nom: "Recycleur d'air", prix: 230 },
-  { code: 'MO-1', nom: 'Morse', prix: 320 },
-  { code: 'CR-1', nom: 'Chronomètre de bord', prix: 420 },
-  { code: 'AN-1', nom: 'Antenne orientable', prix: 540 },
-  { code: 'SX-1', nom: 'Sextant', prix: 680 },
-]
+/**
+ * Modules du tableau de bord, dans l'ordre. Ils ne s'achètent pas : chacun se débloque (et s'installe) quand le
+ * moteur atteint son nombre d'améliorations, un toutes les 5 (décision d'Adrien du 15/10/2026 ; avant, ils
+ * s'achetaient de 40 à 680 CR).
+ */
+export const MODULES_PAR_AMELIORATIONS = 5
+export const MODULES_A_INSTALLER: readonly { code: string; nom: string; ameliorations: number }[] = [
+  { code: 'CO-1', nom: 'Codeur' },
+  { code: 'PB-1', nom: 'Tableau de brassage' },
+  { code: 'LP-1', nom: 'Lampes à vide' },
+  { code: 'HY-1', nom: 'Circuit hydraulique' },
+  { code: 'RE-1', nom: 'Recycleur d’air' },
+  { code: 'MO-1', nom: 'Morse' },
+  { code: 'CR-1', nom: 'Chronomètre de bord' },
+  { code: 'AN-1', nom: 'Antenne orientable' },
+  { code: 'SX-1', nom: 'Sextant' },
+].map((m, i) => ({ ...m, ameliorations: (i + 1) * MODULES_PAR_AMELIORATIONS }))
 
 /** Instruments de chasse : DET exige TEL. */
 export const INSTRUMENTS: readonly { code: string; nom: string; prix: number; exige: string | null }[] = [
