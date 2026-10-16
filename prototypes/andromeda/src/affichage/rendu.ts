@@ -1,5 +1,5 @@
-// Le dessin de la carte (Canvas 2D) : vue du dessus, dans le plan de l'écliptique. Encre sur papier : le fond (papier
-// bouffant et son grain) est fait en CSS, derrière et devant la toile ; ici, on ne dessine que l'encre.
+// Le dessin de la carte (Canvas 2D) : vue du dessus, dans le plan de l'écliptique. Le fond blanc cassé est fait en CSS,
+// derrière la toile ; ici, on ne dessine que l'encre.
 // Les astres sont à leur taille réelle ; trop petits, ils deviennent des points ; assez grands, les engins prennent
 // leur silhouette et les petites lunes une forme de caillou.
 // Repères à tester, chacun désactivable (voir Reglages) : orbites, symbole du Soleil, noms, flèches vers le Soleil et
@@ -30,7 +30,7 @@ const RAYON_INCONNU = 1.5
 
 export interface Palette { encre: string; papier: string; etoiles: string; orbites: string }
 export const JOUR: Palette = {
-  encre: '#231d19', papier: '#f5efe1', etoiles: 'rgba(35,29,25,0.4)', orbites: 'rgba(35,29,25,0.25)',
+  encre: '#1f1b18', papier: '#f4f1ea', etoiles: 'rgba(31,27,24,0.4)', orbites: 'rgba(31,27,24,0.25)',
 }
 
 export interface Reglages {
