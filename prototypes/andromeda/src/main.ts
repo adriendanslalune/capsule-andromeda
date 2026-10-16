@@ -1,10 +1,10 @@
 // Prototype 1 de « Capsule Andromeda » : la carte du système solaire, à vraie échelle, en temps réel.
-// Étape 1 : la carte seule, avec le zoom et le déplacement.
+// Étape 1 : la carte seule, avec le zoom et le déplacement, et des repères pour s'y retrouver.
 
 import './style.css'
 import { type Camera, ECHELLE_MAX, glisser, raccrocher, zoomer } from './affichage/camera'
 import { Gestes } from './affichage/gestes'
-import { JOUR, dessiner } from './affichage/rendu'
+import { JOUR, REGLAGES_DEPART, dessiner, type Reglages } from './affichage/rendu'
 import { astreDominant, position } from './moteur/corps'
 import { UA_KM } from './moteur/temps'
 
@@ -17,8 +17,25 @@ const infos = document.querySelector<HTMLDivElement>('#infos')!
 /** L'horloge : la vraie heure UTC (le moteur la reçoit en paramètre). */
 const horloge = () => Date.now()
 
-// Départ : la Terre au centre, son orbite basse visible (Hubble, ISS).
-const camera: Camera = { ancre: 'Terre', dx: 0, dy: 0, echelle: 45, largeur: 390, hauteur: 844 }
+// Départ : le Soleil au centre, les planètes intérieures et leurs orbites (on se situe d'abord dans le système).
+const camera: Camera = { ancre: 'Soleil', dx: 0, dy: 0, echelle: 1.3e6, largeur: 390, hauteur: 844 }
+
+// Repères, chacun désactivable (mémorisés dans le navigateur, si possible).
+const CLE_REGLAGES = 'andromeda-reperes'
+const reglages: Reglages = { ...REGLAGES_DEPART }
+try {
+  Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'))
+} catch { /* navigation privée : on garde les réglages de départ */ }
+const panneau = document.querySelector<HTMLDivElement>('#panneau')!
+document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
+for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
+  const cle = caseACocher.dataset.reglage as keyof Reglages
+  caseACocher.checked = reglages[cle]
+  caseACocher.addEventListener('change', () => {
+    reglages[cle] = caseACocher.checked
+    try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ }
+  })
+}
 
 function redimensionner(): void {
   const r = toile.getBoundingClientRect()
@@ -70,7 +87,7 @@ function image(maintenant: number): void {
   gestes.avancer(dt)
   // Réaccrochage de la caméra quand la vue a bougé (au plus 10 fois par seconde).
   if (maintenant - derniereAccroche > 100) { accrocher(t); derniereAccroche = maintenant }
-  const stats = dessiner(ctx, camera, t, JOUR)
+  const stats = dessiner(ctx, camera, t, JOUR, reglages)
 
   const l = longueurRonde(camera.echelle)
   echelleBarre.style.width = `${(l / camera.echelle).toFixed(1)}px`

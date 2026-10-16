@@ -99,3 +99,22 @@ describe('catalogue', () => {
     expect(rayonInfluence('Terre')).toBeLessThan(1_600_000)
   })
 })
+
+describe('orbites tracées', () => {
+  const t = Date.UTC(2026, 9, 16, 12)
+  it("l'ellipse de Pluton passe par Pluton et va de 29 à 50 UA du Soleil", async () => {
+    const { traceOrbite } = await import('../src/moteur/orbite')
+    const points = traceOrbite('Pluton', t)!
+    const distances = points.map((p) => Math.hypot(p.x, p.y, p.z) / UA_KM)
+    expect(Math.min(...distances)).toBeGreaterThan(29)
+    expect(Math.max(...distances)).toBeLessThan(50)
+    const pl = position('Pluton', t)
+    expect(Math.min(...points.map((p) => Math.hypot(p.x - pl.x, p.y - pl.y, p.z - pl.z)))).toBeLessThan(0.05 * UA_KM)
+  })
+  it("l'orbite de Mars passe par Mars", async () => {
+    const { traceOrbite } = await import('../src/moteur/orbite')
+    const m = position('Mars', t)
+    const points = traceOrbite('Mars', t)!
+    expect(Math.min(...points.map((p) => Math.hypot(p.x - m.x, p.y - m.y, p.z - m.z)))).toBeLessThan(1000)
+  })
+})

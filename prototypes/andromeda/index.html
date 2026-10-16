@@ -15,6 +15,15 @@
     <canvas id="carte"></canvas>
     <div id="infos"></div>
     <div id="echelle"><div id="echelle-texte"></div><div id="echelle-barre"></div></div>
+    <button id="bouton-reperes" type="button">Repères</button>
+    <div id="panneau">
+      <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
+      <label><input type="checkbox" data-reglage="soleil" /> Soleil en symbole</label>
+      <label><input type="checkbox" data-reglage="tailles" /> Tailles minimales</label>
+      <label><input type="checkbox" data-reglage="noms" /> Noms</label>
+      <label><input type="checkbox" data-reglage="fleches" /> Flèches Soleil et Terre</label>
+      <label><input type="checkbox" data-reglage="etoiles" /> Étoiles du fond</label>
+    </div>
     <div id="paysage">Tiens ton téléphone à la verticale.</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
