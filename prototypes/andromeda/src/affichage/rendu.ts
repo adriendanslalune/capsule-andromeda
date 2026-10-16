@@ -1,16 +1,19 @@
 // Le dessin de la carte (Canvas 2D) : vue du dessus, dans le plan de l'écliptique. Fond blanc, astres en ronds
-// noirs à leur taille réelle ; un astre plus petit qu'un point devient un point, comme les étoiles du fond.
+// noirs à leur taille réelle ; un astre plus petit qu'un point devient un point. Les étoiles du fond sont plus
+// petites (un pixel) et plus claires, pour ne pas les confondre avec les planètes.
 // Le rendu ne calcule aucune position : il les demande au moteur (corps.ts), et seulement pour ce qui est visible.
 
 import { CORPS, PREMIER_NIVEAU, RAYON_SYSTEME, enfants, position, type Corps } from '../moteur/corps'
 import type { Vecteur3 } from '../moteur/vecteur'
 import { type Camera, projecteur } from './camera'
 
-/** Rayon d'un point (pixels CSS) : étoiles du fond et astres trop petits pour être vus à leur taille. */
+/** Rayon d'un point (pixels CSS) : astres trop petits pour être vus à leur taille. */
 export const RAYON_POINT = 1.3
+/** Côté d'une étoile du fond (pixels CSS). */
+const TAILLE_ETOILE = 1
 
-export interface Palette { fond: string; encre: string }
-export const JOUR: Palette = { fond: '#ffffff', encre: '#000000' }
+export interface Palette { fond: string; encre: string; etoiles: string }
+export const JOUR: Palette = { fond: '#ffffff', encre: '#000000', etoiles: '#a0a0a0' }
 
 /** Étoiles du fond : semées une fois pour toutes, fixes à l'écran (positions de 0 à 1). */
 const ETOILES: { x: number; y: number }[] = (() => {
@@ -36,13 +39,12 @@ export function dessiner(ctx: CanvasRenderingContext2D, camera: Camera, t: numbe
 
   ctx.fillStyle = palette.fond
   ctx.fillRect(0, 0, largeur, hauteur)
+  ctx.fillStyle = palette.etoiles
+  ctx.beginPath()
+  for (const e of ETOILES) ctx.rect(Math.round(e.x * largeur), Math.round(e.y * hauteur), TAILLE_ETOILE, TAILLE_ETOILE)
+  ctx.fill()
   ctx.fillStyle = palette.encre
   ctx.beginPath()
-  for (const e of ETOILES) {
-    const x = e.x * largeur, y = e.y * hauteur
-    ctx.moveTo(x + RAYON_POINT, y)
-    ctx.arc(x, y, RAYON_POINT, 0, 2 * Math.PI)
-  }
 
   let dessines = 0
   const diagonale = Math.hypot(largeur, hauteur)
