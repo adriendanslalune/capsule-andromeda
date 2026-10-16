@@ -11,6 +11,12 @@ export default defineConfig({
   build: {
     outDir: fileURLToPath(new URL('../../dist/andromeda', import.meta.url)),
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        index: fileURLToPath(new URL('./index.html', import.meta.url)),
+        carte2d: fileURLToPath(new URL('./carte2d.html', import.meta.url)),
+      },
+    },
   },
   server: { host: true },
   test: {

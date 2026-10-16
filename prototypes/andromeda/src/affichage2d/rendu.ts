@@ -13,7 +13,7 @@ import { MS_PAR_JOUR } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 import { type Camera, projecteur } from './camera'
 import { dessinerCaillou, dessinerSilhouette, graineDe } from './formes'
-import { positionAffichee, rabattement, type Rabattement } from './triche'
+import { positionAffichee, rabattement, type Rabattement } from '../commun/triche'
 
 /** Rayon d'un point (pixels CSS) : astres trop petits pour être vus à leur taille. */
 export const RAYON_POINT = 1.3

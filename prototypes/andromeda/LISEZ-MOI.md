@@ -14,11 +14,14 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - `src/moteur/` — logique pure, sans affichage : temps, planètes (VSOP87B), Pluton (Meeus), catalogue des astres.
   Réutilise en lecture seule les lunes, la Lune, les orbites TLE et les trajectoires de sondes du jeu.
 - `src/donnees/` — séries VSOP87B générées.
-- `src/affichage/` — caméra, gestes, dessin Canvas 2D. Ne calcule aucune position : les demande au moteur.
+- `src/affichage3d/` — la vue 3D (three.js) : caméra derrière la capsule, astres jour / nuit avec contours, modèles
+  (capsule type Apollo, engins, cailloux), noms et flèches par-dessus. Ne calcule aucune position : les demande au moteur.
+- `src/affichage2d/` — l'ancienne carte vue du dessus (Canvas 2D), gardée pour comparer : `carte2d.html`.
+- `src/commun/` — gestes (glisser, pincer, double toucher) et triche d'affichage des satellites artificiels.
 
 ## Étapes
 
-1. Carte seule, zoom (jusqu'à 1 m par pixel) et déplacement, repères de la vue d'ensemble (orbites, Soleil, noms,
-   flèches), papier bouffant, silhouettes des engins et cailloux ← en cours
+1. Carte seule, zoom et déplacement, repères de la vue d'ensemble (orbites, Soleil, noms, flèches), silhouettes des
+   engins et cailloux ; passage en 3D vue de derrière la capsule ← en cours
 2. Repères (crochet, étiquette, flèche) et capsule
 3. Navigation (deux traits, solveur de Lambert) et trajet ; mode nuit

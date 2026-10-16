@@ -16,7 +16,7 @@ html, body {
   -webkit-touch-callout: none;
   overscroll-behavior: none;
 }
-#carte {
+#carte, #surcouche {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -82,6 +82,7 @@ html, body {
   min-height: 44px;
 }
 #panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
+#panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
 #paysage {
   display: none;
   position: fixed;
@@ -129,5 +130,6 @@ html, body {
   min-height: 44px;
 }
 #panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
+#panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
 #paysage { display: flex; }
 }

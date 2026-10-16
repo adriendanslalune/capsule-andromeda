@@ -40,6 +40,11 @@ export class Gestes {
     }, { passive: false })
   }
 
+  /** Vrai tant qu'un doigt est posé. */
+  get doigts(): boolean {
+    return this.pointeurs.size > 0
+  }
+
   /** Vrai tant que la carte bouge (doigts posés ou élan). */
   get actif(): boolean {
     return this.pointeurs.size > 0 || Math.abs(this.vx) + Math.abs(this.vy) > 2 || Math.abs(this.vz) > 0.02

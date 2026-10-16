@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { positionAffichee, rabattement } from '../src/affichage/triche'
+import { positionAffichee, rabattement } from '../src/commun/triche'
 import { positionRelative } from '../src/moteur/corps'
 
 const t = Date.UTC(2026, 9, 16, 12)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type Camera, centre, glisser, projecteur, raccrocher, zoomer } from '../src/affichage/camera'
+import { type Camera, centre, glisser, projecteur, raccrocher, zoomer } from '../src/affichage2d/camera'
 import { position } from '../src/moteur/corps'
 
 const t = Date.UTC(2026, 9, 16, 12)

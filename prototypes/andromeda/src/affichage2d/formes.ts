@@ -2,7 +2,7 @@
 // Tout est à l'encre (aplats), avec quelques détails en couleur du papier (cellules des panneaux, nombre).
 // Les silhouettes sont décrites en unités d'envergure : 1 = la taille réelle de l'engin.
 
-type Primitive =
+export type Primitive =
   | readonly ['rect', number, number, number, number] // centre x, y ; largeur, hauteur
   | readonly ['panneau', number, number, number, number] // rectangle de cellules solaires
   | readonly ['disque', number, number, number] // centre x, y ; rayon
@@ -54,11 +54,11 @@ const ROADSTER: Primitive[] = [
   ['rect', 0, 0, 1, 0.42], ['disque', -0.3, 0.24, 0.1], ['disque', 0.3, 0.24, 0.1],
   ['disque', -0.3, -0.24, 0.1], ['disque', 0.3, -0.24, 0.1],
 ]
-const SONDE: Primitive[] = [
+export const SONDE: Primitive[] = [
   ['panneau', -0.33, 0, 0.32, 0.18], ['panneau', 0.33, 0, 0.32, 0.18], ['rect', 0, 0, 0.22, 0.22], ['disque', 0, 0, 0.17],
 ]
 
-const SILHOUETTES: Record<string, Primitive[]> = {
+export const SILHOUETTES: Record<string, Primitive[]> = {
   iss: ISS, hubble: HUBBLE, tiangong: TIANGONG, webb: WEBB, juno: JUNO, voyager: VOYAGER, pioneer: PIONEER,
   'new-horizons': NEW_HORIZONS, parker: PARKER, roadster: ROADSTER,
 }

@@ -68,3 +68,19 @@ export function positionAffichee(rel: Vecteur3, r: Rabattement, rayonPlanete: nu
     z: rel.z * w,
   }
 }
+
+/**
+ * Variante pour la vue en 3D : on garde le vrai plan de l'orbite, on écarte seulement le satellite de la planète
+ * (même écart à l'écran, même vitesse angulaire). kmParPixel : taille d'un pixel à la distance de la planète.
+ */
+export function positionAfficheeEspace(rel: Vecteur3, rayonPlanete: number, kmParPixel: number): Vecteur3 {
+  const d = Math.hypot(rel.x, rel.y, rel.z)
+  if (d === 0) return rel
+  const altitude = d - rayonPlanete
+  const ecart = ecartPixels(altitude)
+  const q = Math.min(1, Math.max(0, altitude / kmParPixel / ecart - 1))
+  const w = q * q * (3 - 2 * q)
+  if (w === 1) return rel
+  const k = ((rayonPlanete + ecart * kmParPixel) / d) * (1 - w) + w
+  return { x: rel.x * k, y: rel.y * k, z: rel.z * k }
+}
