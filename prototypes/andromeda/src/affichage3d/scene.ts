@@ -97,6 +97,8 @@ export class Vue3D {
   private couleursPoints = new Float32Array(3 * 2000)
   private orbites = new Map<string, { ligne: THREE.Line; t: number; points: Vecteur3[] | null }>()
   private etoiles: THREE.Points
+  private ligneTrajet: THREE.Line
+  private origine: Vecteur3 = { x: 0, y: 0, z: 0 }
 
   constructor(toile: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas: toile, antialias: true, alpha: true })
@@ -126,6 +128,21 @@ export class Vue3D {
     this.etoiles.frustumCulled = false
     this.etoiles.renderOrder = -10
     this.scene.add(this.etoiles)
+
+    // Le trajet de la capsule : un trait de couleur vive, bien appuyé.
+    const materiau = materiauTrait(0.5)
+    materiau.uniforms.propre.value.copy(CERISE)
+    this.ligneTrajet = new THREE.Line(new THREE.BufferGeometry(), materiau)
+    this.ligneTrajet.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 401), 3))
+    this.ligneTrajet.frustumCulled = false
+    this.ligneTrajet.renderOrder = 3
+    this.ligneTrajet.visible = false
+    this.scene.add(this.ligneTrajet)
+  }
+
+  /** Position à l'écran d'un point de l'espace (héliocentrique, km), d'après la dernière image dessinée. */
+  ecranDe(p: Vecteur3): { x: number; y: number; devant: boolean } {
+    return this.ecran(new THREE.Vector3(p.x - this.origine.x, p.y - this.origine.y, p.z - this.origine.z))
   }
 
   redimensionner(largeur: number, hauteur: number, pixelRatio: number): void {
@@ -223,10 +240,11 @@ export class Vue3D {
   }
 
   /** Dessine l'image à l'instant t et renvoie la place des astres à l'écran (pour les noms et les flèches). */
-  dessiner(t: number, regard: Regard, reglages: ReglagesVue):
-    { capsule: EtatCapsule; capsuleEcran: { x: number; y: number; r: number }; astres: AstreEcran[] } {
+  dessiner(t: number, regard: Regard, reglages: ReglagesVue, trajet: { r: Vecteur3 }[] | null = null):
+    { capsule: EtatCapsule; capsuleEcran: { x: number; y: number; r: number; devant: boolean }; astres: AstreEcran[] } {
     const etat = etatCapsule(t)
     const O = etat.position
+    this.origine = O
 
     // --- Caméra : derrière la capsule, vers l'avant (cap), décalée du regard de l'utilisateur.
     const avant = new THREE.Vector3(etat.cap.x, etat.cap.y, etat.cap.z)
@@ -373,6 +391,16 @@ export class Vue3D {
           attr.needsUpdate = true
         }
       }
+    }
+
+    // Trajet : positions ramenées à la capsule (origine de la scène).
+    this.ligneTrajet.visible = !!trajet && trajet.length > 1
+    if (trajet && trajet.length > 1) {
+      const attr = this.ligneTrajet.geometry.getAttribute('position') as THREE.BufferAttribute
+      const n = Math.min(trajet.length, 401)
+      for (let i = 0; i < n; i++) attr.setXYZ(i, trajet[i].r.x - O.x, trajet[i].r.y - O.y, trajet[i].r.z - O.z)
+      attr.needsUpdate = true
+      this.ligneTrajet.geometry.setDrawRange(0, n)
     }
 
     this.etoiles.visible = reglages.etoiles

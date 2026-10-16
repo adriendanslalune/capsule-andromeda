@@ -28,5 +28,7 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
    capsule — validée.
 2. Carte schématique 2D (distances logarithmiques, niveaux : système solaire / système d'une planète), repères de la
    destination (crochet, étiquette, flèche hors champ), capsule, choix de la destination (toucher ou cadran) ;
-   la vue 3D devient la VUE EXTÉRIEURE, optionnelle ← en cours
-3. Navigation (deux traits, solveur de Lambert) et trajet, accélération du temps pour les essais.
+   la vue 3D devient la VUE EXTÉRIEURE, optionnelle — validée.
+3. Navigation : pointillé vers la destination, vrai trajet (Lambert, `src/moteur/lambert.ts`) jusqu'au point de
+   rendez-vous, durée tirée de la puissance des moteurs (budget de delta-v, réglable), départ, voyage, arrivée en
+   orbite ; accélération du temps pour les essais ← en cours

@@ -10,9 +10,9 @@ export interface CouleursReperes { encre: string; fond: string; accent: string }
 
 const POLICE = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'
 
-/** Marges de l'écran à laisser libres : ligne d'infos en haut, boutons en bas. */
+/** Marges de l'écran à laisser libres : ligne d'infos en haut, boutons et fiche de trajet en bas. */
 export const MARGE_HAUT = 56
-export const MARGE_BAS = 130
+export const MARGE_BAS = 190
 
 /**
  * Dessine les repères d'un astre sélectionné, à la position (x, y) de rayon apparent r (pixels).

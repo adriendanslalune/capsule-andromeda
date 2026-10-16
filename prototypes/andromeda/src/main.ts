@@ -3,6 +3,8 @@
 //    d'une planète). Toucher un astre le choisit comme destination ; le toucher encore ouvre son système.
 //  - La VUE EXTÉRIEURE (optionnelle) : l'espace en 3D, à vraie échelle, depuis derrière la capsule.
 //  - Le CADRAN : la liste des astres, pour choisir une destination sans la chercher sur la carte.
+//  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le vrai trajet (arc de conique
+//    autour du Soleil, problème de Lambert) jusqu'au point de rendez-vous ; le bouton DÉPART lance le voyage.
 
 import './style.css'
 import { RECUL_MAX, RECUL_MIN, Vue3D, type Regard } from './affichage3d/scene'
@@ -13,7 +15,9 @@ import { Cadran } from './carte/cadran'
 import { CAPSULE, Carte2D, aUnSysteme, systemeDe } from './carte/carte'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
+import { suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
+import { Mission, planifier, traceTrajet, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 
 const toile3d = document.querySelector<HTMLCanvasElement>('#vue3d')!
@@ -27,9 +31,22 @@ const titre = document.querySelector<HTMLDivElement>('#titre')!
 const boutonRetour = document.querySelector<HTMLButtonElement>('#bouton-retour')!
 const boutonVue = document.querySelector<HTMLButtonElement>('#bouton-vue')!
 
-/** L'horloge : la vraie heure UTC, précise au-dessous de la milliseconde (le moteur la reçoit en paramètre). */
-const departHorloge = Date.now(), departPerf = performance.now()
-const horloge = () => departHorloge + (performance.now() - departPerf)
+/**
+ * L'horloge : la vraie heure UTC, précise au-dessous de la milliseconde (le moteur la reçoit en paramètre).
+ * Réglage d'essai : on peut accélérer le temps (le temps simulé prend alors de l'avance sur l'heure réelle).
+ */
+let tempsSimule = Date.now()
+let dernierPerf = performance.now()
+let acceleration = 1
+const horloge = () => tempsSimule
+function avancerHorloge(maintenant: number): void {
+  tempsSimule += (maintenant - dernierPerf) * acceleration
+  dernierPerf = maintenant
+}
+
+// La mission de la capsule (orbite, trajet, arrivée) : le moteur la suit.
+const mission = new Mission()
+suivreMission(mission)
 
 const vue = new Vue3D(toile3d)
 const carte = new Carte2D()
@@ -65,6 +82,8 @@ const reglages = {
   // Style retenu par Adrien : Moebius (les styles « à plat », « BD tramée » et « réaliste » restent dans le code).
   style: 'moebius' as Style,
   crochet: true, etiquette: true, fleche: true,
+  /** Puissance des moteurs : budget de delta-v (km/s) — réglage d'essai, valeur à décider avec Adrien. */
+  budget: 60,
 }
 try {
   Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'), { style: 'moebius' })
@@ -73,7 +92,7 @@ const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringif
 const panneau = document.querySelector<HTMLDivElement>('#panneau')!
 document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
-  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'style'>
+  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'style' | 'budget'>
   caseACocher.checked = reglages[cle]
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
@@ -115,6 +134,101 @@ ouvrirNiveau('Soleil')
 
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => choisir(nom), horloge)
 document.querySelector('#bouton-cadran')!.addEventListener('click', () => cadran.ouvrir(selection))
+
+// --- Réglages d'essai : accélération du temps et puissance des moteurs.
+for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acceleration"]')) {
+  bouton.checked = Number(bouton.value) === acceleration
+  bouton.addEventListener('change', () => { acceleration = Number(bouton.value); planAJour = 0 })
+}
+const curseurBudget = document.querySelector<HTMLInputElement>('#budget')!
+const texteBudget = document.querySelector<HTMLSpanElement>('#texte-budget')!
+// Curseur logarithmique : de 5 à 500 km/s.
+const versBudget = (x: number) => Math.round(5 * 100 ** (x / 100))
+const depuisBudget = (b: number) => (100 * Math.log(b / 5)) / Math.log(100)
+curseurBudget.value = String(depuisBudget(reglages.budget))
+texteBudget.textContent = `${reglages.budget} km/s`
+curseurBudget.addEventListener('input', () => {
+  reglages.budget = versBudget(Number(curseurBudget.value))
+  texteBudget.textContent = `${reglages.budget} km/s`
+  memoriser()
+  planAJour = 0
+})
+
+// --- Navigation : trajet prévu vers la destination, fiche de trajet, départ.
+const fiche = document.querySelector<HTMLDivElement>('#trajet')!
+const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
+const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
+let prevision: Planification | null = null
+let previsionPour: string | null = null
+let planAJour = 0
+
+/** Durée lisible : « 3 h 20 min », « 12 j 4 h », « 2 ans 3 mois ». */
+function texteDuree(ms: number): string {
+  const min = ms / 60_000, h = min / 60, j = h / 24
+  if (h < 1) return `${Math.max(1, Math.round(min))} min`
+  if (j < 2) return `${Math.floor(h)} h ${String(Math.round(min % 60)).padStart(2, '0')} min`
+  if (j < 365) return `${Math.floor(j)} j ${Math.round(h % 24)} h`
+  const ans = Math.floor(j / 365.25), mois = Math.round((j % 365.25) / 30.44)
+  return `${ans} an${ans > 1 ? 's' : ''}${mois ? ` ${mois} mois` : ''}`
+}
+const texteDate = (t: number) => new Date(t).toLocaleDateString('fr', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** La destination choisie est-elle là où l'on est déjà (ou la capsule elle-même) ? */
+function dejaLa(t: number): boolean {
+  return !selection || selection === CAPSULE || (mission.phase(t) === 'orbite' && mission.centre(t) === selection)
+}
+
+/** Recalcule le trajet prévu (la destination bouge : une fois par seconde de temps réel, ou si elle change). */
+function prevoir(t: number, maintenant: number): void {
+  if (dejaLa(t) || (mission.phase(t) === 'trajet' && mission.plan?.cible === selection)) {
+    prevision = null
+    previsionPour = selection
+    return
+  }
+  if (selection === previsionPour && maintenant - planAJour < 1000) return
+  prevision = planifier(mission.etatHeliocentrique(t), selection!, t, reglages.budget)
+  previsionPour = selection
+  planAJour = maintenant
+}
+
+function mettreAJourFiche(t: number): void {
+  const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
+  let texte = '', depart = false, libelle = 'DÉPART'
+  if (enRoute) {
+    texte = `<b>EN ROUTE VERS ${enRoute.cible.toUpperCase()}</b><br>arrivée dans ${texteDuree(enRoute.arrivee - t)} · ${texteDate(enRoute.arrivee)}`
+  } else if (selection && dejaLa(t) && selection !== CAPSULE) {
+    texte = `<b>EN ORBITE AUTOUR DE ${selection.toUpperCase()}</b><br>choisissez une autre destination`
+  }
+  if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
+    const dv = `${reglages.budget} km/s`
+    if (prevision.possible) {
+      const p = prevision.plan
+      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
+      depart = true
+      libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
+    } else {
+      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · hors de portée<br>il faudrait ${Math.ceil(prevision.dvMinimum)} km/s (moteurs ${dv})`
+    }
+  }
+  fiche.hidden = !texte
+  if (ficheTexte.innerHTML !== texte) ficheTexte.innerHTML = texte
+  boutonDepart.hidden = !depart
+  boutonDepart.textContent = libelle
+  document.body.classList.toggle('avec-trajet', !!texte)
+}
+
+boutonDepart.addEventListener('click', () => {
+  const t = horloge()
+  if (!selection || dejaLa(t)) return
+  // On recalcule au moment exact du départ.
+  const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.budget)
+  if (!p.possible) return
+  mission.partir(p.plan)
+  prevision = null
+  carteSale = true
+  // La carte montre le voyage : le système solaire si l'on quitte le système d'une planète.
+  if (mode === 'carte' && systemeDe(selection, t) !== carte.niveau) ouvrirNiveau('Soleil')
+})
 
 // --- Bascule carte / vue extérieure.
 function changerMode(nouveau: 'carte' | 'exterieur'): void {
@@ -184,6 +298,40 @@ function infosSelection(t: number): { nom: string; distance: string } | null {
   return { nom: selection, distance: texteDistance(distanceDepuisCapsule(selection, t)) }
 }
 
+/** Dans la vue extérieure : pointillé de la capsule vers la destination, et croix au point de rendez-vous. */
+function dessinerTraits3d(t: number, astres: { corps: { nom: string }; x: number; y: number; devant: boolean }[],
+  capsule: { x: number; y: number; devant: boolean }, rendezVous: { r: { x: number; y: number; z: number } } | null,
+  th: { encre: string; halo: string }): void {
+  ctx3d.save()
+  const cible = selection && !dejaLa(t) ? astres.find((a) => a.corps.nom === selection) : null
+  if (cible && cible.devant && capsule.devant) {
+    ctx3d.setLineDash([3, 5])
+    ctx3d.lineWidth = 1.6
+    ctx3d.strokeStyle = th.encre
+    ctx3d.beginPath()
+    ctx3d.moveTo(capsule.x, capsule.y)
+    ctx3d.lineTo(cible.x, cible.y)
+    ctx3d.stroke()
+    ctx3d.setLineDash([])
+  }
+  if (rendezVous) {
+    const q = vue.ecranDe(rendezVous.r)
+    if (q.devant) {
+      ctx3d.beginPath()
+      ctx3d.arc(q.x, q.y, 7, 0, 2 * Math.PI)
+      ctx3d.moveTo(q.x - 5, q.y - 5); ctx3d.lineTo(q.x + 5, q.y + 5)
+      ctx3d.moveTo(q.x + 5, q.y - 5); ctx3d.lineTo(q.x - 5, q.y + 5)
+      ctx3d.lineWidth = 3.5
+      ctx3d.strokeStyle = th.halo
+      ctx3d.stroke()
+      ctx3d.lineWidth = 1.6
+      ctx3d.strokeStyle = th.encre
+      ctx3d.stroke()
+    }
+  }
+  ctx3d.restore()
+}
+
 let precedent = performance.now()
 let images = 0, debutCompte = precedent
 let dernierDessinCarte = 0
@@ -193,28 +341,43 @@ for (const evenement of ['pointerup', 'click', 'change']) document.addEventListe
 function image(maintenant: number): void {
   const dt = Math.min(0.1, (maintenant - precedent) / 1000)
   precedent = maintenant
+  avancerHorloge(maintenant)
   const t = horloge()
   const th = theme()
   const sel = infosSelection(t)
+  prevoir(t, maintenant)
+  mettreAJourFiche(t)
+  const accent = reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : th.encre
+  // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
+  const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
+  const planTrace = prevision?.possible ? prevision.plan : enRoute
+  let trajet = planTrace ? traceTrajet(planTrace, 200) : null
+  if (trajet && planTrace === enRoute) trajet = trajet.filter((p) => p.t >= t) // seulement ce qui reste à parcourir
+  const rendezVous = planTrace ? { r: planTrace.rendezVous, t: planTrace.arrivee } : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
-  const carteAJour = mode === 'carte' && !gestesCarte.actif && !carteSale && maintenant - dernierDessinCarte < 100
+  const carteAJour = mode === 'carte' && !gestesCarte.actif && !carteSale && acceleration === 1
+    && maintenant - dernierDessinCarte < 100
   if (mode === 'carte' && !carteAJour) {
     dernierDessinCarte = maintenant
     carteSale = false
     gestesCarte.avancer(dt)
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, reglages.style, selection)
+    // Pointillé vers la destination (sa position actuelle), seulement si elle est à ce niveau de la carte.
+    const cibleIci = place && place.r > 0 && selection !== CAPSULE && !dejaLa(t) ? place : null
+    carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo })
     if (place && sel) {
       // Destination dans le système d'une autre planète : on le précise (« Titan (Saturne) »).
       const sys = systemeDe(selection!, t)
       const nom = selection !== CAPSULE && sys !== 'Soleil' && sys !== carte.niveau ? `${sel.nom} (${sys})` : sel.nom
       dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
-        { encre: th.encre, fond: th.halo, accent: reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : th.encre })
+        { encre: th.encre, fond: th.halo, accent })
     }
   } else if (mode === 'exterieur') {
     gestes3d.avancer(dt)
     avancerRecentrage(dt)
-    const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages)
+    const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages, trajet)
     dessinerSurcouche(ctx3d, largeur, hauteur, astres, capsuleEcran, reglages, th, sel, reglages)
+    dessinerTraits3d(t, astres, capsuleEcran, rendezVous, th)
     echelleTexte.textContent = `Recul : ${texteDistance(regard.recul)}`
   }
   images++
@@ -222,11 +385,18 @@ function image(maintenant: number): void {
     const ips = Math.round((images * 1000) / (maintenant - debutCompte))
     images = 0
     debutCompte = maintenant
+    const avance = t - Date.now()
     infos.textContent = `${new Date(t).toISOString().slice(0, 19).replace('T', ' ')} UTC · ${ips} i/s`
+      + (acceleration > 1 || avance > 60_000 ? ` · temps ×${acceleration.toLocaleString('fr')} (+${texteDuree(avance)})` : '')
   }
   requestAnimationFrame(image)
 }
 requestAnimationFrame(image)
 
 // Pour les essais : window.andromeda dans la console.
-Object.assign(window, { andromeda: { regard, vue, carte, choisir: (n: string) => choisir(n), changerMode, ouvrirNiveau } })
+Object.assign(window, {
+  andromeda: {
+    regard, vue, carte, mission, choisir: (n: string) => choisir(n), changerMode, ouvrirNiveau,
+    accelerer: (k: number) => { acceleration = k },
+  },
+})

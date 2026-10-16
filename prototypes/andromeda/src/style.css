@@ -203,6 +203,46 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
 }
 #cadran .distance { font-size: 12px; opacity: 0.7; white-space: nowrap; }
 
+/* Fiche de trajet : au-dessus des boutons, la durée, la date d'arrivée et le bouton DÉPART. */
+#trajet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background: var(--fond);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--encre);
+  font-size: 12px;
+  line-height: 1.45;
+  z-index: 1;
+}
+#trajet[hidden] { display: none; }
+#trajet-texte { flex: 1; }
+#bouton-depart {
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: #d9694f;
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--encre);
+}
+#bouton-depart[hidden] { display: none; }
+body.avec-trajet #echelle { bottom: calc(150px + env(safe-area-inset-bottom)); }
+#panneau .essais { border-bottom: none; font-size: 12px; }
+#panneau .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
+#panneau .essais .choix label { min-height: 40px; gap: 6px; }
+#panneau .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
+
 #paysage {
   display: none;
   position: fixed;
@@ -216,5 +256,45 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
   z-index: 10;
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  #paysage { display: flex; }
+  /* Fiche de trajet : au-dessus des boutons, la durée, la date d'arrivée et le bouton DÉPART. */
+#trajet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background: var(--fond);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--encre);
+  font-size: 12px;
+  line-height: 1.45;
+  z-index: 1;
+}
+#trajet[hidden] { display: none; }
+#trajet-texte { flex: 1; }
+#bouton-depart {
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: #d9694f;
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--encre);
+}
+#bouton-depart[hidden] { display: none; }
+body.avec-trajet #echelle { bottom: calc(150px + env(safe-area-inset-bottom)); }
+#panneau .essais { border-bottom: none; font-size: 12px; }
+#panneau .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
+#panneau .essais .choix label { min-height: 40px; gap: 6px; }
+#panneau .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
+
+#paysage { display: flex; }
 }

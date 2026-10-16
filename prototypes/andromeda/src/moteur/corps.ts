@@ -38,6 +38,8 @@ const RAYON_PLUTON = 1188.3
 
 /** Rapport de masse Soleil / astre (UAI) : sert au rayon de la sphère d'influence. */
 const MASSES: Record<string, number> = { ...RAPPORT_MASSE_SOLEIL, Pluton: 136_047_200 }
+/** Rapport de masse Soleil / astre, pour les planètes et Pluton. */
+export const RAPPORT_MASSE_SOLEIL_ASTRES: Readonly<Record<string, number>> = MASSES
 const DEMI_GRANDS_AXES_UA: Record<string, number> = {
   Mercure: 0.387, Vénus: 0.723, Terre: 1, Mars: 1.524, Jupiter: 5.203, Saturne: 9.537, Uranus: 19.19,
   Neptune: 30.07, Pluton: 39.48,

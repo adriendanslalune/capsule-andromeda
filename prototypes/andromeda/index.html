@@ -23,6 +23,7 @@
     <button id="bouton-vue" type="button">VUE EXTÉRIEURE</button>
     <button id="bouton-reperes" type="button">Repères</button>
     <div id="cadran"></div>
+    <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
     <div id="panneau">
       <div class="groupe">Destination :
         <label><input type="checkbox" data-reglage="crochet" /> Crochet</label>
@@ -35,6 +36,17 @@
       <label><input type="checkbox" data-reglage="fleches" /> Flèches Soleil et Terre (vue ext.)</label>
       <label><input type="checkbox" data-reglage="etoiles" /> Étoiles du fond</label>
       <label><input type="checkbox" data-reglage="fondNoir" /> Fond noir</label>
+      <div class="groupe essais">Essais — accélérer le temps :
+        <div class="choix">
+          <label><input type="radio" name="acceleration" value="1" /> ×1</label>
+          <label><input type="radio" name="acceleration" value="60" /> 1 min/s</label>
+          <label><input type="radio" name="acceleration" value="3600" /> 1 h/s</label>
+          <label><input type="radio" name="acceleration" value="86400" /> 1 j/s</label>
+          <label><input type="radio" name="acceleration" value="2592000" /> 1 mois/s</label>
+        </div>
+        Puissance des moteurs : <span id="texte-budget"></span>
+        <input id="budget" type="range" min="0" max="100" step="1" />
+      </div>
     </div>
     <div id="paysage">Tiens ton téléphone à la verticale.</div>
     <script type="module" src="/src/main.ts"></script>

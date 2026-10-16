@@ -119,7 +119,7 @@ export class Carte2D {
   }
 
   /** Échelle du niveau affiché. */
-  private echelle(t: number): Echelle {
+  echelle(t: number): Echelle {
     if (this.niveau === 'Soleil') return ECHELLE_SOLEIL
     const planete = corps(this.niveau)!
     let loin = 0
@@ -246,7 +246,8 @@ export class Carte2D {
     if (contenu.includes(CAPSULE)) {
       const etat = etatCapsule(t)
       let { x, y } = this.ecran(CAPSULE, t, e)
-      if (this.niveau === 'Soleil') { x += 9; y -= 9 } // posée à côté de la Terre
+      // Dans le système d'une planète, vue du système solaire : posée à côté de sa planète (pas dessus).
+      if (this.niveau === 'Soleil' && systemeDe(CAPSULE, t) !== 'Soleil') { x += 9; y -= 9 }
       const a = Math.atan2(-etat.cap.y, etat.cap.x)
       this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
       ctx.save()
@@ -282,6 +283,77 @@ export class Carte2D {
     }
     const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 40 && cible.y <= this.hauteur - 100
     return { x: cible.x, y: cible.y, r: cible.r, visible }
+  }
+
+  /**
+   * Position à l'écran d'un point de l'espace (héliocentrique, km) à l'instant tPoint, au niveau affiché : dans le
+   * système d'une planète, le point est pris par rapport à la planète AU MÊME INSTANT (le trajet suit la planète).
+   */
+  projeterPoint(r: Vecteur3, tPoint: number, e: Echelle): { x: number; y: number } {
+    const c = this.centre()
+    const o = this.niveau === 'Soleil' ? { x: 0, y: 0, z: 0 } : position(this.niveau, tPoint)
+    const q = projeter(r.x - o.x, r.y - o.y, e, r.z - o.z)
+    return { x: c.x + q.x * this.zoom, y: c.y - q.y * this.zoom }
+  }
+
+  /** Position à l'écran d'un astre déjà dessiné (dont la capsule), ou null. */
+  place(nom: string): { x: number; y: number; r: number } | null {
+    const d = this.dessines.find((x) => x.nom === nom)
+    return d ? { x: d.x, y: d.y, r: d.r } : null
+  }
+
+  /**
+   * Les deux traits de la navigation : le pointillé de la capsule vers la position ACTUELLE de la destination, et
+   * le trajet réel (courbe) jusqu'au point de rendez-vous, marqué d'une croix cerclée.
+   */
+  dessinerTraits(ctx: CanvasRenderingContext2D, t: number, cible: { x: number; y: number } | null,
+    trajet: { t: number; r: Vecteur3 }[] | null, rendezVous: { r: Vecteur3; t: number } | null, accent: string,
+    c: Couleurs2D): void {
+    const e = this.echelle(t)
+    const capsule = this.place(CAPSULE)
+    ctx.save()
+    if (capsule && cible) {
+      ctx.setLineDash([3, 5])
+      ctx.lineWidth = 1.6
+      ctx.strokeStyle = c.encre
+      ctx.beginPath()
+      ctx.moveTo(capsule.x, capsule.y)
+      ctx.lineTo(cible.x, cible.y)
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
+    if (trajet && trajet.length > 1) {
+      ctx.beginPath()
+      // Au niveau du système solaire, la capsule est dessinée à côté de la Terre : le trajet part de son dessin.
+      for (const [i, p] of trajet.entries()) {
+        const q = this.projeterPoint(p.r, p.t, e)
+        if (i === 0 && capsule && this.niveau === 'Soleil') ctx.moveTo(capsule.x, capsule.y)
+        else if (i === 0) ctx.moveTo(q.x, q.y)
+        else ctx.lineTo(q.x, q.y)
+      }
+      ctx.lineJoin = 'round'
+      ctx.lineCap = 'round'
+      ctx.lineWidth = 4.5
+      ctx.strokeStyle = c.encre
+      ctx.stroke()
+      ctx.lineWidth = 2.5
+      ctx.strokeStyle = accent
+      ctx.stroke()
+    }
+    if (rendezVous) {
+      const q = this.projeterPoint(rendezVous.r, rendezVous.t, e)
+      ctx.beginPath()
+      ctx.arc(q.x, q.y, 7, 0, 2 * Math.PI)
+      ctx.moveTo(q.x - 5, q.y - 5); ctx.lineTo(q.x + 5, q.y + 5)
+      ctx.moveTo(q.x + 5, q.y - 5); ctx.lineTo(q.x - 5, q.y + 5)
+      ctx.lineWidth = 3.5
+      ctx.strokeStyle = c.fond
+      ctx.stroke()
+      ctx.lineWidth = 1.6
+      ctx.strokeStyle = c.encre
+      ctx.stroke()
+    }
+    ctx.restore()
   }
 
   /** Disque d'un astre : aplat de sa couleur, face de nuit en trame, cerné d'encre. */
