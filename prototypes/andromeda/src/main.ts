@@ -74,11 +74,11 @@ document.querySelector('#bouton-recentrer')!.addEventListener('click', () => {
 const LIMITE_TANGAGE = (88 * Math.PI) / 180
 const gestes = new Gestes(surcouche, {
   glisser: (dx, dy) => {
-    // On tourne autour de la capsule : le décor suit le doigt.
+    // On tourne autour de la capsule (sens des axes choisi par Adrien après essai sur téléphone).
     recentrage = false
     const radParPx = ((62 * Math.PI) / 180) / hauteur
-    regard.lacet += dx * radParPx
-    regard.tangage = Math.max(-LIMITE_TANGAGE, Math.min(LIMITE_TANGAGE, regard.tangage + dy * radParPx))
+    regard.lacet -= dx * radParPx
+    regard.tangage = Math.max(-LIMITE_TANGAGE, Math.min(LIMITE_TANGAGE, regard.tangage - dy * radParPx))
   },
   zoomer: (f) => { regard.recul = Math.min(RECUL_MAX, Math.max(RECUL_MIN, regard.recul * f)) },
 })
