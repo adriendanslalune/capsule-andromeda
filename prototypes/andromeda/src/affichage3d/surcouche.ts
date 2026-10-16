@@ -1,11 +1,12 @@
 // Ce qui se dessine à plat par-dessus la vue 3D : noms des astres, rayons du Soleil quand il est petit, flèches au
 // bord de l'écran vers le Soleil et la Terre quand ils sont hors champ (ou derrière nous).
 
+import type { Theme } from './materiaux'
 import type { AstreEcran } from './scene'
 
 const POLICE = '11px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
-const ENCRE = '#1f1b18'
-const FOND = '#f4f1ea'
+let ENCRE = '#1f1b18'
+let FOND = '#f4f1ea'
 
 export interface ReglagesSurcouche { soleil: boolean; noms: boolean; fleches: boolean }
 
@@ -26,7 +27,9 @@ function texte(ctx: CanvasRenderingContext2D, s: string, x: number, y: number): 
 }
 
 export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number,
-  astres: AstreEcran[], capsule: { x: number; y: number; r: number }, reglages: ReglagesSurcouche): void {
+  astres: AstreEcran[], capsule: { x: number; y: number; r: number }, reglages: ReglagesSurcouche, theme: Theme): void {
+  ENCRE = theme.encre
+  FOND = theme.halo
   ctx.clearRect(0, 0, largeur, hauteur)
   ctx.font = POLICE
   ctx.textBaseline = 'middle'
@@ -57,7 +60,7 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
     const occupes: { x0: number; y0: number; x1: number; y1: number }[] = []
     const poser = (nom: string, x0: number, y: number): void => {
       const l = ctx.measureText(nom).width
-      if (x0 < 4 || x0 + l > largeur - 4 || y < 40 || y > hauteur - 70) return
+      if (x0 < 4 || x0 + l > largeur - 4 || y < 40 || y > hauteur - 130) return
       const b = { x0: x0 - 2, y0: y - 8, x1: x0 + l + 2, y1: y + 8 }
       if (occupes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0)) return
       occupes.push(b)
@@ -89,7 +92,8 @@ function fleche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number,
   const cx = largeur / 2, cy = hauteur / 2
   let dx = sx - cx, dy = sy - cy
   if (dx === 0 && dy === 0) dy = 1
-  const mx = cx - 22, haut = cy - 50, bas = cy - 70
+  // On évite la ligne d'infos en haut, et le recul et les boutons en bas.
+  const mx = cx - 22, haut = cy - 50, bas = cy - 130
   const k = Math.min(mx / Math.abs(dx || 1e-9), (dy < 0 ? haut : bas) / Math.abs(dy || 1e-9))
   const x = cx + dx * k, y = cy + dy * k
   const a = Math.atan2(dy, dx)

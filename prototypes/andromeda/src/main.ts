@@ -1,10 +1,11 @@
-// Prototype 1 de « Capsule Andromeda », en 3D : l'espace vu depuis derrière la capsule, qui regarde toujours devant
-// elle. Glisser un doigt : on tourne le regard (il revient devant au lâcher). Pincer : on recule ou on se rapproche,
-// de quelques mètres jusqu'à voir tout le système solaire au loin.
+// Prototype 1 de « Capsule Andromeda », en 3D : l'espace vu depuis derrière la capsule. Glisser un doigt : on tourne
+// autour de la capsule, dans toutes les directions ; le bouton RECENTRER replace la caméra derrière elle. Pincer : on
+// recule ou on se rapproche, de quelques mètres jusqu'à voir tout le système solaire au loin.
 
 import './style.css'
 import { Gestes } from './commun/gestes'
 import { RECUL_MAX, RECUL_MIN, Vue3D, type Regard } from './affichage3d/scene'
+import { THEME_JOUR, THEME_NUIT, appliquerTheme } from './affichage3d/materiaux'
 import { dessinerSurcouche } from './affichage3d/surcouche'
 import { UA_KM } from './moteur/temps'
 
@@ -37,7 +38,7 @@ redimensionner()
 
 // Repères, chacun désactivable (mémorisés dans le navigateur, si possible).
 const CLE_REGLAGES = 'andromeda-reperes-3d'
-const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true }
+const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false }
 try {
   Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'))
 } catch { /* navigation privée : on garde les réglages de départ */ }
@@ -49,13 +50,32 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
     try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ }
+    if (cle === 'fondNoir') changerTheme()
   })
 }
 
-const LIMITE_TANGAGE = (80 * Math.PI) / 180
+/** Fond blanc cassé (étoiles noires) ou fond noir (étoiles blanches), au choix du joueur. */
+function changerTheme(): void {
+  const theme = reglages.fondNoir ? THEME_NUIT : THEME_JOUR
+  appliquerTheme(theme)
+  document.documentElement.dataset.theme = reglages.fondNoir ? 'nuit' : 'jour'
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.fond)
+}
+changerTheme()
+
+// RECENTRER : la caméra revient en douceur derrière la capsule.
+let recentrage = false
+document.querySelector('#bouton-recentrer')!.addEventListener('click', () => {
+  // On ramène d'abord l'angle entre −π et π, pour revenir par le plus court chemin.
+  regard.lacet = Math.atan2(Math.sin(regard.lacet), Math.cos(regard.lacet))
+  recentrage = true
+})
+
+const LIMITE_TANGAGE = (88 * Math.PI) / 180
 const gestes = new Gestes(surcouche, {
   glisser: (dx, dy) => {
-    // Le regard suit le doigt : glisser vers la gauche tourne la vue vers la droite, comme si on tirait le décor.
+    // On tourne autour de la capsule : le décor suit le doigt.
+    recentrage = false
     const radParPx = ((62 * Math.PI) / 180) / hauteur
     regard.lacet += dx * radParPx
     regard.tangage = Math.max(-LIMITE_TANGAGE, Math.min(LIMITE_TANGAGE, regard.tangage + dy * radParPx))
@@ -78,15 +98,15 @@ function image(maintenant: number): void {
   const dt = Math.min(0.1, (maintenant - precedent) / 1000)
   precedent = maintenant
   gestes.avancer(dt)
-  // Au lâcher, le regard revient doucement devant la capsule.
-  if (!gestes.doigts) {
-    const k = Math.exp(-dt / 0.4)
+  if (recentrage) {
+    const k = Math.exp(-dt / 0.15)
     regard.lacet *= k
     regard.tangage *= k
+    if (Math.abs(regard.lacet) + Math.abs(regard.tangage) < 1e-4) { regard.lacet = regard.tangage = 0; recentrage = false }
   }
   const t = horloge()
   const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages)
-  dessinerSurcouche(ctx, largeur, hauteur, astres, capsuleEcran, reglages)
+  dessinerSurcouche(ctx, largeur, hauteur, astres, capsuleEcran, reglages, reglages.fondNoir ? THEME_NUIT : THEME_JOUR)
   echelleTexte.textContent = `Recul : ${texteDistance(regard.recul)}`
   images++
   if (maintenant - debutCompte > 500) {

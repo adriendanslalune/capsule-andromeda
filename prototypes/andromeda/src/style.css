@@ -4,6 +4,11 @@
   --encre: #1f1b18;
   --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
+/* Thème inverse, au choix du joueur : fond noir, étoiles blanches. */
+:root[data-theme="nuit"] {
+  --fond: #0e0c0b;
+  --encre: #f4f1ea;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
@@ -27,7 +32,7 @@ html, body {
 #echelle {
   position: fixed;
   left: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: calc(66px + env(safe-area-inset-bottom));
   pointer-events: none;
   font-size: 12px;
 }
@@ -47,7 +52,7 @@ html, body {
   font-size: 10px;
   opacity: 0.55;
 }
-#bouton-reperes {
+#bouton-reperes, #bouton-recentrer {
   position: fixed;
   right: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom));
@@ -61,6 +66,12 @@ html, body {
   border: 2px solid var(--encre);
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
+}
+#bouton-recentrer {
+  right: auto;
+  left: 12px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
 }
 #panneau {
   display: none;
@@ -95,7 +106,7 @@ html, body {
   padding: 16px;
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  #bouton-reperes {
+  #bouton-reperes, #bouton-recentrer {
   position: fixed;
   right: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom));
@@ -109,6 +120,12 @@ html, body {
   border: 2px solid var(--encre);
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
+}
+#bouton-recentrer {
+  right: auto;
+  left: 12px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
 }
 #panneau {
   display: none;

@@ -2,22 +2,59 @@
 //  - Astres ronds : côté jour (clair) et côté nuit (encre), séparés net par le terminateur. Dessinés pixel par pixel
 //    (« imposteur » : un carré face à la caméra, la sphère est calculée dans le fragment) : rondeur parfaite à toute
 //    distance, même au ras de la Terre.
-//  - Contours : un trait d'encre à l'extérieur, un trait blanc juste à l'intérieur. Sur fond clair, on voit le noir ;
-//    devant un objet noir (la face de nuit de la Terre derrière la Lune), on voit le blanc.
+//  - Contours : un trait à l'extérieur de la couleur opposée au fond, un trait de la couleur du fond juste à
+//    l'intérieur. Sur fond clair, on voit le noir ; devant un objet noir (la face de nuit de la Terre derrière la
+//    Lune), on voit le blanc. En thème nuit, c'est l'inverse.
 //  - Objets modelés (capsule, engins, cailloux) : même partage jour / nuit ; contours par « coques » retournées,
 //    élargies d'un nombre fixe de pixels à l'écran.
 // Profondeur : tampon logarithmique (de 1 cm à mille milliards de km dans la même image).
 
 import * as THREE from 'three'
 
-export interface Couleurs { jour: THREE.Color; nuit: THREE.Color; encre: THREE.Color; blanc: THREE.Color }
-
-export const COULEURS: Couleurs = {
-  jour: new THREE.Color('#fbfaf5'),
-  nuit: new THREE.Color('#1f1b18'),
-  encre: new THREE.Color('#1f1b18'),
-  blanc: new THREE.Color('#ffffff'),
+/**
+ * Couleurs de la vue, partagées par tous les matériaux (les uniformes pointent sur ces objets : changer de thème ne
+ * fait que modifier leurs valeurs).
+ */
+export const COULEURS = {
+  jour: new THREE.Color(), // face éclairée
+  nuit: new THREE.Color(), // face de nuit
+  contourExt: new THREE.Color(), // trait extérieur : tranche sur le fond
+  contourInt: new THREE.Color(), // trait intérieur : tranche sur un objet de la couleur du fond
+  point: new THREE.Color(), // astres réduits à un point
+  bordPoint: new THREE.Color(),
+  trait: new THREE.Color(), // orbites
+  etoile: new THREE.Color(), // étoiles du fond
 }
+
+export interface Theme {
+  fond: string
+  encre: string // texte et flèches de la surcouche
+  halo: string // liseré autour du texte
+  jour: string; nuit: string; contourExt: string; contourInt: string
+  point: string; bordPoint: string; trait: string; etoile: string
+}
+
+/** Fond blanc cassé, astres et étoiles à l'encre. */
+export const THEME_JOUR: Theme = {
+  fond: '#f4f1ea', encre: '#1f1b18', halo: '#f4f1ea',
+  jour: '#fbfaf5', nuit: '#1f1b18', contourExt: '#1f1b18', contourInt: '#ffffff',
+  point: '#1f1b18', bordPoint: '#ffffff', trait: '#1f1b18', etoile: '#8c8780',
+}
+
+/**
+ * L'inverse : fond noir, étoiles blanches. Les astres restent éclairés par le Soleil (face de jour claire, face de
+ * nuit sombre) ; les contours s'inversent : blanc à l'extérieur (sur le noir), noir à l'intérieur.
+ */
+export const THEME_NUIT: Theme = {
+  fond: '#0e0c0b', encre: '#f4f1ea', halo: '#0e0c0b',
+  jour: '#f4f1ea', nuit: '#1f1b18', contourExt: '#ffffff', contourInt: '#0e0c0b',
+  point: '#f4f1ea', bordPoint: '#0e0c0b', trait: '#f4f1ea', etoile: '#b8b3aa',
+}
+
+export function appliquerTheme(t: Theme): void {
+  for (const cle of Object.keys(COULEURS) as (keyof typeof COULEURS)[]) COULEURS[cle].set(t[cle])
+}
+appliquerTheme(THEME_JOUR)
 
 /** Uniformes partagés par tous les matériaux (mis à jour une fois par image). */
 export const COMMUNS = {
@@ -43,7 +80,7 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
       estSoleil: { value: soleil ? 1 : 0 },
       versSoleil: { value: new THREE.Vector3(1, 0, 0) }, // direction du Soleil, repère de la caméra
       jour: { value: COULEURS.jour }, nuit: { value: COULEURS.nuit },
-      encre: { value: COULEURS.encre }, blanc: { value: COULEURS.blanc },
+      encre: { value: COULEURS.contourExt }, blanc: { value: COULEURS.contourInt },
     },
     vertexShader: /* glsl */ `
       uniform float rayon, hauteurPx, tanDemiChamp;
@@ -166,7 +203,7 @@ export function materiauCoque(couleur: THREE.Color, largeur: number): THREE.Shad
 /** Points : un rond d'encre cerné de blanc, de taille fixe à l'écran. */
 export function materiauPoints(rayonPx: number): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS, rayonPx: { value: rayonPx }, encre: { value: COULEURS.encre }, blanc: { value: COULEURS.blanc } },
+    uniforms: { ...COMMUNS, rayonPx: { value: rayonPx }, encre: { value: COULEURS.point }, blanc: { value: COULEURS.bordPoint } },
     vertexShader: /* glsl */ `
       ${SOMMET_PROFONDEUR}
       uniform float rayonPx, pixelRatio;
@@ -193,7 +230,7 @@ export function materiauPoints(rayonPx: number): THREE.ShaderMaterial {
 /** Traits (orbites) : encre légère. */
 export function materiauTrait(opacite: number): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS, encre: { value: COULEURS.encre }, opacite: { value: opacite } },
+    uniforms: { ...COMMUNS, encre: { value: COULEURS.trait }, opacite: { value: opacite } },
     transparent: true,
     depthWrite: false,
     vertexShader: /* glsl */ `
@@ -218,7 +255,7 @@ export function materiauTrait(opacite: number): THREE.ShaderMaterial {
 /** Étoiles du fond : petits points gris, sans profondeur (toujours derrière tout). */
 export function materiauEtoiles(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS },
+    uniforms: { ...COMMUNS, etoile: { value: COULEURS.etoile } },
     depthWrite: false,
     depthTest: false,
     vertexShader: /* glsl */ `
@@ -229,6 +266,7 @@ export function materiauEtoiles(): THREE.ShaderMaterial {
         gl_PointSize = 1.0 * pixelRatio;
       }`,
     fragmentShader: /* glsl */ `
-      void main() { gl_FragColor = vec4(0.55, 0.53, 0.5, 1.0); }`,
+      uniform vec3 etoile;
+      void main() { gl_FragColor = vec4(etoile, 1.0); }`,
   })
 }

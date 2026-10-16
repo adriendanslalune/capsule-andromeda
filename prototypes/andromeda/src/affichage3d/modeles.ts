@@ -10,7 +10,7 @@ import { COULEURS, materiauCoque, materiauObjet } from './materiaux'
 const M = 0.001 // un mètre, en km
 
 /**
- * Objet modelé : la forme jour / nuit et ses deux coques (blanche, puis noire autour). Les coques se dessinent
+ * Objet modelé : la forme jour / nuit et ses deux coques (contour intérieur, puis extérieur autour). Les coques se dessinent
  * avant l'objet et ne marquent pas la profondeur : l'objet les recouvre, sauf sur le pourtour.
  */
 export function objetAvecContours(geometrie: THREE.BufferGeometry): THREE.Group {
@@ -21,8 +21,8 @@ export function objetAvecContours(geometrie: THREE.BufferGeometry): THREE.Group 
   if (geometrie.index) lisse.setIndex(geometrie.index)
   const coque = mergeVertices(lisse.index ? lisse.toNonIndexed() : lisse, 1e-7)
   coque.computeVertexNormals()
-  const noire = new THREE.Mesh(coque, materiauCoque(COULEURS.encre, 2.2))
-  const blanche = new THREE.Mesh(coque, materiauCoque(COULEURS.blanc, 1.1))
+  const noire = new THREE.Mesh(coque, materiauCoque(COULEURS.contourExt, 2.2))
+  const blanche = new THREE.Mesh(coque, materiauCoque(COULEURS.contourInt, 1.1))
   const forme = new THREE.Mesh(geometrie, materiauObjet())
   noire.renderOrder = 10
   blanche.renderOrder = 11
