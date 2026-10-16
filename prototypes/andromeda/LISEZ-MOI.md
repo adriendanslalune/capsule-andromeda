@@ -18,6 +18,7 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 
 ## Étapes
 
-1. Carte seule, zoom et déplacement, repères de la vue d'ensemble (orbites, Soleil, tailles, noms, flèches) ← en cours
+1. Carte seule, zoom (jusqu'à 1 m par pixel) et déplacement, repères de la vue d'ensemble (orbites, Soleil, noms,
+   flèches), papier bouffant, silhouettes des engins et cailloux ← en cours
 2. Repères (crochet, étiquette, flèche) et capsule
 3. Navigation (deux traits, solveur de Lambert) et trajet ; mode nuit

@@ -5,17 +5,21 @@ import './style.css'
 import { type Camera, ECHELLE_MAX, glisser, raccrocher, zoomer } from './affichage/camera'
 import { Gestes } from './affichage/gestes'
 import { JOUR, REGLAGES_DEPART, dessiner, type Reglages } from './affichage/rendu'
-import { astreDominant, position } from './moteur/corps'
+import { PREMIER_NIVEAU, astreDominant, enfants, position } from './moteur/corps'
 import { UA_KM } from './moteur/temps'
 
 const toile = document.querySelector<HTMLCanvasElement>('#carte')!
-const ctx = toile.getContext('2d', { alpha: false })!
+const ctx = toile.getContext('2d')!
 const echelleBarre = document.querySelector<HTMLDivElement>('#echelle-barre')!
 const echelleTexte = document.querySelector<HTMLDivElement>('#echelle-texte')!
 const infos = document.querySelector<HTMLDivElement>('#infos')!
 
-/** L'horloge : la vraie heure UTC (le moteur la reçoit en paramètre). */
-const horloge = () => Date.now()
+/**
+ * L'horloge : la vraie heure UTC (le moteur la reçoit en paramètre), avec une précision sous la milliseconde : au
+ * zoom maximal, l'ISS parcourt 8 pixels par milliseconde.
+ */
+const departHorloge = Date.now(), departPerf = performance.now()
+const horloge = () => departHorloge + (performance.now() - departPerf)
 
 // Départ : le Soleil au centre, les planètes intérieures et leurs orbites (on se situe d'abord dans le système).
 const camera: Camera = { ancre: 'Soleil', dx: 0, dy: 0, echelle: 1.3e6, largeur: 390, hauteur: 844 }
@@ -56,24 +60,39 @@ const gestes = new Gestes(toile, {
 // Empêche Safari de zoomer la page elle-même.
 document.addEventListener('gesturestart', (e) => e.preventDefault())
 
-/** Accroche la caméra à l'astre dans la sphère d'influence duquel se trouve le centre de l'écran. */
+/**
+ * Accroche la caméra à l'astre dans la sphère d'influence duquel se trouve le centre de l'écran. De très près, elle
+ * s'accroche à l'objet le plus proche du centre (lune, engin), pour le suivre : l'ISS file à 8 km/s.
+ */
 function accrocher(t: number): void {
   const pos = (nom: string) => position(nom, t)
   const a = pos(camera.ancre)
-  raccrocher(camera, astreDominant({ x: a.x + camera.dx, y: a.y + camera.dy }, t), pos)
+  const centre = { x: a.x + camera.dx, y: a.y + camera.dy }
+  let ancre = astreDominant(centre, t)
+  if (camera.echelle < 5) {
+    const voisins = [...enfants(ancre), ...PREMIER_NIVEAU.filter((c) => c.type === 'sonde')]
+    let meilleur = 200 * camera.echelle
+    for (const c of voisins) {
+      const p = pos(c.nom)
+      const d = Math.hypot(p.x - centre.x, p.y - centre.y)
+      if (d < meilleur) { meilleur = d; ancre = c.nom }
+    }
+  }
+  raccrocher(camera, ancre, pos)
 }
 
 // Barre d'échelle : une longueur ronde qui fait entre 70 et 160 pixels.
 function texteDistance(km: number): string {
   if (km >= 0.1 * UA_KM) return `${(km / UA_KM).toLocaleString('fr')} UA`
   if (km >= 1e6) return `${(km / 1e6).toLocaleString('fr')} million${km >= 2e6 ? 's' : ''} de km`
+  if (km < 1) return `${Math.round(km * 1000).toLocaleString('fr')} m`
   return `${km.toLocaleString('fr')} km`
 }
 function longueurRonde(echelle: number): number {
   const cible = 110 * echelle
   const ronds: number[] = []
   if (cible >= 0.05 * UA_KM) for (const p of [0.1, 1, 10, 100]) for (const m of [1, 2, 5]) ronds.push(m * p * UA_KM)
-  else for (let p = 1; p <= 1e8; p *= 10) for (const m of [1, 2, 5]) ronds.push(m * p)
+  else for (let p = 0.001; p <= 1e8; p *= 10) for (const m of [1, 2, 5]) ronds.push(+(m * p).toPrecision(3))
   return ronds.reduce((a, b) => (Math.abs(Math.log(b / cible)) < Math.abs(Math.log(a / cible)) ? b : a))
 }
 

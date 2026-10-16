@@ -1,15 +1,18 @@
 // La caméra de la carte : quel point de l'espace est au centre de l'écran, et à quelle échelle.
 //
-// Précision : entre le zoom le plus proche (quelques km par pixel) et le plus lointain (des dizaines de millions de km
-// par pixel), le rapport dépasse dix millions. Le centre est donc tenu comme « un astre + un petit décalage », et
+// Précision : entre le zoom le plus proche (un mètre par pixel) et le plus lointain (des dizaines de millions de km
+// par pixel), le rapport dépasse dix milliards. Le centre est donc tenu comme « un astre + un petit décalage », et
 // toutes les positions sont ramenées au centre de la caméra AVANT d'être converties en pixels : aucune grande
 // coordonnée n'arrive jusqu'au dessin, ce qui évite les tremblements.
 // Accrocher la caméra à un astre lui fait aussi suivre cet astre : la Terre ne file pas hors de l'écran à 30 km/s.
 
 import type { Vecteur3 } from '../moteur/vecteur'
 
-/** Échelles extrêmes (km par pixel) : de l'orbite de Hubble à la ceinture de Kuiper et au-delà. */
-export const ECHELLE_MIN = 2
+/**
+ * Échelles extrêmes (km par pixel) : d'un mètre par pixel (on voit la silhouette de l'ISS, 109 m) à la ceinture de
+ * Kuiper et au-delà. Rapport : 5 × 10¹⁰.
+ */
+export const ECHELLE_MIN = 0.001
 export const ECHELLE_MAX = 5e7
 
 export interface Camera {

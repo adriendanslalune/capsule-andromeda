@@ -4,6 +4,6 @@
   "start_url": "./",
   "display": "fullscreen",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff"
+  "background_color": "#f3ecdc",
+  "theme_color": "#f3ecdc"
 }

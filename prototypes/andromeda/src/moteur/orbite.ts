@@ -3,7 +3,7 @@
 //  - Pluton : sa théorie ne vaut que de 1885 à 2099, plus court qu'une période (248 ans) : on trace son ellipse
 //    képlérienne instantanée (orbite « osculatrice »), calculée à partir de sa position et de sa vitesse.
 
-import { corps, position, positionRelative } from './corps'
+import { corps, periodeSatellite, position, positionRelative } from './corps'
 import { satellite } from '../../../../src/astro/satellites'
 import { MS_PAR_JOUR } from './temps'
 import type { Vecteur3 } from './vecteur'
@@ -46,8 +46,8 @@ export function ellipseOsculatrice(r: Vecteur3, v: Vecteur3, mu: number, n: numb
 
 /**
  * Tracé de l'orbite d'un astre à l'instant t : n + 1 points (km). Pour une planète ou Pluton, positions
- * héliocentriques ; pour une lune, positions relatives à sa planète (à ajouter à la position actuelle de la planète).
- * Renvoie null pour ce qui n'a pas d'orbite à tracer (Soleil, sondes, satellites artificiels).
+ * héliocentriques ; pour une lune ou un satellite artificiel, positions relatives à sa planète (à ajouter à la position actuelle de la planète).
+ * Renvoie null pour ce qui n'a pas d'orbite à tracer (Soleil, sondes).
  */
 export function traceOrbite(nom: string, t: number, n = 256): Vecteur3[] | null {
   const c = corps(nom)
@@ -62,7 +62,8 @@ export function traceOrbite(nom: string, t: number, n = 256): Vecteur3[] | null 
   }
   let periode: number | undefined = PERIODES_JOURS[nom]
   if (c.type === 'lune' && periode === undefined) periode = satellite(nom)?.periode
-  if (!periode || (c.type !== 'planete' && c.type !== 'lune')) return null
+  if (c.type === 'satellite') periode = periodeSatellite(nom)
+  if (!periode || c.type === 'sonde' || c.type === 'etoile') return null
   const points: Vecteur3[] = []
   for (let k = 0; k <= n; k++) {
     const tk = t + (k / n - 0.5) * periode * MS_PAR_JOUR

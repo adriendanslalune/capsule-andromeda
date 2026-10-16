@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#f3ecdc" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -13,13 +13,14 @@
   </head>
   <body>
     <canvas id="carte"></canvas>
+    <div id="grain" aria-hidden="true"></div>
+    <div id="mouchetis" aria-hidden="true"></div>
     <div id="infos"></div>
     <div id="echelle"><div id="echelle-texte"></div><div id="echelle-barre"></div></div>
     <button id="bouton-reperes" type="button">Repères</button>
     <div id="panneau">
       <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
       <label><input type="checkbox" data-reglage="soleil" /> Soleil en symbole</label>
-      <label><input type="checkbox" data-reglage="tailles" /> Tailles minimales</label>
       <label><input type="checkbox" data-reglage="noms" /> Noms</label>
       <label><input type="checkbox" data-reglage="fleches" /> Flèches Soleil et Terre</label>
       <label><input type="checkbox" data-reglage="etoiles" /> Étoiles du fond</label>

@@ -27,6 +27,9 @@ export interface Corps {
   parent: string | null
   /** Rayon (km) ; 0 s'il est inconnu ou minuscule (dessiné comme un point). */
   rayon: number
+  /** Engins : silhouette à dessiner et envergure (m). */
+  modele?: string
+  tailleM?: number
 }
 
 const PLANETES = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune'] as const
@@ -55,9 +58,22 @@ export const CORPS: readonly Corps[] = [
   { nom: 'Pluton', type: 'naine', parent: null, rayon: RAYON_PLUTON },
   { nom: 'Lune', type: 'lune', parent: 'Terre', rayon: 1737.4 },
   ...LISTE_SATELLITES.map((s): Corps => ({ nom: s.nom, type: 'lune', parent: s.planete, rayon: s.rayon ?? 0 })),
-  ...[...ORBITES_TLE.keys()].map((nom): Corps => ({ nom, type: 'satellite', parent: 'Terre', rayon: 0 })),
-  ...TRAJECTOIRES.map((t): Corps => ({ nom: t.nom, type: 'sonde', parent: null, rayon: 0 })),
+  ...[...ORBITES_TLE.keys()].map((nom): Corps => ({ nom, type: 'satellite', parent: 'Terre', rayon: 0, ...gabarit(nom) })),
+  ...TRAJECTOIRES.map((t): Corps => ({ nom: t.nom, type: 'sonde', parent: null, rayon: 0, ...gabarit(t.nom) })),
 ]
+
+/** Silhouette et envergure d'un engin (l'ISS fait 109 m ; les autres d'après les fiches du jeu). */
+function gabarit(nom: string): { modele: string; tailleM: number } {
+  if (nom === 'ISS') return { modele: 'iss', tailleM: 109 }
+  const fiche = ENGINS.find((e) => e.nom === nom)
+  return { modele: fiche?.modele ?? 'sonde', tailleM: fiche?.tailleM ?? 10 }
+}
+
+/** Période orbitale d'un satellite artificiel (jours), d'après son orbite publiée. */
+export function periodeSatellite(nom: string): number | undefined {
+  const o = ORBITES_TLE.get(nom)
+  return o ? (2 * Math.PI) / o.no / 1440 : undefined
+}
 
 const PAR_NOM = new Map(CORPS.map((c) => [c.nom, c]))
 
