@@ -63,11 +63,28 @@ export const COMMUNS = {
   tanDemiChamp: { value: Math.tan((55 * Math.PI) / 360) },
   resolution: { value: new THREE.Vector2(390, 844) },
   pixelRatio: { value: 2 },
+  /** Style des astres : 0 à plat (jour / nuit), 1 BD (texture en aplats, ombre tramée), 2 réaliste. */
+  style: { value: 0 },
 }
 
 const PROFONDEUR = /* glsl */ `
   uniform float facteurProfondeur;
   float profondeurLog(float w) { return log2(1.0 + w) * facteurProfondeur * 0.5; }
+`
+
+/**
+ * Ombre en trame d'imprimerie (style BD) : une grille de points inclinée à 45°, fixe à l'écran ; les points
+ * grossissent de la face éclairée (aucun point) vers la nuit (points jointifs), où l'astre prend sa teinte d'ombre.
+ */
+const TRAME = /* glsl */ `
+  uniform float pixelRatio;
+  vec3 trame(vec3 base, float l) {
+    float d = 1.0 - smoothstep(-0.05, 0.55, l);
+    vec2 p = gl_FragCoord.xy / (5.0 * pixelRatio);
+    p = vec2(p.x + p.y, p.x - p.y) * 0.70710678;
+    vec2 f = fract(p) - 0.5;
+    return length(f) < 0.75 * sqrt(d) ? base * 0.22 : base;
+  }
 `
 
 /** Matériau d'un astre rond (imposteur). */
@@ -78,6 +95,10 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
       ...COMMUNS,
       rayon: { value: rayon },
       estSoleil: { value: soleil ? 1 : 0 },
+      carte: { value: null as THREE.Texture | null },
+      aCarte: { value: 0 },
+      corpsDepuisVue: { value: new THREE.Matrix3() }, // repère de la caméra → repère propre de l'astre
+      couleurBase: { value: new THREE.Color('#c9c2b6') }, // sans carte
       versSoleil: { value: new THREE.Vector3(1, 0, 0) }, // direction du Soleil, repère de la caméra
       jour: { value: COULEURS.jour }, nuit: { value: COULEURS.nuit },
       encre: { value: COULEURS.contourExt }, blanc: { value: COULEURS.contourInt },
@@ -103,10 +124,28 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
       }`,
     fragmentShader: /* glsl */ `
       ${PROFONDEUR}
-      uniform float rayon, estSoleil, pixelRatio;
-      uniform vec3 versSoleil, jour, nuit, encre, blanc;
+      ${TRAME}
+      uniform float rayon, estSoleil, style, aCarte;
+      uniform vec3 versSoleil, jour, nuit, encre, blanc, couleurBase;
+      uniform sampler2D carte;
+      uniform mat3 corpsDepuisVue;
       varying vec3 vCentre;
       varying vec3 vQ;
+
+      // Couleur de la surface au point de normale n (repère de la caméra) : carte en longitude / latitude.
+      vec3 surface(vec3 n) {
+        if (aCarte < 0.5) return couleurBase;
+        vec3 b = corpsDepuisVue * n;
+        float u = 0.5 + atan(b.y, b.x) / 6.2831853;
+        float v = 0.5 + asin(clamp(b.z, -1.0, 1.0)) / 3.1415927;
+        // Pas de couture à la longitude 180° : on prend la variation de u la plus petite des deux façons de compter.
+        float u2 = fract(u + 0.5);
+        float ax = dFdx(u), ax2 = dFdx(u2), ay = dFdy(u), ay2 = dFdy(u2);
+        vec2 gx = vec2(abs(ax) < abs(ax2) ? ax : ax2, dFdx(v));
+        vec2 gy = vec2(abs(ay) < abs(ay2) ? ay : ay2, dFdy(v));
+        return textureGrad(carte, vec2(u, v), gx, gy).rgb;
+      }
+
       void main() {
         float d = length(vCentre);
         vec3 c = vCentre / d;
@@ -117,6 +156,8 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
         float e = (lq - rs) / px; // distance au bord, en pixels (négative à l'intérieur)
         float trait = 1.1 * pixelRatio;
         if (e > trait) discard;
+        // Style réaliste : pas de contours.
+        if (style > 1.5 && e > 0.0) discard;
         vec3 couleur;
         vec3 P = vCentre + vQ; // point du plan, pour la profondeur des contours extérieurs
         if (e > 0.0) {
@@ -128,9 +169,18 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
           float v = lq + m * s;
           vec3 n = (s * c + v * qh) / rayon;
           P = vCentre + s * c + v * qh;
-          if (e > -trait) couleur = blanc;
-          else if (estSoleil > 0.5) couleur = jour;
-          else couleur = dot(n, versSoleil) > 0.0 ? jour : nuit;
+          float l = dot(n, versSoleil);
+          if (style < 0.5) {
+            if (e > -trait) couleur = blanc;
+            else if (estSoleil > 0.5) couleur = jour;
+            else couleur = l > 0.0 ? jour : nuit;
+          } else {
+            vec3 base = surface(n);
+            if (estSoleil > 0.5) couleur = base;
+            else if (style < 1.5) couleur = trame(base, l);
+            else couleur = min(base * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
+            if (style < 1.5 && e > -trait) couleur = blanc;
+          }
         }
         gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(-P.z);
@@ -142,10 +192,13 @@ const SOMMET_PROFONDEUR = /* glsl */ `
   varying float vW;
 `
 
-/** Matériau jour / nuit d'un objet modelé. */
+/** Matériau d'un objet modelé : jour / nuit, ombre tramée ou ombre progressive selon le style. */
 export function materiauObjet(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS, versSoleil: { value: new THREE.Vector3(1, 0, 0) }, jour: { value: COULEURS.jour }, nuit: { value: COULEURS.nuit } },
+    uniforms: {
+      ...COMMUNS, versSoleil: { value: new THREE.Vector3(1, 0, 0) }, jour: { value: COULEURS.jour }, nuit: { value: COULEURS.nuit },
+      teinte: { value: new THREE.Color('#d8d4cc') }, // couleur propre (styles BD et réaliste)
+    },
     vertexShader: /* glsl */ `
       ${SOMMET_PROFONDEUR}
       varying vec3 vNormale;
@@ -158,12 +211,19 @@ export function materiauObjet(): THREE.ShaderMaterial {
     fragmentShader: /* glsl */ `
       ${PROFONDEUR}
       ${SOMMET_PROFONDEUR}
-      uniform vec3 versSoleil, jour, nuit;
+      ${TRAME}
+      uniform vec3 versSoleil, jour, nuit, teinte;
+      uniform float style;
       varying vec3 vNormale;
       void main() {
         vec3 n = normalize(vNormale);
         if (!gl_FrontFacing) n = -n;
-        gl_FragColor = vec4(dot(n, versSoleil) > 0.0 ? jour : nuit, 1.0);
+        float l = dot(n, versSoleil);
+        vec3 couleur;
+        if (style < 0.5) couleur = l > 0.0 ? jour : nuit;
+        else if (style < 1.5) couleur = trame(teinte, l);
+        else couleur = min(teinte * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
+        gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,
   })
@@ -193,7 +253,9 @@ export function materiauCoque(couleur: THREE.Color, largeur: number): THREE.Shad
       ${PROFONDEUR}
       ${SOMMET_PROFONDEUR}
       uniform vec3 couleur;
+      uniform float style;
       void main() {
+        if (style > 1.5) discard; // style réaliste : pas de contours
         gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,

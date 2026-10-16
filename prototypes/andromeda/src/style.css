@@ -93,6 +93,12 @@ html, body {
   min-height: 44px;
 }
 #panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
+#panneau .groupe {
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--encre);
+  margin-bottom: 2px;
+}
+#panneau .groupe label { min-height: 40px; }
 #panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
 #paysage {
   display: none;
@@ -147,6 +153,12 @@ html, body {
   min-height: 44px;
 }
 #panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
+#panneau .groupe {
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--encre);
+  margin-bottom: 2px;
+}
+#panneau .groupe label { min-height: 40px; }
 #panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
 #paysage { display: flex; }
 }

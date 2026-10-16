@@ -7,6 +7,7 @@ import { Gestes } from './commun/gestes'
 import { RECUL_MAX, RECUL_MIN, Vue3D, type Regard } from './affichage3d/scene'
 import { THEME_JOUR, THEME_NUIT, appliquerTheme } from './affichage3d/materiaux'
 import { dessinerSurcouche } from './affichage3d/surcouche'
+import type { Style } from './affichage3d/textures'
 import { UA_KM } from './moteur/temps'
 
 const toile = document.querySelector<HTMLCanvasElement>('#carte')!
@@ -38,14 +39,22 @@ redimensionner()
 
 // Repères, chacun désactivable (mémorisés dans le navigateur, si possible).
 const CLE_REGLAGES = 'andromeda-reperes-3d'
-const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false }
+const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false, style: 'plat' as Style }
 try {
   Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'))
 } catch { /* navigation privée : on garde les réglages de départ */ }
 const panneau = document.querySelector<HTMLDivElement>('#panneau')!
 document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
+// Style des astres (à comparer) : à plat, BD tramée, réaliste.
+for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="style"]')) {
+  bouton.checked = bouton.value === reglages.style
+  bouton.addEventListener('change', () => {
+    reglages.style = bouton.value as Style
+    try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ }
+  })
+}
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
-  const cle = caseACocher.dataset.reglage as keyof typeof reglages
+  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'style'>
   caseACocher.checked = reglages[cle]
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked

@@ -17,6 +17,7 @@ import { MS_PAR_JOUR } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 import { COMMUNS, materiauEtoiles, materiauPoints, materiauSphere, materiauTrait } from './materiaux'
 import { geometrieCaillou, geometrieCapsule, geometrieEngin, objetAvecContours } from './modeles'
+import { axesAstre, textureAstre, type Style } from './textures'
 
 /** Champ de vision vertical (degrés). */
 const CHAMP = 62
@@ -37,7 +38,9 @@ export interface Regard {
   tangage: number
 }
 
-export interface ReglagesVue { etoiles: boolean; orbites: boolean }
+export interface ReglagesVue { etoiles: boolean; orbites: boolean; style: Style }
+
+const NUMERO_STYLE: Record<Style, number> = { plat: 0, bd: 1, reel: 2 }
 
 /** Ce que l'affichage 2D par-dessus (noms, flèches) doit savoir d'un astre. */
 export interface AstreEcran {
@@ -59,6 +62,23 @@ const estCaillou = (c: Corps) => c.type === 'lune' && c.rayon < RAYON_MAX_CAILLO
 const grandeLune = (c: Corps) => c.nom === 'Lune' || (c.type === 'lune' && c.rayon >= 100)
 const AVEC_ENFANTS = [...new Set(CORPS.filter((c) => c.parent).map((c) => c.parent!))]
 
+/** Couleur propre d'un astre sans carte (lunes, cailloux) ou d'un engin : des gris chauds, un par objet. */
+function teinteDe(c: Corps): THREE.Color {
+  if (c.type === 'etoile') return new THREE.Color('#f6e7b8')
+  if (c.tailleM) return new THREE.Color('#dcd9d2')
+  const g = [...c.nom].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) & 0xffff, 7) / 0xffff
+  return new THREE.Color().setHSL(0.08 + 0.05 * g, 0.12 + 0.1 * g, 0.45 + 0.3 * ((g * 7) % 1))
+}
+
+/** Donne sa couleur propre à un objet modelé (utilisée par les styles BD et réaliste). */
+function teinter<T extends THREE.Object3D>(objet: T, couleur: THREE.Color): T {
+  objet.traverse((o) => {
+    const mat = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined
+    if (mat?.uniforms?.teinte) mat.uniforms.teinte.value = couleur
+  })
+  return objet
+}
+
 function lisser(x: number): number {
   const q = Math.min(1, Math.max(0, x))
   return q * q * (3 - 2 * q)
@@ -72,7 +92,7 @@ export class Vue3D {
   private hauteur = 844
   private spheres = new Map<string, THREE.Mesh>()
   private modeles = new Map<string, THREE.Group>()
-  private capsule = objetAvecContours(geometrieCapsule())
+  private capsule = teinter(objetAvecContours(geometrieCapsule()), new THREE.Color('#e9e7e1'))
   private points: THREE.Points
   private positionsPoints = new Float32Array(3 * 2000)
   private orbites = new Map<string, { ligne: THREE.Line; t: number; points: Vecteur3[] | null }>()
@@ -140,7 +160,9 @@ export class Vue3D {
   private sphere(c: Corps): THREE.Mesh {
     let m = this.spheres.get(c.nom)
     if (!m) {
-      m = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), materiauSphere(c.rayon, c.type === 'etoile'))
+      const mat = materiauSphere(c.rayon, c.type === 'etoile')
+      mat.uniforms.couleurBase.value.copy(teinteDe(c))
+      m = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat)
       m.frustumCulled = false
       m.renderOrder = 1
       this.spheres.set(c.nom, m)
@@ -156,6 +178,7 @@ export class Vue3D {
         ? objetAvecContours(geometrieCaillou(c.nom))
         : objetAvecContours(geometrieEngin(c.modele ?? 'sonde', c.tailleM ?? 10))
       if (estCaillou(c)) m.scale.setScalar(c.rayon || RAYON_INCONNU)
+      teinter(m, teinteDe(c))
       // Orientation fixe, propre à chaque objet.
       const g = [...c.nom].reduce((s, ch) => s * 31 + ch.charCodeAt(0), 7)
       m.rotation.set((g % 628) / 100, ((g >> 3) % 628) / 100, ((g >> 6) % 628) / 100)
@@ -217,6 +240,8 @@ export class Vue3D {
     COMMUNS.tanDemiChamp.value = Math.tan((CHAMP * Math.PI) / 360)
     const focale = this.hauteur / 2 / Math.tan((CHAMP * Math.PI) / 360)
     const vue = this.camera.matrixWorldInverse
+    COMMUNS.style.value = NUMERO_STYLE[reglages.style]
+    const vueVersMonde = new THREE.Matrix3().setFromMatrix4(vue).transpose()
 
     // --- Positions (une fois par image). Les satellites artificiels sont écartés de la Terre vus de loin (triche).
     const cache = new Map<string, Vecteur3>()
@@ -267,6 +292,18 @@ export class Vue3D {
         objet.visible = true
         objet.position.copy(v)
         const sol = versSoleil(p)
+        if (objet instanceof THREE.Mesh) {
+          // Astre rond : sa carte dans le style choisi, et son orientation réelle (pôle, rotation sur lui-même).
+          const u = (objet.material as THREE.ShaderMaterial).uniforms
+          const tx = textureAstre(c.nom, reglages.style)
+          u.carte.value = tx
+          u.aCarte.value = tx ? 1 : 0
+          if (tx) {
+            const [ax, ay, az] = axesAstre(c.nom, t)
+            const propre = new THREE.Matrix3().set(ax.x, ax.y, ax.z, ay.x, ay.y, ay.z, az.x, az.y, az.z)
+            u.corpsDepuisVue.value.multiplyMatrices(propre, vueVersMonde)
+          }
+        }
         objet.traverse((o) => {
           const mat = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined
           if (mat?.uniforms?.versSoleil) mat.uniforms.versSoleil.value.copy(sol)
