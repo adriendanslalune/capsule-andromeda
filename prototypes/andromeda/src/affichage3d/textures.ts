@@ -17,7 +17,7 @@ import luneLcUrl from '../../../../assets/textures/lune_lc.jpg?url'
 import terreLcUrl from '../../../../assets/textures/terre_lc.jpg?url'
 import { aspectLune } from './couleurs'
 
-export type Style = 'plat' | 'bd' | 'reel'
+export type Style = 'plat' | 'bd' | 'reel' | 'moebius'
 
 const CARTES: Record<string, string> = {
   Soleil: soleilUrl, Mercure: mercureUrl, Vénus: venusUrl, Terre: terreUrl, Mars: marsUrl, Jupiter: jupiterUrl, Lune: luneUrl,
@@ -183,8 +183,9 @@ function enTexture(t: THREE.Texture): THREE.Texture {
 }
 
 /** Texture d'un astre dans un style (chargée à la première demande), ou null s'il n'en a pas. */
-export function textureAstre(nom: string, style: Style): THREE.Texture | null {
-  if (style === 'plat') return null
+export function textureAstre(nom: string, choix: Style): THREE.Texture | null {
+  if (choix === 'plat') return null
+  const style = choix === 'moebius' ? 'bd' : choix // Moebius reprend les cartes en ligne claire
   const cle = `${style}:${nom}`
   if (memoire.has(cle)) return memoire.get(cle)!
   let tx: THREE.Texture | null = null

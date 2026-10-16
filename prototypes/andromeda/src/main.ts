@@ -209,7 +209,7 @@ function image(maintenant: number): void {
       const sys = systemeDe(selection!, t)
       const nom = selection !== CAPSULE && sys !== 'Soleil' && sys !== carte.niveau ? `${sel.nom} (${sys})` : sel.nom
       dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
-        { encre: th.encre, fond: th.halo, accent: reglages.style === 'bd' ? '#e04b37' : th.encre })
+        { encre: th.encre, fond: th.halo, accent: reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : th.encre })
     }
   } else if (mode === 'exterieur') {
     gestes3d.avancer(dt)

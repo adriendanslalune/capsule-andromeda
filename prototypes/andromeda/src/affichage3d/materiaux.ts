@@ -63,7 +63,7 @@ export const COMMUNS = {
   tanDemiChamp: { value: Math.tan((55 * Math.PI) / 360) },
   resolution: { value: new THREE.Vector2(390, 844) },
   pixelRatio: { value: 2 },
-  /** Style des astres : 0 à plat (jour / nuit), 1 BD (texture en aplats, ombre tramée), 2 réaliste. */
+  /** Style des astres : 0 à plat (jour / nuit), 1 BD (ombre tramée), 2 réaliste, 3 Moebius (ombre hachurée). */
   style: { value: 0 },
 }
 
@@ -84,6 +84,20 @@ const TRAME = /* glsl */ `
     p = vec2(p.x + p.y, p.x - p.y) * 0.70710678;
     vec2 f = fract(p) - 0.5;
     return length(f) < 0.75 * sqrt(d) ? base * 0.22 : base;
+  }
+
+  // Style Moebius (essai) : couleurs pastel, ombre en grand aplat coloré (violet), et des hachures fines à 45°
+  // seulement le long du terminateur, plus serrées au milieu de la pénombre ; encre brun-violet.
+  vec3 hachures(vec3 base, float l) {
+    vec3 pastel = mix(base, vec3(0.97, 0.91, 0.80), 0.3);
+    vec3 ombre = mix(pastel, vec3(0.33, 0.26, 0.47), 0.6);
+    vec3 encreM = vec3(0.17, 0.13, 0.22);
+    float d = 1.0 - smoothstep(-0.25, 0.6, l);
+    vec3 c = d > 0.55 ? ombre : pastel;
+    float pas = 4.5 * pixelRatio;
+    float f = abs(fract((gl_FragCoord.x + gl_FragCoord.y) / pas) - 0.5) * 2.0;
+    float bande = sin(3.14159 * clamp((d - 0.12) / 0.75, 0.0, 1.0));
+    return f < bande * 0.36 ? encreM : c;
   }
 `
 
@@ -157,7 +171,7 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
         float trait = 1.1 * pixelRatio;
         if (e > trait) discard;
         // Style réaliste : pas de contours.
-        if (style > 1.5 && e > 0.0) discard;
+        if (style > 1.5 && style < 2.5 && e > 0.0) discard;
         vec3 couleur;
         vec3 P = vCentre + vQ; // point du plan, pour la profondeur des contours extérieurs
         if (e > 0.0) {
@@ -178,8 +192,9 @@ export function materiauSphere(rayon: number, soleil = false): THREE.ShaderMater
             vec3 base = surface(n);
             if (estSoleil > 0.5) couleur = base;
             else if (style < 1.5) couleur = trame(base, l);
+            else if (style > 2.5) couleur = hachures(base, l);
             else couleur = min(base * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
-            if (style < 1.5 && e > -trait) couleur = blanc;
+            if ((style < 1.5 || style > 2.5) && e > -trait) couleur = blanc;
           }
         }
         gl_FragColor = vec4(couleur, 1.0);
@@ -228,6 +243,7 @@ export function materiauObjet(): THREE.ShaderMaterial {
         vec3 couleur;
         if (style < 0.5) couleur = l > 0.0 ? jour : nuit;
         else if (style < 1.5) couleur = trame(base, l);
+        else if (style > 2.5) couleur = hachures(base, l);
         else couleur = min(base * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
         gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(vW);
@@ -261,7 +277,7 @@ export function materiauCoque(couleur: THREE.Color, largeur: number): THREE.Shad
       uniform vec3 couleur;
       uniform float style;
       void main() {
-        if (style > 1.5) discard; // style réaliste : pas de contours
+        if (style > 1.5 && style < 2.5) discard; // style réaliste : pas de contours
         gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,
@@ -298,7 +314,8 @@ export function materiauPoints(rayonPx: number): THREE.ShaderMaterial {
         float r = length(gl_PointCoord * 2.0 - 1.0) * (rayonPx + 1.0);
         if (r > rayonPx + 1.0) discard;
         // Style BD : un rond de la couleur de l'astre, cerné d'encre. Sinon : encre cernée de la couleur du fond.
-        vec3 c = style > 0.5 && style < 1.5 ? (r < rayonPx ? vTeinte : cerne) : (r < rayonPx ? encre : blanc);
+        bool enCouleurs = (style > 0.5 && style < 1.5) || style > 2.5;
+        vec3 c = enCouleurs ? (r < rayonPx ? vTeinte : cerne) : (r < rayonPx ? encre : blanc);
         gl_FragColor = vec4(c, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,
@@ -325,7 +342,7 @@ export function materiauTrait(opacite: number): THREE.ShaderMaterial {
       uniform float opacite, style;
       void main() {
         // Style BD : l'orbite prend la couleur de son astre, un peu plus appuyée.
-        bool bd = style > 0.5 && style < 1.5;
+        bool bd = (style > 0.5 && style < 1.5) || style > 2.5;
         gl_FragColor = vec4(bd ? propre : encre, bd ? min(1.0, opacite * 2.2) : opacite);
         gl_FragDepth = profondeurLog(vW);
       }`,

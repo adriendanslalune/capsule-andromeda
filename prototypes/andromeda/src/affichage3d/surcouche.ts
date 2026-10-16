@@ -54,7 +54,7 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
       ctx.moveTo(soleil.x + r0 * Math.cos(a), soleil.y + r0 * Math.sin(a))
       ctx.lineTo(soleil.x + r1 * Math.cos(a), soleil.y + r1 * Math.sin(a))
     }
-    const bd = reglages.style === 'bd'
+    const bd = reglages.style === 'bd' || reglages.style === 'moebius'
     ctx.lineCap = 'round'
     if (bd) {
       // Rayons moutarde cernés d'encre.
@@ -101,7 +101,7 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
     if (a) {
       const visible = a.devant && !a.cache && dansEcran(a)
       dessinerReperes(ctx, largeur, hauteur, a.x, a.y, Math.min(a.r, 80), visible, selection.nom, selection.distance, reperes,
-        { encre: ENCRE, fond: FOND, accent: reglages.style === 'bd' ? '#e04b37' : ENCRE })
+        { encre: ENCRE, fond: FOND, accent: reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : ENCRE })
     }
   }
 
@@ -110,7 +110,7 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
       const a = astres.find((x) => x.corps.nom === nom)
       // Flèche seulement si l'astre (son disque entier) est hors de l'écran ou derrière nous.
       const horsEcran = a && (a.x + a.r < 0 || a.x - a.r > largeur || a.y + a.r < 0 || a.y - a.r > hauteur)
-      if (a && (!a.devant || horsEcran)) fleche(ctx, largeur, hauteur, nom, a.x, a.y, reglages.style === 'bd' ? COULEUR_FLECHE[nom] : ENCRE)
+      if (a && (!a.devant || horsEcran)) fleche(ctx, largeur, hauteur, nom, a.x, a.y, reglages.style === 'bd' || reglages.style === 'moebius' ? COULEUR_FLECHE[nom] : ENCRE)
     }
   }
 }

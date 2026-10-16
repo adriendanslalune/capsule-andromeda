@@ -66,6 +66,39 @@ function trame(ctx: CanvasRenderingContext2D, couleur: string, densite: number, 
   return m
 }
 
+// Hachures (style Moebius) : traits parallèles à 45°, ou croisés, préparés une fois.
+const HACHURES = new Map<string, CanvasPattern>()
+function hachure(ctx: CanvasRenderingContext2D, couleur: string, epaisseur: number, croisee: boolean,
+  pixelRatio: number): CanvasPattern {
+  const cle = `${couleur}:${epaisseur}:${croisee}:${pixelRatio}`
+  let m = HACHURES.get(cle)
+  if (!m) {
+    const cote = Math.round(4.5 * pixelRatio)
+    const c = document.createElement('canvas')
+    c.width = c.height = cote
+    const g = c.getContext('2d')!
+    g.strokeStyle = couleur
+    g.lineWidth = epaisseur * pixelRatio
+    g.beginPath()
+    for (const k of [-1, 0, 1]) { g.moveTo(k * cote, cote); g.lineTo(k * cote + cote, 0) }
+    if (croisee) for (const k of [-1, 0, 1]) { g.moveTo(k * cote, 0); g.lineTo(k * cote + cote, cote) }
+    g.stroke()
+    m = ctx.createPattern(c, 'repeat')!
+    m.setTransform(new DOMMatrix().scale(1 / pixelRatio))
+    HACHURES.set(cle, m)
+  }
+  return m
+}
+
+/** Mélange deux couleurs « #rrggbb » (k = part de la seconde). */
+function melanger(a: string, b: string, k: number): string {
+  const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16)
+  const canal = (d: number) => Math.round(((x >> d) & 255) * (1 - k) + ((y >> d) & 255) * k)
+  return `#${((canal(16) << 16) | (canal(8) << 8) | canal(0)).toString(16).padStart(6, '0')}`
+}
+
+const ENCRE_MOEBIUS = '#2b2138'
+
 export class Carte2D {
   /** Niveau affiché : 'Soleil' (le système solaire) ou une planète. */
   niveau = 'Soleil'
@@ -77,6 +110,7 @@ export class Carte2D {
   hauteur = 844
   pixelRatio = 2
   private dessines: Dessine[] = []
+  private moebius = false
   private orbites = new Map<string, { t: number; points: Vecteur3[] | null }>()
 
   /** Centre de la carte à l'écran (entre la ligne d'infos et les boutons). */
@@ -140,7 +174,15 @@ export class Carte2D {
     const centre = this.centre()
     ctx.clearRect(0, 0, this.largeur, this.hauteur)
     const bd = style !== 'plat'
-    const couleurDe = (c: Corps) => (bd ? `#${couleurAstre(c).getHexString()}` : couleurs.fond)
+    const moebius = style === 'moebius'
+    this.moebius = moebius
+    // Moebius : couleurs adoucies vers le sable, encre brun-violet.
+    const couleurDe = (c: Corps) => {
+      if (!bd) return couleurs.fond
+      const k = `#${couleurAstre(c).getHexString()}`
+      return moebius ? melanger(k, '#f7e8cc', 0.3) : k
+    }
+    if (moebius && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
 
     // Ceintures (au niveau du système solaire) : astéroïdes de 2,2 à 3,3 UA, Kuiper de 30 à 50 UA, en trame légère.
     if (this.niveau === 'Soleil') {
@@ -158,7 +200,7 @@ export class Carte2D {
     // Orbites : les vraies trajectoires, projetées point par point.
     const contenu = this.contenu(t)
     if (reglages.orbites) {
-      ctx.lineWidth = 1.3
+      ctx.lineWidth = moebius ? 0.9 : 1.3
       for (const nom of contenu) {
         const c = corps(nom)
         if (!c || nom === this.niveau) continue
@@ -254,6 +296,35 @@ export class Carte2D {
       ctx.clip()
       // Demi-plan opposé au Soleil : trame claire près du terminateur, trame serrée au-delà.
       const ux = Math.cos(versSoleil), uy = Math.sin(versSoleil)
+      const demiPlan = (debut: number) => {
+        ctx.beginPath()
+        const px = -ux * debut * r, py = -uy * debut * r
+        ctx.moveTo(x + px - uy * 2 * r, y + py + ux * 2 * r)
+        ctx.lineTo(x + px + uy * 2 * r, y + py - ux * 2 * r)
+        ctx.lineTo(x + px + uy * 2 * r - ux * 3 * r, y + py - ux * 2 * r - uy * 3 * r)
+        ctx.lineTo(x + px - uy * 2 * r - ux * 3 * r, y + py + ux * 2 * r - uy * 3 * r)
+        ctx.closePath()
+      }
+      if (this.moebius) {
+        // Ombre en aplat coloré (violet), hachures seulement le long du terminateur.
+        const ombre = melanger(couleur, '#54437a', 0.6)
+        demiPlan(0.1)
+        ctx.fillStyle = ombre
+        ctx.fill()
+        demiPlan(-0.2)
+        ctx.fillStyle = hachure(ctx, c.encre, 0.8, false, this.pixelRatio)
+        ctx.fill()
+        demiPlan(0.5)
+        ctx.fillStyle = ombre
+        ctx.fill()
+        ctx.restore()
+        ctx.beginPath()
+        ctx.arc(x, y, r, 0, 2 * Math.PI)
+        ctx.lineWidth = r > 15 ? 1.6 : 1
+        ctx.strokeStyle = c.encre
+        ctx.stroke()
+        return
+      }
       for (const [debut, densite] of [[0, 0.55], [0.4, 0.95]] as const) {
         ctx.beginPath()
         const px = -ux * debut * r, py = -uy * debut * r

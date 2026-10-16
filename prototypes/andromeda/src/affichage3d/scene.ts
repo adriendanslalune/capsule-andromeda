@@ -41,7 +41,7 @@ export interface Regard {
 
 export interface ReglagesVue { etoiles: boolean; orbites: boolean; style: Style }
 
-const NUMERO_STYLE: Record<Style, number> = { plat: 0, bd: 1, reel: 2 }
+const NUMERO_STYLE: Record<Style, number> = { plat: 0, bd: 1, reel: 2, moebius: 3 }
 
 /** Ce que l'affichage 2D par-dessus (noms, flèches) doit savoir d'un astre. */
 export interface AstreEcran {
