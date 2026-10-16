@@ -1,7 +1,9 @@
 :root {
-  /* Fond blanc cassé, encre presque noire. */
+  /* Fond blanc cassé (choix d'Adrien), encre presque noire ; palette du jeu pour les aplats. */
   --fond: #f4f1ea;
   --encre: #1f1b18;
+  --moutarde: #f2b53a;
+  --creme: #faf2dc;
   --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 /* Thème inverse, au choix du joueur : fond noir, étoiles blanches. */
@@ -21,7 +23,7 @@ html, body {
   -webkit-touch-callout: none;
   overscroll-behavior: none;
 }
-#carte, #surcouche {
+#plan, #vue3d, #surcouche {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -29,7 +31,24 @@ html, body {
   touch-action: none;
   display: block;
 }
-#echelle, #infos {
+
+/* Deux modes : la carte (2D) ou la vue extérieure (3D). */
+body[data-mode="carte"] #vue3d, body[data-mode="carte"] #surcouche, body[data-mode="carte"] #echelle,
+body[data-mode="carte"] #bouton-recentrer { display: none; }
+body[data-mode="exterieur"] #plan, body[data-mode="exterieur"] #titre-carte,
+body[data-mode="exterieur"] #bouton-cadran { display: none; }
+
+#infos {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  top: calc(10px + env(safe-area-inset-top));
+  pointer-events: none;
+  font-size: 10px;
+  opacity: 0.55;
+  z-index: 1;
+}
+#echelle, #infos, #titre {
   /* liseré de la couleur du fond, pour rester lisible devant un astre */
   text-shadow: -1px -1px 0 var(--fond), 1px -1px 0 var(--fond), -1px 1px 0 var(--fond), 1px 1px 0 var(--fond);
 }
@@ -40,56 +59,67 @@ html, body {
   pointer-events: none;
   font-size: 12px;
 }
-#echelle-barre {
-  height: 6px;
-  border: 2px solid var(--encre);
-  border-top: none;
-  margin-top: 3px;
-}
-#infos {
+#titre-carte {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  z-index: 1;
-  top: calc(10px + env(safe-area-inset-top));
-  pointer-events: none;
-  font-size: 10px;
-  opacity: 0.55;
-}
-#bouton-reperes, #bouton-recentrer {
-  position: fixed;
+  left: 12px;
   right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  min-width: 44px;
-  height: 44px;
-  padding: 0 14px;
+  top: calc(26px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+#titre { font-size: 12px; font-weight: bold; letter-spacing: 0.08em; }
+#bouton-retour {
+  pointer-events: auto;
+  min-height: 44px;
+  padding: 0 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--encre);
-  background: var(--fond);
+  background: var(--creme);
   border: 2px solid var(--encre);
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
 }
-#bouton-recentrer {
-  right: auto;
-  left: 12px;
-  background: #f2b53a; /* moutarde, palette du jeu */
-  color: #1f1b18;
+:root[data-theme="nuit"] #bouton-retour { background: var(--fond); }
+#bouton-retour[hidden] { display: none; }
+
+/* Boutons du bas : CADRAN (carte) ou RECENTRER (vue extérieure) à gauche, la bascule au milieu, Repères à droite. */
+#bouton-cadran, #bouton-recentrer, #bouton-vue, #bouton-reperes {
+  position: fixed;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
   font-weight: bold;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  color: #1f1b18;
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--encre);
 }
+#bouton-cadran, #bouton-recentrer { left: 12px; background: var(--moutarde); }
+#bouton-vue { left: 50%; transform: translateX(-50%); }
+#bouton-reperes { right: 12px; font-weight: normal; }
+
 #panneau {
   display: none;
   position: fixed;
   right: 12px;
   bottom: calc(66px + env(safe-area-inset-bottom));
+  max-height: calc(100dvh - 130px);
+  overflow-y: auto;
   padding: 4px 12px;
   background: var(--fond);
   border: 2px solid var(--encre);
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
   font-size: 14px;
+  z-index: 2;
 }
 #panneau.ouvert { display: block; }
 #panneau label {
@@ -105,7 +135,74 @@ html, body {
   margin-bottom: 2px;
 }
 #panneau .groupe label { min-height: 40px; }
-#panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
+
+/* Cadran de navigation : une feuille qui monte du bas, la liste des astres et leur distance. */
+#cadran {
+  display: none;
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  top: calc(48px + env(safe-area-inset-top));
+  flex-direction: column;
+  background: var(--fond);
+  border: 2.5px solid var(--encre);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--encre);
+  z-index: 3;
+}
+#cadran.ouvert { display: flex; }
+#cadran .entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 2px solid var(--encre);
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  background: var(--moutarde);
+  color: #1f1b18;
+  border-radius: 9px 9px 0 0;
+}
+#cadran .entete button, #cadran .deplier {
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--encre);
+  background: transparent;
+  border: none;
+}
+#cadran .entete button { color: #1f1b18; font-weight: bold; }
+#cadran .liste { overflow-y: auto; padding: 4px 0 12px; }
+#cadran h3 {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 14px 4px;
+  opacity: 0.6;
+}
+#cadran .ligne { display: flex; align-items: stretch; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#cadran .ligne.retrait .astre { padding-left: 34px; }
+#cadran .ligne.choisie { background: color-mix(in srgb, #e04b37 18%, transparent); }
+#cadran .astre {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--encre);
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+#cadran .distance { font-size: 12px; opacity: 0.7; white-space: nowrap; }
+
 #paysage {
   display: none;
   position: fixed;
@@ -116,57 +213,8 @@ html, body {
   text-align: center;
   font-size: 16px;
   padding: 16px;
+  z-index: 10;
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  #bouton-reperes, #bouton-recentrer {
-  position: fixed;
-  right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  min-width: 44px;
-  height: 44px;
-  padding: 0 14px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--encre);
-  background: var(--fond);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
-}
-#bouton-recentrer {
-  right: auto;
-  left: 12px;
-  background: #f2b53a; /* moutarde, palette du jeu */
-  color: #1f1b18;
-  font-weight: bold;
-  letter-spacing: 0.05em;
-}
-#panneau {
-  display: none;
-  position: fixed;
-  right: 12px;
-  bottom: calc(66px + env(safe-area-inset-bottom));
-  padding: 4px 12px;
-  background: var(--fond);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
-  font-size: 14px;
-}
-#panneau.ouvert { display: block; }
-#panneau label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-}
-#panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
-#panneau .groupe {
-  padding: 6px 0 4px;
-  border-bottom: 1px solid var(--encre);
-  margin-bottom: 2px;
-}
-#panneau .groupe label { min-height: 40px; }
-#panneau a { display: flex; align-items: center; min-height: 44px; color: var(--encre); }
-#paysage { display: flex; }
+  #paysage { display: flex; }
 }

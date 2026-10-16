@@ -6,6 +6,8 @@ export interface ActionsCarte {
   glisser(dx: number, dy: number): void
   /** facteur > 1 : on s'éloigne ; (sx, sy) : point de l'écran qui reste fixe. */
   zoomer(facteur: number, sx: number, sy: number): void
+  /** Toucher bref, sans glisser (si fourni : il remplace le zoom du double toucher). */
+  toucher?(x: number, y: number): void
 }
 
 interface Point { x: number; y: number }
@@ -120,7 +122,10 @@ export class Gestes {
     if (maintenant - this.dernierMouvement > 80) this.vx = this.vy = this.vz = 0
     if (this.pointeurs.size === 1) this.vx = this.vy = 0 // fin d'un pincement : seul le zoom garde son élan
     this.vz = Math.max(-ELAN_ZOOM_MAX, Math.min(ELAN_ZOOM_MAX, this.vz))
-    if (this.pointeurs.size === 0 && this.touche && !this.touche.bouge && maintenant - this.touche.t < 300) {
+    if (this.pointeurs.size === 0 && this.touche && !this.touche.bouge && maintenant - this.touche.t < 300 && this.actions.toucher) {
+      this.vx = this.vy = this.vz = 0
+      this.actions.toucher(this.touche.x, this.touche.y)
+    } else if (this.pointeurs.size === 0 && this.touche && !this.touche.bouge && maintenant - this.touche.t < 300) {
       const d = this.dernierToucher
       if (d && maintenant - d.t < 350 && Math.hypot(d.x - this.touche.x, d.y - this.touche.y) < 40) {
         // Double toucher : zoom vers ce point, en douceur (l'élan fait tout le chemin).

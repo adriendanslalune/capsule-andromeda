@@ -4,7 +4,7 @@
 
 import * as THREE from 'three'
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { SILHOUETTES, SONDE, graineDe, type Primitive } from '../affichage2d/formes'
+import { SILHOUETTES, SONDE, graineDe, type Primitive } from './plans'
 import { PALETTE } from './couleurs'
 import { COULEURS, materiauCoque, materiauObjet } from './materiaux'
 

@@ -1,6 +1,7 @@
 // Ce qui se dessine à plat par-dessus la vue 3D : noms des astres, rayons du Soleil quand il est petit, flèches au
 // bord de l'écran vers le Soleil et la Terre quand ils sont hors champ (ou derrière nous).
 
+import { dessinerReperes, type ReglagesReperes } from '../commun/reperes'
 import type { Theme } from './materiaux'
 import type { AstreEcran } from './scene'
 
@@ -30,7 +31,8 @@ function texte(ctx: CanvasRenderingContext2D, s: string, x: number, y: number): 
 }
 
 export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number,
-  astres: AstreEcran[], capsule: { x: number; y: number; r: number }, reglages: ReglagesSurcouche, theme: Theme): void {
+  astres: AstreEcran[], capsule: { x: number; y: number; r: number }, reglages: ReglagesSurcouche, theme: Theme,
+  selection: { nom: string; distance: string } | null, reperes: ReglagesReperes): void {
   ENCRE = theme.encre
   FOND = theme.halo
   ctx.clearRect(0, 0, largeur, hauteur)
@@ -85,10 +87,21 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
     const candidats = astres.filter((a) => a.devant && !a.cache && dansEcran(a))
       .sort((a, b) => priorite(a) - priorite(b) || a.distance - b.distance)
     for (const a of candidats) {
+      if (a.corps.nom === selection?.nom) continue // elle a son étiquette
       // Petites lunes : seulement de près (quand on les voit en caillou).
       if (a.corps.type === 'lune' && !grandeLune(a) && a.r < 2.5) continue
       const decalage = a.corps.type === 'etoile' && reglages.soleil && a.r < 30 ? 13 : 6
       poser(a.corps.nom, a.x + Math.min(a.r, 60) + decalage, a.y)
+    }
+  }
+
+  // Destination choisie : crochet, étiquette, ou flèche si elle est hors champ (ou cachée derrière nous).
+  if (selection) {
+    const a = selection.nom === 'Andromeda' ? { ...capsule, devant: true, cache: false } : astres.find((x) => x.corps.nom === selection.nom)
+    if (a) {
+      const visible = a.devant && !a.cache && dansEcran(a)
+      dessinerReperes(ctx, largeur, hauteur, a.x, a.y, Math.min(a.r, 80), visible, selection.nom, selection.distance, reperes,
+        { encre: ENCRE, fond: FOND, accent: reglages.style === 'bd' ? '#e04b37' : ENCRE })
     }
   }
 

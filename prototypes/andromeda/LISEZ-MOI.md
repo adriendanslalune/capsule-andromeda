@@ -19,12 +19,14 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - Style retenu par Adrien : BD tramée, en couleurs (palette du jeu, `src/affichage3d/couleurs.ts`), sur fond blanc cassé (les autres styles restent dans « Repères » pour comparer) :
   à plat, BD tramée (cartes en ligne claire, ombre en trame
   d'imprimerie), réaliste (cartes NASA de Solar System Scope, CC BY 4.0, déjà dans `assets/textures/`).
-- `src/affichage2d/` — l'ancienne carte vue du dessus (Canvas 2D), gardée pour comparer : `carte2d.html`.
+- `src/carte/` — la carte schématique (2D, distances écrasées, deux niveaux) et le cadran de navigation.
 - `src/commun/` — gestes (glisser, pincer, double toucher) et triche d'affichage des satellites artificiels.
 
 ## Étapes
 
-1. Carte seule, zoom et déplacement, repères de la vue d'ensemble (orbites, Soleil, noms, flèches), silhouettes des
-   engins et cailloux ; passage en 3D vue de derrière la capsule ← en cours
-2. Repères (crochet, étiquette, flèche) et capsule
-3. Navigation (deux traits, solveur de Lambert) et trajet ; mode nuit
+1. Carte, zoom, direction artistique (BD tramée en couleurs sur fond blanc cassé) ; vue extérieure en 3D derrière la
+   capsule — validée.
+2. Carte schématique 2D (distances logarithmiques, niveaux : système solaire / système d'une planète), repères de la
+   destination (crochet, étiquette, flèche hors champ), capsule, choix de la destination (toucher ou cadran) ;
+   la vue 3D devient la VUE EXTÉRIEURE, optionnelle ← en cours
+3. Navigation (deux traits, solveur de Lambert) et trajet, accélération du temps pour les essais.
