@@ -16,7 +16,8 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - `src/donnees/` — séries VSOP87B générées.
 - `src/affichage3d/` — la vue 3D (three.js) : caméra derrière la capsule, astres jour / nuit avec contours, modèles
   (capsule type Apollo, engins, cailloux), noms et flèches par-dessus. Ne calcule aucune position : les demande au moteur.
-- Trois styles d'astres à comparer (panneau « Repères ») : à plat, BD tramée (cartes en ligne claire, ombre en trame
+- Style retenu par Adrien : BD tramée, sur fond blanc cassé (les autres styles restent dans « Repères » pour comparer) :
+  à plat, BD tramée (cartes en ligne claire, ombre en trame
   d'imprimerie), réaliste (cartes NASA de Solar System Scope, CC BY 4.0, déjà dans `assets/textures/`).
 - `src/affichage2d/` — l'ancienne carte vue du dessus (Canvas 2D), gardée pour comparer : `carte2d.html`.
 - `src/commun/` — gestes (glisser, pincer, double toucher) et triche d'affichage des satellites artificiels.

@@ -21,7 +21,9 @@ const departHorloge = Date.now(), departPerf = performance.now()
 const horloge = () => departHorloge + (performance.now() - departPerf)
 
 const vue = new Vue3D(toile)
-const regard: Regard = { recul: 0.045, lacet: 0, tangage: 0 }
+/** Recul de départ, et celui où RECENTRER ramène : la capsule de près. */
+const RECUL_CAPSULE = 0.045
+const regard: Regard = { recul: RECUL_CAPSULE, lacet: 0, tangage: 0 }
 let largeur = 390, hauteur = 844
 
 function redimensionner(): void {
@@ -38,8 +40,9 @@ window.addEventListener('resize', redimensionner)
 redimensionner()
 
 // Repères, chacun désactivable (mémorisés dans le navigateur, si possible).
-const CLE_REGLAGES = 'andromeda-reperes-3d'
-const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false, style: 'plat' as Style }
+// (nouvelle clé : le style par défaut a changé, les anciens réglages mémorisés sont oubliés)
+const CLE_REGLAGES = 'andromeda-reperes-3d-v2'
+const reglages = { etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false, style: 'bd' as Style }
 try {
   Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'))
 } catch { /* navigation privée : on garde les réglages de départ */ }
@@ -72,7 +75,7 @@ function changerTheme(): void {
 }
 changerTheme()
 
-// RECENTRER : la caméra revient en douceur derrière la capsule.
+// RECENTRER : la caméra revient en douceur derrière la capsule, et zoome jusqu'à elle.
 let recentrage = false
 document.querySelector('#bouton-recentrer')!.addEventListener('click', () => {
   // On ramène d'abord l'angle entre −π et π, pour revenir par le plus court chemin.
@@ -89,7 +92,7 @@ const gestes = new Gestes(surcouche, {
     regard.lacet -= dx * radParPx
     regard.tangage = Math.max(-LIMITE_TANGAGE, Math.min(LIMITE_TANGAGE, regard.tangage - dy * radParPx))
   },
-  zoomer: (f) => { regard.recul = Math.min(RECUL_MAX, Math.max(RECUL_MIN, regard.recul * f)) },
+  zoomer: (f) => { recentrage = false; regard.recul = Math.min(RECUL_MAX, Math.max(RECUL_MIN, regard.recul * f)) },
 })
 document.addEventListener('gesturestart', (e) => e.preventDefault())
 
@@ -108,10 +111,19 @@ function image(maintenant: number): void {
   precedent = maintenant
   gestes.avancer(dt)
   if (recentrage) {
-    const k = Math.exp(-dt / 0.15)
+    // La vue revient derrière la capsule pendant que le recul se rapproche du sien, en échelle logarithmique :
+    // rapide de très loin, de plus en plus doux en arrivant (2 à 3 secondes depuis Kuiper).
+    const k = Math.exp(-dt / 0.4)
     regard.lacet *= k
     regard.tangage *= k
-    if (Math.abs(regard.lacet) + Math.abs(regard.tangage) < 1e-4) { regard.lacet = regard.tangage = 0; recentrage = false }
+    const ecart = Math.log(regard.recul / RECUL_CAPSULE)
+    const pas = Math.sign(ecart) * Math.min(Math.abs(ecart), Math.max(3 * dt, Math.abs(ecart) * (1 - Math.exp(-dt / 0.5))))
+    regard.recul = RECUL_CAPSULE * Math.exp(ecart - pas)
+    if (Math.abs(regard.lacet) + Math.abs(regard.tangage) < 1e-4 && Math.abs(ecart - pas) < 1e-3) {
+      regard.lacet = regard.tangage = 0
+      regard.recul = RECUL_CAPSULE
+      recentrage = false
+    }
   }
   const t = horloge()
   const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages)
