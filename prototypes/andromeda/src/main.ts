@@ -58,21 +58,20 @@ window.addEventListener('resize', redimensionner)
 redimensionner()
 
 // --- Réglages, chacun désactivable (mémorisés dans le navigateur, si possible).
-const CLE_REGLAGES = 'andromeda-reperes-v3'
+// (nouvelle clé : le style est désormais fixé à Moebius, les anciens réglages mémorisés sont oubliés)
+const CLE_REGLAGES = 'andromeda-reperes-v4'
 const reglages = {
-  etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false, style: 'bd' as Style,
+  etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false,
+  // Style retenu par Adrien : Moebius (les styles « à plat », « BD tramée » et « réaliste » restent dans le code).
+  style: 'moebius' as Style,
   crochet: true, etiquette: true, fleche: true,
 }
 try {
-  Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'))
+  Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'), { style: 'moebius' })
 } catch { /* navigation privée : on garde les réglages de départ */ }
 const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ } }
 const panneau = document.querySelector<HTMLDivElement>('#panneau')!
 document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
-for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="style"]')) {
-  bouton.checked = bouton.value === reglages.style
-  bouton.addEventListener('change', () => { reglages.style = bouton.value as Style; memoriser() })
-}
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
   const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'style'>
   caseACocher.checked = reglages[cle]
