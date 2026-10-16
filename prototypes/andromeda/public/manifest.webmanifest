@@ -1,0 +1,9 @@
+{
+  "name": "Capsule Andromeda — carte",
+  "short_name": "Andromeda",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}

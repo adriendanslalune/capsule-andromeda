@@ -31,6 +31,10 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      # Prototype « Capsule Andromeda », publié à côté du jeu : …github.io/manuel-de-vol/andromeda/
+      - run: npm run check:andromeda
+      - run: npm run test:andromeda
+      - run: npm run build:andromeda
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
