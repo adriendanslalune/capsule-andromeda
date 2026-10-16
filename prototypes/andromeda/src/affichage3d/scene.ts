@@ -16,6 +16,7 @@ import { traceOrbite } from '../moteur/orbite'
 import { MS_PAR_JOUR } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 import { COMMUNS, materiauEtoiles, materiauPoints, materiauSphere, materiauTrait } from './materiaux'
+import { couleurAstre } from './couleurs'
 import { geometrieCaillou, geometrieCapsule, geometrieEngin, objetAvecContours } from './modeles'
 import { axesAstre, textureAstre, type Style } from './textures'
 
@@ -58,16 +59,14 @@ export interface AstreEcran {
   angle: number
 }
 
+const CERISE = new THREE.Color('#e04b37')
 const estCaillou = (c: Corps) => c.type === 'lune' && c.rayon < RAYON_MAX_CAILLOU
 const grandeLune = (c: Corps) => c.nom === 'Lune' || (c.type === 'lune' && c.rayon >= 100)
 const AVEC_ENFANTS = [...new Set(CORPS.filter((c) => c.parent).map((c) => c.parent!))]
 
-/** Couleur propre d'un astre sans carte (lunes, cailloux) ou d'un engin : des gris chauds, un par objet. */
+/** Couleur propre d'un astre sans carte (cailloux) : sa couleur BD. */
 function teinteDe(c: Corps): THREE.Color {
-  if (c.type === 'etoile') return new THREE.Color('#f6e7b8')
-  if (c.tailleM) return new THREE.Color('#dcd9d2')
-  const g = [...c.nom].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) & 0xffff, 7) / 0xffff
-  return new THREE.Color().setHSL(0.08 + 0.05 * g, 0.12 + 0.1 * g, 0.45 + 0.3 * ((g * 7) % 1))
+  return couleurAstre(c)
 }
 
 /** Donne sa couleur propre à un objet modelé (utilisée par les styles BD et réaliste). */
@@ -92,9 +91,10 @@ export class Vue3D {
   private hauteur = 844
   private spheres = new Map<string, THREE.Mesh>()
   private modeles = new Map<string, THREE.Group>()
-  private capsule = teinter(objetAvecContours(geometrieCapsule()), new THREE.Color('#e9e7e1'))
+  private capsule = objetAvecContours(geometrieCapsule())
   private points: THREE.Points
   private positionsPoints = new Float32Array(3 * 2000)
+  private couleursPoints = new Float32Array(3 * 2000)
   private orbites = new Map<string, { ligne: THREE.Line; t: number; points: Vecteur3[] | null }>()
   private etoiles: THREE.Points
 
@@ -106,6 +106,7 @@ export class Vue3D {
 
     const geo = new THREE.BufferGeometry()
     geo.setAttribute('position', new THREE.BufferAttribute(this.positionsPoints, 3))
+    geo.setAttribute('teinteSommet', new THREE.BufferAttribute(this.couleursPoints, 3))
     this.points = new THREE.Points(geo, materiauPoints(1.6))
     this.points.frustumCulled = false
     this.points.renderOrder = 5
@@ -157,6 +158,13 @@ export class Vue3D {
     return (0.25 + 0.35 * lisser((Math.log10(recul) + 1) / 2)) * (1 - lisser((Math.log10(recul) - 5) / 2))
   }
 
+  private couleurs = new Map<string, THREE.Color>()
+  private couleur(c: Corps): THREE.Color {
+    let k = this.couleurs.get(c.nom)
+    if (!k) { k = couleurAstre(c); this.couleurs.set(c.nom, k) }
+    return k
+  }
+
   private sphere(c: Corps): THREE.Mesh {
     let m = this.spheres.get(c.nom)
     if (!m) {
@@ -194,7 +202,9 @@ export class Vue3D {
     if (!o || Math.abs(t - o.t) > validite) {
       const points = traceOrbite(c.nom, t, c.type === 'satellite' ? 96 : 256)
       if (!o) {
-        const ligne = new THREE.Line(new THREE.BufferGeometry(), materiauTrait(0.28))
+        const materiau = materiauTrait(0.28)
+        materiau.uniforms.propre.value.copy(this.couleur(c))
+        const ligne = new THREE.Line(new THREE.BufferGeometry(), materiau)
         ligne.frustumCulled = false
         ligne.renderOrder = 2
         this.scene.add(ligne)
@@ -278,8 +288,10 @@ export class Vue3D {
     for (const m of this.modeles.values()) m.visible = false
     let n = 0
     const astres: AstreEcran[] = []
-    const ajouterPoint = (v: THREE.Vector3) => {
-      if (n < 2000) this.positionsPoints.set([v.x, v.y, v.z], 3 * n++)
+    const ajouterPoint = (v: THREE.Vector3, couleur: THREE.Color) => {
+      if (n >= 2000) return
+      this.couleursPoints.set([couleur.r, couleur.g, couleur.b], 3 * n)
+      this.positionsPoints.set([v.x, v.y, v.z], 3 * n++)
     }
     for (const c of aDessiner) {
       const p = pos(c.nom)
@@ -308,7 +320,7 @@ export class Vue3D {
           const mat = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined
           if (mat?.uniforms?.versSoleil) mat.uniforms.versSoleil.value.copy(sol)
         })
-      } else ajouterPoint(v)
+      } else ajouterPoint(v, this.couleur(c))
       const direction = new THREE.Vector3(p.x - camAbs.x, p.y - camAbs.y, p.z - camAbs.z).divideScalar(d)
       const angle = d > rayon ? Math.asin(rayon / d) : Math.PI / 2
       // Rayon apparent exact (le disque d'une planète vue de près est bien plus grand que R / d).
@@ -325,9 +337,10 @@ export class Vue3D {
       if (mat?.uniforms?.versSoleil) mat.uniforms.versSoleil.value.copy(solCapsule)
     })
     const rCapsule = ((TAILLE_CAPSULE_M * M) / 2 / regard.recul) * focale
-    if (rCapsule * 2 < 8) ajouterPoint(new THREE.Vector3())
+    if (rCapsule * 2 < 8) ajouterPoint(new THREE.Vector3(), CERISE)
     this.points.geometry.setDrawRange(0, n)
     ;(this.points.geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true
+    ;(this.points.geometry.getAttribute('teinteSommet') as THREE.BufferAttribute).needsUpdate = true
 
     // --- Orbites : seulement si le tracé est assez grand pour se voir, et assez fin (une orbite en n segments
     // s'écarte de la vraie courbe de R·(1 − cos(π/n))) pour passer sur l'astre vu de près.

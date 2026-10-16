@@ -29,6 +29,10 @@ html, body {
   touch-action: none;
   display: block;
 }
+#echelle, #infos {
+  /* liseré de la couleur du fond, pour rester lisible devant un astre */
+  text-shadow: -1px -1px 0 var(--fond), 1px -1px 0 var(--fond), -1px 1px 0 var(--fond), 1px 1px 0 var(--fond);
+}
 #echelle {
   position: fixed;
   left: 16px;
@@ -70,6 +74,8 @@ html, body {
 #bouton-recentrer {
   right: auto;
   left: 12px;
+  background: #f2b53a; /* moutarde, palette du jeu */
+  color: #1f1b18;
   font-weight: bold;
   letter-spacing: 0.05em;
 }
@@ -130,6 +136,8 @@ html, body {
 #bouton-recentrer {
   right: auto;
   left: 12px;
+  background: #f2b53a; /* moutarde, palette du jeu */
+  color: #1f1b18;
   font-weight: bold;
   letter-spacing: 0.05em;
 }

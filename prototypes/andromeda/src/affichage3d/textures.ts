@@ -15,6 +15,7 @@ import venusUrl from '../../../../assets/textures/2k_venus_atmosphere.jpg?url'
 import terreUrl from '../../../../assets/textures/earth_atmos_2048.jpg?url'
 import luneLcUrl from '../../../../assets/textures/lune_lc.jpg?url'
 import terreLcUrl from '../../../../assets/textures/terre_lc.jpg?url'
+import { aspectLune } from './couleurs'
 
 export type Style = 'plat' | 'bd' | 'reel'
 
@@ -94,6 +95,40 @@ function peindreBandes(couleurs: string[], graine: number): HTMLCanvasElement {
 }
 
 /**
+ * Lune peinte à plat, façon BD : un fond, de grandes taches franches, des cratères cernés d'encre.
+ * (Les grandes lunes sauf la Lune n'ont pas de carte publiée dans le dépôt.)
+ */
+function peindreLune(nom: string): HTMLCanvasElement {
+  const { fond, taches, crateres } = aspectLune(nom)
+  const [c, g] = toile(1024, 512)
+  let s = [...nom].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 11) & 0x7fffffff
+  const h = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+  g.fillStyle = fond
+  g.fillRect(0, 0, 1024, 512)
+  // Taches : des blobs aux bords francs.
+  g.fillStyle = taches
+  for (let k = 0; k < 26; k++) {
+    const x = h() * 1024, y = 60 + h() * 392, r = 20 + h() * 70
+    g.beginPath()
+    for (let a = 0; a < 16; a++) {
+      const t = (a / 16) * Math.PI * 2, rr = r * (0.7 + 0.5 * h())
+      g.lineTo(x + Math.cos(t) * rr * 1.6, y + Math.sin(t) * rr)
+    }
+    g.closePath()
+    g.fill()
+  }
+  // Cratères : un rond de la couleur des taches, cerné d'encre.
+  g.strokeStyle = '#1f1b18'
+  g.lineWidth = 2
+  for (let k = 0; k < Math.round(crateres * 70); k++) {
+    const x = h() * 1024, y = 40 + h() * 432, r = 3 + h() ** 3 * 28
+    g.fillStyle = h() < 0.5 ? taches : fond
+    g.beginPath(); g.ellipse(x, y, r * 1.3, r, 0, 0, Math.PI * 2); g.fill(); g.stroke()
+  }
+  return c
+}
+
+/**
  * Simplification « ligne claire » d'une carte : quatre aplats de la teinte moyenne (du plus sombre au plus clair,
  * seuils choisis pour que chaque aplat couvre autant de surface), puis un trait d'encre entre deux aplats.
  */
@@ -160,7 +195,8 @@ export function textureAstre(nom: string, style: Style): THREE.Texture | null {
   } else {
     if (CARTES_BD[nom]) tx = enTexture(chargeur.load(CARTES_BD[nom]))
     else if (BANDES[nom]) tx = enTexture(new THREE.CanvasTexture(versBD(peindreBandes(BANDES[nom], graine))))
-    else if (CARTES[nom]) {
+    else if (!CARTES[nom]) tx = enTexture(new THREE.CanvasTexture(peindreLune(nom)))
+    else {
       // La photo se charge, puis on la simplifie : en attendant, l'astre est dessiné sans carte.
       chargeur.load(CARTES[nom], (photo) => {
         memoire.set(cle, enTexture(new THREE.CanvasTexture(versBD(photo.image as HTMLImageElement))))

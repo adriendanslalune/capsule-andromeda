@@ -198,12 +198,16 @@ export function materiauObjet(): THREE.ShaderMaterial {
     uniforms: {
       ...COMMUNS, versSoleil: { value: new THREE.Vector3(1, 0, 0) }, jour: { value: COULEURS.jour }, nuit: { value: COULEURS.nuit },
       teinte: { value: new THREE.Color('#d8d4cc') }, // couleur propre (styles BD et réaliste)
+      aTeintes: { value: 0 }, // 1 si le modèle porte une couleur par sommet (capsule, engins)
     },
     vertexShader: /* glsl */ `
       ${SOMMET_PROFONDEUR}
+      attribute vec3 teinteSommet;
       varying vec3 vNormale;
+      varying vec3 vTeinte;
       void main() {
         vNormale = normalize(normalMatrix * normal);
+        vTeinte = teinteSommet;
         vec4 p = modelViewMatrix * vec4(position, 1.0);
         vW = -p.z;
         gl_Position = projectionMatrix * p;
@@ -213,16 +217,18 @@ export function materiauObjet(): THREE.ShaderMaterial {
       ${SOMMET_PROFONDEUR}
       ${TRAME}
       uniform vec3 versSoleil, jour, nuit, teinte;
-      uniform float style;
+      uniform float style, aTeintes;
       varying vec3 vNormale;
+      varying vec3 vTeinte;
       void main() {
         vec3 n = normalize(vNormale);
         if (!gl_FrontFacing) n = -n;
         float l = dot(n, versSoleil);
+        vec3 base = aTeintes > 0.5 ? vTeinte : teinte;
         vec3 couleur;
         if (style < 0.5) couleur = l > 0.0 ? jour : nuit;
-        else if (style < 1.5) couleur = trame(teinte, l);
-        else couleur = min(teinte * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
+        else if (style < 1.5) couleur = trame(base, l);
+        else couleur = min(base * (1.15 * pow(max(l, 0.0), 0.7) + 0.03), vec3(1.0));
         gl_FragColor = vec4(couleur, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,
@@ -262,14 +268,21 @@ export function materiauCoque(couleur: THREE.Color, largeur: number): THREE.Shad
   })
 }
 
-/** Points : un rond d'encre cerné de blanc, de taille fixe à l'écran. */
+/** Points : un rond de taille fixe à l'écran (encre cernée de blanc ; en BD, couleur de l'astre cernée d'encre). */
 export function materiauPoints(rayonPx: number): THREE.ShaderMaterial {
+  // (style BD : rond de la couleur de l'astre, voir plus bas)
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS, rayonPx: { value: rayonPx }, encre: { value: COULEURS.point }, blanc: { value: COULEURS.bordPoint } },
+    uniforms: {
+      ...COMMUNS, rayonPx: { value: rayonPx }, encre: { value: COULEURS.point }, blanc: { value: COULEURS.bordPoint },
+      cerne: { value: COULEURS.contourExt },
+    },
     vertexShader: /* glsl */ `
       ${SOMMET_PROFONDEUR}
       uniform float rayonPx, pixelRatio;
+      attribute vec3 teinteSommet;
+      varying vec3 vTeinte;
       void main() {
+        vTeinte = teinteSommet;
         vec4 p = modelViewMatrix * vec4(position, 1.0);
         vW = -p.z;
         gl_Position = projectionMatrix * p;
@@ -278,21 +291,24 @@ export function materiauPoints(rayonPx: number): THREE.ShaderMaterial {
     fragmentShader: /* glsl */ `
       ${PROFONDEUR}
       ${SOMMET_PROFONDEUR}
-      uniform float rayonPx;
-      uniform vec3 encre, blanc;
+      uniform float rayonPx, style;
+      uniform vec3 encre, blanc, cerne;
+      varying vec3 vTeinte;
       void main() {
         float r = length(gl_PointCoord * 2.0 - 1.0) * (rayonPx + 1.0);
         if (r > rayonPx + 1.0) discard;
-        gl_FragColor = vec4(r < rayonPx ? encre : blanc, 1.0);
+        // Style BD : un rond de la couleur de l'astre, cerné d'encre. Sinon : encre cernée de la couleur du fond.
+        vec3 c = style > 0.5 && style < 1.5 ? (r < rayonPx ? vTeinte : cerne) : (r < rayonPx ? encre : blanc);
+        gl_FragColor = vec4(c, 1.0);
         gl_FragDepth = profondeurLog(vW);
       }`,
   })
 }
 
-/** Traits (orbites) : encre légère. */
+/** Traits (orbites) : encre légère, ou la couleur de l'astre en style BD. */
 export function materiauTrait(opacite: number): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    uniforms: { ...COMMUNS, encre: { value: COULEURS.trait }, opacite: { value: opacite } },
+    uniforms: { ...COMMUNS, encre: { value: COULEURS.trait }, opacite: { value: opacite }, propre: { value: new THREE.Color() } },
     transparent: true,
     depthWrite: false,
     vertexShader: /* glsl */ `
@@ -305,10 +321,12 @@ export function materiauTrait(opacite: number): THREE.ShaderMaterial {
     fragmentShader: /* glsl */ `
       ${PROFONDEUR}
       ${SOMMET_PROFONDEUR}
-      uniform vec3 encre;
-      uniform float opacite;
+      uniform vec3 encre, propre;
+      uniform float opacite, style;
       void main() {
-        gl_FragColor = vec4(encre, opacite);
+        // Style BD : l'orbite prend la couleur de son astre, un peu plus appuyée.
+        bool bd = style > 0.5 && style < 1.5;
+        gl_FragColor = vec4(bd ? propre : encre, bd ? min(1.0, opacite * 2.2) : opacite);
         gl_FragDepth = profondeurLog(vW);
       }`,
   })

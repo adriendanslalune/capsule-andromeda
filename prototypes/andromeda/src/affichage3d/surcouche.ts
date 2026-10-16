@@ -8,7 +8,10 @@ const POLICE = '11px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
 let ENCRE = '#1f1b18'
 let FOND = '#f4f1ea'
 
-export interface ReglagesSurcouche { soleil: boolean; noms: boolean; fleches: boolean }
+export interface ReglagesSurcouche { soleil: boolean; noms: boolean; fleches: boolean; style: string }
+
+/** Couleurs du style BD pour la surcouche : rayons du Soleil et flèches à la couleur de leur astre. */
+const COULEUR_FLECHE: Record<string, string> = { Soleil: '#f2b53a', Terre: '#3f7fc1' }
 
 const grandeLune = (a: AstreEcran) => a.corps.nom === 'Lune' || (a.corps.type === 'lune' && a.corps.rayon >= 100)
 function priorite(a: AstreEcran): number {
@@ -49,9 +52,21 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
       ctx.moveTo(soleil.x + r0 * Math.cos(a), soleil.y + r0 * Math.sin(a))
       ctx.lineTo(soleil.x + r1 * Math.cos(a), soleil.y + r1 * Math.sin(a))
     }
-    ctx.lineWidth = 1.5
-    ctx.strokeStyle = ENCRE
-    ctx.stroke()
+    const bd = reglages.style === 'bd'
+    ctx.lineCap = 'round'
+    if (bd) {
+      // Rayons moutarde cernés d'encre.
+      ctx.lineWidth = 4
+      ctx.strokeStyle = ENCRE
+      ctx.stroke()
+      ctx.lineWidth = 2
+      ctx.strokeStyle = COULEUR_FLECHE.Soleil
+      ctx.stroke()
+    } else {
+      ctx.lineWidth = 1.5
+      ctx.strokeStyle = ENCRE
+      ctx.stroke()
+    }
     ctx.lineWidth = 3
     ctx.strokeStyle = FOND
   }
@@ -82,13 +97,13 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
       const a = astres.find((x) => x.corps.nom === nom)
       // Flèche seulement si l'astre (son disque entier) est hors de l'écran ou derrière nous.
       const horsEcran = a && (a.x + a.r < 0 || a.x - a.r > largeur || a.y + a.r < 0 || a.y - a.r > hauteur)
-      if (a && (!a.devant || horsEcran)) fleche(ctx, largeur, hauteur, nom, a.x, a.y)
+      if (a && (!a.devant || horsEcran)) fleche(ctx, largeur, hauteur, nom, a.x, a.y, reglages.style === 'bd' ? COULEUR_FLECHE[nom] : ENCRE)
     }
   }
 }
 
 function fleche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number, nom: string, sx: number,
-  sy: number): void {
+  sy: number, couleur: string): void {
   const cx = largeur / 2, cy = hauteur / 2
   let dx = sx - cx, dy = sy - cy
   if (dx === 0 && dy === 0) dy = 1
@@ -97,13 +112,19 @@ function fleche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number,
   const k = Math.min(mx / Math.abs(dx || 1e-9), (dy < 0 ? haut : bas) / Math.abs(dy || 1e-9))
   const x = cx + dx * k, y = cy + dy * k
   const a = Math.atan2(dy, dx)
-  ctx.fillStyle = ENCRE
+  ctx.fillStyle = couleur
   ctx.beginPath()
-  ctx.moveTo(x + 9 * Math.cos(a), y + 9 * Math.sin(a))
-  ctx.lineTo(x + 7 * Math.cos(a + 2.4), y + 7 * Math.sin(a + 2.4))
-  ctx.lineTo(x + 7 * Math.cos(a - 2.4), y + 7 * Math.sin(a - 2.4))
+  ctx.moveTo(x + 11 * Math.cos(a), y + 11 * Math.sin(a))
+  ctx.lineTo(x + 9 * Math.cos(a + 2.4), y + 9 * Math.sin(a + 2.4))
+  ctx.lineTo(x + 9 * Math.cos(a - 2.4), y + 9 * Math.sin(a - 2.4))
   ctx.closePath()
   ctx.fill()
+  ctx.lineWidth = 1.5
+  ctx.strokeStyle = ENCRE
+  ctx.stroke()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = FOND
+  ctx.fillStyle = ENCRE
   ctx.textAlign = Math.cos(a) > 0.3 ? 'right' : Math.cos(a) < -0.3 ? 'left' : 'center'
   texte(ctx, nom, x - 16 * Math.cos(a), y - 16 * Math.sin(a))
   ctx.textAlign = 'left'
