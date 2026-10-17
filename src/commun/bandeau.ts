@@ -2,13 +2,13 @@
 
 import type { LigneBandeau } from '../moteur/bandeau'
 import { texteDistance } from '../moteur/navigation'
-import { autourDe, texteDateCourte, texteDuree } from './textes'
+import { autourDe, texteDateCourte, texteDuree, texteRestant } from './textes'
 import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes } from './textes-missions'
 
 /** Titre et détail d'une ligne : « EN ROUTE VERS MARS », « arrivée demain à 07:10 · dans 19 h 20 min ». */
 export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string } {
   if (l.genre === 'trajet') {
-    return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteDuree(l.reste)}` }
+    return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }
   }
   if (l.genre === 'contrat') {
     const n = l.contrat.etapes.length > 1 ? ` (étape ${l.numero + 1}/${l.contrat.etapes.length})` : ''

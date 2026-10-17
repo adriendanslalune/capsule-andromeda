@@ -12,6 +12,18 @@ export function texteDuree(ms: number): string {
   return `${ans} an${ans > 1 ? 's' : ''}${mois ? ` ${mois} mois` : ''}`
 }
 
+/** Temps restant, à la seconde (demande d'Adrien du 17/10/2026) : « 45 s », « 6 min 32 s », « 2 h 05 min 09 s »,
+ *  « 96 j 19 h 05 min 09 s ». */
+export function texteRestant(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000))
+  const j = Math.floor(total / 86_400), h = Math.floor((total % 86_400) / 3600), min = Math.floor((total % 3600) / 60), s = total % 60
+  const deux = (n: number) => String(n).padStart(2, '0')
+  if (j > 0) return `${j} j ${deux(h)} h ${deux(min)} min ${deux(s)} s`
+  if (h > 0) return `${h} h ${deux(min)} min ${deux(s)} s`
+  if (min > 0) return `${min} min ${deux(s)} s`
+  return `${s} s`
+}
+
 /** Date et heure à l'heure du lieu du joueur : « 17 octobre 2026 à 19:42 ». */
 export const texteDate = (t: number) =>
   new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })

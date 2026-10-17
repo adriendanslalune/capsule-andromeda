@@ -4,7 +4,7 @@
 import type { Jeu } from '../moteur/jeu'
 import { distanceDepuisCapsule, texteDistance } from '../moteur/navigation'
 import type { Contrat } from '../moteur/contrats'
-import { texteDuree } from './textes'
+import { texteDuree, texteRestant } from './textes'
 import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat } from './textes-missions'
 
 export interface ChoixMissions {
@@ -64,7 +64,7 @@ export class VoletMissions {
       const bouton = fin !== null
         ? `<div class="action-en-cours">${NOMS_ACTIONS[e.action]} en cours · ${texteSecondes(fin - t)}</div>`
         : enRoute
-          ? `<div class="action-en-cours">En route vers ${e.lieu} · arrivée dans ${texteDuree(plan!.arrivee - t)}</div>`
+          ? `<div class="action-en-cours">En route vers ${e.lieu} · arrivée dans ${texteRestant(plan!.arrivee - t)}</div>`
           : jeu.surPlace(t)
           ? `<button type="button" class="principal" data-choix="agir">${VERBES[e.action]}</button>`
           : `<button type="button" class="principal" data-choix="aller" data-lieu="${e.lieu}">Y ALLER</button><span class="consigne">${consigne(e)} · ${texteDistance(distanceDepuisCapsule(e.lieu, t))}</span>`
