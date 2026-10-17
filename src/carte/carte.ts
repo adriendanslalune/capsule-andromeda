@@ -188,7 +188,7 @@ export class Carte2D {
 
   /** Dessine la carte ; renvoie la place (à l'écran) d'un astre donné. */
   dessiner(ctx: CanvasRenderingContext2D, t: number, reglages: ReglagesCarte, couleurs: Couleurs2D,
-    selection: string | null, directionCapsule?: { x: number; y: number } | null):
+    selection: string | null, directionCapsule?: { x: number; y: number } | null, capsuleDessinee?: Point2 | null):
     { x: number; y: number; r: number; visible: boolean } | null {
     ctx.clearRect(0, 0, this.largeur, this.hauteur)
     const nh = position('New Horizons', t)
@@ -283,7 +283,9 @@ export class Carte2D {
 
     // La capsule : un petit chevron cerise, dans le sens de sa marche.
     const etat = etatCapsule(t)
-    let { x, y } = this.projeterPoint(etat.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
+    // En route : sa place sur le trajet dessiné (elle y avance à vitesse régulière, voir loupe.ts).
+    let { x, y } = capsuleDessinee ? this.ecranDe(capsuleDessinee)
+      : this.projeterPoint(etat.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
     // Vue de loin, la capsule tomberait sur le disque de son astre : on la pose juste à côté, sans le cacher.
     for (const d of this.dessines) {
       const ecart = Math.hypot(x - d.x, y - d.y)
@@ -378,10 +380,10 @@ export class Carte2D {
 
   /**
    * Les deux traits de la navigation : le pointillé de la capsule vers la position ACTUELLE de la destination, et
-   * le trajet réel (courbe) jusqu'au point de rendez-vous, marqué d'une croix cerclée.
+   * le trajet (traits droits, km de carte) jusqu'au point de rendez-vous, marqué d'une croix cerclée.
    */
   dessinerTraits(ctx: CanvasRenderingContext2D, t: number, cible: { x: number; y: number } | null,
-    trajet: { t: number; r: Vecteur3 }[] | null, rendezVous: { r: Vecteur3; t: number } | null, accent: string,
+    trajet: Point2[] | null, rendezVous: Point2 | null, accent: string,
     c: Couleurs2D, orbiteCapsule: { t: number; r: Vecteur3 }[] | null = null): void {
     const capsule = this.place(CAPSULE)
     const ecrans = (l: { t: number; r: Vecteur3 }[], tCentre?: number) =>
@@ -410,7 +412,7 @@ export class Carte2D {
     }
     if (trajet && trajet.length > 1) {
       ctx.beginPath()
-      for (const [i, q] of ecrans(trajet).entries()) {
+      for (const [i, q] of trajet.map((p) => this.ecranDe(p)).entries()) {
         if (i === 0) ctx.moveTo(q.x, q.y)
         else ctx.lineTo(q.x, q.y)
       }
@@ -424,7 +426,7 @@ export class Carte2D {
       ctx.stroke()
     }
     if (rendezVous) {
-      const q = this.projeterPoint(rendezVous.r, rendezVous.t)
+      const q = this.ecranDe(rendezVous)
       ctx.beginPath()
       ctx.arc(q.x, q.y, 7, 0, 2 * Math.PI)
       ctx.moveTo(q.x - 5, q.y - 5); ctx.lineTo(q.x + 5, q.y + 5)

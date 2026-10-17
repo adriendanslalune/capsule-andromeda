@@ -2,8 +2,8 @@
 //  - La CARTE : vue du dessus, vraies distances entre les planètes, loupe autour de chaque astre (carte/loupe.ts) ;
 //    zoom libre vers un système. Toucher un astre affiche sa fiche ; Y ALLER calcule le trajet et propose le DÉPART.
 //  - Le CADRAN : la liste des astres, pour choisir une destination sans la chercher sur la carte.
-//  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le vrai trajet (arc de conique
-//    autour du Soleil, problème de Lambert) jusqu'au point de rendez-vous ; le bouton DÉPART lance le voyage.
+//  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le trajet en ligne droite jusqu'au
+//    point de rendez-vous (choix d'Adrien du 17/10/2026) ; le bouton DÉPART lance le voyage.
 
 import './style.css'
 
@@ -11,11 +11,12 @@ import './style.css'
 declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
 import { CAPSULE, Carte2D } from './carte/carte'
+import { couperTrace, projeterTrajet } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
-import { Mission, planifier, traceTrajet, type Planification } from './moteur/mission'
+import { avancement, Mission, planifier, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { chargerPoussiere } from './moteur/poussiere'
 
@@ -68,15 +69,15 @@ redimensionner()
 
 // --- Réglages, chacun désactivable (mémorisés dans le navigateur, si possible).
 // (nouvelle clé à chaque changement des réglages par défaut : les anciens réglages mémorisés sont oubliés)
-const CLE_REGLAGES = 'andromeda-reperes-v6'
+const CLE_REGLAGES = 'andromeda-reperes-v7'
 const reglages = {
   orbites: true, noms: true,
   crochet: true, etiquette: true, fleche: true,
   /**
-   * Puissance des moteurs : budget de delta-v (km/s). Choix d'Adrien : 120 km/s pour le prototype, réglable.
+   * Puissance des moteurs : vitesse de croisière (km/s). 120 km/s pour le prototype, réglable.
    * (Dans le vrai jeu : départ à 30 km/s, puis améliorations sans limite.)
    */
-  budget: 120,
+  vitesse: 120,
 }
 try {
   const memo = JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}')
@@ -86,7 +87,7 @@ const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringif
 const panneau = document.querySelector<HTMLDivElement>('#panneau')!
 document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
-  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'budget'>
+  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'vitesse'>
   caseACocher.checked = reglages[cle]
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
@@ -119,13 +120,13 @@ for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acc
 const curseurBudget = document.querySelector<HTMLInputElement>('#budget')!
 const texteBudget = document.querySelector<HTMLSpanElement>('#texte-budget')!
 // Curseur logarithmique : de 5 à 5 000 km/s (les moteurs du vrai jeu s'amélioreront sans limite).
-const versBudget = (x: number) => { const b = 5 * 1000 ** (x / 100); return b < 100 ? Math.round(b) : Math.round(b / 10) * 10 }
-const depuisBudget = (b: number) => (100 * Math.log(b / 5)) / Math.log(1000)
-curseurBudget.value = String(depuisBudget(reglages.budget))
-texteBudget.textContent = `${reglages.budget} km/s`
+const versVitesse = (x: number) => { const b = 5 * 1000 ** (x / 100); return b < 100 ? Math.round(b) : Math.round(b / 10) * 10 }
+const depuisVitesse = (b: number) => (100 * Math.log(b / 5)) / Math.log(1000)
+curseurBudget.value = String(depuisVitesse(reglages.vitesse))
+texteBudget.textContent = `${reglages.vitesse} km/s`
 curseurBudget.addEventListener('input', () => {
-  reglages.budget = versBudget(Number(curseurBudget.value))
-  texteBudget.textContent = `${reglages.budget} km/s`
+  reglages.vitesse = versVitesse(Number(curseurBudget.value))
+  texteBudget.textContent = `${reglages.vitesse} km/s`
   memoriser()
   planAJour = 0
 })
@@ -169,7 +170,7 @@ function prevoir(t: number, maintenant: number): void {
     return
   }
   if (selection === previsionPour && maintenant - planAJour < 1000) return
-  prevision = planifier(mission.etatHeliocentrique(t), selection!, t, reglages.budget)
+  prevision = planifier(mission.etatHeliocentrique(t), selection!, t, reglages.vitesse)
   previsionPour = selection
   planAJour = maintenant
 }
@@ -196,14 +197,14 @@ function mettreAJourFiche(t: number): void {
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
-    const dv = `${reglages.budget} km/s`
+    const dv = `${reglages.vitesse} km/s`
     if (prevision.possible) {
       const p = prevision.plan
       texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {
-      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · hors de portée<br>il faudrait ${Math.ceil(prevision.dvMinimum)} km/s (moteurs ${dv})`
+      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · hors de portée<br>elle s'éloigne plus vite que la capsule (moteurs ${dv})`
     }
   }
   fiche.hidden = !texte
@@ -218,7 +219,7 @@ boutonDepart.addEventListener('click', () => {
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
-  const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.budget)
+  const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.vitesse)
   if (!p.possible) return
   mission.partir(p.plan)
   prevision = null
@@ -263,10 +264,20 @@ function image(maintenant: number): void {
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   const planTrace = prevision?.possible ? prevision.plan : enRoute
-  let trajet = planTrace ? traceTrajet(planTrace, 200) : null
-  // En route : seulement ce qui reste à parcourir, en partant de la capsule elle-même.
-  if (trajet && planTrace === enRoute) trajet = [{ t, r: mission.etat(t).position }, ...trajet.filter((p) => p.t > t)]
-  const rendezVous = planTrace ? { r: planTrace.rendezVous, t: planTrace.arrivee } : null
+  const trace = planTrace ? projeterTrajet(planTrace, t) : null
+  let trajet = trace
+  // En route : la capsule avance à vitesse régulière sur le trajet dessiné ; on ne dessine que ce qui reste.
+  let capsuleDessinee = null
+  if (trace && enRoute && planTrace === enRoute) {
+    const coupe = couperTrace(trace, avancement(enRoute, t))
+    capsuleDessinee = coupe.point
+    trajet = coupe.reste
+  } else if (trace && enRoute) {
+    // Nouveau cap proposé en route : la capsule reste sur le trajet en cours, le nouveau part de là où elle est dessinée.
+    capsuleDessinee = couperTrace(projeterTrajet(enRoute, t), avancement(enRoute, t)).point
+    trajet = [capsuleDessinee, ...trace.slice(1)]
+  }
+  const rendezVous = trace ? trace[trace.length - 1] : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
   const carteAJour = !gestesCarte.actif && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
@@ -276,13 +287,13 @@ function image(maintenant: number): void {
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {
-      const q0 = carte.projeterPoint(trajet[0].r, trajet[0].t)
+      const q0 = carte.ecranDe(trajet[0])
       for (const p of trajet.slice(1)) {
-        const q = carte.projeterPoint(p.r, p.t)
+        const q = carte.ecranDe(p)
         if (Math.hypot(q.x - q0.x, q.y - q0.y) > 6) { direction = { x: q.x - q0.x, y: q.y - q0.y }; break }
       }
     }
-    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction)
+    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
     // Titre : le système qu'on regarde ; bouton de retour à la vue générale quand on a zoomé sur un système.
     const titreCarte = carte.titre(t)
     if (titre.textContent !== titreCarte) titre.textContent = titreCarte
@@ -297,7 +308,7 @@ function image(maintenant: number): void {
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
     // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
     const eviter: { x: number; y: number }[] = []
-    if (rendezVous) eviter.push(carte.projeterPoint(rendezVous.r, rendezVous.t))
+    if (rendezVous) eviter.push(carte.ecranDe(rendezVous))
     const ici = carte.place(CAPSULE)
     if (ici) eviter.push(ici)
     if (place && sel) {

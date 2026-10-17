@@ -10,7 +10,7 @@ Trame : des envahisseurs venus d'Andromède occupent le système solaire. Le jou
 
 Direction artistique : vue 2D du dessus, style « Moebius » (validé par Adrien) : fond blanc cassé, encre brun-violet, astres illustrés en aplats pastel, face de nuit en aplat violet avec hachures fines le long du terminateur. Astres grossis mais proportionnés ; en dézoomant ils rétrécissent jusqu'au point. Les engins ont des silhouettes reconnaissables, visibles en zoom rapproché.
 
-Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : un pointillé vers la position actuelle de la cible, une courbe pour la vraie trajectoire orbitale jusqu'au point de rencontre. Durée du trajet selon la puissance des moteurs.
+Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : un pointillé vers la position actuelle de la cible, un trait plein en ligne droite jusqu'au point de rencontre (là où sera la cible à l'arrivée), qui contourne un astre s'il est sur le chemin. La capsule y va à vitesse constante selon la puissance des moteurs, avec une courte accélération au départ et un freinage à l'arrivée (décision d'Adrien du 17/10/2026 : plus de vraies trajectoires orbitales, illisibles).
 
 Progression : les crédits améliorent les moteurs pour aller plus vite et plus loin. Tutoriel : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune.
 

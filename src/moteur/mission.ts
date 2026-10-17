@@ -1,23 +1,34 @@
 // La mission de la capsule : en orbite autour d'un astre, puis un trajet vers une destination, puis de nouveau en
 // orbite autour de la destination.
 //
-// Le trajet est un arc de conique, solution du problème de Lambert entre la position de la capsule au départ et la
-// position FUTURE de la destination à l'arrivée (le point de rendez-vous). Autour du Soleil pour aller d'un système
-// à l'autre ; autour de la planète quand on reste dans son système (de l'ISS à Hubble, de la Terre à la Lune) : le
-// trajet fait alors le tour de la planète comme une vraie orbite, au lieu d'une ligne droite qui la traverserait.
-// La durée découle de la puissance des moteurs : le budget de delta-v (km/s). On prend le trajet le plus rapide dont
-// le coût — changement de vitesse au départ, plus changement de vitesse à l'arrivée pour rester avec la
-// destination — tient dans le budget, et qui ne traverse aucun astre (règle d'or d'Adrien, 17/10/2026).
+// Le trajet (choix d'Adrien du 17/10/2026, qui remplace les vraies trajectoires orbitales, illisibles) : la capsule
+// vise le point de rendez-vous — là où sera la destination à l'arrivée — et y va en ligne droite, à la vitesse de ses
+// moteurs, avec une courte accélération au départ et un freinage à l'arrivée. Plus les moteurs sont puissants, plus
+// elle va vite.
+// Règle d'or (17/10/2026) : rien ne traverse un astre. Si la ligne droite passe trop près de l'astre autour duquel
+// elle part ou arrive (ou du Soleil), la capsule le contourne par petits arcs.
+//
+// Les points du trajet sont accrochés à un astre (« ancre ») : ceux du départ suivent la planète de départ, ceux de
+// l'arrivée la planète de la destination ; entre les systèmes, les points sont fixes par rapport au Soleil. Le point
+// d'arrivée d'une planète est fixe par rapport au Soleil : c'est là où elle sera à l'arrivée.
 
 import { etatSurOrbite, GM_TERRE, ORBITE_DEPART, type EtatCapsule, type OrbiteCirculaire } from './capsule'
-import { astreDominant, corps, enfants, position, RAPPORT_MASSE_SOLEIL_ASTRES } from './corps'
-import { propager } from './kepler'
-import { lambert } from './lambert'
+import { astreDominant, corps, position, rayonInfluence, RAPPORT_MASSE_SOLEIL_ASTRES } from './corps'
 import { GM_SOLEIL } from './orbite'
 import type { Vecteur3 } from './vecteur'
 
+const plus = (a: Vecteur3, b: Vecteur3) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z })
 const moins = (a: Vecteur3, b: Vecteur3) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z })
+const fois = (a: Vecteur3, k: number) => ({ x: a.x * k, y: a.y * k, z: a.z * k })
 const norme = (a: Vecteur3) => Math.hypot(a.x, a.y, a.z)
+const unitaire = (a: Vecteur3) => fois(a, 1 / (norme(a) || 1))
+const vectoriel = (a: Vecteur3, b: Vecteur3) => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x })
+const scalaire = (a: Vecteur3, b: Vecteur3) => a.x * b.x + a.y * b.y + a.z * b.z
+
+/** Part du trajet passée à accélérer (au départ), et autant à freiner (à l'arrivée). */
+const RAMPE = 0.1
+/** Pas des arcs de contournement (radians). */
+const PAS_DETOUR = (30 * Math.PI) / 180
 
 /** Vitesse héliocentrique d'un astre (km/s), par différence de positions à ± 30 s. */
 export function vitesseAstre(nom: string, t: number): Vecteur3 {
@@ -25,143 +36,220 @@ export function vitesseAstre(nom: string, t: number): Vecteur3 {
   return { x: (b.x - a.x) / 60, y: (b.y - a.y) / 60, z: (b.z - a.z) / 60 }
 }
 
+/** Un point du trajet, accroché à un astre (le Soleil : point fixe). */
+export interface PointDePassage { ancre: string; rel: Vecteur3 }
+
 export interface Plan {
   cible: string
-  /** Astre autour duquel se fait le trajet : le Soleil, ou la planète quand on reste dans son système. */
-  centre: string
   /** Instants de départ et d'arrivée (ms UTC). */
   depart: number
   arrivee: number
-  /** Position et vitesse au départ, sur le trajet, par rapport au centre du trajet (km, km/s). */
-  r1: Vecteur3
-  v1: Vecteur3
+  /** Vitesse de croisière (km/s) : la puissance des moteurs. */
+  vitesse: number
+  /** Points clés (départ, sortie du système de départ, entrée dans celui d'arrivée, arrivée) : pour le dessin. */
+  cles: PointDePassage[]
+  /** Tous les points du trajet, avec les arcs de contournement. */
+  points: PointDePassage[]
+  /** Vitesse de la capsule au départ, par rapport à l'ancre du premier point (pour coucher son orbite sur la carte). */
+  vitesseDepart: Vecteur3
   /** Point de rendez-vous : où sera la destination à l'arrivée (héliocentrique, km). */
   rendezVous: Vecteur3
-  /** Coûts (km/s). */
-  dvDepart: number
-  dvArrivee: number
 }
 
-export type Planification = { possible: true; plan: Plan } | { possible: false; dvMinimum: number }
+export type Planification = { possible: true; plan: Plan } | { possible: false }
 
 const ORIGINE: Vecteur3 = { x: 0, y: 0, z: 0 }
-/** Position et vitesse d'un centre de trajet (le Soleil est à l'origine). */
-const positionCentre = (centre: string, t: number) => (centre === 'Soleil' ? ORIGINE : position(centre, t))
-const vitesseCentre = (centre: string, t: number) => (centre === 'Soleil' ? ORIGINE : vitesseAstre(centre, t))
+const positionAncre = (ancre: string, t: number) => (ancre === 'Soleil' ? ORIGINE : position(ancre, t))
+const vitesseAncre = (ancre: string, t: number) => (ancre === 'Soleil' ? ORIGINE : vitesseAstre(ancre, t))
 
-/** Coût et trajet pour une durée de vol donnée (s), autour du centre donné. Positions relatives au centre. */
-function essai(r1: Vecteur3, vDepart: Vecteur3, cible: string, t0: number, duree: number, centre: string) {
-  const t1 = t0 + duree * 1000
-  const r2 = moins(position(cible, t1), positionCentre(centre, t1))
-  const s = lambert(r1, r2, duree, gmAstre(centre))
-  if (!s) return null
-  const dvDepart = norme(moins(s.v1, vDepart))
-  const dvArrivee = norme(moins(s.v2, moins(vitesseAstre(cible, t1), vitesseCentre(centre, t1))))
-  if (!Number.isFinite(dvDepart + dvArrivee)) return null
-  return { t1, r2, v1: s.v1, dvDepart, dvArrivee, dv: dvDepart + dvArrivee }
-}
-
-/** Planète du système d'un astre (lui-même pour une planète, sa planète pour une lune ou un satellite). */
-function systemeDe(nom: string, t: number): string {
-  const c = corps(nom)
-  if (!c) return 'Soleil'
-  if (c.type === 'planete' || c.type === 'naine') return nom
-  if (c.parent) return c.parent
-  return astreDominant(position(nom, t), t)
-}
-
-/** Centre du trajet : la planète si l'on reste dans son système (sans aller sur la planète elle-même), sinon le Soleil. */
-export function centreDuTrajet(r1: Vecteur3, cible: string, t0: number): string {
-  const ici = astreDominant(r1, t0)
-  return ici !== 'Soleil' && ici !== cible && systemeDe(cible, t0) === ici ? ici : 'Soleil'
-}
-
-/** Position et vitesse (héliocentriques) sur un trajet, à l'instant t. */
-export function etatSurTrajet(p: Plan, t: number): { r: Vecteur3; v: Vecteur3 } {
-  const { r, v } = propager(p.r1, p.v1, (t - p.depart) / 1000, gmAstre(p.centre))
-  const c = positionCentre(p.centre, t), vc = vitesseCentre(p.centre, t)
-  return { r: { x: r.x + c.x, y: r.y + c.y, z: r.z + c.z }, v: { x: v.x + vc.x, y: v.y + vc.y, z: v.z + vc.z } }
+/** Position héliocentrique d'un point de passage à l'instant t. */
+export function positionDuPoint(p: PointDePassage, t: number): Vecteur3 {
+  return plus(positionAncre(p.ancre, t), p.rel)
 }
 
 /** Rayon de sécurité d'un astre (km) : on ne passe jamais à moins de 2 % de son rayon (au moins 100 km) de sa surface. */
-function securite(nom: string): number {
+export function securite(nom: string): number {
   const r = corps(nom)?.rayon ?? 0
   return r + Math.max(0.02 * r, 100)
 }
 
-/**
- * Astres qu'un trajet risque de traverser : le Soleil, l'astre d'où l'on part et ses grandes lunes, l'astre autour
- * duquel tourne la destination (pas la destination elle-même : le trajet finit sur elle).
- */
-export function astresAEviter(r1: Vecteur3, cible: string, t0: number): string[] {
-  const noms = new Set(['Soleil'])
-  const depart = astreDominant(r1, t0)
-  if (depart !== 'Soleil') {
-    noms.add(depart)
-    for (const l of enfants(depart)) if (l.type === 'lune' && l.rayon >= 500) noms.add(l.nom)
-  }
-  const parent = corps(cible)?.parent
-  if (parent) noms.add(parent)
-  noms.delete(cible)
-  return [...noms]
+/** Distance (km) entre l'origine et le segment [a, b]. */
+function distanceSegment(a: Vecteur3, b: Vecteur3): number {
+  const ab = moins(b, a)
+  const l2 = scalaire(ab, ab)
+  const k = l2 > 0 ? Math.min(1, Math.max(0, -scalaire(a, ab) / l2)) : 0
+  return norme(plus(a, fois(ab, k)))
 }
 
 /**
- * Règle d'or : le trajet passe-t-il dans un astre ? Points plus serrés au début (on part souvent tout près d'une
- * planète), en comparant à la position de l'astre au même instant.
+ * Contournement d'un astre (à l'origine) entre deux points a et b qui lui sont relatifs : rien si la ligne droite
+ * passe assez loin (rayon de sécurité r), sinon des points intermédiaires sur un arc (pas de 30° au plus), à une
+ * distance qui passe progressivement de celle de a à celle de b, jamais sous le rayon de sécurité.
  */
-export function traverseUnAstre(r1: Vecteur3, v1: Vecteur3, t0: number, duree: number, noms: string[], centre = 'Soleil'): boolean {
-  const N = 80
-  for (let k = 1; k < N; k++) {
-    const dt = duree * (k / N) ** 2
-    const rel = propager(r1, v1, dt, gmAstre(centre)).r
-    const c = positionCentre(centre, t0 + dt * 1000)
-    const r = { x: rel.x + c.x, y: rel.y + c.y, z: rel.z + c.z }
-    for (const nom of noms) if (norme(moins(r, position(nom, t0 + dt * 1000))) < securite(nom)) return true
+function contourner(a: Vecteur3, b: Vecteur3, r: number): Vecteur3[] {
+  if (distanceSegment(a, b) >= r) return []
+  const la = norme(a), lb = norme(b)
+  if (la === 0 || lb === 0) return []
+  const ua = fois(a, 1 / la)
+  const angle = Math.acos(Math.min(1, Math.max(-1, scalaire(a, b) / (la * lb))))
+  // Axe de rotation : perpendiculaire à a et b (s'ils sont opposés, n'importe quel axe perpendiculaire à a).
+  let axe = vectoriel(a, b)
+  if (norme(axe) < 1e-9 * la * lb) axe = vectoriel(a, Math.abs(ua.z) < 0.9 ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 })
+  const k = unitaire(axe)
+  const n = Math.max(2, Math.ceil(angle / PAS_DETOUR))
+  const points: Vecteur3[] = []
+  for (let j = 1; j < n; j++) {
+    const q = j / n, th = angle * q
+    // Rotation de Rodrigues de ua autour de k (k est perpendiculaire à ua).
+    const u = plus(fois(ua, Math.cos(th)), fois(vectoriel(k, ua), Math.sin(th)))
+    points.push(fois(u, Math.max(la ** (1 - q) * lb ** q, 1.06 * r)))
   }
-  return false
+  return points
+}
+
+/** Rayon de l'orbite d'attente autour d'une destination (km) : basse et circulaire ; à 60 m d'un engin. */
+function rayonArrivee(nom: string): number {
+  const c = corps(nom)
+  if (c?.tailleM) return 0.06
+  if (nom === 'Soleil') return 5 * c!.rayon
+  return Math.max(1.3 * (c?.rayon || 1.5), (c?.rayon || 1.5) + 150)
 }
 
 /**
- * Trajet le plus rapide de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, pour un budget
- * de delta-v donné (km/s). Si aucun trajet ne tient dans le budget, renvoie le coût minimal trouvé.
+ * Astre auquel s'accroche l'arrivée : celui autour duquel tourne la destination (une lune, un satellite, une sonde
+ * dans le système d'une planète) ; pour une planète ou le Soleil, le Soleil (le point d'arrivée est là où sera la
+ * planète) ; l'astre de départ lui-même si c'est lui la destination.
  */
-export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, budget: number): Planification {
-  // Durées de vol essayées : de 10 minutes à 60 ans, en progression géométrique.
-  const N = 140, dMin = 600, dMax = 60 * 365.25 * 86_400
-  let precedente: number | null = null
-  let dvMinimum = Infinity
-  const eviter = astresAEviter(depart.r, cible, t0)
-  const centre = centreDuTrajet(depart.r, cible, t0)
-  const r1 = moins(depart.r, positionCentre(centre, t0))
-  const vDepart = moins(depart.v, vitesseCentre(centre, t0))
-  const libre = (e: { v1: Vecteur3 }, duree: number) => !traverseUnAstre(r1, e.v1, t0, duree, eviter, centre)
+function ancreArrivee(cible: string, ancreDepart: string, t1: number): string {
+  if (cible === ancreDepart) return cible
+  const c = corps(cible)
+  if (!c || c.type === 'etoile' || c.type === 'planete' || c.type === 'naine') return 'Soleil'
+  if (c.parent) return c.parent
+  return astreDominant(position(cible, t1), t1)
+}
+
+/** Distance de sortie (ou d'entrée) d'un système : quatre fois plus loin que le point de départ, sans quitter le système. */
+function rayonSortie(nom: string, r: number): number {
+  return Math.max(r, Math.min(4 * r, 0.5 * rayonInfluence(nom)))
+}
+
+/** Points du trajet vers la destination, en arrivant à l'instant t1. */
+function construire(depart: PointDePassage, t0: number, cible: string, t1: number): { cles: PointDePassage[]; points: PointDePassage[]; rendezVous: Vecteur3 } {
+  const D = depart.ancre
+  const R = ancreArrivee(cible, D, t1)
+  const rendezVous = position(cible, t1)
+  const relCible = moins(rendezVous, positionAncre(R, t1))
+  /** Point d'arrivée : sur l'orbite d'attente, du côté d'où l'on vient. */
+  const arrivee = (provenance: Vecteur3): PointDePassage =>
+    ({ ancre: R, rel: plus(relCible, fois(unitaire(moins(provenance, relCible)), rayonArrivee(cible))) })
+  if (R === D) {
+    const E = arrivee(depart.rel)
+    return { cles: [depart, E], points: [depart, ...contourner(depart.rel, E.rel, securite(D)).map((rel) => ({ ancre: D, rel })), E], rendezVous }
+  }
+  // Entre deux systèmes : contournement du Soleil entre le départ et l'arrivée, s'il le faut.
+  const pa = positionAncre(D, t0), pb = R === 'Soleil' ? rendezVous : positionAncre(R, t1)
+  const milieu = contourner(pa, pb, securite('Soleil')).map((rel): PointDePassage => ({ ancre: 'Soleil', rel }))
+  const cles: PointDePassage[] = [depart]
+  const points: PointDePassage[] = [depart]
+  let precedent = pa
+  if (D !== 'Soleil') {
+    // Sortie du système de départ, dans la direction de la suite du trajet.
+    const suite = milieu[0]?.rel ?? pb
+    const X: PointDePassage = { ancre: D, rel: fois(unitaire(moins(suite, pa)), rayonSortie(D, norme(depart.rel))) }
+    points.push(...contourner(depart.rel, X.rel, securite(D)).map((rel) => ({ ancre: D, rel })), X)
+    cles.push(X)
+    precedent = plus(pa, X.rel)
+  }
+  points.push(...milieu)
+  if (milieu.length) precedent = milieu[milieu.length - 1].rel
+  if (R === 'Soleil') {
+    const E = arrivee(precedent)
+    points.push(E)
+    cles.push(E)
+  } else {
+    // Entrée dans le système d'arrivée, du côté d'où l'on vient, puis l'arrivée.
+    const Y: PointDePassage = { ancre: R, rel: fois(unitaire(moins(precedent, pb)), rayonSortie(R, norme(relCible))) }
+    const E = arrivee(Y.rel)
+    points.push(Y, ...contourner(Y.rel, E.rel, securite(R)).map((rel) => ({ ancre: R, rel })), E)
+    cles.push(Y, E)
+  }
+  return { cles, points, rendezVous }
+}
+
+/** Longueur (km) d'une ligne brisée. */
+function longueur(q: Vecteur3[]): number {
+  let l = 0
+  for (let k = 1; k < q.length; k++) l += norme(moins(q[k], q[k - 1]))
+  return l
+}
+
+/** Positions héliocentriques des points du trajet à l'instant t. */
+export function positionsDesPoints(points: PointDePassage[], t: number): Vecteur3[] {
+  return points.map((p) => positionDuPoint(p, t))
+}
+
+/** Part du trajet parcourue à l'instant t (0 au départ, 1 à l'arrivée) : accélération, croisière, freinage. */
+export function avancement(p: Plan, t: number): number {
+  const tau = Math.min(1, Math.max(0, (t - p.depart) / (p.arrivee - p.depart)))
+  if (tau < RAMPE) return (tau * tau) / (2 * RAMPE * (1 - RAMPE))
+  if (tau > 1 - RAMPE) return 1 - ((1 - tau) * (1 - tau)) / (2 * RAMPE * (1 - RAMPE))
+  return (tau - RAMPE / 2) / (1 - RAMPE)
+}
+
+/** Point situé à la part f (0 à 1) de la longueur d'une ligne brisée. */
+export function pointSurLigne(q: Vecteur3[], f: number): Vecteur3 {
+  let reste = f * longueur(q)
+  for (let k = 1; k < q.length; k++) {
+    const l = norme(moins(q[k], q[k - 1]))
+    if (reste <= l && l > 0) return plus(q[k - 1], fois(moins(q[k], q[k - 1]), reste / l))
+    reste -= l
+  }
+  return q[q.length - 1]
+}
+
+/** Position et vitesse (héliocentriques, km et km/s) sur un trajet, à l'instant t. */
+export function etatSurTrajet(p: Plan, t: number): { r: Vecteur3; v: Vecteur3 } {
+  const ici = (u: number) => pointSurLigne(positionsDesPoints(p.points, u), avancement(p, u))
+  const r = ici(t)
+  const dt = t + 1000 <= p.arrivee ? 1000 : -1000
+  const r2 = ici(t + dt)
+  return { r, v: fois(moins(r2, r), 1000 / dt) }
+}
+
+/**
+ * Trajet de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, à la vitesse de croisière
+ * donnée (km/s). Impossible si la destination s'enfuit plus vite que la capsule.
+ */
+export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, vitesse: number): Planification {
+  const D = astreDominant(depart.r, t0)
+  const premier: PointDePassage = { ancre: D, rel: moins(depart.r, positionAncre(D, t0)) }
+  /** Durée nécessaire (s) pour un trajet qui arrive après une durée T (s) : la longueur dépend du rendez-vous. */
+  const essai = (T: number) => {
+    const t1 = t0 + T * 1000
+    const c = construire(premier, t0, cible, t1)
+    const L = (longueur(positionsDesPoints(c.points, t0)) + longueur(positionsDesPoints(c.points, t1))) / 2
+    return { t1, c, besoin: L / (vitesse * (1 - RAMPE)) }
+  }
+  // Durées essayées : de 1 seconde à 300 ans, en progression géométrique ; la première assez longue, puis on affine.
+  const N = 200, dMin = 1, dMax = 300 * 365.25 * 86_400
+  let precedente = 0
   for (let i = 0; i <= N; i++) {
-    const duree = dMin * (dMax / dMin) ** (i / N)
-    const e = essai(r1, vDepart, cible, t0, duree, centre)
-    if (!e) continue
-    if (!libre(e, duree)) { precedente = duree; continue }
-    dvMinimum = Math.min(dvMinimum, e.dv)
-    if (e.dv <= budget) {
-      // Première durée qui tient dans le budget : on affine entre elle et la précédente (trop chère).
-      let lent = duree, rapide = precedente ?? duree
-      for (let k = 0; k < 40 && precedente !== null; k++) {
-        const m = Math.sqrt(lent * rapide)
-        const em = essai(r1, vDepart, cible, t0, m, centre)
-        if (em && em.dv <= budget && libre(em, m)) lent = m
-        else rapide = m
-      }
-      const f = essai(r1, vDepart, cible, t0, lent, centre)!
-      const c1 = positionCentre(centre, f.t1)
-      return {
-        possible: true,
-        plan: { cible, centre, depart: t0, arrivee: f.t1, r1, v1: f.v1, rendezVous: { x: f.r2.x + c1.x, y: f.r2.y + c1.y, z: f.r2.z + c1.z },
-          dvDepart: f.dvDepart, dvArrivee: f.dvArrivee },
-      }
+    const T = dMin * (dMax / dMin) ** (i / N)
+    if (essai(T).besoin > T) { precedente = T; continue }
+    let court = precedente, long = T
+    for (let k = 0; k < 50; k++) {
+      const m = (court + long) / 2
+      if (essai(m).besoin > m) court = m
+      else long = m
     }
-    precedente = duree
+    const { t1, c } = essai(long)
+    return {
+      possible: true,
+      plan: { cible, depart: t0, arrivee: t1, vitesse, cles: c.cles, points: c.points,
+        vitesseDepart: moins(depart.v, vitesseAncre(D, t0)), rendezVous: c.rendezVous },
+    }
   }
-  return { possible: false, dvMinimum }
+  return { possible: false }
 }
 
 /** Constante de gravitation d'un astre (km³/s²) ; pour une lune inconnue, d'après sa taille (densité 2 g/cm³). */
@@ -180,8 +268,7 @@ export function gmAstre(nom: string): number {
 
 /** Orbite d'attente autour d'une destination, à l'arrivée : basse et circulaire ; à 60 m d'un engin. */
 export function orbiteAutour(nom: string, t: number, arrivee: Vecteur3): OrbiteCirculaire {
-  const c = corps(nom)
-  const rayon = c?.tailleM ? 0.06 : nom === 'Soleil' ? 5 * c!.rayon : Math.max(1.3 * (c?.rayon || 1.5), (c?.rayon || 1.5) + 150)
+  const rayon = rayonArrivee(nom)
   // Phase : on se place du côté d'où l'on arrive (direction de la capsule vue de la destination juste avant).
   const o: OrbiteCirculaire = { centre: nom, mu: gmAstre(nom), rayon, inclinaison: 0, noeud: 0, epoque: t, phase: 0 }
   const rel = moins(arrivee, position(nom, t))
@@ -254,20 +341,4 @@ export class Mission {
     this.orbiteArrivee = null
   }
 
-  /** Points du trajet (héliocentriques, km), pour le dessiner. */
-  trace(n = 200): { t: number; r: Vecteur3 }[] {
-    const p = this.plan
-    if (!p) return []
-    return traceTrajet(p, n)
-  }
-}
-
-/** Points d'un trajet (héliocentriques, km) à intervalles réguliers. */
-export function traceTrajet(p: Plan, n = 200): { t: number; r: Vecteur3 }[] {
-  const points: { t: number; r: Vecteur3 }[] = []
-  for (let k = 0; k <= n; k++) {
-    const t = p.depart + ((p.arrivee - p.depart) * k) / n
-    points.push({ t, r: etatSurTrajet(p, t).r })
-  }
-  return points
 }

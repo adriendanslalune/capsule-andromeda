@@ -8,6 +8,7 @@
 // saute pas d'un bord à l'autre. Ce n'est que du dessin : le moteur garde les vraies positions.
 
 import { corps, enfants, position, rayonInfluence } from '../moteur/corps'
+import { positionDuPoint, type Plan } from '../moteur/mission'
 import { UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 
@@ -167,4 +168,101 @@ export function projeterPoussiere(nom: string, t: number, nombre: number, positi
     sortie[2 * k] = c.x + u.x * d
     sortie[2 * k + 1] = c.y + u.y * d
   }
+}
+
+/** Rayon d'un astre que le trait du trajet ne doit pas couper (km de carte) : le disque dessiné, les rayons du Soleil. */
+function obstacle(nom: string): number {
+  return nom === 'Soleil' ? 2.9 * rayonDessine('Soleil') : 1.15 * rayonDessine(nom)
+}
+
+/** Distance entre le point c et le segment [a, b] (dans le plan de la carte). */
+function distanceAuSegment(a: Point2, b: Point2, c: Point2): number {
+  const dx = b.x - a.x, dy = b.y - a.y
+  const l2 = dx * dx + dy * dy
+  const k = l2 > 0 ? Math.min(1, Math.max(0, ((c.x - a.x) * dx + (c.y - a.y) * dy) / l2)) : 0
+  return Math.hypot(a.x + k * dx - c.x, a.y + k * dy - c.y)
+}
+
+/** Arc qui contourne le disque (centre c, rayon r) de a vers b, par le plus court, en pas de 30° au plus (sans a ni b). */
+function arc(a: Point2, b: Point2, c: Point2, r: number): Point2[] {
+  const ra = Math.hypot(a.x - c.x, a.y - c.y), rb = Math.hypot(b.x - c.x, b.y - c.y)
+  const ta = Math.atan2(a.y - c.y, a.x - c.x)
+  let d = Math.atan2(b.y - c.y, b.x - c.x) - ta
+  d = Math.atan2(Math.sin(d), Math.cos(d))
+  const n = Math.max(2, Math.ceil(Math.abs(d) / (Math.PI / 6)))
+  const points: Point2[] = []
+  for (let j = 1; j < n; j++) {
+    const q = j / n, th = ta + d * q
+    const rho = Math.max(Math.max(ra, 1) ** (1 - q) * Math.max(rb, 1) ** q, 1.06 * r)
+    points.push({ x: c.x + rho * Math.cos(th), y: c.y + rho * Math.sin(th) })
+  }
+  return points
+}
+
+/**
+ * Le trajet dessiné (km de carte) : des traits droits entre les points clés du trajet (moteur/mission.ts), vus à
+ * travers la loupe. Le départ est la capsule telle qu'elle est dessinée ; l'arrivée, la destination telle qu'elle sera
+ * dessinée à l'arrivée (une planète : là où elle sera ; une lune, un satellite : autour de son astre, tel qu'il est
+ * maintenant). Si un trait coupe le disque dessiné d'un astre, il le contourne par un arc.
+ */
+export function projeterTrajet(p: Plan, t: number): Point2[] {
+  const n = p.cles.length
+  const minute = 60_000
+  const deplacement = (nom: string, u: number) => {
+    const a = position(nom, u), b = position(nom, u + minute)
+    return { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z }
+  }
+  const plus = (a: Vecteur3, b: Vecteur3) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z })
+  const cles = p.cles.map((c, i): Point2 => {
+    const ici = positionDuPoint(c, t)
+    if (i === 0) {
+      // La capsule au départ : son mouvement est couché dans le plan, comme sur son orbite.
+      const v = p.vitesseDepart
+      return projeter({ p: ici, t, suivant: { p: plus(positionDuPoint(c, t + minute), { x: v.x * 60, y: v.y * 60, z: v.z * 60 }), t: t + minute } })
+    }
+    if (i === n - 1) {
+      if (c.ancre === 'Soleil') return projeter({ p: ici, t: p.arrivee, suivant: { p: plus(ici, deplacement(p.cible, p.arrivee)), t: p.arrivee + minute } })
+      // Autour de son astre : dans le plan de son mouvement à l'arrivée.
+      const d = deplacement(p.cible, p.arrivee), dA = deplacement(c.ancre, p.arrivee)
+      return projeter({ p: ici, t, suivant: { p: plus(positionDuPoint(c, t + minute), { x: d.x - dA.x, y: d.y - dA.y, z: d.z - dA.z }), t: t + minute } })
+    }
+    return projeter({ p: ici, t })
+  })
+  const trace: Point2[] = [cles[0]]
+  for (let i = 1; i < n; i++) {
+    const a = cles[i - 1], b = cles[i]
+    for (const nom of new Set([p.cles[i - 1].ancre, p.cles[i].ancre, 'Soleil'])) {
+      const c = nom === 'Soleil' ? { x: 0, y: 0 } : projeterCorps(nom, t)
+      const r = obstacle(nom)
+      if (Math.hypot(a.x - c.x, a.y - c.y) < r || Math.hypot(b.x - c.x, b.y - c.y) < r) continue
+      if (distanceAuSegment(a, b, c) < r) { trace.push(...arc(a, b, c, r)); break }
+    }
+    trace.push(b)
+  }
+  return trace
+}
+
+/** Longueur d'un tracé (dans le plan de la carte). */
+function longueurTrace(q: Point2[]): number {
+  let l = 0
+  for (let k = 1; k < q.length; k++) l += Math.hypot(q[k].x - q[k - 1].x, q[k].y - q[k - 1].y)
+  return l
+}
+
+/**
+ * Coupe un tracé à la part f (0 à 1) de sa longueur : renvoie le point atteint et ce qui reste à parcourir (à partir
+ * de ce point). La capsule avance ainsi à vitesse régulière sur la carte.
+ */
+export function couperTrace(q: Point2[], f: number): { point: Point2; reste: Point2[] } {
+  let reste = f * longueurTrace(q)
+  for (let k = 1; k < q.length; k++) {
+    const l = Math.hypot(q[k].x - q[k - 1].x, q[k].y - q[k - 1].y)
+    if (reste <= l && l > 0) {
+      const point = { x: q[k - 1].x + ((q[k].x - q[k - 1].x) * reste) / l, y: q[k - 1].y + ((q[k].y - q[k - 1].y) * reste) / l }
+      return { point, reste: [point, ...q.slice(k)] }
+    }
+    reste -= l
+  }
+  const fin = q[q.length - 1]
+  return { point: fin, reste: [fin] }
 }
