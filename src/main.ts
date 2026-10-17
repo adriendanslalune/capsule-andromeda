@@ -72,6 +72,10 @@ suivreMission(mission)
 const carte = new Carte2D()
 let largeur = 390, hauteur = 844
 let selection: string | null = null
+/** Vrai si la caméra suit ce qui est choisi (faux une fois qu'on a fait glisser la carte). */
+let suivre = true
+/** Glissement d'un doigt depuis le début du geste (px) : un petit glissement ne lâche pas ce qu'on suit. */
+let glisseCumul = 0
 /** Encre et fond de la carte : style Moebius, fond blanc cassé le jour, bleu nuit en mode nuit. */
 const THEMES = { jour: { encre: '#1f1b18', halo: '#f4f1ea' }, nuit: { encre: '#efe6d2', halo: '#141826' } }
 let th = THEMES.jour
@@ -140,9 +144,9 @@ let apercuPlans: Plan[] | null = null
 let apercuAJour = 0
 /**
  * Choisit un astre, un engin ou la capsule (null : plus rien de choisi). Demandes d'Adrien du 17/10/2026 : ce qu'on
- * choisit vient au centre de l'écran, en glissant, et y reste, même pendant le zoom ; la carte est alors accrochée à
- * lui (glisser un doigt ne la déplace pas) ; toucher un endroit vide de la carte retire le choix, et la carte redevient
- * libre. Depuis le cadran, une lune ou un satellite fait cadrer le système de son astre.
+ * choisit vient au centre de l'écran, en glissant, et y reste, même pendant le zoom ; on peut quand même faire glisser
+ * la carte (la caméra le lâche alors, le choix reste) ; le toucher de nouveau recentre dessus ; toucher un endroit vide
+ * de la carte retire le choix. Depuis le cadran, une lune ou un satellite fait cadrer le système de son astre.
  */
 function choisir(nom: string | null, cadrer = false, echelle?: number): void {
   const avant = selection
@@ -150,7 +154,8 @@ function choisir(nom: string | null, cadrer = false, echelle?: number): void {
   apercu = null
   selection = nom
   const c = nom ? corps(nom) : undefined
-  if (nom && (nom !== avant || cadrer || echelle !== undefined)) {
+  if (nom && (nom !== avant || cadrer || echelle !== undefined || !suivre)) {
+    suivre = true
     const k = echelle ?? (cadrer && c?.parent ? carte.echelleSysteme(c.parent) : carte.kmParPx)
     carte.voler(k, performance.now(), positionSuivie(horloge()))
   }
@@ -198,7 +203,7 @@ const cockpit = new Cockpit((page) => {
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
-toilePlan.addEventListener('pointerdown', () => cockpit.fermer())
+toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
 // --- Réglages d'essai : accélération du temps et puissance des moteurs.
 for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acceleration"]')) {
@@ -316,8 +321,18 @@ boutonDepart.addEventListener('click', () => {
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
 const gestesCarte = new Gestes(toilePlan, {
-  // Quelque chose est choisi : la carte reste accrochée dessus (le pincement zoome autour de lui) ; sinon on se promène.
-  glisser: (dx, dy) => { if (!selection) carte.glisser(dx, dy) },
+  // La caméra suit ce qui est choisi : le pincement zoome autour de lui, et seul un vrai glissement d'un doigt (plus de
+  // 15 px : pas le petit glissement du premier doigt d'un pincement) la fait lâcher prise.
+  glisser: (dx, dy, pince) => {
+    const accroche = selection !== null && suivre
+    if (pince) { if (!accroche) carte.glisser(dx, dy); return }
+    if (accroche) {
+      glisseCumul += Math.hypot(dx, dy)
+      if (glisseCumul < 15) return
+      suivre = false
+    }
+    carte.glisser(dx, dy)
+  },
   zoomer: (f, sx, sy) => carte.zoomer(f, sx, sy),
   toucher: (x, y) => {
     const nom = carte.toucher(x, y)
@@ -459,7 +474,7 @@ function image(maintenant: number): void {
     gestesCarte.avancer(dt)
     // La caméra suit ce qu'on regarde (en route, la capsule est là où elle est dessinée sur son trajet).
     capsuleSurCarte = capsuleDessinee
-    carte.placerCamera(selection ? positionSuivie(t) : null, maintenant)
+    carte.placerCamera(selection && suivre ? positionSuivie(t) : null, maintenant)
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {
