@@ -75,15 +75,18 @@ window.addEventListener('resize', redimensionner)
 redimensionner()
 
 // --- Réglages, chacun désactivable (mémorisés dans le navigateur, si possible).
-// (nouvelle clé : le style est désormais fixé à Moebius, les anciens réglages mémorisés sont oubliés)
-const CLE_REGLAGES = 'andromeda-reperes-v4'
+// (nouvelle clé : puissance par défaut passée à 120 km/s, les anciens réglages mémorisés sont oubliés)
+const CLE_REGLAGES = 'andromeda-reperes-v5'
 const reglages = {
   etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false,
   // Style retenu par Adrien : Moebius (les styles « à plat », « BD tramée » et « réaliste » restent dans le code).
   style: 'moebius' as Style,
   crochet: true, etiquette: true, fleche: true,
-  /** Puissance des moteurs : budget de delta-v (km/s) — réglage d'essai, valeur à décider avec Adrien. */
-  budget: 60,
+  /**
+   * Puissance des moteurs : budget de delta-v (km/s). Choix d'Adrien : 120 km/s pour le prototype, réglable.
+   * (Dans le vrai jeu : départ à 30 km/s, puis améliorations sans limite.)
+   */
+  budget: 120,
 }
 try {
   Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'), { style: 'moebius' })
@@ -142,9 +145,9 @@ for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acc
 }
 const curseurBudget = document.querySelector<HTMLInputElement>('#budget')!
 const texteBudget = document.querySelector<HTMLSpanElement>('#texte-budget')!
-// Curseur logarithmique : de 5 à 500 km/s.
-const versBudget = (x: number) => Math.round(5 * 100 ** (x / 100))
-const depuisBudget = (b: number) => (100 * Math.log(b / 5)) / Math.log(100)
+// Curseur logarithmique : de 5 à 5 000 km/s (les moteurs du vrai jeu s'amélioreront sans limite).
+const versBudget = (x: number) => { const b = 5 * 1000 ** (x / 100); return b < 100 ? Math.round(b) : Math.round(b / 10) * 10 }
+const depuisBudget = (b: number) => (100 * Math.log(b / 5)) / Math.log(1000)
 curseurBudget.value = String(depuisBudget(reglages.budget))
 texteBudget.textContent = `${reglages.budget} km/s`
 curseurBudget.addEventListener('input', () => {

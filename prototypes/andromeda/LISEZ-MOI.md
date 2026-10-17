@@ -22,6 +22,13 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - `src/carte/` — la carte schématique (2D, distances écrasées, deux niveaux) et le cadran de navigation.
 - `src/commun/` — gestes (glisser, pincer, double toucher) et triche d'affichage des satellites artificiels.
 
+## Décisions d'Adrien
+
+- Direction artistique : style « Moebius » sur fond blanc cassé (fond noir en option).
+- Carte de travail : carte schématique 2D (distances logarithmiques, deux niveaux) ; vue 3D en option (VUE EXTÉRIEURE).
+- Puissance des moteurs (budget de delta-v) : 120 km/s dans le prototype, réglable de 5 à 5 000 km/s dans
+  « Repères ». **Vrai jeu : départ à 30 km/s, puis améliorations sans limite.**
+
 ## Étapes
 
 1. Carte, zoom, direction artistique (Moebius en couleurs sur fond blanc cassé) ; vue extérieure en 3D derrière la
