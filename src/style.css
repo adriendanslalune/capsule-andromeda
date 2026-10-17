@@ -77,6 +77,27 @@ html, body {
 #bandeau .ligne b { letter-spacing: 0.04em; }
 #bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
 #bandeau .ligne.contrat b { color: #b4442f; }
+/* Symbole animé du genre de mission, discret, devant son titre. */
+#bandeau .symbole {
+  width: 15px;
+  height: 15px;
+  margin: -2px 6px 0 0;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transform-origin: 50% 60%;
+}
+#bandeau .enveloppe { animation: flotter 2.4s ease-in-out infinite; }
+#bandeau .balai { transform-origin: 70% 10%; animation: balayer 1.6s ease-in-out infinite; }
+#bandeau .cle { animation: visser 2s ease-in-out infinite; }
+#bandeau .action .symbole { animation-duration: 0.7s; }
+@keyframes flotter { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-2px) rotate(4deg); } }
+@keyframes balayer { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+@keyframes visser { 0%, 100% { transform: rotate(-20deg); } 50% { transform: rotate(20deg); } }
+@media (prefers-reduced-motion: reduce) { #bandeau .symbole { animation: none; } }
 /* Pied du bandeau : crédits et moteur, toujours visibles. */
 #bandeau .etat {
   display: flex;

@@ -3,7 +3,7 @@
 import type { LigneBandeau } from '../moteur/bandeau'
 import { texteDistance } from '../moteur/navigation'
 import { autourDe, texteDateCourte, texteDuree } from './textes'
-import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes } from './textes-missions'
+import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes } from './textes-missions'
 
 /** Titre et détail d'une ligne : « EN ROUTE VERS MARS », « arrivée demain à 07:10 · dans 19 h 20 min ». */
 export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string } {
@@ -27,16 +27,27 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
 /** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
 export interface EtatCapsuleBandeau { credits: number; niveauMoteur: number; vitesse: number; vitesseForcee: boolean }
 
-let dernier = ''
+/** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
+let forme = ''
 
 export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
   const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''}`
   const moteur = capsule.vitesseForcee
     ? `vitesse forcée ${capsule.vitesse.toLocaleString('fr-FR')} km/s (essai)`
     : `moteur niv. ${capsule.niveauMoteur} · ${capsule.vitesse.toLocaleString('fr-FR')} km/s`
-  const html = lignes.map((l) => {
+  const textes: string[] = []
+  const lignesHtml = lignes.map((l) => {
     const { titre, detail } = texteLigne(l, t)
-    return `<div class="ligne ${l.genre === 'orbite' ? 'calme' : l.genre}"><b>${titre}</b><span>${detail}</span></div>`
-  }).join('') + `<div class="etat"><span>${credits}</span><span>${moteur}</span></div>`
-  if (html !== dernier) element.innerHTML = dernier = html
+    textes.push(titre, detail)
+    // Mission : son symbole animé (plus vif pendant l'action sur place).
+    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : ''
+    const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
+    return `<div class="ligne ${classe}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`
+  })
+  textes.push(credits, moteur)
+  const html = lignesHtml.join('') + '<div class="etat"><span data-texte></span><span data-texte></span></div>'
+  // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
+  // change ; sinon, les textes seuls.
+  if (html !== forme) element.innerHTML = forme = html
+  element.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
 }

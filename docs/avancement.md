@@ -38,8 +38,10 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   cargaison chargée, action interrompue) (`src/commun/volet-missions.ts`, `src/commun/textes-missions.ts`).
   Demandes d'Adrien après essai : temps de trajet de chaque mission (depuis la capsule, les deux trajets d'une
   livraison), liste triée du plus court au plus long ; VOIR montre les trajets sur la carte avant d'accepter (aperçu,
-  avec ACCEPTER dans la fiche ; toucher la carte le ferme); mission en plusieurs étapes : l'étape finie, le trajet vers la
-  suivante est préparé tout seul (reste DÉPART).
+  avec ACCEPTER dans la fiche ; toucher la carte le ferme); mission en plusieurs étapes : les étapes s'enchaînent (l'action
+  finie, la capsule part d'elle-même vers l'étape suivante, même application fermée) ; étapes faites rayées et grisées
+  dans le volet. Symbole animé du genre de mission devant sa ligne du bandeau (enveloppe qui flotte, balai qui balaie,
+  clé qui tourne ; plus vif pendant l'action).
 - Ergonomie (demandes d'Adrien du 17/10/2026) — **fait, en attente de validation** : à l'ouverture, la carte est cadrée
   sur la capsule (le système de l'astre où elle est) ; bouton « ◎ Capsule » en haut à droite pour y revenir ; ce qu'on
   choisit (astre, engin, capsule) reste au centre de l'écran, même pendant le zoom ; on peut quand même faire glisser

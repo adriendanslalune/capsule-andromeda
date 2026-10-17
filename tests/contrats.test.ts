@@ -145,4 +145,18 @@ describe('faire une mission', () => {
     expect(jeu.trajetsContrat(reparerGoes, t, 30)).toEqual([])
     expect(jeu.dureeTrajets(reparerGoes, t, 30)).toBe(0)
   })
+
+  it('une livraison s’enchaîne : la cargaison chargée, la capsule part d’elle-même vers le satellite', () => {
+    const livraison: Contrat = { id: 97, genre: 'livrer', etapes: [{ lieu: 'ISS', action: 'charger' }, { lieu: 'GOES-19', action: 'livrer' }], recompense: 100 }
+    const jeu = avecContrat(livraison)
+    const t = allerA(jeu, 'ISS', t0) + 1000
+    jeu.agir(t)
+    // On ne regarde que bien plus tard (application fermée) : le départ a eu lieu à la fin du chargement.
+    const ev = jeu.avancer(t + DUREE_ACTION + 60_000, 30)
+    expect(ev.map((e) => e.genre)).toEqual(['etape-finie', 'depart-auto'])
+    expect(jeu.mission.plan?.cible).toBe('GOES-19')
+    expect(jeu.mission.plan?.depart).toBe(t + DUREE_ACTION)
+    const arrivee = jeu.mission.plan!.arrivee
+    expect(jeu.peutAgir(arrivee + 1000)).toBe(true)
+  })
 })

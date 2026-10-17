@@ -19,6 +19,8 @@ export type Evenement =
   | { genre: 'etape-finie'; contrat: Contrat; etape: Etape }
   | { genre: 'contrat-fini'; contrat: Contrat }
   | { genre: 'action-interrompue'; contrat: Contrat }
+  /** Étape finie : la capsule est partie d'elle-même vers le lieu de l'étape suivante. */
+  | { genre: 'depart-auto'; contrat: Contrat; lieu: string }
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -111,8 +113,10 @@ export class Jeu {
   /**
    * Fait avancer les missions jusqu'à l'instant t : une action terminée passe à l'étape suivante ; la dernière rapporte
    * la récompense et une nouvelle mission est proposée. Une action est interrompue si la capsule n'est plus sur place.
+   * Avec une vitesse (km/s), les étapes s'enchaînent (demande d'Adrien du 17/10/2026) : l'action finie, la capsule part
+   * aussitôt vers le lieu de l'étape suivante (au moment où l'action s'est terminée, même application fermée).
    */
-  avancer(t: number): Evenement[] {
+  avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
     this.proposer(t)
     const ec = this.enCours
@@ -134,6 +138,15 @@ export class Jeu {
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
       this.proposer(t)
+    } else if (vitesseEnchainement !== undefined) {
+      const lieu = ec.contrat.etapes[ec.etape].lieu
+      if (!this.surPlace(fin)) {
+        const p = planifier(this.mission.etatHeliocentrique(fin), lieu, fin, vitesseEnchainement)
+        if (p.possible) {
+          this.mission.partir(p.plan)
+          evenements.push({ genre: 'depart-auto', contrat: ec.contrat, lieu })
+        }
+      }
     }
     return evenements
   }

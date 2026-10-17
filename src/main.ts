@@ -395,19 +395,19 @@ const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('
 })
 /** Fait avancer les missions (actions finies, récompenses) et prévient le joueur. */
 function avancerMissions(t: number): void {
-  const evenements = jeu.avancer(t)
+  const evenements = jeu.avancer(t, vitesse())
   for (const e of evenements) {
     if (e.genre === 'contrat-fini') annoncer(`Mission terminée : +${e.contrat.recompense} crédits`)
     else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
+    else if (e.genre === 'depart-auto') {
+      // Les étapes s'enchaînent : la capsule est partie d'elle-même vers l'étape suivante (voir Jeu.avancer).
+      const fini = evenements.find((x) => x.genre === 'etape-finie')
+      annoncer(`${fini?.genre === 'etape-finie' ? ACTIONS_FINIES[fini.etape.action] : 'Étape terminée'} · départ vers ${e.lieu}`)
+      choisir(e.lieu)
+      voletMissions.oublierDurees()
+      carteSale = true
+    }
     else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
-  }
-  // Mission en plusieurs étapes (livraison) : l'étape finie, le trajet vers la suivante est aussitôt préparé
-  // (demande d'Adrien du 17/10/2026) ; il ne reste qu'à appuyer sur DÉPART.
-  const suivante = jeu.etapeActuelle()
-  if (suivante && evenements.some((e) => e.genre === 'etape-finie') && !jeu.surPlace(t)) {
-    choisir(suivante.lieu)
-    proposee = true
-    planAJour = 0
   }
   if (evenements.length) enregistrerPartie()
 }

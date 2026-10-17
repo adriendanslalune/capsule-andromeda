@@ -59,9 +59,13 @@ export class VoletMissions {
         return `<li class="${etat}">${i < ec.etape ? '✓ ' : ''}${VERBES[e.action].charAt(0)}${VERBES[e.action].slice(1).toLowerCase()} — ${e.lieu}</li>`
       }).join('')
       const e = jeu.etapeActuelle()!
+      const plan = jeu.mission.plan
+      const enRoute = jeu.mission.phase(t) === 'trajet' && plan?.cible === e.lieu
       const bouton = fin !== null
         ? `<div class="action-en-cours">${NOMS_ACTIONS[e.action]} en cours · ${texteSecondes(fin - t)}</div>`
-        : jeu.surPlace(t)
+        : enRoute
+          ? `<div class="action-en-cours">En route vers ${e.lieu} · arrivée dans ${texteDuree(plan!.arrivee - t)}</div>`
+          : jeu.surPlace(t)
           ? `<button type="button" class="principal" data-choix="agir">${VERBES[e.action]}</button>`
           : `<button type="button" class="principal" data-choix="aller" data-lieu="${e.lieu}">Y ALLER</button><span class="consigne">${consigne(e)} · ${texteDistance(distanceDepuisCapsule(e.lieu, t))}</span>`
       html += `<h3>Mission en cours</h3><div class="contrat en-cours"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${ec.contrat.recompense} cr.</span></div>`
