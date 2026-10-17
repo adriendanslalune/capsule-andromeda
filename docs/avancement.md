@@ -43,7 +43,8 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
 - Ergonomie (demandes d'Adrien du 17/10/2026) — **fait, en attente de validation** : à l'ouverture, la carte est cadrée
   sur la capsule (le système de l'astre où elle est) ; bouton « ◎ Capsule » en haut à droite pour y revenir ; ce qu'on
   choisit (astre, engin, capsule) reste au centre de l'écran, même pendant le zoom ; glisser un doigt sur la carte
-  arrête ce suivi (on se promène), le bouton ou un nouveau choix le reprend.
+  arrête ce suivi (on se promène), le bouton ou un nouveau choix le reprend. Les déplacements de la caméra sont fluides (vol : on glisse
+  puis on zoome, ou on recule puis on glisse ; de loin, la caméra prend du recul en chemin).
 - 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
 - 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
   lues).

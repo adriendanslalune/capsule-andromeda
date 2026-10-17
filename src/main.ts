@@ -17,7 +17,7 @@ import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, tit
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, projeterCorps, projeterTrajet } from './carte/loupe'
+import { couperTrace, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
@@ -143,27 +143,44 @@ let apercuAJour = 0
 function choisir(nom: string | null, cadrer = false): void {
   if (nom !== selection) proposee = false
   apercu = null
-  // Ce qu'on choisit reste au centre de l'écran, même pendant le zoom (demande d'Adrien du 17/10/2026).
-  if (nom) suivi = nom
   selection = nom
-  // Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
+  // Ce qu'on choisit vient au centre de l'écran, en glissant, et y reste, même pendant le zoom (demandes d'Adrien du
+  // 17/10/2026). Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
   const c = nom ? corps(nom) : undefined
-  if (cadrer && c?.parent) carte.cadrerSysteme(c.parent, horloge())
+  if (nom && (nom !== suivi || cadrer)) {
+    suivi = nom
+    const t = horloge()
+    carte.voler(cadrer && c?.parent ? carte.echelleSysteme(c.parent) : carte.kmParPx, performance.now(), positionSuivie(t))
+  }
 }
 
-boutonRetour.addEventListener('click', () => { suivi = null; carte.vueGenerale() })
+boutonRetour.addEventListener('click', () => {
+  suivi = null
+  carte.voler(carte.echelleGenerale(), performance.now(), { x: 0, y: 0 }, true)
+})
 
-/** Cadre la carte sur la capsule : le système de l'astre où elle se trouve, la capsule au centre, et la suit. */
-function allerALaCapsule(): void {
+/** Place, sur la carte (km de carte), de ce que suit la caméra. */
+function positionSuivie(t: number): Point2 {
+  if (suivi === CAPSULE) return capsuleSurCarte ?? carte.positionCapsule(t)
+  return suivi && corps(suivi) ? projeterCorps(suivi, t) : carte.centre
+}
+/** Où est dessinée la capsule en route (sur son trajet), mis à jour à chaque image. */
+let capsuleSurCarte: Point2 | null = null
+
+/**
+ * Cadre la carte sur la capsule (le système de l'astre où elle se trouve, la capsule au centre) et la suit : en vol
+ * fluide depuis le bouton « Capsule », d'un coup à l'ouverture du jeu (demandes d'Adrien du 17/10/2026).
+ */
+function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
-  if (ou === 'Soleil') carte.vueGenerale()
-  else carte.cadrerSysteme(ou, t)
+  const k = ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou)
   suivi = CAPSULE
+  if (animer) carte.voler(k, performance.now(), positionSuivie(t))
+  else { carte.kmParPx = k; carte.centre = positionSuivie(t) }
 }
-// À l'ouverture du jeu : directement sur la capsule (demande d'Adrien du 17/10/2026) ; bouton « Capsule » en haut.
-allerALaCapsule()
-document.querySelector('#bouton-capsule')!.addEventListener('click', allerALaCapsule)
+allerALaCapsule(false)
+document.querySelector('#bouton-capsule')!.addEventListener('click', () => allerALaCapsule())
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
@@ -430,14 +447,14 @@ function image(maintenant: number): void {
   }
   const rendezVous = trace ? trace[trace.length - 1] : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
-  const carteAJour = !gestesCarte.actif && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100
+  const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
     dernierDessinCarte = maintenant
     carteSale = false
     gestesCarte.avancer(dt)
     // La caméra suit ce qu'on regarde (en route, la capsule est là où elle est dessinée sur son trajet).
-    if (suivi === CAPSULE) carte.centrerSur(capsuleDessinee ?? carte.positionCapsule(t))
-    else if (suivi && corps(suivi)) carte.centrerSur(projeterCorps(suivi, t))
+    capsuleSurCarte = capsuleDessinee
+    carte.placerCamera(suivi ? positionSuivie(t) : null, maintenant)
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {

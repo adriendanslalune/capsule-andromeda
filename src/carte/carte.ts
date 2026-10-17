@@ -175,9 +175,51 @@ export class Carte2D {
     return s === 'Soleil' ? 'SYSTÈME SOLAIRE' : `SYSTÈME ${DE[s] ?? 'DE '}${s.toUpperCase()}`
   }
 
-  /** Place du centre de la carte (km de carte) : la caméra suit ce qu'on regarde. */
-  centrerSur(p: Point2): void {
-    this.centre = { x: p.x, y: p.y }
+  /** Vol de la caméra en cours (déplacement fluide vers ce qu'on veut voir), ou null. */
+  private vol: { debut: number; duree: number; c0: Point2; k0: number; k1: number; bosse: number; fixe: Point2 | null } | null = null
+
+  /**
+   * Lance un vol de la caméra vers l'échelle k1 (km par pixel) : la carte glisse et zoome en douceur (demande d'Adrien du
+   * 17/10/2026). Le point visé est soit fixe, soit donné à chaque image (ce que la caméra suit, qui bouge). De loin, la
+   * caméra recule en chemin, pour qu'on voie d'où elle part et où elle va.
+   */
+  voler(k1: number, maintenant: number, vers: Point2, fixe = false): void {
+    const d = Math.hypot(vers.x - this.centre.x, vers.y - this.centre.y)
+    const bosse = Math.min(4, Math.max(0, Math.log(d / (Math.max(this.kmParPx, k1) * this.largeur * 0.6))))
+    this.vol = { debut: maintenant, duree: 900 + 200 * bosse, c0: { ...this.centre }, k0: this.kmParPx, k1, bosse, fixe: fixe ? vers : null }
+  }
+
+  /** Vrai pendant un vol de la caméra. */
+  get enVol(): boolean {
+    return this.vol !== null
+  }
+
+  /** Place la caméra à chaque image : sur ce qu'elle suit (cible), ou à l'étape du vol en cours. */
+  placerCamera(cible: Point2 | null, maintenant: number): void {
+    const v = this.vol
+    if (!v) {
+      if (cible) this.centre = { x: cible.x, y: cible.y }
+      return
+    }
+    const vise = v.fixe ?? cible ?? this.centre
+    const u = Math.min(1, (maintenant - v.debut) / v.duree)
+    const doux = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2) // départ et arrivée en douceur
+    const tot = (x: number) => doux(Math.min(1, x / 0.6)), tard = (x: number) => doux(Math.max(0, (x - 0.4) / 0.6))
+    // Pour zoomer, on glisse d'abord au-dessus de la cible ; pour reculer, on recule d'abord : l'écran n'est jamais vide.
+    const avant = v.k1 < v.k0
+    const ep = avant ? tot(u) : tard(u), ez = avant ? tard(u) : tot(u)
+    this.centre = { x: v.c0.x + (vise.x - v.c0.x) * ep, y: v.c0.y + (vise.y - v.c0.y) * ep }
+    const k = Math.exp(Math.log(v.k0) + (Math.log(v.k1) - Math.log(v.k0)) * ez + v.bosse * Math.sin(Math.PI * u))
+    this.kmParPx = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_MIN, k))
+    if (u >= 1) this.vol = null
+  }
+
+  /** Échelle (km par pixel) de la vue générale, et celle qui cadre le système d'un astre. */
+  echelleGenerale(): number {
+    return VUE_GENERALE / (this.largeur / 2)
+  }
+  echelleSysteme(planete: string): number {
+    return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
   }
 
   /** Place de la capsule sur la carte (km de carte), hors trajet (en route, elle est sur le trajet dessiné). */
@@ -598,10 +640,12 @@ export class Carte2D {
   }
 
   glisser(dx: number, dy: number): void {
+    this.vol = null
     this.centre = { x: this.centre.x - dx * this.kmParPx, y: this.centre.y + dy * this.kmParPx }
   }
 
   zoomer(facteur: number, sx: number, sy: number): void {
+    this.vol = null
     const nouveau = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_MIN, this.kmParPx * facteur))
     const m = this.milieu()
     // Le point sous les doigts reste fixe.
