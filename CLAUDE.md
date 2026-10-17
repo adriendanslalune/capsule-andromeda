@@ -35,7 +35,25 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 - Petits pas : une fonctionnalité à la fois, testée, commitée, publiée ; Adrien la valide sur son téléphone avant la suivante.
 - Pas de changement de règle, d'équilibrage ou d'interface sans l'accord d'Adrien.
 
+## Interface
+La carte en plein écran est l'interface principale du joueur : c'est le cockpit. Tout le reste vient par-dessus et se referme pour revenir à la carte.
+- Bandeau d'alertes en haut, toujours visible : missile en approche avec décompte, panne en cours, ralentissement, trajet en cours avec heure d'arrivée.
+- Volets qui montent du bas, ouverts depuis une barre de 5 onglets accessible au pouce : Navigation, Capsule (crédits, moteur, modules), Missions, Manuel, et « Plus » (Armement, Marché, Messages, Profil).
+- Les onglets pas encore développés sont visibles mais grisés.
+- Même direction artistique que la carte : noir et blanc, une seule couleur d'alerte.
+Ces choix sont provisoires et seront ajustés après test sur téléphone.
+
 ## Feuille de route
-1. Prototype 1 : carte et navigation (terminé et validé le 17/10/2026).
-2. Prototype 2 : combat (plus tard).
-Le document de conception complet est chez Adrien. Ne rien inventer qui n'est pas ici : en cas de doute, demander.
+On construit le vrai jeu par étapes. Chaque étape doit être jouable sur téléphone et validée par Adrien avant de passer à la suivante.
+
+1. Carte et navigation — FAIT.
+2. Cadre du cockpit et socle de jeu : bandeau d'alertes, barre d'onglets et volets (Navigation et Capsule fonctionnels, les autres grisés) ; état de la capsule (crédits, niveau du moteur, position) ; sauvegarde locale sur le téléphone.
+3. Tutoriel autour de la Terre : volet Missions ; missions simples (nettoyer des débris, livrer une cargaison, dépanner un satellite) qui rapportent des crédits ; amélioration du moteur ; fin du tutoriel quand le moteur permet d'aller à la Lune.
+4. Pannes et manuel : volet Manuel, modules à réparer, missiles aliens avec décompte, ralentissement de 50 % jusqu'à réparation.
+5. Nettoyeurs : épaves sur la carte, mini-jeu de tri des matériaux.
+6. Combat : volet Armement, vue tactique, énergie, tir sur les modules, interception (d'abord un prototype à tester).
+7. Commerçants : volet Marché, cours par formule du temps, décalés selon le délai lumière.
+8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités.
+9. Première zone à libérer : la Lune.
+10. Serveur, comptes, volet Messages, échanges entre joueurs.
+11. Version installable (PWA), puis boutique.

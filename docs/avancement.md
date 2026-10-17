@@ -1,7 +1,26 @@
-# Avancement — prototype 1 : carte et navigation
+# Avancement du jeu
 
-**Prototype 1 terminé et validé par Adrien le 17/10/2026** (43 tests verts, vérification des types et construction OK).
-Légende : **fait** / **en cours** / **à faire**.
+Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à faire**.
+
+| Étape | État |
+|---|---|
+| 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
+| 2. Cadre du cockpit et socle de jeu | **à faire** — plan proposé à Adrien, en attente de validation |
+| 3. Tutoriel autour de la Terre | à faire |
+| 4. Pannes et manuel | à faire |
+| 5. Nettoyeurs | à faire |
+| 6. Combat | à faire |
+| 7. Commerçants | à faire |
+| 8. Maisons | à faire |
+| 9. Première zone à libérer : la Lune | à faire |
+| 10. Serveur, comptes, messages, échanges | à faire |
+| 11. Version installable (PWA), puis boutique | à faire |
+
+---
+
+# Étape 1 (ancien « prototype 1 ») : carte et navigation
+
+**Terminée et validée par Adrien le 17/10/2026** (43 tests verts, vérification des types et construction OK).
 
 ## 1. Carte, astres (planètes, lunes, satellites artificiels, sondes), zoom et déplacement — fait
 
