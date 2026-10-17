@@ -14,8 +14,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Python (scripts du manuel)
-__pycache__/
 
 # Cache des réponses d’Horizons (outils/satellites-jpl.mjs)
 outils/.cache/

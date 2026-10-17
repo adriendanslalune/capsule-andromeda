@@ -2,15 +2,52 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#efe1bd" />
-    <title>Manuel de vol</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Bowlby+One+SC&family=Lobster&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%226%22/%3E%3C/svg%3E" />
+    <title>Capsule Andromeda</title>
   </head>
   <body>
-    <div id="app"></div>
+    <canvas id="plan"></canvas>
+    <canvas id="vue3d"></canvas>
+    <canvas id="surcouche"></canvas>
+    <div id="infos"></div>
+    <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div></div>
+    <div id="echelle"><div id="echelle-texte"></div></div>
+    <button id="bouton-cadran" type="button">CADRAN</button>
+    <button id="bouton-recentrer" type="button">RECENTRER</button>
+    <button id="bouton-vue" type="button">VUE EXTÉRIEURE</button>
+    <button id="bouton-reperes" type="button">Repères</button>
+    <div id="cadran"></div>
+    <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
+    <div id="panneau">
+      <div class="groupe">Destination :
+        <label><input type="checkbox" data-reglage="crochet" /> Crochet</label>
+        <label><input type="checkbox" data-reglage="etiquette" /> Étiquette (nom, distance)</label>
+        <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
+      </div>
+      <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
+      <label><input type="checkbox" data-reglage="soleil" /> Soleil en symbole</label>
+      <label><input type="checkbox" data-reglage="noms" /> Noms</label>
+      <label><input type="checkbox" data-reglage="fleches" /> Flèches Soleil et Terre (vue ext.)</label>
+      <label><input type="checkbox" data-reglage="etoiles" /> Étoiles du fond</label>
+      <div class="groupe essais">Essais — accélérer le temps :
+        <div class="choix">
+          <label><input type="radio" name="acceleration" value="1" /> ×1</label>
+          <label><input type="radio" name="acceleration" value="60" /> 1 min/s</label>
+          <label><input type="radio" name="acceleration" value="3600" /> 1 h/s</label>
+          <label><input type="radio" name="acceleration" value="86400" /> 1 j/s</label>
+          <label><input type="radio" name="acceleration" value="2592000" /> 1 mois/s</label>
+        </div>
+        Puissance des moteurs : <span id="texte-budget"></span>
+        <input id="budget" type="range" min="0" max="100" step="1" />
+      </div>
+    </div>
+    <div id="paysage">Tiens ton téléphone à la verticale.</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

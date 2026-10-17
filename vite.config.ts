@@ -1,11 +1,10 @@
 /// <reference types="vitest/config" />
-import { svelte } from '@sveltejs/vite-plugin-svelte'
+// Capsule Andromeda : publié sur …github.io/manuel-de-vol/
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // Le jeu est publié sur GitHub Pages à l'adresse …github.io/manuel-de-vol/
   base: '/manuel-de-vol/',
-  plugins: [svelte()],
+  server: { host: true },
   test: {
     include: ['tests/**/*.test.ts'],
   },

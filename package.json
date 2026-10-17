@@ -1,5 +1,5 @@
 {
-  "name": "manuel-de-vol",
+  "name": "capsule-andromeda",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,21 +9,13 @@
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:surveille": "vitest",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "andromeda": "vite --config prototypes/andromeda/vite.config.ts",
-    "build:andromeda": "vite build --config prototypes/andromeda/vite.config.ts",
-    "test:andromeda": "vitest run --config prototypes/andromeda/vite.config.ts",
-    "check:andromeda": "tsc -p prototypes/andromeda/tsconfig.json"
+    "check": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.3.0",
-    "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.3",
     "@types/three": "^0.186.0",
     "astronomia": "^4.2.0",
     "astronomy-engine": "^2.1.19",
-    "svelte": "^5.57.0",
-    "svelte-check": "^4.7.6",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.4"
