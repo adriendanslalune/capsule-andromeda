@@ -2,7 +2,7 @@
 // Écart avec JPL Horizons de 2000 à 2050 : moins de 300 km de Mercure à Mars, environ 2 000 km pour Jupiter et
 // Saturne, quelques dizaines de milliers de km pour Uranus et Neptune (moins d'une demi-seconde d'arc).
 
-import { VSOP87B, type SerieVSOP } from '../../../../src/donnees/vsop87'
+import { VSOP87B, type SerieVSOP } from '../donnees/vsop87'
 import { joursTTDepuisJ2000, UA_KM } from './temps'
 import { depuisSpheriques, type Vecteur3 } from './vecteur'
 

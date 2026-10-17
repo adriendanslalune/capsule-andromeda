@@ -1,25 +1,20 @@
 <script lang="ts">
   // Volet de la carte : vraies positions, zoom au doigt, cadran de cap, destination, rencontre, ping, tracés.
   import { onMount } from 'svelte'
-  import { corpsDuSysteme, estPlanete, planeteCentrale, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
-  import { deprojeter, projeter, rayonDessine, zoneDessinee } from '../carte/projection'
-  import Engin from '../carte/Engin.svelte'
+  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
-  import { NOMS_PLANETES, type NomPlanete } from '../../donnees/planetes'
+  import { NOMS_PLANETES } from '../../donnees/planetes'
   import { distanceEcho, positionVisiteur, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
     annulerDestination,
-    avancerFusee,
     choisirDestination,
     choisirDestinationAvecFenetre,
     distance,
-    enAttenteDeFenetre,
     optionsDeDepart,
     planDeVol,
     positionAstre,
     positionDestination,
-    repereDuTrajet,
     seuilArrivee,
     tempsRestant,
     vitesseDuMoment,
@@ -29,37 +24,22 @@
   import { hasardReel } from '../../moteur/hasard'
   import { vitesseActuelle } from '../../moteur/partie'
   import { DUREE_ACCELERATION } from '../../donnees/reglages'
-  import { dateLocale, duree, dureePrecise, heureLocale, km, nombre, nomAstre, ua } from '../format'
+  import { dateLocale, duree, dureePrecise, heureLocale, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
   import Reinitialiser from '../provisoire/Reinitialiser.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
-  import { NOMS_ENGINS } from '../../astro/engins'
+  import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
+  import { satellitesDe } from '../../astro/satellites'
 
-  /** Couleurs de la carte, style Moebius (validé par Adrien le 17/10/2026) : fond blanc cassé, encre brun-violet,
-   *  astres en pastel, ombre violette, hachures le long du terminateur. */
-  const PLAN = { fond: '#f4f1ea', trait: '#2b2138', route: '#e04b37', chasse: '#2f5f9e', ombre: '#54437a' }
+  /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
+  const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
   const L = 362
   const Hc = 400
-  /** Mélange deux couleurs « #rrggbb » (k = part de la seconde). */
-  function melanger(a: string, b: string, k: number): string {
-    const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16)
-    const canal = (d: number) => Math.round(((x >> d) & 255) * (1 - k) + ((y >> d) & 255) * k)
-    return `#${((canal(16) << 16) | (canal(8) << 8) | canal(0)).toString(16).padStart(6, '0')}`
+  const COULEURS: Record<string, string> = {
+    Mercure: '#cfc6b6', Vénus: '#efdfae', Terre: '#7fa4cf', Mars: '#e07a5c',
+    Jupiter: '#dcb184', Saturne: '#e6cf92', Uranus: '#a9d2d6', Neptune: '#7f9fd6',
   }
-  const VIVES: Record<string, string> = {
-    Soleil: '#f2b53a', Mercure: '#a99d90', Vénus: '#e8c77a', Terre: '#3f7fc1', Mars: '#d0563a', Jupiter: '#d49a62',
-    Saturne: '#e2c27d', Uranus: '#8fd0dc', Neptune: '#3f63c4', Lune: '#b9b2a6', Io: '#e2cc55', Europe: '#e6dcc8',
-    Ganymède: '#988c7d', Callisto: '#6a5d50', Titan: '#d9953c', Triton: '#e2c6b8', Phobos: '#7a6a5a', Deimos: '#9a8670',
-  }
-  /** Couleur d'un astre : sa couleur propre adoucie vers le sable (gris chaud pour les petites lunes). */
-  const couleurAstre = (nom: string) => melanger(VIVES[nom] ?? '#a89c8c', '#f7e8cc', 0.3)
-  /** Taille minimale à l'écran (rayon, px), quand on dézoome : chaque astre reste visible et distinct, dans l'ordre des
-   *  vraies tailles (le Soleil énorme, Mercure petite). */
-  const MINIMUMS: Record<string, number> = {
-    Soleil: 13, Jupiter: 8.5, Saturne: 8, Uranus: 6.5, Neptune: 6.5, Terre: 5.2, Vénus: 5, Mars: 4.2, Mercure: 3.6, Lune: 3,
-  }
-  const rayonMinimal = (nom: string) => MINIMUMS[nom] ?? 2.5
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
@@ -77,34 +57,23 @@
   })
   const tl = $derived(lisse.t)
   const fl = $derived(lisse.etat.fusee)
-  /** Où est vraiment la fusée : en orbite, à son écart autour de l'astre (sinon elle serait dessinée en son centre). */
-  const surOrbite = (f: typeof fl) => (f.orbite && f.ecartOrbite ? { x: f.position.x + f.ecartOrbite.x, y: f.position.y + f.ecartOrbite.y } : f.position)
-  const ici = $derived(surOrbite(fl))
 
-  // Vue : centre et demi-largeur, en UA de carte (voir carte/projection.ts : vraies distances entre les planètes,
-  // loupe autour de chaque astre).
+  // Vue : centre (UA) et demi-largeur (UA).
   let centre = $state<Point2>({ x: 0, y: 0 })
   let demi = $state(2.2)
   const k = $derived(L / 2 / demi) // pixels par UA
 
-  /** Point vrai (UA) → écran, à travers la projection de la carte. */
-  const ecran = (p: Point2) => { const q = projeter(p, tl); return { x: L / 2 + (q.x - centre.x) * k, y: Hc / 2 - (q.y - centre.y) * k } }
-  /** Écran → point vrai (UA). */
-  const monde = (sx: number, sy: number): Point2 => deprojeter({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k }, tl)
+  const ecran = (p: Point2) => ({ x: L / 2 + (p.x - centre.x) * k, y: Hc / 2 - (p.y - centre.y) * k })
+  const monde = (sx: number, sy: number): Point2 => ({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k })
 
   function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false; vue = null }
-
-  /** Cadre le système d'une planète (sa zone, où ses satellites et engins sont écartés à la loupe). */
-  function cadrerSysteme(planete: NomPlanete) {
-    viser(positionAstre(planete, t), zoneDessinee(planete) * 1.05)
-  }
 
   // TRAJECTOIRE : cadre la fusée, le point de rencontre et la cible, et les suit tant qu'on ne touche pas la carte.
   let suivi = $state(false)
   function cadrerTrajectoire() {
     const dest = fusee.destination
     if (!dest) return
-    const points = [ici, positionDestination(dest, tl), ...(plan ? [plan.point] : [])].map((q) => projeter(q, tl))
+    const points = [fl.position, positionDestination(dest, tl), ...(plan ? [plan.point] : [])]
     const xs = points.map((q) => q.x)
     const ys = points.map((q) => q.y)
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys)
@@ -144,7 +113,7 @@
   /** Vues de la carte : la fusée de près, le trajet (suivi), les planètes intérieures, tout le système. */
   let vue = $state<'fusee' | 'trajet' | 'planetes' | 'tout' | null>(null)
   function choisirVue(v: 'fusee' | 'trajet' | 'planetes' | 'tout') {
-    if (v === 'fusee') viser(projeter(surOrbite(fusee), t), Math.min(demi, 0.05))
+    if (v === 'fusee') viser({ ...fusee.position }, Math.min(demi, 0.05))
     else if (v === 'planetes') viser({ x: 0, y: 0 }, 2.2)
     else if (v === 'tout') viser({ x: 0, y: 0 }, 32)
     else { suivi = true; cadrerTrajectoire() }
@@ -155,120 +124,61 @@
   // Tracés de chasse (cercles du ping, droites du télescope) : visibles dans l'onglet CHASSE.
   const tracesVisibles = $derived(mode === 'chasse')
 
-  // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus. Chaque astre a un rayon à l'écran
-  // (grossi, ou vrai de près). Une lune ou un engin trop près de sa planète pour s'en détacher n'est pas dessiné.
-  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean; soleil?: number }
-  const rayonEcran = (nom: string) => Math.max(rayonMinimal(nom), rayonDessine(nom) * k)
-  /** Direction du Soleil à l'écran (degrés, sens des aiguilles d'une montre depuis la droite), vue depuis p. */
-  const versSoleil = (p: Point2) => (Math.atan2(p.y, -p.x) * 180) / Math.PI
+  // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
+  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean }
   const marques = $derived.by(() => {
-    const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: rayonEcran('Soleil'), couleur: couleurAstre('Soleil'), etiquette: true }]
-    for (const nom of NOMS_PLANETES) {
-      const p = positionAstre(nom, tl)
-      l.push({ nom, p, r: rayonEcran(nom), couleur: couleurAstre(nom), etiquette: true, soleil: versSoleil(p) })
-    }
-    const disques = l.map((m) => ({ s: ecran(m.p), r: m.r }))
-    /** Libre : assez loin de tout disque déjà dessiné pour qu'on le distingue. */
-    const libre = (p: Point2, r: number) => {
-      const s = ecran(p)
-      return disques.every((d) => Math.hypot(d.s.x - s.x, d.s.y - s.y) > d.r + r + 3)
-    }
+    const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: 9, couleur: '#f2b53a', etiquette: true }]
+    for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
+    l.push({ nom: 'ISS', p: positionAstre('ISS', tl), r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
+    for (const e of positionsEngins(tl)) l.push({ nom: e.nom, p: e.position, r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
       if (Math.abs(c.x - centre.x) > demi * 1.6 || Math.abs(c.y - centre.y) > demi * 1.8) continue
       for (const nom of corpsDuSysteme(planete)) {
         if (estPlanete(nom) || nom === 'ISS') continue
-        const p = positionAstre(nom, tl)
-        const r = rayonEcran(nom)
-        if (!libre(p, r)) continue
-        // Nommées : les lunes de plus de 100 km (sinon, autour de Jupiter, des dizaines de noms se bousculent).
-        l.push({ nom, p, r, couleur: couleurAstre(nom), etiquette: Math.hypot(ecran(p).x - ecran(c).x, ecran(p).y - ecran(c).y) > 26 && (rayonCorps(nom) ?? 0) >= 100, soleil: versSoleil(p) })
+        const a = demiGrandAxeAutourDeLaPlanete(nom)! / UA_KM
+        if (a * k < 6) continue
+        l.push({ nom, p: positionAstre(nom, tl), r: 3, couleur: '#cfc8b8', etiquette: a * k > 26 })
       }
-    }
-    for (const e of ['ISS', ...NOMS_ENGINS].map((nom) => ({ nom, position: positionAstre(nom, tl) }))) {
-      if (libre(e.position, 7)) l.push({ nom: e.nom, p: e.position, r: 7, couleur: PLAN.fond, etiquette: true, engin: true })
     }
     return l
   })
 
-  /** Noms qui ne se chevauchent pas (ni entre eux, ni avec un astre), par ordre d'importance : Soleil, planètes,
-   *  lunes, engins. La fusée et son cadran de cap gardent leur place. */
-  const nomsVisibles = $derived.by(() => {
-    type Boite = { x0: number; y0: number; x1: number; y1: number }
-    const f = ecran(ici)
-    // La fusée et son cadran de cap, puis les repères de l'astre visé (étiquette ou flèche).
-    const prises: Boite[] = [{ x0: f.x - 36, y0: f.y - 36, x1: f.x + 36, y1: f.y + 36 }]
-    if (reperes?.etiquette) { const e = reperes.etiquette; prises.push({ x0: e.x - 2, y0: e.y - 2, x1: e.x + e.l + 4, y1: e.y + e.h + 4 }) }
-    if (reperes?.fleche) {
-      const fl2 = reperes.fleche
-      const l = Math.max(reperes.nom.length * 7.5, reperes.dist.length * 6.5)
-      const x0 = fl2.ancre === 'end' ? fl2.tx - l : fl2.ancre === 'start' ? fl2.tx : fl2.tx - l / 2
-      prises.push({ x0: Math.min(x0, fl2.x - 18), y0: Math.min(fl2.ty - 16, fl2.y - 18), x1: Math.max(x0 + l, fl2.x + 18), y1: Math.max(fl2.ty + 14, fl2.y + 18) })
-    }
-    for (const m of marques) { const s = ecran(m.p); prises.push({ x0: s.x - m.r, y0: s.y - m.r, x1: s.x + m.r, y1: s.y + m.r }) }
-    const ok = new Map<string, { x: number; y: number }>()
+  /** Noms d'engins qui ne se chevauchent pas (ni entre eux ni avec un astre). */
+  const etiquettesEngins = $derived.by(() => {
+    const pris = marques.filter((m) => !m.engin).map((m) => ecran(m.p))
+    const ok = new Set<string>()
     for (const m of marques) {
-      if (!m.etiquette || m.nom === nomFocus) continue
+      if (!m.engin) continue
       const s = ecran(m.p)
-      const taille = m.engin ? 9 : 11
-      const largeur = m.nom.length * taille * 0.62
-      const ecart = m.engin ? 10 : m.r + 3
-      // Quatre places essayées dans l'ordre : en haut à droite, en bas à droite, en haut à gauche, en bas à gauche.
-      for (const [cote, haut] of [[1, true], [1, false], [-1, true], [-1, false]] as const) {
-        const x = cote > 0 ? s.x + ecart : s.x - ecart - largeur
-        const y = haut ? s.y - Math.max(m.r * 0.7, 2) - 2 : s.y + Math.max(m.r * 0.7, 2) + taille
-        const boite = { x0: x - 1, y0: y - taille, x1: x + largeur + 1, y1: y + 2 }
-        if (prises.every((q) => boite.x1 < q.x0 || boite.x0 > q.x1 || boite.y1 < q.y0 || boite.y0 > q.y1)) {
-          ok.set(m.nom, { x, y })
-          prises.push(boite)
-          break
-        }
-      }
+      if (pris.every((q) => Math.abs(q.x - s.x) > 60 || Math.abs(q.y - s.y) > 12)) { ok.add(m.nom); pris.push(s) }
     }
     return ok
   })
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, v) : null)
-  /**
-   * Chemin prévu jusqu'au point de rencontre, calculé par le moteur lui-même (une fois par seconde) : il contourne les
-   * astres comme le fera la fusée, au lieu d'une ligne droite qui les traverserait. Points relatifs au repère du
-   * trajet (la planète, ou le Soleil), pour suivre la planète à l'écran.
-   */
-  const routePrevue = $derived.by(() => {
-    const dest = fusee.destination
-    if (!dest || !plan || enAttenteDeFenetre(fusee) || v <= 0) return null
-    const repere = repereDuTrajet(fusee, dest, t)
-    const n = 60
-    const dt = Math.max(1, plan.duree / n)
-    let f = fusee
-    let tt = t
-    const points: Point2[] = []
-    for (let i = 0; i < n * 2; i++) {
-      tt += dt * 1000
-      const r = avancerFusee(f, tt, dt, v)
-      f = r.fusee
-      const o = repere ? positionAstre(repere, tt) : { x: 0, y: 0 }
-      const p = r.arrivee ? positionDestination(dest, tt) : f.position
-      points.push({ x: p.x - o.x, y: p.y - o.y })
-      if (r.arrivee || !f.destination) break
-    }
-    return { repere, points }
-  })
   const detecte = $derived(visiteurDetecte(etat, t))
   const visiteur = $derived(detecte !== null ? positionVisiteur(t) : null)
 
-  // Toucher un astre (ou un point) le sélectionne : sa fiche s'affiche, sans rien changer à la route
-  // (décision d'Adrien du 17/10/2026). Le bouton Y ALLER en fait la nouvelle destination proposée (choix),
-  // avec ses départs.
-  let selection = $state<Destination | null>(null)
+  // Sélection d'une nouvelle destination.
   let choix = $state<Destination | null>(null)
   /** Plusieurs objets sous le doigt : on propose de choisir. */
   let ambigus = $state<{ noms: string[]; point: Destination } | null>(null)
   function choisir(d: Destination) {
-    selection = d
-    choix = null
+    choix = d
     ambigus = null
+  }
+  /** Liste de toutes les destinations, par familles (pour les objets lointains ou trop serrés sur la carte). */
+  const LISTE = [
+    { titre: 'Soleil, planètes et Lune', noms: ['Soleil', ...NOMS_PLANETES, 'Lune'] },
+    { titre: 'Engins', noms: ['ISS', ...NOMS_ENGINS] },
+    ...NOMS_PLANETES.filter((p) => satellitesDe(p).length).map((p) => ({ titre: `Satellites de ${p}`, noms: satellitesDe(p).map((s) => s.nom) })),
+  ]
+  function depuisLaListe(e: Event) {
+    const nom = (e.currentTarget as HTMLSelectElement).value
+    if (nom) choisir({ type: 'astre', astre: nom })
+    ;(e.currentTarget as HTMLSelectElement).value = ''
   }
   const options = $derived(choix ? optionsDeDepart(fusee, choix, t, v) : null)
   const nomChoix = (d: Destination) => (d.type === 'astre' ? nomAstre(d.astre) : d.type === 'point' ? 'Point libre' : 'Objet inconnu')
@@ -281,7 +191,6 @@
     const f = fenetre ? choisirDestinationAvecFenetre(fusee, choix, t, v) : choisirDestination(fusee, choix)
     jeu.remplacer({ ...etat, fusee: f }, [`NOUVEAU CAP : ${nomChoix(choix).toUpperCase()}.${fenetre ? ' DÉPART À LA FENÊTRE DE TIR.' : ''}`])
     choix = null
-    selection = null
   }
 
   // Gestes : glisser pour déplacer, pincer pour zoomer, toucher pour choisir.
@@ -334,13 +243,10 @@
     if (proches.length > 1) {
       ambigus = { noms: proches.map((x) => x.m.nom), point: { type: 'point', x: w.x, y: w.y } }
       choix = null
-      selection = null
       return
     }
     ambigus = null
-    const nom = proches[0]?.m.nom
-    // Toucher encore la planète choisie ouvre son système.
-    choisir(nom ? { type: 'astre', astre: nom } : { type: 'point', x: w.x, y: w.y })
+    choix = proches.length ? { type: 'astre', astre: proches[0].m.nom } : { type: 'point', x: w.x, y: w.y }
   }
   function molette(e: WheelEvent) {
     suivi = false
@@ -410,7 +316,7 @@
   // Les autres commissionnaires : un point de leur couleur ; leur nom quand on zoome assez pour les distinguer.
   // Les noms ne s'écrivent que s'ils ne se chevauchent pas (sinon, autour de la Terre, ce serait illisible).
   const autres = $derived.by(() => {
-    const ecrits: { x: number; y: number }[] = [ecran(ici), ...[...nomsVisibles.values()].map((n) => ({ x: n.x - 5, y: n.y - 11 }))]
+    const ecrits: { x: number; y: number }[] = [ecran(fl.position)]
     return autresFusees(tl).map((a) => {
       const s = ecran(a.position)
       const visible = s.x > -10 && s.x < L + 10 && s.y > -10 && s.y < Hc + 10
@@ -421,93 +327,8 @@
   })
 
 
-  const posFusee = $derived(ecran(ici))
-  /** Le segment [a, b] (à l'écran) coupe-t-il le disque d'un astre dessiné (hors de l'astre visé) ? */
-  function traverseUnAstre(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
-    return marques.some((m) => {
-      if (m.engin || m.nom === nomFocus || (fusee.destination?.type === 'astre' && m.nom === fusee.destination.astre)) return false
-      const c = ecran(m.p)
-      const dx = b.x - a.x, dy = b.y - a.y
-      const l2 = dx * dx + dy * dy
-      const k = l2 > 0 ? Math.max(0, Math.min(1, ((c.x - a.x) * dx + (c.y - a.y) * dy) / l2)) : 0
-      return Math.hypot(a.x + dx * k - c.x, a.y + dy * k - c.y) < m.r
-    })
-  }
+  const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
-
-  /** Distance lisible : en km jusqu'à 0,1 UA, en UA au-delà. */
-  const distanceLisible = (d: number) => (d < 0.1 ? km(d * UA_KM) : ua(d))
-
-  // Repères (repris du prototype Andromeda) sur l'astre visé : la destination proposée, sinon la sélection, sinon la
-  // destination en cours. Crochet discret autour de lui, étiquette (nom, distance) posée à l'écart, reliée par un
-  // trait ; flèche au bord de la carte quand il est hors champ.
-  const focus = $derived(choix ?? selection ?? fusee.destination ?? null)
-  const nomFocus = $derived(focus?.type === 'astre' ? focus.astre : null)
-  /** Zone du cartouche et de la légende (en bas à droite), que l'étiquette ne doit pas couvrir. */
-  const CARTOUCHE = { x0: L - 156, y0: Hc - 74, x1: L, y1: Hc }
-  /** Zone du bouton CADRAN (en bas à gauche). */
-  const BOUTON_CADRAN = { x0: 0, y0: Hc - 62, x1: 104, y1: Hc }
-  const reperes = $derived.by(() => {
-    if (!focus) return null
-    const s = ecran(positionDestination(focus, tl))
-    const m = nomFocus ? marques.find((x) => x.nom === nomFocus) : undefined
-    const r = m ? m.r : 3
-    const nom = nomChoix(focus).toUpperCase()
-    const dist = distanceLisible(distance(ici, positionDestination(focus, tl)))
-    const visible = s.x > 0 && s.x < L && s.y > 0 && s.y < Hc
-    if (!visible) {
-      // Flèche : sur le bord (marge 26 px), dans la direction de l'astre vu du centre de la carte.
-      const cx = L / 2, cy = Hc / 2
-      const dx = s.x - cx, dy = s.y - cy
-      const f = Math.min((cx - 26) / Math.abs(dx || 1e-9), (cy - 26) / Math.abs(dy || 1e-9))
-      const x = cx + dx * f, y = cy + dy * f
-      const a = Math.atan2(dy, dx)
-      const ancre: 'end' | 'start' | 'middle' = Math.cos(a) > 0.3 ? 'end' : Math.cos(a) < -0.3 ? 'start' : 'middle'
-      return { visible, nom, dist, fleche: { x, y, a: (a * 180) / Math.PI, tx: x - 22 * Math.cos(a), ty: y - 22 * Math.sin(a), ancre } }
-    }
-    const a = Math.max(r, 3) + 5 // demi-côté du crochet
-    const coin = Math.min(6, Math.max(3.5, a * 0.35))
-    const crochet = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) =>
-      `M ${s.x + sx * a} ${s.y + sy * (a - coin)} L ${s.x + sx * a} ${s.y + sy * a} L ${s.x + sx * (a - coin)} ${s.y + sy * a}`).join(' ')
-    // Étiquette : six places essayées, à l'écart du point de rencontre, de la fusée, du cartouche et des bords.
-    const l = Math.max(nom.length * 8.2, dist.length * 7) + 16, h = 36
-    const loin = a + 3 + 20
-    const essais = [
-      { x: s.x + loin, y: s.y - h / 2 }, { x: s.x - loin - l, y: s.y - h / 2 },
-      { x: s.x - l / 2, y: s.y - loin - h }, { x: s.x - l / 2, y: s.y + loin },
-      { x: s.x + loin, y: s.y - loin - h }, { x: s.x - loin - l, y: s.y + loin },
-    ]
-    const eviter = [posFusee, ...(plan && fusee.destination ? [ecran(plan.point)] : [])]
-    const libre = (b: { x: number; y: number }) =>
-      b.x >= 6 && b.x + l <= L - 6 && b.y >= 6 && b.y + h <= Hc - 6
-      && (b.x + l < CARTOUCHE.x0 || b.y + h < CARTOUCHE.y0) && (b.x > BOUTON_CADRAN.x1 || b.y + h < BOUTON_CADRAN.y0)
-      && eviter.every((p) => p.x < b.x - 14 || p.x > b.x + l + 14 || p.y < b.y - 14 || p.y > b.y + h + 14)
-    const b = essais.find(libre) ?? { x: Math.min(Math.max(6, s.x + loin), L - 6 - l), y: Math.min(Math.max(6, s.y - h / 2), Hc - 6 - h) }
-    // Trait de rappel, du bord du crochet au bord de l'étiquette.
-    const cx = Math.min(Math.max(s.x, b.x), b.x + l), cy = Math.min(Math.max(s.y, b.y), b.y + h)
-    const d = Math.hypot(cx - s.x, cy - s.y) || 1
-    const rappel = `M ${s.x + ((cx - s.x) / d) * (a + 3)} ${s.y + ((cy - s.y) / d) * (a + 3)} L ${cx} ${cy}`
-    return { visible, nom, dist, crochet, etiquette: { ...b, l, h }, rappel }
-  })
-
-  // Cadran de navigation (repris du prototype) : la liste des astres et engins, avec leur distance à la fusée.
-  // Une planète qui a des lunes se déplie ; toucher une ligne affiche la fiche (et cadre le système d'une lune).
-  let cadranOuvert = $state(false)
-  let deplies = $state<string[]>([])
-  const lunesDe = (p: NomPlanete) => corpsDuSysteme(p).filter((n) => !estPlanete(n) && n !== 'ISS')
-    .sort((a, b) => (rayonCorps(b) ?? 0) - (rayonCorps(a) ?? 0))
-  const distanceA = (nom: string) => distanceLisible(distance(surOrbite(fusee), positionAstre(nom, t)))
-  function depuisLeCadran(nom: string) {
-    cadranOuvert = false
-    mode = 'navigation'
-    choisir({ type: 'astre', astre: nom })
-    const c = planeteCentrale(nom)
-    if (!c) return
-    cadrerSysteme(c)
-    // Un engin en orbite basse (ISS, Hubble…) : on zoome assez pour le voir à côté de sa planète.
-    const d = distance(projeter(positionAstre(nom, t), t), positionAstre(c, t))
-    if (d * 3 < demi) demi = d * 3
-  }
 </script>
 
 <div class="carte">
@@ -520,64 +341,27 @@
     <button class:actif={vue === 'tout'} onclick={() => choisirVue('tout')}>TOUT</button>
   </div>
 
-  <div class="cadre">
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
-    <defs>
-      <!-- Hachures fines à 45° (le long du terminateur, style Moebius). -->
-      <pattern id="hachures-carte" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <line x1="0" y1="0" x2="0" y2="3" stroke={PLAN.trait} stroke-width="0.8" />
-      </pattern>
-    </defs>
     <rect width={L} height={Hc} fill={PLAN.fond} />
     <!-- Quadrillage. -->
-    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.5" opacity=".1" />{/each}
-    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.5" opacity=".1" />{/each}
-    <!-- Orbites : planètes autour du Soleil, lunes autour de leur planète, de la couleur de l'astre. -->
+    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
+    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
     {#each NOMS_PLANETES as nom}
       {@const p = positionAstre(nom, tl)}
       {@const d = arcVisible({ x: 0, y: 0 }, Math.hypot(p.x, p.y))}
-      {#if d}<path {d} fill="none" stroke={couleurAstre(nom)} stroke-width="0.9" opacity=".75" />{/if}
-    {/each}
-    {#each marques as m}
-      {#if !m.engin && m.nom !== 'Soleil' && !estPlanete(m.nom)}
-        {@const c = positionAstre(planeteDe(m.nom), tl)}
-        {@const q = projeter(m.p, tl)}
-        {@const d = arcVisible(c, Math.hypot(q.x - c.x, q.y - c.y))}
-        {#if d}<path {d} fill="none" stroke={m.couleur} stroke-width="0.8" opacity=".6" />{/if}
-      {/if}
+      {#if d}<path {d} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />{/if}
     {/each}
     {#each marques as m}
       {@const s = ecran(m.p)}
-      {#if s.x > -m.r - 40 && s.x < L + m.r + 40 && s.y > -m.r - 40 && s.y < Hc + m.r + 40}
+      {#if s.x > -40 && s.x < L + 40 && s.y > -40 && s.y < Hc + 40}
         {#if m.engin}
-          <!-- Engin humain : sa silhouette, nom en plus petit. -->
-          <Engin nom={m.nom} x={s.x} y={s.y} encre={PLAN.trait} />
-          {@const n = nomsVisibles.get(m.nom)}
-          {#if n}<text class="nom" x={n.x} y={n.y} font-size="9" fill={PLAN.trait} opacity=".85">{m.nom.toUpperCase()}</text>{/if}
+          <!-- Engin humain : petit losange, nom en plus petit. -->
+          <path d={`M ${s.x} ${s.y - 4.5} L ${s.x + 4.5} ${s.y} L ${s.x} ${s.y + 4.5} L ${s.x - 4.5} ${s.y} Z`} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.3" />
+          {#if etiquettesEngins.has(m.nom)}<text x={s.x + 7} y={s.y + 4} font-size="9" font-family="var(--police-machine)" fill={PLAN.trait} opacity=".9">{m.nom.toUpperCase()}</text>{/if}
         {:else}
-          <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} />
-          {#if m.soleil !== undefined}
-            <!-- Face de nuit : aplat violet, hachures sur la bande du terminateur (le Soleil est vers +x, une fois tourné). -->
-            {@const r = m.r}
-            {@const ombre = melanger(m.couleur, PLAN.ombre, 0.6)}
-            {@const segment = (x0: number) => { const h = Math.sqrt(r * r - x0 * x0); return `M ${x0} ${-h} A ${r} ${r} 0 ${x0 > 0 ? 1 : 0} 0 ${x0} ${h} Z` }}
-            <g transform={`translate(${s.x} ${s.y}) rotate(${m.soleil})`}>
-              <path d={segment(-0.1 * r)} fill={ombre} />
-              <path d={segment(0.2 * r)} fill="url(#hachures-carte)" />
-              <path d={segment(-0.5 * r)} fill={ombre} />
-            </g>
-          {:else}
-            <!-- Le Soleil : des rayons. -->
-            {#each Array.from({ length: 12 }, (_, i) => i) as i}
-              {@const a = (i * Math.PI) / 6}
-              {@const r1 = m.r + (i % 2 ? 6 : 10)}
-              <line x1={s.x + (m.r + 3) * Math.cos(a)} y1={s.y + (m.r + 3) * Math.sin(a)} x2={s.x + r1 * Math.cos(a)} y2={s.y + r1 * Math.sin(a)} stroke={PLAN.trait} stroke-width="1.6" stroke-linecap="round" />
-            {/each}
-          {/if}
-          <circle cx={s.x} cy={s.y} r={m.r} fill="none" stroke={PLAN.trait} stroke-width={m.r > 15 ? 1.6 : 1} />
-          {@const n = nomsVisibles.get(m.nom)}
-          {#if n}<text class="nom" x={n.x} y={n.y} font-size="11" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
+          <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke={PLAN.trait} stroke-width="1.5" />
+          {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
         {/if}
       {/if}
     {/each}
@@ -597,7 +381,7 @@
 
     {#each autres as a}
       {#if a.visible}
-        <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.trait} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />
+        <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.fond} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />
         {#if a.nomVisible}<text x={a.s.x + 5} y={a.s.y + 11} font-size="11" font-family="var(--police-script)" fill={a.couleur}>{a.nom}</text>{/if}
       {/if}
     {/each}
@@ -609,47 +393,30 @@
 
     {#if fusee.destination}
       {@const cible = ecran(positionDestination(fusee.destination, tl))}
-      {@const o = routePrevue?.repere ? positionAstre(routePrevue.repere, tl) : { x: 0, y: 0 }}
-      {@const chemin = routePrevue ? routePrevue.points.map((q) => ecran({ x: o.x + q.x, y: o.y + q.y })) : []}
-      {@const point = chemin.length ? chemin[chemin.length - 1] : plan ? ecran(plan.point) : cible}
-      {@const route = chemin.length ? `M ${posFusee.x} ${posFusee.y} ` + chemin.map((q) => `L ${q.x} ${q.y}`).join(' ') : segmentVisible(posFusee, point)}
-      {@const visee = traverseUnAstre(posFusee, cible) ? null : segmentVisible(posFusee, cible)}
+      {@const point = plan ? ecran(plan.point) : cible}
+      {@const route = segmentVisible(posFusee, point)}
+      {@const visee = segmentVisible(posFusee, cible)}
       <!-- Deux traits : vers la destination là où elle est maintenant (blanc, fin), et vers le point de rencontre,
            là où la fusée la rejoindra (jaune). -->
       {#if visee}<path d={visee} fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" opacity=".85" />{/if}
-      {#if route}<path d={route} fill="none" stroke={PLAN.trait} stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /><path d={route} fill="none" stroke={PLAN.route} stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />{/if}
+      {#if route}<path d={route} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
-      <!-- Destination en cours, quand les repères désignent un autre astre : un cercle pointillé discret. -->
-      {#if focus !== fusee.destination}<circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="3 3" />{/if}
+      <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
+    {/if}
+    {#if choix}
+      {@const s = ecran(positionDestination(choix, tl))}
+      <circle cx={s.x} cy={s.y} r="12" fill="none" stroke={PLAN.route} stroke-width="2.5" />
     {/if}
 
-    <!-- Cadran de cap, plus petit que l'astre d'où part la fusée ne disparaisse pas dessous. -->
     <g transform={`translate(${posFusee.x} ${posFusee.y})`}>
-      <circle r="26" fill="none" stroke={PLAN.trait} stroke-width="0.8" opacity=".4" />
+      <circle r="40" fill="none" stroke={PLAN.trait} stroke-width="1" opacity=".6" />
       {#each graduations as g}
         {@const a = (g * Math.PI) / 180}
-        <line x1={Math.cos(a) * 23} y1={-Math.sin(a) * 23} x2={Math.cos(a) * 26} y2={-Math.sin(a) * 26} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 1.6 : 0.8} opacity=".7" />
-        {#if g % 90 === 0}<text class="nom" x={Math.cos(a) * 33} y={-Math.sin(a) * 33 + 3} text-anchor="middle" font-size="8" fill={PLAN.trait} opacity=".75">{g}</text>{/if}
+        <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 2 : 1} />
+        {#if g % 90 === 0}<text x={Math.cos(a) * 50} y={-Math.sin(a) * 50 + 4} text-anchor="middle" font-size="10" font-family="var(--police-chiffres)" fill={PLAN.trait}>{g}</text>{/if}
       {/each}
       <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e04b37" stroke={PLAN.trait} stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
-
-    <!-- Repères de l'astre visé : crochet, étiquette à l'écart, ou flèche au bord quand il est hors champ. -->
-    {#if reperes?.crochet && reperes.etiquette}
-      {@const e = reperes.etiquette}
-      <path d={reperes.crochet} fill="none" stroke={PLAN.trait} stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-      <path d={reperes.crochet} fill="none" stroke={PLAN.route} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d={reperes.rappel} stroke={PLAN.trait} stroke-width="1.1" />
-      <rect x={e.x + 3} y={e.y + 3} width={e.l} height={e.h} fill={PLAN.trait} />
-      <rect x={e.x} y={e.y} width={e.l} height={e.h} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.4" />
-      <text x={e.x + 8} y={e.y + 15} font-size="12" font-weight="700" font-family="var(--police-machine)" fill={PLAN.trait}>{reperes.nom}</text>
-      <text x={e.x + 8} y={e.y + 29} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{reperes.dist}</text>
-    {:else if reperes?.fleche}
-      {@const f = reperes.fleche}
-      <path d="M 16 0 L -10 8 L -10 -8 Z" transform={`translate(${f.x} ${f.y}) rotate(${f.a})`} fill={PLAN.route} stroke={PLAN.trait} stroke-width="1.8" stroke-linejoin="round" />
-      <text class="nom" x={f.tx} y={f.ty - 4} text-anchor={f.ancre} font-size="11" font-weight="700" fill={PLAN.trait}>{reperes.nom}</text>
-      <text class="nom" x={f.tx} y={f.ty + 10} text-anchor={f.ancre} font-size="10" fill={PLAN.trait}>{reperes.dist}</text>
-    {/if}
 
     <!-- Légende des deux traits. -->
     {#if fusee.destination}
@@ -657,7 +424,7 @@
         <rect width="144" height="26" fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.2" />
         <line x1="6" y1="8" x2="26" y2="8" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" />
         <text x="32" y="11" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>DESTINATION, MAINTENANT</text>
-        <line x1="6" y1="19" x2="26" y2="19" stroke={PLAN.route} stroke-width="2.2" />
+        <line x1="6" y1="19" x2="26" y2="19" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />
         <text x="32" y="22" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>POINT DE RENCONTRE</text>
       </g>
     {/if}
@@ -671,8 +438,6 @@
       <text x="22" y="28" font-size="10" font-family="var(--police-machine)" fill={PLAN.trait}>= {echelle}</text>
     </g>
   </svg>
-  <button class="bouton-cadran" onclick={() => (cadranOuvert = true)}>CADRAN</button>
-  </div>
 
   <div class="onglets" role="tablist">
     <button role="tab" aria-selected={mode === 'navigation'} class:actif={mode === 'navigation'} onclick={() => (mode = 'navigation')}>DESTINATION</button>
@@ -685,16 +450,9 @@
         {#each ambigus.noms as n}<button onclick={() => choisir({ type: 'astre', astre: n })}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</button>{/each}
         <button class="clair" onclick={() => choisir(ambigus!.point)}>Point libre</button>
       </div>
-    {:else if mode === 'navigation' && selection && !choix}
-      <!-- Fiche de l'astre (ou du point) touché : rien ne change tant qu'on n'appuie pas sur Y ALLER. -->
-      <div class="ligne"><span class="etiquette">SÉLECTION</span><button class="lien" onclick={() => (selection = null)}>fermer</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(surOrbite(fusee), positionDestination(selection, t)))}</span></div>
-      <div class="boutons">
-        <button class="action clair" onclick={() => (choix = selection)}>Y ALLER</button>
-      </div>
     {:else if mode === 'navigation' && choix && options}
-      <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => { choix = null; selection = null }}>annuler</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(surOrbite(fusee), positionDestination(choix, t)))}</span></div>
+      <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
+      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
         {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
         {@const quand = t + voyage * 1000}
@@ -715,7 +473,13 @@
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
         {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
-      <p class="aide">Touchez un astre, un engin ou un point de la carte pour voir sa fiche, ou ouvrez le CADRAN.</p>
+      <p class="aide">Touchez un astre, un engin ou un point de la carte pour choisir une destination, ou :</p>
+      <select class="liste" aria-label="Choisir une destination dans la liste" onchange={depuisLaListe}>
+        <option value="">Choisir dans la liste…</option>
+        {#each LISTE as g}
+          <optgroup label={g.titre}>{#each g.noms as n}<option value={n}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</option>{/each}</optgroup>
+        {/each}
+      </select>
     {:else}
       <div class="boutons">
         {#if estInstalle(etat, 'TEL')}
@@ -739,37 +503,6 @@
       </div>
     {/if}
   </div>
-  {#if cadranOuvert}
-    <!-- Cadran de navigation : feuille qui monte du bas, la liste des astres et leur distance. -->
-    <div class="cadran" role="dialog" aria-label="Cadran de navigation">
-      <div class="entete"><span>CADRAN DE NAVIGATION</span><button onclick={() => (cadranOuvert = false)}>Fermer</button></div>
-      <div class="liste-cadran">
-        <h3>Soleil et planètes</h3>
-        {#each ['Soleil', ...NOMS_PLANETES] as nom}
-          {@const lunes = estPlanete(nom) ? lunesDe(nom as NomPlanete) : []}
-          <div class="ligne-cadran" class:choisie={nomFocus === nom}>
-            <button class="astre" onclick={() => depuisLeCadran(nom)}><span>{nomAstre(nom).replace(/^./, (c) => c.toUpperCase())}</span><span class="dist">{distanceA(nom)}</span></button>
-            {#if lunes.length}
-              <button class="deplier" onclick={() => (deplies = deplies.includes(nom) ? deplies.filter((n) => n !== nom) : [...deplies, nom])}>{deplies.includes(nom) ? '▾' : '▸'} {lunes.length} lune{lunes.length > 1 ? 's' : ''}</button>
-            {/if}
-          </div>
-          {#if deplies.includes(nom)}
-            {#each lunes as l}
-              <div class="ligne-cadran retrait" class:choisie={nomFocus === l}>
-                <button class="astre" onclick={() => depuisLeCadran(l)}><span>{nomAstre(l).replace(/^./, (c) => c.toUpperCase())}</span><span class="dist">{distanceA(l)}</span></button>
-              </div>
-            {/each}
-          {/if}
-        {/each}
-        <h3>Engins</h3>
-        {#each ['ISS', ...NOMS_ENGINS] as nom}
-          <div class="ligne-cadran" class:choisie={nomFocus === nom}>
-            <button class="astre" onclick={() => depuisLeCadran(nom)}><span>{nom}</span><span class="dist">{distanceA(nom)}</span></button>
-          </div>
-        {/each}
-      </div>
-    </div>
-  {/if}
   <!-- PROVISOIRE (à retirer sur ordre d'Adrien) : saut d'essai vers n'importe quelle destination. -->
   <Saut />
   <Reinitialiser />
@@ -819,16 +552,8 @@
     border-left: 0;
   }
   .vues button.actif {
-    background: var(--couleur-encre);
-    color: var(--couleur-texte-clair);
-  }
-  /* Noms sur la carte : liseré de la couleur du fond, pour rester lisibles sur une orbite ou un astre. */
-  .plan .nom {
-    font-family: var(--police-machine);
-    paint-order: stroke;
-    stroke: #f4f1ea;
-    stroke-width: 3px;
-    stroke-linejoin: round;
+    background: #1f4f8c;
+    color: #eef4ff;
   }
   .vues button:disabled {
     color: var(--couleur-texte-eteint);
@@ -870,6 +595,15 @@
   .ambigus button.clair {
     background: var(--couleur-papier);
     color: var(--couleur-encre);
+  }
+  .liste {
+    min-height: 44px;
+    padding: 0 10px;
+    border: 2px solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--couleur-papier);
+    font: inherit;
+    font-size: 16px;
   }
   .calcul {
     display: flex;

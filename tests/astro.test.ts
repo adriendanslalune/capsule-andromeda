@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { directionEtoile, ecartVisee } from '../src/astro/etoiles'
 import { delaiLumiere } from '../src/astro/lumiere'
 import { positionLune, positionLuneGeocentrique } from '../src/astro/lune'
-import { positionPlanete, positionPlaneteExacte } from '../src/astro/planetes'
+import { positionPlanete } from '../src/astro/planetes'
 import { jourJulien, joursDepuisJ2000, UA_KM } from '../src/astro/temps'
 import { angleEntre, norme, resoudreKepler, soustraire, type Vecteur3 } from '../src/astro/vecteur'
 import { ETOILES } from '../src/donnees/etoiles'
-import { NOMS_PLANETES } from '../src/donnees/planetes'
+import { NOMS_PLANETES, PLANETES } from '../src/donnees/planetes'
 import refLune from './references/horizons-lune.json'
 import refPlanetes from './references/horizons-planetes.json'
 
@@ -33,26 +33,39 @@ describe('équation de Kepler', () => {
 })
 
 describe('planètes', () => {
-  // Écart toléré (km) avec JPL Horizons, planète par planète : la troncature des séries VSOP87 pèse plus loin du Soleil.
-  const TOLERANCE_KM = [500, 500, 500, 500, 3000, 5000, 25000, 60000]
+  // Copie exacte de la fonction `pos` du prototype v0.1, pour vérifier que le portage est identique.
+  function posPrototype(i: number, ms: number) {
+    const R = Math.PI / 180
+    const e = PLANETES[i], T = (ms / 86400000 + 2440587.5 - 2451545) / 36525, k: number[] = []
+    for (let j = 0; j < 6; j++) k[j] = e.elements[j] + e.parSiecle[j] * T
+    const a = k[0], ec = k[1], I = k[2] * R, L = k[3], w = k[4], O = k[5]
+    const M = ((L - w) % 360 + 540) % 360 - 180, om = (w - O) * R, On = O * R, m = M * R
+    let E = m + ec * Math.sin(m)
+    for (let n = 0; n < 6; n++) E = E - (E - ec * Math.sin(E) - m) / (1 - ec * Math.cos(E))
+    const xp = a * (Math.cos(E) - ec), yp = a * Math.sqrt(1 - ec * ec) * Math.sin(E)
+    const co = Math.cos(om), so = Math.sin(om), cO = Math.cos(On), sO = Math.sin(On), cI = Math.cos(I)
+    return { x: (co * cO - so * sO * cI) * xp + (-so * cO - co * sO * cI) * yp,
+      y: (co * sO + so * cO * cI) * xp + (-so * sO + co * cO * cI) * yp }
+  }
 
-  it('sont à leur vraie place (JPL Horizons) à quelques centaines de km près pour les planètes proches, de 2000 à 2050', () => {
+  it('donnent exactement les mêmes x, y que le prototype', () => {
+    for (const t of [Date.UTC(2000, 0, 1), Date.UTC(2026, 9, 13, 12), Date.UTC(2049, 5, 30)]) {
+      NOMS_PLANETES.forEach((nom, i) => {
+        const p = positionPlanete(nom, t), q = posPrototype(i, t)
+        expect(p.x).toBe(q.x)
+        expect(p.y).toBe(q.y)
+      })
+    }
+  })
+
+  it('sont à leur vraie place (JPL Horizons) à moins de 0,2° vues du Soleil, de 2000 à 2050', () => {
     NOMS_PLANETES.forEach((nom, i) => {
       for (const r of (refPlanetes.positions as Record<string, Ref[]>)[String(100 * i + 199)]) {
         const p = positionPlanete(nom, instant(r.jd))
-        expect(norme(soustraire(p, enUA(r))) * UA_KM, `${nom} au jour julien ${r.jd}`).toBeLessThan(TOLERANCE_KM[i])
+        expect(angleEntre(p, enUA(r)), `${nom} au jour julien ${r.jd}`).toBeLessThan(0.2)
+        expect(Math.abs(norme(p) - norme(enUA(r))) / norme(enUA(r))).toBeLessThan(0.003)
       }
     })
-  })
-
-  it("l'interpolation ajoute moins de 20 km à l'écart des séries (quelques km en général)", () => {
-    for (const nom of NOMS_PLANETES) {
-      for (let k = 0; k < 200; k++) {
-        const t = Date.UTC(2026, 0, 1) + k * 7.3e8
-        const ecart = norme(soustraire(positionPlanete(nom, t), positionPlaneteExacte(nom, t))) * UA_KM
-        expect(ecart, nom).toBeLessThan(20)
-      }
-    }
   })
 
   it('la Terre est à 1 UA du Soleil et Neptune à 30 UA', () => {

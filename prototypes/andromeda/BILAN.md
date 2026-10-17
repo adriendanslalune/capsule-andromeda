@@ -38,7 +38,7 @@ décisions ci-dessous.
 
 | Fichier | Rôle | Remarque |
 |---|---|---|
-| `moteur/vsop87.ts` (données et générateur désormais dans le jeu : `src/donnees/vsop87.ts`, `outils/vsop87.mjs`) | Positions des planètes (VSOP87B tronqué, 177 Ko) | **10 à 1 000 fois plus précis** que le module actuel du jeu (`src/astro/planetes.ts`, jusqu'à 3,8 millions de km d'erreur pour Saturne). À brancher dans le jeu. |
+| `moteur/vsop87.ts`, `donnees/vsop87.ts`, `outils/vsop87.mjs` | Positions des planètes (VSOP87B tronqué, 177 Ko) | **10 à 1 000 fois plus précis** que le module actuel du jeu (`src/astro/planetes.ts`, jusqu'à 3,8 millions de km d'erreur pour Saturne). À brancher dans le jeu. |
 | `moteur/kepler.ts` | Mouvement sur une conique (ellipse, hyperbole), robuste même très rapide | |
 | `moteur/lambert.ts` | Trajectoire entre deux points en un temps donné (+ correction par la méthode du tir) | Testé sur Hohmann Terre → Mars (259 j). Précis du petit saut (ISS) au long voyage. |
 | `moteur/mission.ts` | Orbite → trajet → orbite d'arrivée ; trajet le plus rapide pour un budget de delta-v | Le cœur de la navigation du jeu. |
@@ -91,7 +91,7 @@ décisions ci-dessous.
 
 ## Prochaines étapes proposées (à décider par Adrien)
 
-1. ✅ **Brancher VSOP87 dans le jeu** à la place de `src/astro/planetes.ts` — fait le 17/10/2026 (gain de précision énorme, sans changer
+1. **Brancher VSOP87 dans le jeu** à la place de `src/astro/planetes.ts` (gain de précision énorme, sans changer
    de règle — mais des tests du jeu dépendent des anciennes positions, à adapter).
 2. **Ouvrir le réseau** de l'environnement à `celestrak.org` et `ssd.jpl.nasa.gov`, puis récupérer satellites,
    Pluton et Charon, et renouveler les données des sondes et des lunes.

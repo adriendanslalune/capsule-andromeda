@@ -2,7 +2,7 @@
 // le bot attend à son escale n, puis part vers l'escale n + 1 en ligne droite (vers la position de l'escale qui
 // avance) et l'y attend jusqu'à la fin du cycle. Un trajet trop long pour tenir dans le cycle n'est pas entrepris.
 
-import { planeteDe, positionPlate, rayonCorps } from '../astro/corps'
+import { planeteDe, positionCorps, rayonCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import type { Vecteur3 } from '../astro/vecteur'
 import type { Bot } from '../donnees/flotte'
@@ -46,7 +46,7 @@ export function escaleDuCycle(bot: Bot, n: number): string {
 
 /** Position de stationnement autour d'une escale : en orbite, à une distance et un angle propres au bot (UA). */
 function stationnement(bot: Bot, escale: string, t: number): Vecteur3 {
-  const c = positionPlate(escale, t)
+  const c = positionCorps(escale, t)
   const r = rayonCorps(escale) ?? 0
   const ecartKm = escale === 'ISS' ? 0.3 + tirage(bot, 0, 7) * 0.5 : r * (1.1 + tirage(bot, 0, 3) * 0.6) + 300
   // Une orbite d'environ 90 minutes autour d'une planète, plus lente autour de la Lune.

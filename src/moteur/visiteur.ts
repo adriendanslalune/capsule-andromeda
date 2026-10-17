@@ -4,7 +4,7 @@
 // une direction qui changent chaque jour. Il ne voyage pas entre deux escales : il disparaît et réapparaît.
 // (Décisions d'Adrien du 13/10/2026 ; le prototype le faisait voyager entre les planètes.)
 
-import { corpsDuSysteme, positionPlate, type NomCorps } from '../astro/corps'
+import { corpsDuSysteme, positionCorps, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
 import { CHASSE as C } from '../donnees/chasse'
 import { NOMS_PLANETES } from '../donnees/planetes'
@@ -83,7 +83,7 @@ function placeAuRepos(t: number): Omit<PositionVisiteur, 'enVoyage'> {
   const distanceAstreKm = C.distanceAstreMinKm + h() * (C.distanceAstreMaxKm - C.distanceAstreMinKm)
   const angle = h() * 2 * Math.PI
   const d = distanceAstreKm / UA_KM
-  const a = positionPlate(astre, t)
+  const a = positionCorps(astre, t)
   // Dans le plan de l'astre (la fusée navigue dans le plan de la carte, sans hauteur).
   return { x: a.x + d * Math.cos(angle), y: a.y + d * Math.sin(angle), z: a.z, astre, distanceAstreKm }
 }

@@ -4,7 +4,7 @@
 // la Terre).
 
 import { NOMS_PLANETES, PLANETES, RAPPORT_MASSE_SOLEIL, RAYON_LUNE, type NomPlanete } from '../donnees/planetes'
-import { estEngin, ficheEngin, planeteDeLEngin, positionEngin } from './engins'
+import { estEngin, ficheEngin, positionEngin } from './engins'
 import { demiGrandAxeISS, periodeISS, positionISSGeocentrique } from './iss'
 import { positionLune } from './lune'
 import { positionPlanete } from './planetes'
@@ -57,71 +57,6 @@ export function positionCorps(nom: NomCorps, t: number): Vecteur3 {
   if (nom === 'ISS') return ajouter(positionPlanete('Terre', t), multiplier(positionISSGeocentrique(t), 1 / UA_KM))
   if (estEngin(nom)) return positionEngin(nom, t)
   return positionSatellite(satelliteConnu(nom), t)
-}
-
-/** Planète autour de laquelle tourne le corps (Lune, satellites, ISS, Hubble, Juno…), ou null. */
-export function planeteCentrale(nom: NomCorps): NomPlanete | null {
-  if (nom === 'Soleil' || estPlanete(nom)) return null
-  if (estEngin(nom)) return planeteDeLEngin(nom)
-  return planeteDe(nom)
-}
-
-const MEMOIRE_PLATE = new Map<NomCorps, { t: number; p: Vecteur3 }>()
-
-/**
- * Position du corps dans le monde du jeu, qui est plat (décision d'Adrien du 17/10/2026) : la carte, la navigation,
- * le visiteur et les autres fusées s'en servent ; seule la vue extérieure 3D garde les vraies positions.
- * Le Soleil, les planètes et les engins lointains : leur vraie position, vue de dessus. Ce qui tourne autour d'une
- * planète : son orbite est « rabattue » dans le plan de la carte (rotation autour de la ligne des nœuds) ; il garde
- * sa vraie distance à la planète et sa vraie vitesse, et ne passe donc jamais dans son disque (vue de dessus, l'ISS
- * y serait 91 % du temps). Hauteur z : celle de la planète.
- */
-export function positionPlate(nom: NomCorps, t: number): Vecteur3 {
-  const centre = planeteCentrale(nom)
-  if (!centre) return positionCorps(nom, t)
-  const m = MEMOIRE_PLATE.get(nom)
-  if (m && m.t === t) return { ...m.p }
-  const c = positionPlanete(centre, t)
-  const p = positionCorps(nom, t)
-  const rel = { x: p.x - c.x, y: p.y - c.y, z: p.z - c.z }
-  // Normale de l'orbite, d'après deux positions à une minute d'écart.
-  const c2 = positionPlanete(centre, t + 60_000)
-  const p2 = positionCorps(nom, t + 60_000)
-  const rel2 = { x: p2.x - c2.x, y: p2.y - c2.y, z: p2.z - c2.z }
-  const plat = rabattre(rel, rel2)
-  const resultat = { x: c.x + plat.x, y: c.y + plat.y, z: c.z }
-  MEMOIRE_PLATE.set(nom, { t, p: resultat })
-  return { ...resultat }
-}
-
-/**
- * Rabat le vecteur r1 dans le plan de l'écliptique, par la rotation (autour de la ligne des nœuds) qui y amène le plan
- * de l'orbite (r1, r2). Une orbite rétrograde est rabattue « par en dessous », pour garder son sens de parcours.
- * La longueur est conservée.
- */
-function rabattre(r1: Vecteur3, r2: Vecteur3): { x: number; y: number } {
-  let n = { x: r1.y * r2.z - r1.z * r2.y, y: r1.z * r2.x - r1.x * r2.z, z: r1.x * r2.y - r1.y * r2.x }
-  const l = Math.hypot(n.x, n.y, n.z)
-  const d = Math.hypot(r1.x, r1.y, r1.z)
-  if (!(l > 0)) {
-    const h = Math.hypot(r1.x, r1.y) || 1
-    return { x: (r1.x / h) * d, y: (r1.y / h) * d }
-  }
-  n = { x: n.x / l, y: n.y / l, z: n.z / l }
-  const sens = n.z >= 0 ? 1 : -1
-  const c = n.z * sens
-  const ax = n.y * sens, ay = -n.x * sens
-  const s = Math.hypot(ax, ay)
-  if (s < 1e-12) return { x: r1.x, y: r1.y }
-  const k = { x: ax / s, y: ay / s, z: 0 }
-  // Rotation de Rodrigues autour de k (cos c, sin s).
-  const kv = k.x * r1.x + k.y * r1.y
-  const cx = k.y * r1.z, cy = -k.x * r1.z
-  const x = r1.x * c + cx * s + k.x * kv * (1 - c)
-  const y = r1.y * c + cy * s + k.y * kv * (1 - c)
-  // Le résultat est dans le plan (z ≈ 0) : on le remet à la longueur exacte.
-  const h = Math.hypot(x, y) || 1
-  return { x: (x / h) * d, y: (y / h) * d }
 }
 
 /** Demi-grand axe de l'orbite du satellite autour de sa planète (km) ; null pour une planète. */

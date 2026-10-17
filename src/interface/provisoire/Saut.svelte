@@ -5,7 +5,7 @@
   // Le saut place la fusée en orbite autour de la destination choisie, instantanément. Aucun contrat n'est rempli,
   // mais la visite compte pour les trophées (et les points).
   import { approcheEngin, NOMS_ENGINS } from '../../astro/engins'
-  import { positionPlate, rayonCorps } from '../../astro/corps'
+  import { positionCorps, rayonCorps } from '../../astro/corps'
   import { satellitesDe } from '../../astro/satellites'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES } from '../../donnees/planetes'
@@ -25,7 +25,7 @@
     if (!choix || !jeu.etat) return
     const t = jeu.maintenant
     const astre = choix
-    const c = positionPlate(astre, t)
+    const c = positionCorps(astre, t)
     // On se range du côté éclairé (entre l'astre et le Soleil), à la distance d'arrivée.
     const km = astre === 'ISS' ? approcheEnginKm(109) : NOMS_ENGINS.includes(astre) ? approcheEngin(astre)
       : Math.max(seuilArrivee({ type: 'astre', astre }) * UA_KM, (rayonCorps(astre) ?? 0) * 1.5)

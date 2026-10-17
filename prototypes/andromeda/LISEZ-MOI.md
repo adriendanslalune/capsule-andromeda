@@ -9,12 +9,13 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 
 - `npm run andromeda` : lance le prototype en local (accessible depuis le téléphone sur le même réseau).
 - `npm run test:andromeda` : tests (positions comparées à JPL Horizons, caméra).
-- `node outils/vsop87.mjs` : régénère les séries VSOP87B tronquées (désormais partagées avec le jeu, `src/donnees/vsop87.ts`).
+- `node prototypes/andromeda/outils/vsop87.mjs` : régénère les séries VSOP87B tronquées.
 
 ## Organisation
 
 - `src/moteur/` — logique pure, sans affichage : temps, planètes (VSOP87B), Pluton (Meeus), catalogue des astres.
   Réutilise en lecture seule les lunes, la Lune, les orbites TLE et les trajectoires de sondes du jeu.
+- `src/donnees/` — séries VSOP87B générées.
 - `src/affichage3d/` — la vue 3D (three.js) : caméra derrière la capsule, astres jour / nuit avec contours, modèles
   (capsule type Apollo, engins, cailloux), noms et flèches par-dessus. Ne calcule aucune position : les demande au moteur.
 - Style retenu par Adrien : « Moebius », fond blanc cassé sur la carte et noir dans la vue extérieure — couleurs pastel (palette dans

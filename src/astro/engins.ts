@@ -28,13 +28,6 @@ export function approcheEngin(nom: string): number {
   return approcheEnginKm(FICHES.get(nom)?.tailleM ?? 30)
 }
 
-/** Planète autour de laquelle tourne l'engin (Hubble, Tiangong : la Terre ; Juno : Jupiter), ou null. */
-export function planeteDeLEngin(nom: string): NomPlanete | null {
-  if (ORBITES.has(nom)) return 'Terre'
-  const tr = TRAJETS.get(nom)
-  return tr && tr.centre !== 'Soleil' ? tr.centre : null
-}
-
 /** Noms de tous les engins (hors ISS). */
 export const NOMS_ENGINS: readonly string[] = ENGINS.map((e) => e.nom)
 

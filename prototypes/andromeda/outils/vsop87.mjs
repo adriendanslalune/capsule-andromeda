@@ -5,7 +5,7 @@
 // Les séries complètes viennent de la bibliothèque astronomia (licence MIT) ; on ne garde que les termes dont l'effet
 // dépasse un seuil, choisi par planète pour que la troncature ajoute moins de quelques centaines de km d'erreur.
 //
-// Usage : node outils/vsop87.mjs
+// Usage : node prototypes/andromeda/outils/vsop87.mjs
 
 import fs from 'node:fs'
 import data from 'astronomia/data'

@@ -11,9 +11,9 @@
 //   qui fait arriver le plus tôt, la fusée attendant en orbite). Le joueur choisit.
 
 import { corpsDuSysteme, enUA, estPlanete, periodeOrbitale, planeteDe,
-  positionPlate, rayonCorps, rayonInfluence, systemeDuCorps, type NomCorps } from '../astro/corps'
+  positionCorps, rayonCorps, rayonInfluence, systemeDuCorps, type NomCorps } from '../astro/corps'
 import { UA_KM } from '../astro/temps'
-import { RAD } from '../astro/vecteur'
+import { RAD, type Vecteur3 } from '../astro/vecteur'
 import { CHASSE } from '../donnees/chasse'
 import { NOMS_PLANETES, type NomPlanete } from '../donnees/planetes'
 import {
@@ -195,9 +195,9 @@ export function enAttenteDeFenetre(fusee: EtatFusee): boolean {
 // ---------------------------------------------------------------------------------------------------------------
 // Géométrie plane
 
-/** Position d'un corps dans le monde plat du jeu (UA ; voir positionPlate). */
+/** Position d'un corps dans le plan de l'écliptique (UA). */
 export function positionAstre(nom: NomCorps, t: number): Point2 {
-  const p = positionPlate(nom, t)
+  const p = positionCorps(nom, t)
   return { x: p.x, y: p.y }
 }
 
@@ -474,12 +474,12 @@ export function tempsRestantAVitesse(fusee: EtatFusee, t: number, croisiere: num
  * Écart d'orbite (UA, autour de la Terre) qui accompagne l'ISS : à la verticale de la station, 1 500 km plus haut.
  */
 export function ecartAuDessusISS(t: number): { x: number; y: number; z: number } {
-  const terre = positionPlate('Terre', t)
-  const iss = positionPlate('ISS', t)
-  const rel = { x: iss.x - terre.x, y: iss.y - terre.y }
-  const d = Math.hypot(rel.x, rel.y) || 1e-12
+  const terre = positionCorps('Terre', t)
+  const iss = positionCorps('ISS', t)
+  const rel = { x: iss.x - terre.x, y: iss.y - terre.y, z: iss.z - terre.z }
+  const d = Math.hypot(rel.x, rel.y, rel.z) || 1e-12
   const k = 1 + enUA(DEPART_AU_DESSUS_ISS_KM) / d
-  return { x: rel.x * k, y: rel.y * k, z: 0 }
+  return { x: rel.x * k, y: rel.y * k, z: rel.z * k }
 }
 
 export function creerFusee(t: number): EtatFusee {
@@ -539,59 +539,80 @@ export interface Obstacle {
   rayon: number
 }
 
+/** Marge de sécurité en 3D : la route droite ne doit pas passer à moins de 1,02 rayon du centre d'un astre. */
+export const MARGE_ASTRE_3D = 1.02
+
+/** La route droite (en 3D) de a à b passe-t-elle dans la sphère de centre c et de rayon r ? */
+function routeTraverse(a: Vecteur3, b: Vecteur3, c: Vecteur3, r: number): boolean {
+  const ab = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z }
+  const l2 = ab.x ** 2 + ab.y ** 2 + ab.z ** 2
+  const k = l2 > 0 ? Math.max(0, Math.min(1, ((c.x - a.x) * ab.x + (c.y - a.y) * ab.y + (c.z - a.z) * ab.z) / l2)) : 0
+  return Math.hypot(a.x + ab.x * k - c.x, a.y + ab.y * k - c.y, a.z + ab.z * k - c.z) < r
+}
+
+/** Hauteur corrigée pour que le point (p, z) reste hors de la sphère de sécurité de chaque astre proche. */
 /**
  * Rayon de sécurité d'un astre (UA) : 2 % de plus que son rayon, ou son altitude de sécurité (400 km pour la Terre),
  * abaissé à 5 km sous la destination si elle vole plus bas (Tiangong, sous les 400 km).
  */
 function rayonSecurite(nom: NomCorps, r: number, dest: Destination, t: number): number {
-  const base = enUA(Math.max(r * 1.02, r + (ALTITUDE_SECURITE_KM[nom] ?? 0)))
+  const base = enUA(Math.max(r * MARGE_ASTRE_3D, r + (ALTITUDE_SECURITE_KM[nom] ?? 0)))
   if (dest.type !== 'astre') return base
-  const dDest = distance(positionAstre(dest.astre, t), positionAstre(nom, t))
-  return dDest < base ? Math.max(enUA(r * 1.02), dDest - enUA(5)) : base
+  const c = positionCorps(nom, t)
+  const d = positionCorps(dest.astre, t)
+  const dDest = Math.hypot(d.x - c.x, d.y - c.y, d.z - c.z)
+  return dDest < base ? Math.max(enUA(r * MARGE_ASTRE_3D), dDest - enUA(5)) : base
 }
 
-/** Astres à éviter autour du point p : le Soleil, les planètes, et les corps de son système (sauf la destination). */
-function astresProches(p: Point2, dest: Destination, t: number): NomCorps[] {
+function horsDesAstres(p: Point2, z: number, dest: Destination, t: number): number {
   const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
   const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
   if (systeme) noms.push(...corpsDuSysteme(systeme).filter((n) => !estPlanete(n)))
-  return noms.filter((n) => !(dest.type === 'astre' && n === dest.astre))
-}
-
-/**
- * Garde (règle d'or, rappelée par Adrien le 17/10/2026 : rien ne traverse un astre) : un point tombé dans le disque
- * de sécurité d'un astre est ramené à son bord, au plus près. Sauf si la cible elle-même y est (point libre choisi
- * dans un astre : on ne peut que s'en approcher).
- */
-function horsDesAstres(p: Point2, dest: Destination, cible: Point2, t: number): Point2 {
-  for (const nom of astresProches(p, dest, t)) {
+  for (const nom of noms) {
+    if (dest.type === 'astre' && nom === dest.astre) continue
     const r = rayonCorps(nom)
     if (!r) continue
-    const r2 = rayonSecurite(nom, r, dest, t)
-    const c = positionAstre(nom, t)
-    if (distance(cible, c) < r2) continue
-    const d = distance(p, c)
-    if (d >= r2) continue
-    p = d > 1e-15 ? { x: c.x + ((p.x - c.x) * r2) / d, y: c.y + ((p.y - c.y) * r2) / d } : { x: c.x + r2, y: c.y }
+    const r3 = rayonSecurite(nom, r, dest, t)
+    const c = positionCorps(nom, t)
+    const d2 = Math.hypot(p.x - c.x, p.y - c.y)
+    if (d2 >= r3) continue
+    const h = Math.sqrt(r3 * r3 - d2 * d2)
+    if (Math.abs(z - c.z) < h) z = c.z + (z >= c.z ? h : -h)
   }
-  return p
+  return z
 }
 
 /**
- * Astres à contourner, à l'instant t, pour une fusée en position p qui vise le point `vise` (le monde du jeu est
- * plat : tout se passe sur la carte). Une cible tout près d'un astre (l'ISS au-dessus de la Terre) : on ne s'interdit
- * autour de lui que le nécessaire.
+ * Astres à contourner, à l'instant t, pour une fusée en position p qui vise le point `vise`. Avec les hauteurs
+ * (z de la fusée et de la cible), un astre ne gêne que si la route droite en 3D le traverse : la fusée le contourne
+ * alors dans le plan, en rejoignant peu à peu la hauteur de sa cible, jusqu'à ce que la route se dégage. C'est ainsi
+ * qu'elle rejoint l'ISS ou Hubble, qui tournent tout près de la Terre, sans jamais la traverser.
  */
-export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number): Obstacle[] {
+export function obstacles(p: Point2, dest: Destination, vise: Point2, t: number, hauteurs?: { z: number; zVise: number }): Obstacle[] {
+  const noms: NomCorps[] = ['Soleil', ...NOMS_PLANETES]
+  const systeme = systemeDeLaFusee({ position: p, orbite: null } as EtatFusee, t)
+  if (systeme) noms.push(...corpsDuSysteme(systeme).filter((n) => !estPlanete(n)))
   const liste: Obstacle[] = []
-  for (const nom of astresProches(p, dest, t)) {
+  for (const nom of noms) {
+    if (dest.type === 'astre' && nom === dest.astre) continue
     const r = rayonCorps(nom)
     if (!r) continue
-    const centre = positionAstre(nom, t)
-    const r2 = rayonSecurite(nom, r, dest, t)
+    const c3 = positionCorps(nom, t)
+    const centre = { x: c3.x, y: c3.y }
+    const rayon = enUA(r) * MARGE_ASTRE
+    if (hauteurs) {
+      const r3 = rayonSecurite(nom, r, dest, t)
+      const b = { x: vise.x, y: vise.y, z: hauteurs.zVise }
+      // Cible dans l'astre lui-même (point libre) : on ne peut que s'en approcher.
+      if (Math.hypot(b.x - c3.x, b.y - c3.y, b.z - c3.z) < r3) continue
+      if (!routeTraverse({ x: p.x, y: p.y, z: hauteurs.z }, b, c3, r3)) continue
+      // Cible tout près de l'astre (l'ISS au-dessus de la Terre) : on ne s'interdit que le nécessaire.
+      liste.push({ nom, centre, rayon: Math.max(r3, Math.min(rayon, distance(vise, centre) * 0.99)) })
+      continue
+    }
     // Un point libre choisi à l'intérieur d'un astre : on ne peut que s'en approcher.
-    if (distance(vise, centre) < r2) continue
-    liste.push({ nom, centre, rayon: Math.max(r2, Math.min(enUA(r) * MARGE_ASTRE, distance(vise, centre) * 0.99)) })
+    if (distance(vise, centre) < rayon) continue
+    liste.push({ nom, centre, rayon })
   }
   return liste
 }
@@ -642,7 +663,7 @@ export interface ResultatPas {
 function hauteurDestination(d: Destination, t: number, actuelle: number): number {
   if (d.type === 'point') return actuelle
   if (d.type === 'visiteur') return positionVisiteur(t).z
-  return positionPlate(d.astre, t).z
+  return positionCorps(d.astre, t).z
 }
 
 /** Plus grand nombre de sous-pas d'un pas (rattrapage hors ligne près d'un astre). */
@@ -768,7 +789,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
   const pas = (vitesseMoyenne * dt) / UA_KM
   // Au départ d'une orbite, la fusée part de son orbite (hors de l'astre), à la hauteur de l'astre quitté.
   const quitte = fusee.orbite
-  let z = quitte ? positionPlate(quitte, t).z : (fusee.z ?? 0)
+  let z = quitte ? positionCorps(quitte, t).z + (fusee.ecartOrbite?.z ?? 0) : (fusee.z ?? 0)
   if (quitte && fusee.ecartOrbite) {
     const o = positionAstre(quitte, t)
     entrainee = { x: o.x + fusee.ecartOrbite.x, y: o.y + fusee.ecartOrbite.y }
@@ -801,7 +822,7 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       entrainee = { x: o.x + Math.cos(a) * marge, y: o.y + Math.sin(a) * marge }
     }
   }
-  const liste = arrive ? [] : obstacles(entrainee, dest, vise, t)
+  const liste = arrive ? [] : obstacles(entrainee, dest, vise, t, { z, zVise: hauteurDestination(dest, t, z) })
   const voulu = arrive ? direction(entrainee, vise) : capDeContournement(entrainee, vise, liste)
   const ecart = ecartAngle(fusee.cap, voulu)
   // Dans la marge d'un astre, la fusée s'oriente aussitôt (manœuvre de dégagement). Manœuvre de départ : pas de
@@ -824,9 +845,10 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       const dx = entrainee.x - cible.x, dy = entrainee.y - cible.y
       const d = Math.hypot(dx, dy)
       // Auprès d'un engin (l'ISS comprise) : tout près de lui ; ailleurs, en orbite à la distance d'arrivée.
+      const dz = z - hauteurDestination(dest, t, z)
       const tout = dest.astre === 'ISS' ? approcheEnginKm(109) : estEngin(dest.astre) ? approcheEngin(dest.astre) : null
-      const k = tout !== null ? enUA(tout) / Math.max(d, 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
-      ecartOrbite = { x: dx * k, y: dy * k, z: 0 }
+      const k = tout !== null ? enUA(tout) / Math.max(Math.hypot(dx, dy, dz), 1e-12) : d > seuilArrivee(dest) ? seuilArrivee(dest) / d : 1
+      ecartOrbite = { x: dx * k, y: dy * k, z: dz * k }
     }
     return {
       fusee: { position: cible, cap, virage, destination: null, orbite, distanceParcourue, fenetre: null, presDuVisiteur,
@@ -834,11 +856,13 @@ function avancerUnPas(fusee: EtatFusee, t: number, dt: number, vitesseKmS: numbe
       arrivee: dest,
     }
   }
-  // Garde : jamais dans le disque de sécurité d'un astre (la cible bouge pendant l'approche).
-  const position = horsDesAstres({ x: entrainee.x + Math.cos(cap * RAD) * pas, y: entrainee.y + Math.sin(cap * RAD) * pas }, dest, cible, t)
-  // La hauteur (pour la vue extérieure seulement) rejoint peu à peu celle de la destination.
+  const position = { x: entrainee.x + Math.cos(cap * RAD) * pas, y: entrainee.y + Math.sin(cap * RAD) * pas }
+  // La hauteur rejoint peu à peu celle de la destination, pour y arriver en même temps.
   const reste = distance(position, cible)
   z += (hauteurDestination(dest, t, z) - z) * Math.min(1, pas / Math.max(reste, pas))
+  // Garde : jamais sous la surface de sécurité d'un astre (la cible bouge pendant l'approche) ; la fusée passe
+  // alors au-dessus (ou au-dessous), du côté où elle se trouve.
+  z = horsDesAstres(position, z, dest, t)
   return {
     fusee: { position, cap, virage, destination: dest, orbite: null, distanceParcourue, fenetre: null, presDuVisiteur: false, z, trajet },
     arrivee: null,

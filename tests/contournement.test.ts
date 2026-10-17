@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { positionPlate as positionCorps, rayonCorps } from '../src/astro/corps'
+import { positionCorps, rayonCorps } from '../src/astro/corps'
 import { UA_KM } from '../src/astro/temps'
 import {
   avancementTrajet,
@@ -31,7 +31,7 @@ function lunerDerriereLaTerre(): number {
   throw new Error('aucune configuration trouvée')
 }
 
-/** Vole jusqu'à l'arrivée et renvoie la plus petite distance (km, sur la carte) au centre de la Terre. */
+/** Vole jusqu'à l'arrivée et renvoie la plus petite distance (km, en 3D) au centre de la Terre. */
 function voler(f: EtatFusee, t: number, dt: number, v = 30): { approche: number; arrivee: boolean } {
   let approche = Infinity
   for (let n = 0; n < 200_000; n++) {
@@ -40,7 +40,7 @@ function voler(f: EtatFusee, t: number, dt: number, v = 30): { approche: number;
     f = r.fusee
     if (!f.orbite) {
       const terre = positionCorps('Terre', t)
-      const d = Math.hypot((f.position.x - terre.x) * UA_KM, (f.position.y - terre.y) * UA_KM)
+      const d = Math.hypot((f.position.x - terre.x) * UA_KM, (f.position.y - terre.y) * UA_KM, ((f.z ?? 0) - terre.z) * UA_KM)
       approche = Math.min(approche, d)
     }
     if (r.arrivee) return { approche, arrivee: true }
@@ -111,44 +111,13 @@ describe('Vers les engins qui frôlent la Terre', () => {
           arrive = r.arrivee !== null
           const e = positionCorps('Terre', t)
           const c = positionCorps(cible, t)
-          altitudeCible = Math.min(altitudeCible, Math.hypot(c.x - e.x, c.y - e.y) * UA_KM - RAYON_TERRE)
+          altitudeCible = Math.min(altitudeCible, Math.hypot(c.x - e.x, c.y - e.y, c.z - e.z) * UA_KM - RAYON_TERRE)
           if (!f.orbite) {
-            mini = Math.min(mini, Math.hypot((f.position.x - e.x) * UA_KM, (f.position.y - e.y) * UA_KM) - RAYON_TERRE)
+            mini = Math.min(mini, Math.hypot((f.position.x - e.x) * UA_KM, (f.position.y - e.y) * UA_KM, ((f.z ?? 0) - e.z) * UA_KM) - RAYON_TERRE)
           }
         }
         if (mini < Math.min(400, altitudeCible) - 10 || !arrive) pires.push(`${h} h, ${cible} : ${Math.round(mini)} km d’altitude${arrive ? '' : ', pas arrivée'}`)
       }
-    }
-    expect(pires).toEqual([])
-  }, 120_000)
-})
-
-describe('Règle d’or : rien ne traverse un astre, sur la carte (17/10/2026)', () => {
-  it('les engins qui tournent autour de la Terre ne sont jamais dans son disque (orbite rabattue)', () => {
-    for (const nom of ['ISS', 'Hubble', 'Tiangong']) {
-      for (let m = 0; m < 1440; m += 4) {
-        const t = Date.UTC(2026, 9, 17) + m * 60_000
-        const e = positionCorps('Terre', t), c = positionCorps(nom, t)
-        expect(Math.hypot(c.x - e.x, c.y - e.y) * UA_KM, nom).toBeGreaterThan(RAYON_TERRE + 300)
-      }
-    }
-  })
-
-  it('nouvelle partie → Hubble, à toute heure : la fusée fait le tour de la Terre, jamais à moins de 400 km de son bord', () => {
-    const pires: string[] = []
-    for (let h = 0; h < 24; h += 1.5) {
-      const t0 = Date.UTC(2026, 9, 17) + h * 3_600_000
-      let f = choisirDestination(creerFusee(t0), { type: 'astre', astre: 'Hubble' })
-      let t = t0, mini = Infinity, arrive = false
-      for (let n = 0; n < 20_000 && !arrive; n++) {
-        t += 1000
-        const r = avancerFusee(f, t, 1, 30)
-        f = r.fusee
-        arrive = r.arrivee !== null
-        const e = positionCorps('Terre', t)
-        if (!f.orbite) mini = Math.min(mini, Math.hypot(f.position.x - e.x, f.position.y - e.y) * UA_KM - RAYON_TERRE)
-      }
-      if (mini < 399 || !arrive) pires.push(`${h} h : ${Math.round(mini)} km du bord${arrive ? '' : ', pas arrivée'}`)
     }
     expect(pires).toEqual([])
   }, 120_000)
