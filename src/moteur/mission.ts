@@ -335,8 +335,12 @@ export class Mission {
 
   /** Part pour le trajet prévu (depuis l'orbite actuelle, ou en cours de route). */
   partir(plan: Plan): void {
-    // L'orbite d'où l'on part devient celle d'arrivée du trajet précédent, s'il y en avait un.
-    if (this.plan && plan.depart >= this.plan.arrivee && this.orbiteArrivee) this.orbite = this.orbiteArrivee
+    // L'orbite d'où l'on part devient celle d'arrivée du trajet précédent, s'il y en avait un (calculée au besoin :
+    // après une sauvegarde, elle ne l'a peut-être jamais été).
+    if (this.plan && plan.depart >= this.plan.arrivee) {
+      this.orbiteActuelle(plan.depart)
+      if (this.orbiteArrivee) this.orbite = this.orbiteArrivee
+    }
     this.plan = plan
     this.orbiteArrivee = null
   }

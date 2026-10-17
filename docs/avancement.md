@@ -5,7 +5,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | Étape | État |
 |---|---|
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
-| 2. Cadre du cockpit et socle de jeu | **en cours** (détail ci-dessous) |
+| 2. Cadre du cockpit et socle de jeu | **en cours** : tout est fait, dernier pas (2.4) en attente de validation |
 | 3. Tutoriel autour de la Terre | à faire |
 | 4. Pannes et manuel | à faire |
 | 5. Nettoyeurs | à faire |
@@ -32,12 +32,17 @@ joueur).
   l'heure d'arrivée (aujourd'hui, demain, ou la date) et le temps restant, sinon l'état calme « EN ORBITE AUTOUR DE … »
   (altitude, durée d'un tour). Le moteur dit quoi afficher (`src/moteur/bandeau.ts`, testé), prévu pour plusieurs
   lignes (missiles, pannes, ralentissements à l'étape 4). La fiche du bas ne parle plus que de la destination choisie.
-- 2.3 État de la capsule — **fait, en attente de validation** : état du jeu dans le moteur (`src/moteur/jeu.ts`,
+- 2.3 État de la capsule — **fait, validé** : état du jeu dans le moteur (`src/moteur/jeu.ts`,
   testé) — crédits (0 au départ), niveau du moteur (1 : 30 km/s, `src/donnees/capsule.ts`), mission de la capsule.
   Les trajets se font à la vitesse du moteur ; l'ancien curseur devient un essai (« Forcer la vitesse » dans Réglages,
   désactivé par défaut). Demande d'Adrien : crédits et moteur toujours visibles, au pied du bandeau d'alertes ; le volet
   Capsule est vide, son contenu sera défini plus tard.
-- 2.4 Sauvegarde locale — à faire.
+- 2.4 Sauvegarde locale — **fait, en attente de validation** : la partie (crédits, moteur, orbite, trajet en cours)
+  est enregistrée dans la mémoire du navigateur au départ d'un trajet et quand on quitte l'application ; elle est
+  reprise à l'ouverture. Le trajet lui-même est enregistré : il continue application fermée (la capsule est arrivée si
+  l'heure est passée). « Recommencer à zéro… » dans Réglages, avec confirmation (`src/moteur/sauvegarde.ts`, testé ;
+  une sauvegarde illisible ou d'un ancien format est ignorée). Limite : avec le temps accéléré (essais), un trajet
+  enregistré « dans le futur » n'a pas encore commencé quand on rouvre à l'heure réelle.
 
 ---
 

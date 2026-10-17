@@ -20,6 +20,7 @@ import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
 import { Jeu } from './moteur/jeu'
+import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import { avancement, planifier, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
@@ -49,7 +50,18 @@ import('./donnees/poussiere').then((d) => { chargerPoussiere(d.POUSSIERE, d.REFE
   .catch(() => { /* pas de poussière : la carte s'en passe */ })
 
 // L'état du jeu (crédits, moteur) et la mission de la capsule (orbite, trajet, arrivée) : le moteur les suit.
-const jeu = new Jeu()
+// Sauvegardé sur le téléphone (mémoire du navigateur) : on reprend la partie là où elle en était.
+const CLE_SAUVEGARDE = 'andromeda-partie-v1'
+function chargerPartie(): Jeu | null {
+  try { return restaurer(JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) ?? 'null')) } catch { return null }
+}
+/** Vrai après « Recommencer à zéro » : plus rien n'est enregistré avant le rechargement de la page. */
+let partieEffacee = false
+function enregistrerPartie(): void {
+  if (partieEffacee) return
+  try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(sauvegarder(jeu, horloge()))) } catch { /* navigation privée : pas de sauvegarde */ }
+}
+const jeu = chargerPartie() ?? new Jeu()
 const mission = jeu.mission
 suivreMission(mission)
 
@@ -221,6 +233,7 @@ boutonDepart.addEventListener('click', () => {
   const p = planifier(mission.etatHeliocentrique(t), selection, t, vitesse())
   if (!p.possible) return
   mission.partir(p.plan)
+  enregistrerPartie()
   prevision = null
   proposee = false
   carteSale = true
@@ -237,6 +250,18 @@ const gestesCarte = new Gestes(toilePlan, {
 })
 
 document.addEventListener('gesturestart', (e) => e.preventDefault())
+
+// Sauvegarde aussi quand on quitte l'application (ou qu'elle passe en arrière-plan).
+document.addEventListener('visibilitychange', () => { if (document.hidden) enregistrerPartie() })
+window.addEventListener('pagehide', enregistrerPartie)
+
+// Recommencer à zéro (dans Réglages) : la partie sauvegardée est effacée, après confirmation.
+document.querySelector('#recommencer')!.addEventListener('click', () => {
+  if (!confirm('Recommencer à zéro ? Crédits, moteur et position de la capsule seront perdus.')) return
+  partieEffacee = true
+  try { localStorage.removeItem(CLE_SAUVEGARDE) } catch { /* rien */ }
+  location.reload()
+})
 
 /** Nom et distance de la destination, pour son étiquette. */
 function infosSelection(t: number): { nom: string; distance: string } | null {
