@@ -36,6 +36,6 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 - Pas de changement de règle, d'équilibrage ou d'interface sans l'accord d'Adrien.
 
 ## Feuille de route
-1. Prototype 1 : carte et navigation (en cours).
+1. Prototype 1 : carte et navigation (terminé et validé le 17/10/2026).
 2. Prototype 2 : combat (plus tard).
 Le document de conception complet est chez Adrien. Ne rien inventer qui n'est pas ici : en cas de doute, demander.

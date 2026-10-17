@@ -1,9 +1,9 @@
 # Avancement — prototype 1 : carte et navigation
 
-État relevé dans le code le 17/10/2026 (40 tests verts, vérification des types et construction OK).
+**Prototype 1 terminé et validé par Adrien le 17/10/2026** (43 tests verts, vérification des types et construction OK).
 Légende : **fait** / **en cours** / **à faire**.
 
-## 1. Carte, astres (planètes, lunes, satellites artificiels, sondes), zoom et déplacement — en cours
+## 1. Carte, astres (planètes, lunes, satellites artificiels, sondes), zoom et déplacement — fait
 
 - Fait : carte 2D vue du dessus, vraies distances entre les planètes, zoom libre et déplacement au doigt
   (`src/carte/carte.ts`, `src/commun/gestes.ts`).
@@ -44,7 +44,7 @@ Légende : **fait** / **en cours** / **à faire**.
   À 30 km/s (départ prévu du vrai jeu) : Lune 5 h, Mars ≈ 97 j, Jupiter ≈ 1,1 an, Neptune ≈ 5 ans.
 - Limite connue : orbite d'attente basse (1,3 rayon à l'arrivée).
 
-## 6. Mode nuit — fait, en attente de validation
+## 6. Mode nuit — fait, validé
 
 - Choix d'Adrien du 17/10/2026 : « Moebius de nuit », activé seulement par le bouton « Mode nuit » dans « Repères »
   (jour par défaut, réglage mémorisé). Fond bleu nuit, encre crème, astres pastel un peu assombris (sauf le Soleil),
