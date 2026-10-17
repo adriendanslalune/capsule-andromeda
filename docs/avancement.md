@@ -6,7 +6,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 |---|---|
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
-| 3. Tutoriel autour de la Terre | à faire |
+| 3. Missions, crédits, moteur (le tutoriel lui-même plus tard, décision d'Adrien du 17/10/2026) | **en cours** (détail ci-dessous) |
 | 4. Pannes et manuel | à faire |
 | 5. Nettoyeurs | à faire |
 | 6. Combat | à faire |
@@ -15,6 +15,25 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 9. Première zone à libérer : la Lune | à faire |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Version installable (PWA), puis boutique | à faire |
+
+---
+
+# Étape 3 : missions, crédits, moteur (sans le tutoriel)
+
+Décision d'Adrien du 17/10/2026 : d'abord les mécaniques (missions, crédits, moteur), le tutoriel (mise en scène) à la
+fin. Règles validées : on accepte une mission, on va sur place, on appuie sur un bouton, l'action dure 2 minutes ; une
+seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission finie ; récompenses de 50 à 200 crédits
+(plus loin paie plus, une livraison 40 % de plus) ; moteurs niveau 2 = 60 km/s pour 500, niveau 3 = 120 km/s pour
+1 500, niveau 4 = 250 km/s pour 4 000 ; achat n'importe où ; pas de limite de portée pour l'instant.
+
+- 3.1 Les missions dans le moteur — **fait** (rien de visible à l'écran) : trois genres — nettoyer (épaves : Envisat,
+  Vanguard 1, débris autour des engins en orbite basse), livrer (charger à l'ISS ou à Tiangong, livrer à un satellite),
+  dépanner (un satellite). Tirage au hasard reproductible, récompense selon la distance, action de 2 minutes,
+  interrompue si la capsule repart ; abandon possible sans pénalité. Dans le code, « contrats »
+  (`src/donnees/contrats.ts`, `src/moteur/contrats.ts`, `src/moteur/jeu.ts`, testés).
+- 3.2 Volet Missions et ligne du bandeau — à faire.
+- 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
+- 3.4 Sauvegarde des missions — à faire.
 
 ---
 
