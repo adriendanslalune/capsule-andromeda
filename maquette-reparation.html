@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <title>Panneau de réparation — maquette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet" />
+    <style>
+      /* Maquette pour validation par Adrien (étape 4.2 et 4.3) : le panneau de réparation (volet Capsule › Réparation)
+         et trois pages du manuel, façon « Keep Talking and Nobody Explodes », vintage Jules Verne. Rien n'est branché
+         sur le jeu : quelques commandes bougent pour donner l'idée. */
+      :root {
+        --fond: #f4f1ea; --encre: #2b2138; --creme: #faf2dc; --moutarde: #f2b53a; --cerise: #e04b37; --laiton: #d9a43a;
+        --tole: #c9c2a8; --tole-sombre: #a69f86; --vert: #8fcf98; --ciel: #8fd0dc; --papier: #efe0bd; --sepia: #4a3424;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--fond); color: var(--encre); font-family: ui-monospace, Menlo, monospace; }
+      .page { max-width: 420px; margin: 0 auto; padding: 16px; }
+      h1 { font-size: 16px; letter-spacing: 0.08em; margin: 4px 0 6px; }
+      .intro { font-size: 13px; line-height: 1.45; margin: 0 0 14px; }
+      .intro b { color: #b4442f; }
+      h2.partie { font-size: 13px; letter-spacing: 0.1em; margin: 26px 0 8px; padding-top: 10px; border-top: 2px solid var(--encre); }
+
+      /* ---------- Le panneau : une grande tôle rivetée, des modules ---------- */
+      .panneau {
+        position: relative;
+        padding: 12px 10px 14px;
+        background:
+          repeating-linear-gradient(90deg, transparent 0 46px, rgba(43, 33, 56, 0.06) 46px 47px),
+          linear-gradient(var(--tole), #bfb79b);
+        border: 3px solid var(--encre);
+        border-radius: 14px;
+        box-shadow: 5px 5px 0 var(--encre);
+      }
+      .rivets::before, .rivets::after { content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%;
+        background: var(--laiton); border: 1.5px solid var(--encre); top: 8px; }
+      .rivets::before { left: 8px; } .rivets::after { right: 8px; }
+      .plaque {
+        margin: 0 auto 12px; width: fit-content; padding: 5px 14px; text-align: center;
+        font-family: 'IM Fell English SC', Georgia, serif; font-size: 15px; letter-spacing: 0.06em;
+        background: linear-gradient(#f2c66a, var(--laiton)); border: 2px solid var(--encre); border-radius: 4px;
+        box-shadow: inset 0 0 0 2px #f6dc9c;
+      }
+      .plaque small { display: block; font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.12em; }
+      .module {
+        position: relative; margin-top: 12px; padding: 22px 10px 10px;
+        background: #d8d1b6; border: 2px solid var(--encre); border-radius: 10px;
+        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 3px 3px 0 rgba(43, 33, 56, 0.35);
+      }
+      .module .etiquette {
+        position: absolute; top: -11px; left: 12px; padding: 1px 10px;
+        font-family: 'IM Fell English SC', Georgia, serif; font-size: 14px;
+        background: var(--creme); border: 2px solid var(--encre); border-radius: 3px;
+      }
+      .voyant { position: absolute; top: -9px; right: 12px; width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid var(--encre); background: var(--vert); box-shadow: inset -2px -2px 0 rgba(0,0,0,0.15); }
+      .voyant.panne { background: var(--cerise); animation: clignoter 0.9s steps(2) infinite; }
+      @keyframes clignoter { 50% { background: #7a2a20; } }
+      .rangee { display: flex; justify-content: space-around; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .legende { font-size: 10px; text-align: center; letter-spacing: 0.08em; margin-top: 2px; }
+      svg { overflow: visible; }
+
+      /* Leviers du moteur */
+      .levier { width: 46px; height: 92px; cursor: pointer; }
+      .levier .manche { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); transform-origin: 23px 70px; transform-box: view-box; }
+      .levier.tire .manche { transform: rotate(-38deg); }
+      /* Câbles de l'énergie */
+      .fils { width: 100%; height: auto; display: block; }
+      .fil { cursor: pointer; }
+      .fil .coupe { display: none; }
+      .fil.coupe .entier { display: none; }
+      .fil.coupe .coupe { display: inline; }
+      /* Radio */
+      .radio { display: grid; grid-template-columns: 1fr 1.1fr; gap: 10px; align-items: center; }
+      .grille-hp { height: 76px; border: 2px solid var(--encre); border-radius: 8px;
+        background: repeating-linear-gradient(0deg, #6b5d4a 0 3px, #d8d1b6 3px 7px); }
+      .lampe-morse { width: 26px; height: 26px; margin: 8px auto 0; border-radius: 50%; border: 2px solid var(--encre);
+        background: #8a7b52; transition: background 0.05s; }
+      .lampe-morse.allumee { background: #fff3a8; box-shadow: 0 0 12px #f2b53a; }
+      .ecran { padding: 6px 4px; text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 0.05em;
+        color: #c8f0a0; background: #1e2a20; border: 2px solid var(--encre); border-radius: 6px; box-shadow: inset 0 0 8px #000; }
+      .molette { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+      .bouton {
+        min-width: 44px; min-height: 44px; padding: 0 10px; font: inherit; font-size: 13px; font-weight: bold;
+        color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px;
+        box-shadow: 2px 2px 0 var(--encre); cursor: pointer;
+      }
+      .bouton:active { transform: translate(2px, 2px); box-shadow: none; }
+      .bouton.rouge { color: #fff; background: #d9694f; }
+      /* Navigation : écran rond vert */
+      .glyphes { display: grid; grid-template-columns: repeat(2, 48px); gap: 8px; }
+      .glyphes .bouton { font-family: 'IM Fell English', Georgia, serif; font-size: 22px; padding: 0; }
+
+      /* ---------- Le manuel : papier jauni, gravures, Jules Verne ---------- */
+      .manuel {
+        margin-top: 10px; padding: 20px 18px 22px;
+        font-family: 'IM Fell English', Georgia, serif; color: var(--sepia); font-size: 16px; line-height: 1.45;
+        background:
+          radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.5), transparent 60%),
+          radial-gradient(ellipse at 90% 95%, rgba(120, 80, 40, 0.18), transparent 55%),
+          var(--papier);
+        border: 1.5px solid var(--sepia); border-radius: 3px;
+        box-shadow: 4px 5px 0 rgba(74, 52, 36, 0.35), inset 0 0 0 6px var(--papier), inset 0 0 0 7px rgba(74, 52, 36, 0.6);
+      }
+      .manuel .entete-manuel { text-align: center; font-family: 'IM Fell English SC', Georgia, serif; font-size: 13px; letter-spacing: 0.08em; opacity: 0.8; }
+      .manuel h3 { text-align: center; font-family: 'IM Fell English SC', Georgia, serif; font-size: 21px; font-weight: normal; margin: 6px 0 2px; }
+      .manuel .chapitre { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 10px; }
+      .manuel .filet { text-align: center; letter-spacing: 0.4em; opacity: 0.7; margin: 6px 0 10px; }
+      .manuel p { margin: 0 0 10px; text-align: justify; hyphens: auto; }
+      .manuel ol { margin: 0 0 10px; padding-left: 22px; }
+      .manuel li { margin-bottom: 5px; }
+      .manuel table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 6px 0 10px; }
+      .manuel th, .manuel td { border: 1px solid rgba(74, 52, 36, 0.6); padding: 4px 6px; text-align: center; }
+      .manuel th { font-family: 'IM Fell English SC', Georgia, serif; font-weight: normal; background: rgba(74, 52, 36, 0.08); }
+      .manuel .gravure { display: block; width: 150px; height: auto; margin: 4px auto 8px; }
+      .manuel .nota { font-style: italic; font-size: 14px; border-top: 1px solid rgba(74, 52, 36, 0.5); padding-top: 6px; }
+      .explication { font-size: 12px; line-height: 1.45; margin: 8px 2px 0; padding: 8px 10px; background: var(--creme);
+        border: 1.5px dashed var(--encre); border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>RÉPARATION — MAQUETTE</h1>
+      <p class="intro">Proposition pour les pas 4.2 et 4.3, à valider avant de coder. En haut, le <b>panneau de réparation</b>
+        (volet Capsule › onglet Réparation) : un grand panneau riveté, un module par fonction de la capsule, chacun avec son
+        voyant. En bas, trois pages du <b>Manuel</b> (onglet Manuel). Le principe, comme dans « Keep Talking » : le panneau
+        montre des indices (couleurs, symboles, sons, numéro de série), le manuel dit quoi faire selon ces indices. Une erreur
+        fait une étincelle et bloque le module 30 secondes, sans rien casser de plus. Quelques commandes bougent ici pour donner
+        l'idée (leviers, câbles, molette, lampe).</p>
+
+      <h2 class="partie">1. LE PANNEAU DE RÉPARATION</h2>
+      <div class="panneau rivets">
+        <div class="plaque">Capsule Andromeda<small>N° DE SÉRIE AN-7Q3 · CONSTR. 2026</small></div>
+
+        <!-- MOTEUR : deux jauges, une plaque à symbole, trois leviers -->
+        <div class="module">
+          <span class="etiquette">Moteur</span><span class="voyant panne" title="en panne"></span>
+          <div class="rangee">
+            <div>
+              <svg width="78" height="70" viewBox="0 0 78 70">
+                <circle cx="39" cy="40" r="30" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
+                <path d="M15 52 A27 27 0 0 1 24 18" stroke="#8fcf98" stroke-width="6" fill="none" />
+                <path d="M24 18 A27 27 0 0 1 54 18" stroke="#f2b53a" stroke-width="6" fill="none" />
+                <path d="M54 18 A27 27 0 0 1 63 52" stroke="#e04b37" stroke-width="6" fill="none" />
+                <path d="M39 40 L62 31" stroke="#2b2138" stroke-width="3" stroke-linecap="round" />
+                <circle cx="39" cy="40" r="4" fill="#2b2138" />
+              </svg>
+              <div class="legende">PRESSION</div>
+            </div>
+            <div>
+              <svg width="54" height="70" viewBox="0 0 54 70">
+                <rect x="6" y="6" width="42" height="56" rx="4" fill="#f2c66a" stroke="#2b2138" stroke-width="2.5" />
+                <text x="27" y="46" text-anchor="middle" font-family="IM Fell English, Georgia, serif" font-size="34" fill="#2b2138">♃</text>
+              </svg>
+              <div class="legende">SYMBOLE</div>
+            </div>
+            <div>
+              <svg width="34" height="70" viewBox="0 0 34 70">
+                <rect x="10" y="4" width="14" height="58" rx="7" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
+                <rect x="13" y="30" width="8" height="29" rx="4" fill="#e04b37" />
+              </svg>
+              <div class="legende">TEMP.</div>
+            </div>
+          </div>
+          <div class="rangee" style="margin-top: 6px">
+            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
+              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
+              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#e04b37" stroke="#2b2138" stroke-width="2" /></g>
+            </svg><div class="legende">I</div></div>
+            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
+              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
+              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#8fd0dc" stroke="#2b2138" stroke-width="2" /></g>
+            </svg><div class="legende">II</div></div>
+            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
+              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
+              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#f2b53a" stroke="#2b2138" stroke-width="2" /></g>
+            </svg><div class="legende">III</div></div>
+          </div>
+        </div>
+
+        <!-- ÉNERGIE : la boîte à fusibles, cinq câbles -->
+        <div class="module">
+          <span class="etiquette">Énergie</span><span class="voyant panne" title="en panne"></span>
+          <svg class="fils" viewBox="0 0 330 150">
+            <rect x="4" y="4" width="322" height="142" rx="8" fill="#3b3346" stroke="#2b2138" stroke-width="2" />
+            <g fill="#d9a43a" stroke="#2b2138" stroke-width="1.5">
+              <circle cx="30" cy="25" r="7" /><circle cx="30" cy="50" r="7" /><circle cx="30" cy="75" r="7" /><circle cx="30" cy="100" r="7" /><circle cx="30" cy="125" r="7" />
+              <circle cx="300" cy="25" r="7" /><circle cx="300" cy="50" r="7" /><circle cx="300" cy="75" r="7" /><circle cx="300" cy="100" r="7" /><circle cx="300" cy="125" r="7" />
+            </g>
+            <g class="fil" data-fil><path class="entier" d="M30 25 C120 25 200 60 300 50" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path class="coupe" d="M30 25 C90 25 130 35 150 40 M175 46 C220 56 260 52 300 50" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" /></g>
+            <g class="fil" data-fil><path class="entier" d="M30 50 C130 50 190 25 300 25" stroke="#3f63c4" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path class="coupe" d="M30 50 C90 50 125 42 145 36 M170 31 C210 26 250 25 300 25" stroke="#3f63c4" stroke-width="7" fill="none" stroke-linecap="round" /></g>
+            <g class="fil" data-fil><path class="entier" d="M30 75 C140 75 180 125 300 125" stroke="#f2b53a" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path class="coupe" d="M30 75 C90 75 125 90 145 100 M170 112 C210 124 250 125 300 125" stroke="#f2b53a" stroke-width="7" fill="none" stroke-linecap="round" /></g>
+            <g class="fil" data-fil><path class="entier" d="M30 100 C140 100 180 75 300 75" stroke="#faf2dc" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path class="coupe" d="M30 100 C90 100 125 92 145 88 M170 82 C210 77 250 75 300 75" stroke="#faf2dc" stroke-width="7" fill="none" stroke-linecap="round" /></g>
+            <g class="fil" data-fil><path class="entier" d="M30 125 C150 125 170 100 300 100" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path class="coupe" d="M30 125 C90 125 125 118 145 113 M170 107 C210 101 250 100 300 100" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" /></g>
+          </svg>
+          <div class="legende">TOUCHER UN CÂBLE POUR LE COUPER</div>
+        </div>
+
+        <!-- COMMUNICATIONS : la radio, sa lampe morse, la fréquence -->
+        <div class="module">
+          <span class="etiquette">Communications</span><span class="voyant panne" title="en panne"></span>
+          <div class="radio">
+            <div><div class="grille-hp"></div><div class="lampe-morse" id="lampe"></div><div class="legende">LAMPE DU TÉLÉGRAPHE</div></div>
+            <div>
+              <div class="ecran" id="frequence">3.505</div><div class="legende">FRÉQUENCE (MHz)</div>
+              <div class="molette"><button class="bouton" data-freq="-1">◀</button><button class="bouton" data-freq="1">▶</button></div>
+              <div class="molette"><button class="bouton rouge">ÉMETTRE</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NAVIGATION : l'écran rond et les constellations -->
+        <div class="module">
+          <span class="etiquette">Navigation</span><span class="voyant" title="en état"></span>
+          <div class="rangee">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="50" fill="#1e2a20" stroke="#2b2138" stroke-width="3" />
+              <circle cx="55" cy="55" r="34" fill="none" stroke="#3c5a3e" stroke-width="1" />
+              <path d="M55 5 V105 M5 55 H105" stroke="#3c5a3e" stroke-width="1" />
+              <g fill="#c8f0a0"><circle cx="35" cy="38" r="3" /><circle cx="52" cy="30" r="2.5" /><circle cx="68" cy="44" r="3" /><circle cx="62" cy="66" r="2.5" /><circle cx="40" cy="72" r="3" /></g>
+              <path d="M35 38 52 30 68 44 62 66 40 72z" fill="none" stroke="#c8f0a0" stroke-width="1" opacity="0.6" />
+            </svg>
+            <div class="glyphes"><button class="bouton">☉</button><button class="bouton">☾</button><button class="bouton">♄</button><button class="bouton">♂</button></div>
+          </div>
+        </div>
+
+        <!-- COQUE : le manomètre et les vannes -->
+        <div class="module">
+          <span class="etiquette">Coque</span><span class="voyant" title="en état"></span>
+          <div class="rangee">
+            <svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
+              <path d="M35 35 L20 20" stroke="#2b2138" stroke-width="3" stroke-linecap="round" /><circle cx="35" cy="35" r="4" fill="#2b2138" />
+              <text x="35" y="56" text-anchor="middle" font-size="8" fill="#2b2138">BAR</text></svg>
+            <svg width="190" height="64" viewBox="0 0 190 64">
+              <g stroke="#2b2138" stroke-width="2.5" fill="none">
+                <circle cx="32" cy="32" r="24" stroke="#d9694f" stroke-width="5" /><path d="M32 8v48M8 32h48" />
+                <circle cx="95" cy="32" r="24" stroke="#3f63c4" stroke-width="5" /><path d="M95 8v48M71 32h48" />
+                <circle cx="158" cy="32" r="24" stroke="#8fcf98" stroke-width="5" /><path d="M158 8v48M134 32h48" />
+              </g>
+            </svg>
+          </div>
+          <div class="legende">MANOMÈTRE · VANNES A, B, C</div>
+        </div>
+      </div>
+
+      <h2 class="partie">2. LE MANUEL (TROIS PAGES EN EXEMPLE)</h2>
+
+      <div class="manuel">
+        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda · à l'usage des capitaines</div>
+        <h3>Des Fils de l'Énergie</h3>
+        <div class="chapitre">Chapitre II, où l'on apprend à couper sans se brûler les doigts</div>
+        <svg class="gravure" viewBox="0 0 150 60" aria-hidden="true">
+          <g fill="none" stroke="#4a3424" stroke-width="1.4"><path d="M10 30 C40 5 60 55 90 30 S130 10 140 30" /><path d="M10 40 C40 15 60 65 90 40 S130 20 140 40" opacity="0.6" />
+            <path d="M68 12 l8 18 -8 18" /><path d="M82 12 l-8 18 8 18" /><circle cx="75" cy="30" r="4" /></g>
+        </svg>
+        <p>Lorsque la lampe d'énergie rougeoie, ouvrez la boîte à fusibles et <i>comptez les câbles</i> avant toute chose.
+          Un seul câble doit être coupé, et un seul :</p>
+        <ol>
+          <li>S'il y a <b>plus d'un câble rouge</b> et que le numéro de série <b>finit par un chiffre impair</b>, coupez le <b>dernier câble rouge</b>.</li>
+          <li>Sinon, si le dernier câble est <b>blanc</b>, coupez le <b>premier</b>.</li>
+          <li>Sinon, s'il n'y a <b>aucun câble jaune</b>, coupez le <b>deuxième</b>.</li>
+          <li>Dans tous les autres cas, coupez le <b>câble bleu</b>.</li>
+        </ol>
+        <p class="nota">On compte les câbles de haut en bas, par leur départ à gauche de la boîte. Le numéro de série est gravé sur la plaque de laiton.</p>
+      </div>
+      <p class="explication">Sur le panneau ci-dessus : 5 câbles, dont 2 rouges ; le numéro de série AN-7Q<b>3</b> finit par 3, impair.
+        La règle 1 s'applique : il faut couper le <b>dernier câble rouge</b> (le cinquième). Chaque panne tire une autre boîte
+        (nombre, couleurs, ordre), et le numéro de série change d'une partie à l'autre.</p>
+
+      <div class="manuel" style="margin-top: 18px">
+        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda</div>
+        <h3>De la Radio</h3>
+        <div class="chapitre">Chapitre IV, où le télégraphe parle à qui sait l'entendre</div>
+        <p>La radio en défaut ne se tait jamais tout à fait : sa <i>lampe du télégraphe</i> répète sans fin un mot en signaux
+          de Morse. Reconnaissez le mot, réglez la fréquence indiquée, puis pressez <b>ÉMETTRE</b>.</p>
+        <table>
+          <tr><th>Mot</th><th>Signaux</th><th>Fréquence</th></tr>
+          <tr><td>LUNE</td><td>·−·· ··− −· ·</td><td>3.505</td></tr>
+          <tr><td>MARS</td><td>−− ·− ·−· ···</td><td>3.515</td></tr>
+          <tr><td>NAUTILUS</td><td>−· ·− ··− − ·· ·−·· ··− ···</td><td>3.522</td></tr>
+          <tr><td>VERNE</td><td>···− · ·−· −· ·</td><td>3.535</td></tr>
+          <tr><td>OBUS</td><td>−−− −··· ··− ···</td><td>3.542</td></tr>
+          <tr><td>COLUMBIAD</td><td>−·−· −−− ·−·· ··− −− −··· ·· ·− −··</td><td>3.555</td></tr>
+        </table>
+        <p class="nota">Point : un éclat bref. Trait : un éclat long. Un silence plus long sépare les mots.</p>
+      </div>
+      <p class="explication">Sur le panneau, la lampe du télégraphe clignote « MARS » en Morse, en boucle (regarde-la quelques secondes) : il faut tourner
+        la molette jusqu'à 3.515, puis ÉMETTRE. Avec ses noms tirés de Jules Verne (Nautilus, Columbiad, l'obus de
+        « De la Terre à la Lune »), le manuel raconte aussi un peu l'univers.</p>
+
+      <div class="manuel" style="margin-top: 18px">
+        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda</div>
+        <h3>Des Leviers du Moteur</h3>
+        <div class="chapitre">Chapitre I, où l'on remet la vapeur dans l'ordre</div>
+        <p>Observez d'abord le <b>symbole</b> sur la plaque de laiton, puis l'aiguille de la <b>pression</b>. Tirez les
+          leviers dans l'ordre indiqué, sans hésiter ni revenir en arrière.</p>
+        <table>
+          <tr><th>Symbole</th><th>Pression verte</th><th>Pression jaune</th><th>Pression rouge</th></tr>
+          <tr><td>☿</td><td>I, II</td><td>III</td><td>II, I, III</td></tr>
+          <tr><td>♀</td><td>II</td><td>I, III</td><td>III, II</td></tr>
+          <tr><td>♃</td><td>III, I</td><td>II, III</td><td>I, III, II</td></tr>
+          <tr><td>♄</td><td>I</td><td>III, II, I</td><td>II</td></tr>
+        </table>
+        <p class="nota">Si le thermomètre dépasse la moitié, lisez la ligne du symbole <i>suivant</i> (après ♄, revenez à ☿).</p>
+      </div>
+      <p class="explication">Sur le panneau : symbole ♃, pression dans le rouge, thermomètre à la moitié pile (pas au-dessus) : il faut
+        tirer I, puis III, puis II. Touche les leviers pour les tirer.</p>
+
+      <h2 class="partie">3. CE QUI RESTE À DÉCIDER</h2>
+      <p class="intro">• Faut-il <b>voir le panneau et le manuel en même temps</b> ? Dans « Keep Talking », deux joueurs se parlent ;
+        ici on est seul : je propose de passer de l'un à l'autre d'un geste (onglets Réparation ↔ Manuel), sans les afficher côte
+        à côte (l'écran est trop petit).<br>• Une <b>erreur</b> : étincelle, module bloqué 30 secondes (proposition).<br>
+        • Le <b>numéro de série</b> change à chaque nouvelle partie, pour qu'on ne puisse pas apprendre les réponses par cœur.<br>
+        • Navigation (constellations) et Coque (vannes) auront leurs pages sur le même principe.</p>
+    </div>
+
+    <script>
+      // Quelques commandes qui bougent, pour donner l'idée (rien n'est branché sur le jeu).
+      for (const l of document.querySelectorAll('[data-levier]')) l.addEventListener('click', () => l.classList.toggle('tire'))
+      for (const f of document.querySelectorAll('[data-fil]')) f.addEventListener('click', () => f.classList.toggle('coupe'))
+      const ecran = document.querySelector('#frequence')
+      let freq = 3505
+      for (const b of document.querySelectorAll('[data-freq]')) b.addEventListener('click', () => {
+        freq = Math.min(3560, Math.max(3500, freq + Number(b.dataset.freq)))
+        ecran.textContent = (freq / 1000).toFixed(3)
+      })
+      // La lampe du télégraphe répète « MARS » : −− ·− ·−· ···
+      const lampe = document.querySelector('#lampe')
+      const MORSE = '−− ·− ·−· ···'
+      const sequence = []
+      for (const c of MORSE) {
+        if (c === '·') sequence.push([1, 250], [0, 250])
+        else if (c === '−') sequence.push([1, 750], [0, 250])
+        else sequence.push([0, 500])
+      }
+      sequence.push([0, 1600])
+      let k = 0
+      const suivant = () => { const [allume, d] = sequence[k]; lampe.classList.toggle('allumee', !!allume); k = (k + 1) % sequence.length; setTimeout(suivant, d) }
+      suivant()
+    </script>
+  </body>
+</html>

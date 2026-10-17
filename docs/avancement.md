@@ -31,6 +31,8 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   chance sur 10 à l'arrivée de chaque trajet, tirée une seule fois par trajet (testé) ; pannes sauvegardées (format 3).
   Ligne « PANNE » en tête du bandeau (triangle qui palpite) ; liste des modules dans le volet Capsule avec un bouton
   RÉPARER provisoire (en attendant le panneau du 4.2) ; essai « Provoquer une panne au hasard » dans Réglages.
+- Maquette du panneau de réparation et de trois pages du manuel (`maquette-reparation.html`, en ligne à
+  …/maquette-reparation.html) — **proposée, en attente de validation**.
 - 4.2 Onglet Réparation du volet Capsule : le grand panneau (modules, cadrans, câbles, écrans, jauges, radios) — à faire.
 - 4.3 Onglet Manuel (vintage, Jules Verne) et les procédures de réparation de chaque module — à faire.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
