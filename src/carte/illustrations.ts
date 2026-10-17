@@ -1,16 +1,17 @@
-// Astres illustrés (idée d'Adrien du 17/10/2026, d'après une gravure de soleil personnifié) : chaque astre a un
-// visage et un décor qui lui est propre, dessinés au trait fin brun-violet sur des aplats pastel, style Moebius.
-// Le Soleil a ses flammes ondulées et ses rayons ; chaque planète, son motif (cratères, nuages, bandes, anneaux…).
-// Dessiné en coordonnées locales : centre (0, 0), rayon du disque r (pixels). Sous une certaine taille, la carte
-// garde le simple disque (un visage de 5 pixels ne se lit pas).
+// Astres illustrés (idée d'Adrien du 17/10/2026, d'après une gravure de soleil) : chaque astre est dessiné au trait
+// fin brun-violet sur des aplats pastel, style Moebius, avec les détails qui le font reconnaître (sans visage, à la
+// demande d'Adrien) : flammes et rayons du Soleil, mers et cratère Tycho de la Lune, continents et nuages de la Terre,
+// volcans et canyon de Mars, bandes et Grande Tache rouge de Jupiter, anneaux et hexagone de Saturne…
+// Dessiné en coordonnées locales : centre (0, 0), rayon du disque r (pixels). Sous une certaine taille, la carte garde
+// le simple disque.
 
 export const ENCRE = '#2b2138'
 const OMBRE = '#54437a'
-const JOUE = '#f3a08b'
 
-/** Taille à partir de laquelle on dessine l'illustration complète (rayon en pixels), et le visage. */
+/** Taille à partir de laquelle on dessine l'illustration (rayon en pixels). */
 export const RAYON_ILLUSTRATION = 11
-export const RAYON_VISAGE = 18
+
+type Point = [number, number]
 
 /** Hasard reproductible (un astre est toujours dessiné pareil). */
 function hasard(graine: number): () => number {
@@ -25,29 +26,21 @@ function hasard(graine: number): () => number {
 }
 const graineDe = (nom: string) => [...nom].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7)
 
-/** Expression d'un visage. */
-interface Visage {
-  yeux: 'ouverts' | 'mi-clos' | 'fermes'
-  bouche: 'neutre' | 'sourire' | 'moue' | 'boudeuse'
-  /** Joues en spirale (comme le soleil de la gravure). */
-  spirales: boolean
-  /** Sourcils : 0 calmes, positif froncés. */
-  froncement: number
-}
-
 interface Fiche {
   couleur: string
-  visage: Visage
   decor: (ctx: CanvasRenderingContext2D, r: number, h: () => number) => void
-  /** Décor dessiné derrière le disque (rayons du Soleil, anneaux de Saturne, arrière). */
+  /** Décor dessiné derrière le disque (rayons du Soleil, arrière des anneaux). */
   arriere?: (ctx: CanvasRenderingContext2D, r: number, h: () => number) => void
   /** Décor dessiné devant le disque (avant des anneaux). */
   avant?: (ctx: CanvasRenderingContext2D, r: number, h: () => number) => void
-  /** Inclinaison du visage et du décor (radians) : Uranus est couchée. */
+  /** Inclinaison de l'astre (radians) : Saturne penchée, Uranus couchée. */
   inclinaison?: number
 }
 
 // --- Petits outils de trait.
+
+/** Épaisseur de trait proportionnée au rayon (k pour mille du rayon), jamais sous 0,4 px. */
+const ep = (r: number, k: number) => Math.max(0.4, (r * k) / 1000)
 
 function trait(ctx: CanvasRenderingContext2D, largeur: number, couleur = ENCRE): void {
   ctx.lineWidth = largeur
@@ -57,154 +50,136 @@ function trait(ctx: CanvasRenderingContext2D, largeur: number, couleur = ENCRE):
   ctx.stroke()
 }
 
+/** Forme fermée et douce passant près des points (unités du rayon). */
+function forme(ctx: CanvasRenderingContext2D, r: number, pts: Point[]): void {
+  ctx.beginPath()
+  const n = pts.length
+  const milieu = (i: number): Point => {
+    const a = pts[i % n], b = pts[(i + 1) % n]
+    return [((a[0] + b[0]) / 2) * r, ((a[1] + b[1]) / 2) * r]
+  }
+  const m0 = milieu(n - 1)
+  ctx.moveTo(m0[0], m0[1])
+  for (let i = 0; i < n; i++) {
+    const m = milieu(i)
+    ctx.quadraticCurveTo(pts[i][0] * r, pts[i][1] * r, m[0], m[1])
+  }
+  ctx.closePath()
+}
+
+/** Remplit et cerne la forme courante. */
+function aplat(ctx: CanvasRenderingContext2D, couleur: string, largeur: number, alpha = 1): void {
+  ctx.fillStyle = couleur
+  ctx.globalAlpha = alpha
+  ctx.fill()
+  ctx.globalAlpha = 1
+  if (largeur > 0) trait(ctx, largeur)
+}
+
 function spirale(ctx: CanvasRenderingContext2D, cx: number, cy: number, rayon: number, tours: number): void {
   ctx.beginPath()
   const n = 60
   for (let i = 0; i <= n; i++) {
     const u = i / n
     const a = u * tours * 2 * Math.PI
-    const rr = rayon * u
-    const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr
+    const x = cx + Math.cos(a) * rayon * u, y = cy + Math.sin(a) * rayon * u
     if (i === 0) ctx.moveTo(x, y)
     else ctx.lineTo(x, y)
   }
 }
 
-/** Cratère gravé : un cercle et un petit arc d'ombre intérieur. */
-function cratere(ctx: CanvasRenderingContext2D, x: number, y: number, rc: number, lw: number): void {
+/** Cratère gravé : un cercle, un arc d'ombre intérieur, et éventuellement un pic central. */
+function cratere(ctx: CanvasRenderingContext2D, x: number, y: number, rc: number, lw: number, pic = false): void {
   ctx.beginPath()
   ctx.arc(x, y, rc, 0, 2 * Math.PI)
   trait(ctx, lw)
   ctx.beginPath()
-  ctx.arc(x + rc * 0.15, y + rc * 0.15, rc * 0.7, Math.PI * 0.9, Math.PI * 1.6)
+  ctx.arc(x + rc * 0.15, y + rc * 0.15, rc * 0.72, Math.PI * 0.85, Math.PI * 1.65)
   trait(ctx, lw * 0.8)
-}
-
-/** Lignes de bandes ondulées (Jupiter, Saturne, Neptune), clipées au disque par l'appelant. */
-function bandes(ctx: CanvasRenderingContext2D, r: number, h: () => number, n: number, amplitude: number, lw: number): void {
-  for (let i = 1; i < n; i++) {
-    const y = -r + (2 * r * i) / n + (h() - 0.5) * r * 0.06
+  if (pic) {
     ctx.beginPath()
-    for (let k = 0; k <= 24; k++) {
-      const x = -r + (2 * r * k) / 24
-      const yy = y + Math.sin(k * 0.9 + i * 1.7) * amplitude * r
-      if (k === 0) ctx.moveTo(x, yy)
-      else ctx.lineTo(x, yy)
-    }
-    trait(ctx, lw)
-  }
-}
-
-// --- Le visage, à la manière de la gravure : yeux en amande cils compris, nez d'un trait, lèvres, joues en spirale.
-
-function visage(ctx: CanvasRenderingContext2D, r: number, v: Visage): void {
-  const lw = Math.max(0.6, r * 0.022)
-  for (const s of [-1, 1]) {
-    const ex = s * 0.33 * r, ey = -0.08 * r, l = 0.17 * r
-    // Sourcil.
-    ctx.beginPath()
-    ctx.moveTo(ex - l * 1.05, ey - 0.13 * r + (s > 0 ? 0 : v.froncement * 0.06 * r))
-    ctx.quadraticCurveTo(ex, ey - (0.24 - v.froncement * 0.05) * r, ex + l * 1.05, ey - 0.12 * r + (s > 0 ? v.froncement * 0.06 * r : 0))
-    trait(ctx, lw)
-    if (v.yeux === 'fermes') {
-      // Paupière baissée et cils.
-      ctx.beginPath()
-      ctx.moveTo(ex - l, ey)
-      ctx.quadraticCurveTo(ex, ey + 0.09 * r, ex + l, ey)
-      trait(ctx, lw * 1.1)
-      for (let k = -2; k <= 2; k++) {
-        const x = ex + k * l * 0.38
-        ctx.beginPath()
-        ctx.moveTo(x, ey + 0.05 * r)
-        ctx.lineTo(x + k * 0.01 * r, ey + 0.11 * r)
-        trait(ctx, lw * 0.7)
-      }
-      continue
-    }
-    const ouverture = v.yeux === 'mi-clos' ? 0.05 : 0.1
-    // Amande de l'œil.
-    ctx.beginPath()
-    ctx.moveTo(ex - l, ey)
-    ctx.quadraticCurveTo(ex, ey - ouverture * r * 1.3, ex + l, ey)
-    ctx.quadraticCurveTo(ex, ey + ouverture * r, ex - l, ey)
-    ctx.fillStyle = '#fffaf0'
-    ctx.fill()
-    ctx.save()
-    ctx.clip()
-    // Iris rayé et pupille.
-    const ir = 0.075 * r
-    ctx.beginPath()
-    ctx.arc(ex, ey + 0.005 * r, ir, 0, 2 * Math.PI)
-    ctx.fillStyle = '#8a7a9a'
-    ctx.fill()
-    for (let k = 0; k < 10; k++) {
-      const a = (k / 10) * 2 * Math.PI
-      ctx.beginPath()
-      ctx.moveTo(ex + Math.cos(a) * ir * 0.4, ey + Math.sin(a) * ir * 0.4)
-      ctx.lineTo(ex + Math.cos(a) * ir, ey + Math.sin(a) * ir)
-      trait(ctx, lw * 0.5)
-    }
-    ctx.beginPath()
-    ctx.arc(ex, ey + 0.005 * r, ir * 0.38, 0, 2 * Math.PI)
-    ctx.fillStyle = ENCRE
-    ctx.fill()
-    ctx.restore()
-    // Paupière supérieure appuyée, pli au-dessus, cils au coin extérieur.
-    ctx.beginPath()
-    ctx.moveTo(ex - l, ey)
-    ctx.quadraticCurveTo(ex, ey - ouverture * r * 1.3, ex + l, ey)
-    trait(ctx, lw * 1.4)
-    ctx.beginPath()
-    ctx.moveTo(ex - l * 0.8, ey - ouverture * r * 0.9 - 0.03 * r)
-    ctx.quadraticCurveTo(ex, ey - ouverture * r * 1.6 - 0.03 * r, ex + l * 0.85, ey - ouverture * r * 0.6 - 0.03 * r)
-    trait(ctx, lw * 0.7)
-    for (let k = 0; k < 3; k++) {
-      const x0 = ex + s * l * (0.55 + k * 0.18), y0 = ey - ouverture * r * (0.8 - k * 0.25)
-      ctx.beginPath()
-      ctx.moveTo(x0, y0)
-      ctx.lineTo(x0 + s * 0.05 * r, y0 - 0.04 * r)
-      trait(ctx, lw * 0.7)
-    }
-  }
-  // Nez : une arête et une narine.
-  ctx.beginPath()
-  ctx.moveTo(0.02 * r, -0.04 * r)
-  ctx.quadraticCurveTo(0.06 * r, 0.1 * r, 0.03 * r, 0.17 * r)
-  ctx.quadraticCurveTo(-0.02 * r, 0.2 * r, -0.07 * r, 0.16 * r)
-  trait(ctx, lw)
-  // Bouche.
-  const my = 0.34 * r
-  const courbe = v.bouche === 'sourire' ? 0.06 : v.bouche === 'moue' ? -0.05 : v.bouche === 'boudeuse' ? -0.03 : 0
-  ctx.beginPath()
-  ctx.moveTo(-0.13 * r, my - courbe * r * 0.3)
-  ctx.quadraticCurveTo(-0.05 * r, my - 0.05 * r, 0, my - 0.025 * r)
-  ctx.quadraticCurveTo(0.05 * r, my - 0.05 * r, 0.13 * r, my - courbe * r * 0.3)
-  ctx.quadraticCurveTo(0, my + (0.03 + courbe) * r, -0.13 * r, my - courbe * r * 0.3)
-  ctx.fillStyle = '#e8a08c'
-  ctx.fill()
-  trait(ctx, lw)
-  ctx.beginPath()
-  ctx.moveTo(-0.11 * r, my - courbe * r * 0.3)
-  ctx.quadraticCurveTo(0, my + courbe * r * 0.6, 0.11 * r, my - courbe * r * 0.3)
-  trait(ctx, lw * 0.8)
-  if (v.bouche === 'boudeuse') {
-    ctx.beginPath()
-    ctx.moveTo(-0.03 * r, my + 0.1 * r)
-    ctx.quadraticCurveTo(0, my + 0.13 * r, 0.03 * r, my + 0.1 * r)
+    ctx.arc(x, y, rc * 0.15, 0, 2 * Math.PI)
     trait(ctx, lw * 0.8)
   }
-  // Joues : fard rose, et spirales gravées.
-  for (const s of [-1, 1]) {
-    const cx = s * 0.4 * r, cy = 0.17 * r
+}
+
+/** Rayons clairs d'un cratère jeune (Tycho, Hokusai). */
+function rayonsDeCratere(ctx: CanvasRenderingContext2D, x: number, y: number, rc: number, longueur: number, n: number,
+  h: () => number, couleur: string, lw: number): void {
+  for (let k = 0; k < n; k++) {
+    const a = (k / n) * 2 * Math.PI + h() * 0.3
+    const l = longueur * (0.5 + h() * 0.7)
     ctx.beginPath()
-    ctx.arc(cx, cy, 0.12 * r, 0, 2 * Math.PI)
-    ctx.fillStyle = JOUE
-    ctx.globalAlpha = 0.45
+    ctx.moveTo(x + Math.cos(a) * rc, y + Math.sin(a) * rc)
+    ctx.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l)
+    trait(ctx, lw, couleur)
+  }
+}
+
+/** Ligne ondulée horizontale à la hauteur y (pour les bandes des géantes). */
+function onde(ctx: CanvasRenderingContext2D, r: number, y: number, amplitude: number, frequence: number, phase: number): void {
+  ctx.beginPath()
+  for (let k = 0; k <= 32; k++) {
+    const x = -r + (2 * r * k) / 32
+    const yy = y + Math.sin(k * frequence + phase) * amplitude
+    if (k === 0) ctx.moveTo(x, yy)
+    else ctx.lineTo(x, yy)
+  }
+}
+
+/** Bande horizontale de couleur entre y0 et y1 (unités du rayon), bords légèrement ondulés. */
+function bande(ctx: CanvasRenderingContext2D, r: number, y0: number, y1: number, couleur: string, phase: number, lw: number): void {
+  ctx.beginPath()
+  for (let k = 0; k <= 32; k++) {
+    const x = -r + (2 * r * k) / 32
+    const y = y0 * r + Math.sin(k * 0.8 + phase) * 0.015 * r
+    if (k === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
+  for (let k = 32; k >= 0; k--) {
+    const x = -r + (2 * r * k) / 32
+    ctx.lineTo(x, y1 * r + Math.sin(k * 0.8 + phase + 1.3) * 0.015 * r)
+  }
+  ctx.closePath()
+  ctx.fillStyle = couleur
+  ctx.fill()
+  onde(ctx, r, y0 * r, 0.015 * r, 0.8, phase)
+  trait(ctx, lw)
+  onde(ctx, r, y1 * r, 0.015 * r, 0.8, phase + 1.3)
+  trait(ctx, lw)
+}
+
+/** Anneaux : la moitié arrière avant le disque, la moitié avant après. Division de Cassini en option. */
+function anneaux(ctx: CanvasRenderingContext2D, r: number, devant: boolean, o: { aplatissement: number; interieur: number;
+  exterieur: number; lignes: number; couleurs?: [string, string, string]; cassini?: number }): void {
+  const debut = devant ? 0 : Math.PI, fin = devant ? Math.PI : 2 * Math.PI
+  const anneau = (r0: number, r1: number, couleur: string) => {
+    ctx.beginPath()
+    ctx.ellipse(0, 0, r1 * r, r1 * r * o.aplatissement, 0, debut, fin)
+    ctx.ellipse(0, 0, r0 * r, r0 * r * o.aplatissement, 0, fin, debut, true)
+    ctx.closePath()
+    ctx.fillStyle = couleur
     ctx.fill()
-    ctx.globalAlpha = 1
-    if (v.spirales) {
-      spirale(ctx, cx, cy, 0.11 * r, 2.6)
-      trait(ctx, lw * 0.9)
+  }
+  if (o.couleurs) {
+    // Anneau C (pâle, intérieur), B (brillant), division de Cassini (vide), A (extérieur).
+    const c = o.cassini ?? (o.interieur + o.exterieur) / 2
+    const b0 = o.interieur + (c - o.interieur) * 0.3
+    anneau(o.interieur, b0, o.couleurs[0])
+    anneau(b0, c - 0.04, o.couleurs[1])
+    anneau(c + 0.05, o.exterieur, o.couleurs[2])
+  }
+  for (let k = 0; k < o.lignes; k++) {
+    const rr = r * (o.interieur + ((o.exterieur - o.interieur) * k) / (o.lignes - 1))
+    ctx.beginPath()
+    ctx.ellipse(0, 0, rr, rr * o.aplatissement, 0, debut, fin)
+    trait(ctx, ep(r, k === 0 || k === o.lignes - 1 ? 18 : 7))
+  }
+  if (o.cassini) {
+    for (const d of [-0.04, 0.05]) {
+      ctx.beginPath()
+      ctx.ellipse(0, 0, (o.cassini + d) * r, (o.cassini + d) * r * o.aplatissement, 0, debut, fin)
+      trait(ctx, ep(r, 14))
     }
   }
 }
@@ -214,7 +189,6 @@ function visage(ctx: CanvasRenderingContext2D, r: number, v: Visage): void {
 const FICHES: Record<string, Fiche> = {
   Soleil: {
     couleur: '#f6cf6b',
-    visage: { yeux: 'mi-clos', bouche: 'boudeuse', spirales: true, froncement: 0 },
     arriere: (ctx, r, h) => {
       // Rayons rectilignes, longs et courts en alternance.
       for (let k = 0; k < 72; k++) {
@@ -223,7 +197,7 @@ const FICHES: Record<string, Fiche> = {
         ctx.beginPath()
         ctx.moveTo(Math.cos(a) * r * 1.25, Math.sin(a) * r * 1.25)
         ctx.lineTo(Math.cos(a) * r * long, Math.sin(a) * r * long)
-        trait(ctx, Math.max(0.5, r * (k % 2 ? 0.012 : 0.02)))
+        trait(ctx, ep(r, k % 2 ? 12 : 20))
       }
       // Flammes ondulées, pointes recourbées, avec leurs traits intérieurs.
       const n = 18
@@ -242,203 +216,355 @@ const FICHES: Record<string, Fiche> = {
         ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y)
         ctx.bezierCurveTo(c3.x, c3.y, c4.x, c4.y, d.x, d.y)
         ctx.closePath()
-        ctx.fillStyle = k % 2 ? '#f9dc8c' : '#f4b860'
-        ctx.fill()
-        trait(ctx, Math.max(0.6, r * 0.022))
+        aplat(ctx, k % 2 ? '#f9dc8c' : '#f4b860', ep(r, 22))
         for (const f of [-0.35, 0.1]) {
           const q0 = pt(a + largeur * f, 1.05), q1 = pt(a + largeur * (f + 0.1), long * 0.62), q2 = pt(pointe - 0.06, long * 0.82)
           ctx.beginPath()
           ctx.moveTo(q0.x, q0.y)
           ctx.quadraticCurveTo(q1.x, q1.y, q2.x, q2.y)
-          trait(ctx, Math.max(0.4, r * 0.012))
+          trait(ctx, ep(r, 12))
         }
       }
     },
-    decor: () => {},
-  },
-  Mercure: {
-    couleur: '#cbbfae',
-    visage: { yeux: 'mi-clos', bouche: 'neutre', spirales: false, froncement: 0.3 },
     decor: (ctx, r, h) => {
-      for (let k = 0; k < 9; k++) {
-        const a = h() * 2 * Math.PI, d = Math.sqrt(h()) * 0.85 * r
-        cratere(ctx, Math.cos(a) * d, Math.sin(a) * d, (0.06 + h() * 0.1) * r, Math.max(0.5, r * 0.015))
+      // Granulation (petits pointillés), deux groupes de taches solaires, et des facules en arcs.
+      ctx.fillStyle = '#e0a84a'
+      for (let k = 0; k < 140; k++) {
+        const a = h() * 2 * Math.PI, d = Math.sqrt(h()) * r
+        ctx.beginPath()
+        ctx.arc(Math.cos(a) * d, Math.sin(a) * d, ep(r, 10), 0, 2 * Math.PI)
+        ctx.fill()
+      }
+      for (const [x, y, t] of [[-0.35, -0.25, 0.11], [-0.22, -0.3, 0.06], [0.3, 0.32, 0.09], [0.42, 0.27, 0.05]]) {
+        ctx.beginPath()
+        ctx.ellipse(x * r, y * r, t * r * 1.5, t * r, 0.3, 0, 2 * Math.PI)
+        aplat(ctx, '#d48a3c', ep(r, 14))
+        ctx.beginPath()
+        ctx.ellipse(x * r, y * r, t * r * 0.7, t * r * 0.45, 0.3, 0, 2 * Math.PI)
+        aplat(ctx, '#8a4f3a', 0)
+      }
+      for (let k = 0; k < 4; k++) {
+        const y = (-0.6 + k * 0.4) * r
+        ctx.beginPath()
+        ctx.arc(0, y, 0.7 * r, Math.PI * 1.15, Math.PI * 1.35)
+        trait(ctx, ep(r, 10), '#c98e3e')
       }
     },
   },
-  Vénus: {
-    couleur: '#f0dca0',
-    visage: { yeux: 'fermes', bouche: 'sourire', spirales: true, froncement: 0 },
+  Mercure: {
+    couleur: '#c9bba6',
     decor: (ctx, r, h) => {
-      // Voiles de nuages en volutes.
-      for (let k = 0; k < 6; k++) {
-        const y = -0.8 * r + k * 0.32 * r
+      // Terrains plus sombres, bassin Caloris (grand anneau et fractures), cratères serrés, cratère jeune à rayons.
+      forme(ctx, r, [[-0.9, 0.1], [-0.5, -0.2], [-0.2, 0.1], [-0.4, 0.5], [-0.8, 0.6]])
+      aplat(ctx, '#a99a86', 0, 0.7)
+      forme(ctx, r, [[0.3, -0.9], [0.8, -0.5], [0.6, -0.1], [0.2, -0.4]])
+      aplat(ctx, '#a99a86', 0, 0.7)
+      const cx = 0.38 * r, cy = 0.35 * r
+      for (const k of [0.32, 0.25]) {
         ctx.beginPath()
-        ctx.moveTo(-r, y)
-        ctx.bezierCurveTo(-0.4 * r, y - 0.2 * r, 0.2 * r, y + 0.2 * r, r, y - 0.05 * r)
-        trait(ctx, Math.max(0.5, r * 0.014), '#b99a55')
-        spirale(ctx, (h() - 0.5) * 1.2 * r, y, 0.08 * r, 1.6)
-        trait(ctx, Math.max(0.5, r * 0.012), '#b99a55')
+        ctx.arc(cx, cy, k * r, 0, 2 * Math.PI)
+        trait(ctx, ep(r, 16))
+      }
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * 2 * Math.PI
+        ctx.beginPath()
+        ctx.moveTo(cx + Math.cos(a) * 0.05 * r, cy + Math.sin(a) * 0.05 * r)
+        ctx.lineTo(cx + Math.cos(a) * 0.22 * r, cy + Math.sin(a) * 0.22 * r)
+        trait(ctx, ep(r, 8))
+      }
+      for (let k = 0; k < 26; k++) {
+        const a = h() * 2 * Math.PI, d = Math.sqrt(h()) * 0.92 * r
+        const x = Math.cos(a) * d, y = Math.sin(a) * d
+        if (Math.hypot(x - cx, y - cy) < 0.36 * r) continue
+        cratere(ctx, x, y, (0.03 + h() ** 2 * 0.12) * r, ep(r, 13), h() > 0.7)
+      }
+      rayonsDeCratere(ctx, -0.45 * r, -0.45 * r, 0.05 * r, 0.45 * r, 14, h, '#f4ede0', ep(r, 12))
+      ctx.beginPath()
+      ctx.arc(-0.45 * r, -0.45 * r, 0.05 * r, 0, 2 * Math.PI)
+      aplat(ctx, '#f8f2e6', ep(r, 12))
+      // Un escarpement (falaise) en arc.
+      ctx.beginPath()
+      ctx.moveTo(-0.7 * r, -0.05 * r)
+      ctx.bezierCurveTo(-0.4 * r, 0.05 * r, -0.2 * r, -0.15 * r, 0.05 * r, -0.05 * r)
+      trait(ctx, ep(r, 14))
+    },
+  },
+  Vénus: {
+    couleur: '#f1dfa6',
+    decor: (ctx, r) => {
+      // Le grand « Y » sombre des nuages, couché, et des voiles en chevrons qui convergent vers les pôles.
+      forme(ctx, r, [[1, -0.08], [0.2, -0.05], [-0.5, -0.45], [-0.75, -0.42], [-0.1, 0.02], [-0.75, 0.42], [-0.5, 0.45], [0.2, 0.05], [1, 0.08]])
+      aplat(ctx, '#d9bd78', ep(r, 12))
+      for (let k = 1; k <= 5; k++) {
+        const e = k * 0.15
+        for (const s of [-1, 1]) {
+          ctx.beginPath()
+          ctx.moveTo(1.05 * r, s * (0.12 + e) * r)
+          ctx.quadraticCurveTo(0.1 * r, s * (0.12 + e * 0.9) * r, -0.9 * r, s * (0.05 + e * 1.15) * r)
+          trait(ctx, ep(r, 11), '#b8995a')
+        }
+      }
+      for (const s of [-1, 1]) {
+        spirale(ctx, 0.15 * r, s * 0.82 * r, 0.12 * r, 2.2)
+        trait(ctx, ep(r, 11), '#b8995a')
       }
     },
   },
   Terre: {
-    couleur: '#8fb6dc',
-    visage: { yeux: 'ouverts', bouche: 'sourire', spirales: false, froncement: 0 },
+    couleur: '#8db6dc',
     decor: (ctx, r) => {
-      // Continents stylisés (Amériques et Afrique-Europe), aplat vert et contour gravé.
-      const continent = (pts: number[][]) => {
-        ctx.beginPath()
-        pts.forEach(([x, y], i) => (i ? ctx.lineTo(x * r, y * r) : ctx.moveTo(x * r, y * r)))
-        ctx.closePath()
-        ctx.fillStyle = '#a9c98a'
-        ctx.fill()
-        trait(ctx, Math.max(0.5, r * 0.016))
+      // Océan : fines lignes de houle.
+      for (let k = 0; k < 9; k++) {
+        onde(ctx, r, (-0.85 + k * 0.21) * r, 0.012 * r, 1.4, k)
+        trait(ctx, ep(r, 7), '#6f9cc8')
       }
-      continent([[-0.75, -0.55], [-0.45, -0.7], [-0.3, -0.5], [-0.45, -0.25], [-0.35, -0.05], [-0.25, 0.25], [-0.35, 0.6], [-0.5, 0.75], [-0.55, 0.45], [-0.7, 0.1], [-0.85, -0.2]])
-      continent([[0.35, -0.8], [0.6, -0.65], [0.55, -0.4], [0.7, -0.2], [0.75, 0.15], [0.6, 0.45], [0.45, 0.7], [0.4, 0.4], [0.25, 0.1], [0.3, -0.25], [0.2, -0.5]])
-      // Vagues et nuages.
-      for (const [x, y] of [[0, -0.75], [-0.05, 0.65], [0.85, -0.5]]) {
+      // Continents (vue sur l'Atlantique) : Amériques, Groenland, Europe, Afrique.
+      const terres: Point[][] = [
+        [[-0.78, -0.62], [-0.62, -0.78], [-0.38, -0.78], [-0.22, -0.66], [-0.3, -0.52], [-0.42, -0.44], [-0.4, -0.3], [-0.52, -0.22], [-0.5, -0.1], [-0.4, -0.02], [-0.46, 0.02], [-0.6, -0.1], [-0.72, -0.3], [-0.86, -0.42]],
+        [[-0.18, -0.86], [-0.02, -0.9], [0.02, -0.76], [-0.12, -0.66], [-0.2, -0.74]],
+        [[-0.4, 0.02], [-0.24, 0.06], [-0.1, 0.18], [-0.12, 0.32], [-0.24, 0.48], [-0.32, 0.66], [-0.4, 0.78], [-0.42, 0.6], [-0.46, 0.36], [-0.52, 0.18]],
+        [[0.22, -0.62], [0.38, -0.7], [0.52, -0.62], [0.5, -0.48], [0.4, -0.4], [0.28, -0.38], [0.2, -0.46]],
+        [[0.18, -0.32], [0.4, -0.34], [0.58, -0.24], [0.7, -0.1], [0.62, 0.12], [0.56, 0.36], [0.46, 0.58], [0.36, 0.6], [0.32, 0.38], [0.3, 0.14], [0.16, 0.02], [0.1, -0.14]],
+      ]
+      for (const t of terres) {
+        forme(ctx, r, t)
+        aplat(ctx, '#a8c98a', ep(r, 15))
+      }
+      // Désert (Sahara) et forêt (Amazonie) en aplats plus soutenus.
+      forme(ctx, r, [[0.2, -0.28], [0.55, -0.22], [0.6, -0.06], [0.3, -0.04], [0.18, -0.14]])
+      aplat(ctx, '#e3cd8e', 0)
+      forme(ctx, r, [[-0.38, 0.08], [-0.18, 0.14], [-0.2, 0.3], [-0.38, 0.3]])
+      aplat(ctx, '#7fae6c', 0)
+      // Rocheuses et Andes : petits chevrons.
+      for (const [x0, y0, x1, y1] of [[-0.68, -0.5, -0.55, -0.2], [-0.46, 0.15, -0.38, 0.7]]) {
+        for (let k = 0; k <= 5; k++) {
+          const x = (x0 + ((x1 - x0) * k) / 5) * r, y = (y0 + ((y1 - y0) * k) / 5) * r
+          ctx.beginPath()
+          ctx.moveTo(x - 0.03 * r, y + 0.02 * r)
+          ctx.lineTo(x, y - 0.02 * r)
+          ctx.lineTo(x + 0.03 * r, y + 0.02 * r)
+          trait(ctx, ep(r, 9))
+        }
+      }
+      // Calottes polaires.
+      for (const s of [-1, 1]) {
         ctx.beginPath()
-        ctx.arc(x * r, y * r, 0.08 * r, Math.PI, 2 * Math.PI)
-        ctx.arc((x + 0.14) * r, y * r, 0.08 * r, Math.PI, 2 * Math.PI)
-        trait(ctx, Math.max(0.5, r * 0.014), '#4f7fae')
+        ctx.ellipse(0, s * 0.97 * r, 0.6 * r, 0.16 * r, 0, 0, 2 * Math.PI)
+        aplat(ctx, '#f7f4ee', ep(r, 13))
+      }
+      // Nuages : un cyclone en spirale et des écharpes blanches.
+      spirale(ctx, 0.05 * r, -0.2 * r, 0.14 * r, 2.4)
+      trait(ctx, ep(r, 30), '#f7f4ee')
+      spirale(ctx, 0.05 * r, -0.2 * r, 0.14 * r, 2.4)
+      trait(ctx, ep(r, 8))
+      for (const [x, y, l] of [[-0.1, 0.55, 0.35], [0.45, 0.7, 0.3], [-0.65, -0.05, 0.25], [0.6, -0.5, 0.25]]) {
+        ctx.beginPath()
+        ctx.moveTo(x * r, y * r)
+        ctx.quadraticCurveTo((x + l / 2) * r, (y - 0.06) * r, (x + l) * r, (y + 0.01) * r)
+        trait(ctx, ep(r, 34), '#f7f4ee')
+        trait(ctx, ep(r, 7), '#9aa7b8')
       }
     },
   },
   Lune: {
     couleur: '#dcd6ca',
-    visage: { yeux: 'mi-clos', bouche: 'moue', spirales: false, froncement: 0 },
     decor: (ctx, r, h) => {
-      for (let k = 0; k < 7; k++) {
-        const a = h() * 2 * Math.PI, d = (0.55 + h() * 0.35) * r
-        cratere(ctx, Math.cos(a) * d, Math.sin(a) * d, (0.05 + h() * 0.08) * r, Math.max(0.5, r * 0.015))
+      // Les mers (face visible) en aplats gris, puis les cratères, Copernic, et Tycho avec ses grands rayons.
+      const mers: Point[][] = [
+        [[-0.75, -0.25], [-0.55, -0.5], [-0.3, -0.62], [-0.08, -0.5], [-0.1, -0.25], [-0.3, -0.12], [-0.55, 0.15], [-0.78, 0.25]],
+        [[-0.85, 0.05], [-0.7, 0.4], [-0.5, 0.55], [-0.45, 0.25], [-0.6, 0.05]],
+        [[0.02, -0.45], [0.25, -0.5], [0.3, -0.3], [0.1, -0.22]],
+        [[0.08, -0.18], [0.38, -0.2], [0.45, 0.05], [0.2, 0.12], [0.05, 0.02]],
+        [[0.55, -0.35], [0.72, -0.32], [0.72, -0.18], [0.56, -0.18]],
+        [[0.42, 0.1], [0.6, 0.12], [0.58, 0.35], [0.42, 0.3]],
+        [[-0.32, 0.25], [-0.08, 0.28], [-0.1, 0.45], [-0.3, 0.45]],
+      ]
+      for (const m of mers) {
+        forme(ctx, r, m)
+        aplat(ctx, '#a9a49b', ep(r, 11), 0.85)
       }
+      for (let k = 0; k < 16; k++) {
+        const a = h() * 2 * Math.PI, d = Math.sqrt(h()) * 0.92 * r
+        cratere(ctx, Math.cos(a) * d, Math.sin(a) * d, (0.025 + h() ** 2 * 0.07) * r, ep(r, 12), h() > 0.6)
+      }
+      cratere(ctx, -0.32 * r, -0.05 * r, 0.07 * r, ep(r, 14), true)
+      rayonsDeCratere(ctx, -0.12 * r, 0.7 * r, 0.06 * r, 0.9 * r, 16, h, '#f6f2ea', ep(r, 14))
+      ctx.beginPath()
+      ctx.arc(-0.12 * r, 0.7 * r, 0.06 * r, 0, 2 * Math.PI)
+      aplat(ctx, '#f6f2ea', ep(r, 14))
     },
   },
   Mars: {
-    couleur: '#e39a7a',
-    visage: { yeux: 'ouverts', bouche: 'boudeuse', spirales: false, froncement: 1 },
+    couleur: '#e3987a',
     decor: (ctx, r, h) => {
-      // Calottes polaires et stries de poussière.
+      // Terres sombres (Syrtis Major, Mare Acidalium, Mare Erythraeum), canyon de Valles Marineris, volcans de
+      // Tharsis et Olympus Mons, calottes polaires.
+      for (const m of [
+        [[0.3, -0.35], [0.55, -0.15], [0.5, 0.2], [0.35, 0.35], [0.25, 0.05]],
+        [[-0.2, -0.75], [0.25, -0.7], [0.1, -0.5], [-0.25, -0.55]],
+        [[-0.6, 0.45], [0.1, 0.5], [0.4, 0.6], [-0.2, 0.72], [-0.7, 0.62]],
+      ] as Point[][]) {
+        forme(ctx, r, m)
+        aplat(ctx, '#b86e55', ep(r, 11), 0.8)
+      }
+      ctx.beginPath()
+      ctx.moveTo(-0.55 * r, 0.02 * r)
+      ctx.bezierCurveTo(-0.3 * r, 0.06 * r, -0.05 * r, -0.02 * r, 0.22 * r, 0.08 * r)
+      trait(ctx, ep(r, 34), '#8a4636')
+      trait(ctx, ep(r, 10))
+      for (const x of [-0.4, -0.15, 0.05]) {
+        ctx.beginPath()
+        ctx.moveTo(x * r, 0.04 * r)
+        ctx.lineTo((x + 0.05) * r, 0.14 * r)
+        trait(ctx, ep(r, 10))
+      }
+      for (const [x, y] of [[-0.72, -0.28], [-0.62, -0.16], [-0.52, -0.04]]) {
+        ctx.beginPath()
+        ctx.arc(x * r, y * r, 0.05 * r, 0, 2 * Math.PI)
+        aplat(ctx, '#d48466', ep(r, 12))
+        ctx.beginPath()
+        ctx.arc(x * r, y * r, 0.015 * r, 0, 2 * Math.PI)
+        trait(ctx, ep(r, 10))
+      }
+      for (const k of [0.13, 0.09, 0.03]) {
+        ctx.beginPath()
+        ctx.arc(-0.78 * r, -0.5 * r, k * r, 0, 2 * Math.PI)
+        if (k === 0.13) aplat(ctx, '#d48466', ep(r, 14))
+        else trait(ctx, ep(r, 10))
+      }
+      for (let k = 0; k < 10; k++) {
+        const a = h() * 2 * Math.PI, d = Math.sqrt(h()) * 0.85 * r
+        cratere(ctx, Math.cos(a) * d, Math.sin(a) * d, (0.02 + h() * 0.04) * r, ep(r, 10))
+      }
       for (const s of [-1, 1]) {
         ctx.beginPath()
-        ctx.ellipse(0, s * 0.9 * r, 0.32 * r, 0.12 * r, 0, 0, 2 * Math.PI)
-        ctx.fillStyle = '#faf2e6'
-        ctx.fill()
-        trait(ctx, Math.max(0.5, r * 0.015))
-      }
-      for (let k = 0; k < 8; k++) {
-        const y = (h() - 0.5) * 1.4 * r, x = (h() - 0.5) * 1.2 * r
-        ctx.beginPath()
-        ctx.moveTo(x - 0.15 * r, y)
-        ctx.quadraticCurveTo(x, y - 0.05 * r, x + 0.18 * r, y + 0.02 * r)
-        trait(ctx, Math.max(0.5, r * 0.013), '#a85a40')
+        ctx.ellipse(0.05 * r * s, s * 0.95 * r, 0.38 * r, 0.14 * r, 0.2 * s, 0, 2 * Math.PI)
+        aplat(ctx, '#faf2e6', ep(r, 14))
       }
     },
   },
   Jupiter: {
-    couleur: '#e9c39a',
-    visage: { yeux: 'ouverts', bouche: 'sourire', spirales: false, froncement: 0 },
-    decor: (ctx, r, h) => {
-      for (const [y0, l, c] of [[-0.62, 0.12, '#d79c6c'], [-0.18, 0.1, '#d79c6c'], [0.52, 0.11, '#c98a5c']] as const) {
-        ctx.fillStyle = c
-        ctx.globalAlpha = 0.6
-        ctx.fillRect(-r, y0 * r, 2 * r, l * r)
-        ctx.globalAlpha = 1
+    couleur: '#f1dcbc',
+    decor: (ctx, r) => {
+      // Zones claires et ceintures brunes, festons bleutés, ovales blancs, et la Grande Tache rouge.
+      const lw = ep(r, 10)
+      bande(ctx, r, -1, -0.78, '#c9a988', 0.3, lw)
+      bande(ctx, r, -0.6, -0.48, '#d9b48e', 1.1, lw)
+      bande(ctx, r, -0.3, -0.1, '#c98c62', 2.3, lw)
+      bande(ctx, r, 0.12, 0.32, '#c98c62', 0.7, lw)
+      bande(ctx, r, 0.5, 0.6, '#d9b48e', 1.9, lw)
+      bande(ctx, r, 0.78, 1, '#c9a988', 2.7, lw)
+      for (let k = 0; k < 6; k++) {
+        const x = (-0.8 + k * 0.32) * r
+        ctx.beginPath()
+        ctx.moveTo(x, -0.1 * r)
+        ctx.quadraticCurveTo(x + 0.08 * r, 0.02 * r, x + 0.2 * r, -0.08 * r)
+        trait(ctx, ep(r, 14), '#7f93b0')
       }
-      bandes(ctx, r, h, 9, 0.025, Math.max(0.5, r * 0.012))
-      // La Grande Tache rouge : une joue en spirale.
+      for (const [x, y] of [[-0.5, 0.55], [-0.2, 0.56], [0.65, 0.55]]) {
+        ctx.beginPath()
+        ctx.ellipse(x * r, y * r, 0.07 * r, 0.035 * r, 0, 0, 2 * Math.PI)
+        aplat(ctx, '#fbf6ec', ep(r, 10))
+      }
       ctx.beginPath()
-      ctx.ellipse(0.42 * r, 0.22 * r, 0.16 * r, 0.1 * r, 0, 0, 2 * Math.PI)
-      ctx.fillStyle = '#d9684e'
-      ctx.fill()
-      trait(ctx, Math.max(0.5, r * 0.016))
-      spirale(ctx, 0.42 * r, 0.22 * r, 0.09 * r, 2.2)
-      trait(ctx, Math.max(0.5, r * 0.012))
+      ctx.ellipse(0.3 * r, 0.38 * r, 0.22 * r, 0.12 * r, 0, 0, 2 * Math.PI)
+      aplat(ctx, '#f1dcbc', ep(r, 12))
+      ctx.beginPath()
+      ctx.ellipse(0.3 * r, 0.38 * r, 0.17 * r, 0.09 * r, 0, 0, 2 * Math.PI)
+      aplat(ctx, '#d6654a', ep(r, 16))
+      ctx.save()
+      ctx.translate(0.3 * r, 0.38 * r)
+      ctx.scale(1.8, 1)
+      spirale(ctx, 0, 0, 0.06 * r, 2)
+      ctx.restore()
+      trait(ctx, ep(r, 10))
     },
   },
   Saturne: {
-    couleur: '#f0d79c',
-    visage: { yeux: 'mi-clos', bouche: 'sourire', spirales: true, froncement: 0 },
-    decor: (ctx, r, h) => bandes(ctx, r, h, 8, 0.015, Math.max(0.5, r * 0.011)),
-    arriere: (ctx, r) => anneaux(ctx, r, false),
-    avant: (ctx, r) => anneaux(ctx, r, true),
-    inclinaison: -0.35,
+    couleur: '#f2dfae',
+    inclinaison: -0.4,
+    decor: (ctx, r) => {
+      const lw = ep(r, 9)
+      bande(ctx, r, -1, -0.62, '#d9c18e', 0.4, lw)
+      bande(ctx, r, -0.3, -0.18, '#e6cf9c', 1.6, lw)
+      bande(ctx, r, 0.15, 0.3, '#dcc38f', 2.2, lw)
+      bande(ctx, r, 0.55, 1, '#d2b583', 0.9, lw)
+      // L'hexagone du pôle nord.
+      ctx.beginPath()
+      for (let k = 0; k <= 6; k++) {
+        const a = (k / 6) * 2 * Math.PI
+        const x = Math.cos(a) * 0.32 * r, y = -0.9 * r + Math.sin(a) * 0.09 * r
+        if (k === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      aplat(ctx, '#c7aa7c', ep(r, 12))
+    },
+    arriere: (ctx, r) => anneaux(ctx, r, false, { aplatissement: 0.3, interieur: 1.25, exterieur: 2.3, lignes: 8, couleurs: ['#efe6cc', '#e8d3a2', '#efdfb8'], cassini: 1.95 }),
+    avant: (ctx, r) => anneaux(ctx, r, true, { aplatissement: 0.3, interieur: 1.25, exterieur: 2.3, lignes: 8, couleurs: ['#efe6cc', '#e8d3a2', '#efdfb8'], cassini: 1.95 }),
   },
   Uranus: {
-    couleur: '#b7e1e4',
-    visage: { yeux: 'fermes', bouche: 'neutre', spirales: false, froncement: 0 },
-    decor: (ctx, r, h) => bandes(ctx, r, h, 5, 0.01, Math.max(0.5, r * 0.01)),
-    // Anneaux fins et sombres, sans aplat.
-    arriere: (ctx, r) => anneaux(ctx, r, false, 0.22, 2, 1.6, false),
-    avant: (ctx, r) => anneaux(ctx, r, true, 0.22, 2, 1.6, false),
+    couleur: '#bfe5e6',
     inclinaison: 1.45,
-  },
-  Neptune: {
-    couleur: '#8fa6e0',
-    visage: { yeux: 'ouverts', bouche: 'moue', spirales: false, froncement: 0.6 },
-    decor: (ctx, r, h) => {
-      // Vagues et la Grande Tache sombre.
-      for (let k = 0; k < 5; k++) {
-        const y = -0.7 * r + k * 0.35 * r
-        ctx.beginPath()
-        for (let i = 0; i <= 20; i++) {
-          const x = -r + (2 * r * i) / 20
-          const yy = y + Math.sin(i * 1.1 + k) * 0.04 * r
-          if (i === 0) ctx.moveTo(x, yy)
-          else ctx.lineTo(x, yy)
-        }
-        trait(ctx, Math.max(0.5, r * 0.012), '#5268a8')
+    decor: (ctx, r) => {
+      // Presque uni : bandes très pâles, et le pôle (tourné vers nous) plus clair, cerclé d'un collier.
+      for (const y of [-0.5, -0.15, 0.2]) {
+        onde(ctx, r, y * r, 0.008 * r, 0.6, y * 5)
+        trait(ctx, ep(r, 8), '#93c7cb')
       }
       ctx.beginPath()
-      ctx.ellipse(-0.45 * r, 0.42 * r, 0.14 * r, 0.08 * r, -0.3, 0, 2 * Math.PI)
-      ctx.fillStyle = '#5268a8'
-      ctx.fill()
-      trait(ctx, Math.max(0.5, r * 0.014))
-      void h
+      ctx.ellipse(0, 0.62 * r, 0.62 * r, 0.3 * r, 0, 0, 2 * Math.PI)
+      aplat(ctx, '#e3f4f3', ep(r, 11))
+      ctx.beginPath()
+      ctx.ellipse(0, 0.62 * r, 0.42 * r, 0.18 * r, 0, 0, 2 * Math.PI)
+      trait(ctx, ep(r, 8), '#93c7cb')
+    },
+    // Anneaux fins et sombres, sans aplat.
+    arriere: (ctx, r) => anneaux(ctx, r, false, { aplatissement: 0.22, interieur: 1.45, exterieur: 1.65, lignes: 3 }),
+    avant: (ctx, r) => anneaux(ctx, r, true, { aplatissement: 0.22, interieur: 1.45, exterieur: 1.65, lignes: 3 }),
+  },
+  Neptune: {
+    couleur: '#7f9be0',
+    decor: (ctx, r) => {
+      // Bandes plus sombres au sud, la Grande Tache sombre et ses nuages blancs, le « Scooter », des cirrus.
+      bande(ctx, r, 0.45, 0.62, '#6680c8', 0.5, ep(r, 9))
+      bande(ctx, r, 0.75, 1, '#5d74b8', 1.5, ep(r, 9))
+      ctx.beginPath()
+      ctx.ellipse(-0.3 * r, 0.2 * r, 0.22 * r, 0.12 * r, -0.15, 0, 2 * Math.PI)
+      aplat(ctx, '#3f528f', ep(r, 15))
+      for (const [x, y, l] of [[-0.42, 0.04, 0.3], [0.1, -0.45, 0.5], [0.3, -0.3, 0.35], [-0.6, -0.3, 0.3], [0.2, 0.42, 0.25]]) {
+        ctx.beginPath()
+        ctx.moveTo(x * r, y * r)
+        ctx.quadraticCurveTo((x + l / 2) * r, (y - 0.04) * r, (x + l) * r, y * r)
+        trait(ctx, ep(r, 30), '#f2f5fb')
+        trait(ctx, ep(r, 7))
+      }
+      ctx.beginPath()
+      ctx.ellipse(0.45 * r, 0.12 * r, 0.06 * r, 0.035 * r, 0, 0, 2 * Math.PI)
+      aplat(ctx, '#f2f5fb', ep(r, 10))
     },
   },
   Pluton: {
-    couleur: '#e3c6ad',
-    visage: { yeux: 'ouverts', bouche: 'neutre', spirales: false, froncement: 0 },
+    couleur: '#e5cdb5',
     decor: (ctx, r) => {
-      // Le cœur (Tombaugh Regio).
-      ctx.beginPath()
-      const x = 0.3 * r, y = 0.35 * r, s = 0.22 * r
-      ctx.moveTo(x, y + s * 0.9)
-      ctx.bezierCurveTo(x - s * 1.4, y - s * 0.2, x - s * 0.5, y - s * 1.1, x, y - s * 0.4)
-      ctx.bezierCurveTo(x + s * 0.5, y - s * 1.1, x + s * 1.4, y - s * 0.2, x, y + s * 0.9)
-      ctx.fillStyle = '#faf2e6'
-      ctx.fill()
-      trait(ctx, Math.max(0.5, r * 0.015))
+      // Cthulhu (bande sombre et rousse au sud-ouest), puis le cœur de Tombaugh : lobe gauche lisse (Spoutnik, en
+      // cellules), lobe droit plus pâle.
+      forme(ctx, r, [[-1, 0.15], [-0.4, 0.2], [0.0, 0.55], [-0.2, 0.85], [-0.8, 0.7]])
+      aplat(ctx, '#8f5a44', ep(r, 12))
+      forme(ctx, r, [[0.05, -0.15], [0.35, -0.3], [0.5, 0.0], [0.3, 0.4], [0.15, 0.55], [0.0, 0.2]])
+      aplat(ctx, '#fbf4ea', ep(r, 14))
+      forme(ctx, r, [[0.35, -0.3], [0.72, -0.35], [0.85, -0.05], [0.65, 0.3], [0.3, 0.4], [0.5, 0.0]])
+      aplat(ctx, '#f1e2cf', ep(r, 12))
+      for (const [x0, y0, x1, y1] of [[0.12, -0.05, 0.35, 0.05], [0.1, 0.18, 0.32, 0.15], [0.22, -0.18, 0.2, 0.4]]) {
+        ctx.beginPath()
+        ctx.moveTo(x0 * r, y0 * r)
+        ctx.lineTo(x1 * r, y1 * r)
+        trait(ctx, ep(r, 8), '#c9b49c')
+      }
     },
   },
 }
 
-/** Anneaux (Saturne, Uranus) : ellipses fines ; la moitié arrière avant le disque, la moitié avant après. */
-function anneaux(ctx: CanvasRenderingContext2D, r: number, avant: boolean, aplatissement = 0.32, nombre = 7,
-  exterieur = 2.2, aplat = true): void {
-  const debut = avant ? 0 : Math.PI, fin = avant ? Math.PI : 2 * Math.PI
-  if (aplat) {
-    ctx.beginPath()
-    ctx.ellipse(0, 0, exterieur * r, exterieur * r * aplatissement, 0, debut, fin)
-    ctx.ellipse(0, 0, 1.35 * r, 1.35 * r * aplatissement, 0, fin, debut, true)
-    ctx.closePath()
-    ctx.fillStyle = '#efe0b8'
-    ctx.globalAlpha = 0.85
-    ctx.fill()
-    ctx.globalAlpha = 1
-  }
-  for (let k = 0; k < nombre; k++) {
-    const rr = r * (1.35 + ((exterieur - 1.35) * k) / (nombre - 1))
-    ctx.beginPath()
-    ctx.ellipse(0, 0, rr, rr * aplatissement, 0, debut, fin)
-    trait(ctx, Math.max(0.4, r * (k === 0 || k === nombre - 1 ? 0.02 : 0.009)))
-  }
-}
-
-/** Un astre a-t-il son illustration ? (sinon : la Lune pour les lunes connues, rien pour les autres) */
+/** Un astre a-t-il son illustration ? */
 export function aUneIllustration(nom: string): boolean {
   return nom in FICHES
 }
@@ -456,7 +582,7 @@ export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string
   ctx.translate(x, y)
   if (f.inclinaison) ctx.rotate(f.inclinaison)
   f.arriere?.(ctx, r, h)
-  // Disque, décor et visage, clipés au disque.
+  // Disque et décor, clipés au disque.
   ctx.beginPath()
   ctx.arc(0, 0, r, 0, 2 * Math.PI)
   ctx.fillStyle = f.couleur
@@ -464,26 +590,30 @@ export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string
   ctx.save()
   ctx.clip()
   f.decor(ctx, r, h)
-  if (r >= RAYON_VISAGE) visage(ctx, r, f.visage)
   // Face de nuit : aplat violet en « multiplier » (les traits restent visibles), hachures le long du terminateur.
   if (versSoleil !== null) {
-    const a = versSoleil - (f.inclinaison ?? 0)
-    ctx.rotate(a)
+    ctx.rotate(versSoleil - (f.inclinaison ?? 0))
     ctx.globalCompositeOperation = 'multiply'
     ctx.fillStyle = OMBRE
     ctx.globalAlpha = 0.45
-    ctx.fillRect(-2 * r, -2 * r, 2 * r - 0.15 * r, 4 * r)
+    // Un croissant d'ombre (et non la moitié du disque) : les détails de l'astre restent lisibles.
+    ctx.beginPath()
+    ctx.arc(0, 0, r * 1.01, Math.PI / 2, (3 * Math.PI) / 2)
+    ctx.ellipse(0, 0, r * 0.45, r * 1.01, 0, (3 * Math.PI) / 2, Math.PI / 2, true)
+    ctx.fill()
     ctx.globalAlpha = 1
     ctx.globalCompositeOperation = 'source-over'
+    // Hachures le long du terminateur (une bande en demi-ellipse).
     ctx.beginPath()
-    ctx.rect(-0.45 * r, -2 * r, 0.42 * r, 4 * r)
+    ctx.ellipse(0, 0, r * 0.62, r * 1.01, 0, Math.PI / 2, (3 * Math.PI) / 2)
+    ctx.ellipse(0, 0, r * 0.3, r * 1.01, 0, (3 * Math.PI) / 2, Math.PI / 2, true)
     ctx.clip()
     for (let k = 0; k < 30; k++) {
       const xh = -1.2 * r + k * 0.06 * r
       ctx.beginPath()
       ctx.moveTo(xh, -r)
       ctx.lineTo(xh + 0.6 * r, r)
-      trait(ctx, Math.max(0.4, r * 0.01))
+      trait(ctx, ep(r, 10))
     }
   }
   ctx.restore()
