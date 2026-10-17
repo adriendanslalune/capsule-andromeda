@@ -336,6 +336,14 @@ function avancerMissions(t: number): void {
     else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
     else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
   }
+  // Mission en plusieurs étapes (livraison) : l'étape finie, le trajet vers la suivante est aussitôt préparé
+  // (demande d'Adrien du 17/10/2026) ; il ne reste qu'à appuyer sur DÉPART.
+  const suivante = jeu.etapeActuelle()
+  if (suivante && evenements.some((e) => e.genre === 'etape-finie') && !jeu.surPlace(t)) {
+    choisir(suivante.lieu)
+    proposee = true
+    planAJour = 0
+  }
   if (evenements.length) enregistrerPartie()
 }
 let dernierVolet = 0
