@@ -25,7 +25,7 @@ describe('état du jeu au départ (décision d’Adrien du 17/10/2026)', () => {
 })
 
 describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
-  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 1 500) et 4 (250 km/s, 4 000)', () => {
+  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 600) et 4 (250 km/s, 1 500)', () => {
     const jeu = new Jeu()
     expect(jeu.moteurSuivant()).toMatchObject({ niveau: 2, vitesse: 60, prix: 200 })
     jeu.credits = 199
@@ -38,7 +38,7 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     jeu.credits = 10_000
     expect(jeu.acheterMoteur() && jeu.acheterMoteur()).toBe(true)
     expect(jeu.vitesse()).toBe(250)
-    expect(jeu.credits).toBe(10_000 - 1500 - 4000)
+    expect(jeu.credits).toBe(10_000 - 600 - 1500)
     expect(jeu.moteurSuivant()).toBeNull()
     expect(jeu.acheterMoteur()).toBe(false)
   })
