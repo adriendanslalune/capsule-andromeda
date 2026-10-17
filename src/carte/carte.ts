@@ -24,11 +24,12 @@ export interface Couleurs2D { encre: string; fond: string }
 /** Ce qui est dessiné à l'écran (pour le toucher et les repères). */
 interface Dessine { nom: string; x: number; y: number; r: number }
 
-/** Taille minimale à l'écran (rayon, px) quand on dézoome : chaque astre reste visible et distinct, dans l'ordre
- *  des vraies tailles (le Soleil énorme, Mercure petite). */
+/** Taille minimale à l'écran (rayon, px) quand on dézoome, dans l'ordre des vraies tailles (le Soleil énorme, Mercure
+ *  petite) : assez grande pour que chaque planète soit illustrée dès l'ouverture (essai demandé par Adrien le
+ *  17/10/2026 ; l'illustration commence à 11 px). */
 const MINIMUMS: Record<string, number> = {
-  Soleil: 13, Jupiter: 8.5, Saturne: 8, Uranus: 6.5, Neptune: 6.5, Terre: 5.2, Vénus: 5, Mars: 4.2, Mercure: 3.6,
-  Pluton: 3, Lune: 3,
+  Soleil: 18, Jupiter: 16, Saturne: 15, Uranus: 13, Neptune: 13, Terre: 12, Vénus: 12, Mars: 11.5, Mercure: 11,
+  Pluton: 11, Lune: 3,
 }
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
