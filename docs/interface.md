@@ -207,8 +207,8 @@ l'icône au-dessus du nom).
 Voir docs/conception-destin.md.
 
 ## 22. Carte en style Moebius, vraie échelle (17/10/2026, décisions d'Adrien)
-Après le prototype Andromeda (`prototypes/andromeda/BILAN.md`). Étape (a) faite ; (b) repères et cadran, (c) point libre,
-chasse et départs rebranchés, à venir.
+Après le prototype Andromeda (`prototypes/andromeda/BILAN.md`). Étapes (a) et (b) faites ; (c) point libre, chasse et départs
+rebranchés, à venir.
 - **Vraies distances**, échelle linéaire (la chasse en a besoin : cercles et droites justes). Seuls les astres sont
   grossis : rayon minimal à l'écran (Soleil 11 px, géantes 8, autres planètes 6, lunes 3,5), vraie taille de près.
 - **Style Moebius** : fond blanc cassé, encre brun-violet, astres en pastel, face de nuit en aplat violet, hachures le
@@ -222,3 +222,11 @@ chasse et départs rebranchés, à venir.
 - **Toucher = fiche** (17/10/2026, demande d'Adrien) : toucher un astre, un engin ou un point affiche sa fiche (nom,
   distance, VOIR SON SYSTÈME, Y ALLER) sans rien changer à la route ; Y ALLER propose les départs (maintenant, fenêtre
   de tir) ; toucher encore une planète sélectionnée ouvre son système.
+- **Repères** (étape b) sur l'astre visé (destination proposée, sinon sélection, sinon destination en cours) : crochet
+  discret (quatre coins rouges liserés d'encre), étiquette nom + distance posée à l'écart (six places essayées, loin
+  du point de rencontre, de la fusée, du cartouche et du bouton CADRAN), reliée par un trait ; hors champ, une flèche au
+  bord de la carte avec le nom et la distance. Distances en km jusqu'à 0,1 UA, en UA au-delà.
+- **Cadran** (bouton CADRAN en bas à gauche de la carte, remplace la liste déroulante) : feuille avec le Soleil, les
+  planètes (dépliables : leurs lunes, les plus grosses d'abord) et les engins, chacun avec sa distance à la fusée ;
+  toucher une ligne affiche la fiche (et cadre le système pour une lune ou l'ISS).
+- Cadran de cap autour de la fusée réduit (26 px de rayon au lieu de 40).

@@ -24,13 +24,12 @@
   import { hasardReel } from '../../moteur/hasard'
   import { vitesseActuelle } from '../../moteur/partie'
   import { DUREE_ACCELERATION } from '../../donnees/reglages'
-  import { dateLocale, duree, dureePrecise, heureLocale, nombre, nomAstre, ua } from '../format'
+  import { dateLocale, duree, dureePrecise, heureLocale, km, nombre, nomAstre, ua } from '../format'
   import { jeu } from '../jeu.svelte'
   import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
   import Reinitialiser from '../provisoire/Reinitialiser.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
   import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
-  import { satellitesDe } from '../../astro/satellites'
 
   /** Couleurs de la carte, style Moebius (validé par Adrien le 17/10/2026) : fond blanc cassé, encre brun-violet,
    *  astres en pastel, ombre violette, hachures le long du terminateur. */
@@ -202,11 +201,19 @@
   const nomsVisibles = $derived.by(() => {
     type Boite = { x0: number; y0: number; x1: number; y1: number }
     const f = ecran(fl.position)
-    const prises: Boite[] = [{ x0: f.x - 12, y0: f.y - 12, x1: f.x + 12, y1: f.y + 12 }]
+    // La fusée et son cadran de cap, puis les repères de l'astre visé (étiquette ou flèche).
+    const prises: Boite[] = [{ x0: f.x - 36, y0: f.y - 36, x1: f.x + 36, y1: f.y + 36 }]
+    if (reperes?.etiquette) { const e = reperes.etiquette; prises.push({ x0: e.x - 2, y0: e.y - 2, x1: e.x + e.l + 4, y1: e.y + e.h + 4 }) }
+    if (reperes?.fleche) {
+      const fl2 = reperes.fleche
+      const l = Math.max(reperes.nom.length * 7.5, reperes.dist.length * 6.5)
+      const x0 = fl2.ancre === 'end' ? fl2.tx - l : fl2.ancre === 'start' ? fl2.tx : fl2.tx - l / 2
+      prises.push({ x0: Math.min(x0, fl2.x - 18), y0: Math.min(fl2.ty - 16, fl2.y - 18), x1: Math.max(x0 + l, fl2.x + 18), y1: Math.max(fl2.ty + 14, fl2.y + 18) })
+    }
     for (const m of marques) { const s = ecran(m.p); prises.push({ x0: s.x - m.r, y0: s.y - m.r, x1: s.x + m.r, y1: s.y + m.r }) }
     const ok = new Map<string, { x: number; y: number }>()
     for (const m of marques) {
-      if (!m.etiquette) continue
+      if (!m.etiquette || m.nom === nomFocus) continue
       const s = ecran(m.p)
       const taille = m.engin ? 9 : 11
       const largeur = m.nom.length * taille * 0.62
@@ -243,17 +250,6 @@
     ambigus = null
   }
   const planeteSelectionnee = $derived(selection?.type === 'astre' && aUnSysteme(selection.astre) ? (selection.astre as NomPlanete) : null)
-  /** Liste de toutes les destinations, par familles (pour les objets lointains ou trop serrés sur la carte). */
-  const LISTE = [
-    { titre: 'Soleil, planètes et Lune', noms: ['Soleil', ...NOMS_PLANETES, 'Lune'] },
-    { titre: 'Engins', noms: ['ISS', ...NOMS_ENGINS] },
-    ...NOMS_PLANETES.filter((p) => satellitesDe(p).length).map((p) => ({ titre: `Satellites de ${p}`, noms: satellitesDe(p).map((s) => s.nom) })),
-  ]
-  function depuisLaListe(e: Event) {
-    const nom = (e.currentTarget as HTMLSelectElement).value
-    if (nom) choisir({ type: 'astre', astre: nom })
-    ;(e.currentTarget as HTMLSelectElement).value = ''
-  }
   const options = $derived(choix ? optionsDeDepart(fusee, choix, t, v) : null)
   const nomChoix = (d: Destination) => (d.type === 'astre' ? nomAstre(d.astre) : d.type === 'point' ? 'Point libre' : 'Objet inconnu')
 
@@ -409,6 +405,76 @@
 
   const posFusee = $derived(ecran(fl.position))
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
+
+  /** Distance lisible : en km jusqu'à 0,1 UA, en UA au-delà. */
+  const distanceLisible = (d: number) => (d < 0.1 ? km(d * UA_KM) : ua(d))
+
+  // Repères (repris du prototype Andromeda) sur l'astre visé : la destination proposée, sinon la sélection, sinon la
+  // destination en cours. Crochet discret autour de lui, étiquette (nom, distance) posée à l'écart, reliée par un
+  // trait ; flèche au bord de la carte quand il est hors champ.
+  const focus = $derived(choix ?? selection ?? fusee.destination ?? null)
+  const nomFocus = $derived(focus?.type === 'astre' ? focus.astre : null)
+  /** Zone du cartouche et de la légende (en bas à droite), que l'étiquette ne doit pas couvrir. */
+  const CARTOUCHE = { x0: L - 156, y0: Hc - 74, x1: L, y1: Hc }
+  /** Zone du bouton CADRAN (en bas à gauche). */
+  const BOUTON_CADRAN = { x0: 0, y0: Hc - 62, x1: 104, y1: Hc }
+  const reperes = $derived.by(() => {
+    if (!focus) return null
+    const s = ecran(positionDestination(focus, tl))
+    const m = nomFocus ? marques.find((x) => x.nom === nomFocus) : undefined
+    const r = m ? m.r : 3
+    const nom = nomChoix(focus).toUpperCase()
+    const dist = distanceLisible(distance(fl.position, positionDestination(focus, tl)))
+    const visible = s.x > 0 && s.x < L && s.y > 0 && s.y < Hc
+    if (!visible) {
+      // Flèche : sur le bord (marge 26 px), dans la direction de l'astre vu du centre de la carte.
+      const cx = L / 2, cy = Hc / 2
+      const dx = s.x - cx, dy = s.y - cy
+      const f = Math.min((cx - 26) / Math.abs(dx || 1e-9), (cy - 26) / Math.abs(dy || 1e-9))
+      const x = cx + dx * f, y = cy + dy * f
+      const a = Math.atan2(dy, dx)
+      const ancre: 'end' | 'start' | 'middle' = Math.cos(a) > 0.3 ? 'end' : Math.cos(a) < -0.3 ? 'start' : 'middle'
+      return { visible, nom, dist, fleche: { x, y, a: (a * 180) / Math.PI, tx: x - 22 * Math.cos(a), ty: y - 22 * Math.sin(a), ancre } }
+    }
+    const a = Math.max(r, 3) + 5 // demi-côté du crochet
+    const coin = Math.min(6, Math.max(3.5, a * 0.35))
+    const crochet = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) =>
+      `M ${s.x + sx * a} ${s.y + sy * (a - coin)} L ${s.x + sx * a} ${s.y + sy * a} L ${s.x + sx * (a - coin)} ${s.y + sy * a}`).join(' ')
+    // Étiquette : six places essayées, à l'écart du point de rencontre, de la fusée, du cartouche et des bords.
+    const l = Math.max(nom.length * 8.2, dist.length * 7) + 16, h = 36
+    const loin = a + 3 + 20
+    const essais = [
+      { x: s.x + loin, y: s.y - h / 2 }, { x: s.x - loin - l, y: s.y - h / 2 },
+      { x: s.x - l / 2, y: s.y - loin - h }, { x: s.x - l / 2, y: s.y + loin },
+      { x: s.x + loin, y: s.y - loin - h }, { x: s.x - loin - l, y: s.y + loin },
+    ]
+    const eviter = [posFusee, ...(plan && fusee.destination ? [ecran(plan.point)] : [])]
+    const libre = (b: { x: number; y: number }) =>
+      b.x >= 6 && b.x + l <= L - 6 && b.y >= 6 && b.y + h <= Hc - 6
+      && (b.x + l < CARTOUCHE.x0 || b.y + h < CARTOUCHE.y0) && (b.x > BOUTON_CADRAN.x1 || b.y + h < BOUTON_CADRAN.y0)
+      && eviter.every((p) => p.x < b.x - 14 || p.x > b.x + l + 14 || p.y < b.y - 14 || p.y > b.y + h + 14)
+    const b = essais.find(libre) ?? { x: Math.min(Math.max(6, s.x + loin), L - 6 - l), y: Math.min(Math.max(6, s.y - h / 2), Hc - 6 - h) }
+    // Trait de rappel, du bord du crochet au bord de l'étiquette.
+    const cx = Math.min(Math.max(s.x, b.x), b.x + l), cy = Math.min(Math.max(s.y, b.y), b.y + h)
+    const d = Math.hypot(cx - s.x, cy - s.y) || 1
+    const rappel = `M ${s.x + ((cx - s.x) / d) * (a + 3)} ${s.y + ((cy - s.y) / d) * (a + 3)} L ${cx} ${cy}`
+    return { visible, nom, dist, crochet, etiquette: { ...b, l, h }, rappel }
+  })
+
+  // Cadran de navigation (repris du prototype) : la liste des astres et engins, avec leur distance à la fusée.
+  // Une planète qui a des lunes se déplie ; toucher une ligne affiche la fiche (et cadre le système d'une lune).
+  let cadranOuvert = $state(false)
+  let deplies = $state<string[]>([])
+  const lunesDe = (p: NomPlanete) => corpsDuSysteme(p).filter((n) => !estPlanete(n) && n !== 'ISS')
+    .sort((a, b) => (rayonCorps(b) ?? 0) - (rayonCorps(a) ?? 0))
+  const distanceA = (nom: string) => distanceLisible(distance(fusee.position, positionAstre(nom, t)))
+  function depuisLeCadran(nom: string) {
+    cadranOuvert = false
+    mode = 'navigation'
+    choisir({ type: 'astre', astre: nom })
+    if (nom === 'ISS') ouvrirSysteme('Terre')
+    else if (nom !== 'Soleil' && !estPlanete(nom) && !NOMS_ENGINS.includes(nom as never)) ouvrirSysteme(planeteDe(nom))
+  }
 </script>
 
 <div class="carte">
@@ -427,6 +493,7 @@
     {:else if planeteSelectionnee}<button onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME ›</button>{/if}
   </div>
 
+  <div class="cadre">
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
     <defs>
@@ -522,22 +589,37 @@
       {#if visee}<path d={visee} fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" opacity=".85" />{/if}
       {#if route}<path d={route} fill="none" stroke={PLAN.trait} stroke-width="4" stroke-linecap="round" /><path d={route} fill="none" stroke={PLAN.route} stroke-width="2.2" stroke-linecap="round" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
-      <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
-    {/if}
-    {#if choix ?? selection}
-      {@const s = ecran(positionDestination((choix ?? selection)!, tl))}
-      <circle cx={s.x} cy={s.y} r="12" fill="none" stroke={PLAN.route} stroke-width="2.5" />
+      <!-- Destination en cours, quand les repères désignent un autre astre : un cercle pointillé discret. -->
+      {#if focus !== fusee.destination}<circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="3 3" />{/if}
     {/if}
 
+    <!-- Cadran de cap, plus petit que l'astre d'où part la fusée ne disparaisse pas dessous. -->
     <g transform={`translate(${posFusee.x} ${posFusee.y})`}>
-      <circle r="40" fill="none" stroke={PLAN.trait} stroke-width="1" opacity=".45" />
+      <circle r="26" fill="none" stroke={PLAN.trait} stroke-width="0.8" opacity=".4" />
       {#each graduations as g}
         {@const a = (g * Math.PI) / 180}
-        <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 2 : 1} />
-        {#if g % 90 === 0}<text x={Math.cos(a) * 50} y={-Math.sin(a) * 50 + 4} text-anchor="middle" font-size="10" font-family="var(--police-chiffres)" fill={PLAN.trait}>{g}</text>{/if}
+        <line x1={Math.cos(a) * 23} y1={-Math.sin(a) * 23} x2={Math.cos(a) * 26} y2={-Math.sin(a) * 26} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 1.6 : 0.8} opacity=".7" />
+        {#if g % 90 === 0}<text class="nom" x={Math.cos(a) * 33} y={-Math.sin(a) * 33 + 3} text-anchor="middle" font-size="8" fill={PLAN.trait} opacity=".75">{g}</text>{/if}
       {/each}
       <path d="M 9 0 L -6 5 L -3 0 L -6 -5 Z" fill="#e04b37" stroke={PLAN.trait} stroke-width="1.3" transform={`rotate(${-fl.cap})`} />
     </g>
+
+    <!-- Repères de l'astre visé : crochet, étiquette à l'écart, ou flèche au bord quand il est hors champ. -->
+    {#if reperes?.crochet && reperes.etiquette}
+      {@const e = reperes.etiquette}
+      <path d={reperes.crochet} fill="none" stroke={PLAN.trait} stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      <path d={reperes.crochet} fill="none" stroke={PLAN.route} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d={reperes.rappel} stroke={PLAN.trait} stroke-width="1.1" />
+      <rect x={e.x + 3} y={e.y + 3} width={e.l} height={e.h} fill={PLAN.trait} />
+      <rect x={e.x} y={e.y} width={e.l} height={e.h} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.4" />
+      <text x={e.x + 8} y={e.y + 15} font-size="12" font-weight="700" font-family="var(--police-machine)" fill={PLAN.trait}>{reperes.nom}</text>
+      <text x={e.x + 8} y={e.y + 29} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{reperes.dist}</text>
+    {:else if reperes?.fleche}
+      {@const f = reperes.fleche}
+      <path d="M 16 0 L -10 8 L -10 -8 Z" transform={`translate(${f.x} ${f.y}) rotate(${f.a})`} fill={PLAN.route} stroke={PLAN.trait} stroke-width="1.8" stroke-linejoin="round" />
+      <text class="nom" x={f.tx} y={f.ty - 4} text-anchor={f.ancre} font-size="11" font-weight="700" fill={PLAN.trait}>{reperes.nom}</text>
+      <text class="nom" x={f.tx} y={f.ty + 10} text-anchor={f.ancre} font-size="10" fill={PLAN.trait}>{reperes.dist}</text>
+    {/if}
 
     <!-- Légende des deux traits. -->
     {#if fusee.destination}
@@ -559,6 +641,8 @@
       <text x="22" y="28" font-size="10" font-family="var(--police-machine)" fill={PLAN.trait}>= {echelle}</text>
     </g>
   </svg>
+  <button class="bouton-cadran" onclick={() => (cadranOuvert = true)}>CADRAN</button>
+  </div>
 
   <div class="onglets" role="tablist">
     <button role="tab" aria-selected={mode === 'navigation'} class:actif={mode === 'navigation'} onclick={() => (mode = 'navigation')}>DESTINATION</button>
@@ -574,14 +658,14 @@
     {:else if mode === 'navigation' && selection && !choix}
       <!-- Fiche de l'astre (ou du point) touché : rien ne change tant qu'on n'appuie pas sur Y ALLER. -->
       <div class="ligne"><span class="etiquette">SÉLECTION</span><button class="lien" onclick={() => (selection = null)}>fermer</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(selection, t)))}</span></div>
+      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(fusee.position, positionDestination(selection, t)))}</span></div>
       <div class="boutons">
         {#if planeteSelectionnee && niveau !== planeteSelectionnee}<button class="action" onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME</button>{/if}
         <button class="action clair" onclick={() => (choix = selection)}>Y ALLER</button>
       </div>
     {:else if mode === 'navigation' && choix && options}
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => { choix = null; selection = null }}>annuler</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
+      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
         {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
         {@const quand = t + voyage * 1000}
@@ -602,13 +686,7 @@
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
         {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
-      <p class="aide">Touchez un astre, un engin ou un point de la carte pour voir sa fiche, ou :</p>
-      <select class="liste" aria-label="Choisir une destination dans la liste" onchange={depuisLaListe}>
-        <option value="">Choisir dans la liste…</option>
-        {#each LISTE as g}
-          <optgroup label={g.titre}>{#each g.noms as n}<option value={n}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</option>{/each}</optgroup>
-        {/each}
-      </select>
+      <p class="aide">Touchez un astre, un engin ou un point de la carte pour voir sa fiche, ou ouvrez le CADRAN.</p>
     {:else}
       <div class="boutons">
         {#if estInstalle(etat, 'TEL')}
@@ -632,6 +710,37 @@
       </div>
     {/if}
   </div>
+  {#if cadranOuvert}
+    <!-- Cadran de navigation : feuille qui monte du bas, la liste des astres et leur distance. -->
+    <div class="cadran" role="dialog" aria-label="Cadran de navigation">
+      <div class="entete"><span>CADRAN DE NAVIGATION</span><button onclick={() => (cadranOuvert = false)}>Fermer</button></div>
+      <div class="liste-cadran">
+        <h3>Soleil et planètes</h3>
+        {#each ['Soleil', ...NOMS_PLANETES] as nom}
+          {@const lunes = estPlanete(nom) ? lunesDe(nom as NomPlanete) : []}
+          <div class="ligne-cadran" class:choisie={nomFocus === nom}>
+            <button class="astre" onclick={() => depuisLeCadran(nom)}><span>{nomAstre(nom).replace(/^./, (c) => c.toUpperCase())}</span><span class="dist">{distanceA(nom)}</span></button>
+            {#if lunes.length}
+              <button class="deplier" onclick={() => (deplies = deplies.includes(nom) ? deplies.filter((n) => n !== nom) : [...deplies, nom])}>{deplies.includes(nom) ? '▾' : '▸'} {lunes.length} lune{lunes.length > 1 ? 's' : ''}</button>
+            {/if}
+          </div>
+          {#if deplies.includes(nom)}
+            {#each lunes as l}
+              <div class="ligne-cadran retrait" class:choisie={nomFocus === l}>
+                <button class="astre" onclick={() => depuisLeCadran(l)}><span>{nomAstre(l).replace(/^./, (c) => c.toUpperCase())}</span><span class="dist">{distanceA(l)}</span></button>
+              </div>
+            {/each}
+          {/if}
+        {/each}
+        <h3>Engins</h3>
+        {#each ['ISS', ...NOMS_ENGINS] as nom}
+          <div class="ligne-cadran" class:choisie={nomFocus === nom}>
+            <button class="astre" onclick={() => depuisLeCadran(nom)}><span>{nom}</span><span class="dist">{distanceA(nom)}</span></button>
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
   <!-- PROVISOIRE (à retirer sur ordre d'Adrien) : saut d'essai vers n'importe quelle destination. -->
   <Saut />
   <Reinitialiser />
@@ -704,6 +813,109 @@
     font-weight: 700;
     font-size: 12px;
   }
+  .cadre {
+    position: relative;
+  }
+  .bouton-cadran {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--moutarde);
+    box-shadow: 3px 3px 0 var(--couleur-encre);
+    font-family: var(--police-chiffres);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .cadran {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: calc(48px + env(safe-area-inset-top));
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    background: #f4f1ea;
+    border: 2.5px solid var(--couleur-encre);
+    border-radius: 12px;
+    box-shadow: 4px 4px 0 var(--couleur-encre);
+    z-index: 30;
+  }
+  .cadran .entete {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px 4px 14px;
+    border-bottom: 2px solid var(--couleur-encre);
+    border-radius: 9px 9px 0 0;
+    background: var(--moutarde);
+    font-family: var(--police-titre);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  .cadran .entete button {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    background: none;
+    font-weight: 700;
+  }
+  .liste-cadran {
+    overflow-y: auto;
+    padding-bottom: 12px;
+  }
+  .liste-cadran h3 {
+    margin: 0;
+    padding: 12px 14px 4px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--couleur-texte-discret);
+  }
+  .ligne-cadran {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px dashed rgba(43, 33, 56, 0.25);
+  }
+  .ligne-cadran.retrait .astre {
+    padding-left: 34px;
+  }
+  .ligne-cadran.choisie {
+    background: rgba(224, 75, 55, 0.16);
+  }
+  .ligne-cadran .astre {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 0;
+    background: none;
+    font-size: 16px;
+    text-align: left;
+    color: var(--couleur-encre);
+  }
+  .ligne-cadran .dist {
+    font-family: var(--police-chiffres);
+    font-size: 13px;
+    color: var(--couleur-texte-discret);
+    white-space: nowrap;
+  }
+  .ligne-cadran .deplier {
+    min-height: 48px;
+    padding: 0 12px;
+    border: 0;
+    background: none;
+    font-size: 12px;
+    color: var(--couleur-encre);
+    white-space: nowrap;
+  }
   /* Noms sur la carte : liseré de la couleur du fond, pour rester lisibles sur une orbite ou un astre. */
   .plan .nom {
     font-family: var(--police-machine);
@@ -752,15 +964,6 @@
   .ambigus button.clair {
     background: var(--couleur-papier);
     color: var(--couleur-encre);
-  }
-  .liste {
-    min-height: 44px;
-    padding: 0 10px;
-    border: 2px solid var(--couleur-encre);
-    border-radius: 10px;
-    background: var(--couleur-papier);
-    font: inherit;
-    font-size: 16px;
   }
   .calcul {
     display: flex;
