@@ -5,6 +5,8 @@ Prototype jetable, à part de l'ancien jeu (rien n'est modifié dans `src/`). Se
 
 En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 
+**Bilan du prototype : [BILAN.md](BILAN.md)** (ce qu'on garde, ce qu'on jette, ce qui manque).
+
 - `npm run andromeda` : lance le prototype en local (accessible depuis le téléphone sur le même réseau).
 - `npm run test:andromeda` : tests (positions comparées à JPL Horizons, caméra).
 - `node prototypes/andromeda/outils/vsop87.mjs` : régénère les séries VSOP87B tronquées.
@@ -46,4 +48,4 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
    la vue 3D devient la VUE EXTÉRIEURE, optionnelle — validée.
 3. Navigation : pointillé vers la destination, vrai trajet (Lambert, `src/moteur/lambert.ts`) jusqu'au point de
    rendez-vous, durée tirée de la puissance des moteurs (budget de delta-v, réglable), départ, voyage, arrivée en
-   orbite ; accélération du temps pour les essais ← en cours
+   orbite ; accélération du temps pour les essais — terminée.
