@@ -20,8 +20,12 @@ UA = unité astronomique = 149 597 870,7 km.
   (outil `outils/satellites-jpl.mjs`, à relancer avant 2031) ; précision ≈ 1° vu de la planète.
   *Changement validé par Adrien le 13/10/2026 : le prototype n'avait que 9 satellites, en orbites circulaires
   de phase arbitraire.*
-- **Coordonnées** : le moteur calcule aussi la hauteur z au-dessus de l'écliptique (vue 3D) ; la carte et la
-  navigation n'utilisent que x et y, comme le prototype.
+- **Monde plat** (décision d'Adrien du 17/10/2026) : tout le jeu se passe sur la carte (x, y) ; la vue extérieure 3D
+  n'est que de la contemplation (vraies positions, en 3D). Soleil, planètes et engins lointains : leur vraie position
+  vue de dessus. Ce qui tourne autour d'une planète (Lune, satellites naturels, ISS, Hubble, Tiangong, Juno, Webb…) :
+  son orbite est **rabattue** dans le plan de la carte (rotation autour de la ligne des nœuds), à sa vraie distance
+  de la planète et à sa vraie vitesse (`positionPlate`). Vus de dessus sans cela, l'ISS serait 91 % du temps dans le
+  disque de la Terre, Hubble 69 %, Tiangong 100 %. Le visiteur et les autres fusées utilisent aussi ces positions.
 - **Départ** : nouvelle partie en orbite autour de la Terre, à 400 km d'altitude, près de l'ISS (voir ci-dessous).
 - **Cap** : angle en degrés, 0° vers +x (point vernal), sens trigonométrique.
 - **Virage** : la fusée tourne vers son point de visée à **4° par seconde**.
@@ -35,7 +39,8 @@ UA = unité astronomique = 149 597 870,7 km.
   *Demande d'Adrien du 14/10/2026.* *Décisions d'Adrien du 14/10/2026.*
 - **Contournement des astres** : la fusée ne traverse jamais un astre. En route, elle ne passe jamais à moins de
   **1,1 rayon** du centre du Soleil, d'une planète ou d'un satellite du système où elle se trouve (sa destination
-  exceptée : elle s'y met en orbite avant). Si la route directe coupe un astre, elle suit la tangente à cet astre,
+  exceptée : elle s'y met en orbite avant ; marge réduite au disque de sécurité du §13 quand la cible tourne tout
+  près de l'astre, comme l'ISS). Si la route directe coupe un astre, elle suit la tangente à cet astre,
   du côté le plus proche de la route, puis reprend la route directe dès qu'elle est libre. Au départ d'une orbite,
   elle part du bord de cette marge et s'oriente aussitôt (manœuvre de dégagement). Un long pas (rattrapage hors
   ligne) qui passe près d'un astre est découpé en petits pas. Le détour allonge un peu le voyage ; le temps
@@ -326,12 +331,13 @@ avec un contact à moins de 0,01 UA).*
 - Les lieux visités avant cette version (orbite actuelle, contrats remplis)
   sont rattrapés.
 
-## 13. Contournement en 3D (14/10/2026)
-- Un astre ne gêne que si la route droite en 3D (fusée → cible, avec les hauteurs) passe à moins de 1,02 rayon de son
-  centre (`MARGE_ASTRE_3D`). La fusée le contourne alors dans le plan (marge 1,1 rayon, réduite si la cible est
-  plus près), en rejoignant peu à peu la hauteur de sa cible, jusqu'à ce que la route se dégage.
-- Garde : la fusée ne descend jamais sous 1,02 rayon d'un astre ; elle passe au-dessus (ou au-dessous).
-- Testé : de la Lune vers l'ISS, Hubble ou Tiangong, à toute heure, jamais à travers la Terre.
+## 13. Règle d'or : rien ne traverse un astre (17/10/2026, remplace le contournement en 3D du 14/10)
+- Sur la carte, la fusée ne passe jamais dans le disque de sécurité d'un astre (sa destination exceptée) : 2 % de plus
+  que son rayon, ou son altitude de sécurité (400 km pour la Terre), abaissée à 5 km sous une destination plus basse
+  (Tiangong). Elle contourne par le côté (tangente, voir §1) ; une garde la ramène au bord si elle y entrait.
+- Plus de passage « au-dessus » d'un astre : la hauteur z ne sert qu'à la vue extérieure.
+- Testé : de la nouvelle partie vers Hubble à toute heure, de la Lune vers l'ISS, Hubble ou Tiangong, jamais à moins de
+  400 km du bord de la Terre sur la carte.
 
 ## 14. Classements (décision d'Adrien du 14/10/2026 ; barème proposé, à ajuster)
 - Trois classements aux **points de commissionnaire** : de la **semaine** (depuis lundi 00:00 UTC), du **mois**

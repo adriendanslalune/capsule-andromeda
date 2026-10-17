@@ -1,20 +1,23 @@
 <script lang="ts">
   // Volet de la carte : vraies positions, zoom au doigt, cadran de cap, destination, rencontre, ping, tracés.
   import { onMount } from 'svelte'
-  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
+  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, planeteCentrale, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES, type NomPlanete } from '../../donnees/planetes'
   import { distanceEcho, positionVisiteur, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
     annulerDestination,
+    avancerFusee,
     choisirDestination,
     choisirDestinationAvecFenetre,
     distance,
+    enAttenteDeFenetre,
     optionsDeDepart,
     planDeVol,
     positionAstre,
     positionDestination,
+    repereDuTrajet,
     seuilArrivee,
     tempsRestant,
     vitesseDuMoment,
@@ -29,7 +32,7 @@
   import Saut from '../provisoire/Saut.svelte' // PROVISOIRE
   import Reinitialiser from '../provisoire/Reinitialiser.svelte' // PROVISOIRE
   import { autresFusees } from '../reseau'
-  import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
+  import { NOMS_ENGINS } from '../../astro/engins'
 
   /** Couleurs de la carte, style Moebius (validé par Adrien le 17/10/2026) : fond blanc cassé, encre brun-violet,
    *  astres en pastel, ombre violette, hachures le long du terminateur. */
@@ -190,7 +193,7 @@
         l.push({ nom, p, r, couleur: couleurAstre(nom), etiquette: a * k > 26, soleil: versSoleil(p) })
       }
     }
-    for (const e of [{ nom: 'ISS', position: positionAstre('ISS', tl) }, ...positionsEngins(tl)]) {
+    for (const e of ['ISS', ...NOMS_ENGINS].map((nom) => ({ nom, position: positionAstre(nom, tl) }))) {
       if (libre(e.position, 4.5)) l.push({ nom: e.nom, p: e.position, r: 4.5, couleur: PLAN.fond, etiquette: true, engin: true })
     }
     return l
@@ -234,6 +237,31 @@
   })
 
   const plan = $derived(fusee.destination ? planDeVol(fusee, t, v) : null)
+  /**
+   * Chemin prévu jusqu'au point de rencontre, calculé par le moteur lui-même (une fois par seconde) : il contourne les
+   * astres comme le fera la fusée, au lieu d'une ligne droite qui les traverserait. Points relatifs au repère du
+   * trajet (la planète, ou le Soleil), pour suivre la planète à l'écran.
+   */
+  const routePrevue = $derived.by(() => {
+    const dest = fusee.destination
+    if (!dest || !plan || enAttenteDeFenetre(fusee) || v <= 0) return null
+    const repere = repereDuTrajet(fusee, dest, t)
+    const n = 60
+    const dt = Math.max(1, plan.duree / n)
+    let f = fusee
+    let tt = t
+    const points: Point2[] = []
+    for (let i = 0; i < n * 2; i++) {
+      tt += dt * 1000
+      const r = avancerFusee(f, tt, dt, v)
+      f = r.fusee
+      const o = repere ? positionAstre(repere, tt) : { x: 0, y: 0 }
+      const p = r.arrivee ? positionDestination(dest, tt) : f.position
+      points.push({ x: p.x - o.x, y: p.y - o.y })
+      if (r.arrivee || !f.destination) break
+    }
+    return { repere, points }
+  })
   const detecte = $derived(visiteurDetecte(etat, t))
   const visiteur = $derived(detecte !== null ? positionVisiteur(t) : null)
 
@@ -404,6 +432,17 @@
 
 
   const posFusee = $derived(ecran(fl.position))
+  /** Le segment [a, b] (à l'écran) coupe-t-il le disque d'un astre dessiné (hors de l'astre visé) ? */
+  function traverseUnAstre(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
+    return marques.some((m) => {
+      if (m.engin || m.nom === nomFocus || (fusee.destination?.type === 'astre' && m.nom === fusee.destination.astre)) return false
+      const c = ecran(m.p)
+      const dx = b.x - a.x, dy = b.y - a.y
+      const l2 = dx * dx + dy * dy
+      const k = l2 > 0 ? Math.max(0, Math.min(1, ((c.x - a.x) * dx + (c.y - a.y) * dy) / l2)) : 0
+      return Math.hypot(a.x + dx * k - c.x, a.y + dy * k - c.y) < m.r
+    })
+  }
   const graduations = Array.from({ length: 12 }, (_, i) => i * 30)
 
   /** Distance lisible : en km jusqu'à 0,1 UA, en UA au-delà. */
@@ -472,8 +511,12 @@
     cadranOuvert = false
     mode = 'navigation'
     choisir({ type: 'astre', astre: nom })
-    if (nom === 'ISS') ouvrirSysteme('Terre')
-    else if (nom !== 'Soleil' && !estPlanete(nom) && !NOMS_ENGINS.includes(nom as never)) ouvrirSysteme(planeteDe(nom))
+    const c = planeteCentrale(nom)
+    if (!c) return
+    ouvrirSysteme(c)
+    // Un engin en orbite basse (ISS, Hubble…) : on zoome assez pour le voir à côté de sa planète.
+    const d = distance(positionAstre(nom, t), positionAstre(c, t))
+    if (d * 3 < demi) demi = d * 3
   }
 </script>
 
@@ -581,13 +624,15 @@
 
     {#if fusee.destination}
       {@const cible = ecran(positionDestination(fusee.destination, tl))}
-      {@const point = plan ? ecran(plan.point) : cible}
-      {@const route = segmentVisible(posFusee, point)}
-      {@const visee = segmentVisible(posFusee, cible)}
+      {@const o = routePrevue?.repere ? positionAstre(routePrevue.repere, tl) : { x: 0, y: 0 }}
+      {@const chemin = routePrevue ? routePrevue.points.map((q) => ecran({ x: o.x + q.x, y: o.y + q.y })) : []}
+      {@const point = chemin.length ? chemin[chemin.length - 1] : plan ? ecran(plan.point) : cible}
+      {@const route = chemin.length ? `M ${posFusee.x} ${posFusee.y} ` + chemin.map((q) => `L ${q.x} ${q.y}`).join(' ') : segmentVisible(posFusee, point)}
+      {@const visee = traverseUnAstre(posFusee, cible) ? null : segmentVisible(posFusee, cible)}
       <!-- Deux traits : vers la destination là où elle est maintenant (blanc, fin), et vers le point de rencontre,
            là où la fusée la rejoindra (jaune). -->
       {#if visee}<path d={visee} fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" opacity=".85" />{/if}
-      {#if route}<path d={route} fill="none" stroke={PLAN.trait} stroke-width="4" stroke-linecap="round" /><path d={route} fill="none" stroke={PLAN.route} stroke-width="2.2" stroke-linecap="round" />{/if}
+      {#if route}<path d={route} fill="none" stroke={PLAN.trait} stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /><path d={route} fill="none" stroke={PLAN.route} stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
       <!-- Destination en cours, quand les repères désignent un autre astre : un cercle pointillé discret. -->
       {#if focus !== fusee.destination}<circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="3 3" />{/if}

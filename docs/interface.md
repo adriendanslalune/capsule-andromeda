@@ -230,3 +230,7 @@ rebranchés, à venir.
   planètes (dépliables : leurs lunes, les plus grosses d'abord) et les engins, chacun avec sa distance à la fusée ;
   toucher une ligne affiche la fiche (et cadre le système pour une lune ou l'ISS).
 - Cadran de cap autour de la fusée réduit (26 px de rayon au lieu de 40).
+- **Chemin prévu** (17/10/2026) : le trait vers le point de rencontre suit le chemin calculé par le moteur (une fois par
+  seconde), qui contourne les astres ; le pointillé « destination, maintenant » est masqué quand il couperait un astre.
+  Choisir dans le cadran un engin qui tourne autour d'une planète (ISS, Hubble…) cadre sa planète, assez près pour le
+  voir.

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { positionCorps } from '../src/astro/corps'
 import { UA_KM } from '../src/astro/temps'
 import {
   phaseDepart,
@@ -76,10 +75,11 @@ describe('départ', () => {
     expect(etat.fusee.suit).toBe('ISS')
     expect(systemeDeLaFusee(etat.fusee, T0)).toBe('Terre')
     expect(etat.fusee.destination).toBeNull()
-    const ici = (f: typeof etat.fusee) => ({ x: f.position.x + f.ecartOrbite!.x, y: f.position.y + f.ecartOrbite!.y, z: f.ecartOrbite!.z })
+    // Sur la carte (le monde du jeu est plat).
+    const ici = (f: typeof etat.fusee) => ({ x: f.position.x + f.ecartOrbite!.x, y: f.position.y + f.ecartOrbite!.y })
     const versIss = (f: typeof etat.fusee, t: number) => {
-      const p = ici(f), i = positionAstre('ISS', t), terre = positionCorps('Terre', t), iss = positionCorps('ISS', t)
-      return Math.hypot(p.x - i.x, p.y - i.y, p.z + terre.z - iss.z) * UA_KM
+      const p = ici(f), i = positionAstre('ISS', t)
+      return Math.hypot(p.x - i.x, p.y - i.y) * UA_KM
     }
     expect(versIss(etat.fusee, T0)).toBeCloseTo(1500, 0)
     // Dix minutes plus tard, sans être partie, elle est toujours au-dessus de l'ISS.
