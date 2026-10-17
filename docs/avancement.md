@@ -40,6 +40,10 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   livraison), liste triée du plus court au plus long ; VOIR montre les trajets sur la carte avant d'accepter (aperçu,
   avec ACCEPTER dans la fiche ; toucher la carte le ferme); mission en plusieurs étapes : l'étape finie, le trajet vers la
   suivante est préparé tout seul (reste DÉPART).
+- Ergonomie (demandes d'Adrien du 17/10/2026) — **fait, en attente de validation** : à l'ouverture, la carte est cadrée
+  sur la capsule (le système de l'astre où elle est) ; bouton « ◎ Capsule » en haut à droite pour y revenir ; ce qu'on
+  choisit (astre, engin, capsule) reste au centre de l'écran, même pendant le zoom ; glisser un doigt sur la carte
+  arrête ce suivi (on se promène), le bouton ou un nouveau choix le reprend.
 - 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
 - 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
   lues).

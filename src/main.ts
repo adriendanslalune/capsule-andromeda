@@ -17,11 +17,11 @@ import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, tit
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, projeterTrajet } from './carte/loupe'
+import { couperTrace, projeterCorps, projeterTrajet } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
-import { corps } from './moteur/corps'
+import { astreDominant, corps } from './moteur/corps'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import type { Contrat } from './moteur/contrats'
@@ -131,6 +131,8 @@ appliquerTheme()
 // --- Sélection (fiche) et destination proposée.
 /** Le joueur a appuyé sur Y ALLER pour l'astre sélectionné : on calcule le trajet et on propose le DÉPART. */
 let proposee = false
+/** Ce que la caméra suit (un astre, un engin ou la capsule), au centre de l'écran ; null si on se promène. */
+let suivi: string | null = null
 /**
  * Aperçu d'une mission proposée, avant de l'accepter (demande d'Adrien du 17/10/2026) : ses trajets dessinés sur la
  * carte, et la fiche avec ACCEPTER. Toucher la carte (ou choisir un astre) ferme l'aperçu.
@@ -141,14 +143,27 @@ let apercuAJour = 0
 function choisir(nom: string | null, cadrer = false): void {
   if (nom !== selection) proposee = false
   apercu = null
+  // Ce qu'on choisit reste au centre de l'écran, même pendant le zoom (demande d'Adrien du 17/10/2026).
+  if (nom) suivi = nom
   selection = nom
   // Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
   const c = nom ? corps(nom) : undefined
   if (cadrer && c?.parent) carte.cadrerSysteme(c.parent, horloge())
 }
 
-boutonRetour.addEventListener('click', () => carte.vueGenerale())
-carte.vueGenerale()
+boutonRetour.addEventListener('click', () => { suivi = null; carte.vueGenerale() })
+
+/** Cadre la carte sur la capsule : le système de l'astre où elle se trouve, la capsule au centre, et la suit. */
+function allerALaCapsule(): void {
+  const t = horloge()
+  const ou = astreDominant(mission.etat(t).position, t)
+  if (ou === 'Soleil') carte.vueGenerale()
+  else carte.cadrerSysteme(ou, t)
+  suivi = CAPSULE
+}
+// À l'ouverture du jeu : directement sur la capsule (demande d'Adrien du 17/10/2026) ; bouton « Capsule » en haut.
+allerALaCapsule()
+document.querySelector('#bouton-capsule')!.addEventListener('click', allerALaCapsule)
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
@@ -275,7 +290,12 @@ boutonDepart.addEventListener('click', () => {
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
 const gestesCarte = new Gestes(toilePlan, {
-  glisser: (dx, dy) => carte.glisser(dx, dy),
+  // Glisser un doigt : on se promène, la caméra ne suit plus rien. Le pincement, lui, zoome autour de ce qu'on suit.
+  glisser: (dx, dy, pince) => {
+    if (pince && suivi) return
+    if (!pince) suivi = null
+    carte.glisser(dx, dy)
+  },
   zoomer: (f, sx, sy) => carte.zoomer(f, sx, sy),
   toucher: (x, y) => {
     const nom = carte.toucher(x, y)
@@ -415,6 +435,9 @@ function image(maintenant: number): void {
     dernierDessinCarte = maintenant
     carteSale = false
     gestesCarte.avancer(dt)
+    // La caméra suit ce qu'on regarde (en route, la capsule est là où elle est dessinée sur son trajet).
+    if (suivi === CAPSULE) carte.centrerSur(capsuleDessinee ?? carte.positionCapsule(t))
+    else if (suivi && corps(suivi)) carte.centrerSur(projeterCorps(suivi, t))
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {

@@ -94,7 +94,7 @@ html, body {
   gap: 10px;
   pointer-events: none;
 }
-#titre { font-size: 12px; font-weight: bold; letter-spacing: 0.08em; }
+#titre { flex: 1; min-width: 0; font-size: 12px; font-weight: bold; letter-spacing: 0.08em; }
 #bouton-retour {
   pointer-events: auto;
   min-height: 44px;
@@ -108,6 +108,22 @@ html, body {
   box-shadow: 3px 3px 0 var(--ombre);
 }
 #bouton-retour[hidden] { display: none; }
+/* Bouton « Capsule » : replace la carte sur la capsule et la suit. */
+#bouton-capsule {
+  pointer-events: auto;
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--encre);
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--ombre);
+  white-space: nowrap;
+}
 
 /* Barre des cinq onglets, en bas, à portée du pouce (étape 2 : cadre du cockpit). */
 #onglets {

@@ -175,6 +175,16 @@ export class Carte2D {
     return s === 'Soleil' ? 'SYSTÈME SOLAIRE' : `SYSTÈME ${DE[s] ?? 'DE '}${s.toUpperCase()}`
   }
 
+  /** Place du centre de la carte (km de carte) : la caméra suit ce qu'on regarde. */
+  centrerSur(p: Point2): void {
+    this.centre = { x: p.x, y: p.y }
+  }
+
+  /** Place de la capsule sur la carte (km de carte), hors trajet (en route, elle est sur le trajet dessiné). */
+  positionCapsule(t: number): Point2 {
+    return projeter({ p: etatCapsule(t).position, t, suivant: { p: etatCapsule(t + 60_000).position, t: t + 60_000 } })
+  }
+
   /** Vue générale : le Soleil au centre, les planètes jusqu'à Mars. */
   vueGenerale(): void {
     this.centre = { x: 0, y: 0 }

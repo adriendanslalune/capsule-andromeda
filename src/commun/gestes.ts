@@ -3,7 +3,8 @@
 // La molette de la souris zoome aussi (pratique pour les essais sur ordinateur).
 
 export interface ActionsCarte {
-  glisser(dx: number, dy: number): void
+  /** pince : vrai quand le déplacement vient d'un pincement (le milieu des deux doigts bouge). */
+  glisser(dx: number, dy: number, pince?: boolean): void
   /** facteur > 1 : on s'éloigne ; (sx, sy) : point de l'écran qui reste fixe. */
   zoomer(facteur: number, sx: number, sy: number): void
   /** Toucher bref, sans glisser (si fourni : il remplace le zoom du double toucher). */
@@ -99,10 +100,11 @@ export class Gestes {
       const milieuAvant = { x: (avant.x + autre.x) / 2, y: (avant.y + autre.y) / 2 }
       const milieu = { x: (p.x + autre.x) / 2, y: (p.y + autre.y) / 2 }
       const facteur = Math.hypot(avant.x - autre.x, avant.y - autre.y) / Math.max(1, Math.hypot(p.x - autre.x, p.y - autre.y))
-      this.actions.glisser(milieu.x - milieuAvant.x, milieu.y - milieuAvant.y)
+      this.actions.glisser(milieu.x - milieuAvant.x, milieu.y - milieuAvant.y, true)
       this.actions.zoomer(facteur, milieu.x, milieu.y)
       this.foyer = milieu
-      this.lisser((milieu.x - milieuAvant.x) / dt, (milieu.y - milieuAvant.y) / dt, Math.log(facteur) / dt)
+      // Un pincement ne garde que l'élan du zoom.
+      this.lisser(0, 0, Math.log(facteur) / dt)
     }
     this.pointeurs.set(e.pointerId, p)
   }
