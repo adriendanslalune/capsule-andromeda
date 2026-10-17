@@ -6,7 +6,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 |---|---|
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
-| 3. Missions, crédits, moteur (le tutoriel lui-même plus tard, décision d'Adrien du 17/10/2026) | **en cours** : tout est fait, dernier pas (3.3) en attente de validation |
+| 3. Missions, crédits, moteur | **fait**, validé le 18/10/2026 (détail ci-dessous) |
 | 4. Pannes et manuel | à faire |
 | 5. Nettoyeurs | à faire |
 | 6. Combat | à faire |
@@ -14,11 +14,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 8. Maisons | à faire |
 | 9. Première zone à libérer : la Lune | à faire |
 | 10. Serveur, comptes, messages, échanges | à faire |
-| 11. Version installable (PWA), puis boutique | à faire |
+| 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
+| 12. Version installable (PWA), puis boutique | à faire |
 
 ---
 
-# Étape 3 : missions, crédits, moteur (sans le tutoriel)
+# Étape 3 : missions, crédits, moteur (sans le tutoriel) — terminée
 
 Décision d'Adrien du 17/10/2026 : d'abord les mécaniques (missions, crédits, moteur), le tutoriel (mise en scène) à la
 fin. Règles validées : on accepte une mission, on va sur place, on appuie sur un bouton, l'action dure 2 minutes ; une
@@ -49,7 +50,7 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   choix. Le bouton « Capsule » choisit la capsule Double toucher : zoom avant (×3), centré sur ce qui est choisi, sinon vers le
   point touché. Les déplacements de la caméra sont fluides (vol : on glisse
   puis on zoome, ou on recule puis on glisse ; de loin, la caméra prend du recul en chemin).
-- 3.3 Acheter un meilleur moteur — **fait, en attente de validation** : volet Capsule (moteur actuel, moteur suivant
+- 3.3 Acheter un meilleur moteur — **fait, validé** : volet Capsule (moteur actuel, moteur suivant
   avec sa vitesse et son prix, ACHETER après confirmation, ce qu'il manque sinon ; modules annoncés pour l'étape 4).
   Barème (lissé par Adrien après essai, au départ 500 / 1 500 / 4 000) : niveau 2 = 60 km/s pour 200, niveau 3 = 120 km/s pour 600, niveau 4 = 250 km/s pour 1 500
   (`src/donnees/capsule.ts`, `Jeu.acheterMoteur`, testés). Les trajets prévus et les temps des missions se

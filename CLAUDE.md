@@ -51,7 +51,7 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 
 1. Carte et navigation — FAIT.
 2. Cadre du cockpit et socle de jeu : bandeau d'alertes, barre d'onglets et volets (Navigation et Capsule fonctionnels, les autres grisés) ; état de la capsule (crédits, niveau du moteur, position) ; sauvegarde locale sur le téléphone.
-3. Tutoriel autour de la Terre : volet Missions ; missions simples (nettoyer des débris, livrer une cargaison, dépanner un satellite) qui rapportent des crédits ; amélioration du moteur ; fin du tutoriel quand le moteur permet d'aller à la Lune.
+3. Missions, crédits, moteur — FAIT : volet Missions ; missions simples (nettoyer des débris, livrer une cargaison, dépanner un satellite) qui rapportent des crédits ; amélioration du moteur. Le tutoriel est déplacé à la fin (décision d'Adrien du 18/10/2026 : d'abord toutes les mécaniques).
 4. Pannes et manuel : volet Manuel, modules à réparer, missiles aliens avec décompte, ralentissement de 50 % jusqu'à réparation.
 5. Nettoyeurs : épaves sur la carte, mini-jeu de tri des matériaux.
 6. Combat : volet Armement, vue tactique, énergie, tir sur les modules, interception (d'abord un prototype à tester).
@@ -59,4 +59,5 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités.
 9. Première zone à libérer : la Lune.
 10. Serveur, comptes, volet Messages, échanges entre joueurs.
-11. Version installable (PWA), puis boutique.
+11. Tutoriel autour de la Terre : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune (une fois toutes les mécaniques en place).
+12. Version installable (PWA), puis boutique.
