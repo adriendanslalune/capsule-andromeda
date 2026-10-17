@@ -1,6 +1,8 @@
 // Planètes du système solaire : éléments orbitaux képlériens J2000 et leurs dérivées séculaires.
 // Source : E. M. Standish (JPL/NASA), « Keplerian Elements for Approximate Positions of the Major Planets »,
 // table 1 (valable de 1800 à 2050). Valeurs identiques à celles du prototype v0.1 (tableau `EL`).
+// Les positions viennent désormais de VSOP87 (src/astro/planetes.ts) ; ces éléments ne servent plus qu'aux tailles
+// d'orbite (demi-grand axe) et aux périodes.
 
 export const NOMS_PLANETES = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune'] as const
 

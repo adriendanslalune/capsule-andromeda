@@ -7,9 +7,11 @@ UA = unité astronomique = 149 597 870,7 km.
 ## 1. Temps, positions, navigation
 
 - **Temps réel.** Toutes les positions sont calculées à l'heure réelle (UTC).
-- **Planètes** : éléments orbitaux J2000 et leurs dérivées séculaires (Standish, NASA/JPL), résolution de Kepler
-  (6 itérations de Newton). Coordonnées écliptiques héliocentriques, en 2D (x, y en UA). Les 8 jeux d'éléments sont
-  dans le prototype (tableau `EL`).
+- **Planètes** : théorie VSOP87B (Bretagnon et Francou), séries tronquées (`src/donnees/vsop87.ts`, produites par
+  `outils/vsop87.mjs`), en temps terrestre TT (UTC + 69,184 s). Écart avec le JPL de 2000 à 2050 : moins de 500 km
+  de Mercure à Mars, quelques milliers de km pour Jupiter et Saturne. Coordonnées écliptiques héliocentriques
+  (x, y en UA). *Changement validé par Adrien le 17/10/2026* : remplace les éléments de Standish du prototype
+  (jusqu'à 3,8 millions de km d'erreur pour Saturne), qui ne servent plus qu'aux tailles d'orbite et aux périodes.
 - **Lune** : position réelle (théorie lunaire de Meeus, termes principaux ; précision ≈ 0,01°, distance variant
   de 356 000 à 407 000 km). *Changement validé par Adrien le 13/10/2026 : le prototype utilisait un cercle de
   0,00257 UA, de période 27,321661 j et de phase arbitraire 2,1 rad à J2000.*
