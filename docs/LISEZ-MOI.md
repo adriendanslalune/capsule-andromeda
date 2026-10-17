@@ -69,3 +69,7 @@ En ligne : https://adriendanslalune.github.io/capsule-andromeda/
   astre avec ses détails réels (Soleil et ses flammes, mers de la Lune, continents de la Terre, Valles Marineris,
   Grande Tache rouge, anneaux et division de Cassini…), traits fins, aplats pastel, face de nuit en croissant violet
   (`src/carte/illustrations.ts`). Sur la carte : l'illustration dès 11 px de rayon à l'écran, le simple disque en dessous.
+- **Tailles au dézoom** (validé par Adrien) : le Soleil et les planètes intérieures rétrécissent ensemble dès qu'on
+  dézoome au-delà de la vue générale, jusqu'au point ; les planètes extérieures (Jupiter à Pluton) gardent leur taille
+  tant que New Horizons n'est pas entré dans l'écran. Dézoom maximal : 200 UA de demi-largeur (les Voyager).
+- **Carte validée** par Adrien le 17/10/2026 : elle sera un des éléments centraux du jeu. Suite : concevoir le jeu.
