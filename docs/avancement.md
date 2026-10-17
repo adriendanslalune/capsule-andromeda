@@ -51,7 +51,7 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   puis on zoome, ou on recule puis on glisse ; de loin, la caméra prend du recul en chemin).
 - 3.3 Acheter un meilleur moteur — **fait, en attente de validation** : volet Capsule (moteur actuel, moteur suivant
   avec sa vitesse et son prix, ACHETER après confirmation, ce qu'il manque sinon ; modules annoncés pour l'étape 4).
-  Barème : niveau 2 = 60 km/s pour 500, niveau 3 = 120 km/s pour 1 500, niveau 4 = 250 km/s pour 4 000
+  Barème : niveau 2 = 60 km/s pour 200 (500 au départ, baissé par Adrien après essai), niveau 3 = 120 km/s pour 1 500, niveau 4 = 250 km/s pour 4 000
   (`src/donnees/capsule.ts`, `Jeu.acheterMoteur`, testés). Les trajets prévus et les temps des missions se
   recalculent à la nouvelle vitesse ; un trajet en cours garde sa vitesse.
 - 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
