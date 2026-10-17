@@ -4,17 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f1ea" />
-    <title>Panneau de réparation — maquette</title>
+    <title>Panneau de réparation — maquette 2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
     <style>
-      /* Maquette pour validation par Adrien (étape 4.2 et 4.3) : le panneau de réparation (volet Capsule › Réparation)
-         et trois pages du manuel, façon « Keep Talking and Nobody Explodes », vintage Jules Verne. Rien n'est branché
-         sur le jeu : quelques commandes bougent pour donner l'idée. */
+      /* Maquette 2 pour validation par Adrien (étapes 4.2 et 4.3), d'après ses remarques du 18/10/2026 :
+         - le panneau en style Moebius, foisonnant, des détails partout, « fouillis mais beau à voir » ;
+         - le manuel façon manuel de maintenance de la NASA des années 60, sur vieux papier crème ;
+         - des réparations complexes et imprévisibles : il faut toujours consulter le manuel.
+         Rien n'est branché sur le jeu : le panneau est dessiné (au hasard, reproductible), quelques commandes bougent. */
       :root {
-        --fond: #f4f1ea; --encre: #2b2138; --creme: #faf2dc; --moutarde: #f2b53a; --cerise: #e04b37; --laiton: #d9a43a;
-        --tole: #c9c2a8; --tole-sombre: #a69f86; --vert: #8fcf98; --ciel: #8fd0dc; --papier: #efe0bd; --sepia: #4a3424;
+        --fond: #f4f1ea; --encre: #2b2138; --creme: #faf2dc; --moutarde: #f2b53a; --cerise: #e04b37;
+        --papier: #f1e7cc; --papier-ombre: #d9c9a0; --texte: #2a2622;
       }
       * { box-sizing: border-box; }
       body { margin: 0; background: var(--fond); color: var(--encre); font-family: ui-monospace, Menlo, monospace; }
@@ -23,328 +25,449 @@
       .intro { font-size: 13px; line-height: 1.45; margin: 0 0 14px; }
       .intro b { color: #b4442f; }
       h2.partie { font-size: 13px; letter-spacing: 0.1em; margin: 26px 0 8px; padding-top: 10px; border-top: 2px solid var(--encre); }
-
-      /* ---------- Le panneau : une grande tôle rivetée, des modules ---------- */
-      .panneau {
-        position: relative;
-        padding: 12px 10px 14px;
-        background:
-          repeating-linear-gradient(90deg, transparent 0 46px, rgba(43, 33, 56, 0.06) 46px 47px),
-          linear-gradient(var(--tole), #bfb79b);
-        border: 3px solid var(--encre);
-        border-radius: 14px;
-        box-shadow: 5px 5px 0 var(--encre);
-      }
-      .rivets::before, .rivets::after { content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%;
-        background: var(--laiton); border: 1.5px solid var(--encre); top: 8px; }
-      .rivets::before { left: 8px; } .rivets::after { right: 8px; }
-      .plaque {
-        margin: 0 auto 12px; width: fit-content; padding: 5px 14px; text-align: center;
-        font-family: 'IM Fell English SC', Georgia, serif; font-size: 15px; letter-spacing: 0.06em;
-        background: linear-gradient(#f2c66a, var(--laiton)); border: 2px solid var(--encre); border-radius: 4px;
-        box-shadow: inset 0 0 0 2px #f6dc9c;
-      }
-      .plaque small { display: block; font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.12em; }
-      .module {
-        position: relative; margin-top: 12px; padding: 22px 10px 10px;
-        background: #d8d1b6; border: 2px solid var(--encre); border-radius: 10px;
-        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 3px 3px 0 rgba(43, 33, 56, 0.35);
-      }
-      .module .etiquette {
-        position: absolute; top: -11px; left: 12px; padding: 1px 10px;
-        font-family: 'IM Fell English SC', Georgia, serif; font-size: 14px;
-        background: var(--creme); border: 2px solid var(--encre); border-radius: 3px;
-      }
-      .voyant { position: absolute; top: -9px; right: 12px; width: 18px; height: 18px; border-radius: 50%;
-        border: 2px solid var(--encre); background: var(--vert); box-shadow: inset -2px -2px 0 rgba(0,0,0,0.15); }
-      .voyant.panne { background: var(--cerise); animation: clignoter 0.9s steps(2) infinite; }
-      @keyframes clignoter { 50% { background: #7a2a20; } }
-      .rangee { display: flex; justify-content: space-around; align-items: center; gap: 8px; flex-wrap: wrap; }
-      .legende { font-size: 10px; text-align: center; letter-spacing: 0.08em; margin-top: 2px; }
-      svg { overflow: visible; }
-
-      /* Leviers du moteur */
-      .levier { width: 46px; height: 92px; cursor: pointer; }
-      .levier .manche { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); transform-origin: 23px 70px; transform-box: view-box; }
-      .levier.tire .manche { transform: rotate(-38deg); }
-      /* Câbles de l'énergie */
-      .fils { width: 100%; height: auto; display: block; }
-      .fil { cursor: pointer; }
-      .fil .coupe { display: none; }
-      .fil.coupe .entier { display: none; }
-      .fil.coupe .coupe { display: inline; }
-      /* Radio */
-      .radio { display: grid; grid-template-columns: 1fr 1.1fr; gap: 10px; align-items: center; }
-      .grille-hp { height: 76px; border: 2px solid var(--encre); border-radius: 8px;
-        background: repeating-linear-gradient(0deg, #6b5d4a 0 3px, #d8d1b6 3px 7px); }
-      .lampe-morse { width: 26px; height: 26px; margin: 8px auto 0; border-radius: 50%; border: 2px solid var(--encre);
-        background: #8a7b52; transition: background 0.05s; }
-      .lampe-morse.allumee { background: #fff3a8; box-shadow: 0 0 12px #f2b53a; }
-      .ecran { padding: 6px 4px; text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 0.05em;
-        color: #c8f0a0; background: #1e2a20; border: 2px solid var(--encre); border-radius: 6px; box-shadow: inset 0 0 8px #000; }
-      .molette { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-      .bouton {
-        min-width: 44px; min-height: 44px; padding: 0 10px; font: inherit; font-size: 13px; font-weight: bold;
-        color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px;
-        box-shadow: 2px 2px 0 var(--encre); cursor: pointer;
-      }
-      .bouton:active { transform: translate(2px, 2px); box-shadow: none; }
-      .bouton.rouge { color: #fff; background: #d9694f; }
-      /* Navigation : écran rond vert */
-      .glyphes { display: grid; grid-template-columns: repeat(2, 48px); gap: 8px; }
-      .glyphes .bouton { font-family: 'IM Fell English', Georgia, serif; font-size: 22px; padding: 0; }
-
-      /* ---------- Le manuel : papier jauni, gravures, Jules Verne ---------- */
-      .manuel {
-        margin-top: 10px; padding: 20px 18px 22px;
-        font-family: 'IM Fell English', Georgia, serif; color: var(--sepia); font-size: 16px; line-height: 1.45;
-        background:
-          radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.5), transparent 60%),
-          radial-gradient(ellipse at 90% 95%, rgba(120, 80, 40, 0.18), transparent 55%),
-          var(--papier);
-        border: 1.5px solid var(--sepia); border-radius: 3px;
-        box-shadow: 4px 5px 0 rgba(74, 52, 36, 0.35), inset 0 0 0 6px var(--papier), inset 0 0 0 7px rgba(74, 52, 36, 0.6);
-      }
-      .manuel .entete-manuel { text-align: center; font-family: 'IM Fell English SC', Georgia, serif; font-size: 13px; letter-spacing: 0.08em; opacity: 0.8; }
-      .manuel h3 { text-align: center; font-family: 'IM Fell English SC', Georgia, serif; font-size: 21px; font-weight: normal; margin: 6px 0 2px; }
-      .manuel .chapitre { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 10px; }
-      .manuel .filet { text-align: center; letter-spacing: 0.4em; opacity: 0.7; margin: 6px 0 10px; }
-      .manuel p { margin: 0 0 10px; text-align: justify; hyphens: auto; }
-      .manuel ol { margin: 0 0 10px; padding-left: 22px; }
-      .manuel li { margin-bottom: 5px; }
-      .manuel table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 6px 0 10px; }
-      .manuel th, .manuel td { border: 1px solid rgba(74, 52, 36, 0.6); padding: 4px 6px; text-align: center; }
-      .manuel th { font-family: 'IM Fell English SC', Georgia, serif; font-weight: normal; background: rgba(74, 52, 36, 0.08); }
-      .manuel .gravure { display: block; width: 150px; height: auto; margin: 4px auto 8px; }
-      .manuel .nota { font-style: italic; font-size: 14px; border-top: 1px solid rgba(74, 52, 36, 0.5); padding-top: 6px; }
-      .explication { font-size: 12px; line-height: 1.45; margin: 8px 2px 0; padding: 8px 10px; background: var(--creme);
+      .explication { font-size: 12px; line-height: 1.5; margin: 10px 2px 0; padding: 8px 10px; background: var(--creme);
         border: 1.5px dashed var(--encre); border-radius: 8px; }
+      .explication b { color: #b4442f; }
+
+      /* ---------- Le panneau : dessiné en SVG, style Moebius ---------- */
+      .cadre-panneau { border: 3px solid var(--encre); border-radius: 14px; box-shadow: 5px 5px 0 var(--encre); overflow: hidden; background: #efe2c4; }
+      #panneau { display: block; width: 100%; height: auto; touch-action: manipulation; }
+      #panneau text { font-family: ui-monospace, Menlo, monospace; }
+      .commande { cursor: pointer; }
+      .levier-manche { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); transform-box: fill-box; transform-origin: 50% 100%; }
+      .bascule.on .levier-manche { transform: rotate(-28deg); }
+      .fil-coupe .fil-entier { display: none; }
+      .fil .fil-casse { display: none; }
+      .fil-coupe .fil-casse { display: inline; }
+      .clignote { animation: clignoter 0.9s steps(2) infinite; }
+      @keyframes clignoter { 50% { opacity: 0.25; } }
+
+      /* ---------- Le manuel : maintenance NASA années 60, papier crème ---------- */
+      .feuille {
+        position: relative; margin-top: 12px; padding: 18px 16px 14px;
+        font-family: 'Courier Prime', 'Courier New', monospace; color: var(--texte); font-size: 13.5px; line-height: 1.4;
+        background:
+          radial-gradient(circle at 12% 18%, rgba(160, 120, 60, 0.13) 0 34px, transparent 35px),
+          radial-gradient(ellipse at 85% 92%, rgba(140, 100, 50, 0.18), transparent 50%),
+          radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.4), transparent 60%),
+          var(--papier);
+        border: 1px solid #b9a77a;
+        box-shadow: 3px 4px 0 rgba(74, 60, 30, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+      }
+      .feuille::after { /* trous de classeur */
+        content: ''; position: absolute; left: 6px; top: 60px; bottom: 60px; width: 10px;
+        background: radial-gradient(circle, #f4f1ea 0 4px, rgba(0,0,0,0.25) 4.5px 5px, transparent 5.5px) 0 0 / 10px 33.3% repeat-y;
+        opacity: 0.9;
+      }
+      .entete-doc { display: grid; grid-template-columns: 1fr auto; border: 1.5px solid var(--texte); font-size: 10.5px; margin: 0 0 12px 10px; }
+      .entete-doc div { padding: 3px 6px; border-right: 1px solid var(--texte); border-bottom: 1px solid var(--texte); }
+      .entete-doc div:nth-child(2n) { border-right: none; text-align: right; }
+      .entete-doc div:nth-last-child(-n+2) { border-bottom: none; }
+      .feuille h3 { margin: 0 0 8px 10px; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; }
+      .feuille h4 { margin: 12px 0 6px 10px; font-size: 13.5px; }
+      .feuille p, .feuille ol, .feuille .bloc { margin: 0 0 8px 10px; }
+      .feuille ol { padding-left: 0; list-style: none; counter-reset: etape; }
+      .feuille ol li { counter-increment: etape; display: grid; grid-template-columns: 52px 1fr; gap: 4px; margin-bottom: 6px; }
+      .feuille ol li::before { content: '☐ 4.3.' counter(etape); font-weight: bold; }
+      .attention { margin: 8px 0 10px 10px; border: 2px solid var(--texte); font-size: 12.5px; }
+      .attention .bandeau-att { padding: 2px 6px; font-weight: bold; letter-spacing: 0.2em; text-align: center; color: var(--papier);
+        background: repeating-linear-gradient(45deg, var(--texte) 0 8px, #6a5a3a 8px 16px); }
+      .attention .contenu-att { padding: 5px 7px; }
+      .feuille table { width: calc(100% - 10px); margin: 4px 0 8px 10px; border-collapse: collapse; font-size: 11.5px; }
+      .feuille th, .feuille td { border: 1px solid var(--texte); padding: 2px 4px; text-align: center; }
+      .feuille th { background: rgba(42, 38, 34, 0.08); font-weight: bold; }
+      .feuille caption { caption-side: top; text-align: left; font-weight: bold; font-size: 11.5px; padding-bottom: 2px; }
+      .feuille .figure { display: block; width: calc(100% - 10px); margin: 4px 0 2px 10px; }
+      .feuille .legende-fig { margin: 0 0 8px 10px; font-size: 11px; text-align: center; font-weight: bold; }
+      .pied-doc { display: flex; justify-content: space-between; margin: 10px 0 0 10px; padding-top: 4px; border-top: 1.5px solid var(--texte); font-size: 10.5px; }
+      .tampon { position: absolute; right: 14px; top: 96px; transform: rotate(-9deg); padding: 3px 8px; font-weight: bold; font-size: 12px;
+        color: rgba(180, 50, 40, 0.75); border: 2.5px solid rgba(180, 50, 40, 0.75); border-radius: 4px; letter-spacing: 0.1em; }
+      .rature { text-decoration: line-through; opacity: 0.6; }
+      .manuscrit { font-family: 'Segoe Print', 'Bradley Hand', cursive; color: #2c4a8a; font-size: 13px; }
     </style>
   </head>
   <body>
     <div class="page">
-      <h1>RÉPARATION — MAQUETTE</h1>
-      <p class="intro">Proposition pour les pas 4.2 et 4.3, à valider avant de coder. En haut, le <b>panneau de réparation</b>
-        (volet Capsule › onglet Réparation) : un grand panneau riveté, un module par fonction de la capsule, chacun avec son
-        voyant. En bas, trois pages du <b>Manuel</b> (onglet Manuel). Le principe, comme dans « Keep Talking » : le panneau
-        montre des indices (couleurs, symboles, sons, numéro de série), le manuel dit quoi faire selon ces indices. Une erreur
-        fait une étincelle et bloque le module 30 secondes, sans rien casser de plus. Quelques commandes bougent ici pour donner
-        l'idée (leviers, câbles, molette, lampe).</p>
+      <h1>RÉPARATION — MAQUETTE 2</h1>
+      <p class="intro">D'après tes remarques : le <b>panneau</b> est maintenant dessiné en style Moebius, foisonnant, avec des détails
+        partout ; le <b>manuel</b> devient un manuel de maintenance façon NASA des années 60, sur vieux papier crème ; et les
+        <b>réparations</b> sont conçues pour qu'on ait <b>toujours</b> besoin du manuel (explications en bas). Le module en panne
+        de l'exemple est l'<b>Énergie</b> : son voyant clignote. Touche les câbles et l'interrupteur ISOLER, ils bougent.</p>
 
       <h2 class="partie">1. LE PANNEAU DE RÉPARATION</h2>
-      <div class="panneau rivets">
-        <div class="plaque">Capsule Andromeda<small>N° DE SÉRIE AN-7Q3 · CONSTR. 2026</small></div>
+      <div class="cadre-panneau"><svg id="panneau" viewBox="0 0 390 1180" aria-label="Panneau de réparation"></svg></div>
+      <p class="explication">Tout le panneau est dessiné par le jeu, avec une part de hasard : tuyaux, faisceaux de câbles, cadrans,
+        petits écrans, étiquettes, rivets et hachures changent d'une capsule à l'autre. Au milieu de ce fouillis se trouvent les
+        cinq modules (cadres numérotés). Seuls quelques éléments servent à la réparation ; tout le reste est du décor… mais on ne
+        sait pas toujours lequel est lequel sans le manuel.</p>
 
-        <!-- MOTEUR : deux jauges, une plaque à symbole, trois leviers -->
-        <div class="module">
-          <span class="etiquette">Moteur</span><span class="voyant panne" title="en panne"></span>
-          <div class="rangee">
-            <div>
-              <svg width="78" height="70" viewBox="0 0 78 70">
-                <circle cx="39" cy="40" r="30" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
-                <path d="M15 52 A27 27 0 0 1 24 18" stroke="#8fcf98" stroke-width="6" fill="none" />
-                <path d="M24 18 A27 27 0 0 1 54 18" stroke="#f2b53a" stroke-width="6" fill="none" />
-                <path d="M54 18 A27 27 0 0 1 63 52" stroke="#e04b37" stroke-width="6" fill="none" />
-                <path d="M39 40 L62 31" stroke="#2b2138" stroke-width="3" stroke-linecap="round" />
-                <circle cx="39" cy="40" r="4" fill="#2b2138" />
-              </svg>
-              <div class="legende">PRESSION</div>
-            </div>
-            <div>
-              <svg width="54" height="70" viewBox="0 0 54 70">
-                <rect x="6" y="6" width="42" height="56" rx="4" fill="#f2c66a" stroke="#2b2138" stroke-width="2.5" />
-                <text x="27" y="46" text-anchor="middle" font-family="IM Fell English, Georgia, serif" font-size="34" fill="#2b2138">♃</text>
-              </svg>
-              <div class="legende">SYMBOLE</div>
-            </div>
-            <div>
-              <svg width="34" height="70" viewBox="0 0 34 70">
-                <rect x="10" y="4" width="14" height="58" rx="7" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
-                <rect x="13" y="30" width="8" height="29" rx="4" fill="#e04b37" />
-              </svg>
-              <div class="legende">TEMP.</div>
-            </div>
-          </div>
-          <div class="rangee" style="margin-top: 6px">
-            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
-              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
-              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#e04b37" stroke="#2b2138" stroke-width="2" /></g>
-            </svg><div class="legende">I</div></div>
-            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
-              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
-              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#8fd0dc" stroke="#2b2138" stroke-width="2" /></g>
-            </svg><div class="legende">II</div></div>
-            <div class="levier-bloc"><svg class="levier" viewBox="0 0 46 92" data-levier>
-              <rect x="6" y="66" width="34" height="16" rx="3" fill="#a69f86" stroke="#2b2138" stroke-width="2" />
-              <g class="manche"><rect x="19" y="18" width="8" height="54" rx="3" fill="#2b2138" /><circle cx="23" cy="16" r="10" fill="#f2b53a" stroke="#2b2138" stroke-width="2" /></g>
-            </svg><div class="legende">III</div></div>
-          </div>
+      <h2 class="partie">2. LE MANUEL (EXEMPLE : SECTION ÉNERGIE)</h2>
+
+      <div class="feuille">
+        <div class="entete-doc">
+          <div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. CA-MM-04</div>
+          <div>SECTION 4 — SOUS-SYSTÈME ÉNERGIE</div><div>RÉV. C · 03/2026</div>
         </div>
-
-        <!-- ÉNERGIE : la boîte à fusibles, cinq câbles -->
-        <div class="module">
-          <span class="etiquette">Énergie</span><span class="voyant panne" title="en panne"></span>
-          <svg class="fils" viewBox="0 0 330 150">
-            <rect x="4" y="4" width="322" height="142" rx="8" fill="#3b3346" stroke="#2b2138" stroke-width="2" />
-            <g fill="#d9a43a" stroke="#2b2138" stroke-width="1.5">
-              <circle cx="30" cy="25" r="7" /><circle cx="30" cy="50" r="7" /><circle cx="30" cy="75" r="7" /><circle cx="30" cy="100" r="7" /><circle cx="30" cy="125" r="7" />
-              <circle cx="300" cy="25" r="7" /><circle cx="300" cy="50" r="7" /><circle cx="300" cy="75" r="7" /><circle cx="300" cy="100" r="7" /><circle cx="300" cy="125" r="7" />
-            </g>
-            <g class="fil" data-fil><path class="entier" d="M30 25 C120 25 200 60 300 50" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" />
-              <path class="coupe" d="M30 25 C90 25 130 35 150 40 M175 46 C220 56 260 52 300 50" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" /></g>
-            <g class="fil" data-fil><path class="entier" d="M30 50 C130 50 190 25 300 25" stroke="#3f63c4" stroke-width="7" fill="none" stroke-linecap="round" />
-              <path class="coupe" d="M30 50 C90 50 125 42 145 36 M170 31 C210 26 250 25 300 25" stroke="#3f63c4" stroke-width="7" fill="none" stroke-linecap="round" /></g>
-            <g class="fil" data-fil><path class="entier" d="M30 75 C140 75 180 125 300 125" stroke="#f2b53a" stroke-width="7" fill="none" stroke-linecap="round" />
-              <path class="coupe" d="M30 75 C90 75 125 90 145 100 M170 112 C210 124 250 125 300 125" stroke="#f2b53a" stroke-width="7" fill="none" stroke-linecap="round" /></g>
-            <g class="fil" data-fil><path class="entier" d="M30 100 C140 100 180 75 300 75" stroke="#faf2dc" stroke-width="7" fill="none" stroke-linecap="round" />
-              <path class="coupe" d="M30 100 C90 100 125 92 145 88 M170 82 C210 77 250 75 300 75" stroke="#faf2dc" stroke-width="7" fill="none" stroke-linecap="round" /></g>
-            <g class="fil" data-fil><path class="entier" d="M30 125 C150 125 170 100 300 100" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" />
-              <path class="coupe" d="M30 125 C90 125 125 118 145 113 M170 107 C210 101 250 100 300 100" stroke="#e04b37" stroke-width="7" fill="none" stroke-linecap="round" /></g>
-          </svg>
-          <div class="legende">TOUCHER UN CÂBLE POUR LE COUPER</div>
-        </div>
-
-        <!-- COMMUNICATIONS : la radio, sa lampe morse, la fréquence -->
-        <div class="module">
-          <span class="etiquette">Communications</span><span class="voyant panne" title="en panne"></span>
-          <div class="radio">
-            <div><div class="grille-hp"></div><div class="lampe-morse" id="lampe"></div><div class="legende">LAMPE DU TÉLÉGRAPHE</div></div>
-            <div>
-              <div class="ecran" id="frequence">3.505</div><div class="legende">FRÉQUENCE (MHz)</div>
-              <div class="molette"><button class="bouton" data-freq="-1">◀</button><button class="bouton" data-freq="1">▶</button></div>
-              <div class="molette"><button class="bouton rouge">ÉMETTRE</button></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- NAVIGATION : l'écran rond et les constellations -->
-        <div class="module">
-          <span class="etiquette">Navigation</span><span class="voyant" title="en état"></span>
-          <div class="rangee">
-            <svg width="110" height="110" viewBox="0 0 110 110">
-              <circle cx="55" cy="55" r="50" fill="#1e2a20" stroke="#2b2138" stroke-width="3" />
-              <circle cx="55" cy="55" r="34" fill="none" stroke="#3c5a3e" stroke-width="1" />
-              <path d="M55 5 V105 M5 55 H105" stroke="#3c5a3e" stroke-width="1" />
-              <g fill="#c8f0a0"><circle cx="35" cy="38" r="3" /><circle cx="52" cy="30" r="2.5" /><circle cx="68" cy="44" r="3" /><circle cx="62" cy="66" r="2.5" /><circle cx="40" cy="72" r="3" /></g>
-              <path d="M35 38 52 30 68 44 62 66 40 72z" fill="none" stroke="#c8f0a0" stroke-width="1" opacity="0.6" />
-            </svg>
-            <div class="glyphes"><button class="bouton">☉</button><button class="bouton">☾</button><button class="bouton">♄</button><button class="bouton">♂</button></div>
-          </div>
-        </div>
-
-        <!-- COQUE : le manomètre et les vannes -->
-        <div class="module">
-          <span class="etiquette">Coque</span><span class="voyant" title="en état"></span>
-          <div class="rangee">
-            <svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="#faf2dc" stroke="#2b2138" stroke-width="2.5" />
-              <path d="M35 35 L20 20" stroke="#2b2138" stroke-width="3" stroke-linecap="round" /><circle cx="35" cy="35" r="4" fill="#2b2138" />
-              <text x="35" y="56" text-anchor="middle" font-size="8" fill="#2b2138">BAR</text></svg>
-            <svg width="190" height="64" viewBox="0 0 190 64">
-              <g stroke="#2b2138" stroke-width="2.5" fill="none">
-                <circle cx="32" cy="32" r="24" stroke="#d9694f" stroke-width="5" /><path d="M32 8v48M8 32h48" />
-                <circle cx="95" cy="32" r="24" stroke="#3f63c4" stroke-width="5" /><path d="M95 8v48M71 32h48" />
-                <circle cx="158" cy="32" r="24" stroke="#8fcf98" stroke-width="5" /><path d="M158 8v48M134 32h48" />
-              </g>
-            </svg>
-          </div>
-          <div class="legende">MANOMÈTRE · VANNES A, B, C</div>
-        </div>
-      </div>
-
-      <h2 class="partie">2. LE MANUEL (TROIS PAGES EN EXEMPLE)</h2>
-
-      <div class="manuel">
-        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda · à l'usage des capitaines</div>
-        <h3>Des Fils de l'Énergie</h3>
-        <div class="chapitre">Chapitre II, où l'on apprend à couper sans se brûler les doigts</div>
-        <svg class="gravure" viewBox="0 0 150 60" aria-hidden="true">
-          <g fill="none" stroke="#4a3424" stroke-width="1.4"><path d="M10 30 C40 5 60 55 90 30 S130 10 140 30" /><path d="M10 40 C40 15 60 65 90 40 S130 20 140 40" opacity="0.6" />
-            <path d="M68 12 l8 18 -8 18" /><path d="M82 12 l-8 18 8 18" /><circle cx="75" cy="30" r="4" /></g>
-        </svg>
-        <p>Lorsque la lampe d'énergie rougeoie, ouvrez la boîte à fusibles et <i>comptez les câbles</i> avant toute chose.
-          Un seul câble doit être coupé, et un seul :</p>
+        <span class="tampon">CONFIDENTIEL</span>
+        <h3>4.3 Rétablissement du bus électrique principal</h3>
+        <div class="attention"><div class="bandeau-att">ATTENTION</div><div class="contenu-att">Ne jamais couper deux câbles d'un même
+          circuit sans basculer ISOLER entre les deux coupures. Toute erreur déclenche la protection du bus (module bloqué
+          30 s).</div></div>
         <ol>
-          <li>S'il y a <b>plus d'un câble rouge</b> et que le numéro de série <b>finit par un chiffre impair</b>, coupez le <b>dernier câble rouge</b>.</li>
-          <li>Sinon, si le dernier câble est <b>blanc</b>, coupez le <b>premier</b>.</li>
-          <li>Sinon, s'il n'y a <b>aucun câble jaune</b>, coupez le <b>deuxième</b>.</li>
-          <li>Dans tous les autres cas, coupez le <b>câble bleu</b>.</li>
+          <li><span>Lire le <b>code de diagnostic</b> affiché sur l'écran DIAG du module 2 (format E-xxx).</span></li>
+          <li><span>Chercher ce code dans le <b>TABLEAU 4-1</b>. Il donne le <b>circuit</b> en défaut (α, β, γ ou δ) et la
+            <b>règle</b> à appliquer (R1 à R6).</span></li>
+          <li><span>Relever l'état des quatre <b>voyants de bus</b> V1 à V4 (allumé ●, éteint ○).</span></li>
+          <li><span>Appliquer la règle du <b>TABLEAU 4-2</b> aux câbles du circuit indiqué (étiquettes de couleur, FIG. 4-3).</span></li>
+          <li><span>Basculer <b>ISOLER</b>. Si l'écran DIAG affiche un <b>nouveau code</b>, reprendre en 4.3.1 ; s'il affiche
+            <b>BUS OK</b>, la réparation est terminée.</span></li>
         </ol>
-        <p class="nota">On compte les câbles de haut en bas, par leur départ à gauche de la boîte. Le numéro de série est gravé sur la plaque de laiton.</p>
-      </div>
-      <p class="explication">Sur le panneau ci-dessus : 5 câbles, dont 2 rouges ; le numéro de série AN-7Q<b>3</b> finit par 3, impair.
-        La règle 1 s'applique : il faut couper le <b>dernier câble rouge</b> (le cinquième). Chaque panne tire une autre boîte
-        (nombre, couleurs, ordre), et le numéro de série change d'une partie à l'autre.</p>
 
-      <div class="manuel" style="margin-top: 18px">
-        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda</div>
-        <h3>De la Radio</h3>
-        <div class="chapitre">Chapitre IV, où le télégraphe parle à qui sait l'entendre</div>
-        <p>La radio en défaut ne se tait jamais tout à fait : sa <i>lampe du télégraphe</i> répète sans fin un mot en signaux
-          de Morse. Reconnaissez le mot, réglez la fréquence indiquée, puis pressez <b>ÉMETTRE</b>.</p>
         <table>
-          <tr><th>Mot</th><th>Signaux</th><th>Fréquence</th></tr>
-          <tr><td>LUNE</td><td>·−·· ··− −· ·</td><td>3.505</td></tr>
-          <tr><td>MARS</td><td>−− ·− ·−· ···</td><td>3.515</td></tr>
-          <tr><td>NAUTILUS</td><td>−· ·− ··− − ·· ·−·· ··− ···</td><td>3.522</td></tr>
-          <tr><td>VERNE</td><td>···− · ·−· −· ·</td><td>3.535</td></tr>
-          <tr><td>OBUS</td><td>−−− −··· ··− ···</td><td>3.542</td></tr>
-          <tr><td>COLUMBIAD</td><td>−·−· −−− ·−·· ··− −− −··· ·· ·− −··</td><td>3.555</td></tr>
+          <caption>TABLEAU 4-1 — CODES DE DIAGNOSTIC (EXTRAIT, 24 SUR 64)</caption>
+          <tr><th>CODE</th><th>CIRC.</th><th>RÈGLE</th><th>CODE</th><th>CIRC.</th><th>RÈGLE</th></tr>
+          <tr><td>E-1B2</td><td>α</td><td>R4</td><td>E-5C1</td><td>γ</td><td>R2</td></tr>
+          <tr><td>E-1F7</td><td>δ</td><td>R1</td><td>E-5D9</td><td>α</td><td>R6</td></tr>
+          <tr><td>E-2A4</td><td>β</td><td>R3</td><td>E-6A2</td><td>β</td><td>R5</td></tr>
+          <tr><td>E-2E8</td><td>γ</td><td>R6</td><td>E-6E4</td><td>δ</td><td>R3</td></tr>
+          <tr><td>E-3A7</td><td>β</td><td>R2</td><td>E-7B8</td><td>γ</td><td>R1</td></tr>
+          <tr><td>E-3C3</td><td>α</td><td>R5</td><td>E-7F1</td><td>α</td><td>R4</td></tr>
+          <tr><td>E-4B6</td><td>δ</td><td>R2</td><td>E-8C5</td><td>β</td><td>R1</td></tr>
+          <tr><td>E-4D1</td><td>γ</td><td>R4</td><td>E-8D3</td><td>δ</td><td>R6</td></tr>
+          <tr><td>E-4F9</td><td>β</td><td>R6</td><td>E-9A6</td><td>γ</td><td>R3</td></tr>
+          <tr><td>E-5A5</td><td>δ</td><td>R5</td><td>E-9E2</td><td>α</td><td>R2</td></tr>
+          <tr><td>E-5B3</td><td>α</td><td>R1</td><td>E-9F8</td><td>β</td><td>R4</td></tr>
+          <tr><td colspan="6">… suite page 4-9</td></tr>
         </table>
-        <p class="nota">Point : un éclat bref. Trait : un éclat long. Un silence plus long sépare les mots.</p>
-      </div>
-      <p class="explication">Sur le panneau, la lampe du télégraphe clignote « MARS » en Morse, en boucle (regarde-la quelques secondes) : il faut tourner
-        la molette jusqu'à 3.515, puis ÉMETTRE. Avec ses noms tirés de Jules Verne (Nautilus, Columbiad, l'obus de
-        « De la Terre à la Lune »), le manuel raconte aussi un peu l'univers.</p>
 
-      <div class="manuel" style="margin-top: 18px">
-        <div class="entete-manuel">Manuel de réparation de la capsule Andromeda</div>
-        <h3>Des Leviers du Moteur</h3>
-        <div class="chapitre">Chapitre I, où l'on remet la vapeur dans l'ordre</div>
-        <p>Observez d'abord le <b>symbole</b> sur la plaque de laiton, puis l'aiguille de la <b>pression</b>. Tirez les
-          leviers dans l'ordre indiqué, sans hésiter ni revenir en arrière.</p>
         <table>
-          <tr><th>Symbole</th><th>Pression verte</th><th>Pression jaune</th><th>Pression rouge</th></tr>
-          <tr><td>☿</td><td>I, II</td><td>III</td><td>II, I, III</td></tr>
-          <tr><td>♀</td><td>II</td><td>I, III</td><td>III, II</td></tr>
-          <tr><td>♃</td><td>III, I</td><td>II, III</td><td>I, III, II</td></tr>
-          <tr><td>♄</td><td>I</td><td>III, II, I</td><td>II</td></tr>
+          <caption>TABLEAU 4-2 — RÈGLES DE COUPURE</caption>
+          <tr><th>RÈGLE</th><th style="text-align:left">CÂBLE À COUPER (DANS LE CIRCUIT INDIQUÉ)</th></tr>
+          <tr><td>R1</td><td style="text-align:left">V1 ● : le premier câble ; V1 ○ : le dernier.</td></tr>
+          <tr><td>R2</td><td style="text-align:left">Autant de voyants ● que de câbles rouges : le dernier rouge. Sinon : le câble dont la position = nombre de voyants ●.</td></tr>
+          <tr><td>R3</td><td style="text-align:left">Le câble jaune s'il y en a un seul ; sinon le deuxième câble.</td></tr>
+          <tr><td>R4</td><td style="text-align:left">N° de série pair : le câble blanc le plus haut. Impair : le plus bas.</td></tr>
+          <tr><td>R5</td><td style="text-align:left">V2 et V4 ● : aucun câble, basculer ISOLER deux fois. Sinon : le câble bleu.</td></tr>
+          <tr><td>R6</td><td style="text-align:left">Le câble dont l'étiquette porte le même chiffre que le dernier chiffre du code.</td></tr>
         </table>
-        <p class="nota">Si le thermomètre dépasse la moitié, lisez la ligne du symbole <i>suivant</i> (après ♄, revenez à ☿).</p>
-      </div>
-      <p class="explication">Sur le panneau : symbole ♃, pression dans le rouge, thermomètre à la moitié pile (pas au-dessus) : il faut
-        tirer I, puis III, puis II. Touche les leviers pour les tirer.</p>
 
-      <h2 class="partie">3. CE QUI RESTE À DÉCIDER</h2>
-      <p class="intro">• Faut-il <b>voir le panneau et le manuel en même temps</b> ? Dans « Keep Talking », deux joueurs se parlent ;
-        ici on est seul : je propose de passer de l'un à l'autre d'un geste (onglets Réparation ↔ Manuel), sans les afficher côte
-        à côte (l'écran est trop petit).<br>• Une <b>erreur</b> : étincelle, module bloqué 30 secondes (proposition).<br>
-        • Le <b>numéro de série</b> change à chaque nouvelle partie, pour qu'on ne puisse pas apprendre les réponses par cœur.<br>
-        • Navigation (constellations) et Coque (vannes) auront leurs pages sur le même principe.</p>
+        <svg class="figure" viewBox="0 0 330 120" aria-hidden="true">
+          <g fill="none" stroke="#2a2622" stroke-width="1.2">
+            <rect x="6" y="6" width="318" height="108" stroke-dasharray="4 3" />
+            <rect x="20" y="20" width="60" height="80" /><text x="50" y="16" font-size="8" text-anchor="middle" fill="#2a2622" stroke="none">BORNIER G</text>
+            <rect x="250" y="20" width="60" height="80" /><text x="280" y="16" font-size="8" text-anchor="middle" fill="#2a2622" stroke="none">BORNIER D</text>
+            <path d="M80 32 C150 32 180 48 250 48" /><path d="M80 48 C150 48 180 32 250 32" /><path d="M80 64 C150 64 180 80 250 80" />
+            <path d="M80 80 C150 80 180 64 250 64" /><path d="M80 96 C150 96 180 96 250 96" />
+            <path d="M150 40 l10 -24 M165 56 l14 -40" /><circle cx="160" cy="16" r="7" /><circle cx="180" cy="16" r="7" />
+          </g>
+          <g font-size="8" fill="#2a2622"><text x="157" y="19">1</text><text x="177" y="19">2</text>
+            <text x="22" y="112">α : bornes 1-2 · β : 3-4 · γ : 5 · δ : ligne de retour</text></g>
+        </svg>
+        <div class="legende-fig">FIG. 4-3 — FAISCEAU DU BUS PRINCIPAL (CIRCUITS α À δ)</div>
+        <p class="manuscrit">→ attention : sur les capsules AN-7, la règle R4 est inversée (pair ↔ impair) ! — J.</p>
+        <div class="pied-doc"><span>CA-MM-04 RÉV. C</span><span>PAGE 4-8</span><span>NE PAS EMPORTER EN EVA</span></div>
+      </div>
+
+      <p class="explication"><b>Exemple sur le panneau ci-dessus</b> : l'écran DIAG du module 2 affiche <b>E-3A7</b>. Le tableau 4-1
+        donne : circuit <b>β</b>, règle <b>R2</b>. Les voyants du bus montrent ● ○ ● ○ : deux allumés. Le circuit β a deux
+        câbles rouges : autant que de voyants allumés, donc on coupe le <b>dernier câble rouge du circuit β</b>. Puis on bascule
+        ISOLER : un <b>nouveau code</b> apparaît (par exemple E-6E4) et l'on recommence avec une autre règle. Deux à quatre tours
+        avant « BUS OK ».</p>
+
+      <h2 class="partie">3. POURQUOI IL FAUDRA TOUJOURS LE MANUEL</h2>
+      <p class="intro">• <b>Les codes</b> : 64 codes de diagnostic par module, chacun renvoyant à un circuit et une règle ; impossible
+        à retenir.<br>
+        • <b>Le panneau change à chaque panne</b> : nombre de câbles (4 à 8), couleurs, étiquettes, voyants allumés, position des
+        commandes ; et le numéro de série change à chaque partie.<br>
+        • <b>Plusieurs tours</b> : chaque réparation demande 2 à 4 tours, et chaque tour fait apparaître un nouveau code.<br>
+        • <b>Les pièges du manuel</b> : notes manuscrites, exceptions selon le numéro de série (« sur les capsules AN-7… »),
+        règles qui renvoient à d'autres pages.<br>
+        • <b>Les révisions</b> : de temps en temps, une nouvelle révision du manuel (RÉV. D…) arrive par radio et change certaines
+        tables. Même un joueur qui a tout appris doit relire.<br>
+        Les cinq modules auront chacun leur mécanique : câbles et bus (Énergie), leviers, pression et température (Moteur), Morse
+        et fréquences (Communications), constellations et cadrans (Navigation), vannes et manomètres (Coque).</p>
+      <p class="intro">• <b>Navigation</b> : je propose toujours de passer du panneau au manuel d'un geste (deux onglets), l'écran étant
+        trop petit pour les deux côte à côte.<br>• <b>Erreur</b> : étincelle, module bloqué 30 secondes.</p>
     </div>
 
     <script>
-      // Quelques commandes qui bougent, pour donner l'idée (rien n'est branché sur le jeu).
-      for (const l of document.querySelectorAll('[data-levier]')) l.addEventListener('click', () => l.classList.toggle('tire'))
-      for (const f of document.querySelectorAll('[data-fil]')) f.addEventListener('click', () => f.classList.toggle('coupe'))
-      const ecran = document.querySelector('#frequence')
-      let freq = 3505
-      for (const b of document.querySelectorAll('[data-freq]')) b.addEventListener('click', () => {
-        freq = Math.min(3560, Math.max(3500, freq + Number(b.dataset.freq)))
-        ecran.textContent = (freq / 1000).toFixed(3)
-      })
-      // La lampe du télégraphe répète « MARS » : −− ·− ·−· ···
-      const lampe = document.querySelector('#lampe')
-      const MORSE = '−− ·− ·−· ···'
-      const sequence = []
-      for (const c of MORSE) {
-        if (c === '·') sequence.push([1, 250], [0, 250])
-        else if (c === '−') sequence.push([1, 750], [0, 250])
-        else sequence.push([0, 500])
+      // ---------- Dessin du panneau (style Moebius) : un hasard reproductible, des détails partout ----------
+      const svg = document.querySelector('#panneau')
+      const NS = 'http://www.w3.org/2000/svg'
+      let graine = 7317
+      const hasard = () => { graine = (graine * 16807) % 2147483647; return (graine - 1) / 2147483646 }
+      const entre = (a, b) => a + (b - a) * hasard()
+      const choix = (l) => l[Math.floor(hasard() * l.length)]
+      const ENCRE = '#2b2138'
+      const PASTELS = ['#bfe0c8', '#f3c2b0', '#bfe0e8', '#f5d38a', '#d7cdee', '#f6e3b8', '#c9d9a8', '#e8b9c9']
+      const OMBRE = '#7d6a9e'
+      function el(nom, attrs, parent = svg) {
+        const e = document.createElementNS(NS, nom)
+        for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+        parent.appendChild(e)
+        return e
       }
-      sequence.push([0, 1600])
-      let k = 0
-      const suivant = () => { const [allume, d] = sequence[k]; lampe.classList.toggle('allumee', !!allume); k = (k + 1) % sequence.length; setTimeout(suivant, d) }
-      suivant()
+      const groupe = (attrs = {}, parent = svg) => el('g', attrs, parent)
+      const texte = (x, y, t, taille = 6, parent = svg, attrs = {}) => { const e = el('text', { x, y, 'font-size': taille, fill: ENCRE, ...attrs }, parent); e.textContent = t; return e }
+      /** Trait légèrement tremblé, comme à la main (ligne claire de Moebius). */
+      const trembler = (v) => v + entre(-0.6, 0.6)
+
+      // Motifs : hachures (ombres) et petites trames.
+      const defs = el('defs', {})
+      const motif = el('pattern', { id: 'hachures', width: 4, height: 4, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs)
+      el('line', { x1: 0, y1: 0, x2: 0, y2: 4, stroke: OMBRE, 'stroke-width': 0.9 }, motif)
+      const trame = el('pattern', { id: 'trame', width: 3, height: 3, patternUnits: 'userSpaceOnUse' }, defs)
+      el('circle', { cx: 1.5, cy: 1.5, r: 0.55, fill: ENCRE, opacity: 0.35 }, trame)
+
+      // Fond : la tôle sable, ses plaques et leurs joints.
+      el('rect', { x: 0, y: 0, width: 390, height: 1180, fill: '#efe2c4' })
+      el('rect', { x: 0, y: 0, width: 390, height: 1180, fill: 'url(#trame)', opacity: 0.35 })
+      for (let y = 0; y < 1180; y += 118) el('path', { d: `M0 ${y} H390`, stroke: ENCRE, 'stroke-width': 0.6, opacity: 0.4 })
+
+      /** Une plaque pastel cernée d'encre, avec son ombre hachurée et ses rivets. */
+      function plaque(x, y, w, h, couleur, parent = svg) {
+        el('path', { d: `M${x + 5} ${y + h} h${w} v${-h + 5} l-5 -5 v${h} h${-w}z`, fill: 'url(#hachures)' }, parent)
+        el('rect', { x: trembler(x), y: trembler(y), width: w, height: h, rx: 6, fill: couleur, stroke: ENCRE, 'stroke-width': 1.6 }, parent)
+        for (const [rx, ry] of [[x + 5, y + 5], [x + w - 5, y + 5], [x + 5, y + h - 5], [x + w - 5, y + h - 5]]) rivet(rx, ry, parent)
+      }
+      function rivet(x, y, parent = svg) {
+        el('circle', { cx: x, cy: y, r: 2, fill: '#e8c97a', stroke: ENCRE, 'stroke-width': 0.8 }, parent)
+        el('path', { d: `M${x - 1} ${y - 0.5} l1.4 1.2`, stroke: ENCRE, 'stroke-width': 0.5 }, parent)
+      }
+      /** Un tuyau : trait épais d'encre, âme pastel, reflet, brides boulonnées. */
+      function tuyau(d, couleur, largeur = 12) {
+        el('path', { d, fill: 'none', stroke: ENCRE, 'stroke-width': largeur + 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })
+        el('path', { d, fill: 'none', stroke: couleur, 'stroke-width': largeur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })
+        el('path', { d, fill: 'none', stroke: '#fffaf0', 'stroke-width': largeur * 0.18, opacity: 0.8, 'stroke-dasharray': '18 10', 'stroke-linecap': 'round' })
+        el('path', { d, fill: 'none', stroke: OMBRE, 'stroke-width': largeur * 0.22, opacity: 0.35, transform: `translate(${largeur * 0.25} ${largeur * 0.25})` })
+      }
+      function bride(x, y, vertical = false) {
+        const w = vertical ? 22 : 8, h = vertical ? 8 : 22
+        el('rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 2, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.2 })
+        rivet(vertical ? x - 7 : x, vertical ? y : y - 7); rivet(vertical ? x + 7 : x, vertical ? y : y + 7)
+      }
+      /** Petit cadran à aiguille, avec graduations ; zone rouge parfois. */
+      function cadran(x, y, r, parent = svg) {
+        const g = groupe({}, parent)
+        el('circle', { cx: x + 1.5, cy: y + 1.5, r, fill: OMBRE, opacity: 0.4 }, g)
+        el('circle', { cx: x, cy: y, r, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        for (let k = 0; k <= 8; k++) {
+          const a = (-135 + k * 33.75) * Math.PI / 180, r1 = r * 0.72, r2 = r * (k % 2 ? 0.84 : 0.9)
+          el('line', { x1: x + r1 * Math.sin(a), y1: y - r1 * Math.cos(a), x2: x + r2 * Math.sin(a), y2: y - r2 * Math.cos(a), stroke: ENCRE, 'stroke-width': 0.8 }, g)
+        }
+        if (hasard() < 0.5) el('path', { d: `M${x + r * 0.8 * Math.sin(1.6)} ${y - r * 0.8 * Math.cos(1.6)} A${r * 0.8} ${r * 0.8} 0 0 1 ${x + r * 0.8 * Math.sin(2.35)} ${y - r * 0.8 * Math.cos(2.35)}`, stroke: '#e04b37', 'stroke-width': r * 0.14, fill: 'none' }, g)
+        const a = entre(-2.2, 2.2)
+        el('line', { x1: x, y1: y, x2: x + r * 0.75 * Math.sin(a), y2: y - r * 0.75 * Math.cos(a), stroke: '#e04b37', 'stroke-width': Math.max(1, r * 0.1), 'stroke-linecap': 'round' }, g)
+        el('circle', { cx: x, cy: y, r: Math.max(1.2, r * 0.12), fill: ENCRE }, g)
+        return g
+      }
+      /** Petit écran vert à lignes de texte. */
+      function ecran(x, y, w, h, lignes, parent = svg, taille = 6) {
+        el('rect', { x, y, width: w, height: h, rx: 3, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 1.4 }, parent)
+        lignes.forEach((t, k) => texte(x + 4, y + 8 + k * (taille + 2), t, taille, parent, { fill: '#b9f08c' }))
+        el('rect', { x: x + 2, y: y + 2, width: w - 4, height: 3, fill: '#ffffff', opacity: 0.08 }, parent)
+      }
+      function voyant(x, y, couleur, parent = svg, r = 3.2) {
+        el('circle', { cx: x, cy: y, r: r + 1.4, fill: '#c9b88a', stroke: ENCRE, 'stroke-width': 0.9 }, parent)
+        return el('circle', { cx: x, cy: y, r, fill: couleur, stroke: ENCRE, 'stroke-width': 0.6 }, parent)
+      }
+      function interrupteur(x, y, parent = svg) {
+        el('rect', { x: x - 4, y: y - 2, width: 8, height: 10, rx: 1.5, fill: '#cfc3a0', stroke: ENCRE, 'stroke-width': 0.9 }, parent)
+        const haut = hasard() < 0.5
+        el('line', { x1: x, y1: y + 3, x2: x + (haut ? -2 : 2), y2: y - 6, stroke: ENCRE, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, parent)
+        el('circle', { cx: x + (haut ? -2 : 2), cy: y - 6.5, r: 1.6, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.7 }, parent)
+      }
+      function bouton(x, y, r, couleur, parent = svg) {
+        el('circle', { cx: x + 1, cy: y + 1.2, r, fill: OMBRE, opacity: 0.45 }, parent)
+        el('circle', { cx: x, cy: y, r, fill: couleur, stroke: ENCRE, 'stroke-width': 1.2 }, parent)
+        el('line', { x1: x, y1: y - r * 0.8, x2: x, y2: y - r * 0.2, stroke: ENCRE, 'stroke-width': 1.2 }, parent)
+      }
+      function etiquette(x, y, t, couleur = '#faf2dc', parent = svg) {
+        const w = t.length * 3.9 + 6
+        el('rect', { x, y: y - 6, width: w, height: 8.5, fill: couleur, stroke: ENCRE, 'stroke-width': 0.7 }, parent)
+        texte(x + 3, y + 0.5, t, 5.6, parent)
+      }
+      /** Faisceau de câbles souples entre deux points, attachés par des colliers. */
+      function faisceau(x1, y1, x2, y2, n) {
+        for (let k = 0; k < n; k++) {
+          const dx = (k - n / 2) * 3.2, c = choix(['#e04b37', '#3f63c4', '#f2b53a', '#faf2dc', '#8fcf98', '#2b2138', '#d7cdee'])
+          const d = `M${x1 + dx} ${y1} C${x1 + dx + entre(-40, 40)} ${y1 + entre(20, 80)} ${x2 + dx + entre(-40, 40)} ${y2 - entre(20, 80)} ${x2 + dx} ${y2}`
+          el('path', { d, fill: 'none', stroke: ENCRE, 'stroke-width': 3.6, 'stroke-linecap': 'round' })
+          el('path', { d, fill: 'none', stroke: c, 'stroke-width': 2, 'stroke-linecap': 'round' })
+        }
+      }
+
+      // Les grands tuyaux, qui traversent tout (sous les plaques).
+      tuyau('M-10 70 H120 Q150 70 150 100 V380 Q150 410 180 410 H400', '#f3c2b0', 14)
+      tuyau('M400 160 H330 Q300 160 300 190 V640 Q300 670 270 670 H-10', '#bfe0e8', 11)
+      tuyau('M60 -10 V40 Q60 60 80 60 H90', '#c9d9a8', 9)
+      tuyau('M-10 860 H90 Q120 860 120 890 V1190', '#f5d38a', 13)
+      tuyau('M400 980 H250 Q220 980 220 1010 V1190', '#d7cdee', 10)
+      bride(150, 230, true); bride(300, 420, true); bride(60, 860); bride(220, 1100, true); bride(330, 160)
+
+      // Faisceaux de câbles décoratifs.
+      faisceau(30, 120, 90, 300, 5)
+      faisceau(350, 420, 330, 600, 6)
+      faisceau(40, 700, 120, 840, 4)
+      faisceau(360, 860, 300, 980, 5)
+
+      // Le fouillis : petites plaques semées partout, chacune avec des détails.
+      const zones = [] // emplacements des cinq modules, à éviter pour le décor
+      const MODULES = [
+        { x: 14, y: 128, w: 186, h: 196, nom: '1 · MOTEUR', etat: 'ok' },
+        { x: 172, y: 448, w: 206, h: 238, nom: '2 · ÉNERGIE', etat: 'panne' },
+        { x: 14, y: 448, w: 146, h: 160, nom: '3 · COMMUNIC.', etat: 'ok' },
+        { x: 196, y: 196, w: 182, h: 170, nom: '4 · NAVIGATION', etat: 'ok' },
+        { x: 30, y: 930, w: 170, h: 150, nom: '5 · COQUE', etat: 'ok' },
+      ]
+      for (const m of MODULES) zones.push(m)
+      const libre = (x, y, w, h) => zones.every((z) => x + w < z.x - 4 || x > z.x + z.w + 4 || y + h < z.y - 4 || y > z.y + z.h + 4)
+      let essais = 0
+      while (essais++ < 4000) {
+        const grand = essais < 1500
+        const w = grand ? entre(40, 110) : entre(22, 48), h = grand ? entre(30, 80) : entre(18, 34)
+        const x = entre(2, 388 - w), y = entre(2, 1178 - h)
+        if (!libre(x, y, w, h)) continue
+        zones.push({ x, y, w, h })
+        const g = groupe()
+        plaque(x, y, w, h, choix(PASTELS), g)
+        const genre = hasard()
+        if (genre < 0.22) cadran(x + w / 2, y + h / 2, Math.min(w, h) * 0.34, g)
+        else if (genre < 0.38) ecran(x + 7, y + 8, w - 14, Math.min(h - 16, 30), [choix(['P 0.83', 'T+12:04', 'Q 117', 'ΔV 4.2', 'NOM.', 'CH 3']), choix(['--', '0043', 'OK', '···', 'AUX'])], g, 5.5)
+        else if (genre < 0.55) { const n = Math.floor((w - 10) / 9); for (let k = 0; k < n; k++) interrupteur(x + 9 + k * 9, y + h / 2, g) }
+        else if (genre < 0.7) { const n = Math.floor((w - 8) / 9); for (let k = 0; k < n; k++) voyant(x + 8 + k * 9, y + h / 2, choix(['#8fcf98', '#e04b37', '#f2b53a', '#c9b88a', '#bfe0e8']), g, 2.6) }
+        else if (genre < 0.82) { for (let k = 0; k < 3; k++) bouton(x + w * (k + 1) / 4, y + h / 2, Math.min(7, h / 5), choix(PASTELS), g) }
+        else { el('rect', { x: x + 6, y: y + 6, width: w - 12, height: h - 12, fill: 'url(#hachures)', stroke: ENCRE, 'stroke-width': 0.8 }, g); for (let k = 0; k < 4; k++) el('line', { x1: x + 9, y1: y + 10 + k * 5, x2: x + w - 9, y2: y + 10 + k * 5, stroke: ENCRE, 'stroke-width': 1.4 }, g) }
+        if (hasard() < 0.6) etiquette(x + 4, y + h + 7 > 1176 ? y - 2 : y + h - 3, choix(['Q-12', 'AUX 2', 'NE PAS TOUCHER', 'B7', 'ATT.', 'VENT.', 'R-44', 'LOX', 'CAL.', 'K-3', 'PURGE', 'TEST']), choix(['#faf2dc', '#f5d38a', '#f3c2b0']), g)
+      }
+      // Les derniers recoins : vis, petits voyants, bouts de fils, graduations, partout où il reste de la place.
+      for (let k = 0; k < 2500; k++) {
+        const x = entre(3, 387), y = entre(3, 1177)
+        if (!libre(x - 5, y - 5, 10, 10)) continue
+        zones.push({ x: x - 5, y: y - 5, w: 10, h: 10 })
+        const r = hasard()
+        if (r < 0.35) rivet(x, y)
+        else if (r < 0.5) voyant(x, y, choix(['#8fcf98', '#e04b37', '#f2b53a', '#bfe0e8']), svg, 2)
+        else if (r < 0.65) el('path', { d: `M${x - 5} ${y} q3 -5 5 0 t5 0`, fill: 'none', stroke: choix(['#e04b37', '#3f63c4', '#f2b53a']), 'stroke-width': 1.6 })
+        else if (r < 0.8) for (let j = 0; j < 4; j++) el('line', { x1: x - 4 + j * 2.6, y1: y - 3, x2: x - 4 + j * 2.6, y2: y + (j % 2 ? 1 : 3), stroke: ENCRE, 'stroke-width': 0.7 })
+        else el('rect', { x: x - 4, y: y - 3, width: 8, height: 6, rx: 1, fill: choix(PASTELS), stroke: ENCRE, 'stroke-width': 0.7 })
+      }
+
+      // Quelques notes collées, à la main.
+      for (const [x, y, t, a] of [[300, 30, 'lire le\nmanuel !!', 8], [10, 640, 'fusible 7 :\nfragile', -6], [250, 1120, 'appeler J.\nsi R5', 5]]) {
+        const g = groupe({ transform: `rotate(${a} ${x + 30} ${y + 20})` })
+        el('rect', { x, y, width: 64, height: 36, fill: '#fff3a8', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+        el('rect', { x: x + 20, y: y - 4, width: 24, height: 8, fill: '#e8dfc8', opacity: 0.85 }, g)
+        t.split('\n').forEach((l, k) => texte(x + 6, y + 15 + k * 10, l, 8, g, { fill: '#2c4a8a', 'font-family': 'Segoe Print, Bradley Hand, cursive' }))
+      }
+
+      // ---------- Les cinq modules ----------
+      function cadreModule(m) {
+        const g = groupe()
+        el('rect', { x: m.x + 4, y: m.y + 4, width: m.w, height: m.h, rx: 10, fill: OMBRE, opacity: 0.5 }, g)
+        el('rect', { x: m.x, y: m.y, width: m.w, height: m.h, rx: 10, fill: '#e9dfc4', stroke: ENCRE, 'stroke-width': 2.2 }, g)
+        el('rect', { x: m.x + 4, y: m.y + 4, width: m.w - 8, height: m.h - 8, rx: 7, fill: 'none', stroke: ENCRE, 'stroke-width': 0.6, 'stroke-dasharray': '3 2' }, g)
+        el('rect', { x: m.x + 10, y: m.y - 8, width: m.nom.length * 5.6 + 12, height: 15, rx: 3, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        texte(m.x + 16, m.y + 3, m.nom, 8.5, g, { 'font-weight': 'bold' })
+        const v = voyant(m.x + m.w - 14, m.y + 2, m.etat === 'panne' ? '#e04b37' : '#8fcf98', g, 4.2)
+        if (m.etat === 'panne') v.classList.add('clignote')
+        return g
+      }
+      const [mMoteur, mEnergie, mComm, mNav, mCoque] = MODULES.map((m) => ({ ...m, g: cadreModule(m) }))
+
+      // 1 · MOTEUR : jauges, symbole, leviers.
+      cadran(mMoteur.x + 40, mMoteur.y + 48, 24, mMoteur.g); texte(mMoteur.x + 22, mMoteur.y + 84, 'PRESSION', 6, mMoteur.g)
+      cadran(mMoteur.x + 100, mMoteur.y + 48, 18, mMoteur.g); texte(mMoteur.x + 88, mMoteur.y + 78, 'TEMP.', 6, mMoteur.g)
+      el('rect', { x: mMoteur.x + 132, y: mMoteur.y + 28, width: 40, height: 40, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, mMoteur.g)
+      texte(mMoteur.x + 142, mMoteur.y + 58, '♃', 26, mMoteur.g)
+      for (let k = 0; k < 5; k++) {
+        const x = mMoteur.x + 22 + k * 34, y = mMoteur.y + 110
+        const g = groupe({ class: 'commande bascule' }, mMoteur.g)
+        el('rect', { x: x - 12, y: y + 50, width: 24, height: 12, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+        const manche = groupe({ class: 'levier-manche' }, g)
+        el('rect', { x: x - 3, y: y + 8, width: 6, height: 46, rx: 2, fill: ENCRE }, manche)
+        el('circle', { cx: x, cy: y + 8, r: 8, fill: ['#e04b37', '#bfe0e8', '#f2b53a', '#8fcf98', '#faf2dc'][k], stroke: ENCRE, 'stroke-width': 1.4 }, manche)
+        texte(x - 3, y + 74, ['I', 'II', 'III', 'IV', 'V'][k], 7, g)
+        g.addEventListener('click', () => g.classList.toggle('on'))
+      }
+
+      // 2 · ÉNERGIE (en panne) : écran DIAG, voyants de bus, câbles du faisceau, interrupteur ISOLER.
+      ecran(mEnergie.x + 12, mEnergie.y + 16, 90, 30, ['DIAG', 'E-3A7'], mEnergie.g, 9)
+      texte(mEnergie.x + 112, mEnergie.y + 22, 'BUS', 7, mEnergie.g, { 'font-weight': 'bold' })
+      ;[true, false, true, false].forEach((on, k) => {
+        voyant(mEnergie.x + 118 + k * 18, mEnergie.y + 36, on ? '#f2b53a' : '#7a6a4a', mEnergie.g, 4)
+        texte(mEnergie.x + 114 + k * 18, mEnergie.y + 50, `V${k + 1}`, 6, mEnergie.g)
+      })
+      const bx = mEnergie.x + 14, by = mEnergie.y + 62
+      el('rect', { x: bx, y: by, width: 178, height: 128, rx: 6, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1.6 }, mEnergie.g)
+      const CABLES = [
+        ['#e04b37', 'α1'], ['#faf2dc', 'α2'], ['#e04b37', 'β3'], ['#3f63c4', 'β4'], ['#e04b37', 'β7'], ['#f2b53a', 'γ5'], ['#8fcf98', 'δ9'],
+      ]
+      CABLES.forEach(([couleur, tag], k) => {
+        const y1 = by + 12 + k * 16.5, y2 = by + 12 + ((k * 3 + 2) % 7) * 16.5
+        const g = groupe({ class: 'commande fil' }, mEnergie.g)
+        const d = `M${bx + 26} ${y1} C${bx + 80} ${y1} ${bx + 100} ${y2} ${bx + 160} ${y2}`
+        const entier = groupe({ class: 'fil-entier' }, g)
+        el('path', { d, fill: 'none', stroke: ENCRE, 'stroke-width': 7.5, 'stroke-linecap': 'round' }, entier)
+        el('path', { d, fill: 'none', stroke: couleur, 'stroke-width': 5, 'stroke-linecap': 'round' }, entier)
+        const casse = groupe({ class: 'fil-casse' }, g)
+        const d1 = `M${bx + 26} ${y1} C${bx + 55} ${y1} ${bx + 70} ${(y1 * 2 + y2) / 3} ${bx + 80} ${(y1 * 2 + y2) / 3 + 3}`
+        const d2 = `M${bx + 106} ${(y1 + y2 * 2) / 3 - 3} C${bx + 120} ${y2} ${bx + 135} ${y2} ${bx + 160} ${y2}`
+        for (const dd of [d1, d2]) { el('path', { d: dd, fill: 'none', stroke: ENCRE, 'stroke-width': 7.5, 'stroke-linecap': 'round' }, casse); el('path', { d: dd, fill: 'none', stroke: couleur, 'stroke-width': 5, 'stroke-linecap': 'round' }, casse) }
+        el('rect', { x: bx + 2, y: y1 - 6, width: 22, height: 11, rx: 2, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, mEnergie.g)
+        texte(bx + 6, y1 + 2.5, tag, 7, mEnergie.g, { 'font-weight': 'bold' })
+        el('circle', { cx: bx + 26, cy: y1, r: 3.5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1 }, mEnergie.g)
+        el('circle', { cx: bx + 160, cy: y2, r: 3.5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1 }, mEnergie.g)
+        el('path', { d, fill: 'none', stroke: 'transparent', 'stroke-width': 14 }, g) // zone de toucher large
+        g.addEventListener('click', () => g.classList.toggle('fil-coupe'))
+      })
+      const isoler = groupe({ class: 'commande bascule' }, mEnergie.g)
+      el('rect', { x: mEnergie.x + 18, y: mEnergie.y + 198, width: 64, height: 30, rx: 5, fill: '#e04b37', stroke: ENCRE, 'stroke-width': 1.6 }, isoler)
+      el('rect', { x: mEnergie.x + 24, y: mEnergie.y + 202, width: 52, height: 22, rx: 3, fill: 'url(#hachures)', stroke: ENCRE, 'stroke-width': 0.8 }, isoler)
+      texte(mEnergie.x + 30, mEnergie.y + 216, 'ISOLER', 8, isoler, { 'font-weight': 'bold' })
+      isoler.addEventListener('click', () => isoler.classList.toggle('on'))
+      cadran(mEnergie.x + 120, mEnergie.y + 212, 14, mEnergie.g); texte(mEnergie.x + 140, mEnergie.y + 216, 'AMP.', 6, mEnergie.g)
+      cadran(mEnergie.x + 176, mEnergie.y + 212, 14, mEnergie.g)
+
+      // 3 · COMMUNICATIONS : la radio.
+      el('rect', { x: mComm.x + 12, y: mComm.y + 16, width: 56, height: 60, rx: 5, fill: '#6b5d4a', stroke: ENCRE, 'stroke-width': 1.4 }, mComm.g)
+      for (let k = 0; k < 9; k++) el('line', { x1: mComm.x + 16, y1: mComm.y + 22 + k * 6, x2: mComm.x + 64, y2: mComm.y + 22 + k * 6, stroke: '#e9dfc4', 'stroke-width': 2 }, mComm.g)
+      ecran(mComm.x + 76, mComm.y + 16, 60, 24, ['3.505', 'MHz'], mComm.g, 8)
+      cadran(mComm.x + 106, mComm.y + 64, 16, mComm.g)
+      voyant(mComm.x + 40, mComm.y + 92, '#fff3a8', mComm.g, 6).classList.add('clignote')
+      texte(mComm.x + 14, mComm.y + 110, 'TÉLÉGRAPHE', 6, mComm.g)
+      for (let k = 0; k < 4; k++) bouton(mComm.x + 24 + k * 30, mComm.y + 134, 9, choix(PASTELS), mComm.g)
+
+      // 4 · NAVIGATION : écran rond, cadrans, boutons à symboles.
+      el('circle', { cx: mNav.x + 56, cy: mNav.y + 70, r: 46, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 2 }, mNav.g)
+      el('circle', { cx: mNav.x + 56, cy: mNav.y + 70, r: 30, fill: 'none', stroke: '#3c5a3e', 'stroke-width': 1 }, mNav.g)
+      el('path', { d: `M${mNav.x + 56} ${mNav.y + 24} v92 M${mNav.x + 10} ${mNav.y + 70} h92`, stroke: '#3c5a3e', 'stroke-width': 1 }, mNav.g)
+      const etoiles = [[36, 50], [52, 42], [70, 56], [64, 84], [42, 90], [30, 70]]
+      el('path', { d: 'M' + etoiles.map(([a, b]) => `${mNav.x + a} ${mNav.y + b}`).join(' L') + 'z', fill: 'none', stroke: '#b9f08c', 'stroke-width': 0.8, opacity: 0.6 }, mNav.g)
+      for (const [a, b] of etoiles) el('circle', { cx: mNav.x + a, cy: mNav.y + b, r: 2.4, fill: '#b9f08c' }, mNav.g)
+      ;['☉', '☾', '♄', '♂', '♀', '☿'].forEach((s, k) => {
+        const x = mNav.x + 118 + (k % 2) * 30, y = mNav.y + 30 + Math.floor(k / 2) * 32
+        el('rect', { x: x - 12, y: y - 12, width: 24, height: 24, rx: 4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, mNav.g)
+        texte(x - 6, y + 6, s, 15, mNav.g)
+      })
+      cadran(mNav.x + 132, mNav.y + 142, 12, mNav.g); cadran(mNav.x + 162, mNav.y + 142, 12, mNav.g)
+
+      // 5 · COQUE : manomètre et vannes.
+      cadran(mCoque.x + 34, mCoque.y + 46, 22, mCoque.g); texte(mCoque.x + 24, mCoque.y + 78, 'BAR', 6, mCoque.g)
+      ;['#d9694f', '#3f63c4', '#8fcf98'].forEach((c, k) => {
+        const x = mCoque.x + 82 + k * 30, y = mCoque.y + 46
+        el('circle', { cx: x, cy: y, r: 13, fill: 'none', stroke: ENCRE, 'stroke-width': 5.5 }, mCoque.g)
+        el('circle', { cx: x, cy: y, r: 13, fill: 'none', stroke: c, 'stroke-width': 3.5 }, mCoque.g)
+        el('path', { d: `M${x} ${y - 13} v26 M${x - 13} ${y} h26`, stroke: ENCRE, 'stroke-width': 2 }, mCoque.g)
+        texte(x - 2, y + 26, 'ABC'[k], 7, mCoque.g)
+      })
+      for (let k = 0; k < 6; k++) interrupteur(mCoque.x + 20 + k * 24, mCoque.y + 118, mCoque.g)
+
+      // La plaque du numéro de série, en haut.
+      el('rect', { x: 210, y: 18, width: 160, height: 34, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.8 })
+      texte(220, 32, 'CAPSULE ANDROMEDA', 8.5, svg, { 'font-weight': 'bold' })
+      texte(220, 45, 'N° SÉRIE AN-7Q3 · 2026', 7.5)
+      rivet(214, 22); rivet(366, 22); rivet(214, 48); rivet(366, 48)
     </script>
   </body>
 </html>
