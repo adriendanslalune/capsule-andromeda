@@ -12,7 +12,6 @@ declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
 import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
-import { afficherCapsule } from './commun/volet-capsule'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
@@ -127,11 +126,8 @@ boutonRetour.addEventListener('click', () => carte.vueGenerale())
 carte.vueGenerale()
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
-const voletCapsule = document.querySelector<HTMLDivElement>('#capsule')!
-const afficherVoletCapsule = () => afficherCapsule(voletCapsule, jeu, horloge(), reglages.forcerVitesse ? reglages.vitesse : null)
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
-  if (page === 'capsule') afficherVoletCapsule()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -188,8 +184,8 @@ function prevoir(t: number, maintenant: number): void {
 const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
 
 function mettreAJourFiche(t: number): void {
-  afficherBandeau(bandeau, lignesDuBandeau(mission, t), t)
-  if (cockpit.pageOuverte === 'capsule') afficherVoletCapsule()
+  afficherBandeau(bandeau, lignesDuBandeau(mission, t),
+    { credits: jeu.credits, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.

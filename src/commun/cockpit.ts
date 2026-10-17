@@ -46,11 +46,6 @@ export class Cockpit {
     return this.page !== null
   }
 
-  /** Page ouverte (null si le volet est fermé). */
-  get pageOuverte(): Page | null {
-    return this.page
-  }
-
   ouvrir(page: Page): void {
     this.page = page
     this.titre.textContent = TITRES[page]

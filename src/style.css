@@ -70,12 +70,21 @@ html, body {
 #bandeau .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
 #bandeau .ligne b { letter-spacing: 0.04em; }
 #bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
+/* Pied du bandeau : crédits et moteur, toujours visibles. */
+#bandeau .etat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 12px 4px;
+  font-size: 11px;
+  border-top: 1px solid color-mix(in srgb, var(--encre) 35%, transparent);
+}
 
 #titre-carte {
   position: fixed;
   left: 12px;
   right: 12px;
-  top: calc(82px + env(safe-area-inset-top));
+  top: calc(102px + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -184,19 +193,6 @@ html, body {
   border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent);
 }
 #volet .retour { font-size: 13px; min-height: 44px; }
-
-/* Volet Capsule : crédits, moteur, position, modules. */
-#capsule .rubrique-capsule {
-  display: flex;
-  gap: 12px;
-  padding: 12px 14px;
-  font-size: 13px;
-  line-height: 1.45;
-  border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent);
-}
-#capsule .etiquette { flex: 0 0 72px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; padding-top: 2px; }
-#capsule .valeur { flex: 1; }
-#capsule .grise { opacity: 0.45; }
 
 /* Réglages (dans « Plus ») : les cases d'affichage et les essais. */
 #reglages { padding: 0 14px 8px; font-size: 14px; }

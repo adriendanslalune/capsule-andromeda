@@ -32,11 +32,11 @@ joueur).
   l'heure d'arrivée (aujourd'hui, demain, ou la date) et le temps restant, sinon l'état calme « EN ORBITE AUTOUR DE … »
   (altitude, durée d'un tour). Le moteur dit quoi afficher (`src/moteur/bandeau.ts`, testé), prévu pour plusieurs
   lignes (missiles, pannes, ralentissements à l'étape 4). La fiche du bas ne parle plus que de la destination choisie.
-- 2.3 État de la capsule et volet Capsule — **fait, en attente de validation** : état du jeu dans le moteur
-  (`src/moteur/jeu.ts`, testé) — crédits (0 au départ), niveau du moteur (1 : 30 km/s, `src/donnees/capsule.ts`),
-  mission de la capsule. Les trajets se font désormais à la vitesse du moteur ; l'ancien curseur devient un essai
-  (« Forcer la vitesse » dans Réglages, désactivé par défaut). Volet Capsule : crédits, moteur, position, modules
-  (annoncés pour l'étape 4).
+- 2.3 État de la capsule — **fait, en attente de validation** : état du jeu dans le moteur (`src/moteur/jeu.ts`,
+  testé) — crédits (0 au départ), niveau du moteur (1 : 30 km/s, `src/donnees/capsule.ts`), mission de la capsule.
+  Les trajets se font à la vitesse du moteur ; l'ancien curseur devient un essai (« Forcer la vitesse » dans Réglages,
+  désactivé par défaut). Demande d'Adrien : crédits et moteur toujours visibles, au pied du bandeau d'alertes ; le volet
+  Capsule est vide, son contenu sera défini plus tard.
 - 2.4 Sauvegarde locale — à faire.
 
 ---

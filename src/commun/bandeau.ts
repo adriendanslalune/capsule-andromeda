@@ -14,10 +14,19 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
   return { titre: `EN ORBITE ${autourDe(l.centre)}`, detail: `${ou}${tour}` }
 }
 
-export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], t: number): void {
+/** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
+export interface EtatCapsuleBandeau { credits: number; niveauMoteur: number; vitesse: number; vitesseForcee: boolean }
+
+let dernier = ''
+
+export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
+  const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''}`
+  const moteur = capsule.vitesseForcee
+    ? `vitesse forcée ${capsule.vitesse.toLocaleString('fr-FR')} km/s (essai)`
+    : `moteur niv. ${capsule.niveauMoteur} · ${capsule.vitesse.toLocaleString('fr-FR')} km/s`
   const html = lignes.map((l) => {
     const { titre, detail } = texteLigne(l, t)
     return `<div class="ligne${l.genre === 'orbite' ? ' calme' : ''}"><b>${titre}</b><span>${detail}</span></div>`
-  }).join('')
-  if (element.innerHTML !== html) element.innerHTML = html
+  }).join('') + `<div class="etat"><span>${credits}</span><span>${moteur}</span></div>`
+  if (html !== dernier) element.innerHTML = dernier = html
 }

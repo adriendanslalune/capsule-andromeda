@@ -11,7 +11,7 @@ export interface CouleursReperes { encre: string; fond: string; accent: string }
 const POLICE = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'
 
 /** Marges de l'écran à laisser libres : bandeau d'alertes et titre en haut, onglets et fiche de trajet en bas. */
-export const MARGE_HAUT = 124
+export const MARGE_HAUT = 144
 export const MARGE_BAS = 190
 
 /**
