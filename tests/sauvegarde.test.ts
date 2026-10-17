@@ -86,4 +86,18 @@ describe('sauvegarde de la partie', () => {
     expect(copie.mission.plan?.cible).toBe('Mars')
     expect(copie.enCours).toBeNull()
   })
+
+  it('les pannes sont sauvegardées', () => {
+    const jeu = enRouteVers('Lune')
+    jeu.casser('moteur')
+    jeu.casser('coque')
+    jeu.usureJusqua = 1234
+    const copie = allerRetour(jeu, t0)!
+    expect(copie.pannes).toEqual(['moteur', 'coque'])
+    expect(copie.usureJusqua).toBe(1234)
+    expect(copie.vitesse()).toBe(15)
+    const mauvaise = JSON.parse(JSON.stringify(sauvegarder(jeu, t0)))
+    mauvaise.pannes = ['propulseur-a-chaussettes']
+    expect(restaurer(mauvaise)).toBeNull()
+  })
 })

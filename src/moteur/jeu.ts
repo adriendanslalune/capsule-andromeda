@@ -2,17 +2,22 @@
 //   - les crédits ;
 //   - le niveau du moteur, qui donne la vitesse de croisière ;
 //   - la mission de la capsule (son orbite, ou le trajet en cours) ;
-//   - les missions du joueur (« contrats ») : celles qu'on lui propose, celle qu'il a acceptée.
+//   - les missions du joueur (« contrats ») : celles qu'on lui propose, celle qu'il a acceptée ;
+//   - les modules en panne (étape 4) et leurs effets.
 // L'heure est toujours passée en paramètre, comme partout dans le moteur.
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { CONTRATS_PROPOSES, DUREE_ACTION } from '../donnees/contrats'
-import { tirerContrat, type Contrat, type Etape } from './contrats'
+import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
+import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
 import { position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
-/** La mission acceptée : où on en est (numéro de l'étape) et, si une action est en cours, son début (ms UTC). */
-export interface ContratEnCours { contrat: Contrat; etape: number; debutAction: number | null }
+/**
+ * La mission acceptée : où on en est (numéro de l'étape) et, si une action est en cours, son début (ms UTC) et sa
+ * durée (ms ; plus longue si l'énergie est en panne au moment où elle commence).
+ */
+export interface ContratEnCours { contrat: Contrat; etape: number; debutAction: number | null; dureeAction?: number }
 
 /** Ce qui s'est passé en faisant avancer le jeu (pour prévenir le joueur). */
 export type Evenement =
@@ -21,6 +26,8 @@ export type Evenement =
   | { genre: 'action-interrompue'; contrat: Contrat }
   /** Étape finie : la capsule est partie d'elle-même vers le lieu de l'étape suivante. */
   | { genre: 'depart-auto'; contrat: Contrat; lieu: string }
+  /** Un module vient de tomber en panne (usure à l'arrivée d'un trajet). */
+  | { genre: 'panne'; module: NomModule }
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -32,15 +39,44 @@ export class Jeu {
   prochainId = 1
   proposes: Contrat[] = []
   enCours: ContratEnCours | null = null
+  /** Modules en panne. */
+  pannes: NomModule[] = []
+  /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
+  usureJusqua = 0
+
+  /** Le module est-il en panne ? */
+  enPanne(m: NomModule): boolean {
+    return this.pannes.includes(m)
+  }
+
+  /** Met un module en panne (s'il ne l'est pas déjà). */
+  casser(m: NomModule): void {
+    if (!this.enPanne(m)) this.pannes.push(m)
+  }
+
+  /** Répare un module. */
+  reparer(m: NomModule): void {
+    this.pannes = this.pannes.filter((p) => p !== m)
+  }
+
+  /** La navigation marche-t-elle (sinon : impossible de calculer un trajet) ? */
+  peutNaviguer(): boolean {
+    return !this.enPanne('navigation')
+  }
+
+  /** Durée d'une action sur place (ms) : deux fois plus longue si l'énergie est en panne. */
+  dureeAction(): number {
+    return DUREE_ACTION * (this.enPanne('energie') ? 2 : 1)
+  }
 
   /** Fiche du niveau actuel du moteur. */
   moteur(): NiveauMoteur {
     return NIVEAUX_MOTEUR.find((n) => n.niveau === this.niveauMoteur) ?? NIVEAUX_MOTEUR[0]
   }
 
-  /** Vitesse de croisière de la capsule (km/s), d'après son moteur. */
+  /** Vitesse de croisière de la capsule (km/s), d'après son moteur ; divisée par 2 si le moteur est en panne. */
   vitesse(): number {
-    return this.moteur().vitesse
+    return this.moteur().vitesse / (this.enPanne('moteur') ? 2 : 1)
   }
 
   /** Le moteur suivant (à acheter), ou null au niveau le plus haut. */
@@ -59,6 +95,8 @@ export class Jeu {
 
   /** Complète la liste des missions proposées (jusqu'à CONTRATS_PROPOSES), en variant les lieux. */
   proposer(t: number): void {
+    // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
+    if (this.enPanne('communications')) return
     while (this.proposes.length < CONTRATS_PROPOSES) {
       const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
       const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus)
@@ -102,12 +140,14 @@ export class Jeu {
   agir(t: number): boolean {
     if (!this.peutAgir(t)) return false
     this.enCours!.debutAction = t
+    this.enCours!.dureeAction = this.dureeAction()
     return true
   }
 
   /** Fin de l'action en cours (ms UTC), ou null. */
   finAction(): number | null {
-    return this.enCours?.debutAction != null ? this.enCours.debutAction + DUREE_ACTION : null
+    const ec = this.enCours
+    return ec?.debutAction != null ? ec.debutAction + (ec.dureeAction ?? DUREE_ACTION) : null
   }
 
   /**
@@ -118,10 +158,11 @@ export class Jeu {
    */
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
+    this.user(t, evenements)
     this.proposer(t)
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
-    const fin = ec.debutAction + DUREE_ACTION
+    const fin = ec.debutAction + (ec.dureeAction ?? DUREE_ACTION)
     // La capsule doit rester sur place jusqu'au bout (vérifié à la fin de l'action si elle est passée).
     if (!this.surPlace(Math.min(t, fin))) {
       ec.debutAction = null
@@ -138,7 +179,7 @@ export class Jeu {
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
       this.proposer(t)
-    } else if (vitesseEnchainement !== undefined) {
+    } else if (vitesseEnchainement !== undefined && this.peutNaviguer()) {
       const lieu = ec.contrat.etapes[ec.etape].lieu
       if (!this.surPlace(fin)) {
         const p = planifier(this.mission.etatHeliocentrique(fin), lieu, fin, vitesseEnchainement)
@@ -149,6 +190,23 @@ export class Jeu {
       }
     }
     return evenements
+  }
+
+  /**
+   * Usure : à l'arrivée de chaque trajet (une seule fois par trajet), un module peut tomber en panne
+   * (CHANCE_PANNE_PAR_TRAJET), tiré au hasard reproductible de la partie.
+   */
+  private user(t: number, evenements: Evenement[]): void {
+    const p = this.mission.plan
+    if (!p || t < p.arrivee || p.arrivee <= this.usureJusqua) return
+    this.usureJusqua = p.arrivee
+    const a = hasard(this.graine), b = hasard(a.graine)
+    this.graine = b.graine
+    if (a.x >= CHANCE_PANNE_PAR_TRAJET) return
+    const m = MODULES[Math.floor(b.x * MODULES.length)].nom
+    if (this.enPanne(m)) return
+    this.casser(m)
+    evenements.push({ genre: 'panne', module: m })
   }
 
   /**
@@ -169,7 +227,7 @@ export class Jeu {
         instant = p.plan.arrivee
       }
       // Après l'action sur place, on repart de là (de la position du lieu, à sa vitesse).
-      instant += DUREE_ACTION
+      instant += this.dureeAction()
       depart = { r: position(e.lieu, instant), v: vitesseAstre(e.lieu, instant) }
       ici = e.lieu
     }

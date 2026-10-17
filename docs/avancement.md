@@ -24,8 +24,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 Décisions d'Adrien du 18/10/2026 : voir `CLAUDE.md` (modules et effets, provenance des pannes, panneau de réparation
 et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
 
-- Fenêtre « Nouveau moteur » (demande d'Adrien, avant l'étape 4) — **fait, en attente de validation**.
-- 4.1 Modules et pannes dans le moteur du jeu (effets, usure au hasard), alerte « panne » dans le bandeau — à faire.
+- Fenêtre « Nouveau moteur » (demande d'Adrien, avant l'étape 4) — **fait**.
+- 4.1 Modules et pannes — **fait, en attente de validation** : 5 modules (`src/donnees/modules.ts`) et leurs effets
+  dans le moteur du jeu (`Jeu` : vitesse divisée par 2, navigation bloquée — plus de trajet ni d'enchaînement des
+  étapes —, plus de nouvelles missions, actions deux fois plus longues ; la coque servira aux impacts) ; usure : une
+  chance sur 10 à l'arrivée de chaque trajet, tirée une seule fois par trajet (testé) ; pannes sauvegardées (format 3).
+  Ligne « PANNE » en tête du bandeau (triangle qui palpite) ; liste des modules dans le volet Capsule avec un bouton
+  RÉPARER provisoire (en attendant le panneau du 4.2) ; essai « Provoquer une panne au hasard » dans Réglages.
 - 4.2 Onglet Réparation du volet Capsule : le grand panneau (modules, cadrans, câbles, écrans, jauges, radios) — à faire.
 - 4.3 Onglet Manuel (vintage, Jules Verne) et les procédures de réparation de chaque module — à faire.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.

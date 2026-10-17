@@ -1,14 +1,17 @@
 // Le bandeau d'alertes, en haut de l'écran, toujours visible (étape 2 de la feuille de route) : ce que le moteur dit
-// de la situation de la capsule à l'instant t. Dans l'ordre : le trajet en cours, la mission acceptée (étape 3), et
-// l'état calme (en orbite autour d'un astre) quand il n'y a pas de trajet. Les missiles, pannes et ralentissements
-// viendront à l'étape 4.
+// de la situation de la capsule à l'instant t. Dans l'ordre : les pannes (étape 4), le trajet en cours, la mission
+// acceptée (étape 3), et l'état calme (en orbite autour d'un astre) quand il n'y a pas de trajet. Les missiles
+// viendront plus tard (étape 4).
 
 import { periode } from './capsule'
 import type { Contrat, Etape } from './contrats'
 import { corps } from './corps'
 import type { Jeu } from './jeu'
+import type { NomModule } from '../donnees/modules'
 
 export type LigneBandeau =
+  /** Modules en panne (au moins un). */
+  | { genre: 'panne'; modules: NomModule[] }
   /** En route : destination, instant d'arrivée (ms UTC) et temps restant (ms). */
   | { genre: 'trajet'; cible: string; arrivee: number; reste: number }
   /**
@@ -23,6 +26,7 @@ export type LigneBandeau =
 export function lignesDuBandeau(jeu: Jeu, t: number): LigneBandeau[] {
   const m = jeu.mission
   const lignes: LigneBandeau[] = []
+  if (jeu.pannes.length) lignes.push({ genre: 'panne', modules: [...jeu.pannes] })
   const enRoute = m.phase(t) === 'trajet' && m.plan
   if (enRoute) lignes.push({ genre: 'trajet', cible: m.plan!.cible, arrivee: m.plan!.arrivee, reste: m.plan!.arrivee - t })
   const etape = jeu.etapeActuelle()

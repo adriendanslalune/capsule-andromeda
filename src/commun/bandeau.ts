@@ -1,5 +1,6 @@
 // Le bandeau d'alertes en haut de l'écran : il affiche les lignes que le moteur lui donne (moteur/bandeau.ts).
 
+import { MODULES } from '../donnees/modules'
 import type { LigneBandeau } from '../moteur/bandeau'
 import { texteDistance } from '../moteur/navigation'
 import { autourDe, texteDateCourte, texteDuree, texteRestant } from './textes'
@@ -7,6 +8,13 @@ import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes 
 
 /** Titre et détail d'une ligne : « EN ROUTE VERS MARS », « arrivée demain à 07:10 · dans 19 h 20 min ». */
 export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string } {
+  if (l.genre === 'panne') {
+    const fiches = l.modules.map((m) => MODULES.find((f) => f.nom === m)!)
+    return {
+      titre: `PANNE : ${fiches.map((f) => f.titre.toUpperCase()).join(', ')}`,
+      detail: fiches.length === 1 ? `${fiches[0].effet} · à réparer (Capsule)` : 'à réparer (Capsule)',
+    }
+  }
   if (l.genre === 'trajet') {
     return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }
   }
@@ -30,6 +38,9 @@ export interface EtatCapsuleBandeau { credits: number; niveauMoteur: number; vit
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
 let forme = ''
 
+/** Panne : un petit triangle d'alerte qui palpite. */
+const SYMBOLE_PANNE = '<svg class="symbole alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
+
 export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
   const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''}`
   const moteur = capsule.vitesseForcee
@@ -40,7 +51,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     const { titre, detail } = texteLigne(l, t)
     textes.push(titre, detail)
     // Mission : son symbole animé (plus vif pendant l'action sur place).
-    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : ''
+    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' ? SYMBOLE_PANNE : ''
     const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
     return `<div class="ligne ${classe}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`
   })

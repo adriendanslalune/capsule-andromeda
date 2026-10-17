@@ -14,6 +14,7 @@ import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
+import { MODULES } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule } from './commun/volet-capsule'
 import { VoletMissions } from './commun/volet-missions'
@@ -259,6 +260,7 @@ function prevoir(t: number, maintenant: number): void {
     previsionPour = selection
     return
   }
+  if (!jeu.peutNaviguer()) { prevision = null; previsionPour = selection; return }
   if (selection === previsionPour && maintenant - planAJour < 1000) return
   prevision = planifier(mission.etatHeliocentrique(t), selection!, t, vitesse())
   previsionPour = selection
@@ -276,7 +278,10 @@ function mettreAJourFiche(t: number): void {
   let texte = '', depart = false, libelle = 'DÉPART'
   actionFiche = 'depart'
   const etape = jeu.etapeActuelle(), fin = jeu.finAction()
-  if (apercu) {
+  if (selection && !dejaLa(t) && enRoute?.cible !== selection && !jeu.peutNaviguer() && !apercu) {
+    // Navigation en panne : impossible de calculer un trajet.
+    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>NAVIGATION EN PANNE : impossible de calculer un trajet`
+  } else if (apercu) {
     // Aperçu d'une mission : son titre, son temps de trajet, sa récompense, et ACCEPTER.
     const duree = apercuPlans ? apercuPlans.reduce((s, p) => s + p.arrivee - p.depart, 0) : null
     texte = `<b>APERÇU · ${GENRES_COURTS[apercu.genre]}</b> · ${apercu.recompense} crédits<br>${titreContrat(apercu)}<br>`
@@ -315,6 +320,7 @@ boutonDepart.addEventListener('click', () => {
   const t = horloge()
   if (actionFiche === 'agir') { agirMission(); return }
   if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
+  if (!jeu.peutNaviguer()) return
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
@@ -409,6 +415,10 @@ function avancerMissions(t: number): void {
       carteSale = true
     }
     else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
+    else if (e.genre === 'panne') {
+      annoncer(`PANNE : ${MODULES.find((f) => f.nom === e.module)!.titre} !`)
+      apresChangementDePanne()
+    }
   }
   if (evenements.length) enregistrerPartie()
 }
@@ -428,6 +438,28 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
     voletCapsule.afficher(jeu)
     return true
   })
+}, (m) => {
+  jeu.reparer(m)
+  apresChangementDePanne()
+})
+
+/** Après une panne ou une réparation : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */
+function apresChangementDePanne(): void {
+  enregistrerPartie()
+  voletMissions.oublierDurees()
+  planAJour = 0
+  apercuAJour = 0
+  voletCapsule.afficher(jeu)
+  carteSale = true
+}
+// Essai (Réglages) : provoquer une panne au hasard parmi les modules en état.
+document.querySelector('#provoquer-panne')!.addEventListener('click', () => {
+  const libres = MODULES.filter((f) => !jeu.enPanne(f.nom))
+  if (!libres.length) return
+  const f = libres[Math.floor(Math.random() * libres.length)]
+  jeu.casser(f.nom)
+  apresChangementDePanne()
+  annoncer(`PANNE : ${f.titre} !`)
 })
 
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).

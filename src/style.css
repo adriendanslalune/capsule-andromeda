@@ -77,6 +77,11 @@ html, body {
 #bandeau .ligne b { letter-spacing: 0.04em; }
 #bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
 #bandeau .ligne.contrat b { color: #b4442f; }
+/* Panne : la ligne la plus urgente, sur fond rosé, avec un triangle qui palpite. */
+#bandeau .ligne.panne { background: color-mix(in srgb, #e04b37 16%, transparent); border-radius: 6px 6px 0 0; }
+#bandeau .ligne.panne b { color: #b4442f; }
+#bandeau .alerte { animation: palpiter 1.2s ease-in-out infinite; }
+@keyframes palpiter { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 /* Symbole animé du genre de mission, discret, devant son titre. */
 #bandeau .symbole {
   width: 15px;
@@ -256,7 +261,7 @@ html, body {
 #reglages .essais .choix label { min-height: 40px; gap: 6px; }
 #reglages .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
 
-#recommencer {
+#provoquer-panne, #recommencer {
   width: 100%;
   min-height: 44px;
   margin: 8px 0 4px;
@@ -267,6 +272,7 @@ html, body {
   border: 2px solid #e04b37;
   border-radius: 8px;
 }
+#provoquer-panne { color: var(--encre); border-color: var(--encre); }
 
 /* Volet Capsule : le moteur, l'achat du suivant, les modules. */
 #capsule { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
@@ -289,6 +295,12 @@ html, body {
   box-shadow: 2px 2px 0 var(--ombre);
 }
 #capsule button[data-choix]:disabled { opacity: 0.35; box-shadow: none; }
+#capsule .module { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#capsule .module small { opacity: 0.7; }
+#capsule .module.en-panne b, #capsule .module.en-panne small { color: #b4442f; opacity: 1; }
+#capsule .module .ok { font-weight: bold; opacity: 0.6; padding-right: 8px; }
+#capsule .panne { color: #b4442f; font-weight: bold; }
+#capsule .note { margin-top: 6px; font-size: 11px; opacity: 0.6; }
 
 /* Fenêtre « Nouveau moteur » : une carte qui s'ouvre au milieu de l'écran, un grand compteur de vitesse. */
 .fenetre {

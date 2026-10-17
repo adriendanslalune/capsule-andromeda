@@ -8,12 +8,13 @@ import type { Contrat } from './contrats'
 import { corps } from './corps'
 import { Jeu, type ContratEnCours } from './jeu'
 import type { Plan } from './mission'
+import { MODULES, type NomModule } from '../donnees/modules'
 
 /**
- * Version du format. 2 : les missions (étape 3). Une sauvegarde de version 1 (sans missions) est encore lue ; une
- * version inconnue est ignorée.
+ * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4). Les sauvegardes des versions précédentes
+ * sont encore lues (sans missions, sans pannes) ; une version inconnue est ignorée.
  */
-export const VERSION_SAUVEGARDE = 2
+export const VERSION_SAUVEGARDE = 3
 
 export interface Sauvegarde {
   version: number
@@ -28,6 +29,9 @@ export interface Sauvegarde {
   prochainId: number
   proposes: Contrat[]
   enCours: ContratEnCours | null
+  /** Pannes : modules en panne, arrivée du dernier trajet dont l'usure a été tirée. */
+  pannes: NomModule[]
+  usureJusqua: number
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -35,6 +39,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     version: VERSION_SAUVEGARDE, enregistreLe: t, credits: jeu.credits, niveauMoteur: jeu.niveauMoteur,
     orbite: jeu.mission.orbite, plan: jeu.mission.plan,
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
+    pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
   }
 }
 
@@ -64,17 +69,19 @@ function contratValide(c: unknown): c is Contrat {
 function enCoursValide(e: unknown): e is ContratEnCours {
   const v = e as ContratEnCours
   return !!v && contratValide(v.contrat) && Number.isInteger(v.etape) && v.etape >= 0 && v.etape < v.contrat.etapes.length
-    && (v.debutAction === null || nombre(v.debutAction))
+    && (v.debutAction === null || nombre(v.debutAction)) && (v.dureeAction === undefined || nombre(v.dureeAction))
 }
 
 /** Reconstruit le jeu à partir d'une sauvegarde ; null si elle est illisible ou d'un autre format. */
 export function restaurer(s: unknown): Jeu | null {
   const v = s as Sauvegarde
-  if (!v || (v.version !== 1 && v.version !== VERSION_SAUVEGARDE) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
+  if (!v || ![1, 2, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
   if (!orbiteValide(v.orbite) || (v.plan !== null && !planValide(v.plan))) return null
   const avecMissions = v.version >= 2
   if (avecMissions && (!nombre(v.graine) || !nombre(v.prochainId) || !Array.isArray(v.proposes) || !v.proposes.every(contratValide)
     || (v.enCours !== null && !enCoursValide(v.enCours)))) return null
+  const avecPannes = v.version >= 3
+  if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
   const jeu = new Jeu()
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur
@@ -86,5 +93,9 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.proposes = v.proposes
     jeu.enCours = v.enCours
   }
+  if (avecPannes) {
+    jeu.pannes = [...v.pannes]
+    jeu.usureJusqua = v.usureJusqua
+  } else jeu.usureJusqua = v.plan?.arrivee ?? 0 // pas de panne rétroactive sur le dernier trajet d'une vieille partie
   return jeu
 }
