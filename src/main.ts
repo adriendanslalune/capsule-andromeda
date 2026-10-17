@@ -13,6 +13,8 @@ import { Cadran } from './carte/cadran'
 import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
+import { ACTIONS_FINIES, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
+import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
@@ -141,6 +143,7 @@ carte.vueGenerale()
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
+  if (page === 'missions') voletMissions.afficher(jeu, horloge())
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -173,6 +176,8 @@ const fiche = document.querySelector<HTMLDivElement>('#trajet')!
 const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 let prevision: Planification | null = null
+/** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
+let actionFiche: 'depart' | 'agir' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
@@ -197,13 +202,20 @@ function prevoir(t: number, maintenant: number): void {
 const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
 
 function mettreAJourFiche(t: number): void {
-  afficherBandeau(bandeau, lignesDuBandeau(mission, t),
+  afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
     { credits: jeu.credits, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
   let texte = '', depart = false, libelle = 'DÉPART'
-  if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
+  actionFiche = 'depart'
+  const etape = jeu.etapeActuelle(), fin = jeu.finAction()
+  if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
+    // Sur le lieu de la mission : le bouton de l'action (RÉPARER, LIVRER…), puis le temps qui reste.
+    texte = `<b>${etape.lieu.toUpperCase()}</b> · mission<br>${titreContrat(jeu.enCours!.contrat)}`
+    if (fin !== null) texte += `<br>${NOMS_ACTIONS[etape.action]} en cours · ${texteSecondes(fin - t)}`
+    else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
+  } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     texte = `<b>${selection.toUpperCase()}</b><br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
@@ -228,6 +240,7 @@ function mettreAJourFiche(t: number): void {
 
 boutonDepart.addEventListener('click', () => {
   const t = horloge()
+  if (actionFiche === 'agir') { agirMission(); return }
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
@@ -251,6 +264,40 @@ const gestesCarte = new Gestes(toilePlan, {
 })
 
 document.addEventListener('gesturestart', (e) => e.preventDefault())
+
+// --- Missions (« contrats » dans le moteur) : volet, action sur place, messages.
+const message = document.querySelector<HTMLDivElement>('#message')!
+let finMessage = 0
+function annoncer(texte: string): void {
+  message.textContent = texte
+  message.hidden = false
+  finMessage = performance.now() + 4000
+}
+function agirMission(): void {
+  if (jeu.agir(horloge())) { enregistrerPartie(); carteSale = true; dernierVolet = 0 }
+}
+const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('#missions')!, {
+  accepter: (id) => { if (jeu.accepter(id, horloge())) { enregistrerPartie(); dernierVolet = 0 } },
+  allerA: (lieu) => { cockpit.fermer(); choisir(lieu, true); proposee = true; planAJour = 0 },
+  agir: agirMission,
+  abandonner: () => {
+    if (!confirm('Abandonner la mission en cours ?')) return
+    jeu.abandonner()
+    enregistrerPartie()
+    dernierVolet = 0
+  },
+})
+/** Fait avancer les missions (actions finies, récompenses) et prévient le joueur. */
+function avancerMissions(t: number): void {
+  const evenements = jeu.avancer(t)
+  for (const e of evenements) {
+    if (e.genre === 'contrat-fini') annoncer(`Mission terminée : +${e.contrat.recompense} crédits`)
+    else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
+    else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
+  }
+  if (evenements.length) enregistrerPartie()
+}
+let dernierVolet = 0
 
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).
 surveillerMisesAJour(enregistrerPartie)
@@ -287,7 +334,10 @@ function image(maintenant: number): void {
   const t = horloge()
   const sel = infosSelection(t)
   prevoir(t, maintenant)
+  avancerMissions(t)
   mettreAJourFiche(t)
+  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t); dernierVolet = maintenant }
+  if (!message.hidden && maintenant > finMessage) message.hidden = true
   const accent = '#d9694f'
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null

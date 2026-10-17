@@ -11,7 +11,7 @@ describe('état du jeu au départ (décision d’Adrien du 17/10/2026)', () => {
     expect(jeu.credits).toBe(0)
     expect(jeu.niveauMoteur).toBe(1)
     expect(jeu.vitesse()).toBe(30)
-    expect(lignesDuBandeau(jeu.mission, t0)[0]).toMatchObject({ genre: 'orbite', centre: 'Terre' })
+    expect(lignesDuBandeau(jeu, t0)[0]).toMatchObject({ genre: 'orbite', centre: 'Terre' })
   })
 
   it('le moteur fixe la durée des trajets : la Lune en quelques heures', () => {

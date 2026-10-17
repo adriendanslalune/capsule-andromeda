@@ -3,13 +3,13 @@
 // referme en touchant de nouveau l'onglet, avec le bouton Fermer, en le glissant vers le bas ou en touchant la carte.
 // Les onglets pas encore développés sont visibles mais grisés (désactivés dans la page).
 
-export type Page = 'navigation' | 'capsule' | 'plus' | 'reglages'
+export type Page = 'navigation' | 'capsule' | 'missions' | 'plus' | 'reglages'
 
 const TITRES: Record<Page, string> = {
-  navigation: 'NAVIGATION', capsule: 'CAPSULE', plus: 'PLUS', reglages: 'RÉGLAGES',
+  navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'MISSIONS', plus: 'PLUS', reglages: 'RÉGLAGES',
 }
 /** Onglet allumé pour chaque page (Réglages s'ouvre depuis « Plus »). */
-const ONGLET: Record<Page, string> = { navigation: 'navigation', capsule: 'capsule', plus: 'plus', reglages: 'plus' }
+const ONGLET: Record<Page, string> = { navigation: 'navigation', capsule: 'capsule', missions: 'missions', plus: 'plus', reglages: 'plus' }
 
 export class Cockpit {
   private page: Page | null = null
@@ -44,6 +44,11 @@ export class Cockpit {
 
   get ouvert(): boolean {
     return this.page !== null
+  }
+
+  /** Page ouverte (null si le volet est fermé). */
+  get pageOuverte(): Page | null {
+    return this.page
   }
 
   ouvrir(page: Page): void {

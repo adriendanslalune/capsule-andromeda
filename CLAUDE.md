@@ -19,6 +19,8 @@ Maisons (attribuées selon les activités du joueur, profil en toile d'araignée
 - Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps.
 - Mercenaires : escortes, chasse aux pirates et aliens, dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles.
 
+Missions partout (décision d'Adrien du 17/10/2026) : des épaves à nettoyer partout dans le système solaire, tout le temps (un Nettoyeur doit toujours en trouver) ; les livraisons et les dépannages (satellites, fusées) sont aussi des missions permanentes, dans tout le système solaire, pas seulement autour de la Terre.
+
 Pannes : système de modules à réparer avec un manuel. Les aliens tirent parfois des missiles (décompte visible sur la carte) ; un impact ralentit le trajet de 50 % jusqu'à réparation.
 
 Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via le chat et les échanges. Serveur plus tard (type Supabase).

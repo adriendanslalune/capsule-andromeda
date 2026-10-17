@@ -14,13 +14,17 @@
   <body>
     <canvas id="plan"></canvas>
     <div id="infos"></div>
-    <div id="bandeau"></div>
-    <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div></div>
+    <div id="haut">
+      <div id="bandeau"></div>
+      <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div></div>
+    </div>
+    <div id="message" hidden></div>
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
     <div id="volet" hidden>
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
       <div class="page" data-contenu="navigation" id="cadran"></div>
       <div class="page" data-contenu="capsule" hidden><p class="a-venir">Contenu à définir. Les crédits et le moteur sont dans le bandeau, en haut.</p></div>
+      <div class="page" data-contenu="missions" id="missions" hidden></div>
       <div class="page" data-contenu="plus" hidden>
         <button type="button" class="rubrique" disabled>Armement</button>
         <button type="button" class="rubrique" disabled>Marché</button>
@@ -56,7 +60,7 @@
     <nav id="onglets">
       <button type="button" data-onglet="navigation">Navigation</button>
       <button type="button" data-onglet="capsule">Capsule</button>
-      <button type="button" data-onglet="missions" disabled>Missions</button>
+      <button type="button" data-onglet="missions">Missions</button>
       <button type="button" data-onglet="manuel" disabled>Manuel</button>
       <button type="button" data-onglet="plus">Plus</button>
     </nav>

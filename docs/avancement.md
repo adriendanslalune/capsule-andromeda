@@ -31,9 +31,14 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   dépanner (un satellite). Tirage au hasard reproductible, récompense selon la distance, action de 2 minutes,
   interrompue si la capsule repart ; abandon possible sans pénalité. Dans le code, « contrats »
   (`src/donnees/contrats.ts`, `src/moteur/contrats.ts`, `src/moteur/jeu.ts`, testés).
-- 3.2 Volet Missions et ligne du bandeau — à faire.
+- 3.2 Volet Missions et ligne du bandeau — **fait, en attente de validation** : onglet Missions actif ; mission en
+  cours (étapes, Y ALLER qui prépare le trajet, bouton de l'action sur place, abandonner) et 4 missions proposées
+  (ACCEPTER) ; ligne « MISSION : GENRE · LIEU » dans le bandeau (quoi faire, ou temps restant de l'action) ; sur place,
+  la fiche du bas propose l'action (NETTOYER, CHARGER, LIVRER, RÉPARER) ; messages brefs (mission terminée,
+  cargaison chargée, action interrompue) (`src/commun/volet-missions.ts`, `src/commun/textes-missions.ts`).
 - 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
-- 3.4 Sauvegarde des missions — à faire.
+- 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
+  lues).
 
 ---
 

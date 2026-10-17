@@ -51,25 +51,32 @@ html, body {
   text-shadow: -1px -1px 0 var(--fond), 1px -1px 0 var(--fond), -1px 1px 0 var(--fond), 1px 1px 0 var(--fond);
 }
 /* Bandeau d'alertes, en haut, toujours visible : trajet en cours, ou l'état calme (en orbite). */
-#bandeau {
+/* Le haut de l'écran : le bandeau, puis le titre du système juste en dessous (il suit la hauteur du bandeau). */
+#haut {
   position: fixed;
   left: 8px;
   right: 8px;
   top: calc(24px + env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 2;
+}
+#bandeau {
   background: var(--creme);
   border: 2px solid var(--encre);
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--ombre);
   font-size: 12px;
   line-height: 1.4;
-  pointer-events: none;
-  z-index: 2;
 }
 #bandeau:empty { display: none; }
 #bandeau .ligne { display: flex; flex-direction: column; padding: 5px 12px; }
 #bandeau .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
 #bandeau .ligne b { letter-spacing: 0.04em; }
 #bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
+#bandeau .ligne.contrat b { color: #b4442f; }
 /* Pied du bandeau : crédits et moteur, toujours visibles. */
 #bandeau .etat {
   display: flex;
@@ -81,10 +88,7 @@ html, body {
 }
 
 #titre-carte {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  top: calc(102px + env(safe-area-inset-top));
+  padding: 0 4px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -226,6 +230,78 @@ html, body {
   border: 2px solid #e04b37;
   border-radius: 8px;
 }
+
+/* Volet Missions : la mission en cours et les missions proposées. */
+#missions { padding: 0 0 12px; }
+#missions h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
+#missions .contrat {
+  margin: 6px 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1.5px solid var(--encre);
+  border-radius: 8px;
+}
+#missions .contrat.en-cours { border-width: 2.5px; background: var(--creme); }
+#missions .titre { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+#missions .genre { font-size: 10px; letter-spacing: 0.1em; opacity: 0.7; }
+#missions .prix { font-weight: bold; white-space: nowrap; }
+#missions .pied { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px; opacity: 0.9; }
+#missions ol { list-style: none; margin: 6px 0; font-size: 12px; }
+#missions li { padding: 2px 0; opacity: 0.55; }
+#missions li.actuelle { opacity: 1; font-weight: bold; }
+#missions li.faite { opacity: 0.55; text-decoration: line-through; }
+#missions .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+#missions .consigne { font-size: 12px; }
+#missions .action-en-cours { font-weight: bold; padding: 10px 0; }
+#missions button[data-choix] {
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--encre);
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--ombre);
+}
+#missions button.principal { color: #fff; background: #d9694f; }
+#missions button[data-choix]:disabled { opacity: 0.35; box-shadow: none; }
+#missions button.abandon {
+  margin-top: 8px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 11px;
+  font-weight: normal;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+#missions .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
+
+/* Message bref (mission terminée, cargaison chargée…), au-dessus de la fiche. */
+#message {
+  position: fixed;
+  left: 50%;
+  bottom: calc(150px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  color: #1f1b18;
+  background: var(--moutarde);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--ombre);
+  pointer-events: none;
+  z-index: 5;
+}
+#message[hidden] { display: none; }
 
 /* Navigation : la liste des astres et leur distance (le cadran). */
 #cadran { padding: 0 0 12px; }
