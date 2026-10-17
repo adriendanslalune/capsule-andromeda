@@ -10,9 +10,6 @@ Légende : **fait** / **en cours** / **à faire**.
 - Fait : Soleil, planètes (VSOP87), Pluton, 453 lunes, sondes lointaines (JPL), silhouettes d'engins
   (`src/moteur/corps.ts`, `src/carte/engins.ts`).
 - Manque : satellites artificiels — seuls l'ISS, Hubble et Tiangong existent (données CelesTrak bloquées par le réseau).
-- Écart avec CLAUDE.md : les astres sont dessinés **grossis** (×50, Soleil ×20) et **illustrés en couleurs pastel**
-  (style « Moebius », fond blanc cassé), alors que CLAUDE.md demande des **ronds noirs à taille réelle** sur fond blanc.
-  À trancher par Doudou.
 
 ## 2. Repères (crochet, étiquette, flèche hors champ) et capsule — fait
 

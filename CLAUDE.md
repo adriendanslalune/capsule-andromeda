@@ -1,16 +1,14 @@
 # Capsule Andromeda
 
 ## À lire en premier
-Capsule Andromeda est un jeu entièrement nouveau. Ce n'est pas une amélioration de l'ancien jeu « Manuel de vol », qui est dans un autre dépôt.
-
-Au début de chaque session : lire ce fichier et docs/avancement.md. À la fin de chaque étape : mettre à jour docs/avancement.md. Ne jamais passer à l'étape suivante sans validation de Doudou. Doudou teste sur son téléphone : publier chaque version sur GitHub Pages et lui donner l'adresse.
+Au début de chaque session : lire ce fichier et docs/avancement.md. À la fin de chaque étape : mettre à jour docs/avancement.md. Ne jamais passer à l'étape suivante sans validation d'Adrien. Adrien teste sur son téléphone : chaque version est fusionnée sur `main`, ce qui la publie sur GitHub Pages (https://adriendanslalune.github.io/capsule-andromeda/) ; lui donner l'adresse.
 
 ## Le jeu
 Monde ouvert semi-multijoueur pour téléphone uniquement (HTML, vertical), dans le vrai système solaire : positions réelles (éphémérides), vraies distances, vrai délai de la lumière, temps réel. Pas de game over, pas de compte à rebours.
 
 Trame : des envahisseurs venus d'Andromède occupent le système solaire. Le joueur, aux commandes de sa « capsule », reconquiert les zones une à une (Lune, Mars, lunes de Jupiter, Saturne, Uranus) jusqu'à Triton, qui est en réalité leur vaisseau déguisé en lune (boss final de l'acte 1). N'importe quelle activité aide à libérer une zone. La campagne est facultative.
 
-Direction artistique : vue 2D du dessus, fond blanc, astres en ronds noirs à taille réelle (un astre de moins d'un pixel devient un point, comme les étoiles). Les engins ont des silhouettes reconnaissables en noir, visibles en zoom rapproché.
+Direction artistique : vue 2D du dessus, style « Moebius » (validé par Adrien) : fond blanc cassé, encre brun-violet, astres illustrés en aplats pastel, face de nuit en aplat violet avec hachures fines le long du terminateur. Astres grossis mais proportionnés ; en dézoomant ils rétrécissent jusqu'au point. Les engins ont des silhouettes reconnaissables, visibles en zoom rapproché.
 
 Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : un pointillé vers la position actuelle de la cible, une courbe pour la vraie trajectoire orbitale jusqu'au point de rencontre. Durée du trajet selon la puissance des moteurs.
 
@@ -33,4 +31,4 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 ## Feuille de route
 1. Prototype 1 : carte et navigation (en cours).
 2. Prototype 2 : combat (plus tard).
-Le document de conception complet est chez Doudou. Ne rien inventer qui n'est pas ici : en cas de doute, demander.
+Le document de conception complet est chez Adrien. Ne rien inventer qui n'est pas ici : en cas de doute, demander.
