@@ -42,7 +42,10 @@ const ECHELLE_ENGIN = 0.75
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
-const KM_PAR_PX_MAX = (60 * UA_KM) / 180
+/** Dézoom maximal : jusqu'aux Voyager (demi-largeur de 200 UA), pour voir New Horizons et au-delà. */
+const KM_PAR_PX_MAX = (200 * UA_KM) / 195
+/** Planètes extérieures : elles ne rétrécissent qu'une fois New Horizons à l'écran (demande d'Adrien, 17/10/2026). */
+const EXTERIEURES = new Set(['Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'])
 const DE: Record<string, string> = { Terre: 'DE LA ', Uranus: "D'" }
 /** Étendue des astres illustrés, en rayons du disque : rayons du Soleil, anneaux de Saturne et d'Uranus. */
 const ETENDUES: Record<string, number> = { Soleil: 2.6, Saturne: 2.35, Uranus: 1.7 }
@@ -109,6 +112,8 @@ export class Carte2D {
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
+  /** Position de New Horizons par rapport au Soleil (km), mise à jour à chaque image. */
+  private newHorizons = { x: 66 * UA_KM, y: 0 }
   private dessines: Dessine[] = []
   /** Angle du chevron de la capsule à l'écran (pour le faire pivoter en douceur) et instant du dernier dessin. */
   private angleCapsule: number | null = null
@@ -133,10 +138,15 @@ export class Carte2D {
 
   /** Rayon dessiné (pixels) : grossi mais proportionné, jamais sous le minimum de l'astre. */
   private rayon(c: Corps): number {
-    // Soleil et planètes : tailles minimales à l'échelle de la vue générale ; en dézoomant, toutes rétrécissent dans la
-    // même proportion, jusqu'au point (demande d'Adrien, 17/10/2026).
+    // Soleil et planètes intérieures : tailles minimales à l'échelle de la vue générale ; en dézoomant, elles
+    // rétrécissent ensemble, jusqu'au point. Les planètes extérieures, assez éloignées les unes des autres, gardent leur
+    // taille tant que New Horizons n'est pas entré dans l'écran (Soleil au milieu) (demandes d'Adrien, 17/10/2026).
+    const facteur = EXTERIEURES.has(c.nom)
+      ? Math.max(Math.abs(this.newHorizons.x) / (this.largeur / 2), Math.abs(this.newHorizons.y) / (this.hauteur / 2))
+        / this.kmParPx
+      : VUE_GENERALE / (this.largeur / 2) / this.kmParPx
     const minimum = MINIMUMS[c.nom] !== undefined && c.type !== 'lune'
-      ? Math.max(RAYON_POINT, MINIMUMS[c.nom] * Math.min(1, VUE_GENERALE / (this.largeur / 2) / this.kmParPx))
+      ? Math.max(RAYON_POINT, MINIMUMS[c.nom] * Math.min(1, facteur))
       : MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)
     return Math.max(minimum, rayonDessine(c.nom) / this.kmParPx)
   }
@@ -178,6 +188,8 @@ export class Carte2D {
     selection: string | null, directionCapsule?: { x: number; y: number } | null):
     { x: number; y: number; r: number; visible: boolean } | null {
     ctx.clearRect(0, 0, this.largeur, this.hauteur)
+    const nh = position('New Horizons', t)
+    this.newHorizons = { x: nh.x, y: nh.y }
     // Moebius : couleurs adoucies vers le sable, encre brun-violet.
     const couleurDe = (c: Corps) => melanger(couleurAstre(c), '#f7e8cc', 0.3)
     if (couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
