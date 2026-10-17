@@ -5,7 +5,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | Étape | État |
 |---|---|
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
-| 2. Cadre du cockpit et socle de jeu | **à faire** — plan proposé à Adrien, en attente de validation |
+| 2. Cadre du cockpit et socle de jeu | **en cours** (détail ci-dessous) |
 | 3. Tutoriel autour de la Terre | à faire |
 | 4. Pannes et manuel | à faire |
 | 5. Nettoyeurs | à faire |
@@ -15,6 +15,22 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 9. Première zone à libérer : la Lune | à faire |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Version installable (PWA), puis boutique | à faire |
+
+---
+
+# Étape 2 : cadre du cockpit et socle de jeu
+
+Plan validé par Adrien le 17/10/2026 (interface dans les tons Moebius de la carte ; réglages rangés dans
+« Plus › Réglages » ; moteur niveau 1 à 30 km/s, sans limite de portée pour l'instant ; heures à l'heure du lieu du
+joueur).
+
+- 2.1 Barre d'onglets et volets — **fait, en attente de validation** : barre de 5 onglets en bas (Missions et Manuel
+  grisés), volets qui montent du bas (Navigation = l'ancien cadran ; Capsule à venir ; Plus : Armement, Marché,
+  Messages, Profil grisés, et Réglages). Fermeture : onglet, Fermer, glisser vers le bas, toucher la carte
+  (`src/commun/cockpit.ts`). Heures affichées à l'heure locale du téléphone.
+- 2.2 Bandeau d'alertes en haut — à faire.
+- 2.3 État de la capsule et volet Capsule — à faire.
+- 2.4 Sauvegarde locale — à faire.
 
 ---
 

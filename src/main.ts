@@ -10,6 +10,7 @@ import './style.css'
 /** Version construite (le commit), remplacée par Vite. */
 declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
+import { Cockpit } from './commun/cockpit'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
 import { Gestes } from './commun/gestes'
@@ -87,8 +88,7 @@ try {
   for (const cle of Object.keys(reglages) as (keyof typeof reglages)[]) if (cle in memo) Object.assign(reglages, { [cle]: memo[cle] })
 } catch { /* navigation privée : on garde les réglages de départ */ }
 const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ } }
-const panneau = document.querySelector<HTMLDivElement>('#panneau')!
-document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
+const panneau = document.querySelector<HTMLDivElement>('#reglages')!
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
   const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'vitesse'>
   caseACocher.checked = reglages[cle]
@@ -122,8 +122,11 @@ function choisir(nom: string | null, cadrer = false): void {
 boutonRetour.addEventListener('click', () => carte.vueGenerale())
 carte.vueGenerale()
 
-const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => choisir(nom, true), horloge)
-document.querySelector('#bouton-cadran')!.addEventListener('click', () => cadran.ouvrir(selection))
+// Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
+const cockpit = new Cockpit((page) => { if (page === 'navigation') cadran.afficher(selection) })
+const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
+// Toucher la carte referme le volet.
+toilePlan.addEventListener('pointerdown', () => cockpit.fermer())
 
 // --- Réglages d'essai : accélération du temps et puissance des moteurs.
 for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acceleration"]')) {
@@ -161,7 +164,8 @@ function texteDuree(ms: number): string {
   const ans = Math.floor(j / 365.25), mois = Math.round((j % 365.25) / 30.44)
   return `${ans} an${ans > 1 ? 's' : ''}${mois ? ` ${mois} mois` : ''}`
 }
-const texteDate = (t: number) => new Date(t).toLocaleDateString('fr', { day: 'numeric', month: 'long', year: 'numeric' })
+/** Date et heure à l'heure du lieu du joueur (fuseau du téléphone) : « 17 octobre 2026 à 19:42 ». */
+const texteDate = (t: number) => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
 /** « autour de la Terre », « autour d'Uranus », « autour du Soleil », « à côté de l'ISS »… */
 function autourDe(nom: string): string {
@@ -338,7 +342,9 @@ function image(maintenant: number): void {
     images = 0
     debutCompte = maintenant
     const avance = t - Date.now()
-    infos.textContent = `${new Date(t).toISOString().slice(0, 19).replace('T', ' ')} UTC · ${ips} i/s · v${__VERSION__}`
+    // Heure du lieu du joueur (fuseau du téléphone) ; le moteur, lui, compte en temps universel.
+    const heure = new Date(t).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })
+    infos.textContent = `${heure} · ${ips} i/s · v${__VERSION__}`
       + (acceleration > 1 || avance > 60_000 ? ` · temps ×${acceleration.toLocaleString('fr')} (+${texteDuree(avance)})` : '')
   }
   requestAnimationFrame(image)

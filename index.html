@@ -15,31 +15,48 @@
     <canvas id="plan"></canvas>
     <div id="infos"></div>
     <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div></div>
-    <button id="bouton-cadran" type="button">CADRAN</button>
-    <button id="bouton-reperes" type="button">Repères</button>
-    <div id="cadran"></div>
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
-    <div id="panneau">
-      <div class="groupe">Destination :
-        <label><input type="checkbox" data-reglage="crochet" /> Crochet</label>
-        <label><input type="checkbox" data-reglage="etiquette" /> Étiquette (nom, distance)</label>
-        <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
+    <div id="volet" hidden>
+      <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
+      <div class="page" data-contenu="navigation" id="cadran"></div>
+      <div class="page" data-contenu="capsule" hidden><p class="a-venir">L'état de la capsule (crédits, moteur, modules) arrive bientôt.</p></div>
+      <div class="page" data-contenu="plus" hidden>
+        <button type="button" class="rubrique" disabled>Armement</button>
+        <button type="button" class="rubrique" disabled>Marché</button>
+        <button type="button" class="rubrique" disabled>Messages</button>
+        <button type="button" class="rubrique" disabled>Profil</button>
+        <button type="button" class="rubrique" data-page="reglages">Réglages ›</button>
       </div>
-      <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
-      <label><input type="checkbox" data-reglage="noms" /> Noms</label>
-      <label><input type="checkbox" data-reglage="nuit" /> Mode nuit</label>
-      <div class="groupe essais">Essais — accélérer le temps :
-        <div class="choix">
-          <label><input type="radio" name="acceleration" value="1" /> ×1</label>
-          <label><input type="radio" name="acceleration" value="60" /> 1 min/s</label>
-          <label><input type="radio" name="acceleration" value="3600" /> 1 h/s</label>
-          <label><input type="radio" name="acceleration" value="86400" /> 1 j/s</label>
-          <label><input type="radio" name="acceleration" value="2592000" /> 1 mois/s</label>
+      <div class="page" data-contenu="reglages" id="reglages" hidden>
+        <button type="button" class="retour" data-page="plus">‹ Plus</button>
+        <div class="groupe">Destination :
+          <label><input type="checkbox" data-reglage="crochet" /> Crochet</label>
+          <label><input type="checkbox" data-reglage="etiquette" /> Étiquette (nom, distance)</label>
+          <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
         </div>
-        Puissance des moteurs (vitesse) : <span id="texte-budget"></span>
-        <input id="budget" type="range" min="0" max="100" step="1" />
+        <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
+        <label><input type="checkbox" data-reglage="noms" /> Noms</label>
+        <label><input type="checkbox" data-reglage="nuit" /> Mode nuit</label>
+        <div class="groupe essais">Essais — accélérer le temps :
+          <div class="choix">
+            <label><input type="radio" name="acceleration" value="1" /> ×1</label>
+            <label><input type="radio" name="acceleration" value="60" /> 1 min/s</label>
+            <label><input type="radio" name="acceleration" value="3600" /> 1 h/s</label>
+            <label><input type="radio" name="acceleration" value="86400" /> 1 j/s</label>
+            <label><input type="radio" name="acceleration" value="2592000" /> 1 mois/s</label>
+          </div>
+          Puissance des moteurs (vitesse) : <span id="texte-budget"></span>
+          <input id="budget" type="range" min="0" max="100" step="1" />
+        </div>
       </div>
     </div>
+    <nav id="onglets">
+      <button type="button" data-onglet="navigation">Navigation</button>
+      <button type="button" data-onglet="capsule">Capsule</button>
+      <button type="button" data-onglet="missions" disabled>Missions</button>
+      <button type="button" data-onglet="manuel" disabled>Manuel</button>
+      <button type="button" data-onglet="plus">Plus</button>
+    </nav>
     <div id="paysage">Tiens ton téléphone à la verticale.</div>
     <script type="module" src="/src/main.ts"></script>
   </body>

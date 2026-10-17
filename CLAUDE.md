@@ -40,7 +40,8 @@ La carte en plein écran est l'interface principale du joueur : c'est le cockpit
 - Bandeau d'alertes en haut, toujours visible : missile en approche avec décompte, panne en cours, ralentissement, trajet en cours avec heure d'arrivée.
 - Volets qui montent du bas, ouverts depuis une barre de 5 onglets accessible au pouce : Navigation, Capsule (crédits, moteur, modules), Missions, Manuel, et « Plus » (Armement, Marché, Messages, Profil).
 - Les onglets pas encore développés sont visibles mais grisés.
-- Même direction artistique que la carte : noir et blanc, une seule couleur d'alerte.
+- Même direction artistique que la carte : les tons Moebius de la carte (décision d'Adrien du 17/10/2026, qui remplace « noir et blanc, une seule couleur d'alerte »).
+- Heures affichées à l'heure du lieu du joueur (fuseau du téléphone ; pour Adrien, Paris). Le moteur compte en temps universel (UTC).
 Ces choix sont provisoires et seront ajustés après test sur téléphone.
 
 ## Feuille de route

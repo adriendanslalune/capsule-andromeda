@@ -75,64 +75,45 @@ html, body {
 }
 #bouton-retour[hidden] { display: none; }
 
-/* Boutons du bas : CADRAN à gauche, Repères à droite. */
-#bouton-cadran, #bouton-reperes {
-  position: fixed;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  min-width: 44px;
-  height: 44px;
-  padding: 0 10px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 0.04em;
-  color: #1f1b18;
-  background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
-}
-#bouton-cadran { left: 12px; background: var(--moutarde); }
-#bouton-reperes { right: 12px; font-weight: normal; color: var(--encre); }
-
-#panneau {
-  display: none;
-  position: fixed;
-  right: 12px;
-  bottom: calc(66px + env(safe-area-inset-bottom));
-  max-height: calc(100dvh - 130px);
-  overflow-y: auto;
-  padding: 4px 12px;
-  background: var(--fond);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
-  font-size: 14px;
-  z-index: 2;
-}
-#panneau.ouvert { display: block; }
-#panneau label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-}
-#panneau input { width: 20px; height: 20px; accent-color: var(--encre); }
-#panneau .groupe {
-  padding: 6px 0 4px;
-  border-bottom: 1px solid var(--encre);
-  margin-bottom: 2px;
-}
-#panneau .groupe label { min-height: 40px; }
-
-/* Cadran de navigation : une feuille qui monte du bas, la liste des astres et leur distance. */
-#cadran {
-  display: none;
+/* Barre des cinq onglets, en bas, à portée du pouce (étape 2 : cadre du cockpit). */
+#onglets {
   position: fixed;
   left: 8px;
   right: 8px;
   bottom: calc(8px + env(safe-area-inset-bottom));
-  top: calc(48px + env(safe-area-inset-top));
+  display: flex;
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 var(--ombre);
+  overflow: hidden;
+  z-index: 4;
+}
+#onglets button {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 2px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: var(--encre);
+  background: transparent;
+  border: none;
+  border-left: 1px solid color-mix(in srgb, var(--encre) 35%, transparent);
+}
+#onglets button:first-child { border-left: none; }
+#onglets button.actif { color: #1f1b18; background: var(--moutarde); }
+#onglets button:disabled, #volet .rubrique:disabled { opacity: 0.35; }
+
+/* Volet : une feuille qui monte du bas, au-dessus de la barre d'onglets. */
+#volet {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display: flex;
   flex-direction: column;
   background: var(--fond);
   border: 2.5px solid var(--encre);
@@ -140,12 +121,12 @@ html, body {
   box-shadow: 4px 4px 0 var(--ombre);
   z-index: 3;
 }
-#cadran.ouvert { display: flex; }
-#cadran .entete {
+#volet[hidden] { display: none; }
+#volet .entete {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px 6px 14px;
+  padding: 0 4px 0 14px;
   border-bottom: 2px solid var(--encre);
   font-weight: bold;
   font-size: 13px;
@@ -153,8 +134,60 @@ html, body {
   background: var(--moutarde);
   color: #1f1b18;
   border-radius: 9px 9px 0 0;
+  touch-action: none;
 }
-#cadran .entete button, #cadran .deplier {
+#volet .entete button {
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  color: #1f1b18;
+  background: transparent;
+  border: none;
+}
+#volet .page { overflow-y: auto; }
+#volet .page[hidden] { display: none; }
+#volet .a-venir { padding: 18px 14px; font-size: 13px; opacity: 0.7; }
+#volet .rubrique, #volet .retour {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--encre);
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent);
+}
+#volet .retour { font-size: 13px; min-height: 44px; }
+
+/* Réglages (dans « Plus ») : les cases d'affichage et les essais. */
+#reglages { padding: 0 14px 8px; font-size: 14px; }
+#reglages .retour { margin: 0 -14px; width: calc(100% + 28px); }
+#reglages label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+#reglages input { width: 20px; height: 20px; accent-color: var(--encre); }
+#reglages .groupe {
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--encre);
+  margin-bottom: 2px;
+}
+#reglages .groupe label { min-height: 40px; }
+#reglages .essais { border-bottom: none; font-size: 12px; }
+#reglages .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
+#reglages .essais .choix label { min-height: 40px; gap: 6px; }
+#reglages .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
+
+/* Navigation : la liste des astres et leur distance (le cadran). */
+#cadran { padding: 0 0 12px; }
+#cadran .deplier {
   min-height: 44px;
   padding: 0 12px;
   font: inherit;
@@ -163,8 +196,6 @@ html, body {
   background: transparent;
   border: none;
 }
-#cadran .entete button { color: #1f1b18; font-weight: bold; }
-#cadran .liste { overflow-y: auto; padding: 4px 0 12px; }
 #cadran h3 {
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -197,7 +228,7 @@ html, body {
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(68px + env(safe-area-inset-bottom));
+  bottom: calc(70px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -226,10 +257,6 @@ html, body {
   box-shadow: 2px 2px 0 var(--ombre);
 }
 #bouton-depart[hidden] { display: none; }
-#panneau .essais { border-bottom: none; font-size: 12px; }
-#panneau .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
-#panneau .essais .choix label { min-height: 40px; gap: 6px; }
-#panneau .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
 
 #paysage {
   display: none;
