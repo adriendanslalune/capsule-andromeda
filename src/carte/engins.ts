@@ -5,7 +5,8 @@ const CORPS = '#23476b', PANNEAU = '#8fd0dc', OR = '#f2b53a', ROSE = '#f3a08b', 
 
 type Forme = 'station' | 'tiangong' | 'telescope' | 'webb' | 'gaia' | 'bouclier' | 'antenne' | 'sonde' | 'voiture'
 const FORMES: Record<string, Forme> = {
-  iss: 'station', tiangong: 'tiangong', hubble: 'telescope', webb: 'webb', gaia: 'gaia', parker: 'bouclier',
+  iss: 'station', tiangong: 'tiangong', hubble: 'telescope', observatoire: 'telescope', satellite: 'sonde', webb: 'webb',
+  gaia: 'gaia', parker: 'bouclier',
   'solar-orbiter': 'bouclier', roadster: 'voiture', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
 }
 

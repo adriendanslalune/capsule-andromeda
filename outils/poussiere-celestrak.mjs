@@ -3,20 +3,21 @@
 // Méthode : on télécharge chez CelesTrak les orbites publiées (TLE) de tous les satellites actifs, on en garde les six
 // éléments utiles, ramenés à un même instant de référence (minuit UTC du jour du téléchargement), arrondis (la
 // poussière est décorative : quelques kilomètres d'écart ne se voient pas). Les engins qui ont leur propre fiche dans
-// le jeu (ISS, Hubble, Tiangong…) sont retirés : ils sont dessinés à part.
+// le jeu (ISS, Hubble, Tiangong, la sélection…) sont retirés : ils sont dessinés à part.
 // Pas de mise à jour régulière prévue (décision d'Adrien du 17/10/2026).
 //
 // Usage : NODE_USE_ENV_PROXY=1 node outils/poussiere-celestrak.mjs   (réponse gardée dans outils/.cache/ ;
 //         ajouter --frais pour retélécharger)
 
 import fs from 'node:fs'
+import { ENGINS } from '../src/donnees/engins.ts'
 import { elementsTLE } from '../src/moteur/poussiere.ts'
 
 const ADRESSE = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle'
 const CACHE = new URL('./.cache/celestrak-actifs.txt', import.meta.url)
 const SORTIE = new URL('../src/donnees/poussiere.ts', import.meta.url)
-/** Numéros NORAD des engins qui ont leur fiche (src/donnees/engins.ts, src/donnees/iss.ts). */
-const A_PART = new Set(['25544', '20580', '48274'])
+/** Numéros NORAD des engins qui ont leur fiche (src/donnees/engins.ts ; l'ISS, src/donnees/iss.ts). */
+const A_PART = new Set(['25544', ...ENGINS.filter((e) => e.tle).map((e) => e.tle.ligne1.slice(2, 7).trim())])
 
 async function telecharger() {
   // CelesTrak coupe parfois la connexion : on réessaie.

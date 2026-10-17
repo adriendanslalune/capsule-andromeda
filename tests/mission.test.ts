@@ -83,6 +83,23 @@ describe('le trajet', () => {
   })
 })
 
+describe('la sélection de satellites de la Terre', () => {
+  const SELECTION = ['Chandra', 'Fermi', 'Swift', 'TESS', 'Terra', 'Landsat 9', 'Sentinel-2B', 'GOES-19', 'Meteosat-12',
+    'Himawari-9', 'GPS III-1', 'Galileo 101', 'Vanguard 1', 'Envisat']
+
+  it('chacun est une destination atteignable, et la capsule arrive bien dessus', () => {
+    for (const cible of SELECTION) {
+      expect(corps(cible)?.type, cible).toBe('satellite')
+      const m = new Mission()
+      const p = planifier(m.etatHeliocentrique(t0), cible, t0, 120)
+      if (!p.possible) throw new Error(`${cible} impossible`)
+      m.partir(p.plan)
+      const fin = p.plan.arrivee - 1
+      expect(distance(m.etat(fin).position, position(cible, fin)), cible).toBeLessThan(5)
+    }
+  })
+})
+
 describe('durées selon la puissance (pour choisir le réglage)', () => {
   it('tableau', () => {
     const m = new Mission()

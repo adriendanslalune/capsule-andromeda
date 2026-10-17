@@ -10,11 +10,12 @@ Légende : **fait** / **en cours** / **à faire**.
 - Fait : Soleil, planètes (VSOP87), Pluton, 453 lunes, sondes lointaines (JPL), silhouettes d'engins
   (`src/moteur/corps.ts`, `src/carte/engins.ts`).
 - Satellites artificiels (choix d'Adrien du 17/10/2026 : « le mélange ») :
-  - fait : la **poussière**, tous les satellites actifs (≈ 15 900, CelesTrak) en fins points décoratifs autour de la
-    Terre (`src/moteur/poussiere.ts`, `outils/poussiere-celestrak.mjs`). Pas de mise à jour régulière des orbites
-    (décision d'Adrien : seules les orbites des planètes comptent) — en attente de validation ;
-  - à faire : une **sélection** d'engins connus, touchables, avec silhouette et fiche (seuls l'ISS, Hubble et Tiangong
-    existent).
+  - fait et validé : la **poussière**, tous les satellites actifs (≈ 15 900, CelesTrak) en fins points décoratifs
+    autour de la Terre (`src/moteur/poussiere.ts`, `outils/poussiere-celestrak.mjs`). Pas de mise à jour régulière des
+    orbites (décision d'Adrien : seules les orbites des planètes comptent) ;
+  - fait, en attente de validation : la **sélection** d'engins touchables (liste validée par Adrien) — ISS, Tiangong,
+    Hubble, Chandra, Fermi, Swift, TESS, Terra, Landsat 9, Sentinel-2B, GOES-19, Meteosat-12, Himawari-9, GPS III-1,
+    Galileo 101, Vanguard 1, Envisat (`src/donnees/engins.ts`) ; silhouettes communes « télescope » et « satellite ».
 
 ## 2. Repères (crochet, étiquette, flèche hors champ) et capsule — fait
 
