@@ -28,6 +28,13 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 - Tests pour le moteur.
 - Rendu Canvas 2D, pas de 3D.
 
+## Règles de travail
+- Tout en français : interface, textes, commentaires du code, messages de commit.
+- Téléphone uniquement : écran de référence 390 × 844, cibles tactiles d'au moins 44 px.
+- Ne jamais publier avec des tests rouges (`npm test`, `npm run check`, `npm run build`).
+- Petits pas : une fonctionnalité à la fois, testée, commitée, publiée ; Adrien la valide sur son téléphone avant la suivante.
+- Pas de changement de règle, d'équilibrage ou d'interface sans l'accord d'Adrien.
+
 ## Feuille de route
 1. Prototype 1 : carte et navigation (en cours).
 2. Prototype 2 : combat (plus tard).
