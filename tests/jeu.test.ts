@@ -23,3 +23,36 @@ describe('état du jeu au départ (décision d’Adrien du 17/10/2026)', () => {
     expect(heures).toBeLessThan(6)
   })
 })
+
+describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
+  it('niveau 2 à 60 km/s pour 500 crédits, puis 3 (120 km/s, 1 500) et 4 (250 km/s, 4 000)', () => {
+    const jeu = new Jeu()
+    expect(jeu.moteurSuivant()).toMatchObject({ niveau: 2, vitesse: 60, prix: 500 })
+    jeu.credits = 499
+    expect(jeu.acheterMoteur()).toBe(false)
+    expect(jeu.niveauMoteur).toBe(1)
+    jeu.credits = 600
+    expect(jeu.acheterMoteur()).toBe(true)
+    expect(jeu.credits).toBe(100)
+    expect(jeu.vitesse()).toBe(60)
+    jeu.credits = 10_000
+    expect(jeu.acheterMoteur() && jeu.acheterMoteur()).toBe(true)
+    expect(jeu.vitesse()).toBe(250)
+    expect(jeu.credits).toBe(10_000 - 1500 - 4000)
+    expect(jeu.moteurSuivant()).toBeNull()
+    expect(jeu.acheterMoteur()).toBe(false)
+  })
+
+  it('un meilleur moteur raccourcit les trajets', () => {
+    const jeu = new Jeu()
+    const duree = () => {
+      const p = planifier(jeu.mission.etatHeliocentrique(t0), 'Lune', t0, jeu.vitesse())
+      if (!p.possible) throw new Error('impossible')
+      return p.plan.arrivee - p.plan.depart
+    }
+    const avant = duree()
+    jeu.credits = 500
+    jeu.acheterMoteur()
+    expect(duree()).toBeLessThan(avant * 0.6)
+  })
+})

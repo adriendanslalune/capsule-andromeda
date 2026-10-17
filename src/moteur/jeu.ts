@@ -41,6 +41,20 @@ export class Jeu {
     return this.moteur().vitesse
   }
 
+  /** Le moteur suivant (à acheter), ou null au niveau le plus haut. */
+  moteurSuivant(): NiveauMoteur | null {
+    return NIVEAUX_MOTEUR.find((n) => n.niveau === this.niveauMoteur + 1) ?? null
+  }
+
+  /** Achète le moteur suivant, si les crédits suffisent. Renvoie vrai si l'achat est fait. */
+  acheterMoteur(): boolean {
+    const m = this.moteurSuivant()
+    if (!m || this.credits < m.prix) return false
+    this.credits -= m.prix
+    this.niveauMoteur = m.niveau
+    return true
+  }
+
   /** Complète la liste des missions proposées (jusqu'à CONTRATS_PROPOSES), en variant les lieux. */
   proposer(t: number): void {
     while (this.proposes.length < CONTRATS_PROPOSES) {

@@ -14,6 +14,7 @@ import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
+import { VoletCapsule } from './commun/volet-capsule'
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
@@ -191,7 +192,13 @@ function allerALaCapsule(animer = true): void {
   const ou = astreDominant(mission.etat(t).position, t)
   const k = ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou)
   if (animer) choisir(CAPSULE, false, k)
-  else { choisir(CAPSULE); carte.kmParPx = k; carte.centre = positionSuivie(t) }
+  else {
+    // D'un coup : on place la caméra avant de choisir la capsule (le vol lancé par le choix est alors immobile).
+    selection = CAPSULE
+    carte.kmParPx = k
+    carte.centre = positionSuivie(t)
+    choisir(CAPSULE)
+  }
 }
 allerALaCapsule(false)
 document.querySelector('#bouton-capsule')!.addEventListener('click', () => allerALaCapsule())
@@ -200,6 +207,7 @@ document.querySelector('#bouton-capsule')!.addEventListener('click', () => aller
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
+  if (page === 'capsule') voletCapsule.afficher(jeu)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -405,6 +413,19 @@ function avancerMissions(t: number): void {
 }
 let dernierVolet = 0
 
+// Volet Capsule : acheter le moteur suivant (après confirmation) ; les trajets prévus se recalculent à la nouvelle vitesse.
+const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#capsule')!, () => {
+  const m = jeu.moteurSuivant()
+  if (!m || !confirm(`Acheter le moteur niveau ${m.niveau} (${m.vitesse} km/s) pour ${m.prix.toLocaleString('fr-FR')} crédits ?`)) return
+  if (!jeu.acheterMoteur()) return
+  enregistrerPartie()
+  voletMissions.oublierDurees()
+  planAJour = 0
+  apercuAJour = 0
+  voletCapsule.afficher(jeu)
+  annoncer(`Nouveau moteur : ${m.vitesse} km/s`)
+})
+
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).
 surveillerMisesAJour(enregistrerPartie)
 
@@ -443,6 +464,7 @@ function image(maintenant: number): void {
   avancerMissions(t)
   mettreAJourFiche(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
+  if (cockpit.pageOuverte === 'capsule') voletCapsule.afficher(jeu)
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true
@@ -535,7 +557,7 @@ requestAnimationFrame(image)
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {
   andromeda: {
-    carte, mission, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
+    carte, mission, jeu, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
     accelerer: (k: number) => { acceleration = k },
   },
 })

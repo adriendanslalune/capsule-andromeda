@@ -6,7 +6,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 |---|---|
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
-| 3. Missions, crédits, moteur (le tutoriel lui-même plus tard, décision d'Adrien du 17/10/2026) | **en cours** (détail ci-dessous) |
+| 3. Missions, crédits, moteur (le tutoriel lui-même plus tard, décision d'Adrien du 17/10/2026) | **en cours** : tout est fait, dernier pas (3.3) en attente de validation |
 | 4. Pannes et manuel | à faire |
 | 5. Nettoyeurs | à faire |
 | 6. Combat | à faire |
@@ -47,7 +47,11 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   choix. Le bouton « Capsule » choisit la capsule Double toucher : zoom avant (×3), centré sur ce qui est choisi, sinon vers le
   point touché. Les déplacements de la caméra sont fluides (vol : on glisse
   puis on zoome, ou on recule puis on glisse ; de loin, la caméra prend du recul en chemin).
-- 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
+- 3.3 Acheter un meilleur moteur — **fait, en attente de validation** : volet Capsule (moteur actuel, moteur suivant
+  avec sa vitesse et son prix, ACHETER après confirmation, ce qu'il manque sinon ; modules annoncés pour l'étape 4).
+  Barème : niveau 2 = 60 km/s pour 500, niveau 3 = 120 km/s pour 1 500, niveau 4 = 250 km/s pour 4 000
+  (`src/donnees/capsule.ts`, `Jeu.acheterMoteur`, testés). Les trajets prévus et les temps des missions se
+  recalculent à la nouvelle vitesse ; un trajet en cours garde sa vitesse.
 - 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
   lues).
 
