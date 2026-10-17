@@ -209,19 +209,28 @@ Voir docs/conception-destin.md.
 ## 22. Carte en style Moebius, vraie échelle (17/10/2026, décisions d'Adrien)
 Après le prototype Andromeda (`prototypes/andromeda/BILAN.md`). Étapes (a) et (b) faites ; (c) point libre, chasse et départs
 rebranchés, à venir.
-- **Vraies distances**, échelle linéaire (la chasse en a besoin : cercles et droites justes). Seuls les astres sont
-  grossis : rayon minimal à l'écran (Soleil 11 px, géantes 8, autres planètes 6, lunes 3,5), vraie taille de près.
+- **Carte à plat, vue du dessus** (17/10/2026, spécification d'Adrien ; `src/interface/carte/projection.ts`) :
+  - vraies distances entre les planètes (hors des systèmes, la carte est à l'échelle) ;
+  - astres plus gros que nature mais proportionnés (50 fois leur taille, le Soleil 20 fois) ; en dézoomant, une taille
+    minimale par astre, dans l'ordre des vraies tailles (Soleil 13 px … Mercure 3,6 px) ;
+  - autour de chaque astre, une **loupe** : satellites et engins orbitent à des distances agrandies mais dans le bon
+    ordre (ISS tout près de la Terre, Hubble, la Lune, James Webb au bord du système) ; la loupe rejoint les vraies
+    distances au bord de la sphère d'influence, sans saut ; les grandes lunes (plus de 200 km) ont la leur ;
+  - planètes à leur vraie position et vraie vitesse ; satellites et engins à leur vraie vitesse, orbites couchées
+    dans le plan (regles.md §1) ;
+  - on zoome directement vers un système pour en voir les satellites et engins (plus de double toucher ni de bouton
+    « VOIR SON SYSTÈME ») ; le cadran cadre le système d'une lune ou d'un engin qui tourne autour d'une planète.
 - **Style Moebius** : fond blanc cassé, encre brun-violet, astres en pastel, face de nuit en aplat violet, hachures le
   long du terminateur (tournées vers le Soleil), orbites fines de la couleur de l'astre, trajet en rouge cerné d'encre.
 - Une lune ou un engin trop près de sa planète pour s'en détacher à l'écran n'est pas dessiné ; il apparaît en zoomant
-  (et reste dans la liste).
-- **Systèmes** : toucher deux fois une planète (ou « VOIR SON SYSTÈME › ») cadre son système (jusqu'à la plus lointaine
-  de ses lunes de plus de 200 km), la planète reste au centre en avançant ; « ‹ SYSTÈME SOLAIRE » revient.
+  (et reste dans le cadran). Seules les lunes de plus de 100 km sont nommées.
+- **Engins dessinés par leur silhouette** (`carte/Engin.svelte`) : station (ISS), Tiangong, télescope (Hubble), miroir
+  doré et pare-soleil (James Webb), disque (Gaia), bouclier (Parker, Solar Orbiter), antenne (Voyager, Pioneer, New
+  Horizons), voiture (Tesla Roadster), sonde à panneaux (les autres).
 - Noms sans chevauchement, par ordre d'importance (Soleil, planètes, lunes, engins), à l'une de quatre places autour
   de l'astre.
 - **Toucher = fiche** (17/10/2026, demande d'Adrien) : toucher un astre, un engin ou un point affiche sa fiche (nom,
-  distance, VOIR SON SYSTÈME, Y ALLER) sans rien changer à la route ; Y ALLER propose les départs (maintenant, fenêtre
-  de tir) ; toucher encore une planète sélectionnée ouvre son système.
+  distance, Y ALLER) sans rien changer à la route ; Y ALLER propose les départs (maintenant, fenêtre de tir).
 - **Repères** (étape b) sur l'astre visé (destination proposée, sinon sélection, sinon destination en cours) : crochet
   discret (quatre coins rouges liserés d'encre), étiquette nom + distance posée à l'écart (six places essayées, loin
   du point de rencontre, de la fusée, du cartouche et du bouton CADRAN), reliée par un trait ; hors champ, une flèche au

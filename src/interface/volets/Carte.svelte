@@ -1,7 +1,9 @@
 <script lang="ts">
   // Volet de la carte : vraies positions, zoom au doigt, cadran de cap, destination, rencontre, ping, tracés.
   import { onMount } from 'svelte'
-  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, planeteCentrale, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
+  import { corpsDuSysteme, estPlanete, planeteCentrale, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
+  import { deprojeter, projeter, rayonDessine, zoneDessinee } from '../carte/projection'
+  import Engin from '../carte/Engin.svelte'
   import { UA_KM } from '../../astro/temps'
   import { NOMS_PLANETES, type NomPlanete } from '../../donnees/planetes'
   import { distanceEcho, positionVisiteur, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
@@ -52,9 +54,12 @@
   }
   /** Couleur d'un astre : sa couleur propre adoucie vers le sable (gris chaud pour les petites lunes). */
   const couleurAstre = (nom: string) => melanger(VIVES[nom] ?? '#a89c8c', '#f7e8cc', 0.3)
-  /** Taille minimale à l'écran (rayon, px) : les astres sont grossis pour rester visibles, à leur vraie taille de près. */
-  const GEANTES = new Set(['Jupiter', 'Saturne', 'Uranus', 'Neptune'])
-  const rayonMinimal = (nom: string) => (nom === 'Soleil' ? 11 : GEANTES.has(nom) ? 8 : estPlanete(nom) ? 6 : 3.5)
+  /** Taille minimale à l'écran (rayon, px), quand on dézoome : chaque astre reste visible et distinct, dans l'ordre des
+   *  vraies tailles (le Soleil énorme, Mercure petite). */
+  const MINIMUMS: Record<string, number> = {
+    Soleil: 13, Jupiter: 8.5, Saturne: 8, Uranus: 6.5, Neptune: 6.5, Terre: 5.2, Vénus: 5, Mars: 4.2, Mercure: 3.6, Lune: 3,
+  }
+  const rayonMinimal = (nom: string) => MINIMUMS[nom] ?? 2.5
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
@@ -72,37 +77,26 @@
   })
   const tl = $derived(lisse.t)
   const fl = $derived(lisse.etat.fusee)
+  /** Où est vraiment la fusée : en orbite, à son écart autour de l'astre (sinon elle serait dessinée en son centre). */
+  const surOrbite = (f: typeof fl) => (f.orbite && f.ecartOrbite ? { x: f.position.x + f.ecartOrbite.x, y: f.position.y + f.ecartOrbite.y } : f.position)
+  const ici = $derived(surOrbite(fl))
 
-  // Vue : centre (UA) et demi-largeur (UA). Dans le système d'une planète, le centre est relatif à la planète
-  // (elle reste à sa place à l'écran pendant qu'elle avance sur son orbite).
+  // Vue : centre et demi-largeur, en UA de carte (voir carte/projection.ts : vraies distances entre les planètes,
+  // loupe autour de chaque astre).
   let centre = $state<Point2>({ x: 0, y: 0 })
   let demi = $state(2.2)
   const k = $derived(L / 2 / demi) // pixels par UA
-  /** Système cadré (« niveau ») : la planète suivie, ou null pour le système solaire. */
-  let niveau = $state<NomPlanete | null>(null)
-  const origine = $derived(niveau ? positionAstre(niveau, tl) : { x: 0, y: 0 })
-  const c0 = $derived({ x: origine.x + centre.x, y: origine.y + centre.y })
 
-  const ecran = (p: Point2) => ({ x: L / 2 + (p.x - c0.x) * k, y: Hc / 2 - (p.y - c0.y) * k })
-  const monde = (sx: number, sy: number): Point2 => ({ x: c0.x + (sx - L / 2) / k, y: c0.y - (sy - Hc / 2) / k })
+  /** Point vrai (UA) → écran, à travers la projection de la carte. */
+  const ecran = (p: Point2) => { const q = projeter(p, tl); return { x: L / 2 + (q.x - centre.x) * k, y: Hc / 2 - (q.y - centre.y) * k } }
+  /** Écran → point vrai (UA). */
+  const monde = (sx: number, sy: number): Point2 => deprojeter({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k }, tl)
 
-  function viser(c: Point2, d: number) { niveau = null; centre = c; demi = d; suivi = false; vue = null }
+  function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false; vue = null }
 
-  /** Taille du cadrage d'un système (UA) : l'orbite de la plus lointaine des lunes de plus de 200 km de rayon. */
-  function tailleSysteme(planete: NomPlanete): number {
-    const lunes = corpsDuSysteme(planete).filter((n) => !estPlanete(n) && n !== 'ISS')
-    const grandes = lunes.filter((n) => (rayonCorps(n) ?? 0) >= 200)
-    const a = Math.max(0, ...(grandes.length ? grandes : lunes).map((n) => demiGrandAxeAutourDeLaPlanete(n) ?? 0))
-    return a > 0 ? (a / UA_KM) * 1.25 : 0
-  }
-  const aUnSysteme = (nom: string) => estPlanete(nom) && tailleSysteme(nom) > 0
-  /** Cadre le système d'une planète : la planète au centre, ses grandes lunes autour. */
-  function ouvrirSysteme(planete: NomPlanete) {
-    niveau = planete
-    centre = { x: 0, y: 0 }
-    demi = tailleSysteme(planete)
-    suivi = false
-    vue = null
+  /** Cadre le système d'une planète (sa zone, où ses satellites et engins sont écartés à la loupe). */
+  function cadrerSysteme(planete: NomPlanete) {
+    viser(positionAstre(planete, t), zoneDessinee(planete) * 1.05)
   }
 
   // TRAJECTOIRE : cadre la fusée, le point de rencontre et la cible, et les suit tant qu'on ne touche pas la carte.
@@ -110,11 +104,10 @@
   function cadrerTrajectoire() {
     const dest = fusee.destination
     if (!dest) return
-    const points = [fl.position, positionDestination(dest, tl), ...(plan ? [plan.point] : [])]
+    const points = [ici, positionDestination(dest, tl), ...(plan ? [plan.point] : [])].map((q) => projeter(q, tl))
     const xs = points.map((q) => q.x)
     const ys = points.map((q) => q.y)
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys)
-    niveau = null
     centre = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
     // Demi-largeur : assez pour tout voir, avec une marge de 64 px de chaque côté (le cadran de cap de la fusée).
     const marge = 64
@@ -151,7 +144,7 @@
   /** Vues de la carte : la fusée de près, le trajet (suivi), les planètes intérieures, tout le système. */
   let vue = $state<'fusee' | 'trajet' | 'planetes' | 'tout' | null>(null)
   function choisirVue(v: 'fusee' | 'trajet' | 'planetes' | 'tout') {
-    if (v === 'fusee') viser({ ...fusee.position }, Math.min(demi, 0.05))
+    if (v === 'fusee') viser(projeter(surOrbite(fusee), t), Math.min(demi, 0.05))
     else if (v === 'planetes') viser({ x: 0, y: 0 }, 2.2)
     else if (v === 'tout') viser({ x: 0, y: 0 }, 32)
     else { suivi = true; cadrerTrajectoire() }
@@ -165,7 +158,7 @@
   // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus. Chaque astre a un rayon à l'écran
   // (grossi, ou vrai de près). Une lune ou un engin trop près de sa planète pour s'en détacher n'est pas dessiné.
   type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean; soleil?: number }
-  const rayonEcran = (nom: string) => Math.max(rayonMinimal(nom), ((rayonCorps(nom) ?? 0) / UA_KM) * k)
+  const rayonEcran = (nom: string) => Math.max(rayonMinimal(nom), rayonDessine(nom) * k)
   /** Direction du Soleil à l'écran (degrés, sens des aiguilles d'une montre depuis la droite), vue depuis p. */
   const versSoleil = (p: Point2) => (Math.atan2(p.y, -p.x) * 180) / Math.PI
   const marques = $derived.by(() => {
@@ -183,18 +176,18 @@
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
-      if (Math.abs(c.x - c0.x) > demi * 1.6 || Math.abs(c.y - c0.y) > demi * 1.8) continue
+      if (Math.abs(c.x - centre.x) > demi * 1.6 || Math.abs(c.y - centre.y) > demi * 1.8) continue
       for (const nom of corpsDuSysteme(planete)) {
         if (estPlanete(nom) || nom === 'ISS') continue
-        const a = demiGrandAxeAutourDeLaPlanete(nom)! / UA_KM
         const p = positionAstre(nom, tl)
         const r = rayonEcran(nom)
         if (!libre(p, r)) continue
-        l.push({ nom, p, r, couleur: couleurAstre(nom), etiquette: a * k > 26, soleil: versSoleil(p) })
+        // Nommées : les lunes de plus de 100 km (sinon, autour de Jupiter, des dizaines de noms se bousculent).
+        l.push({ nom, p, r, couleur: couleurAstre(nom), etiquette: Math.hypot(ecran(p).x - ecran(c).x, ecran(p).y - ecran(c).y) > 26 && (rayonCorps(nom) ?? 0) >= 100, soleil: versSoleil(p) })
       }
     }
     for (const e of ['ISS', ...NOMS_ENGINS].map((nom) => ({ nom, position: positionAstre(nom, tl) }))) {
-      if (libre(e.position, 4.5)) l.push({ nom: e.nom, p: e.position, r: 4.5, couleur: PLAN.fond, etiquette: true, engin: true })
+      if (libre(e.position, 7)) l.push({ nom: e.nom, p: e.position, r: 7, couleur: PLAN.fond, etiquette: true, engin: true })
     }
     return l
   })
@@ -203,7 +196,7 @@
    *  lunes, engins. La fusée et son cadran de cap gardent leur place. */
   const nomsVisibles = $derived.by(() => {
     type Boite = { x0: number; y0: number; x1: number; y1: number }
-    const f = ecran(fl.position)
+    const f = ecran(ici)
     // La fusée et son cadran de cap, puis les repères de l'astre visé (étiquette ou flèche).
     const prises: Boite[] = [{ x0: f.x - 36, y0: f.y - 36, x1: f.x + 36, y1: f.y + 36 }]
     if (reperes?.etiquette) { const e = reperes.etiquette; prises.push({ x0: e.x - 2, y0: e.y - 2, x1: e.x + e.l + 4, y1: e.y + e.h + 4 }) }
@@ -220,7 +213,7 @@
       const s = ecran(m.p)
       const taille = m.engin ? 9 : 11
       const largeur = m.nom.length * taille * 0.62
-      const ecart = m.engin ? 7 : m.r + 3
+      const ecart = m.engin ? 10 : m.r + 3
       // Quatre places essayées dans l'ordre : en haut à droite, en bas à droite, en haut à gauche, en bas à gauche.
       for (const [cote, haut] of [[1, true], [1, false], [-1, true], [-1, false]] as const) {
         const x = cote > 0 ? s.x + ecart : s.x - ecart - largeur
@@ -277,7 +270,6 @@
     choix = null
     ambigus = null
   }
-  const planeteSelectionnee = $derived(selection?.type === 'astre' && aUnSysteme(selection.astre) ? (selection.astre as NomPlanete) : null)
   const options = $derived(choix ? optionsDeDepart(fusee, choix, t, v) : null)
   const nomChoix = (d: Destination) => (d.type === 'astre' ? nomAstre(d.astre) : d.type === 'point' ? 'Point libre' : 'Objet inconnu')
 
@@ -348,8 +340,6 @@
     ambigus = null
     const nom = proches[0]?.m.nom
     // Toucher encore la planète choisie ouvre son système.
-    // Toucher encore la planète sélectionnée ouvre son système.
-    if (nom && selection?.type === 'astre' && selection.astre === nom && aUnSysteme(nom) && niveau !== nom) { ouvrirSysteme(nom as NomPlanete); return }
     choisir(nom ? { type: 'astre', astre: nom } : { type: 'point', x: w.x, y: w.y })
   }
   function molette(e: WheelEvent) {
@@ -420,7 +410,7 @@
   // Les autres commissionnaires : un point de leur couleur ; leur nom quand on zoome assez pour les distinguer.
   // Les noms ne s'écrivent que s'ils ne se chevauchent pas (sinon, autour de la Terre, ce serait illisible).
   const autres = $derived.by(() => {
-    const ecrits: { x: number; y: number }[] = [ecran(fl.position), ...[...nomsVisibles.values()].map((n) => ({ x: n.x - 5, y: n.y - 11 }))]
+    const ecrits: { x: number; y: number }[] = [ecran(ici), ...[...nomsVisibles.values()].map((n) => ({ x: n.x - 5, y: n.y - 11 }))]
     return autresFusees(tl).map((a) => {
       const s = ecran(a.position)
       const visible = s.x > -10 && s.x < L + 10 && s.y > -10 && s.y < Hc + 10
@@ -431,7 +421,7 @@
   })
 
 
-  const posFusee = $derived(ecran(fl.position))
+  const posFusee = $derived(ecran(ici))
   /** Le segment [a, b] (à l'écran) coupe-t-il le disque d'un astre dessiné (hors de l'astre visé) ? */
   function traverseUnAstre(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
     return marques.some((m) => {
@@ -463,7 +453,7 @@
     const m = nomFocus ? marques.find((x) => x.nom === nomFocus) : undefined
     const r = m ? m.r : 3
     const nom = nomChoix(focus).toUpperCase()
-    const dist = distanceLisible(distance(fl.position, positionDestination(focus, tl)))
+    const dist = distanceLisible(distance(ici, positionDestination(focus, tl)))
     const visible = s.x > 0 && s.x < L && s.y > 0 && s.y < Hc
     if (!visible) {
       // Flèche : sur le bord (marge 26 px), dans la direction de l'astre vu du centre de la carte.
@@ -506,16 +496,16 @@
   let deplies = $state<string[]>([])
   const lunesDe = (p: NomPlanete) => corpsDuSysteme(p).filter((n) => !estPlanete(n) && n !== 'ISS')
     .sort((a, b) => (rayonCorps(b) ?? 0) - (rayonCorps(a) ?? 0))
-  const distanceA = (nom: string) => distanceLisible(distance(fusee.position, positionAstre(nom, t)))
+  const distanceA = (nom: string) => distanceLisible(distance(surOrbite(fusee), positionAstre(nom, t)))
   function depuisLeCadran(nom: string) {
     cadranOuvert = false
     mode = 'navigation'
     choisir({ type: 'astre', astre: nom })
     const c = planeteCentrale(nom)
     if (!c) return
-    ouvrirSysteme(c)
+    cadrerSysteme(c)
     // Un engin en orbite basse (ISS, Hubble…) : on zoome assez pour le voir à côté de sa planète.
-    const d = distance(positionAstre(nom, t), positionAstre(c, t))
+    const d = distance(projeter(positionAstre(nom, t), t), positionAstre(c, t))
     if (d * 3 < demi) demi = d * 3
   }
 </script>
@@ -528,12 +518,6 @@
     <button class:actif={vue === 'trajet'} disabled={!fusee.destination} onclick={() => choisirVue('trajet')}>TRAJET</button>
     <button class:actif={vue === 'planetes'} onclick={() => choisirVue('planetes')}>PLANÈTES</button>
     <button class:actif={vue === 'tout'} onclick={() => choisirVue('tout')}>TOUT</button>
-  </div>
-  <!-- Système cadré : le système solaire, ou celui d'une planète (toucher deux fois une planète l'ouvre). -->
-  <div class="niveau">
-    <span>{niveau ? `SYSTÈME ${niveau === 'Terre' ? 'DE LA TERRE' : `DE ${niveau.toUpperCase()}`}` : 'SYSTÈME SOLAIRE'}</span>
-    {#if niveau}<button onclick={() => viser({ x: 0, y: 0 }, 2.2)}>‹ SYSTÈME SOLAIRE</button>
-    {:else if planeteSelectionnee}<button onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME ›</button>{/if}
   </div>
 
   <div class="cadre">
@@ -558,7 +542,8 @@
     {#each marques as m}
       {#if !m.engin && m.nom !== 'Soleil' && !estPlanete(m.nom)}
         {@const c = positionAstre(planeteDe(m.nom), tl)}
-        {@const d = arcVisible(c, Math.hypot(m.p.x - c.x, m.p.y - c.y))}
+        {@const q = projeter(m.p, tl)}
+        {@const d = arcVisible(c, Math.hypot(q.x - c.x, q.y - c.y))}
         {#if d}<path {d} fill="none" stroke={m.couleur} stroke-width="0.8" opacity=".6" />{/if}
       {/if}
     {/each}
@@ -566,8 +551,8 @@
       {@const s = ecran(m.p)}
       {#if s.x > -m.r - 40 && s.x < L + m.r + 40 && s.y > -m.r - 40 && s.y < Hc + m.r + 40}
         {#if m.engin}
-          <!-- Engin humain : petit losange, nom en plus petit. -->
-          <path d={`M ${s.x} ${s.y - 4.5} L ${s.x + 4.5} ${s.y} L ${s.x} ${s.y + 4.5} L ${s.x - 4.5} ${s.y} Z`} fill="#23476b" stroke={PLAN.trait} stroke-width="1" />
+          <!-- Engin humain : sa silhouette, nom en plus petit. -->
+          <Engin nom={m.nom} x={s.x} y={s.y} encre={PLAN.trait} />
           {@const n = nomsVisibles.get(m.nom)}
           {#if n}<text class="nom" x={n.x} y={n.y} font-size="9" fill={PLAN.trait} opacity=".85">{m.nom.toUpperCase()}</text>{/if}
         {:else}
@@ -703,14 +688,13 @@
     {:else if mode === 'navigation' && selection && !choix}
       <!-- Fiche de l'astre (ou du point) touché : rien ne change tant qu'on n'appuie pas sur Y ALLER. -->
       <div class="ligne"><span class="etiquette">SÉLECTION</span><button class="lien" onclick={() => (selection = null)}>fermer</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(fusee.position, positionDestination(selection, t)))}</span></div>
+      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(surOrbite(fusee), positionDestination(selection, t)))}</span></div>
       <div class="boutons">
-        {#if planeteSelectionnee && niveau !== planeteSelectionnee}<button class="action" onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME</button>{/if}
         <button class="action clair" onclick={() => (choix = selection)}>Y ALLER</button>
       </div>
     {:else if mode === 'navigation' && choix && options}
       <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => { choix = null; selection = null }}>annuler</button></div>
-      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(fusee.position, positionDestination(choix, t)))}</span></div>
+      <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{distanceLisible(distance(surOrbite(fusee), positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
         {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
         {@const quand = t + voyage * 1000}
@@ -837,129 +821,6 @@
   .vues button.actif {
     background: var(--couleur-encre);
     color: var(--couleur-texte-clair);
-  }
-  .niveau {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    min-height: 40px;
-    font-family: var(--police-titre);
-    font-size: 13px;
-    letter-spacing: 1px;
-  }
-  .niveau button {
-    min-height: 40px;
-    padding: 0 12px;
-    border: var(--trait) solid var(--couleur-encre);
-    border-radius: 10px;
-    background: var(--moutarde);
-    font-family: var(--police-chiffres);
-    font-weight: 700;
-    font-size: 12px;
-  }
-  .cadre {
-    position: relative;
-  }
-  .bouton-cadran {
-    position: absolute;
-    left: 10px;
-    bottom: 10px;
-    min-height: 44px;
-    padding: 0 12px;
-    border: var(--trait) solid var(--couleur-encre);
-    border-radius: 10px;
-    background: var(--moutarde);
-    box-shadow: 3px 3px 0 var(--couleur-encre);
-    font-family: var(--police-chiffres);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-  }
-  .cadran {
-    position: fixed;
-    left: 8px;
-    right: 8px;
-    top: calc(48px + env(safe-area-inset-top));
-    bottom: calc(8px + env(safe-area-inset-bottom));
-    display: flex;
-    flex-direction: column;
-    background: #f4f1ea;
-    border: 2.5px solid var(--couleur-encre);
-    border-radius: 12px;
-    box-shadow: 4px 4px 0 var(--couleur-encre);
-    z-index: 30;
-  }
-  .cadran .entete {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 6px 4px 14px;
-    border-bottom: 2px solid var(--couleur-encre);
-    border-radius: 9px 9px 0 0;
-    background: var(--moutarde);
-    font-family: var(--police-titre);
-    font-size: 14px;
-    letter-spacing: 1px;
-  }
-  .cadran .entete button {
-    min-height: 44px;
-    padding: 0 12px;
-    border: 0;
-    background: none;
-    font-weight: 700;
-  }
-  .liste-cadran {
-    overflow-y: auto;
-    padding-bottom: 12px;
-  }
-  .liste-cadran h3 {
-    margin: 0;
-    padding: 12px 14px 4px;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--couleur-texte-discret);
-  }
-  .ligne-cadran {
-    display: flex;
-    align-items: stretch;
-    border-bottom: 1px dashed rgba(43, 33, 56, 0.25);
-  }
-  .ligne-cadran.retrait .astre {
-    padding-left: 34px;
-  }
-  .ligne-cadran.choisie {
-    background: rgba(224, 75, 55, 0.16);
-  }
-  .ligne-cadran .astre {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    min-height: 48px;
-    padding: 0 14px;
-    border: 0;
-    background: none;
-    font-size: 16px;
-    text-align: left;
-    color: var(--couleur-encre);
-  }
-  .ligne-cadran .dist {
-    font-family: var(--police-chiffres);
-    font-size: 13px;
-    color: var(--couleur-texte-discret);
-    white-space: nowrap;
-  }
-  .ligne-cadran .deplier {
-    min-height: 48px;
-    padding: 0 12px;
-    border: 0;
-    background: none;
-    font-size: 12px;
-    color: var(--couleur-encre);
-    white-space: nowrap;
   }
   /* Noms sur la carte : liseré de la couleur du fond, pour rester lisibles sur une orbite ou un astre. */
   .plan .nom {
