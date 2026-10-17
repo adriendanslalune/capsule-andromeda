@@ -20,7 +20,7 @@
     <div id="volet" hidden>
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
       <div class="page" data-contenu="navigation" id="cadran"></div>
-      <div class="page" data-contenu="capsule" hidden><p class="a-venir">L'état de la capsule (crédits, moteur, modules) arrive bientôt.</p></div>
+      <div class="page" data-contenu="capsule" id="capsule" hidden></div>
       <div class="page" data-contenu="plus" hidden>
         <button type="button" class="rubrique" disabled>Armement</button>
         <button type="button" class="rubrique" disabled>Marché</button>
@@ -46,7 +46,8 @@
             <label><input type="radio" name="acceleration" value="86400" /> 1 j/s</label>
             <label><input type="radio" name="acceleration" value="2592000" /> 1 mois/s</label>
           </div>
-          Puissance des moteurs (vitesse) : <span id="texte-budget"></span>
+          <label><input type="checkbox" data-reglage="forcerVitesse" /> Forcer la vitesse (au lieu du moteur)</label>
+          Vitesse forcée : <span id="texte-budget"></span>
           <input id="budget" type="range" min="0" max="100" step="1" />
         </div>
       </div>

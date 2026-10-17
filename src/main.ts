@@ -12,6 +12,7 @@ declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
 import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
+import { afficherCapsule } from './commun/volet-capsule'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
@@ -19,7 +20,8 @@ import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
-import { avancement, Mission, planifier, type Planification } from './moteur/mission'
+import { Jeu } from './moteur/jeu'
+import { avancement, planifier, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
@@ -47,8 +49,9 @@ function avancerHorloge(maintenant: number): void {
 import('./donnees/poussiere').then((d) => { chargerPoussiere(d.POUSSIERE, d.REFERENCE_POUSSIERE); carteSale = true })
   .catch(() => { /* pas de poussière : la carte s'en passe */ })
 
-// La mission de la capsule (orbite, trajet, arrivée) : le moteur la suit.
-const mission = new Mission()
+// L'état du jeu (crédits, moteur) et la mission de la capsule (orbite, trajet, arrivée) : le moteur les suit.
+const jeu = new Jeu()
+const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
@@ -74,16 +77,14 @@ redimensionner()
 
 // --- Réglages, chacun désactivable (mémorisés dans le navigateur, si possible).
 // (nouvelle clé à chaque changement des réglages par défaut : les anciens réglages mémorisés sont oubliés)
-const CLE_REGLAGES = 'andromeda-reperes-v7'
+const CLE_REGLAGES = 'andromeda-reperes-v8'
 const reglages = {
   orbites: true, noms: true,
   /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
   nuit: false,
   crochet: true, etiquette: true, fleche: true,
-  /**
-   * Puissance des moteurs : vitesse de croisière (km/s). 120 km/s pour le prototype, réglable.
-   * (Dans le vrai jeu : départ à 30 km/s, puis améliorations sans limite.)
-   */
+  /** Essai : forcer la vitesse de croisière (km/s) au lieu de celle du moteur de la capsule. */
+  forcerVitesse: false,
   vitesse: 120,
 }
 try {
@@ -126,7 +127,12 @@ boutonRetour.addEventListener('click', () => carte.vueGenerale())
 carte.vueGenerale()
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
-const cockpit = new Cockpit((page) => { if (page === 'navigation') cadran.afficher(selection) })
+const voletCapsule = document.querySelector<HTMLDivElement>('#capsule')!
+const afficherVoletCapsule = () => afficherCapsule(voletCapsule, jeu, horloge(), reglages.forcerVitesse ? reglages.vitesse : null)
+const cockpit = new Cockpit((page) => {
+  if (page === 'navigation') cadran.afficher(selection)
+  if (page === 'capsule') afficherVoletCapsule()
+})
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => cockpit.fermer())
@@ -150,6 +156,9 @@ curseurBudget.addEventListener('input', () => {
   planAJour = 0
 })
 
+/** Vitesse de croisière (km/s) : celle du moteur de la capsule, sauf essai. */
+const vitesse = () => (reglages.forcerVitesse ? reglages.vitesse : jeu.vitesse())
+
 // --- Navigation : trajet prévu vers la destination, fiche de trajet, départ.
 const fiche = document.querySelector<HTMLDivElement>('#trajet')!
 const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
@@ -171,7 +180,7 @@ function prevoir(t: number, maintenant: number): void {
     return
   }
   if (selection === previsionPour && maintenant - planAJour < 1000) return
-  prevision = planifier(mission.etatHeliocentrique(t), selection!, t, reglages.vitesse)
+  prevision = planifier(mission.etatHeliocentrique(t), selection!, t, vitesse())
   previsionPour = selection
   planAJour = maintenant
 }
@@ -180,6 +189,7 @@ const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
 
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(mission, t), t)
+  if (cockpit.pageOuverte === 'capsule') afficherVoletCapsule()
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
@@ -190,7 +200,7 @@ function mettreAJourFiche(t: number): void {
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
-    const dv = `${reglages.vitesse} km/s`
+    const dv = `${vitesse()} km/s`
     if (prevision.possible) {
       const p = prevision.plan
       texte = `<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
@@ -212,7 +222,7 @@ boutonDepart.addEventListener('click', () => {
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
-  const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.vitesse)
+  const p = planifier(mission.etatHeliocentrique(t), selection, t, vitesse())
   if (!p.possible) return
   mission.partir(p.plan)
   prevision = null
