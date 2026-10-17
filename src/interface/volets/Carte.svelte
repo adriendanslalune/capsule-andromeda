@@ -1,9 +1,9 @@
 <script lang="ts">
   // Volet de la carte : vraies positions, zoom au doigt, cadran de cap, destination, rencontre, ping, tracés.
   import { onMount } from 'svelte'
-  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, rayonInfluence } from '../../astro/corps'
+  import { corpsDuSysteme, demiGrandAxeAutourDeLaPlanete, estPlanete, planeteDe, rayonCorps, rayonInfluence } from '../../astro/corps'
   import { UA_KM } from '../../astro/temps'
-  import { NOMS_PLANETES } from '../../donnees/planetes'
+  import { NOMS_PLANETES, type NomPlanete } from '../../donnees/planetes'
   import { distanceEcho, positionVisiteur, viserTelescope, visiteurDetecte } from '../../moteur/chasse'
   import { estInstalle } from '../../moteur/economie'
   import {
@@ -32,14 +32,27 @@
   import { NOMS_ENGINS, positionsEngins } from '../../astro/engins'
   import { satellitesDe } from '../../astro/satellites'
 
-  /** Couleurs du plan d'architecte (« bleu ») : fond bleu, traits blancs. */
-  const PLAN = { fond: '#1f4f8c', trait: '#eef4ff', route: '#f2b53a', chasse: '#9be7ff' }
+  /** Couleurs de la carte, style Moebius (validé par Adrien le 17/10/2026) : fond blanc cassé, encre brun-violet,
+   *  astres en pastel, ombre violette, hachures le long du terminateur. */
+  const PLAN = { fond: '#f4f1ea', trait: '#2b2138', route: '#e04b37', chasse: '#2f5f9e', ombre: '#54437a' }
   const L = 362
   const Hc = 400
-  const COULEURS: Record<string, string> = {
-    Mercure: '#cfc6b6', Vénus: '#efdfae', Terre: '#7fa4cf', Mars: '#e07a5c',
-    Jupiter: '#dcb184', Saturne: '#e6cf92', Uranus: '#a9d2d6', Neptune: '#7f9fd6',
+  /** Mélange deux couleurs « #rrggbb » (k = part de la seconde). */
+  function melanger(a: string, b: string, k: number): string {
+    const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16)
+    const canal = (d: number) => Math.round(((x >> d) & 255) * (1 - k) + ((y >> d) & 255) * k)
+    return `#${((canal(16) << 16) | (canal(8) << 8) | canal(0)).toString(16).padStart(6, '0')}`
   }
+  const VIVES: Record<string, string> = {
+    Soleil: '#f2b53a', Mercure: '#a99d90', Vénus: '#e8c77a', Terre: '#3f7fc1', Mars: '#d0563a', Jupiter: '#d49a62',
+    Saturne: '#e2c27d', Uranus: '#8fd0dc', Neptune: '#3f63c4', Lune: '#b9b2a6', Io: '#e2cc55', Europe: '#e6dcc8',
+    Ganymède: '#988c7d', Callisto: '#6a5d50', Titan: '#d9953c', Triton: '#e2c6b8', Phobos: '#7a6a5a', Deimos: '#9a8670',
+  }
+  /** Couleur d'un astre : sa couleur propre adoucie vers le sable (gris chaud pour les petites lunes). */
+  const couleurAstre = (nom: string) => melanger(VIVES[nom] ?? '#a89c8c', '#f7e8cc', 0.3)
+  /** Taille minimale à l'écran (rayon, px) : les astres sont grossis pour rester visibles, à leur vraie taille de près. */
+  const GEANTES = new Set(['Jupiter', 'Saturne', 'Uranus', 'Neptune'])
+  const rayonMinimal = (nom: string) => (nom === 'Soleil' ? 11 : GEANTES.has(nom) ? 8 : estPlanete(nom) ? 6 : 3.5)
 
   const etat = $derived(jeu.etat!)
   const t = $derived(jeu.maintenant)
@@ -58,15 +71,37 @@
   const tl = $derived(lisse.t)
   const fl = $derived(lisse.etat.fusee)
 
-  // Vue : centre (UA) et demi-largeur (UA).
+  // Vue : centre (UA) et demi-largeur (UA). Dans le système d'une planète, le centre est relatif à la planète
+  // (elle reste à sa place à l'écran pendant qu'elle avance sur son orbite).
   let centre = $state<Point2>({ x: 0, y: 0 })
   let demi = $state(2.2)
   const k = $derived(L / 2 / demi) // pixels par UA
+  /** Système cadré (« niveau ») : la planète suivie, ou null pour le système solaire. */
+  let niveau = $state<NomPlanete | null>(null)
+  const origine = $derived(niveau ? positionAstre(niveau, tl) : { x: 0, y: 0 })
+  const c0 = $derived({ x: origine.x + centre.x, y: origine.y + centre.y })
 
-  const ecran = (p: Point2) => ({ x: L / 2 + (p.x - centre.x) * k, y: Hc / 2 - (p.y - centre.y) * k })
-  const monde = (sx: number, sy: number): Point2 => ({ x: centre.x + (sx - L / 2) / k, y: centre.y - (sy - Hc / 2) / k })
+  const ecran = (p: Point2) => ({ x: L / 2 + (p.x - c0.x) * k, y: Hc / 2 - (p.y - c0.y) * k })
+  const monde = (sx: number, sy: number): Point2 => ({ x: c0.x + (sx - L / 2) / k, y: c0.y - (sy - Hc / 2) / k })
 
-  function viser(c: Point2, d: number) { centre = c; demi = d; suivi = false; vue = null }
+  function viser(c: Point2, d: number) { niveau = null; centre = c; demi = d; suivi = false; vue = null }
+
+  /** Taille du cadrage d'un système (UA) : l'orbite de la plus lointaine des lunes de plus de 200 km de rayon. */
+  function tailleSysteme(planete: NomPlanete): number {
+    const lunes = corpsDuSysteme(planete).filter((n) => !estPlanete(n) && n !== 'ISS')
+    const grandes = lunes.filter((n) => (rayonCorps(n) ?? 0) >= 200)
+    const a = Math.max(0, ...(grandes.length ? grandes : lunes).map((n) => demiGrandAxeAutourDeLaPlanete(n) ?? 0))
+    return a > 0 ? (a / UA_KM) * 1.25 : 0
+  }
+  const aUnSysteme = (nom: string) => estPlanete(nom) && tailleSysteme(nom) > 0
+  /** Cadre le système d'une planète : la planète au centre, ses grandes lunes autour. */
+  function ouvrirSysteme(planete: NomPlanete) {
+    niveau = planete
+    centre = { x: 0, y: 0 }
+    demi = tailleSysteme(planete)
+    suivi = false
+    vue = null
+  }
 
   // TRAJECTOIRE : cadre la fusée, le point de rencontre et la cible, et les suit tant qu'on ne touche pas la carte.
   let suivi = $state(false)
@@ -77,6 +112,7 @@
     const xs = points.map((q) => q.x)
     const ys = points.map((q) => q.y)
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys)
+    niveau = null
     centre = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
     // Demi-largeur : assez pour tout voir, avec une marge de 64 px de chaque côté (le cadran de cap de la fusée).
     const marge = 64
@@ -124,35 +160,68 @@
   // Tracés de chasse (cercles du ping, droites du télescope) : visibles dans l'onglet CHASSE.
   const tracesVisibles = $derived(mode === 'chasse')
 
-  // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus.
-  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean }
+  // Astres à dessiner : planètes, et les corps d'un système quand on zoome dessus. Chaque astre a un rayon à l'écran
+  // (grossi, ou vrai de près). Une lune ou un engin trop près de sa planète pour s'en détacher n'est pas dessiné.
+  type Marque = { nom: string; p: Point2; r: number; couleur: string; etiquette: boolean; engin?: boolean; soleil?: number }
+  const rayonEcran = (nom: string) => Math.max(rayonMinimal(nom), ((rayonCorps(nom) ?? 0) / UA_KM) * k)
+  /** Direction du Soleil à l'écran (degrés, sens des aiguilles d'une montre depuis la droite), vue depuis p. */
+  const versSoleil = (p: Point2) => (Math.atan2(p.y, -p.x) * 180) / Math.PI
   const marques = $derived.by(() => {
-    const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: 9, couleur: '#f2b53a', etiquette: true }]
-    for (const nom of NOMS_PLANETES) l.push({ nom, p: positionAstre(nom, tl), r: nom === 'Jupiter' || nom === 'Saturne' ? 6 : 4.5, couleur: COULEURS[nom], etiquette: true })
-    l.push({ nom: 'ISS', p: positionAstre('ISS', tl), r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
-    for (const e of positionsEngins(tl)) l.push({ nom: e.nom, p: e.position, r: 4, couleur: PLAN.fond, etiquette: true, engin: true })
+    const l: Marque[] = [{ nom: 'Soleil', p: { x: 0, y: 0 }, r: rayonEcran('Soleil'), couleur: couleurAstre('Soleil'), etiquette: true }]
+    for (const nom of NOMS_PLANETES) {
+      const p = positionAstre(nom, tl)
+      l.push({ nom, p, r: rayonEcran(nom), couleur: couleurAstre(nom), etiquette: true, soleil: versSoleil(p) })
+    }
+    const disques = l.map((m) => ({ s: ecran(m.p), r: m.r }))
+    /** Libre : assez loin de tout disque déjà dessiné pour qu'on le distingue. */
+    const libre = (p: Point2, r: number) => {
+      const s = ecran(p)
+      return disques.every((d) => Math.hypot(d.s.x - s.x, d.s.y - s.y) > d.r + r + 3)
+    }
     for (const planete of NOMS_PLANETES) {
       const c = positionAstre(planete, tl)
       if (k * rayonInfluence(planete) < 30) continue
-      if (Math.abs(c.x - centre.x) > demi * 1.6 || Math.abs(c.y - centre.y) > demi * 1.8) continue
+      if (Math.abs(c.x - c0.x) > demi * 1.6 || Math.abs(c.y - c0.y) > demi * 1.8) continue
       for (const nom of corpsDuSysteme(planete)) {
         if (estPlanete(nom) || nom === 'ISS') continue
         const a = demiGrandAxeAutourDeLaPlanete(nom)! / UA_KM
-        if (a * k < 6) continue
-        l.push({ nom, p: positionAstre(nom, tl), r: 3, couleur: '#cfc8b8', etiquette: a * k > 26 })
+        const p = positionAstre(nom, tl)
+        const r = rayonEcran(nom)
+        if (!libre(p, r)) continue
+        l.push({ nom, p, r, couleur: couleurAstre(nom), etiquette: a * k > 26, soleil: versSoleil(p) })
       }
+    }
+    for (const e of [{ nom: 'ISS', position: positionAstre('ISS', tl) }, ...positionsEngins(tl)]) {
+      if (libre(e.position, 4.5)) l.push({ nom: e.nom, p: e.position, r: 4.5, couleur: PLAN.fond, etiquette: true, engin: true })
     }
     return l
   })
 
-  /** Noms d'engins qui ne se chevauchent pas (ni entre eux ni avec un astre). */
-  const etiquettesEngins = $derived.by(() => {
-    const pris = marques.filter((m) => !m.engin).map((m) => ecran(m.p))
-    const ok = new Set<string>()
+  /** Noms qui ne se chevauchent pas (ni entre eux, ni avec un astre), par ordre d'importance : Soleil, planètes,
+   *  lunes, engins. La fusée et son cadran de cap gardent leur place. */
+  const nomsVisibles = $derived.by(() => {
+    type Boite = { x0: number; y0: number; x1: number; y1: number }
+    const f = ecran(fl.position)
+    const prises: Boite[] = [{ x0: f.x - 12, y0: f.y - 12, x1: f.x + 12, y1: f.y + 12 }]
+    for (const m of marques) { const s = ecran(m.p); prises.push({ x0: s.x - m.r, y0: s.y - m.r, x1: s.x + m.r, y1: s.y + m.r }) }
+    const ok = new Map<string, { x: number; y: number }>()
     for (const m of marques) {
-      if (!m.engin) continue
+      if (!m.etiquette) continue
       const s = ecran(m.p)
-      if (pris.every((q) => Math.abs(q.x - s.x) > 60 || Math.abs(q.y - s.y) > 12)) { ok.add(m.nom); pris.push(s) }
+      const taille = m.engin ? 9 : 11
+      const largeur = m.nom.length * taille * 0.62
+      const ecart = m.engin ? 7 : m.r + 3
+      // Quatre places essayées dans l'ordre : en haut à droite, en bas à droite, en haut à gauche, en bas à gauche.
+      for (const [cote, haut] of [[1, true], [1, false], [-1, true], [-1, false]] as const) {
+        const x = cote > 0 ? s.x + ecart : s.x - ecart - largeur
+        const y = haut ? s.y - Math.max(m.r * 0.7, 2) - 2 : s.y + Math.max(m.r * 0.7, 2) + taille
+        const boite = { x0: x - 1, y0: y - taille, x1: x + largeur + 1, y1: y + 2 }
+        if (prises.every((q) => boite.x1 < q.x0 || boite.x0 > q.x1 || boite.y1 < q.y0 || boite.y0 > q.y1)) {
+          ok.set(m.nom, { x, y })
+          prises.push(boite)
+          break
+        }
+      }
     }
     return ok
   })
@@ -246,7 +315,10 @@
       return
     }
     ambigus = null
-    choix = proches.length ? { type: 'astre', astre: proches[0].m.nom } : { type: 'point', x: w.x, y: w.y }
+    const nom = proches[0]?.m.nom
+    // Toucher encore la planète choisie ouvre son système.
+    if (nom && choix?.type === 'astre' && choix.astre === nom && aUnSysteme(nom) && niveau !== nom) { ouvrirSysteme(nom as NomPlanete); return }
+    choix = nom ? { type: 'astre', astre: nom } : { type: 'point', x: w.x, y: w.y }
   }
   function molette(e: WheelEvent) {
     suivi = false
@@ -316,7 +388,7 @@
   // Les autres commissionnaires : un point de leur couleur ; leur nom quand on zoome assez pour les distinguer.
   // Les noms ne s'écrivent que s'ils ne se chevauchent pas (sinon, autour de la Terre, ce serait illisible).
   const autres = $derived.by(() => {
-    const ecrits: { x: number; y: number }[] = [ecran(fl.position)]
+    const ecrits: { x: number; y: number }[] = [ecran(fl.position), ...[...nomsVisibles.values()].map((n) => ({ x: n.x - 5, y: n.y - 11 }))]
     return autresFusees(tl).map((a) => {
       const s = ecran(a.position)
       const visible = s.x > -10 && s.x < L + 10 && s.y > -10 && s.y < Hc + 10
@@ -340,28 +412,69 @@
     <button class:actif={vue === 'planetes'} onclick={() => choisirVue('planetes')}>PLANÈTES</button>
     <button class:actif={vue === 'tout'} onclick={() => choisirVue('tout')}>TOUT</button>
   </div>
+  <!-- Système cadré : le système solaire, ou celui d'une planète (toucher deux fois une planète l'ouvre). -->
+  <div class="niveau">
+    <span>{niveau ? `SYSTÈME ${niveau === 'Terre' ? 'DE LA TERRE' : `DE ${niveau.toUpperCase()}`}` : 'SYSTÈME SOLAIRE'}</span>
+    {#if niveau}<button onclick={() => viser({ x: 0, y: 0 }, 2.2)}>‹ SYSTÈME SOLAIRE</button>
+    {:else if choix?.type === 'astre' && aUnSysteme(choix.astre)}<button onclick={() => ouvrirSysteme(choix!.type === 'astre' ? choix!.astre as NomPlanete : 'Terre')}>VOIR SON SYSTÈME ›</button>{/if}
+  </div>
 
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
     onpointerdown={appuyer} onpointermove={bouger} onpointerup={relacher} onpointercancel={relacher} onwheel={molette}>
+    <defs>
+      <!-- Hachures fines à 45° (le long du terminateur, style Moebius). -->
+      <pattern id="hachures-carte" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="3" stroke={PLAN.trait} stroke-width="0.8" />
+      </pattern>
+    </defs>
     <rect width={L} height={Hc} fill={PLAN.fond} />
     <!-- Quadrillage. -->
-    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
-    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.6" opacity=".22" />{/each}
+    {#each lignesGrille.v as x}<line x1={x} y1="0" x2={x} y2={Hc} stroke={PLAN.trait} stroke-width="0.5" opacity=".1" />{/each}
+    {#each lignesGrille.h as y}<line x1="0" y1={y} x2={L} y2={y} stroke={PLAN.trait} stroke-width="0.5" opacity=".1" />{/each}
+    <!-- Orbites : planètes autour du Soleil, lunes autour de leur planète, de la couleur de l'astre. -->
     {#each NOMS_PLANETES as nom}
       {@const p = positionAstre(nom, tl)}
       {@const d = arcVisible({ x: 0, y: 0 }, Math.hypot(p.x, p.y))}
-      {#if d}<path {d} fill="none" stroke={PLAN.trait} stroke-width="0.8" stroke-dasharray="4 3" opacity=".5" />{/if}
+      {#if d}<path {d} fill="none" stroke={couleurAstre(nom)} stroke-width="0.9" opacity=".75" />{/if}
+    {/each}
+    {#each marques as m}
+      {#if !m.engin && m.nom !== 'Soleil' && !estPlanete(m.nom)}
+        {@const c = positionAstre(planeteDe(m.nom), tl)}
+        {@const d = arcVisible(c, Math.hypot(m.p.x - c.x, m.p.y - c.y))}
+        {#if d}<path {d} fill="none" stroke={m.couleur} stroke-width="0.8" opacity=".6" />{/if}
+      {/if}
     {/each}
     {#each marques as m}
       {@const s = ecran(m.p)}
-      {#if s.x > -40 && s.x < L + 40 && s.y > -40 && s.y < Hc + 40}
+      {#if s.x > -m.r - 40 && s.x < L + m.r + 40 && s.y > -m.r - 40 && s.y < Hc + m.r + 40}
         {#if m.engin}
           <!-- Engin humain : petit losange, nom en plus petit. -->
-          <path d={`M ${s.x} ${s.y - 4.5} L ${s.x + 4.5} ${s.y} L ${s.x} ${s.y + 4.5} L ${s.x - 4.5} ${s.y} Z`} fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.3" />
-          {#if etiquettesEngins.has(m.nom)}<text x={s.x + 7} y={s.y + 4} font-size="9" font-family="var(--police-machine)" fill={PLAN.trait} opacity=".9">{m.nom.toUpperCase()}</text>{/if}
+          <path d={`M ${s.x} ${s.y - 4.5} L ${s.x + 4.5} ${s.y} L ${s.x} ${s.y + 4.5} L ${s.x - 4.5} ${s.y} Z`} fill="#23476b" stroke={PLAN.trait} stroke-width="1" />
+          {@const n = nomsVisibles.get(m.nom)}
+          {#if n}<text class="nom" x={n.x} y={n.y} font-size="9" fill={PLAN.trait} opacity=".85">{m.nom.toUpperCase()}</text>{/if}
         {:else}
-          <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} stroke={PLAN.trait} stroke-width="1.5" />
-          {#if m.etiquette}<text x={s.x + 8} y={s.y - 6} font-size="11" font-family="var(--police-machine)" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
+          <circle cx={s.x} cy={s.y} r={m.r} fill={m.couleur} />
+          {#if m.soleil !== undefined}
+            <!-- Face de nuit : aplat violet, hachures sur la bande du terminateur (le Soleil est vers +x, une fois tourné). -->
+            {@const r = m.r}
+            {@const ombre = melanger(m.couleur, PLAN.ombre, 0.6)}
+            {@const segment = (x0: number) => { const h = Math.sqrt(r * r - x0 * x0); return `M ${x0} ${-h} A ${r} ${r} 0 ${x0 > 0 ? 1 : 0} 0 ${x0} ${h} Z` }}
+            <g transform={`translate(${s.x} ${s.y}) rotate(${m.soleil})`}>
+              <path d={segment(-0.1 * r)} fill={ombre} />
+              <path d={segment(0.2 * r)} fill="url(#hachures-carte)" />
+              <path d={segment(-0.5 * r)} fill={ombre} />
+            </g>
+          {:else}
+            <!-- Le Soleil : des rayons. -->
+            {#each Array.from({ length: 12 }, (_, i) => i) as i}
+              {@const a = (i * Math.PI) / 6}
+              {@const r1 = m.r + (i % 2 ? 6 : 10)}
+              <line x1={s.x + (m.r + 3) * Math.cos(a)} y1={s.y + (m.r + 3) * Math.sin(a)} x2={s.x + r1 * Math.cos(a)} y2={s.y + r1 * Math.sin(a)} stroke={PLAN.trait} stroke-width="1.6" stroke-linecap="round" />
+            {/each}
+          {/if}
+          <circle cx={s.x} cy={s.y} r={m.r} fill="none" stroke={PLAN.trait} stroke-width={m.r > 15 ? 1.6 : 1} />
+          {@const n = nomsVisibles.get(m.nom)}
+          {#if n}<text class="nom" x={n.x} y={n.y} font-size="11" fill={PLAN.trait}>{m.nom.toUpperCase()}</text>{/if}
         {/if}
       {/if}
     {/each}
@@ -381,7 +494,7 @@
 
     {#each autres as a}
       {#if a.visible}
-        <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.fond} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />
+        <circle cx={a.s.x} cy={a.s.y} r="3.2" fill={a.couleur} stroke={PLAN.trait} stroke-width="1" opacity={a.enLigne ? 1 : 0.55} />
         {#if a.nomVisible}<text x={a.s.x + 5} y={a.s.y + 11} font-size="11" font-family="var(--police-script)" fill={a.couleur}>{a.nom}</text>{/if}
       {/if}
     {/each}
@@ -399,7 +512,7 @@
       <!-- Deux traits : vers la destination là où elle est maintenant (blanc, fin), et vers le point de rencontre,
            là où la fusée la rejoindra (jaune). -->
       {#if visee}<path d={visee} fill="none" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" opacity=".85" />{/if}
-      {#if route}<path d={route} fill="none" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />{/if}
+      {#if route}<path d={route} fill="none" stroke={PLAN.trait} stroke-width="4" stroke-linecap="round" /><path d={route} fill="none" stroke={PLAN.route} stroke-width="2.2" stroke-linecap="round" />{/if}
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
       <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
     {/if}
@@ -409,7 +522,7 @@
     {/if}
 
     <g transform={`translate(${posFusee.x} ${posFusee.y})`}>
-      <circle r="40" fill="none" stroke={PLAN.trait} stroke-width="1" opacity=".6" />
+      <circle r="40" fill="none" stroke={PLAN.trait} stroke-width="1" opacity=".45" />
       {#each graduations as g}
         {@const a = (g * Math.PI) / 180}
         <line x1={Math.cos(a) * 36} y1={-Math.sin(a) * 36} x2={Math.cos(a) * 40} y2={-Math.sin(a) * 40} stroke={PLAN.trait} stroke-width={g % 90 === 0 ? 2 : 1} />
@@ -424,7 +537,7 @@
         <rect width="144" height="26" fill={PLAN.fond} stroke={PLAN.trait} stroke-width="1.2" />
         <line x1="6" y1="8" x2="26" y2="8" stroke={PLAN.trait} stroke-width="1.2" stroke-dasharray="2 4" />
         <text x="32" y="11" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>DESTINATION, MAINTENANT</text>
-        <line x1="6" y1="19" x2="26" y2="19" stroke={PLAN.route} stroke-width="2" stroke-dasharray="7 5" />
+        <line x1="6" y1="19" x2="26" y2="19" stroke={PLAN.route} stroke-width="2.2" />
         <text x="32" y="22" font-size="8" font-family="var(--police-machine)" fill={PLAN.trait}>POINT DE RENCONTRE</text>
       </g>
     {/if}
@@ -552,8 +665,36 @@
     border-left: 0;
   }
   .vues button.actif {
-    background: #1f4f8c;
-    color: #eef4ff;
+    background: var(--couleur-encre);
+    color: var(--couleur-texte-clair);
+  }
+  .niveau {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 40px;
+    font-family: var(--police-titre);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .niveau button {
+    min-height: 40px;
+    padding: 0 12px;
+    border: var(--trait) solid var(--couleur-encre);
+    border-radius: 10px;
+    background: var(--moutarde);
+    font-family: var(--police-chiffres);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  /* Noms sur la carte : liseré de la couleur du fond, pour rester lisibles sur une orbite ou un astre. */
+  .plan .nom {
+    font-family: var(--police-machine);
+    paint-order: stroke;
+    stroke: #f4f1ea;
+    stroke-width: 3px;
+    stroke-linejoin: round;
   }
   .vues button:disabled {
     color: var(--couleur-texte-eteint);

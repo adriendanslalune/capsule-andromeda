@@ -205,3 +205,17 @@ l'icône au-dessus du nom).
 - **LIAISONS** (ex-SOCIAL) : COMMUNICATION (par défaut), CLASSEMENT, TROPHÉES. Les transmissions du cockpit l'ouvrent.
 - **COMMERCE** : la cale (vide) et le marché, « bientôt ».
 Voir docs/conception-destin.md.
+
+## 22. Carte en style Moebius, vraie échelle (17/10/2026, décisions d'Adrien)
+Après le prototype Andromeda (`prototypes/andromeda/BILAN.md`). Étape (a) faite ; (b) repères et cadran, (c) point libre,
+chasse et départs rebranchés, à venir.
+- **Vraies distances**, échelle linéaire (la chasse en a besoin : cercles et droites justes). Seuls les astres sont
+  grossis : rayon minimal à l'écran (Soleil 11 px, géantes 8, autres planètes 6, lunes 3,5), vraie taille de près.
+- **Style Moebius** : fond blanc cassé, encre brun-violet, astres en pastel, face de nuit en aplat violet, hachures le
+  long du terminateur (tournées vers le Soleil), orbites fines de la couleur de l'astre, trajet en rouge cerné d'encre.
+- Une lune ou un engin trop près de sa planète pour s'en détacher à l'écran n'est pas dessiné ; il apparaît en zoomant
+  (et reste dans la liste).
+- **Systèmes** : toucher deux fois une planète (ou « VOIR SON SYSTÈME › ») cadre son système (jusqu'à la plus lointaine
+  de ses lunes de plus de 200 km), la planète reste au centre en avançant ; « ‹ SYSTÈME SOLAIRE » revient.
+- Noms sans chevauchement, par ordre d'importance (Soleil, planètes, lunes, engins), à l'une de quatre places autour
+  de l'astre.
