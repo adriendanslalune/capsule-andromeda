@@ -163,11 +163,19 @@ boutonRetour.addEventListener('click', () => {
 
 /** Place, sur la carte (km de carte), de ce qui est choisi (la caméra le suit). */
 function positionSuivie(t: number): Point2 {
-  if (selection === CAPSULE) return capsuleSurCarte ?? carte.positionCapsule(t)
+  if (selection === CAPSULE) {
+    const p = capsuleSurCarte ?? carte.positionCapsule(t)
+    return { x: p.x + decalageCapsule.x, y: p.y + decalageCapsule.y }
+  }
   return selection && corps(selection) ? projeterCorps(selection, t) : carte.centre
 }
 /** Où est dessinée la capsule en route (sur son trajet), mis à jour à chaque image. */
 let capsuleSurCarte: Point2 | null = null
+/**
+ * Vue de loin, la capsule est dessinée à côté de son astre (pour ne pas le cacher), d'autant plus loin qu'on dézoome :
+ * ce décalage (km de carte), mesuré à chaque image, est ajouté pour que la caméra reste centrée sur elle.
+ */
+let decalageCapsule: Point2 = { x: 0, y: 0 }
 
 /**
  * Cadre la carte sur la capsule (le système de l'astre où elle se trouve, la capsule au centre) et la suit : en vol
@@ -462,6 +470,12 @@ function image(maintenant: number): void {
       }
     }
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
+    // Décalage de la capsule dessinée par rapport à sa vraie place sur la carte (voir decalageCapsule).
+    const dessinee = carte.place(CAPSULE)
+    if (dessinee) {
+      const brut = carte.ecranDe(capsuleDessinee ?? carte.positionCapsule(t))
+      decalageCapsule = { x: (dessinee.x - brut.x) * carte.kmParPx, y: -(dessinee.y - brut.y) * carte.kmParPx }
+    }
     // Titre : le système qu'on regarde ; bouton de retour à la vue générale quand on a zoomé sur un système.
     const titreCarte = carte.titre(t)
     if (titre.textContent !== titreCarte) titre.textContent = titreCarte
