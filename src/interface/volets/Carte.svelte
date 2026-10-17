@@ -230,14 +230,19 @@
   const detecte = $derived(visiteurDetecte(etat, t))
   const visiteur = $derived(detecte !== null ? positionVisiteur(t) : null)
 
-  // Sélection d'une nouvelle destination.
+  // Toucher un astre (ou un point) le sélectionne : sa fiche s'affiche, sans rien changer à la route
+  // (décision d'Adrien du 17/10/2026). Le bouton Y ALLER en fait la nouvelle destination proposée (choix),
+  // avec ses départs.
+  let selection = $state<Destination | null>(null)
   let choix = $state<Destination | null>(null)
   /** Plusieurs objets sous le doigt : on propose de choisir. */
   let ambigus = $state<{ noms: string[]; point: Destination } | null>(null)
   function choisir(d: Destination) {
-    choix = d
+    selection = d
+    choix = null
     ambigus = null
   }
+  const planeteSelectionnee = $derived(selection?.type === 'astre' && aUnSysteme(selection.astre) ? (selection.astre as NomPlanete) : null)
   /** Liste de toutes les destinations, par familles (pour les objets lointains ou trop serrés sur la carte). */
   const LISTE = [
     { titre: 'Soleil, planètes et Lune', noms: ['Soleil', ...NOMS_PLANETES, 'Lune'] },
@@ -260,6 +265,7 @@
     const f = fenetre ? choisirDestinationAvecFenetre(fusee, choix, t, v) : choisirDestination(fusee, choix)
     jeu.remplacer({ ...etat, fusee: f }, [`NOUVEAU CAP : ${nomChoix(choix).toUpperCase()}.${fenetre ? ' DÉPART À LA FENÊTRE DE TIR.' : ''}`])
     choix = null
+    selection = null
   }
 
   // Gestes : glisser pour déplacer, pincer pour zoomer, toucher pour choisir.
@@ -312,13 +318,15 @@
     if (proches.length > 1) {
       ambigus = { noms: proches.map((x) => x.m.nom), point: { type: 'point', x: w.x, y: w.y } }
       choix = null
+      selection = null
       return
     }
     ambigus = null
     const nom = proches[0]?.m.nom
     // Toucher encore la planète choisie ouvre son système.
-    if (nom && choix?.type === 'astre' && choix.astre === nom && aUnSysteme(nom) && niveau !== nom) { ouvrirSysteme(nom as NomPlanete); return }
-    choix = nom ? { type: 'astre', astre: nom } : { type: 'point', x: w.x, y: w.y }
+    // Toucher encore la planète sélectionnée ouvre son système.
+    if (nom && selection?.type === 'astre' && selection.astre === nom && aUnSysteme(nom) && niveau !== nom) { ouvrirSysteme(nom as NomPlanete); return }
+    choisir(nom ? { type: 'astre', astre: nom } : { type: 'point', x: w.x, y: w.y })
   }
   function molette(e: WheelEvent) {
     suivi = false
@@ -416,7 +424,7 @@
   <div class="niveau">
     <span>{niveau ? `SYSTÈME ${niveau === 'Terre' ? 'DE LA TERRE' : `DE ${niveau.toUpperCase()}`}` : 'SYSTÈME SOLAIRE'}</span>
     {#if niveau}<button onclick={() => viser({ x: 0, y: 0 }, 2.2)}>‹ SYSTÈME SOLAIRE</button>
-    {:else if choix?.type === 'astre' && aUnSysteme(choix.astre)}<button onclick={() => ouvrirSysteme(choix!.type === 'astre' ? choix!.astre as NomPlanete : 'Terre')}>VOIR SON SYSTÈME ›</button>{/if}
+    {:else if planeteSelectionnee}<button onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME ›</button>{/if}
   </div>
 
   <svg bind:this={svg} viewBox={`0 0 ${L} ${Hc}`} class="plan" role="application" aria-label="Carte du système solaire"
@@ -516,8 +524,8 @@
       <circle cx={point.x} cy={point.y} r="6" fill="none" stroke={PLAN.route} stroke-width="2" />
       <circle cx={cible.x} cy={cible.y} r="10" fill="none" stroke={PLAN.trait} stroke-width="1.5" stroke-dasharray="3 3" />
     {/if}
-    {#if choix}
-      {@const s = ecran(positionDestination(choix, tl))}
+    {#if choix ?? selection}
+      {@const s = ecran(positionDestination((choix ?? selection)!, tl))}
       <circle cx={s.x} cy={s.y} r="12" fill="none" stroke={PLAN.route} stroke-width="2.5" />
     {/if}
 
@@ -563,8 +571,16 @@
         {#each ambigus.noms as n}<button onclick={() => choisir({ type: 'astre', astre: n })}>{nomAstre(n).replace(/^./, (c) => c.toUpperCase())}</button>{/each}
         <button class="clair" onclick={() => choisir(ambigus!.point)}>Point libre</button>
       </div>
+    {:else if mode === 'navigation' && selection && !choix}
+      <!-- Fiche de l'astre (ou du point) touché : rien ne change tant qu'on n'appuie pas sur Y ALLER. -->
+      <div class="ligne"><span class="etiquette">SÉLECTION</span><button class="lien" onclick={() => (selection = null)}>fermer</button></div>
+      <div class="ligne"><span class="grand">{nomChoix(selection).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(selection, t)))}</span></div>
+      <div class="boutons">
+        {#if planeteSelectionnee && niveau !== planeteSelectionnee}<button class="action" onclick={() => ouvrirSysteme(planeteSelectionnee!)}>VOIR SON SYSTÈME</button>{/if}
+        <button class="action clair" onclick={() => (choix = selection)}>Y ALLER</button>
+      </div>
     {:else if mode === 'navigation' && choix && options}
-      <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => (choix = null)}>annuler</button></div>
+      <div class="ligne"><span class="etiquette">NOUVELLE DESTINATION</span><button class="lien" onclick={() => { choix = null; selection = null }}>annuler</button></div>
       <div class="ligne"><span class="grand">{nomChoix(choix).replace(/^./, (c) => c.toUpperCase())}</span><span class="chiffres">{ua(distance(fusee.position, positionDestination(choix, t)))}</span></div>
       {#if options.maintenant}
         {@const voyage = (options.maintenant.arrivee - t) / 1000 - approche(choix) + (DUREE_ACCELERATION / 2) * Math.max(0, 1 - vitesseDuMoment(fusee, v) / v) ** 2}
@@ -586,7 +602,7 @@
         <span class="grand">{fusee.destination ? nomChoix(fusee.destination).replace(/^./, (c) => c.toUpperCase()) : 'Aucune'}</span>
         {#if fusee.destination && v > 0}<span class="chiffres">{duree(tempsRestant(fusee, t, v) ?? 0)}</span>{/if}
       </div>
-      <p class="aide">Touchez un astre, un engin ou un point de la carte pour choisir une destination, ou :</p>
+      <p class="aide">Touchez un astre, un engin ou un point de la carte pour voir sa fiche, ou :</p>
       <select class="liste" aria-label="Choisir une destination dans la liste" onchange={depuisLaListe}>
         <option value="">Choisir dans la liste…</option>
         {#each LISTE as g}

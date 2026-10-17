@@ -219,3 +219,6 @@ chasse et départs rebranchés, à venir.
   de ses lunes de plus de 200 km), la planète reste au centre en avançant ; « ‹ SYSTÈME SOLAIRE » revient.
 - Noms sans chevauchement, par ordre d'importance (Soleil, planètes, lunes, engins), à l'une de quatre places autour
   de l'astre.
+- **Toucher = fiche** (17/10/2026, demande d'Adrien) : toucher un astre, un engin ou un point affiche sa fiche (nom,
+  distance, VOIR SON SYSTÈME, Y ALLER) sans rien changer à la route ; Y ALLER propose les départs (maintenant, fenêtre
+  de tir) ; toucher encore une planète sélectionnée ouvre son système.
