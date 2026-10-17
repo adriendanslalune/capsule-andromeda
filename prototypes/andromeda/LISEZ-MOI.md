@@ -16,7 +16,7 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - `src/donnees/` — séries VSOP87B générées.
 - `src/affichage3d/` — la vue 3D (three.js) : caméra derrière la capsule, astres jour / nuit avec contours, modèles
   (capsule type Apollo, engins, cailloux), noms et flèches par-dessus. Ne calcule aucune position : les demande au moteur.
-- Style retenu par Adrien : « Moebius » sur fond blanc cassé — couleurs pastel (palette dans
+- Style retenu par Adrien : « Moebius », fond blanc cassé sur la carte et noir dans la vue extérieure — couleurs pastel (palette dans
   `src/affichage3d/couleurs.ts`), ombre en aplat violet, hachures fines le long du terminateur, encre brun-violet.
   Les essais précédents (à plat, BD tramée, réaliste) restent dans le code mais ne sont plus proposés.
 - `src/carte/` — la carte schématique (2D, distances écrasées, deux niveaux) et le cadran de navigation.
@@ -24,7 +24,8 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 
 ## Décisions d'Adrien
 
-- Direction artistique : style « Moebius » sur fond blanc cassé (fond noir en option).
+- Direction artistique : style « Moebius » ; fond blanc cassé sur la carte (lisible), fond noir dans la vue extérieure
+  (plus beau pour contempler).
 - Carte de travail : carte schématique 2D (distances logarithmiques, deux niveaux) ; vue 3D en option (VUE EXTÉRIEURE).
 - Puissance des moteurs (budget de delta-v) : 120 km/s dans le prototype, réglable de 5 à 5 000 km/s dans
   « Repères ». **Vrai jeu : départ à 30 km/s, puis améliorations sans limite.**

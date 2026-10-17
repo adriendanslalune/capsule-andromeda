@@ -75,10 +75,10 @@ window.addEventListener('resize', redimensionner)
 redimensionner()
 
 // --- Réglages, chacun désactivable (mémorisés dans le navigateur, si possible).
-// (nouvelle clé : puissance par défaut passée à 120 km/s, les anciens réglages mémorisés sont oubliés)
-const CLE_REGLAGES = 'andromeda-reperes-v5'
+// (nouvelle clé à chaque changement des réglages par défaut : les anciens réglages mémorisés sont oubliés)
+const CLE_REGLAGES = 'andromeda-reperes-v6'
 const reglages = {
-  etoiles: true, orbites: true, soleil: true, noms: true, fleches: true, fondNoir: false,
+  etoiles: true, orbites: true, soleil: true, noms: true, fleches: true,
   // Style retenu par Adrien : Moebius (les styles « à plat », « BD tramée » et « réaliste » restent dans le code).
   style: 'moebius' as Style,
   crochet: true, etiquette: true, fleche: true,
@@ -100,19 +100,21 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
     memoriser()
-    if (cle === 'fondNoir') changerTheme()
   })
 }
 
-/** Fond blanc cassé (le choix d'Adrien) ou fond noir, au choix du joueur. */
+/**
+ * Le fond suit la vue (choix d'Adrien) : blanc cassé sur la carte, plus lisible ; noir dans la vue extérieure,
+ * plus beau pour contempler l'espace.
+ */
 function changerTheme(): void {
-  const theme = reglages.fondNoir ? THEME_NUIT : THEME_JOUR
+  const nuit = mode === 'exterieur'
+  const theme = nuit ? THEME_NUIT : THEME_JOUR
   appliquerTheme(theme)
-  document.documentElement.dataset.theme = reglages.fondNoir ? 'nuit' : 'jour'
+  document.documentElement.dataset.theme = nuit ? 'nuit' : 'jour'
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.fond)
 }
-changerTheme()
-const theme = () => (reglages.fondNoir ? THEME_NUIT : THEME_JOUR)
+const theme = () => (mode === 'exterieur' ? THEME_NUIT : THEME_JOUR)
 
 // --- Choix de la destination.
 function choisir(nom: string | null): void {
@@ -254,6 +256,7 @@ function changerMode(nouveau: 'carte' | 'exterieur'): void {
   mode = nouveau
   document.body.dataset.mode = mode
   boutonVue.textContent = mode === 'carte' ? 'VUE EXTÉRIEURE' : 'CARTE'
+  changerTheme()
   if (mode === 'carte' && selection) choisir(selection)
 }
 boutonVue.addEventListener('click', () => changerMode(mode === 'carte' ? 'exterieur' : 'carte'))
