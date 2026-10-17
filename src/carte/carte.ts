@@ -8,10 +8,11 @@
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
-import { CENTRES, projeter, projeterCorps, rayonDessine, zoneDessinee, type Point2 } from './loupe'
+import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
+import { positionsPoussiere } from '../moteur/poussiere'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 
@@ -119,6 +120,8 @@ export class Carte2D {
   private angleCapsule: number | null = null
   private instantAngle = 0
   private orbites = new Map<string, { t: number; points: Vecteur3[] | null }>()
+  /** Points dessinés de la poussière de satellites (km de carte), réutilisés d'une image à l'autre. */
+  private pointsPoussiere = new Float64Array(0)
 
   /** Centre de la carte à l'écran (entre la ligne d'infos et les boutons). */
   private milieu(): { x: number; y: number } {
@@ -229,6 +232,8 @@ export class Carte2D {
       }
     }
 
+    this.poussiere(ctx, t, couleurs)
+
     // Astres : Soleil, planètes, Pluton toujours ; ce qui tourne autour d'eux quand leur système est assez grand à
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
     this.dessines = []
@@ -336,6 +341,33 @@ export class Carte2D {
     const q = this.ecranDe(projeterCorps(selection, t))
     const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 40 && q.y <= this.hauteur - 100
     return { x: q.x, y: q.y, r: 2, visible }
+  }
+
+  /**
+   * La poussière de satellites autour de la Terre (choix d'Adrien du 17/10/2026) : de fins points d'encre, décoratifs
+   * (on ne peut pas les toucher), quand le système de la Terre est assez grand à l'écran.
+   */
+  private poussiere(ctx: CanvasRenderingContext2D, t: number, couleurs: Couleurs2D): void {
+    const e = this.ecranDe(projeterCorps('Terre', t))
+    const zone = zoneDessinee('Terre') / this.kmParPx
+    if (zone < 30 || e.x < -zone || e.x > this.largeur + zone || e.y < -zone || e.y > this.hauteur + zone) return
+    const p = positionsPoussiere(t)
+    if (!p) return
+    if (this.pointsPoussiere.length < 2 * p.nombre) this.pointsPoussiere = new Float64Array(2 * p.nombre)
+    const q = this.pointsPoussiere
+    projeterPoussiere('Terre', t, p.nombre, p.positions, p.normales, q)
+    const m = this.milieu()
+    const cote = 1.1
+    ctx.beginPath()
+    for (let k = 0; k < p.nombre; k++) {
+      const x = m.x + (q[2 * k] - this.centre.x) / this.kmParPx, y = m.y - (q[2 * k + 1] - this.centre.y) / this.kmParPx
+      if (x < 0 || x > this.largeur || y < 0 || y > this.hauteur) continue
+      ctx.rect(x - cote / 2, y - cote / 2, cote, cote)
+    }
+    ctx.fillStyle = couleurs.encre
+    ctx.globalAlpha = 0.4
+    ctx.fill()
+    ctx.globalAlpha = 1
   }
 
   /** Position à l'écran d'un astre déjà dessiné (dont la capsule), ou null. */

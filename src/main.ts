@@ -17,6 +17,7 @@ import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
 import { Mission, planifier, traceTrajet, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
+import { chargerPoussiere } from './moteur/poussiere'
 
 const toilePlan = document.querySelector<HTMLCanvasElement>('#plan')!
 const ctxPlan = toilePlan.getContext('2d')!
@@ -36,6 +37,10 @@ function avancerHorloge(maintenant: number): void {
   tempsSimule += (maintenant - dernierPerf) * acceleration
   dernierPerf = maintenant
 }
+
+// La poussière de satellites (environ 15 000 points autour de la Terre) : chargée à part, sans retarder l'ouverture.
+import('./donnees/poussiere').then((d) => { chargerPoussiere(d.POUSSIERE, d.REFERENCE_POUSSIERE); carteSale = true })
+  .catch(() => { /* pas de poussière : la carte s'en passe */ })
 
 // La mission de la capsule (orbite, trajet, arrivée) : le moteur la suit.
 const mission = new Mission()

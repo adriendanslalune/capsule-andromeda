@@ -70,7 +70,11 @@ function etirer(l: Loupe, d: number): number {
  * Renvoie une direction unitaire dans le plan.
  */
 function rabattre(r1: Vecteur3, r2: Vecteur3): Point2 {
-  const n0 = { x: r1.y * r2.z - r1.z * r2.y, y: r1.z * r2.x - r1.x * r2.z, z: r1.x * r2.y - r1.y * r2.x }
+  return coucher(r1, { x: r1.y * r2.z - r1.z * r2.y, y: r1.z * r2.x - r1.x * r2.z, z: r1.x * r2.y - r1.y * r2.x })
+}
+
+/** Rabat r1 dans le plan de la carte, connaissant la normale n0 au plan de son mouvement (dans le sens du mouvement). */
+function coucher(r1: Vecteur3, n0: Vecteur3): Point2 {
   const l = Math.hypot(n0.x, n0.y, n0.z)
   const plat = (x: number, y: number) => { const h = Math.hypot(x, y) || 1; return { x: x / h, y: y / h } }
   if (!(l > 0)) return plat(r1.x, r1.y)
@@ -145,4 +149,22 @@ export function projeterCorps(nom: string, t: number): Point2 {
   const c = corps(nom)
   if (c && (c.type === 'planete' || c.type === 'naine')) { const p = position(nom, t); return { x: p.x, y: p.y } }
   return projeter({ p: position(nom, t), t, suivant: { p: position(nom, t + 60_000), t: t + 60_000 } })
+}
+
+/**
+ * Poussière de satellites autour d'un astre (moteur/poussiere.ts) : positions relatives à l'astre et normales à leurs
+ * orbites, trois nombres par satellite. Écrit dans sortie les points dessinés (km de carte), deux nombres par satellite.
+ * Seulement la loupe de l'astre (pas celle de ses lunes) : la poussière reste près de la Terre.
+ */
+export function projeterPoussiere(nom: string, t: number, nombre: number, positions: Float64Array, normales: Float64Array,
+  sortie: Float64Array): void {
+  const l = loupe(nom)
+  const c = position(nom, t)
+  for (let k = 0; k < nombre; k++) {
+    const r = { x: positions[3 * k], y: positions[3 * k + 1], z: positions[3 * k + 2] }
+    const u = coucher(r, { x: normales[3 * k], y: normales[3 * k + 1], z: normales[3 * k + 2] })
+    const d = etirer(l, Math.max(Math.hypot(r.x, r.y, r.z), l.R))
+    sortie[2 * k] = c.x + u.x * d
+    sortie[2 * k + 1] = c.y + u.y * d
+  }
 }

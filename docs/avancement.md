@@ -9,7 +9,12 @@ Légende : **fait** / **en cours** / **à faire**.
   (`src/carte/carte.ts`, `src/commun/gestes.ts`).
 - Fait : Soleil, planètes (VSOP87), Pluton, 453 lunes, sondes lointaines (JPL), silhouettes d'engins
   (`src/moteur/corps.ts`, `src/carte/engins.ts`).
-- Manque : satellites artificiels — seuls l'ISS, Hubble et Tiangong existent (données CelesTrak bloquées par le réseau).
+- Satellites artificiels (choix d'Adrien du 17/10/2026 : « le mélange ») :
+  - fait : la **poussière**, tous les satellites actifs (≈ 15 900, CelesTrak) en fins points décoratifs autour de la
+    Terre (`src/moteur/poussiere.ts`, `outils/poussiere-celestrak.mjs`). Pas de mise à jour régulière des orbites
+    (décision d'Adrien : seules les orbites des planètes comptent) — en attente de validation ;
+  - à faire : une **sélection** d'engins connus, touchables, avec silhouette et fiche (seuls l'ISS, Hubble et Tiangong
+    existent).
 
 ## 2. Repères (crochet, étiquette, flèche hors champ) et capsule — fait
 
