@@ -121,16 +121,22 @@ export function positionRelative(nom: string, t: number): Vecteur3 {
   throw new Error(`Astre sans parent ou inconnu : ${nom}`)
 }
 
-// Mémoire des positions de l'instant en cours : dans une même image, la carte et la vue demandent souvent les mêmes
-// astres plusieurs fois (VSOP87 coûte quelques milliers de cosinus par planète).
-let instantMemorise = NaN
-const memoire = new Map<string, Vecteur3>()
+// Mémoire des positions des derniers instants demandés : dans une même image, la carte demande souvent les mêmes
+// astres plusieurs fois, à l'instant présent et une minute plus tard (pour coucher les orbites dans le plan) ; VSOP87
+// coûte quelques milliers de cosinus par planète.
+const INSTANTS_MEMORISES = 4
+const memoire = new Map<number, Map<string, Vecteur3>>()
 
 /** Position héliocentrique d'un astre (écliptique J2000, km) à l'instant t (ms UTC). */
 export function position(nom: string, t: number): Vecteur3 {
-  if (t !== instantMemorise) { memoire.clear(); instantMemorise = t }
-  let p = memoire.get(nom)
-  if (!p) { p = calculerPosition(nom, t); memoire.set(nom, p) }
+  let m = memoire.get(t)
+  if (!m) {
+    if (memoire.size >= INSTANTS_MEMORISES) memoire.delete(memoire.keys().next().value!)
+    m = new Map()
+    memoire.set(t, m)
+  }
+  let p = m.get(nom)
+  if (!p) { p = calculerPosition(nom, t); m.set(nom, p) }
   return p
 }
 

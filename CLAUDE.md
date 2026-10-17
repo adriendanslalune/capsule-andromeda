@@ -9,7 +9,7 @@ simplement, en français, et demande son avis avant toute décision qui change l
 **vrai** système solaire : vraies positions des planètes (VSOP87), de la Lune, des satellites naturels, de l'ISS et des
 sondes, à l'heure réelle (UTC).
 
-- En ligne : https://adriendanslalune.github.io/manuel-de-vol/ (publication automatique à chaque envoi sur `main`).
+- En ligne : https://adriendanslalune.github.io/capsule-andromeda/ (publication automatique à chaque envoi sur `main`).
 - L'ancien jeu (« Manuel de vol ») a été **supprimé** le 17/10/2026 à la demande d'Adrien. Il reste dans l'historique
   Git ; on n'y revient pas et on n'y prend rien sans qu'Adrien le demande.
 

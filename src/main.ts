@@ -1,13 +1,13 @@
 // Capsule Andromeda : la carte et la navigation (en 2D seulement : plus de vue 3D, décision d'Adrien du 17/10/2026).
-//  - La CARTE : carte schématique en 2D, distances écrasées, deux niveaux (système solaire, système
-//    d'une planète). Toucher un astre le choisit comme destination ; le toucher encore ouvre son système.
+//  - La CARTE : vue du dessus, vraies distances entre les planètes, loupe autour de chaque astre (carte/loupe.ts) ;
+//    zoom libre vers un système. Toucher un astre affiche sa fiche ; Y ALLER calcule le trajet et propose le DÉPART.
 //  - Le CADRAN : la liste des astres, pour choisir une destination sans la chercher sur la carte.
 //  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le vrai trajet (arc de conique
 //    autour du Soleil, problème de Lambert) jusqu'au point de rendez-vous ; le bouton DÉPART lance le voyage.
 
 import './style.css'
 import { Cadran } from './carte/cadran'
-import { CAPSULE, Carte2D, aUnSysteme, systemeDe } from './carte/carte'
+import { CAPSULE, Carte2D } from './carte/carte'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
@@ -86,28 +86,21 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   })
 }
 
-// --- Choix de la destination.
-function choisir(nom: string | null): void {
+// --- Sélection (fiche) et destination proposée.
+/** Le joueur a appuyé sur Y ALLER pour l'astre sélectionné : on calcule le trajet et on propose le DÉPART. */
+let proposee = false
+function choisir(nom: string | null, cadrer = false): void {
+  if (nom !== selection) proposee = false
   selection = nom
-  // La carte se place sur le système de la destination (une planète se montre au niveau du système solaire).
-  if (nom) {
-    const sys = systemeDe(nom, horloge())
-    if (sys !== carte.niveau) ouvrirNiveau(sys)
-  }
+  // Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
+  const c = nom ? corps(nom) : undefined
+  if (cadrer && c?.parent) carte.cadrerSysteme(c.parent, horloge())
 }
 
-/** « Système de la Terre », « système d'Uranus »… */
-const DE: Record<string, string> = { Terre: 'DE LA ', Uranus: "D'" }
+boutonRetour.addEventListener('click', () => carte.vueGenerale())
+carte.vueGenerale()
 
-function ouvrirNiveau(niveau: string): void {
-  carte.ouvrir(niveau)
-  titre.textContent = niveau === 'Soleil' ? 'SYSTÈME SOLAIRE' : `SYSTÈME ${DE[niveau] ?? 'DE '}${niveau.toUpperCase()}`
-  boutonRetour.hidden = niveau === 'Soleil'
-}
-boutonRetour.addEventListener('click', () => ouvrirNiveau('Soleil'))
-ouvrirNiveau('Soleil')
-
-const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => choisir(nom), horloge)
+const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => choisir(nom, true), horloge)
 document.querySelector('#bouton-cadran')!.addEventListener('click', () => cadran.ouvrir(selection))
 
 // --- Réglages d'essai : accélération du temps et puissance des moteurs.
@@ -162,7 +155,7 @@ function dejaLa(t: number): boolean {
 
 /** Recalcule le trajet prévu (la destination bouge : une fois par seconde de temps réel, ou si elle change). */
 function prevoir(t: number, maintenant: number): void {
-  if (dejaLa(t) || (mission.phase(t) === 'trajet' && mission.plan?.cible === selection)) {
+  if (!proposee || dejaLa(t) || (mission.phase(t) === 'trajet' && mission.plan?.cible === selection)) {
     prevision = null
     previsionPour = selection
     return
@@ -189,7 +182,12 @@ function mettreAJourFiche(t: number): void {
       texte = `<b>EN ORBITE ${autourDe(o.centre)}</b><br>${altitudeTexte}${tour}`
     }
   }
-  if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
+  if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
+    // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
+    texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b><br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    depart = true
+    libelle = 'Y ALLER'
+  } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
     const dv = `${reglages.budget} km/s`
     if (prevision.possible) {
       const p = prevision.plan
@@ -210,14 +208,14 @@ function mettreAJourFiche(t: number): void {
 boutonDepart.addEventListener('click', () => {
   const t = horloge()
   if (!selection || dejaLa(t)) return
+  if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
   const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.budget)
   if (!p.possible) return
   mission.partir(p.plan)
   prevision = null
+  proposee = false
   carteSale = true
-  // La carte montre le voyage : le système solaire si l'on quitte le système d'une planète.
-  if (systemeDe(selection, t) !== carte.niveau) ouvrirNiveau('Soleil')
 })
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
@@ -226,14 +224,7 @@ const gestesCarte = new Gestes(toilePlan, {
   zoomer: (f, sx, sy) => carte.zoomer(f, sx, sy),
   toucher: (x, y) => {
     const nom = carte.toucher(x, y)
-    if (!nom) return
-    // Toucher une planète déjà choisie : on ouvre son système.
-    if (nom === selection && nom !== carte.niveau && corps(nom) && aUnSysteme(nom, horloge())
-      && (corps(nom)!.type === 'planete' || corps(nom)!.type === 'naine')) {
-      ouvrirNiveau(nom)
-      return
-    }
-    selection = nom
+    if (nom) choisir(nom)
   },
 })
 
@@ -277,31 +268,34 @@ function image(maintenant: number): void {
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {
-      const e = carte.echelle(t)
-      const q0 = carte.projeterPoint(trajet[0].r, trajet[0].t, e)
+      const q0 = carte.projeterPoint(trajet[0].r, trajet[0].t)
       for (const p of trajet.slice(1)) {
-        const q = carte.projeterPoint(p.r, p.t, e)
+        const q = carte.projeterPoint(p.r, p.t)
         if (Math.hypot(q.x - q0.x, q.y - q0.y) > 6) { direction = { x: q.x - q0.x, y: q.y - q0.y }; break }
       }
     }
-    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, 'moebius', selection, direction)
-    // Pointillé vers la destination (sa position actuelle), seulement si elle est à ce niveau de la carte.
-    const cibleIci = place && place.r > 0 && selection !== CAPSULE && !dejaLa(t) ? place : null
-    // Orbite de la capsule, quand on regarde le système de l'astre qu'elle entoure.
+    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction)
+    // Titre : le système qu'on regarde ; bouton de retour à la vue générale quand on a zoomé sur un système.
+    const titreCarte = carte.titre(t)
+    if (titre.textContent !== titreCarte) titre.textContent = titreCarte
+    boutonRetour.hidden = carte.systemeRegarde(t) === 'Soleil'
+    // Pointillé vers la destination (sa position actuelle), une fois le trajet proposé.
+    const cibleIci = proposee && place && selection !== CAPSULE && !dejaLa(t) ? place : null
+    // Orbite de la capsule autour de son astre.
     const o = mission.orbiteActuelle(t)
-    const orbiteCapsule = o && o.centre === carte.niveau && !corps(o.centre)?.tailleM
+    const orbiteCapsule = o && !corps(o.centre)?.tailleM
       ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
     // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
     const eviter: { x: number; y: number }[] = []
-    if (rendezVous) eviter.push(carte.projeterPoint(rendezVous.r, rendezVous.t, carte.echelle(t)))
+    if (rendezVous) eviter.push(carte.projeterPoint(rendezVous.r, rendezVous.t))
     const ici = carte.place(CAPSULE)
     if (ici) eviter.push(ici)
     if (place && sel) {
-      // Destination dans le système d'une autre planète : on le précise (« Titan (Saturne) »).
-      const sys = systemeDe(selection!, t)
-      const nom = selection !== CAPSULE && sys !== 'Soleil' && sys !== carte.niveau ? `${sel.nom} (${sys})` : sel.nom
+      // Destination qui tourne autour d'un autre astre que celui qu'on regarde : on le précise (« Titan (Saturne) »).
+      const parent = corps(selection!)?.parent
+      const nom = parent && parent !== carte.systemeRegarde(t) ? `${sel.nom} (${parent})` : sel.nom
       dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
         { encre: th.encre, fond: th.halo, accent }, eviter)
     }
@@ -322,7 +316,7 @@ requestAnimationFrame(image)
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {
   andromeda: {
-    carte, mission, choisir: (n: string) => choisir(n), ouvrirNiveau,
+    carte, mission, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
     accelerer: (k: number) => { acceleration = k },
   },
 })

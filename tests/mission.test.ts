@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { position } from '../src/moteur/corps'
-import { Mission, planifier } from '../src/moteur/mission'
+import { Mission, planifier, traceTrajet } from '../src/moteur/mission'
+import { corps } from '../src/moteur/corps'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
 const JOUR = 86_400_000
@@ -28,6 +29,24 @@ describe('planification du trajet', () => {
     expect(p.possible).toBe(false)
     if (!p.possible) expect(p.dvMinimum).toBeGreaterThan(1)
   })
+})
+
+describe('règle d’or : rien ne traverse un astre (17/10/2026)', () => {
+  it('vers Hubble, à toute heure : le trajet ne passe jamais dans la Terre', () => {
+    const pires: string[] = []
+    const rTerre = corps('Terre')!.rayon
+    for (let h = 0; h < 24; h += 1.5) {
+      const t = t0 + h * 3_600_000
+      const p = planifier(new Mission().etatHeliocentrique(t), 'Hubble', t, 120)
+      if (!p.possible) { pires.push(`${h} h : impossible`); continue }
+      const mini = Math.min(...traceTrajet(p.plan, 400).map((q) => distance(q.r, position('Terre', q.t)) - rTerre))
+      const minutes = (p.plan.arrivee - p.plan.depart) / 60_000
+      if (mini < 100) pires.push(`${h} h : ${Math.round(mini)} km d’altitude`)
+      // Un trajet autour de la Terre (sous sa gravité) : quelques dizaines de minutes, pas des jours.
+      if (minutes > 120) pires.push(`${h} h : ${Math.round(minutes)} min de trajet`)
+    }
+    expect(pires).toEqual([])
+  }, 60_000)
 })
 
 describe('le trajet', () => {

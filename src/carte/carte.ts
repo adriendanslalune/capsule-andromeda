@@ -1,23 +1,20 @@
-// La carte schématique (2D) : celle dont le joueur se sert la plupart du temps. Vue du dessus de l'écliptique,
-// directions réelles, distances écrasées (projection.ts), tailles des astres fausses mais lisibles.
-// Deux niveaux : le système solaire, et le système d'une planète (ses lunes, ses satellites, les engins qui
-// l'accompagnent). Style BD tramée : aplats de couleur cernés d'encre, face de nuit en trame de points.
+// La carte (2D) : celle dont le joueur se sert tout le temps. Vue du dessus de l'écliptique, vraies distances
+// entre les planètes, astres grossis mais proportionnés, et une loupe autour de chaque astre pour ses satellites et
+// les engins qui l'accompagnent (loupe.ts). Zoom libre : on zoome directement vers un système pour en voir le contenu
+// (décisions d'Adrien du 17/10/2026, qui remplacent l'échelle logarithmique et les deux niveaux du prototype).
+// Style Moebius : aplats pastel cernés d'encre, face de nuit en aplat violet, hachures le long du terminateur.
 // La carte ne calcule aucune position réelle : elle les demande au moteur, puis les projette.
 
 import { couleurAstre } from './couleurs'
+import { dessinerEngin } from './engins'
+import { CENTRES, projeter, projeterCorps, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { etatCapsule } from '../moteur/capsule'
-import { CORPS, astreDominant, corps, enfants, position, type Corps } from '../moteur/corps'
+import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
-import { projeter, rayonEcran, type Echelle } from './projection'
 
 export const CAPSULE = 'Andromeda'
-
-/** Échelle du système solaire : de Mercure (0,39 UA) à la ceinture de Kuiper (50 UA) dans le demi-écran. */
-const ECHELLE_SOLEIL: Echelle = { dMin: 0.15 * UA_KM, d0: 0.25 * UA_KM, dMax: 50 * UA_KM, r0: 14, rMax: 172 }
-/** Rayon dessiné d'une planète au centre de son système. */
-const RAYON_CENTRE = 26
 
 export interface ReglagesCarte { orbites: boolean; noms: boolean }
 
@@ -26,24 +23,17 @@ export interface Couleurs2D { encre: string; fond: string }
 /** Ce qui est dessiné à l'écran (pour le toucher et les repères). */
 interface Dessine { nom: string; x: number; y: number; r: number }
 
-const GEANTES = new Set(['Jupiter', 'Saturne', 'Uranus', 'Neptune'])
-const grandeLune = (c: Corps) => c.nom === 'Lune' || (c.type === 'lune' && c.rayon >= 100)
-
-/** Système (niveau de la carte) où se trouve un astre : 'Soleil' ou le nom d'une planète. */
-export function systemeDe(nom: string, t: number): string {
-  if (nom === CAPSULE) return astreDominant(etatCapsule(t).position, t)
-  const c = corps(nom)
-  if (!c) return 'Soleil'
-  if (c.type === 'lune' || c.type === 'satellite') return c.parent!
-  if (c.type === 'sonde') return astreDominant(position(nom, t), t)
-  return 'Soleil'
+/** Taille minimale à l'écran (rayon, px) quand on dézoome : chaque astre reste visible et distinct, dans l'ordre
+ *  des vraies tailles (le Soleil énorme, Mercure petite). */
+const MINIMUMS: Record<string, number> = {
+  Soleil: 13, Jupiter: 8.5, Saturne: 8, Uranus: 6.5, Neptune: 6.5, Terre: 5.2, Vénus: 5, Mars: 4.2, Mercure: 3.6,
+  Pluton: 3, Lune: 3,
 }
-
-/** Vrai si une planète a quelque chose à montrer dans son système. */
-export function aUnSysteme(nom: string, t: number): boolean {
-  if (enfants(nom).length > 0) return true
-  return CORPS.some((c) => c.type === 'sonde' && systemeDe(c.nom, t) === nom)
-}
+/** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
+const VUE_GENERALE = 2.2 * UA_KM
+const KM_PAR_PX_MIN = 20
+const KM_PAR_PX_MAX = (60 * UA_KM) / 180
+const DE: Record<string, string> = { Terre: 'DE LA ', Uranus: "D'" }
 
 // Trames de points (ombres), une par densité, préparées une fois.
 const TRAMES = new Map<string, CanvasPattern>()
@@ -100,225 +90,219 @@ function melanger(a: string, b: string, k: number): string {
 const ENCRE_MOEBIUS = '#2b2138'
 
 export class Carte2D {
-  /** Niveau affiché : 'Soleil' (le système solaire) ou une planète. */
-  niveau = 'Soleil'
-  /** Zoom et décalage de la carte (pixels), réglés par les gestes. */
-  zoom = 1
-  dx = 0
-  dy = 0
   largeur = 390
   hauteur = 844
   pixelRatio = 2
+  /** Centre de la vue (km de carte) et échelle (km par pixel). */
+  centre: Point2 = { x: 0, y: 0 }
+  kmParPx = VUE_GENERALE / 195
   private dessines: Dessine[] = []
-  private moebius = false
   /** Angle du chevron de la capsule à l'écran (pour le faire pivoter en douceur) et instant du dernier dessin. */
   private angleCapsule: number | null = null
   private instantAngle = 0
   private orbites = new Map<string, { t: number; points: Vecteur3[] | null }>()
 
   /** Centre de la carte à l'écran (entre la ligne d'infos et les boutons). */
-  private centre(): { x: number; y: number } {
-    return { x: this.largeur / 2 + this.dx, y: (56 + this.hauteur - 130) / 2 + this.dy }
+  private milieu(): { x: number; y: number } {
+    return { x: this.largeur / 2, y: (56 + this.hauteur - 130) / 2 }
   }
 
-  /** Échelle du niveau affiché. */
-  echelle(t: number): Echelle {
-    if (this.niveau === 'Soleil') return ECHELLE_SOLEIL
-    const planete = corps(this.niveau)!
-    let loin = 0
-    for (const nom of this.contenu(t)) {
-      if (nom === this.niveau) continue
-      const p = nom === CAPSULE ? etatCapsule(t).position : position(nom, t)
-      const o = position(this.niveau, t)
-      loin = Math.max(loin, Math.hypot(p.x - o.x, p.y - o.y, p.z - o.z))
-    }
-    return { dMin: planete.rayon, d0: 0.05 * planete.rayon, dMax: Math.max(loin * 1.08, planete.rayon * 3), r0: RAYON_CENTRE, rMax: 172 }
+  /** Point de carte (km) → écran (px). */
+  ecranDe(q: Point2): { x: number; y: number } {
+    const m = this.milieu()
+    return { x: m.x + (q.x - this.centre.x) / this.kmParPx, y: m.y - (q.y - this.centre.y) / this.kmParPx }
   }
 
-  /** Noms des astres montrés au niveau affiché (et la capsule si elle y est). */
-  contenu(t: number): string[] {
-    const noms: string[] = []
-    if (this.niveau === 'Soleil') {
-      for (const c of CORPS) if (!c.parent && (c.type !== 'sonde' || systemeDe(c.nom, t) === 'Soleil')) noms.push(c.nom)
-    } else {
-      noms.push(this.niveau, ...enfants(this.niveau).map((c) => c.nom))
-      for (const c of CORPS) if (c.type === 'sonde' && systemeDe(c.nom, t) === this.niveau) noms.push(c.nom)
-    }
-    // La capsule : dans son système, et au niveau du système solaire (posée à côté de sa planète).
-    if (this.niveau === 'Soleil' || systemeDe(CAPSULE, t) === this.niveau) noms.push(CAPSULE)
-    return noms
+  /** Position à l'écran d'un point de l'espace (héliocentrique, km) à l'instant tPoint. */
+  projeterPoint(r: Vecteur3, tPoint: number, suivant?: { p: Vecteur3; t: number }, tCentre?: number): { x: number; y: number } {
+    return this.ecranDe(projeter({ p: r, t: tPoint, suivant, tCentre }))
   }
 
-  /** Position à l'écran d'un astre du niveau affiché. */
-  private ecran(nom: string, t: number, e: Echelle): { x: number; y: number } {
-    const c = this.centre()
-    if (nom === this.niveau) return c
-    const p = nom === CAPSULE ? etatCapsule(t).position : position(nom, t)
-    const o = this.niveau === 'Soleil' ? { x: 0, y: 0, z: 0 } : position(this.niveau, t)
-    const q = projeter(p.x - o.x, p.y - o.y, e, p.z - o.z)
-    return { x: c.x + q.x * this.zoom, y: c.y - q.y * this.zoom }
-  }
-
-  /** Rayon dessiné (pixels) : faux mais lisible. */
+  /** Rayon dessiné (pixels) : grossi mais proportionné, jamais sous le minimum de l'astre. */
   private rayon(c: Corps): number {
-    if (c.nom === this.niveau) return this.niveau === 'Soleil' ? 10 : RAYON_CENTRE
-    if (c.type === 'etoile') return 10
-    if (GEANTES.has(c.nom)) return 7.5
-    if (c.type === 'planete') return 5
-    if (c.type === 'naine') return 3.5
-    if (c.type === 'lune') return Math.min(9, Math.max(2, 2 + 1.7 * Math.log(1 + (c.rayon || 1) / 60)))
-    return 2.6
+    return Math.max(MINIMUMS[c.nom] ?? (c.type === 'lune' ? 2.5 : 2), rayonDessine(c.nom) / this.kmParPx)
   }
 
-  /** Dessine la carte ; renvoie la place (à l'écran) d'un astre donné, même hors du niveau (sa planète). */
-  dessiner(ctx: CanvasRenderingContext2D, t: number, reglages: ReglagesCarte, couleurs: Couleurs2D, style: string,
+  /** Système regardé : celui dont la zone remplit la vue, sinon le système solaire. */
+  systemeRegarde(t: number): string {
+    for (const nom of CENTRES) {
+      const p = position(nom, t)
+      const zone = zoneDessinee(nom) / this.kmParPx
+      if (zone < this.largeur * 0.25) continue
+      const e = this.ecranDe(p)
+      const m = this.milieu()
+      if (Math.hypot(e.x - m.x, e.y - m.y) < zone) return nom
+    }
+    return 'Soleil'
+  }
+
+  /** Titre de la carte : « SYSTÈME SOLAIRE », « SYSTÈME DE LA TERRE »… */
+  titre(t: number): string {
+    const s = this.systemeRegarde(t)
+    return s === 'Soleil' ? 'SYSTÈME SOLAIRE' : `SYSTÈME ${DE[s] ?? 'DE '}${s.toUpperCase()}`
+  }
+
+  /** Vue générale : le Soleil au centre, les planètes jusqu'à Mars. */
+  vueGenerale(): void {
+    this.centre = { x: 0, y: 0 }
+    this.kmParPx = VUE_GENERALE / (this.largeur / 2)
+  }
+
+  /** Cadre le système d'un astre : sa planète au centre, toute sa zone visible. */
+  cadrerSysteme(planete: string, t: number): void {
+    const p = position(planete, t)
+    this.centre = { x: p.x, y: p.y }
+    this.kmParPx = (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
+  }
+
+  /** Dessine la carte ; renvoie la place (à l'écran) d'un astre donné. */
+  dessiner(ctx: CanvasRenderingContext2D, t: number, reglages: ReglagesCarte, couleurs: Couleurs2D,
     selection: string | null, directionCapsule?: { x: number; y: number } | null):
     { x: number; y: number; r: number; visible: boolean } | null {
-    const e = this.echelle(t)
-    const centre = this.centre()
     ctx.clearRect(0, 0, this.largeur, this.hauteur)
-    const bd = style !== 'plat'
-    const moebius = style === 'moebius'
-    this.moebius = moebius
     // Moebius : couleurs adoucies vers le sable, encre brun-violet.
-    const couleurDe = (c: Corps) => {
-      if (!bd) return couleurs.fond
-      const k = couleurAstre(c)
-      return moebius ? melanger(k, '#f7e8cc', 0.3) : k
-    }
-    if (moebius && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
+    const couleurDe = (c: Corps) => melanger(couleurAstre(c), '#f7e8cc', 0.3)
+    if (couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
+    const soleil = this.ecranDe({ x: 0, y: 0 })
+    const dedans = (x: number, y: number, marge = 30) => x > -marge && x < this.largeur + marge && y > -marge && y < this.hauteur + marge
 
-    // Ceintures (au niveau du système solaire) : astéroïdes de 2,2 à 3,3 UA, Kuiper de 30 à 50 UA, en trame légère.
-    if (this.niveau === 'Soleil') {
-      for (const [a, b] of [[2.2, 3.3], [30, 50]]) {
-        ctx.beginPath()
-        ctx.arc(centre.x, centre.y, rayonEcran(b * UA_KM, e) * this.zoom, 0, 2 * Math.PI)
-        ctx.arc(centre.x, centre.y, rayonEcran(a * UA_KM, e) * this.zoom, 0, 2 * Math.PI, true)
-        ctx.fillStyle = trame(ctx, couleurs.encre, 0.28, this.pixelRatio)
-        ctx.globalAlpha = 0.35
-        ctx.fill()
-        ctx.globalAlpha = 1
-      }
+    // Ceintures : astéroïdes de 2,2 à 3,3 UA, Kuiper de 30 à 50 UA, en trame légère.
+    for (const [a, b] of [[2.2, 3.3], [30, 50]]) {
+      const ra = (a * UA_KM) / this.kmParPx, rb = (b * UA_KM) / this.kmParPx
+      if (rb < 4 || ra > 20 * Math.max(this.largeur, this.hauteur)) continue
+      ctx.beginPath()
+      ctx.arc(soleil.x, soleil.y, rb, 0, 2 * Math.PI)
+      ctx.arc(soleil.x, soleil.y, ra, 0, 2 * Math.PI, true)
+      ctx.fillStyle = trame(ctx, couleurs.encre, 0.28, this.pixelRatio)
+      ctx.globalAlpha = 0.35
+      ctx.fill()
+      ctx.globalAlpha = 1
     }
 
-    // Orbites : les vraies trajectoires, projetées point par point.
-    const contenu = this.contenu(t)
+    // Orbites des planètes et de Pluton : les vraies trajectoires, vues du dessus.
     if (reglages.orbites) {
-      ctx.lineWidth = moebius ? 0.9 : 1.3
-      for (const nom of contenu) {
-        const c = corps(nom)
-        if (!c || nom === this.niveau) continue
-        if (!(c.type === 'planete' || c.type === 'naine' || grandeLune(c) || c.type === 'satellite' || this.peuDeLunes())) continue
+      ctx.lineWidth = 0.9
+      for (const nom of CENTRES) {
+        const c = corps(nom)!
         const points = this.orbite(c, t)
         if (!points) continue
         ctx.beginPath()
         for (const [i, p] of points.entries()) {
-          // Planètes : points héliocentriques ; lunes et satellites : relatifs à la planète.
-          const q = projeter(p.x, p.y, e, p.z)
-          const x = centre.x + q.x * this.zoom, y = centre.y - q.y * this.zoom
-          if (i === 0) ctx.moveTo(x, y)
-          else ctx.lineTo(x, y)
+          const q = this.ecranDe(p)
+          if (i === 0) ctx.moveTo(q.x, q.y)
+          else ctx.lineTo(q.x, q.y)
         }
-        ctx.strokeStyle = bd ? couleurDe(c) : couleurs.encre
-        ctx.globalAlpha = bd ? 0.75 : 0.3
+        ctx.strokeStyle = couleurDe(c)
+        ctx.globalAlpha = 0.75
         ctx.stroke()
         ctx.globalAlpha = 1
       }
     }
 
-    // Astres : le centre d'abord, puis ce qui tourne autour (toujours dessiné par-dessus).
-    const soleil = this.niveau === 'Soleil' ? { x: 0, y: 0 } : (() => {
-      const o = position(this.niveau, t)
-      return { x: -o.x, y: -o.y }
-    })()
-    const angleSoleil = Math.atan2(-soleil.y, soleil.x) // direction du Soleil à l'écran (y vers le bas)
+    // Astres : Soleil, planètes, Pluton toujours ; ce qui tourne autour d'eux quand leur système est assez grand à
+    // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
     this.dessines = []
-    const astres = contenu.filter((n) => n !== CAPSULE).map((n) => corps(n)!)
-    for (const c of astres.sort((a, b) => (b.nom === this.niveau ? 1 : 0) - (a.nom === this.niveau ? 1 : 0))) {
-      const { x, y } = this.ecran(c.nom, t, e)
+    const libre = (x: number, y: number, r: number) => this.dessines.every((d) => Math.hypot(d.x - x, d.y - y) > d.r + r + 3)
+    const astre = (c: Corps, q: { x: number; y: number }) => {
       const r = this.rayon(c)
-      this.dessines.push({ nom: c.nom, x, y, r })
-      if (x < -20 || x > this.largeur + 20 || y < -20 || y > this.hauteur + 20) continue
-      // Au niveau du système solaire, chaque astre est éclairé depuis le centre ; dans un système, tous par la
-      // direction du Soleil.
-      const versSoleil = this.niveau === 'Soleil' ? Math.atan2(centre.y - y, centre.x - x) : angleSoleil
-      if (c.type === 'sonde' || c.type === 'satellite') this.point(ctx, x, y, r, bd ? couleurDe(c) : couleurs.encre, couleurs)
-      else this.disque(ctx, x, y, r, couleurDe(c), c.type === 'etoile' ? null : versSoleil, couleurs, bd)
+      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r })
+      if (!dedans(q.x, q.y, r + 20)) return
+      if (c.type === 'etoile') this.disque(ctx, q.x, q.y, r, couleurDe(c), null, couleurs)
+      else this.disque(ctx, q.x, q.y, r, couleurDe(c), Math.atan2(soleil.y - q.y, soleil.x - q.x), couleurs)
+    }
+    astre(corps('Soleil')!, soleil)
+    for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
+    for (const nom of CENTRES) {
+      const e = this.ecranDe(projeterCorps(nom, t))
+      const zone = zoneDessinee(nom) / this.kmParPx
+      if (zone < 30 || !dedans(e.x, e.y, zone)) continue
+      const lunes = enfants(nom).filter((c) => c.type === 'lune').sort((a, b) => b.rayon - a.rayon)
+      for (const c of lunes) {
+        const q = this.ecranDe(projeterCorps(c.nom, t))
+        const r = this.rayon(c)
+        if (!libre(q.x, q.y, r)) continue
+        // Orbite de la lune autour de son astre, de sa couleur (les grandes, ou toutes s'il y en a peu).
+        if (reglages.orbites && (c.rayon >= 100 || lunes.length <= 12)) {
+          ctx.beginPath()
+          ctx.arc(e.x, e.y, Math.hypot(q.x - e.x, q.y - e.y), 0, 2 * Math.PI)
+          ctx.lineWidth = 0.8
+          ctx.strokeStyle = couleurDe(c)
+          ctx.globalAlpha = 0.55
+          ctx.stroke()
+          ctx.globalAlpha = 1
+        }
+        astre(c, q)
+      }
+    }
+    // Engins (satellites de la Terre, sondes) : leur silhouette.
+    for (const c of CORPS) {
+      if (c.type !== 'satellite' && c.type !== 'sonde') continue
+      const q = this.ecranDe(projeterCorps(c.nom, t))
+      if (!dedans(q.x, q.y) || !libre(q.x, q.y, 7)) continue
+      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: 7 })
+      dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre)
     }
 
     // La capsule : un petit chevron cerise, dans le sens de sa marche.
-    if (contenu.includes(CAPSULE)) {
-      const etat = etatCapsule(t)
-      let { x, y } = this.ecran(CAPSULE, t, e)
-      // Dans le système d'une planète, vue du système solaire : posée à côté de sa planète (pas dessus).
-      if (this.niveau === 'Soleil' && systemeDe(CAPSULE, t) !== 'Soleil') { x += 9; y -= 9 }
-      // Orientation : dans le sens de la marche TEL QU'IL APPARAÎT sur la carte (la projection écrase les distances,
-      // donc les angles changent) ; s'il y a un trajet, le long de son premier tronçon dessiné.
-      let a: number
-      if (directionCapsule) a = Math.atan2(directionCapsule.y, directionCapsule.x)
-      else {
-        const o = this.niveau === 'Soleil' ? { x: 0, y: 0, z: 0 } : position(this.niveau, t)
-        const p = etat.position
-        const pas = Math.max(1, 0.002 * Math.hypot(p.x - o.x, p.y - o.y, p.z - o.z))
-        const devant = { x: p.x + etat.cap.x * pas, y: p.y + etat.cap.y * pas, z: p.z + etat.cap.z * pas }
-        const q0 = this.projeterPoint(p, t, e), q1 = this.projeterPoint(devant, t, e)
-        a = Math.atan2(q1.y - q0.y, q1.x - q0.x)
-      }
-      // Changement de cap : le chevron pivote en douceur (au plus 90° par seconde de temps réel).
-      const maintenant = performance.now()
-      if (this.angleCapsule !== null) {
-        let ecart = Math.atan2(Math.sin(a - this.angleCapsule), Math.cos(a - this.angleCapsule))
-        const max = (Math.PI / 2) * Math.min(0.2, (maintenant - this.instantAngle) / 1000)
-        if (Math.abs(ecart) > max && Math.abs(ecart) > 0.35) ecart = Math.sign(ecart) * max
-        a = this.angleCapsule + ecart
-      }
-      this.angleCapsule = a
-      this.instantAngle = maintenant
-      this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.rotate(a)
-      ctx.beginPath()
-      ctx.moveTo(8, 0)
-      ctx.lineTo(-5, 5.5)
-      ctx.lineTo(-2.5, 0)
-      ctx.lineTo(-5, -5.5)
-      ctx.closePath()
-      ctx.fillStyle = bd ? '#e04b37' : couleurs.encre
-      ctx.fill()
-      ctx.lineWidth = 1.5
-      ctx.lineJoin = 'round'
-      ctx.strokeStyle = couleurs.encre
-      ctx.stroke()
-      ctx.restore()
+    const etat = etatCapsule(t)
+    let { x, y } = this.projeterPoint(etat.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
+    // Vue de loin, la capsule tomberait sur le disque de son astre : on la pose juste à côté, sans le cacher.
+    for (const d of this.dessines) {
+      const ecart = Math.hypot(x - d.x, y - d.y)
+      if (ecart >= d.r + 7) continue
+      const ux = ecart > 0.5 ? (x - d.x) / ecart : 0.7, uy = ecart > 0.5 ? (y - d.y) / ecart : -0.7
+      x = d.x + ux * (d.r + 8)
+      y = d.y + uy * (d.r + 8)
     }
+    // Orientation : dans le sens de la marche TEL QU'IL APPARAÎT sur la carte ; s'il y a un trajet, le long de son
+    // premier tronçon dessiné.
+    let a: number
+    if (directionCapsule) a = Math.atan2(directionCapsule.y, directionCapsule.x)
+    else {
+      const q1 = this.projeterPoint(etatCapsule(t + 60_000).position, t + 60_000, { p: etatCapsule(t + 120_000).position, t: t + 120_000 })
+      a = Math.atan2(q1.y - y, q1.x - x)
+    }
+    // Changement de cap : le chevron pivote en douceur (au plus 90° par seconde de temps réel).
+    const maintenant = performance.now()
+    if (this.angleCapsule !== null) {
+      let ecart = Math.atan2(Math.sin(a - this.angleCapsule), Math.cos(a - this.angleCapsule))
+      const max = (Math.PI / 2) * Math.min(0.2, (maintenant - this.instantAngle) / 1000)
+      if (Math.abs(ecart) > max && Math.abs(ecart) > 0.35) ecart = Math.sign(ecart) * max
+      a = this.angleCapsule + ecart
+    }
+    this.angleCapsule = a
+    this.instantAngle = maintenant
+    this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(a)
+    ctx.beginPath()
+    ctx.moveTo(8, 0)
+    ctx.lineTo(-5, 5.5)
+    ctx.lineTo(-2.5, 0)
+    ctx.lineTo(-5, -5.5)
+    ctx.closePath()
+    ctx.fillStyle = '#e04b37'
+    ctx.fill()
+    ctx.lineWidth = 1.5
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = couleurs.encre
+    ctx.stroke()
+    ctx.restore()
 
     if (reglages.noms) this.noms(ctx, couleurs, selection)
 
-    // Place de la sélection : elle-même si elle est à ce niveau ; au niveau du système solaire, la planète qui
-    // l'abrite ; dans le système d'une planète, une flèche dans sa direction réelle si elle est ailleurs.
     if (!selection) return null
-    let cible = this.dessines.find((d) => d.nom === selection)
-    if (!cible && this.niveau === 'Soleil') cible = this.dessines.find((d) => d.nom === systemeDe(selection, t))
-    if (!cible) {
-      const p = selection === CAPSULE ? etatCapsule(t).position : position(selection, t)
-      const o = position(this.niveau, t)
-      const dx = p.x - o.x, dy = p.y - o.y, l = Math.hypot(dx, dy) || 1
-      return { x: centre.x + (dx / l) * 5000, y: centre.y - (dy / l) * 5000, r: 0, visible: false }
+    const cible = this.dessines.find((d) => d.nom === selection)
+    if (cible) {
+      const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 40 && cible.y <= this.hauteur - 100
+      return { x: cible.x, y: cible.y, r: cible.r, visible }
     }
-    const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 40 && cible.y <= this.hauteur - 100
-    return { x: cible.x, y: cible.y, r: cible.r, visible }
-  }
-
-  /**
-   * Position à l'écran d'un point de l'espace (héliocentrique, km) à l'instant tPoint, au niveau affiché : dans le
-   * système d'une planète, le point est pris par rapport à la planète AU MÊME INSTANT (le trajet suit la planète).
-   */
-  projeterPoint(r: Vecteur3, tPoint: number, e: Echelle): { x: number; y: number } {
-    const c = this.centre()
-    const o = this.niveau === 'Soleil' ? { x: 0, y: 0, z: 0 } : position(this.niveau, tPoint)
-    const q = projeter(r.x - o.x, r.y - o.y, e, r.z - o.z)
-    return { x: c.x + q.x * this.zoom, y: c.y - q.y * this.zoom }
+    // Pas dessinée (trop près de son astre à ce zoom) : sa place à l'écran, sans disque.
+    if (!corps(selection)) return null
+    const q = this.ecranDe(projeterCorps(selection, t))
+    const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 40 && q.y <= this.hauteur - 100
+    return { x: q.x, y: q.y, r: 2, visible }
   }
 
   /** Position à l'écran d'un astre déjà dessiné (dont la capsule), ou null. */
@@ -334,14 +318,14 @@ export class Carte2D {
   dessinerTraits(ctx: CanvasRenderingContext2D, t: number, cible: { x: number; y: number } | null,
     trajet: { t: number; r: Vecteur3 }[] | null, rendezVous: { r: Vecteur3; t: number } | null, accent: string,
     c: Couleurs2D, orbiteCapsule: { t: number; r: Vecteur3 }[] | null = null): void {
-    const e = this.echelle(t)
     const capsule = this.place(CAPSULE)
+    const ecrans = (l: { t: number; r: Vecteur3 }[], tCentre?: number) =>
+      l.map((p, i) => this.projeterPoint(p.r, p.t, l[i + 1] ? { p: l[i + 1].r, t: l[i + 1].t } : undefined, tCentre))
     ctx.save()
-    // L'orbite de la capsule autour de son astre (dans le système de cet astre) : un trait fin de couleur vive.
-    if (orbiteCapsule && orbiteCapsule.length > 1 && this.niveau !== 'Soleil') {
+    // L'orbite de la capsule autour de son astre : un trait fin de couleur vive.
+    if (orbiteCapsule && orbiteCapsule.length > 1) {
       ctx.beginPath()
-      for (const [i, p] of orbiteCapsule.entries()) {
-        const q = this.projeterPoint(p.r, p.t, e)
+      for (const [i, q] of ecrans(orbiteCapsule, t).entries()) {
         if (i === 0) ctx.moveTo(q.x, q.y)
         else ctx.lineTo(q.x, q.y)
       }
@@ -361,11 +345,8 @@ export class Carte2D {
     }
     if (trajet && trajet.length > 1) {
       ctx.beginPath()
-      // Au niveau du système solaire, la capsule est dessinée à côté de la Terre : le trajet part de son dessin.
-      for (const [i, p] of trajet.entries()) {
-        const q = this.projeterPoint(p.r, p.t, e)
-        if (i === 0 && capsule && this.niveau === 'Soleil') ctx.moveTo(capsule.x, capsule.y)
-        else if (i === 0) ctx.moveTo(q.x, q.y)
+      for (const [i, q] of ecrans(trajet).entries()) {
+        if (i === 0) ctx.moveTo(q.x, q.y)
         else ctx.lineTo(q.x, q.y)
       }
       ctx.lineJoin = 'round'
@@ -378,7 +359,7 @@ export class Carte2D {
       ctx.stroke()
     }
     if (rendezVous) {
-      const q = this.projeterPoint(rendezVous.r, rendezVous.t, e)
+      const q = this.projeterPoint(rendezVous.r, rendezVous.t)
       ctx.beginPath()
       ctx.arc(q.x, q.y, 7, 0, 2 * Math.PI)
       ctx.moveTo(q.x - 5, q.y - 5); ctx.lineTo(q.x + 5, q.y + 5)
@@ -393,9 +374,9 @@ export class Carte2D {
     ctx.restore()
   }
 
-  /** Disque d'un astre : aplat de sa couleur, face de nuit en trame, cerné d'encre. */
+  /** Disque d'un astre : aplat de sa couleur, face de nuit en aplat violet et hachures, cerné d'encre ; le Soleil a ses rayons. */
   private disque(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, couleur: string,
-    versSoleil: number | null, c: Couleurs2D, bd: boolean): void {
+    versSoleil: number | null, c: Couleurs2D): void {
     ctx.beginPath()
     ctx.arc(x, y, r, 0, 2 * Math.PI)
     ctx.fillStyle = couleur
@@ -414,38 +395,24 @@ export class Carte2D {
         ctx.lineTo(x + px - uy * 2 * r - ux * 3 * r, y + py + ux * 2 * r - uy * 3 * r)
         ctx.closePath()
       }
-      if (this.moebius) {
-        // Ombre en aplat coloré (violet), hachures seulement le long du terminateur.
-        const ombre = melanger(couleur, '#54437a', 0.6)
-        demiPlan(0.1)
-        ctx.fillStyle = ombre
-        ctx.fill()
-        demiPlan(-0.2)
-        ctx.fillStyle = hachure(ctx, c.encre, 0.8, false, this.pixelRatio)
-        ctx.fill()
-        demiPlan(0.5)
-        ctx.fillStyle = ombre
-        ctx.fill()
-        ctx.restore()
-        ctx.beginPath()
-        ctx.arc(x, y, r, 0, 2 * Math.PI)
-        ctx.lineWidth = r > 15 ? 1.6 : 1
-        ctx.strokeStyle = c.encre
-        ctx.stroke()
-        return
-      }
-      for (const [debut, densite] of [[0, 0.55], [0.4, 0.95]] as const) {
-        ctx.beginPath()
-        const px = -ux * debut * r, py = -uy * debut * r
-        ctx.moveTo(x + px - uy * 2 * r, y + py + ux * 2 * r)
-        ctx.lineTo(x + px + uy * 2 * r, y + py - ux * 2 * r)
-        ctx.lineTo(x + px + uy * 2 * r - ux * 3 * r, y + py - ux * 2 * r - uy * 3 * r)
-        ctx.lineTo(x + px - uy * 2 * r - ux * 3 * r, y + py + ux * 2 * r - uy * 3 * r)
-        ctx.closePath()
-        ctx.fillStyle = bd ? trame(ctx, c.encre, densite, this.pixelRatio) : c.encre
-        if (!bd && debut > 0) continue
-        ctx.fill()
-      }
+      // Ombre en aplat coloré (violet), hachures seulement le long du terminateur.
+      const ombre = melanger(couleur, '#54437a', 0.6)
+      demiPlan(0.1)
+      ctx.fillStyle = ombre
+      ctx.fill()
+      demiPlan(-0.2)
+      ctx.fillStyle = hachure(ctx, c.encre, 0.8, false, this.pixelRatio)
+      ctx.fill()
+      demiPlan(0.5)
+      ctx.fillStyle = ombre
+      ctx.fill()
+      ctx.restore()
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, 2 * Math.PI)
+      ctx.lineWidth = r > 15 ? 1.6 : 1
+      ctx.strokeStyle = c.encre
+      ctx.stroke()
+      return
       ctx.restore()
     }
     ctx.beginPath()
@@ -466,20 +433,9 @@ export class Carte2D {
       ctx.strokeStyle = c.encre
       ctx.stroke()
       ctx.lineWidth = 2
-      ctx.strokeStyle = bd ? couleur : c.fond
+      ctx.strokeStyle = couleur
       ctx.stroke()
     }
-  }
-
-  /** Engin : un rond de sa couleur cerné d'encre. */
-  private point(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, couleur: string, c: Couleurs2D): void {
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, 2 * Math.PI)
-    ctx.fillStyle = couleur
-    ctx.fill()
-    ctx.lineWidth = 1.2
-    ctx.strokeStyle = c.encre
-    ctx.stroke()
   }
 
   /** Noms : par ordre d'importance, sans chevauchement ; la sélection a son étiquette, on ne la nomme pas ici. */
@@ -487,10 +443,11 @@ export class Carte2D {
     const priorite = (d: Dessine) => {
       if (d.nom === CAPSULE) return 0
       const k = corps(d.nom)!
-      return d.nom === this.niveau ? -1 : k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' ? 3
-        : grandeLune(k) ? 4 : k.type === 'satellite' || k.type === 'sonde' ? 5 : 6
+      return k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' ? 3
+        : k.type === 'lune' && k.rayon >= 100 ? 4 : k.type === 'satellite' || k.type === 'sonde' ? 5 : 6
     }
-    const occupes = this.dessines.map((d) => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r }))
+    // Le chevron de la capsule n'empêche pas un nom de se poser (vue de loin, il est collé à son astre).
+    const occupes = this.dessines.filter((d) => d.nom !== CAPSULE).map((d) => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r }))
     ctx.font = '11px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -499,16 +456,15 @@ export class Carte2D {
     ctx.strokeStyle = c.fond
     ctx.fillStyle = c.encre
     for (const d of [...this.dessines].sort((a, b) => priorite(a) - priorite(b))) {
-      if (d.nom === selection) continue
-      // Les petites lunes (des dizaines autour des géantes) ne sont nommées que si l'on zoome.
+      if (d.nom === selection || d.nom === CAPSULE) continue
+      // Petites lunes (des dizaines autour des géantes) : pas de nom.
       const k = corps(d.nom)
-      if (k?.type === 'lune' && !grandeLune(k) && !this.peuDeLunes() && this.zoom < (k.rayon >= 20 ? 1.6 : 3.5)) continue
+      if (k?.type === 'lune' && k.rayon < 100) continue
       const texte = d.nom
       const l = ctx.measureText(texte).width
-      // À droite si possible, sinon à gauche ; le nom du centre d'un système va dessous.
-      const essais = d.nom === this.niveau && this.niveau !== 'Soleil'
-        ? [{ x: d.x - l / 2, y: d.y + d.r + 12 }]
-        : [{ x: d.x + d.r + (d.nom === 'Soleil' ? 12 : 5), y: d.y }, { x: d.x - d.r - 5 - l, y: d.y }]
+      const ecart = d.r + (d.nom === 'Soleil' ? 12 : k?.type === 'satellite' || k?.type === 'sonde' ? 4 : 5)
+      const essais = [{ x: d.x + ecart, y: d.y }, { x: d.x - ecart - l, y: d.y }, { x: d.x - l / 2, y: d.y + d.r + 10 },
+        { x: d.x - l / 2, y: d.y - d.r - 10 }]
       for (const p of essais) {
         const b = { x0: p.x - 2, y0: p.y - 7, x1: p.x + l + 2, y1: p.y + 7 }
         if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < 44 || b.y1 > this.hauteur - 120) continue
@@ -523,16 +479,10 @@ export class Carte2D {
 
   private orbite(c: Corps, t: number): Vecteur3[] | null {
     const o = this.orbites.get(c.nom)
-    const validite = c.type === 'satellite' ? 600_000 : 30 * MS_PAR_JOUR
-    if (o && Math.abs(t - o.t) < validite) return o.points
-    const points = traceOrbite(c.nom, t, c.type === 'satellite' ? 96 : 256)
+    if (o && Math.abs(t - o.t) < 30 * MS_PAR_JOUR) return o.points
+    const points = traceOrbite(c.nom, t, 256)
     this.orbites.set(c.nom, { t, points })
     return points
-  }
-
-  /** Vrai si le système affiché a peu de lunes (Mars, la Terre…) : on les nomme et on trace leur orbite. */
-  private peuDeLunes(): boolean {
-    return this.niveau !== 'Soleil' && enfants(this.niveau).length <= 12
   }
 
   /** Astre touché (le plus proche du doigt, à moins de 24 pixels), ou null. */
@@ -546,25 +496,16 @@ export class Carte2D {
     return meilleur
   }
 
-  /** Ouvre un niveau (le système solaire ou celui d'une planète), vue recentrée. */
-  ouvrir(niveau: string): void {
-    this.niveau = niveau
-    this.zoom = 1
-    this.dx = this.dy = 0
-  }
-
   glisser(dx: number, dy: number): void {
-    this.dx += dx
-    this.dy += dy
+    this.centre = { x: this.centre.x - dx * this.kmParPx, y: this.centre.y + dy * this.kmParPx }
   }
 
   zoomer(facteur: number, sx: number, sy: number): void {
-    const nouveau = Math.min(12, Math.max(0.6, this.zoom / facteur))
-    const k = nouveau / this.zoom
-    const c = this.centre()
+    const nouveau = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_MIN, this.kmParPx * facteur))
+    const m = this.milieu()
     // Le point sous les doigts reste fixe.
-    this.dx += (sx - c.x) * (1 - k)
-    this.dy += (sy - c.y) * (1 - k)
-    this.zoom = nouveau
+    const qx = this.centre.x + (sx - m.x) * this.kmParPx, qy = this.centre.y - (sy - m.y) * this.kmParPx
+    this.kmParPx = nouveau
+    this.centre = { x: qx - (sx - m.x) * nouveau, y: qy + (sy - m.y) * nouveau }
   }
 }
