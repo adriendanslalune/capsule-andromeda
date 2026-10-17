@@ -150,6 +150,16 @@ export class Mission {
     return etatSurOrbite(this.orbite, t)
   }
 
+  /** Orbite sur laquelle tourne la capsule à l'instant t (null pendant un trajet). */
+  orbiteActuelle(t: number): OrbiteCirculaire | null {
+    if (this.phase(t) === 'trajet') return null
+    if (this.plan && t >= this.plan.arrivee) {
+      this.etat(t) // calcule l'orbite d'arrivée si besoin
+      return this.orbiteArrivee
+    }
+    return this.orbite
+  }
+
   /** État héliocentrique (position, vitesse) à l'instant t, pour planifier un trajet. */
   etatHeliocentrique(t: number): { r: Vecteur3; v: Vecteur3 } {
     const e = this.etat(t)

@@ -32,7 +32,8 @@ function texte(ctx: CanvasRenderingContext2D, s: string, x: number, y: number): 
 
 export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number,
   astres: AstreEcran[], capsule: { x: number; y: number; r: number }, reglages: ReglagesSurcouche, theme: Theme,
-  selection: { nom: string; distance: string } | null, reperes: ReglagesReperes): void {
+  selection: { nom: string; distance: string } | null, reperes: ReglagesReperes,
+  eviter: { x: number; y: number }[] = []): void {
   ENCRE = theme.encre
   FOND = theme.halo
   ctx.clearRect(0, 0, largeur, hauteur)
@@ -101,7 +102,8 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
     if (a) {
       const visible = a.devant && !a.cache && dansEcran(a)
       dessinerReperes(ctx, largeur, hauteur, a.x, a.y, Math.min(a.r, 80), visible, selection.nom, selection.distance, reperes,
-        { encre: ENCRE, fond: FOND, accent: reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : ENCRE })
+        { encre: ENCRE, fond: FOND, accent: reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : ENCRE },
+        [...eviter, capsule])
     }
   }
 

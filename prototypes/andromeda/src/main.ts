@@ -15,7 +15,7 @@ import { Cadran } from './carte/cadran'
 import { CAPSULE, Carte2D, aUnSysteme, systemeDe } from './carte/carte'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
-import { suivreMission } from './moteur/capsule'
+import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
 import { Mission, planifier, traceTrajet, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
@@ -173,6 +173,13 @@ function texteDuree(ms: number): string {
 }
 const texteDate = (t: number) => new Date(t).toLocaleDateString('fr', { day: 'numeric', month: 'long', year: 'numeric' })
 
+/** « autour de la Terre », « autour d'Uranus », « autour du Soleil », « à côté de l'ISS »… */
+function autourDe(nom: string): string {
+  if (corps(nom)?.tailleM) return `À CÔTÉ DE ${nom.toUpperCase()}`
+  const article: Record<string, string> = { Terre: 'DE LA ', Lune: 'DE LA ', Soleil: 'DU ', Uranus: "D'", Europe: "D'", Io: "D'", Encelade: "D'" }
+  return `AUTOUR ${article[nom] ?? 'DE '}${nom.toUpperCase()}`
+}
+
 /** La destination choisie est-elle là où l'on est déjà (ou la capsule elle-même) ? */
 function dejaLa(t: number): boolean {
   return !selection || selection === CAPSULE || (mission.phase(t) === 'orbite' && mission.centre(t) === selection)
@@ -196,8 +203,16 @@ function mettreAJourFiche(t: number): void {
   let texte = '', depart = false, libelle = 'DÉPART'
   if (enRoute) {
     texte = `<b>EN ROUTE VERS ${enRoute.cible.toUpperCase()}</b><br>arrivée dans ${texteDuree(enRoute.arrivee - t)} · ${texteDate(enRoute.arrivee)}`
-  } else if (selection && dejaLa(t) && selection !== CAPSULE) {
-    texte = `<b>EN ORBITE AUTOUR DE ${selection.toUpperCase()}</b><br>choisissez une autre destination`
+  } else if (dejaLa(t)) {
+    // En orbite : autour de quoi, à quelle altitude, en combien de temps la capsule fait le tour.
+    const o = mission.orbiteActuelle(t)
+    if (o) {
+      const rayon = corps(o.centre)?.rayon ?? 0
+      const altitude = o.rayon - rayon
+      const altitudeTexte = corps(o.centre)?.tailleM ? `à ${texteDistance(o.rayon)}` : `altitude ${texteDistance(altitude)}`
+      const tour = corps(o.centre)?.tailleM ? '' : ` · un tour en ${texteDuree(periode(o) * 1000)}`
+      texte = `<b>EN ORBITE ${autourDe(o.centre)}</b><br>${altitudeTexte}${tour}`
+    }
   }
   if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
     const dv = `${reglages.budget} km/s`
@@ -352,7 +367,8 @@ function image(maintenant: number): void {
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   const planTrace = prevision?.possible ? prevision.plan : enRoute
   let trajet = planTrace ? traceTrajet(planTrace, 200) : null
-  if (trajet && planTrace === enRoute) trajet = trajet.filter((p) => p.t >= t) // seulement ce qui reste à parcourir
+  // En route : seulement ce qui reste à parcourir, en partant de la capsule elle-même.
+  if (trajet && planTrace === enRoute) trajet = [{ t, r: mission.etat(t).position }, ...trajet.filter((p) => p.t > t)]
   const rendezVous = planTrace ? { r: planTrace.rendezVous, t: planTrace.arrivee } : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
   const carteAJour = mode === 'carte' && !gestesCarte.actif && !carteSale && acceleration === 1
@@ -361,22 +377,43 @@ function image(maintenant: number): void {
     dernierDessinCarte = maintenant
     carteSale = false
     gestesCarte.avancer(dt)
-    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, reglages.style, selection)
+    // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
+    let direction: { x: number; y: number } | null = null
+    if (trajet && trajet.length > 1) {
+      const e = carte.echelle(t)
+      const q0 = carte.projeterPoint(trajet[0].r, trajet[0].t, e)
+      for (const p of trajet.slice(1)) {
+        const q = carte.projeterPoint(p.r, p.t, e)
+        if (Math.hypot(q.x - q0.x, q.y - q0.y) > 6) { direction = { x: q.x - q0.x, y: q.y - q0.y }; break }
+      }
+    }
+    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, reglages.style, selection, direction)
     // Pointillé vers la destination (sa position actuelle), seulement si elle est à ce niveau de la carte.
     const cibleIci = place && place.r > 0 && selection !== CAPSULE && !dejaLa(t) ? place : null
-    carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo })
+    // Orbite de la capsule, quand on regarde le système de l'astre qu'elle entoure.
+    const o = mission.orbiteActuelle(t)
+    const orbiteCapsule = o && o.centre === carte.niveau && !corps(o.centre)?.tailleM
+      ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
+      : null
+    carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
+    // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
+    const eviter: { x: number; y: number }[] = []
+    if (rendezVous) eviter.push(carte.projeterPoint(rendezVous.r, rendezVous.t, carte.echelle(t)))
+    const ici = carte.place(CAPSULE)
+    if (ici) eviter.push(ici)
     if (place && sel) {
       // Destination dans le système d'une autre planète : on le précise (« Titan (Saturne) »).
       const sys = systemeDe(selection!, t)
       const nom = selection !== CAPSULE && sys !== 'Soleil' && sys !== carte.niveau ? `${sel.nom} (${sys})` : sel.nom
       dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
-        { encre: th.encre, fond: th.halo, accent })
+        { encre: th.encre, fond: th.halo, accent }, eviter)
     }
   } else if (mode === 'exterieur') {
     gestes3d.avancer(dt)
     avancerRecentrage(dt)
     const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages, trajet)
-    dessinerSurcouche(ctx3d, largeur, hauteur, astres, capsuleEcran, reglages, th, sel, reglages)
+    const rv = rendezVous ? vue.ecranDe(rendezVous.r) : null
+    dessinerSurcouche(ctx3d, largeur, hauteur, astres, capsuleEcran, reglages, th, sel, reglages, rv?.devant ? [rv] : [])
     dessinerTraits3d(t, astres, capsuleEcran, rendezVous, th)
     echelleTexte.textContent = `Recul : ${texteDistance(regard.recul)}`
   }

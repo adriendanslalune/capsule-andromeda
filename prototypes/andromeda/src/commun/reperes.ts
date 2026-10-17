@@ -19,52 +19,76 @@ export const MARGE_BAS = 190
  * `visible` : l'astre est devant la caméra et dans l'écran.
  */
 export function dessinerReperes(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number, x: number, y: number,
-  r: number, visible: boolean, nom: string, distance: string, reglages: ReglagesReperes, c: CouleursReperes): void {
+  r: number, visible: boolean, nom: string, distance: string, reglages: ReglagesReperes, c: CouleursReperes,
+  eviter: { x: number; y: number }[] = []): void {
   ctx.save()
   if (visible) {
-    const a = Math.max(r, 4) + 7 // demi-côté du crochet
+    const a = Math.max(r, 3) + 5 // demi-côté du crochet
     if (reglages.crochet) {
-      // Quatre coins, couleur d'accent cernée d'encre.
-      const coin = Math.max(5, a * 0.45)
+      // Quatre petits coins fins, couleur d'accent liserée d'encre : discrets, ils n'écrasent pas l'astre.
+      const coin = Math.min(6, Math.max(3.5, a * 0.35))
       ctx.beginPath()
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
         ctx.moveTo(x + sx * a, y + sy * (a - coin))
         ctx.lineTo(x + sx * a, y + sy * a)
         ctx.lineTo(x + sx * (a - coin), y + sy * a)
       }
-      ctx.lineCap = 'square'
-      ctx.lineJoin = 'miter'
-      ctx.lineWidth = 5
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.lineWidth = 3
       ctx.strokeStyle = c.encre
       ctx.stroke()
-      ctx.lineWidth = 2.5
+      ctx.lineWidth = 1.5
       ctx.strokeStyle = c.accent
       ctx.stroke()
     }
-    if (reglages.etiquette) etiquette(ctx, largeur, hauteur, x, y, Math.max(r, 4) + 12, nom, distance, c)
+    if (reglages.etiquette) etiquette(ctx, largeur, hauteur, x, y, a + 3, nom, distance, c, eviter)
   } else if (reglages.fleche) {
     fleche(ctx, largeur, hauteur, x, y, nom, distance, c)
   }
   ctx.restore()
 }
 
-/** Étiquette façon bulle de BD : le nom en capitales, la distance dessous ; à droite de l'astre, ou à gauche. */
+/**
+ * Étiquette façon bulle de BD : le nom en capitales, la distance dessous. Elle se pose à l'écart de l'astre (à
+ * droite, à gauche, au-dessus ou en dessous), là où elle ne cache ni les points à éviter (point de rendez-vous,
+ * capsule) ni le bord de l'écran ; un trait fin la relie à l'astre.
+ */
 function etiquette(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number, x: number, y: number, ecart: number,
-  nom: string, distance: string, c: CouleursReperes): void {
+  nom: string, distance: string, c: CouleursReperes, eviter: { x: number; y: number }[]): void {
   ctx.font = `bold 13px ${POLICE}`
   const l1 = ctx.measureText(nom.toUpperCase()).width
   ctx.font = `12px ${POLICE}`
   const l2 = ctx.measureText(distance).width
   const l = Math.max(l1, l2) + 16, h = 40
-  let bx = x + ecart
-  if (bx + l > largeur - 8) bx = x - ecart - l
-  bx = Math.max(8, bx)
-  const by = Math.min(Math.max(y - h / 2, MARGE_HAUT), hauteur - MARGE_BAS - h)
+  const loin = ecart + 22
+  const essais = [
+    { bx: x + loin, by: y - h / 2 }, { bx: x - loin - l, by: y - h / 2 },
+    { bx: x - l / 2, by: y - loin - h }, { bx: x - l / 2, by: y + loin },
+    { bx: x + loin, by: y - loin - h }, { bx: x - loin - l, by: y + loin },
+  ]
+  const libre = (b: { bx: number; by: number }) =>
+    b.bx >= 8 && b.bx + l <= largeur - 8 && b.by >= MARGE_HAUT && b.by + h <= hauteur - MARGE_BAS
+    && eviter.every((p) => p.x < b.bx - 14 || p.x > b.bx + l + 14 || p.y < b.by - 14 || p.y > b.by + h + 14)
+  const b = essais.find(libre) ?? {
+    bx: Math.min(Math.max(8, x + loin), largeur - 8 - l),
+    by: Math.min(Math.max(y - h / 2, MARGE_HAUT), hauteur - MARGE_BAS - h),
+  }
+  const { bx, by } = b
+  // Trait de rappel, du bord du crochet au bord de l'étiquette.
+  const cx = Math.min(Math.max(x, bx), bx + l), cy = Math.min(Math.max(y, by), by + h)
+  const d = Math.hypot(cx - x, cy - y) || 1
+  ctx.beginPath()
+  ctx.moveTo(x + ((cx - x) / d) * ecart, y + ((cy - y) / d) * ecart)
+  ctx.lineTo(cx, cy)
+  ctx.lineWidth = 1.2
+  ctx.strokeStyle = c.encre
+  ctx.stroke()
   ctx.fillStyle = c.encre
   ctx.fillRect(bx + 3, by + 3, l, h) // ombre dure
   ctx.fillStyle = c.fond
   ctx.fillRect(bx, by, l, h)
-  ctx.lineWidth = 2
+  ctx.lineWidth = 1.5
   ctx.strokeStyle = c.encre
   ctx.strokeRect(bx, by, l, h)
   ctx.fillStyle = c.encre

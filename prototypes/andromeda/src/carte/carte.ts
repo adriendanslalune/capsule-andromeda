@@ -169,7 +169,8 @@ export class Carte2D {
 
   /** Dessine la carte ; renvoie la place (à l'écran) d'un astre donné, même hors du niveau (sa planète). */
   dessiner(ctx: CanvasRenderingContext2D, t: number, reglages: ReglagesCarte, couleurs: Couleurs2D, style: string,
-    selection: string | null): { x: number; y: number; r: number; visible: boolean } | null {
+    selection: string | null, directionCapsule?: { x: number; y: number } | null):
+    { x: number; y: number; r: number; visible: boolean } | null {
     const e = this.echelle(t)
     const centre = this.centre()
     ctx.clearRect(0, 0, this.largeur, this.hauteur)
@@ -248,7 +249,18 @@ export class Carte2D {
       let { x, y } = this.ecran(CAPSULE, t, e)
       // Dans le système d'une planète, vue du système solaire : posée à côté de sa planète (pas dessus).
       if (this.niveau === 'Soleil' && systemeDe(CAPSULE, t) !== 'Soleil') { x += 9; y -= 9 }
-      const a = Math.atan2(-etat.cap.y, etat.cap.x)
+      // Orientation : dans le sens de la marche TEL QU'IL APPARAÎT sur la carte (la projection écrase les distances,
+      // donc les angles changent) ; s'il y a un trajet, le long de son premier tronçon dessiné.
+      let a: number
+      if (directionCapsule) a = Math.atan2(directionCapsule.y, directionCapsule.x)
+      else {
+        const o = this.niveau === 'Soleil' ? { x: 0, y: 0, z: 0 } : position(this.niveau, t)
+        const p = etat.position
+        const pas = Math.max(1, 0.002 * Math.hypot(p.x - o.x, p.y - o.y, p.z - o.z))
+        const devant = { x: p.x + etat.cap.x * pas, y: p.y + etat.cap.y * pas, z: p.z + etat.cap.z * pas }
+        const q0 = this.projeterPoint(p, t, e), q1 = this.projeterPoint(devant, t, e)
+        a = Math.atan2(q1.y - q0.y, q1.x - q0.x)
+      }
       this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
       ctx.save()
       ctx.translate(x, y)
@@ -308,10 +320,22 @@ export class Carte2D {
    */
   dessinerTraits(ctx: CanvasRenderingContext2D, t: number, cible: { x: number; y: number } | null,
     trajet: { t: number; r: Vecteur3 }[] | null, rendezVous: { r: Vecteur3; t: number } | null, accent: string,
-    c: Couleurs2D): void {
+    c: Couleurs2D, orbiteCapsule: { t: number; r: Vecteur3 }[] | null = null): void {
     const e = this.echelle(t)
     const capsule = this.place(CAPSULE)
     ctx.save()
+    // L'orbite de la capsule autour de son astre (dans le système de cet astre) : un trait fin de couleur vive.
+    if (orbiteCapsule && orbiteCapsule.length > 1 && this.niveau !== 'Soleil') {
+      ctx.beginPath()
+      for (const [i, p] of orbiteCapsule.entries()) {
+        const q = this.projeterPoint(p.r, p.t, e)
+        if (i === 0) ctx.moveTo(q.x, q.y)
+        else ctx.lineTo(q.x, q.y)
+      }
+      ctx.lineWidth = 1.4
+      ctx.strokeStyle = accent
+      ctx.stroke()
+    }
     if (capsule && cible) {
       ctx.setLineDash([3, 5])
       ctx.lineWidth = 1.6
