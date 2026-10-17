@@ -36,6 +36,9 @@ seule mission à la fois, 4 proposées, une nouvelle remplace chaque mission fin
   (ACCEPTER) ; ligne « MISSION : GENRE · LIEU » dans le bandeau (quoi faire, ou temps restant de l'action) ; sur place,
   la fiche du bas propose l'action (NETTOYER, CHARGER, LIVRER, RÉPARER) ; messages brefs (mission terminée,
   cargaison chargée, action interrompue) (`src/commun/volet-missions.ts`, `src/commun/textes-missions.ts`).
+  Demandes d'Adrien après essai : temps de trajet de chaque mission (depuis la capsule, les deux trajets d'une
+  livraison), liste triée du plus court au plus long ; VOIR montre les trajets sur la carte avant d'accepter (aperçu,
+  avec ACCEPTER dans la fiche ; toucher la carte le ferme).
 - 3.3 Acheter un meilleur moteur (volet Capsule) — à faire.
 - 3.4 Sauvegarde des missions — **fait avec le 3.2** (format de sauvegarde 2 ; les parties de format 1 sont encore
   lues).

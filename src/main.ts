@@ -13,7 +13,7 @@ import { Cadran } from './carte/cadran'
 import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
-import { ACTIONS_FINIES, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
+import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
@@ -24,7 +24,8 @@ import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
-import { avancement, planifier, type Planification } from './moteur/mission'
+import type { Contrat } from './moteur/contrats'
+import { avancement, planifier, type Plan, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
@@ -113,6 +114,7 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
     memoriser()
+    if (cle === 'forcerVitesse') voletMissions.oublierDurees()
     if (cle === 'nuit') appliquerTheme()
   })
 }
@@ -129,8 +131,16 @@ appliquerTheme()
 // --- Sélection (fiche) et destination proposée.
 /** Le joueur a appuyé sur Y ALLER pour l'astre sélectionné : on calcule le trajet et on propose le DÉPART. */
 let proposee = false
+/**
+ * Aperçu d'une mission proposée, avant de l'accepter (demande d'Adrien du 17/10/2026) : ses trajets dessinés sur la
+ * carte, et la fiche avec ACCEPTER. Toucher la carte (ou choisir un astre) ferme l'aperçu.
+ */
+let apercu: Contrat | null = null
+let apercuPlans: Plan[] | null = null
+let apercuAJour = 0
 function choisir(nom: string | null, cadrer = false): void {
   if (nom !== selection) proposee = false
+  apercu = null
   selection = nom
   // Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
   const c = nom ? corps(nom) : undefined
@@ -143,7 +153,7 @@ carte.vueGenerale()
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
-  if (page === 'missions') voletMissions.afficher(jeu, horloge())
+  if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -163,6 +173,7 @@ curseurBudget.value = String(depuisVitesse(reglages.vitesse))
 texteBudget.textContent = `${reglages.vitesse} km/s`
 curseurBudget.addEventListener('input', () => {
   reglages.vitesse = versVitesse(Number(curseurBudget.value))
+  voletMissions.oublierDurees()
   texteBudget.textContent = `${reglages.vitesse} km/s`
   memoriser()
   planAJour = 0
@@ -177,7 +188,7 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
-let actionFiche: 'depart' | 'agir' = 'depart'
+let actionFiche: 'depart' | 'agir' | 'accepter' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
@@ -210,7 +221,14 @@ function mettreAJourFiche(t: number): void {
   let texte = '', depart = false, libelle = 'DÉPART'
   actionFiche = 'depart'
   const etape = jeu.etapeActuelle(), fin = jeu.finAction()
-  if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
+  if (apercu) {
+    // Aperçu d'une mission : son titre, son temps de trajet, sa récompense, et ACCEPTER.
+    const duree = apercuPlans ? apercuPlans.reduce((s, p) => s + p.arrivee - p.depart, 0) : null
+    texte = `<b>APERÇU · ${GENRES_COURTS[apercu.genre]}</b> · ${apercu.recompense} crédits<br>${titreContrat(apercu)}<br>`
+      + (duree === null ? 'hors de portée' : `trajet ${texteDuree(duree)}`)
+      + (jeu.enCours ? ' · une mission est déjà en cours' : '')
+    if (!jeu.enCours && duree !== null) { depart = true; libelle = 'ACCEPTER'; actionFiche = 'accepter' }
+  } else if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
     // Sur le lieu de la mission : le bouton de l'action (RÉPARER, LIVRER…), puis le temps qui reste.
     texte = `<b>${etape.lieu.toUpperCase()}</b> · mission<br>${titreContrat(jeu.enCours!.contrat)}`
     if (fin !== null) texte += `<br>${NOMS_ACTIONS[etape.action]} en cours · ${texteSecondes(fin - t)}`
@@ -241,6 +259,7 @@ function mettreAJourFiche(t: number): void {
 boutonDepart.addEventListener('click', () => {
   const t = horloge()
   if (actionFiche === 'agir') { agirMission(); return }
+  if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
   // On recalcule au moment exact du départ.
@@ -248,6 +267,7 @@ boutonDepart.addEventListener('click', () => {
   if (!p.possible) return
   mission.partir(p.plan)
   enregistrerPartie()
+  voletMissions.oublierDurees()
   prevision = null
   proposee = false
   carteSale = true
@@ -260,6 +280,7 @@ const gestesCarte = new Gestes(toilePlan, {
   toucher: (x, y) => {
     const nom = carte.toucher(x, y)
     if (nom) choisir(nom)
+    else if (apercu) { apercu = null; selection = null }
   },
 })
 
@@ -276,8 +297,28 @@ function annoncer(texte: string): void {
 function agirMission(): void {
   if (jeu.agir(horloge())) { enregistrerPartie(); carteSale = true; dernierVolet = 0 }
 }
+/** Accepte une mission ; depuis l'aperçu, prépare aussitôt le trajet vers son premier lieu (reste à appuyer sur DÉPART). */
+function accepterMission(id: number): void {
+  if (!jeu.accepter(id, horloge())) return
+  enregistrerPartie()
+  dernierVolet = 0
+  if (apercu?.id === id) {
+    const lieu = apercu.etapes[0].lieu
+    choisir(lieu)
+    proposee = true
+    planAJour = 0
+  }
+}
 const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('#missions')!, {
-  accepter: (id) => { if (jeu.accepter(id, horloge())) { enregistrerPartie(); dernierVolet = 0 } },
+  accepter: accepterMission,
+  voir: (id) => {
+    const c = jeu.proposes.find((p) => p.id === id)
+    if (!c) return
+    cockpit.fermer()
+    choisir(c.etapes[0].lieu, true)
+    apercu = c
+    apercuAJour = 0
+  },
   allerA: (lieu) => { cockpit.fermer(); choisir(lieu, true); proposee = true; planAJour = 0 },
   agir: agirMission,
   abandonner: () => {
@@ -336,12 +377,16 @@ function image(maintenant: number): void {
   prevoir(t, maintenant)
   avancerMissions(t)
   mettreAJourFiche(t)
-  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t); dernierVolet = maintenant }
+  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
+  // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
+  if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true
   const accent = '#d9694f'
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
-  const planTrace = prevision?.possible ? prevision.plan : enRoute
+  const planTrace = apercu ? apercuPlans?.[0] ?? null : prevision?.possible ? prevision.plan : enRoute
+  // Aperçu d'une livraison : le second trajet (de la station au satellite), dessiné aussi.
+  const autresTraces = apercu && apercuPlans ? apercuPlans.slice(1).map((p) => projeterTrajet(p, t)) : []
   const trace = planTrace ? projeterTrajet(planTrace, t) : null
   let trajet = trace
   // En route : la capsule avance à vitesse régulière sur le trajet dessiné ; on ne dessine que ce qui reste.
@@ -384,6 +429,7 @@ function image(maintenant: number): void {
       ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
+    for (const tr of autresTraces) carte.dessinerTraits(ctxPlan, t, null, tr, tr[tr.length - 1], accent, { encre: th.encre, fond: th.halo })
     // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
     const eviter: { x: number; y: number }[] = []
     if (rendezVous) eviter.push(carte.ecranDe(rendezVous))

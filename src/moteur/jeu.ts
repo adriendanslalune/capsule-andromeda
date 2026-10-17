@@ -8,7 +8,8 @@
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { CONTRATS_PROPOSES, DUREE_ACTION } from '../donnees/contrats'
 import { tirerContrat, type Contrat, type Etape } from './contrats'
-import { Mission } from './mission'
+import { position } from './corps'
+import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
 /** La mission acceptée : où on en est (numéro de l'étape) et, si une action est en cours, son début (ms UTC). */
 export interface ContratEnCours { contrat: Contrat; etape: number; debutAction: number | null }
@@ -121,5 +122,36 @@ export class Jeu {
       this.proposer(t)
     }
     return evenements
+  }
+
+  /**
+   * Les trajets d'une mission, depuis là où est la capsule à l'instant t, à la vitesse donnée (km/s) : vers le lieu de
+   * chaque étape restante, en comptant le temps des actions sur place. null si un lieu est hors de portée.
+   */
+  trajetsContrat(c: Contrat, t: number, vitesse: number): Plan[] | null {
+    const debut = this.enCours?.contrat.id === c.id ? this.enCours.etape : 0
+    const plans: Plan[] = []
+    let depart = this.mission.etatHeliocentrique(t)
+    let instant = t
+    let ici = this.mission.phase(t) === 'orbite' ? this.mission.centre(t) : null
+    for (const e of c.etapes.slice(debut)) {
+      if (e.lieu !== ici) {
+        const p = planifier(depart, e.lieu, instant, vitesse)
+        if (!p.possible) return null
+        plans.push(p.plan)
+        instant = p.plan.arrivee
+      }
+      // Après l'action sur place, on repart de là (de la position du lieu, à sa vitesse).
+      instant += DUREE_ACTION
+      depart = { r: position(e.lieu, instant), v: vitesseAstre(e.lieu, instant) }
+      ici = e.lieu
+    }
+    return plans
+  }
+
+  /** Temps de trajet total d'une mission (ms, sans les actions sur place), ou null si hors de portée. */
+  dureeTrajets(c: Contrat, t: number, vitesse: number): number | null {
+    const plans = this.trajetsContrat(c, t, vitesse)
+    return plans ? plans.reduce((s, p) => s + p.arrivee - p.depart, 0) : null
   }
 }

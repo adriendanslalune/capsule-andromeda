@@ -124,4 +124,25 @@ describe('faire une mission', () => {
     jeu.abandonner()
     expect(jeu.accepter(b.id, t0)).toBe(true)
   })
+
+  it('temps de trajet d’une mission : un trajet pour un dépannage, deux pour une livraison (le second part de la station)', () => {
+    const jeu = new Jeu()
+    const reparer: Contrat = { id: 1, genre: 'depanner', etapes: [{ lieu: 'GOES-19', action: 'reparer' }], recompense: 100 }
+    const livrer: Contrat = { id: 2, genre: 'livrer', etapes: [{ lieu: 'ISS', action: 'charger' }, { lieu: 'GOES-19', action: 'livrer' }], recompense: 100 }
+    const [p] = jeu.trajetsContrat(reparer, t0, 30)!
+    expect(p.cible).toBe('GOES-19')
+    const deux = jeu.trajetsContrat(livrer, t0, 30)!
+    expect(deux.map((q) => q.cible)).toEqual(['ISS', 'GOES-19'])
+    expect(deux[1].depart).toBe(deux[0].arrivee + DUREE_ACTION)
+    expect(jeu.dureeTrajets(livrer, t0, 30)).toBe(deux.reduce((s, q) => s + q.arrivee - q.depart, 0))
+    // Plus rapide avec un meilleur moteur.
+    expect(jeu.dureeTrajets(reparer, t0, 60)!).toBeLessThan(jeu.dureeTrajets(reparer, t0, 30)!)
+  })
+
+  it('déjà sur le lieu de l’étape : pas de trajet pour elle', () => {
+    const jeu = avecContrat(reparerGoes)
+    const t = allerA(jeu, 'GOES-19', t0) + 1000
+    expect(jeu.trajetsContrat(reparerGoes, t, 30)).toEqual([])
+    expect(jeu.dureeTrajets(reparerGoes, t, 30)).toBe(0)
+  })
 })
