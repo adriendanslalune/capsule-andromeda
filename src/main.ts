@@ -131,8 +131,6 @@ appliquerTheme()
 // --- Sélection (fiche) et destination proposée.
 /** Le joueur a appuyé sur Y ALLER pour l'astre sélectionné : on calcule le trajet et on propose le DÉPART. */
 let proposee = false
-/** Ce que la caméra suit (un astre, un engin ou la capsule), au centre de l'écran ; null si on se promène. */
-let suivi: string | null = null
 /**
  * Aperçu d'une mission proposée, avant de l'accepter (demande d'Adrien du 17/10/2026) : ses trajets dessinés sur la
  * carte, et la fiche avec ACCEPTER. Toucher la carte (ou choisir un astre) ferme l'aperçu.
@@ -140,29 +138,33 @@ let suivi: string | null = null
 let apercu: Contrat | null = null
 let apercuPlans: Plan[] | null = null
 let apercuAJour = 0
-function choisir(nom: string | null, cadrer = false): void {
+/**
+ * Choisit un astre, un engin ou la capsule (null : plus rien de choisi). Demandes d'Adrien du 17/10/2026 : ce qu'on
+ * choisit vient au centre de l'écran, en glissant, et y reste, même pendant le zoom ; la carte est alors accrochée à
+ * lui (glisser un doigt ne la déplace pas) ; toucher un endroit vide de la carte retire le choix, et la carte redevient
+ * libre. Depuis le cadran, une lune ou un satellite fait cadrer le système de son astre.
+ */
+function choisir(nom: string | null, cadrer = false, echelle?: number): void {
+  const avant = selection
   if (nom !== selection) proposee = false
   apercu = null
   selection = nom
-  // Ce qu'on choisit vient au centre de l'écran, en glissant, et y reste, même pendant le zoom (demandes d'Adrien du
-  // 17/10/2026). Depuis le cadran : une lune ou un satellite fait cadrer le système de son astre.
   const c = nom ? corps(nom) : undefined
-  if (nom && (nom !== suivi || cadrer)) {
-    suivi = nom
-    const t = horloge()
-    carte.voler(cadrer && c?.parent ? carte.echelleSysteme(c.parent) : carte.kmParPx, performance.now(), positionSuivie(t))
+  if (nom && (nom !== avant || cadrer || echelle !== undefined)) {
+    const k = echelle ?? (cadrer && c?.parent ? carte.echelleSysteme(c.parent) : carte.kmParPx)
+    carte.voler(k, performance.now(), positionSuivie(horloge()))
   }
 }
 
 boutonRetour.addEventListener('click', () => {
-  suivi = null
+  choisir(null)
   carte.voler(carte.echelleGenerale(), performance.now(), { x: 0, y: 0 }, true)
 })
 
-/** Place, sur la carte (km de carte), de ce que suit la caméra. */
+/** Place, sur la carte (km de carte), de ce qui est choisi (la caméra le suit). */
 function positionSuivie(t: number): Point2 {
-  if (suivi === CAPSULE) return capsuleSurCarte ?? carte.positionCapsule(t)
-  return suivi && corps(suivi) ? projeterCorps(suivi, t) : carte.centre
+  if (selection === CAPSULE) return capsuleSurCarte ?? carte.positionCapsule(t)
+  return selection && corps(selection) ? projeterCorps(selection, t) : carte.centre
 }
 /** Où est dessinée la capsule en route (sur son trajet), mis à jour à chaque image. */
 let capsuleSurCarte: Point2 | null = null
@@ -175,9 +177,8 @@ function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
   const k = ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou)
-  suivi = CAPSULE
-  if (animer) carte.voler(k, performance.now(), positionSuivie(t))
-  else { carte.kmParPx = k; carte.centre = positionSuivie(t) }
+  if (animer) choisir(CAPSULE, false, k)
+  else { choisir(CAPSULE); carte.kmParPx = k; carte.centre = positionSuivie(t) }
 }
 allerALaCapsule(false)
 document.querySelector('#bouton-capsule')!.addEventListener('click', () => allerALaCapsule())
@@ -307,17 +308,13 @@ boutonDepart.addEventListener('click', () => {
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
 const gestesCarte = new Gestes(toilePlan, {
-  // Glisser un doigt : on se promène, la caméra ne suit plus rien. Le pincement, lui, zoome autour de ce qu'on suit.
-  glisser: (dx, dy, pince) => {
-    if (pince && suivi) return
-    if (!pince) suivi = null
-    carte.glisser(dx, dy)
-  },
+  // Quelque chose est choisi : la carte reste accrochée dessus (le pincement zoome autour de lui) ; sinon on se promène.
+  glisser: (dx, dy) => { if (!selection) carte.glisser(dx, dy) },
   zoomer: (f, sx, sy) => carte.zoomer(f, sx, sy),
   toucher: (x, y) => {
     const nom = carte.toucher(x, y)
-    if (nom) choisir(nom)
-    else if (apercu) { apercu = null; selection = null }
+    // Toucher un endroit vide retire le choix (et ferme l'aperçu d'une mission).
+    choisir(nom)
   },
 })
 
@@ -454,7 +451,7 @@ function image(maintenant: number): void {
     gestesCarte.avancer(dt)
     // La caméra suit ce qu'on regarde (en route, la capsule est là où elle est dessinée sur son trajet).
     capsuleSurCarte = capsuleDessinee
-    carte.placerCamera(suivi ? positionSuivie(t) : null, maintenant)
+    carte.placerCamera(selection ? positionSuivie(t) : null, maintenant)
     // La capsule pointe le long du trajet tel qu'il est dessiné (premier tronçon visible à l'écran).
     let direction: { x: number; y: number } | null = null
     if (trajet && trajet.length > 1) {
