@@ -10,7 +10,9 @@ import './style.css'
 /** Version construite (le commit), remplacée par Vite. */
 declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
+import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
+import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
 import { Gestes } from './commun/gestes'
@@ -19,6 +21,7 @@ import { periode, suivreMission } from './moteur/capsule'
 import { corps } from './moteur/corps'
 import { avancement, Mission, planifier, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
+import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
 
 const toilePlan = document.querySelector<HTMLCanvasElement>('#plan')!
@@ -155,25 +158,6 @@ let prevision: Planification | null = null
 let previsionPour: string | null = null
 let planAJour = 0
 
-/** Durée lisible : « 3 h 20 min », « 12 j 4 h », « 2 ans 3 mois ». */
-function texteDuree(ms: number): string {
-  const min = ms / 60_000, h = min / 60, j = h / 24
-  if (h < 1) return `${Math.max(1, Math.round(min))} min`
-  if (j < 2) return `${Math.floor(h)} h ${String(Math.round(min % 60)).padStart(2, '0')} min`
-  if (j < 365) return `${Math.floor(j)} j ${Math.round(h % 24)} h`
-  const ans = Math.floor(j / 365.25), mois = Math.round((j % 365.25) / 30.44)
-  return `${ans} an${ans > 1 ? 's' : ''}${mois ? ` ${mois} mois` : ''}`
-}
-/** Date et heure à l'heure du lieu du joueur (fuseau du téléphone) : « 17 octobre 2026 à 19:42 ». */
-const texteDate = (t: number) => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-
-/** « autour de la Terre », « autour d'Uranus », « autour du Soleil », « à côté de l'ISS »… */
-function autourDe(nom: string): string {
-  if (corps(nom)?.tailleM) return `À CÔTÉ DE ${nom.toUpperCase()}`
-  const article: Record<string, string> = { Terre: 'DE LA ', Lune: 'DE LA ', Soleil: 'DU ', Uranus: "D'", Europe: "D'", Io: "D'", Encelade: "D'" }
-  return `AUTOUR ${article[nom] ?? 'DE '}${nom.toUpperCase()}`
-}
-
 /** La destination choisie est-elle là où l'on est déjà (ou la capsule elle-même) ? */
 function dejaLa(t: number): boolean {
   return !selection || selection === CAPSULE || (mission.phase(t) === 'orbite' && mission.centre(t) === selection)
@@ -192,36 +176,28 @@ function prevoir(t: number, maintenant: number): void {
   planAJour = maintenant
 }
 
+const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
+
 function mettreAJourFiche(t: number): void {
+  afficherBandeau(bandeau, lignesDuBandeau(mission, t), t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
+  // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
+  // destination choisie.
   let texte = '', depart = false, libelle = 'DÉPART'
-  if (enRoute) {
-    texte = `<b>EN ROUTE VERS ${enRoute.cible.toUpperCase()}</b><br>arrivée dans ${texteDuree(enRoute.arrivee - t)} · ${texteDate(enRoute.arrivee)}`
-  } else if (dejaLa(t)) {
-    // En orbite : autour de quoi, à quelle altitude, en combien de temps la capsule fait le tour.
-    const o = mission.orbiteActuelle(t)
-    if (o) {
-      const rayon = corps(o.centre)?.rayon ?? 0
-      const altitude = o.rayon - rayon
-      const altitudeTexte = corps(o.centre)?.tailleM ? `à ${texteDistance(o.rayon)}` : `altitude ${texteDistance(altitude)}`
-      const tour = corps(o.centre)?.tailleM ? '' : ` · un tour en ${texteDuree(periode(o) * 1000)}`
-      texte = `<b>EN ORBITE ${autourDe(o.centre)}</b><br>${altitudeTexte}${tour}`
-    }
-  }
   if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
-    texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b><br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    texte = `<b>${selection.toUpperCase()}</b><br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
     const dv = `${reglages.vitesse} km/s`
     if (prevision.possible) {
       const p = prevision.plan
-      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
+      texte = `<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {
-      texte = `${enRoute ? texte + '<br>' : ''}<b>${selection.toUpperCase()}</b> · hors de portée<br>elle s'éloigne plus vite que la capsule (moteurs ${dv})`
+      texte = `<b>${selection.toUpperCase()}</b> · hors de portée<br>elle s'éloigne plus vite que la capsule (moteurs ${dv})`
     }
   }
   fiche.hidden = !texte

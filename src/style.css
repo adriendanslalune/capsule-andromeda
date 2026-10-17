@@ -40,7 +40,7 @@ html, body {
   position: fixed;
   left: 16px;
   right: 16px;
-  top: calc(10px + env(safe-area-inset-top));
+  top: calc(8px + env(safe-area-inset-top));
   pointer-events: none;
   font-size: 10px;
   opacity: 0.55;
@@ -50,11 +50,32 @@ html, body {
   /* liseré de la couleur du fond, pour rester lisible devant un astre */
   text-shadow: -1px -1px 0 var(--fond), 1px -1px 0 var(--fond), -1px 1px 0 var(--fond), 1px 1px 0 var(--fond);
 }
+/* Bandeau d'alertes, en haut, toujours visible : trajet en cours, ou l'état calme (en orbite). */
+#bandeau {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  top: calc(24px + env(safe-area-inset-top));
+  background: var(--creme);
+  border: 2px solid var(--encre);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--ombre);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 2;
+}
+#bandeau:empty { display: none; }
+#bandeau .ligne { display: flex; flex-direction: column; padding: 5px 12px; }
+#bandeau .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
+#bandeau .ligne b { letter-spacing: 0.04em; }
+#bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
+
 #titre-carte {
   position: fixed;
   left: 12px;
   right: 12px;
-  top: calc(26px + env(safe-area-inset-top));
+  top: calc(82px + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 10px;

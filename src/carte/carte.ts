@@ -125,9 +125,9 @@ export class Carte2D {
   /** Points dessinés de la poussière de satellites (km de carte), réutilisés d'une image à l'autre. */
   private pointsPoussiere = new Float64Array(0)
 
-  /** Centre de la carte à l'écran (entre la ligne d'infos et les boutons). */
+  /** Centre de la carte à l'écran (entre le bandeau d'alertes et la barre d'onglets). */
   private milieu(): { x: number; y: number } {
-    return { x: this.largeur / 2, y: (56 + this.hauteur - 130) / 2 }
+    return { x: this.largeur / 2, y: (124 + this.hauteur - 130) / 2 }
   }
 
   /** Point de carte (km) → écran (px). */
@@ -346,13 +346,13 @@ export class Carte2D {
     if (!selection) return null
     const cible = this.dessines.find((d) => d.nom === selection)
     if (cible) {
-      const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 40 && cible.y <= this.hauteur - 100
+      const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 124 && cible.y <= this.hauteur - 100
       return { x: cible.x, y: cible.y, r: cible.r, visible }
     }
     // Pas dessinée (trop près de son astre à ce zoom) : sa place à l'écran, sans disque.
     if (!corps(selection)) return null
     const q = this.ecranDe(projeterCorps(selection, t))
-    const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 40 && q.y <= this.hauteur - 100
+    const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 124 && q.y <= this.hauteur - 100
     return { x: q.x, y: q.y, r: 2, visible }
   }
 
@@ -558,7 +558,7 @@ export class Carte2D {
         { x: d.x - l / 2, y: d.y - d.r - 10 }]
       for (const p of essais) {
         const b = { x0: p.x - 2, y0: p.y - 7, x1: p.x + l + 2, y1: p.y + 7 }
-        if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < 44 || b.y1 > this.hauteur - 120) continue
+        if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < 124 || b.y1 > this.hauteur - 120) continue
         if (occupes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0)) continue
         occupes.push(b)
         ctx.strokeText(texte, p.x, p.y)

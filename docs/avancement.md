@@ -24,11 +24,14 @@ Plan validé par Adrien le 17/10/2026 (interface dans les tons Moebius de la car
 « Plus › Réglages » ; moteur niveau 1 à 30 km/s, sans limite de portée pour l'instant ; heures à l'heure du lieu du
 joueur).
 
-- 2.1 Barre d'onglets et volets — **fait, en attente de validation** : barre de 5 onglets en bas (Missions et Manuel
+- 2.1 Barre d'onglets et volets — **fait, validé** : barre de 5 onglets en bas (Missions et Manuel
   grisés), volets qui montent du bas (Navigation = l'ancien cadran ; Capsule à venir ; Plus : Armement, Marché,
   Messages, Profil grisés, et Réglages). Fermeture : onglet, Fermer, glisser vers le bas, toucher la carte
   (`src/commun/cockpit.ts`). Heures affichées à l'heure locale du téléphone.
-- 2.2 Bandeau d'alertes en haut — à faire.
+- 2.2 Bandeau d'alertes en haut — **fait, en attente de validation** : toujours visible ; « EN ROUTE VERS … » avec
+  l'heure d'arrivée (aujourd'hui, demain, ou la date) et le temps restant, sinon l'état calme « EN ORBITE AUTOUR DE … »
+  (altitude, durée d'un tour). Le moteur dit quoi afficher (`src/moteur/bandeau.ts`, testé), prévu pour plusieurs
+  lignes (missiles, pannes, ralentissements à l'étape 4). La fiche du bas ne parle plus que de la destination choisie.
 - 2.3 État de la capsule et volet Capsule — à faire.
 - 2.4 Sauvegarde locale — à faire.
 
