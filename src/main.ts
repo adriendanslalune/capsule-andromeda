@@ -6,6 +6,9 @@
 //    autour du Soleil, problème de Lambert) jusqu'au point de rendez-vous ; le bouton DÉPART lance le voyage.
 
 import './style.css'
+
+/** Version construite (le commit), remplacée par Vite. */
+declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { Gestes } from './commun/gestes'
@@ -306,7 +309,7 @@ function image(maintenant: number): void {
     images = 0
     debutCompte = maintenant
     const avance = t - Date.now()
-    infos.textContent = `${new Date(t).toISOString().slice(0, 19).replace('T', ' ')} UTC · ${ips} i/s`
+    infos.textContent = `${new Date(t).toISOString().slice(0, 19).replace('T', ' ')} UTC · ${ips} i/s · v${__VERSION__}`
       + (acceleration > 1 || avance > 60_000 ? ` · temps ×${acceleration.toLocaleString('fr')} (+${texteDuree(avance)})` : '')
   }
   requestAnimationFrame(image)
