@@ -31,10 +31,9 @@ const MINIMUMS: Record<string, number> = {
   Soleil: 18, Jupiter: 16, Saturne: 15, Uranus: 13, Neptune: 13, Terre: 12, Vénus: 12, Mars: 11.5, Mercure: 11,
   Pluton: 11, Lune: 11,
 }
-/** Rayon le plus petit d'un astre serré contre ses voisins : un point (demande d'Adrien, 17/10/2026). */
+/** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
-/** Écart minimal entre deux astres à l'écran (px), une fois rétrécis. */
-const ECART_ASTRES = 4
+
 /** Lunes : minimum selon leur vraie taille, toujours plus grandes à l'écran qu'un engin (demande d'Adrien, 17/10/2026). */
 const minimumLune = (rayonKm: number) => (rayonKm >= 1000 ? 10 : rayonKm >= 200 ? 8 : 4.5)
 /** Taille d'une silhouette d'engin (rayon, px) et son échelle de dessin. */
@@ -47,8 +46,7 @@ const KM_PAR_PX_MAX = (60 * UA_KM) / 180
 const DE: Record<string, string> = { Terre: 'DE LA ', Uranus: "D'" }
 /** Étendue des astres illustrés, en rayons du disque : rayons du Soleil, anneaux de Saturne et d'Uranus. */
 const ETENDUES: Record<string, number> = { Soleil: 2.6, Saturne: 2.35, Uranus: 1.7 }
-/** Pour ne pas se toucher : flammes du Soleil (ses rayons fins peuvent passer derrière une planète) et anneaux. */
-const ETENDUES_DESSIN: Record<string, number> = { Soleil: 1.9, Saturne: 2.35, Uranus: 1.7 }
+
 
 // Trames de points (ombres), une par densité, préparées une fois.
 const TRAMES = new Map<string, CanvasPattern>()
@@ -135,7 +133,12 @@ export class Carte2D {
 
   /** Rayon dessiné (pixels) : grossi mais proportionné, jamais sous le minimum de l'astre. */
   private rayon(c: Corps): number {
-    return Math.max(MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2), rayonDessine(c.nom) / this.kmParPx)
+    // Soleil et planètes : tailles minimales à l'échelle de la vue générale ; en dézoomant, toutes rétrécissent dans la
+    // même proportion, jusqu'au point (demande d'Adrien, 17/10/2026).
+    const minimum = MINIMUMS[c.nom] !== undefined && c.type !== 'lune'
+      ? Math.max(RAYON_POINT, MINIMUMS[c.nom] * Math.min(1, VUE_GENERALE / (this.largeur / 2) / this.kmParPx))
+      : MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)
+    return Math.max(minimum, rayonDessine(c.nom) / this.kmParPx)
   }
 
   /** Système regardé : celui dont la zone remplit la vue, sinon le système solaire. */
@@ -218,8 +221,8 @@ export class Carte2D {
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
     this.dessines = []
     const libre = (x: number, y: number, r: number) => this.dessines.every((d) => Math.hypot(d.x - x, d.y - y) > d.r + r + 3)
-    const astre = (c: Corps, q: { x: number; y: number }, rayon?: number) => {
-      const r = rayon ?? this.rayon(c)
+    const astre = (c: Corps, q: { x: number; y: number }) => {
+      const r = this.rayon(c)
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r })
       if (!dedans(q.x, q.y, r * 2.6 + 20)) return
       const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
@@ -228,26 +231,8 @@ export class Carte2D {
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleurDe(c), couleurs)
       else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)
     }
-    // Soleil et planètes : quand deux d'entre eux se serrent à l'écran (on dézoome), ils rétrécissent ensemble, jusqu'à
-    // n'être que des points, pour ne jamais se toucher (rayons du Soleil et anneaux compris).
-    const grands = ['Soleil', ...CENTRES].map((nom) => {
-      const c = corps(nom)!
-      const r = this.rayon(c)
-      const etendue = r >= RAYON_ILLUSTRATION ? ETENDUES_DESSIN[nom] ?? 1 : nom === 'Soleil' ? 1.5 : 1
-      return { c, q: nom === 'Soleil' ? soleil : this.ecranDe(projeterCorps(nom, t)), r, etendue, k: 1 }
-    })
-    for (let i = 0; i < grands.length; i++) {
-      for (let j = i + 1; j < grands.length; j++) {
-        const a = grands[i], b = grands[j]
-        const d = Math.hypot(a.q.x - b.q.x, a.q.y - b.q.y)
-        const place = a.r * a.etendue + b.r * b.etendue
-        if (place + ECART_ASTRES <= d) continue
-        const k = Math.max(0, d - ECART_ASTRES) / place
-        a.k = Math.min(a.k, k)
-        b.k = Math.min(b.k, k)
-      }
-    }
-    for (const g of grands) astre(g.c, g.q, Math.max(Math.min(g.r, RAYON_POINT), g.r * g.k))
+    astre(corps('Soleil')!, soleil)
+    for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
     for (const nom of CENTRES) {
       const e = this.ecranDe(projeterCorps(nom, t))
       const zone = zoneDessinee(nom) / this.kmParPx
