@@ -12,6 +12,7 @@ declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
 import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
+import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeterTrajet } from './carte/loupe'
@@ -250,6 +251,9 @@ const gestesCarte = new Gestes(toilePlan, {
 })
 
 document.addEventListener('gesturestart', (e) => e.preventDefault())
+
+// Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).
+surveillerMisesAJour(enregistrerPartie)
 
 // Sauvegarde aussi quand on quitte l'application (ou qu'elle passe en arrière-plan).
 document.addEventListener('visibilitychange', () => { if (document.hidden) enregistrerPartie() })

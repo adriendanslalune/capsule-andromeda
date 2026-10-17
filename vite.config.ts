@@ -13,6 +13,13 @@ const version = (() => {
 export default defineConfig({
   base: './',
   define: { __VERSION__: JSON.stringify(version) },
+  // version.json : le jeu le relit pour savoir si une nouvelle version est en ligne (mise à jour automatique).
+  plugins: [{
+    name: 'version',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version }) })
+    },
+  }],
   server: { host: true },
   build: {
     rollupOptions: { input: { index: 'index.html', planche: 'planche.html' } },
