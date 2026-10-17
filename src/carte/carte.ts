@@ -7,6 +7,7 @@
 
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
+import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
 import { CENTRES, projeter, projeterCorps, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
@@ -34,6 +35,8 @@ const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
 const KM_PAR_PX_MAX = (60 * UA_KM) / 180
 const DE: Record<string, string> = { Terre: 'DE LA ', Uranus: "D'" }
+/** Étendue des astres illustrés, en rayons du disque : rayons du Soleil, anneaux de Saturne et d'Uranus. */
+const ETENDUES: Record<string, number> = { Soleil: 2.6, Saturne: 2.35, Uranus: 1.7 }
 
 // Trames de points (ombres), une par densité, préparées une fois.
 const TRAMES = new Map<string, CanvasPattern>()
@@ -206,9 +209,11 @@ export class Carte2D {
     const astre = (c: Corps, q: { x: number; y: number }) => {
       const r = this.rayon(c)
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r })
-      if (!dedans(q.x, q.y, r + 20)) return
-      if (c.type === 'etoile') this.disque(ctx, q.x, q.y, r, couleurDe(c), null, couleurs)
-      else this.disque(ctx, q.x, q.y, r, couleurDe(c), Math.atan2(soleil.y - q.y, soleil.x - q.x), couleurs)
+      if (!dedans(q.x, q.y, r * 2.6 + 20)) return
+      const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
+      // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
+      if (r >= RAYON_ILLUSTRATION && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
+      else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)
     }
     astre(corps('Soleil')!, soleil)
     for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
@@ -462,7 +467,9 @@ export class Carte2D {
       if (k?.type === 'lune' && k.rayon < 100) continue
       const texte = d.nom
       const l = ctx.measureText(texte).width
-      const ecart = d.r + (d.nom === 'Soleil' ? 12 : k?.type === 'satellite' || k?.type === 'sonde' ? 4 : 5)
+      // Astres illustrés : le nom se pose au-delà des rayons du Soleil et des anneaux.
+      const etendue = d.r >= RAYON_ILLUSTRATION ? ETENDUES[d.nom] ?? 1 : 1
+      const ecart = d.r * etendue + (d.nom === 'Soleil' && etendue === 1 ? 12 : k?.type === 'satellite' || k?.type === 'sonde' ? 4 : 5)
       const essais = [{ x: d.x + ecart, y: d.y }, { x: d.x - ecart - l, y: d.y }, { x: d.x - l / 2, y: d.y + d.r + 10 },
         { x: d.x - l / 2, y: d.y - d.r - 10 }]
       for (const p of essais) {

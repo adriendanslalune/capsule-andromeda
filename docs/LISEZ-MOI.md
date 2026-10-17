@@ -65,3 +65,7 @@ En ligne : https://adriendanslalune.github.io/capsule-andromeda/
   moins 100 km) de la surface du Soleil, de la planète de départ, de ses grandes lunes ou de l'astre autour duquel
   tourne la destination. Dans le système d'une planète (de l'ISS à Hubble, vers la Lune), le trajet se fait sous la
   gravité de la planète : il fait le tour comme une vraie orbite (vers Hubble : environ 25 minutes au lieu de 9 jours).
+- **Astres illustrés** (planche `planche.html`, validée par Adrien) : d'après une gravure de soleil, sans visages, chaque
+  astre avec ses détails réels (Soleil et ses flammes, mers de la Lune, continents de la Terre, Valles Marineris,
+  Grande Tache rouge, anneaux et division de Cassini…), traits fins, aplats pastel, face de nuit en croissant violet
+  (`src/carte/illustrations.ts`). Sur la carte : l'illustration dès 11 px de rayon à l'écran, le simple disque en dessous.
