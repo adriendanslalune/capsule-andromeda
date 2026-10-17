@@ -7,7 +7,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 3. Missions, crédits, moteur | **fait**, validé le 18/10/2026 (détail ci-dessous) |
-| 4. Pannes et manuel | à faire |
+| 4. Pannes et manuel | **en cours** (détail ci-dessous) |
 | 5. Nettoyeurs | à faire |
 | 6. Combat | à faire |
 | 7. Commerçants | à faire |
@@ -16,6 +16,20 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
+
+---
+
+# Étape 4 : pannes et manuel
+
+Décisions d'Adrien du 18/10/2026 : voir `CLAUDE.md` (modules et effets, provenance des pannes, panneau de réparation
+et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
+
+- Fenêtre « Nouveau moteur » (demande d'Adrien, avant l'étape 4) — **fait, en attente de validation**.
+- 4.1 Modules et pannes dans le moteur du jeu (effets, usure au hasard), alerte « panne » dans le bandeau — à faire.
+- 4.2 Onglet Réparation du volet Capsule : le grand panneau (modules, cadrans, câbles, écrans, jauges, radios) — à faire.
+- 4.3 Onglet Manuel (vintage, Jules Verne) et les procédures de réparation de chaque module — à faire.
+- 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
+- 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 
 ---
 

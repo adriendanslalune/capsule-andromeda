@@ -14,6 +14,7 @@ import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
+import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule } from './commun/volet-capsule'
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
@@ -416,14 +417,17 @@ let dernierVolet = 0
 // Volet Capsule : acheter le moteur suivant (après confirmation) ; les trajets prévus se recalculent à la nouvelle vitesse.
 const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#capsule')!, () => {
   const m = jeu.moteurSuivant()
-  if (!m || !confirm(`Acheter le moteur niveau ${m.niveau} (${m.vitesse} km/s) pour ${m.prix.toLocaleString('fr-FR')} crédits ?`)) return
-  if (!jeu.acheterMoteur()) return
-  enregistrerPartie()
-  voletMissions.oublierDurees()
-  planAJour = 0
-  apercuAJour = 0
-  voletCapsule.afficher(jeu)
-  annoncer(`Nouveau moteur : ${m.vitesse} km/s`)
+  if (!m) return
+  // La belle fenêtre « Nouveau moteur » (demande d'Adrien du 18/10/2026) : elle confirme, puis montre l'installation.
+  ouvrirFenetreMoteur(jeu.moteur(), m, () => {
+    if (!jeu.acheterMoteur()) return false
+    enregistrerPartie()
+    voletMissions.oublierDurees()
+    planAJour = 0
+    apercuAJour = 0
+    voletCapsule.afficher(jeu)
+    return true
+  })
 })
 
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).

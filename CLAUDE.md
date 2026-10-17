@@ -22,6 +22,11 @@ Maisons (attribuées selon les activités du joueur, profil en toile d'araignée
 Missions partout (décision d'Adrien du 17/10/2026) : des épaves à nettoyer partout dans le système solaire, tout le temps (un Nettoyeur doit toujours en trouver) ; les livraisons et les dépannages (satellites, fusées) sont aussi des missions permanentes, dans tout le système solaire, pas seulement autour de la Terre.
 
 Pannes : système de modules à réparer avec un manuel. Les aliens tirent parfois des missiles (décompte visible sur la carte) ; un impact ralentit le trajet de 50 % jusqu'à réparation.
+Précisions d'Adrien du 18/10/2026 (étape 4) :
+- Modules de la capsule et effet de leur panne : Moteur (vitesse divisée par 2), Navigation (pas de nouveau trajet ; le trajet en cours continue), Communications (plus de nouvelles missions), Énergie (actions sur place deux fois plus longues), Coque (sans effet seule ; si elle est en panne, un impact touche deux modules).
+- Pannes : usure au hasard (rare, environ une tous les 10 trajets) et missiles aliens.
+- Réparation : un onglet Réparation dans le volet Capsule, un grand panneau plein de modules, cadrans, câbles, écrans, jauges, radios… C'est là qu'on répare, en suivant le Manuel (onglet Manuel), à la manière de « Keep Talking and Nobody Explodes », avec un côté vintage dans l'esprit de Jules Verne.
+- Missiles : très rares près de la Terre (utile pour le tutoriel) ; plus on s'éloigne du Soleil, plus les aliens sont nombreux et plus les missiles sont fréquents. Les aliens sont visibles sur la carte dès qu'on s'en approche à une certaine distance (petite alerte : « le radar a repéré un alien »).
 
 Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via le chat et les échanges. Serveur plus tard (type Supabase).
 
