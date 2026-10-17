@@ -6,11 +6,6 @@
   --creme: #faf2dc;
   --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
-/* Thème inverse, au choix du joueur : fond noir, étoiles blanches. */
-:root[data-theme="nuit"] {
-  --fond: #0e0c0b;
-  --encre: #f4f1ea;
-}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
@@ -23,7 +18,7 @@ html, body {
   -webkit-touch-callout: none;
   overscroll-behavior: none;
 }
-#plan, #vue3d, #surcouche {
+#plan {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -31,12 +26,6 @@ html, body {
   touch-action: none;
   display: block;
 }
-
-/* Deux modes : la carte (2D) ou la vue extérieure (3D). */
-body[data-mode="carte"] #vue3d, body[data-mode="carte"] #surcouche, body[data-mode="carte"] #echelle,
-body[data-mode="carte"] #bouton-recentrer { display: none; }
-body[data-mode="exterieur"] #plan, body[data-mode="exterieur"] #titre-carte,
-body[data-mode="exterieur"] #bouton-cadran { display: none; }
 
 #infos {
   position: fixed;
@@ -48,16 +37,9 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
   opacity: 0.55;
   z-index: 1;
 }
-#echelle, #infos, #titre {
+#infos, #titre {
   /* liseré de la couleur du fond, pour rester lisible devant un astre */
   text-shadow: -1px -1px 0 var(--fond), 1px -1px 0 var(--fond), -1px 1px 0 var(--fond), 1px 1px 0 var(--fond);
-}
-#echelle {
-  position: fixed;
-  left: 16px;
-  bottom: calc(66px + env(safe-area-inset-bottom));
-  pointer-events: none;
-  font-size: 12px;
 }
 #titre-carte {
   position: fixed;
@@ -82,11 +64,10 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
 }
-:root[data-theme="nuit"] #bouton-retour { background: var(--fond); }
 #bouton-retour[hidden] { display: none; }
 
-/* Boutons du bas : CADRAN (carte) ou RECENTRER (vue extérieure) à gauche, la bascule au milieu, Repères à droite. */
-#bouton-cadran, #bouton-recentrer, #bouton-vue, #bouton-reperes {
+/* Boutons du bas : CADRAN à gauche, Repères à droite. */
+#bouton-cadran, #bouton-reperes {
   position: fixed;
   bottom: calc(12px + env(safe-area-inset-bottom));
   min-width: 44px;
@@ -102,8 +83,7 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
   border-radius: 8px;
   box-shadow: 3px 3px 0 var(--encre);
 }
-#bouton-cadran, #bouton-recentrer { left: 12px; background: var(--moutarde); }
-#bouton-vue { left: 50%; transform: translateX(-50%); }
+#bouton-cadran { left: 12px; background: var(--moutarde); }
 #bouton-reperes { right: 12px; font-weight: normal; }
 
 #panneau {
@@ -237,7 +217,6 @@ body[data-mode="exterieur"] #bouton-cadran { display: none; }
   box-shadow: 2px 2px 0 var(--encre);
 }
 #bouton-depart[hidden] { display: none; }
-body.avec-trajet #echelle { bottom: calc(150px + env(safe-area-inset-bottom)); }
 #panneau .essais { border-bottom: none; font-size: 12px; }
 #panneau .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
 #panneau .essais .choix label { min-height: 40px; gap: 6px; }
@@ -256,45 +235,5 @@ body.avec-trajet #echelle { bottom: calc(150px + env(safe-area-inset-bottom)); }
   z-index: 10;
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  /* Fiche de trajet : au-dessus des boutons, la durée, la date d'arrivée et le bouton DÉPART. */
-#trajet {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(68px + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px 8px 12px;
-  background: var(--fond);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
-  font-size: 12px;
-  line-height: 1.45;
-  z-index: 1;
-}
-#trajet[hidden] { display: none; }
-#trajet-texte { flex: 1; }
-#bouton-depart {
-  min-height: 44px;
-  padding: 0 14px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.05em;
-  color: #fff;
-  background: #d9694f;
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 2px 2px 0 var(--encre);
-}
-#bouton-depart[hidden] { display: none; }
-body.avec-trajet #echelle { bottom: calc(150px + env(safe-area-inset-bottom)); }
-#panneau .essais { border-bottom: none; font-size: 12px; }
-#panneau .essais .choix { display: flex; flex-wrap: wrap; gap: 0 12px; }
-#panneau .essais .choix label { min-height: 40px; gap: 6px; }
-#panneau .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
-
-#paysage { display: flex; }
+  #paysage { display: flex; }
 }

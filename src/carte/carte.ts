@@ -4,7 +4,7 @@
 // l'accompagnent). Style BD tramée : aplats de couleur cernés d'encre, face de nuit en trame de points.
 // La carte ne calcule aucune position réelle : elle les demande au moteur, puis les projette.
 
-import { couleurAstre } from '../affichage3d/couleurs'
+import { couleurAstre } from './couleurs'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, astreDominant, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
@@ -183,7 +183,7 @@ export class Carte2D {
     // Moebius : couleurs adoucies vers le sable, encre brun-violet.
     const couleurDe = (c: Corps) => {
       if (!bd) return couleurs.fond
-      const k = `#${couleurAstre(c).getHexString()}`
+      const k = couleurAstre(c)
       return moebius ? melanger(k, '#f7e8cc', 0.3) : k
     }
     if (moebius && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }

@@ -1,16 +1,11 @@
-// Prototype « Capsule Andromeda » : la carte et la navigation.
-//  - La CARTE (par défaut) : carte schématique en 2D, distances écrasées, deux niveaux (système solaire, système
+// Capsule Andromeda : la carte et la navigation (en 2D seulement : plus de vue 3D, décision d'Adrien du 17/10/2026).
+//  - La CARTE : carte schématique en 2D, distances écrasées, deux niveaux (système solaire, système
 //    d'une planète). Toucher un astre le choisit comme destination ; le toucher encore ouvre son système.
-//  - La VUE EXTÉRIEURE (optionnelle) : l'espace en 3D, à vraie échelle, depuis derrière la capsule.
 //  - Le CADRAN : la liste des astres, pour choisir une destination sans la chercher sur la carte.
 //  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le vrai trajet (arc de conique
 //    autour du Soleil, problème de Lambert) jusqu'au point de rendez-vous ; le bouton DÉPART lance le voyage.
 
 import './style.css'
-import { RECUL_MAX, RECUL_MIN, Vue3D, type Regard } from './affichage3d/scene'
-import { THEME_JOUR, THEME_NUIT, appliquerTheme } from './affichage3d/materiaux'
-import { dessinerSurcouche } from './affichage3d/surcouche'
-import type { Style } from './affichage3d/textures'
 import { Cadran } from './carte/cadran'
 import { CAPSULE, Carte2D, aUnSysteme, systemeDe } from './carte/carte'
 import { Gestes } from './commun/gestes'
@@ -20,16 +15,11 @@ import { corps } from './moteur/corps'
 import { Mission, planifier, traceTrajet, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 
-const toile3d = document.querySelector<HTMLCanvasElement>('#vue3d')!
-const surcouche = document.querySelector<HTMLCanvasElement>('#surcouche')!
-const ctx3d = surcouche.getContext('2d')!
 const toilePlan = document.querySelector<HTMLCanvasElement>('#plan')!
 const ctxPlan = toilePlan.getContext('2d')!
-const echelleTexte = document.querySelector<HTMLDivElement>('#echelle-texte')!
 const infos = document.querySelector<HTMLDivElement>('#infos')!
 const titre = document.querySelector<HTMLDivElement>('#titre')!
 const boutonRetour = document.querySelector<HTMLButtonElement>('#bouton-retour')!
-const boutonVue = document.querySelector<HTMLButtonElement>('#bouton-vue')!
 
 /**
  * L'horloge : la vraie heure UTC, précise au-dessous de la milliseconde (le moteur la reçoit en paramètre).
@@ -48,25 +38,19 @@ function avancerHorloge(maintenant: number): void {
 const mission = new Mission()
 suivreMission(mission)
 
-const vue = new Vue3D(toile3d)
 const carte = new Carte2D()
-/** Recul de départ de la vue extérieure, et celui où RECENTRER ramène : la capsule de près. */
-const RECUL_CAPSULE = 0.045
-const regard: Regard = { recul: RECUL_CAPSULE, lacet: 0, tangage: 0 }
 let largeur = 390, hauteur = 844
-let mode: 'carte' | 'exterieur' = 'carte'
 let selection: string | null = null
+/** Encre et fond de la carte (style Moebius, fond blanc cassé). */
+const th = { encre: '#1f1b18', halo: '#f4f1ea' }
 
 function redimensionner(): void {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
   largeur = window.innerWidth
   hauteur = window.innerHeight
-  vue.redimensionner(largeur, hauteur, dpr)
-  for (const [toile, ctx] of [[surcouche, ctx3d], [toilePlan, ctxPlan]] as const) {
-    toile.width = Math.round(largeur * dpr)
-    toile.height = Math.round(hauteur * dpr)
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  }
+  toilePlan.width = Math.round(largeur * dpr)
+  toilePlan.height = Math.round(hauteur * dpr)
+  ctxPlan.setTransform(dpr, 0, 0, dpr, 0, 0)
   carte.largeur = largeur
   carte.hauteur = hauteur
   carte.pixelRatio = dpr
@@ -78,9 +62,7 @@ redimensionner()
 // (nouvelle clé à chaque changement des réglages par défaut : les anciens réglages mémorisés sont oubliés)
 const CLE_REGLAGES = 'andromeda-reperes-v6'
 const reglages = {
-  etoiles: true, orbites: true, soleil: true, noms: true, fleches: true,
-  // Style retenu par Adrien : Moebius (les styles « à plat », « BD tramée » et « réaliste » restent dans le code).
-  style: 'moebius' as Style,
+  orbites: true, noms: true,
   crochet: true, etiquette: true, fleche: true,
   /**
    * Puissance des moteurs : budget de delta-v (km/s). Choix d'Adrien : 120 km/s pour le prototype, réglable.
@@ -89,13 +71,14 @@ const reglages = {
   budget: 120,
 }
 try {
-  Object.assign(reglages, JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}'), { style: 'moebius' })
+  const memo = JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}')
+  for (const cle of Object.keys(reglages) as (keyof typeof reglages)[]) if (cle in memo) Object.assign(reglages, { [cle]: memo[cle] })
 } catch { /* navigation privée : on garde les réglages de départ */ }
 const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ } }
 const panneau = document.querySelector<HTMLDivElement>('#panneau')!
 document.querySelector('#bouton-reperes')!.addEventListener('click', () => panneau.classList.toggle('ouvert'))
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
-  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'style' | 'budget'>
+  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'budget'>
   caseACocher.checked = reglages[cle]
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
@@ -103,24 +86,11 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   })
 }
 
-/**
- * Le fond suit la vue (choix d'Adrien) : blanc cassé sur la carte, plus lisible ; noir dans la vue extérieure,
- * plus beau pour contempler l'espace.
- */
-function changerTheme(): void {
-  const nuit = mode === 'exterieur'
-  const theme = nuit ? THEME_NUIT : THEME_JOUR
-  appliquerTheme(theme)
-  document.documentElement.dataset.theme = nuit ? 'nuit' : 'jour'
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.fond)
-}
-const theme = () => (mode === 'exterieur' ? THEME_NUIT : THEME_JOUR)
-
 // --- Choix de la destination.
 function choisir(nom: string | null): void {
   selection = nom
   // La carte se place sur le système de la destination (une planète se montre au niveau du système solaire).
-  if (nom && mode === 'carte') {
+  if (nom) {
     const sys = systemeDe(nom, horloge())
     if (sys !== carte.niveau) ouvrirNiveau(sys)
   }
@@ -244,23 +214,11 @@ boutonDepart.addEventListener('click', () => {
   const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.budget)
   if (!p.possible) return
   mission.partir(p.plan)
-  vue.pivoter() // la capsule tourne en douceur vers son nouveau cap
   prevision = null
   carteSale = true
   // La carte montre le voyage : le système solaire si l'on quitte le système d'une planète.
-  if (mode === 'carte' && systemeDe(selection, t) !== carte.niveau) ouvrirNiveau('Soleil')
+  if (systemeDe(selection, t) !== carte.niveau) ouvrirNiveau('Soleil')
 })
-
-// --- Bascule carte / vue extérieure.
-function changerMode(nouveau: 'carte' | 'exterieur'): void {
-  mode = nouveau
-  document.body.dataset.mode = mode
-  boutonVue.textContent = mode === 'carte' ? 'VUE EXTÉRIEURE' : 'CARTE'
-  changerTheme()
-  if (mode === 'carte' && selection) choisir(selection)
-}
-boutonVue.addEventListener('click', () => changerMode(mode === 'carte' ? 'exterieur' : 'carte'))
-changerMode('carte')
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
 const gestesCarte = new Gestes(toilePlan, {
@@ -279,79 +237,13 @@ const gestesCarte = new Gestes(toilePlan, {
   },
 })
 
-// --- Gestes de la vue extérieure : tourner autour de la capsule, reculer ; RECENTRER.
-let recentrage = false
-document.querySelector('#bouton-recentrer')!.addEventListener('click', () => {
-  regard.lacet = Math.atan2(Math.sin(regard.lacet), Math.cos(regard.lacet))
-  recentrage = true
-})
-const LIMITE_TANGAGE = (88 * Math.PI) / 180
-const gestes3d = new Gestes(surcouche, {
-  glisser: (dx, dy) => {
-    recentrage = false
-    const radParPx = ((62 * Math.PI) / 180) / hauteur
-    regard.lacet -= dx * radParPx
-    regard.tangage = Math.max(-LIMITE_TANGAGE, Math.min(LIMITE_TANGAGE, regard.tangage - dy * radParPx))
-  },
-  zoomer: (f) => { recentrage = false; regard.recul = Math.min(RECUL_MAX, Math.max(RECUL_MIN, regard.recul * f)) },
-})
 document.addEventListener('gesturestart', (e) => e.preventDefault())
-
-function avancerRecentrage(dt: number): void {
-  if (!recentrage) return
-  // La vue revient derrière la capsule pendant que le recul se rapproche du sien, en échelle logarithmique.
-  const k = Math.exp(-dt / 0.4)
-  regard.lacet *= k
-  regard.tangage *= k
-  const ecart = Math.log(regard.recul / RECUL_CAPSULE)
-  const pas = Math.sign(ecart) * Math.min(Math.abs(ecart), Math.max(3 * dt, Math.abs(ecart) * (1 - Math.exp(-dt / 0.5))))
-  regard.recul = RECUL_CAPSULE * Math.exp(ecart - pas)
-  if (Math.abs(regard.lacet) + Math.abs(regard.tangage) < 1e-4 && Math.abs(ecart - pas) < 1e-3) {
-    regard.lacet = regard.tangage = 0
-    regard.recul = RECUL_CAPSULE
-    recentrage = false
-  }
-}
 
 /** Nom et distance de la destination, pour son étiquette. */
 function infosSelection(t: number): { nom: string; distance: string } | null {
   if (!selection) return null
   if (selection === CAPSULE) return { nom: CAPSULE, distance: 'vous êtes ici' }
   return { nom: selection, distance: texteDistance(distanceDepuisCapsule(selection, t)) }
-}
-
-/** Dans la vue extérieure : pointillé de la capsule vers la destination, et croix au point de rendez-vous. */
-function dessinerTraits3d(t: number, astres: { corps: { nom: string }; x: number; y: number; devant: boolean }[],
-  capsule: { x: number; y: number; devant: boolean }, rendezVous: { r: { x: number; y: number; z: number } } | null,
-  th: { encre: string; halo: string }): void {
-  ctx3d.save()
-  const cible = selection && !dejaLa(t) ? astres.find((a) => a.corps.nom === selection) : null
-  if (cible && cible.devant && capsule.devant) {
-    ctx3d.setLineDash([3, 5])
-    ctx3d.lineWidth = 1.6
-    ctx3d.strokeStyle = th.encre
-    ctx3d.beginPath()
-    ctx3d.moveTo(capsule.x, capsule.y)
-    ctx3d.lineTo(cible.x, cible.y)
-    ctx3d.stroke()
-    ctx3d.setLineDash([])
-  }
-  if (rendezVous) {
-    const q = vue.ecranDe(rendezVous.r)
-    if (q.devant) {
-      ctx3d.beginPath()
-      ctx3d.arc(q.x, q.y, 7, 0, 2 * Math.PI)
-      ctx3d.moveTo(q.x - 5, q.y - 5); ctx3d.lineTo(q.x + 5, q.y + 5)
-      ctx3d.moveTo(q.x + 5, q.y - 5); ctx3d.lineTo(q.x - 5, q.y + 5)
-      ctx3d.lineWidth = 3.5
-      ctx3d.strokeStyle = th.halo
-      ctx3d.stroke()
-      ctx3d.lineWidth = 1.6
-      ctx3d.strokeStyle = th.encre
-      ctx3d.stroke()
-    }
-  }
-  ctx3d.restore()
 }
 
 let precedent = performance.now()
@@ -365,11 +257,10 @@ function image(maintenant: number): void {
   precedent = maintenant
   avancerHorloge(maintenant)
   const t = horloge()
-  const th = theme()
   const sel = infosSelection(t)
   prevoir(t, maintenant)
   mettreAJourFiche(t)
-  const accent = reglages.style === 'bd' ? '#e04b37' : reglages.style === 'moebius' ? '#d9694f' : th.encre
+  const accent = '#d9694f'
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   const planTrace = prevision?.possible ? prevision.plan : enRoute
@@ -378,9 +269,8 @@ function image(maintenant: number): void {
   if (trajet && planTrace === enRoute) trajet = [{ t, r: mission.etat(t).position }, ...trajet.filter((p) => p.t > t)]
   const rendezVous = planTrace ? { r: planTrace.rendezVous, t: planTrace.arrivee } : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
-  const carteAJour = mode === 'carte' && !gestesCarte.actif && !carteSale && acceleration === 1
-    && maintenant - dernierDessinCarte < 100
-  if (mode === 'carte' && !carteAJour) {
+  const carteAJour = !gestesCarte.actif && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100
+  if (!carteAJour) {
     dernierDessinCarte = maintenant
     carteSale = false
     gestesCarte.avancer(dt)
@@ -394,7 +284,7 @@ function image(maintenant: number): void {
         if (Math.hypot(q.x - q0.x, q.y - q0.y) > 6) { direction = { x: q.x - q0.x, y: q.y - q0.y }; break }
       }
     }
-    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, reglages.style, selection, direction)
+    const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, 'moebius', selection, direction)
     // Pointillé vers la destination (sa position actuelle), seulement si elle est à ce niveau de la carte.
     const cibleIci = place && place.r > 0 && selection !== CAPSULE && !dejaLa(t) ? place : null
     // Orbite de la capsule, quand on regarde le système de l'astre qu'elle entoure.
@@ -415,14 +305,6 @@ function image(maintenant: number): void {
       dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
         { encre: th.encre, fond: th.halo, accent }, eviter)
     }
-  } else if (mode === 'exterieur') {
-    gestes3d.avancer(dt)
-    avancerRecentrage(dt)
-    const { astres, capsuleEcran } = vue.dessiner(t, regard, reglages, trajet)
-    const rv = rendezVous ? vue.ecranDe(rendezVous.r) : null
-    dessinerSurcouche(ctx3d, largeur, hauteur, astres, capsuleEcran, reglages, th, sel, reglages, rv?.devant ? [rv] : [])
-    dessinerTraits3d(t, astres, capsuleEcran, rendezVous, th)
-    echelleTexte.textContent = `Recul : ${texteDistance(regard.recul)}`
   }
   images++
   if (maintenant - debutCompte > 500) {
@@ -440,7 +322,7 @@ requestAnimationFrame(image)
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {
   andromeda: {
-    regard, vue, carte, mission, choisir: (n: string) => choisir(n), changerMode, ouvrirNiveau,
+    carte, mission, choisir: (n: string) => choisir(n), ouvrirNiveau,
     accelerer: (k: number) => { acceleration = k },
   },
 })

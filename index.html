@@ -13,14 +13,9 @@
   </head>
   <body>
     <canvas id="plan"></canvas>
-    <canvas id="vue3d"></canvas>
-    <canvas id="surcouche"></canvas>
     <div id="infos"></div>
     <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div></div>
-    <div id="echelle"><div id="echelle-texte"></div></div>
     <button id="bouton-cadran" type="button">CADRAN</button>
-    <button id="bouton-recentrer" type="button">RECENTRER</button>
-    <button id="bouton-vue" type="button">VUE EXTÉRIEURE</button>
     <button id="bouton-reperes" type="button">Repères</button>
     <div id="cadran"></div>
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
@@ -31,10 +26,7 @@
         <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
       </div>
       <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
-      <label><input type="checkbox" data-reglage="soleil" /> Soleil en symbole</label>
       <label><input type="checkbox" data-reglage="noms" /> Noms</label>
-      <label><input type="checkbox" data-reglage="fleches" /> Flèches Soleil et Terre (vue ext.)</label>
-      <label><input type="checkbox" data-reglage="etoiles" /> Étoiles du fond</label>
       <div class="groupe essais">Essais — accélérer le temps :
         <div class="choix">
           <label><input type="radio" name="acceleration" value="1" /> ×1</label>

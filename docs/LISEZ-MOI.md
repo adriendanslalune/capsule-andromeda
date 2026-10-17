@@ -17,13 +17,12 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/
 - `src/astro/` — la Lune (Meeus), les satellites naturels, l'ISS et les orbites TLE (SGP4), repris de l'ancien jeu.
 - `src/donnees/` — données : séries VSOP87B, satellites naturels et trajectoires des sondes (JPL Horizons,
   `outils/satellites-jpl.mjs`, `outils/engins-jpl.mjs`), orbites TLE, planètes.
-- `src/affichage3d/` — la vue 3D (three.js) : caméra derrière la capsule, astres jour / nuit avec contours, modèles
-  (capsule type Apollo, engins, cailloux), noms et flèches par-dessus. Ne calcule aucune position : les demande au moteur.
-- Style retenu par Adrien : « Moebius », fond blanc cassé sur la carte et noir dans la vue extérieure — couleurs pastel (palette dans
-  `src/affichage3d/couleurs.ts`), ombre en aplat violet, hachures fines le long du terminateur, encre brun-violet.
-  Les essais précédents (à plat, BD tramée, réaliste) restent dans le code mais ne sont plus proposés.
+- Plus de vue 3D (décision d'Adrien du 17/10/2026 : « ce n'est que de la contemplation, focalisons-nous sur la 2D ») ;
+  le code de la vue extérieure reste dans l'historique Git.
+- Style retenu par Adrien : « Moebius », fond blanc cassé — couleurs pastel (`src/carte/couleurs.ts`), ombre en aplat
+  violet, hachures fines le long du terminateur, encre brun-violet.
 - `src/carte/` — la carte schématique (2D, distances écrasées, deux niveaux) et le cadran de navigation.
-- `src/commun/` — gestes (glisser, pincer, double toucher) et triche d'affichage des satellites artificiels.
+- `src/commun/` — gestes (glisser, pincer, double toucher) et repères de la destination.
 
 ## Décisions d'Adrien
 

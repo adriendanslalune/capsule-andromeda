@@ -1,10 +1,8 @@
-// Les couleurs du style BD tramée : aplats francs, tirés de la palette du jeu (src/theme/theme.css) et de la
-// couleur dominante de chaque astre. Seul le fond reste blanc cassé.
+// Couleurs des astres sur la carte : la couleur dominante de chaque astre, tirée de la palette du jeu.
 
-import * as THREE from 'three'
 import type { Corps } from '../moteur/corps'
 
-/** Palette du jeu (comics rétro). */
+/** Palette du jeu. */
 export const PALETTE = {
   cerise: '#e04b37', moutarde: '#f2b53a', ciel: '#8fd0dc', menthe: '#8fcf98', rose: '#f3a08b',
   tole: '#3a2f28', papier: '#faf2dc', bleu: '#23476b', panneau: '#2f5f9e', or: '#d9a43a',
@@ -16,8 +14,8 @@ const ASTRES: Record<string, string> = {
   Saturne: '#e2c27d', Uranus: '#8fd0dc', Neptune: '#3f63c4', Pluton: '#d1ab8c', Lune: '#b9b2a6',
 }
 
-/** Aspect des satellites connus : couleur de fond, couleur des taches, densité de cratères (d'après le jeu). */
-export const ASPECTS_LUNES: Record<string, { fond: string; taches: string; crateres: number }> = {
+/** Aspect des satellites connus : couleur de fond, couleur des taches, densité de cratères. */
+const ASPECTS_LUNES: Record<string, { fond: string; taches: string; crateres: number }> = {
   Io: { fond: '#e2cc55', taches: '#c0612a', crateres: 0 },
   Europe: { fond: '#e6dcc8', taches: '#a8683f', crateres: 0.1 },
   Ganymède: { fond: '#988c7d', taches: '#d2c9b8', crateres: 0.5 },
@@ -43,20 +41,28 @@ function hachage(nom: string): number {
   return [...nom].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) & 0xffff, 7) / 0xffff
 }
 
-/** Aspect d'une lune quelconque : connu, ou tiré de son nom (ocres, beiges, gris chauds, quelques roux). */
-export function aspectLune(nom: string): { fond: string; taches: string; crateres: number } {
-  const connu = ASPECTS_LUNES[nom]
-  if (connu) return connu
-  const g = hachage(nom)
-  const fond = new THREE.Color().setHSL(0.05 + 0.07 * g, 0.18 + 0.25 * ((g * 3) % 1), 0.42 + 0.25 * ((g * 7) % 1))
-  const taches = fond.clone().multiplyScalar(0.6)
-  return { fond: `#${fond.getHexString()}`, taches: `#${taches.getHexString()}`, crateres: 0.6 + ((g * 11) % 1) }
+/** Couleur « #rrggbb » d'une teinte, saturation et luminosité (de 0 à 1). */
+function hsl(h: number, s: number, l: number): string {
+  const f = (n: number) => {
+    const k = (n + h * 12) % 12
+    const c = l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(c * 255).toString(16).padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
 }
 
-/** Couleur propre d'un astre ou d'un engin (orbite, point, aplat quand il n'a pas de carte). */
-export function couleurAstre(c: Corps): THREE.Color {
-  if (ASTRES[c.nom]) return new THREE.Color(ASTRES[c.nom])
+/** Couleur d'une lune : connue, ou tirée de son nom (ocres, beiges, gris chauds, quelques roux). */
+function couleurLune(nom: string): string {
+  const connu = ASPECTS_LUNES[nom]
+  if (connu) return connu.fond
+  const g = hachage(nom)
+  return hsl(0.05 + 0.07 * g, 0.18 + 0.25 * ((g * 3) % 1), 0.42 + 0.25 * ((g * 7) % 1))
+}
+
+/** Couleur propre d'un astre ou d'un engin (« #rrggbb »). */
+export function couleurAstre(c: Corps): string {
+  if (ASTRES[c.nom]) return ASTRES[c.nom]
   // Engins en bleu d'imprimerie : le rouge cerise est réservé à la capsule.
-  if (c.type === 'satellite' || c.type === 'sonde') return new THREE.Color(PALETTE.bleu)
-  return new THREE.Color(aspectLune(c.nom).fond)
+  if (c.type === 'satellite' || c.type === 'sonde') return PALETTE.bleu
+  return couleurLune(c.nom)
 }
