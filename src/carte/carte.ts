@@ -28,9 +28,14 @@ interface Dessine { nom: string; x: number; y: number; r: number }
  *  petite) : assez grande pour que chaque planète soit illustrée dès l'ouverture (essai demandé par Adrien le
  *  17/10/2026 ; l'illustration commence à 11 px). */
 const MINIMUMS: Record<string, number> = {
-  Soleil: 18, Jupiter: 16, Saturne: 15, Uranus: 13, Neptune: 13, Terre: 12, Vénus: 12, Mars: 11.5, Mercure: 11,
-  Pluton: 11, Lune: 3,
+  Soleil: 25, Jupiter: 22, Saturne: 21, Uranus: 18, Neptune: 18, Terre: 17, Vénus: 17, Mars: 16, Mercure: 15,
+  Pluton: 14, Lune: 11,
 }
+/** Lunes : minimum selon leur vraie taille, toujours plus grandes à l'écran qu'un engin (demande d'Adrien, 17/10/2026). */
+const minimumLune = (rayonKm: number) => (rayonKm >= 1000 ? 10 : rayonKm >= 200 ? 8 : 4.5)
+/** Taille d'une silhouette d'engin (rayon, px) et son échelle de dessin. */
+const RAYON_ENGIN = 6
+const ECHELLE_ENGIN = 0.75
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
@@ -124,7 +129,7 @@ export class Carte2D {
 
   /** Rayon dessiné (pixels) : grossi mais proportionné, jamais sous le minimum de l'astre. */
   private rayon(c: Corps): number {
-    return Math.max(MINIMUMS[c.nom] ?? (c.type === 'lune' ? 2.5 : 2), rayonDessine(c.nom) / this.kmParPx)
+    return Math.max(MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2), rayonDessine(c.nom) / this.kmParPx)
   }
 
   /** Système regardé : celui dont la zone remplit la vue, sinon le système solaire. */
@@ -244,9 +249,9 @@ export class Carte2D {
     for (const c of CORPS) {
       if (c.type !== 'satellite' && c.type !== 'sonde') continue
       const q = this.ecranDe(projeterCorps(c.nom, t))
-      if (!dedans(q.x, q.y) || !libre(q.x, q.y, 7)) continue
-      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: 7 })
-      dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre)
+      if (!dedans(q.x, q.y) || !libre(q.x, q.y, RAYON_ENGIN)) continue
+      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN })
+      dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
     }
 
     // La capsule : un petit chevron cerise, dans le sens de sa marche.

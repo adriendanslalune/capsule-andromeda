@@ -9,10 +9,11 @@ const FORMES: Record<string, Forme> = {
   'solar-orbiter': 'bouclier', roadster: 'voiture', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
 }
 
-export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: number, y: number, encre: string): void {
+export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: number, y: number, encre: string, echelle = 1): void {
   const forme = FORMES[modele] ?? 'sonde'
   ctx.save()
   ctx.translate(x, y)
+  ctx.scale(echelle, echelle)
   ctx.lineWidth = 0.9
   ctx.lineJoin = 'round'
   ctx.strokeStyle = encre
