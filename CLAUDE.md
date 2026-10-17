@@ -1,48 +1,36 @@
-# Capsule Andromeda — instructions pour Claude Code
+# Capsule Andromeda
 
-Ce fichier est lu à chaque session. Le porteur du projet (Adrien) n'est pas développeur : explique tes choix
-simplement, en français, et demande son avis avant toute décision qui change le jeu (règles, équilibrage, interface).
+## À lire en premier
+Capsule Andromeda est un jeu entièrement nouveau. Ce n'est pas une amélioration de l'ancien jeu « Manuel de vol », qui est dans un autre dépôt.
+
+Au début de chaque session : lire ce fichier et docs/avancement.md. À la fin de chaque étape : mettre à jour docs/avancement.md. Ne jamais passer à l'étape suivante sans validation de Doudou. Doudou teste sur son téléphone : publier chaque version sur GitHub Pages et lui donner l'adresse.
 
 ## Le jeu
+Monde ouvert semi-multijoueur pour téléphone uniquement (HTML, vertical), dans le vrai système solaire : positions réelles (éphémérides), vraies distances, vrai délai de la lumière, temps réel. Pas de game over, pas de compte à rebours.
 
-« Capsule Andromeda » est un jeu pour **téléphone** (et uniquement téléphone). Le joueur pilote une capsule dans le
-**vrai** système solaire : vraies positions des planètes (VSOP87), de la Lune, des satellites naturels, de l'ISS et des
-sondes, à l'heure réelle (UTC).
+Trame : des envahisseurs venus d'Andromède occupent le système solaire. Le joueur, aux commandes de sa « capsule », reconquiert les zones une à une (Lune, Mars, lunes de Jupiter, Saturne, Uranus) jusqu'à Triton, qui est en réalité leur vaisseau déguisé en lune (boss final de l'acte 1). N'importe quelle activité aide à libérer une zone. La campagne est facultative.
 
-- En ligne : https://adriendanslalune.github.io/capsule-andromeda/ (publication automatique à chaque envoi sur `main`).
-- L'ancien jeu (« Manuel de vol ») a été **supprimé** le 17/10/2026 à la demande d'Adrien. Il reste dans l'historique
-  Git ; on n'y revient pas et on n'y prend rien sans qu'Adrien le demande.
+Direction artistique : vue 2D du dessus, fond blanc, astres en ronds noirs à taille réelle (un astre de moins d'un pixel devient un point, comme les étoiles). Les engins ont des silhouettes reconnaissables en noir, visibles en zoom rapproché.
 
-## Documents à lire avant de coder
+Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : un pointillé vers la position actuelle de la cible, une courbe pour la vraie trajectoire orbitale jusqu'au point de rencontre. Durée du trajet selon la puissance des moteurs.
 
-- `docs/LISEZ-MOI.md` — organisation du code et décisions d'Adrien prises pendant le prototype 1.
-- `docs/BILAN.md` — bilan du prototype 1 (ce qu'on garde, ce qui manque, suites proposées).
+Progression : les crédits améliorent les moteurs pour aller plus vite et plus loin. Tutoriel : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune.
 
-## Organisation
+Maisons (attribuées selon les activités du joueur, profil en toile d'araignée, peut changer) :
+- Nettoyeurs : vident les épaves (mini-jeu de tri rapide des matériaux).
+- Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps.
+- Mercenaires : escortes, chasse aux pirates et aliens, dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles.
 
-```
-src/
-  moteur/     # logique pure, testée : temps, planètes (VSOP87), corps, orbites, Kepler, Lambert, mission, navigation
-  astro/      # Lune, satellites naturels, ISS et orbites TLE (SGP4)
-  donnees/    # tables générées ou saisies : VSOP87, satellites, sondes (JPL), TLE, planètes
-  carte/      # la carte 2D et le cadran de navigation
-  commun/     # gestes, repères de destination
-  main.ts     # assemblage de la page
-tests/        # Vitest (positions comparées à JPL Horizons : tests/references/)
-outils/       # générateurs de données (vsop87.mjs, satellites-jpl.mjs, engins-jpl.mjs)
-```
+Pannes : système de modules à réparer avec un manuel. Les aliens tirent parfois des missiles (décompte visible sur la carte) ; un impact ralentit le trajet de 50 % jusqu'à réparation.
 
-## Règles de travail
+Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via le chat et les échanges. Serveur plus tard (type Supabase).
 
-1. **Téléphone uniquement.** Écran de référence 390 × 844. Pas de mise en page PC. Cibles tactiles ≥ 44 px.
-2. **Tout en français** : interface, textes, commentaires du code, messages de commit.
-3. **Le moteur est séparé de l'affichage.** `src/moteur/` est du TypeScript pur, sans DOM, sans `Date.now()` direct :
-   l'heure est toujours passée en paramètre.
-4. **Les données sont séparées du code** (`src/donnees/`).
-5. **Tests automatiques** (Vitest) pour tout le moteur. Ne jamais livrer avec des tests rouges (`npm test`,
-   `npm run check`, `npm run build`).
-6. **Pas de changement de règle, d'équilibrage ou d'interface sans accord d'Adrien.** En cas de doute, demander.
-7. **Petits pas.** Une fonctionnalité à la fois, testée, commitée, publiée, avec un message clair ; Adrien la valide
-   sur son téléphone avant la suivante.
-8. **Direction artistique : style « Moebius »** (validé par Adrien) : fond blanc cassé, encre brun-violet, couleurs
-   pastel, ombres en aplat violet, hachures fines le long du terminateur.
+## Règles de code
+- Moteur (éphémérides, navigation, état du jeu) séparé de l'affichage. L'affichage demande les données au moteur, il ne calcule jamais lui-même.
+- Tests pour le moteur.
+- Rendu Canvas 2D, pas de 3D.
+
+## Feuille de route
+1. Prototype 1 : carte et navigation (en cours).
+2. Prototype 2 : combat (plus tard).
+Le document de conception complet est chez Doudou. Ne rien inventer qui n'est pas ici : en cas de doute, demander.
