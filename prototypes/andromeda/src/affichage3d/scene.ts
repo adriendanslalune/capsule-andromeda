@@ -98,6 +98,9 @@ export class Vue3D {
   private orbites = new Map<string, { ligne: THREE.Line; t: number; points: Vecteur3[] | null }>()
   private etoiles: THREE.Points
   private ligneTrajet: THREE.Line
+  /** Pivot en cours (changement de cap) : direction de départ et instant du début (temps réel, ms). */
+  private pivot: { depuis: THREE.Vector3; debut: number } | null = null
+  private dernierCap = new THREE.Vector3(1, 0, 0)
   private origine: Vecteur3 = { x: 0, y: 0, z: 0 }
 
   constructor(toile: HTMLCanvasElement) {
@@ -138,6 +141,14 @@ export class Vue3D {
     this.ligneTrajet.renderOrder = 3
     this.ligneTrajet.visible = false
     this.scene.add(this.ligneTrajet)
+  }
+
+  /** Durée du pivot de la capsule vers son nouveau cap (ms, temps réel). */
+  static readonly DUREE_PIVOT = 2500
+
+  /** Au départ (ou au changement de cap) : la capsule pivote en douceur depuis sa direction actuelle. */
+  pivoter(): void {
+    this.pivot = { depuis: this.dernierCap.clone(), debut: performance.now() }
   }
 
   /** Position à l'écran d'un point de l'espace (héliocentrique, km), d'après la dernière image dessinée. */
@@ -248,6 +259,15 @@ export class Vue3D {
 
     // --- Caméra : derrière la capsule, vers l'avant (cap), décalée du regard de l'utilisateur.
     const avant = new THREE.Vector3(etat.cap.x, etat.cap.y, etat.cap.z)
+    // Pivot en cours : on tourne progressivement de l'ancien cap vers le nouveau (la caméra suit).
+    if (this.pivot) {
+      const k = Math.min(1, (performance.now() - this.pivot.debut) / Vue3D.DUREE_PIVOT)
+      const doux = k * k * (3 - 2 * k)
+      const q = new THREE.Quaternion().setFromUnitVectors(this.pivot.depuis, avant)
+      avant.copy(this.pivot.depuis).applyQuaternion(new THREE.Quaternion().slerp(q, doux)).normalize()
+      if (k >= 1) this.pivot = null
+    }
+    this.dernierCap.copy(avant)
     const z = new THREE.Vector3(0, 0, 1)
     const haut0 = z.clone().addScaledVector(avant, -avant.dot(z))
     if (haut0.lengthSq() < 1e-6) haut0.set(1, 0, 0)
@@ -338,7 +358,7 @@ export class Vue3D {
           const mat = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined
           if (mat?.uniforms?.versSoleil) mat.uniforms.versSoleil.value.copy(sol)
         })
-      } else ajouterPoint(v, this.couleur(c))
+      } else if (c.type !== 'lune') ajouterPoint(v, this.couleur(c)) // les lunes : seulement à leur taille réelle
       const direction = new THREE.Vector3(p.x - camAbs.x, p.y - camAbs.y, p.z - camAbs.z).divideScalar(d)
       const angle = d > rayon ? Math.asin(rayon / d) : Math.PI / 2
       // Rayon apparent exact (le disque d'une planète vue de près est bien plus grand que R / d).

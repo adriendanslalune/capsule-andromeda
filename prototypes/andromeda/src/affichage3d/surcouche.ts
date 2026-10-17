@@ -89,8 +89,8 @@ export function dessinerSurcouche(ctx: CanvasRenderingContext2D, largeur: number
       .sort((a, b) => priorite(a) - priorite(b) || a.distance - b.distance)
     for (const a of candidats) {
       if (a.corps.nom === selection?.nom) continue // elle a son étiquette
-      // Petites lunes : seulement de près (quand on les voit en caillou).
-      if (a.corps.type === 'lune' && !grandeLune(a) && a.r < 2.5) continue
+      // Lunes : seulement quand on les voit à leur taille réelle (elles n'ont plus de point).
+      if (a.corps.type === 'lune' && a.r < 2) continue
       const decalage = a.corps.type === 'etoile' && reglages.soleil && a.r < 30 ? 13 : 6
       poser(a.corps.nom, a.x + Math.min(a.r, 60) + decalage, a.y)
     }

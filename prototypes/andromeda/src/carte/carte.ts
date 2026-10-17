@@ -111,6 +111,9 @@ export class Carte2D {
   pixelRatio = 2
   private dessines: Dessine[] = []
   private moebius = false
+  /** Angle du chevron de la capsule à l'écran (pour le faire pivoter en douceur) et instant du dernier dessin. */
+  private angleCapsule: number | null = null
+  private instantAngle = 0
   private orbites = new Map<string, { t: number; points: Vecteur3[] | null }>()
 
   /** Centre de la carte à l'écran (entre la ligne d'infos et les boutons). */
@@ -261,6 +264,16 @@ export class Carte2D {
         const q0 = this.projeterPoint(p, t, e), q1 = this.projeterPoint(devant, t, e)
         a = Math.atan2(q1.y - q0.y, q1.x - q0.x)
       }
+      // Changement de cap : le chevron pivote en douceur (au plus 90° par seconde de temps réel).
+      const maintenant = performance.now()
+      if (this.angleCapsule !== null) {
+        let ecart = Math.atan2(Math.sin(a - this.angleCapsule), Math.cos(a - this.angleCapsule))
+        const max = (Math.PI / 2) * Math.min(0.2, (maintenant - this.instantAngle) / 1000)
+        if (Math.abs(ecart) > max && Math.abs(ecart) > 0.35) ecart = Math.sign(ecart) * max
+        a = this.angleCapsule + ecart
+      }
+      this.angleCapsule = a
+      this.instantAngle = maintenant
       this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
       ctx.save()
       ctx.translate(x, y)

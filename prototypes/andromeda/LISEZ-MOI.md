@@ -29,6 +29,13 @@ En ligne : https://adriendanslalune.github.io/manuel-de-vol/andromeda/
 - Puissance des moteurs (budget de delta-v) : 120 km/s dans le prototype, réglable de 5 à 5 000 km/s dans
   « Repères ». **Vrai jeu : départ à 30 km/s, puis améliorations sans limite.**
 
+## À voir plus tard (demandes d'Adrien)
+
+- Manœuvres : accélération progressive jusqu'à la vitesse de croisière (une poussée qui dure change la trajectoire :
+  à intégrer au moteur, pas seulement au dessin). Le pivot de la capsule vers son nouveau cap est déjà fait.
+- Distance de l'orbite d'attente : la capsule tourne trop près de la planète (400 km pour la Terre, 1,3 rayon à
+  l'arrivée).
+
 ## Étapes
 
 1. Carte, zoom, direction artistique (Moebius en couleurs sur fond blanc cassé) ; vue extérieure en 3D derrière la

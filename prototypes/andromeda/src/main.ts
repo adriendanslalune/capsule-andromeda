@@ -242,6 +242,7 @@ boutonDepart.addEventListener('click', () => {
   const p = planifier(mission.etatHeliocentrique(t), selection, t, reglages.budget)
   if (!p.possible) return
   mission.partir(p.plan)
+  vue.pivoter() // la capsule tourne en douceur vers son nouveau cap
   prevision = null
   carteSale = true
   // La carte montre le voyage : le système solaire si l'on quitte le système d'une planète.
