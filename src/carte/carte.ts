@@ -110,6 +110,8 @@ export class Carte2D {
   largeur = 390
   hauteur = 844
   pixelRatio = 2
+  /** Mode nuit : encre claire sur fond bleu nuit, astres un peu assombris. */
+  nuit = false
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -195,7 +197,7 @@ export class Carte2D {
     this.newHorizons = { x: nh.x, y: nh.y }
     // Moebius : couleurs adoucies vers le sable, encre brun-violet.
     const couleurDe = (c: Corps) => melanger(couleurAstre(c), '#f7e8cc', 0.3)
-    if (couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
+    if (!this.nuit && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
     const soleil = this.ecranDe({ x: 0, y: 0 })
     const dedans = (x: number, y: number, marge = 30) => x > -marge && x < this.largeur + marge && y > -marge && y < this.hauteur + marge
 
@@ -247,6 +249,15 @@ export class Carte2D {
       if (r >= RAYON_ILLUSTRATION && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleurDe(c), couleurs)
       else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)
+      // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
+      if (this.nuit && c.type !== 'etoile') {
+        ctx.beginPath()
+        ctx.arc(q.x, q.y, Math.max(r, 1.2), 0, 2 * Math.PI)
+        ctx.fillStyle = couleurs.fond
+        ctx.globalAlpha = 0.15
+        ctx.fill()
+        ctx.globalAlpha = 1
+      }
     }
     astre(corps('Soleil')!, soleil)
     for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
@@ -367,7 +378,7 @@ export class Carte2D {
       ctx.rect(x - cote / 2, y - cote / 2, cote, cote)
     }
     ctx.fillStyle = couleurs.encre
-    ctx.globalAlpha = 0.4
+    ctx.globalAlpha = this.nuit ? 0.3 : 0.4
     ctx.fill()
     ctx.globalAlpha = 1
   }

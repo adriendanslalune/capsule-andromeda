@@ -4,7 +4,16 @@
   --encre: #1f1b18;
   --moutarde: #f2b53a;
   --creme: #faf2dc;
+  /* Ombre portée des cadres et des boutons. */
+  --ombre: #1f1b18;
   --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+/* Mode nuit (bouton dans « Repères », choix d'Adrien du 17/10/2026) : Moebius de nuit, fond bleu nuit, encre crème. */
+body.nuit {
+  --fond: #141826;
+  --encre: #efe6d2;
+  --creme: #232a3d;
+  --ombre: #05070d;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -62,7 +71,7 @@ html, body {
   background: var(--creme);
   border: 2px solid var(--encre);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
+  box-shadow: 3px 3px 0 var(--ombre);
 }
 #bouton-retour[hidden] { display: none; }
 
@@ -81,10 +90,10 @@ html, body {
   background: var(--creme);
   border: 2px solid var(--encre);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
+  box-shadow: 3px 3px 0 var(--ombre);
 }
 #bouton-cadran { left: 12px; background: var(--moutarde); }
-#bouton-reperes { right: 12px; font-weight: normal; }
+#bouton-reperes { right: 12px; font-weight: normal; color: var(--encre); }
 
 #panneau {
   display: none;
@@ -97,7 +106,7 @@ html, body {
   background: var(--fond);
   border: 2px solid var(--encre);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
+  box-shadow: 3px 3px 0 var(--ombre);
   font-size: 14px;
   z-index: 2;
 }
@@ -128,7 +137,7 @@ html, body {
   background: var(--fond);
   border: 2.5px solid var(--encre);
   border-radius: 12px;
-  box-shadow: 4px 4px 0 var(--encre);
+  box-shadow: 4px 4px 0 var(--ombre);
   z-index: 3;
 }
 #cadran.ouvert { display: flex; }
@@ -196,7 +205,7 @@ html, body {
   background: var(--fond);
   border: 2px solid var(--encre);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--encre);
+  box-shadow: 3px 3px 0 var(--ombre);
   font-size: 12px;
   line-height: 1.45;
   z-index: 1;
@@ -214,7 +223,7 @@ html, body {
   background: #d9694f;
   border: 2px solid var(--encre);
   border-radius: 8px;
-  box-shadow: 2px 2px 0 var(--encre);
+  box-shadow: 2px 2px 0 var(--ombre);
 }
 #bouton-depart[hidden] { display: none; }
 #panneau .essais { border-bottom: none; font-size: 12px; }

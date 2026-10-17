@@ -50,8 +50,9 @@ suivreMission(mission)
 const carte = new Carte2D()
 let largeur = 390, hauteur = 844
 let selection: string | null = null
-/** Encre et fond de la carte (style Moebius, fond blanc cassé). */
-const th = { encre: '#1f1b18', halo: '#f4f1ea' }
+/** Encre et fond de la carte : style Moebius, fond blanc cassé le jour, bleu nuit en mode nuit. */
+const THEMES = { jour: { encre: '#1f1b18', halo: '#f4f1ea' }, nuit: { encre: '#efe6d2', halo: '#141826' } }
+let th = THEMES.jour
 
 function redimensionner(): void {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
@@ -72,6 +73,8 @@ redimensionner()
 const CLE_REGLAGES = 'andromeda-reperes-v7'
 const reglages = {
   orbites: true, noms: true,
+  /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
+  nuit: false,
   crochet: true, etiquette: true, fleche: true,
   /**
    * Puissance des moteurs : vitesse de croisière (km/s). 120 km/s pour le prototype, réglable.
@@ -92,8 +95,18 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
     memoriser()
+    if (cle === 'nuit') appliquerTheme()
   })
 }
+
+/** Jour ou nuit : couleurs de la page (style.css), de la carte et de la barre du téléphone. */
+function appliquerTheme(): void {
+  th = reglages.nuit ? THEMES.nuit : THEMES.jour
+  carte.nuit = reglages.nuit
+  document.body.classList.toggle('nuit', reglages.nuit)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', th.halo)
+}
+appliquerTheme()
 
 // --- Sélection (fiche) et destination proposée.
 /** Le joueur a appuyé sur Y ALLER pour l'astre sélectionné : on calcule le trajet et on propose le DÉPART. */

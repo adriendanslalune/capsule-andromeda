@@ -26,7 +26,7 @@ Légende : **fait** / **en cours** / **à faire**.
 - Toucher un astre affiche sa fiche, Y ALLER en fait la destination ; cadran avec la liste des astres
   (`src/carte/cadran.ts`).
 
-## 4. Les deux traits et le trajet — fait (refait le 17/10/2026), en attente de validation
+## 4. Les deux traits et le trajet — fait (refait le 17/10/2026), validé
 
 - Décision d'Adrien du 17/10/2026 : les vraies trajectoires orbitales (solveur de Lambert) étaient illisibles
   (courbes, accélérations, détours) ; remplacées par la **ligne droite** vers le point de rendez-vous, à vitesse
@@ -44,6 +44,9 @@ Légende : **fait** / **en cours** / **à faire**.
   À 30 km/s (départ prévu du vrai jeu) : Lune 5 h, Mars ≈ 97 j, Jupiter ≈ 1,1 an, Neptune ≈ 5 ans.
 - Limite connue : orbite d'attente basse (1,3 rayon à l'arrivée).
 
-## 6. Mode nuit — à faire
+## 6. Mode nuit — fait, en attente de validation
 
-- Rien dans le code.
+- Choix d'Adrien du 17/10/2026 : « Moebius de nuit », activé seulement par le bouton « Mode nuit » dans « Repères »
+  (jour par défaut, réglage mémorisé). Fond bleu nuit, encre crème, astres pastel un peu assombris (sauf le Soleil),
+  ombres portées sombres (`body.nuit` dans `src/style.css`, `THEMES` dans `src/main.ts`, `nuit` dans
+  `src/carte/carte.ts`).
