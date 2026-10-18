@@ -71,6 +71,15 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   téléchargeable et vendu en papier). Proposition en test dans la maquette : barre Navigation · Capsule · Missions ·
   Marché · Plus ; l'Armement en sous-onglet de Capsule ; le Manuel dans Plus (et depuis le panneau de réparation).
   **Barre validée par Adrien et mise dans le jeu** (Marché et Armement grisés en attendant leurs étapes).
+
+## Mise en place des écrans de la maquette (décision d'Adrien du 18/10/2026)
+D'abord tous les écrans de la maquette dans le jeu, ensuite les mécaniques derrière. Ordre proposé : filtre des
+missions par Maison ; Soute et Marché ; Armement et combat ; tri d'épave ; Profil et Messages ; radar, aliens,
+missiles et épaves sur la carte.
+- Filtre des missions par Maison — **fait, en attente de validation** : chaque mission porte l'étiquette de sa
+  Maison (nettoyage : Nettoyeurs ; livraison : Commerçants ; dépannage : Mercenaires — `src/donnees/maisons.ts`,
+  testé) ; boutons TOUTES / NETTOYEURS / COMMERÇANTS / MERCENAIRES au-dessus des missions proposées ; le choix est
+  retenu sur le téléphone.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

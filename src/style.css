@@ -515,6 +515,17 @@ html, body {
   opacity: 0.7;
 }
 #missions .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
+/* Maisons : étiquette de chaque mission, et le filtre (aux couleurs des Maisons, comme dans la maquette). */
+#missions .maison { display: inline-block; margin: 0 4px 4px 0; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; color: #1f1b18;
+  border: 1.5px solid var(--encre); border-radius: 4px; }
+.maison-nettoyeurs { background: #bfe0c8; }
+.maison-commercants { background: #f5d38a; }
+.maison-mercenaires { background: #f3c2b0; }
+.filtre-maisons { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
+.filtre-maisons button { flex: none; min-height: 44px; padding: 0 9px; font: inherit; font-size: 10px; font-weight: bold; letter-spacing: 0.06em;
+  color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 22px; opacity: 0.55; }
+.filtre-maisons button[data-filtre=""] { background: var(--creme); color: var(--encre); }
+.filtre-maisons button.actif { opacity: 1; border-width: 2.5px; box-shadow: 2px 2px 0 var(--ombre); }
 
 /* Message bref (mission terminée, cargaison chargée…), au-dessus de la fiche. */
 #message {
