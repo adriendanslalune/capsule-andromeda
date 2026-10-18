@@ -14,6 +14,7 @@ import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
+import { pseudoValide } from './profil'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -50,6 +51,8 @@ export interface Sauvegarde {
   /** La soute (absente : vide) et le carnet de bord (absent : vierge). */
   soute?: Record<string, number>
   carnet?: Jeu['carnet']
+  /** Le pseudo (absent : celui du départ). */
+  pseudo?: string
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -59,7 +62,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet,
+    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo,
   }
 }
 
@@ -122,6 +125,10 @@ export function restaurer(s: unknown): Jeu | null {
   if (v.soute !== undefined) {
     if (!v.soute || typeof v.soute !== 'object' || !Object.entries(v.soute).every(([m, q]) => MARCHANDISES.some((f) => f.nom === m) && nombre(q) && q >= 0)) return null
     jeu.soute = { ...v.soute }
+  }
+  if (v.pseudo !== undefined) {
+    if (typeof v.pseudo !== 'string' || !pseudoValide(v.pseudo)) return null
+    jeu.pseudo = v.pseudo
   }
   const c = v.carnet
   if (c !== undefined) {

@@ -122,6 +122,10 @@ missiles et épaves sur la carte.
     rapporte plus de crédits directement (la récompense de la mission, et plus tard la vente au Marché). Soute réelle
     (bandeau, Capsule › SOUTE, colonne « soute » du Marché), sauvegardée ; carnet de bord (missions par Maison,
     crédits gagnés, objets triés) pour le Profil.
+- Profil (dans « Plus ») — **fait, en attente de validation** : pseudo modifiable (son nom dans les Messages ;
+  3 à 16 lettres ou chiffres ; sauvegardé) ; toile d'araignée de l'affinité avec les trois Maisons (part de chaque
+  Maison dans les missions finies, `src/moteur/profil.ts`, testé) ; Maison : neutre (l'appartenance viendra à
+  l'étape 8) ; carnet de bord (missions par Maison, crédits gagnés, objets triés) ; zones à libérer (toutes occupées).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

@@ -58,6 +58,8 @@ export class Jeu {
   defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
   /** Répartition de l'énergie entre boucliers, armes et moteurs (Capsule › Armement ; reprise au début d'un combat). */
   energie: Energie = { ...ENERGIE_DEPART }
+  /** Le pseudo du joueur (Profil ; c'est son nom dans les Messages). */
+  pseudo = 'Capitaine'
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
   soute: Record<string, number> = {}
   /** Le carnet de bord (pour le Profil) : missions finies par Maison, crédits gagnés, objets triés. */
@@ -110,6 +112,7 @@ export class Jeu {
   nouvellePartie(graine: number): void {
     this.graine = graine >>> 0
     this.numeroSerie = numeroDeSerie(this.graine)
+    this.pseudo = `Capitaine-${this.numeroSerie.slice(-3)}`
   }
 
   /** La réparation d'un module du panneau (commencée au premier regard), ou null s'il n'est pas en défaut. */

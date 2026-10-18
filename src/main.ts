@@ -19,6 +19,8 @@ import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
+import { htmlProfil } from './commun/volet-profil'
+import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
 import type { SystemeEnergie } from './donnees/combat'
@@ -233,6 +235,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
+  if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -631,6 +634,19 @@ function afficherSoute(): void {
   const html = htmlSoute(jeu)
   if (html !== derniereSoute) pageSoute.innerHTML = derniereSoute = html
 }
+// Le Profil (dans « Plus ») : rempli à l'ouverture ; le pseudo se change ici.
+const pageProfil = document.querySelector<HTMLDivElement>('#profil')!
+function changerPseudo(): void {
+  const champ = pageProfil.querySelector<HTMLInputElement>('#pseudo')!
+  const p = champ.value.trim()
+  if (!pseudoValide(p)) { annoncer('Pseudo : 3 à 16 lettres, chiffres, - ou _'); return }
+  jeu.pseudo = p
+  enregistrerPartie()
+  champ.blur()
+  annoncer(`Tu t'appelles maintenant ${p}`)
+}
+pageProfil.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-pseudo]')) changerPseudo() })
+pageProfil.addEventListener('keydown', (e) => { if (e.key === 'Enter') changerPseudo() })
 // Le tri d'une épave (entraînement, depuis la SOUTE).
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
