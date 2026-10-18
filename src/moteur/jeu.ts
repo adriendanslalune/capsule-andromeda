@@ -78,7 +78,7 @@ export class Jeu {
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
   soute: Record<string, number> = {}
   /** Le carnet de bord (pour le Profil) : missions finies par Maison, crédits gagnés, objets triés. */
-  carnet = { missions: { nettoyeurs: 0, commercants: 0, mercenaires: 0 } as Record<Maison, number>, credits: 0, objetsTries: 0 }
+  carnet = { missions: { nettoyeurs: 0, ingenieurs: 0, mercenaires: 0 } as Record<Maison, number>, credits: 0, objetsTries: 0 }
   /** Maison du joueur (null : neutre). Choisie selon son affinité à l'étape 8 ; elle change les missions proposées. */
   maison: Maison | null = null
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */

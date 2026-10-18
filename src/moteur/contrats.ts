@@ -1,14 +1,17 @@
 // Les missions du joueur (étape 3), appelées « contrats » dans le code (« mission » y désigne le voyage de la capsule).
-// Quatre genres : nettoyer une épave (Nettoyeurs), livrer une cargaison (Commerçants : charger à une station, puis
-// livrer), dépanner un engin ou abattre un chasseur alien (Mercenaires). Chaque mission appartient au tableau d'un lieu.
+// Six genres, deux par Maison (décision d'Adrien du 18/10/2026), chacun avec son mini-jeu (à venir pour certains) :
+//   - Nettoyeurs : vider une épave (le tri), remorquer une épave jusqu'à une station (harponner, puis larguer) ;
+//   - Mercenaires : abattre un chasseur alien (le combat), escorter un convoi d'une station à une autre ;
+//   - Ingénieurs : réparer un engin, livrer une cargaison (charger à une station, puis amarrer à l'arrivée).
+// Chaque mission appartient au tableau d'un système.
 // Une mission est une suite d'étapes : aller à un lieu, puis y faire une action qui dure DUREE_ACTION.
 // Les missions sont tirées au hasard, d'un hasard reproductible (une graine, enregistrée avec la partie).
 
 import { ELOIGNEMENT_MAX, ELOIGNEMENT_PLEIN, FACTEUR_CHASSE, FACTEUR_LIVRAISON, LIMITE_MOYENNE, LIMITE_PROCHE, PRIX_ECART, PRIX_MIN, ZONES, type Portee, type Tableau } from '../donnees/tableaux'
 import type { Maison } from '../donnees/maisons'
 
-export type GenreContrat = 'nettoyer' | 'livrer' | 'depanner' | 'chasser'
-export type Action = 'nettoyer' | 'charger' | 'livrer' | 'reparer' | 'abattre'
+export type GenreContrat = 'nettoyer' | 'remorquer' | 'chasser' | 'escorter' | 'depanner' | 'livrer'
+export type Action = 'nettoyer' | 'harponner' | 'larguer' | 'abattre' | 'rejoindre' | 'escorter' | 'reparer' | 'charger' | 'livrer'
 
 export interface Etape { lieu: string; action: Action }
 
@@ -39,7 +42,7 @@ export function hasard(graine: number): { x: number; graine: number } {
  * (ZONES : loin de la Terre et dangereux, ça paie plus) ; arrondie à la dizaine.
  */
 export function recompense(genre: GenreContrat, zone: number, x: number, eloignement = 1): number {
-  const facteur = genre === 'livrer' ? FACTEUR_LIVRAISON : genre === 'chasser' ? FACTEUR_CHASSE : 1
+  const facteur = genre === 'livrer' || genre === 'remorquer' || genre === 'escorter' ? FACTEUR_LIVRAISON : genre === 'chasser' ? FACTEUR_CHASSE : 1
   return Math.round(((PRIX_MIN + PRIX_ECART * x) * facteur * zone * eloignement) / 10) * 10
 }
 
@@ -65,7 +68,7 @@ export interface ContexteTableau {
 
 /**
  * Tire une nouvelle mission d'une Maison sur un tableau : un nettoyage pour les Nettoyeurs, une livraison pour les
- * Commerçants, une chasse ou un dépannage pour les Mercenaires. `exclus` : lieux déjà pris (pour varier).
+ * Ingénieurs, une chasse ou un dépannage pour les Mercenaires. `exclus` : lieux déjà pris (pour varier).
  */
 export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, maison: Maison, exclus: string[] = [],
   portees: readonly Portee[] = ['proche', 'moyenne', 'lointaine']): { contrat: Contrat; graine: number } {
@@ -84,25 +87,35 @@ export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, m
     }
     return tirer(liste)
   }
-  let genre: GenreContrat = maison === 'nettoyeurs' ? 'nettoyer' : maison === 'commercants' ? 'livrer' : 'chasser'
-  if (genre === 'chasser') {
-    // Chasse ou dépannage : celui qui a un lieu de la portée voulue ; sinon, au hasard (dépannage 4 fois sur 10).
-    const voulue = portees[0], a = ctx.aliens.some((l) => classe(l) === voulue), d = ctx.depannages.some((l) => classe(l) === voulue)
-    const hasardDepanner = x() < 0.4
-    if (!ctx.aliens.length || (d && !a) || (a === d && ctx.depannages.length && hasardDepanner)) genre = 'depanner'
-  }
+  // Les deux genres de la Maison : celui qui a un lieu à la portée voulue ; sinon, l'un ou l'autre (à pile ou face).
+  const voulue = portees[0]
+  const aPortee = (liste: readonly string[]) => liste.some((l) => classe(l) === voulue)
+  const [g1, g2, lieux1, lieux2]: [GenreContrat, GenreContrat, readonly string[], readonly string[]] =
+    maison === 'nettoyeurs' ? ['nettoyer', 'remorquer', ctx.epaves, ctx.epaves]
+      : maison === 'mercenaires' ? ['chasser', 'escorter', ctx.aliens, ctx.arrivees]
+        : ['depanner', 'livrer', ctx.depannages, ctx.arrivees]
+  const pile = x() < 0.5
+  let genre: GenreContrat = !lieux1.length ? g2 : !lieux2.length ? g1
+    : aPortee(lieux1) && !aPortee(lieux2) ? g1 : aPortee(lieux2) && !aPortee(lieux1) ? g2 : pile ? g1 : g2
+  // Pas de station dans le système : ni remorquage, ni escorte, ni livraison.
+  if (!ctx.departs.length && genre !== g1) genre = g1
   let etapes: Etape[]
+  const station = () => tirer(ctx.departs)
   if (genre === 'nettoyer') etapes = [{ lieu: parmi(ctx.epaves), action: 'nettoyer' }]
+  else if (genre === 'remorquer') etapes = [{ lieu: parmi(ctx.epaves), action: 'harponner' }, { lieu: station(), action: 'larguer' }]
   else if (genre === 'depanner') etapes = [{ lieu: parmi(ctx.depannages), action: 'reparer' }]
   else if (genre === 'chasser') etapes = [{ lieu: parmi(ctx.aliens), action: 'abattre' }]
   else {
-    const depart = tirer(ctx.departs)
-    etapes = [{ lieu: depart, action: 'charger' }, { lieu: parmi(ctx.arrivees.filter((a) => a !== depart)), action: 'livrer' }]
+    const depart = station()
+    const arrivee = parmi(ctx.arrivees.filter((a) => a !== depart))
+    etapes = genre === 'escorter'
+      ? [{ lieu: depart, action: 'rejoindre' }, { lieu: arrivee, action: 'escorter' }]
+      : [{ lieu: depart, action: 'charger' }, { lieu: arrivee, action: 'livrer' }]
   }
   const loin = Math.max(...etapes.map((e) => part(e.lieu)))
   const contrat: Contrat = {
     id, genre, etapes, recompense: recompense(genre, ZONES[ctx.tableau.systeme], x(), facteurEloignement(loin)), tableau: ctx.tableau.lieu,
-    portee: classe(etapes[etapes.length - 1].lieu),
+    portee: loin < LIMITE_PROCHE ? 'proche' : loin < LIMITE_MOYENNE ? 'moyenne' : 'lointaine',
   }
   return { contrat, graine: g }
 }

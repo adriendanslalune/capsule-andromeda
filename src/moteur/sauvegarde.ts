@@ -95,10 +95,10 @@ function planValide(p: unknown): p is Plan {
     && Array.isArray(v.points) && v.points.length >= 2 && v.points.every(point)
 }
 
-const ACTIONS = ['nettoyer', 'charger', 'livrer', 'reparer', 'abattre']
+const ACTIONS = ['nettoyer', 'harponner', 'larguer', 'abattre', 'rejoindre', 'escorter', 'reparer', 'charger', 'livrer']
 function contratValide(c: unknown): c is Contrat {
   const v = c as Contrat
-  return !!v && nombre(v.id) && ['nettoyer', 'livrer', 'depanner', 'chasser'].includes(v.genre) && nombre(v.recompense)
+  return !!v && nombre(v.id) && ['nettoyer', 'remorquer', 'chasser', 'escorter', 'depanner', 'livrer'].includes(v.genre) && nombre(v.recompense)
     && Array.isArray(v.etapes) && v.etapes.length >= 1 && v.etapes.every((e) => !!e && astre(e.lieu) && ACTIONS.includes(e.action))
 }
 function enCoursValide(e: unknown): e is ContratEnCours {
@@ -128,6 +128,10 @@ export function restaurer(s: unknown): Jeu | null {
   if (avecBlocs && (typeof v.defauts !== 'object' || v.defauts === null || !Object.entries(v.defauts).every(([m, l]) =>
     MODULES.some((f) => f.nom === m) && Array.isArray(l) && l.every((a) => ficheBloc(m as NomModule).appareils.includes(a))))) return null
   if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
+  // Les Commerçants sont devenus les Ingénieurs (décision d'Adrien du 18/10/2026).
+  if ((v.maison as string | null | undefined) === 'commercants') v.maison = 'ingenieurs'
+  const ancienCarnet = v.carnet?.missions as Record<string, number> | undefined
+  if (ancienCarnet && 'commercants' in ancienCarnet) { ancienCarnet.ingenieurs = ancienCarnet.commercants; delete ancienCarnet.commercants }
   if (v.maison != null && !MAISONS.some((m) => m.maison === v.maison)) return null
   const en = v.energie
   if (en !== undefined && (!en || ![en.boucliers, en.armes, en.moteurs].every((x) => Number.isInteger(x) && x >= 0 && x <= MAX_PAR_SYSTEME)

@@ -1,22 +1,22 @@
-// Les trois Maisons (voir CLAUDE.md) et les missions de chacune : le nettoyage d'épaves aux Nettoyeurs, la livraison
-// aux Commerçants, le dépannage et la chasse aux Mercenaires. Le volet Missions s'en sert pour son filtre par Maison
-// (demande d'Adrien du 18/10/2026) ; le jeu propose 2 missions de chaque Maison sur chaque planète, ou 4 de la Maison
-// du joueur et 1 de chacune des autres quand il en a choisi une (sur une lune, 4 missions). L'appartenance (proposée
-// selon l'affinité, jamais définitive) viendra à l'étape 8.
+// Les trois Maisons (voir CLAUDE.md ; refonte décidée par Adrien le 18/10/2026) et leurs missions, deux genres
+// chacune : vider et remorquer les épaves (Nettoyeurs), abattre et escorter (Mercenaires), réparer et livrer
+// (Ingénieurs, qui remplacent les Commerçants). Le volet Missions s'en sert pour son filtre par Maison ; le jeu propose
+// 2 missions de chaque Maison par système, ou 4 de la Maison du joueur et 1 de chacune des autres quand il en a
+// choisi une. L'appartenance (proposée selon l'affinité, jamais définitive) viendra à l'étape 8.
 
 import type { Contrat, GenreContrat } from '../moteur/contrats'
 import { PAR_AUTRE_MAISON, PAR_MAISON_CHOISIE, PAR_MAISON_NEUTRE } from './contrats'
 
-export type Maison = 'nettoyeurs' | 'commercants' | 'mercenaires'
+export type Maison = 'nettoyeurs' | 'ingenieurs' | 'mercenaires'
 
 export const MAISONS: readonly { maison: Maison; titre: string }[] = [
   { maison: 'nettoyeurs', titre: 'NETTOYEURS' },
-  { maison: 'commercants', titre: 'COMMERÇANTS' },
+  { maison: 'ingenieurs', titre: 'INGÉNIEURS' },
   { maison: 'mercenaires', titre: 'MERCENAIRES' },
 ]
 
 export const MAISON_DU_GENRE: Readonly<Record<GenreContrat, Maison>> = {
-  nettoyer: 'nettoyeurs', livrer: 'commercants', depanner: 'mercenaires', chasser: 'mercenaires',
+  nettoyer: 'nettoyeurs', remorquer: 'nettoyeurs', chasser: 'mercenaires', escorter: 'mercenaires', depanner: 'ingenieurs', livrer: 'ingenieurs',
 }
 
 /**
@@ -27,10 +27,10 @@ export const MAISON_DU_GENRE: Readonly<Record<GenreContrat, Maison>> = {
 export function missionsParMaison(maisonDuJoueur: Maison | null, nombre = 6, lieu = ''): Record<Maison, number> {
   if (nombre >= 6) {
     const n = (m: Maison) => (maisonDuJoueur === null ? PAR_MAISON_NEUTRE : m === maisonDuJoueur ? PAR_MAISON_CHOISIE : PAR_AUTRE_MAISON)
-    return { nettoyeurs: n('nettoyeurs'), commercants: n('commercants'), mercenaires: n('mercenaires') }
+    return { nettoyeurs: n('nettoyeurs'), ingenieurs: n('ingenieurs'), mercenaires: n('mercenaires') }
   }
   const enPlus = maisonDuJoueur ?? MAISONS[[...lieu].reduce((s, c) => s + c.charCodeAt(0), 0) % 3].maison
-  const r = { nettoyeurs: 1, commercants: 1, mercenaires: 1 }
+  const r = { nettoyeurs: 1, ingenieurs: 1, mercenaires: 1 }
   r[enPlus] += nombre - 3
   return r
 }

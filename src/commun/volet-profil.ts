@@ -8,7 +8,7 @@ import { affinites, maisonPreferee } from '../moteur/profil'
 import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
 import { palierSuivant, statut } from '../moteur/monolithes'
 
-const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', commercants: '#f5d38a', mercenaires: '#f3c2b0' }
+const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
 /** Les zones de la campagne (acte 1). */
 const ZONES = ['Lune', 'Mars', 'Lunes de Jupiter', 'Saturne', 'Uranus', 'Triton']
 

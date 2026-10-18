@@ -12,7 +12,7 @@ describe('les missions et leur Maison', () => {
 
   /** Les missions de chaque Maison sur un tableau (par défaut, celui de la Terre). */
   const compter = (jeu: Jeu, lieu = 'Terre') => {
-    const n: Record<string, number> = { nettoyeurs: 0, commercants: 0, mercenaires: 0 }
+    const n: Record<string, number> = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 0 }
     for (const c of jeu.proposes.filter((x) => x.tableau === lieu)) n[maisonDuContrat(c)]++
     return n
   }
@@ -21,19 +21,19 @@ describe('les missions et leur Maison', () => {
   it('joueur neutre : dans chaque système 6 missions, 2 par Maison', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
-    expect(compter(jeu)).toEqual({ nettoyeurs: 2, commercants: 2, mercenaires: 2 })
-    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 2, commercants: 2, mercenaires: 2 })
+    expect(compter(jeu)).toEqual({ nettoyeurs: 2, ingenieurs: 2, mercenaires: 2 })
+    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 2, ingenieurs: 2, mercenaires: 2 })
   })
 
   it('joueur d’une Maison : 4 de sa Maison, 1 de chacune des autres ; une mission prise est remplacée par la même Maison', () => {
     const jeu = new Jeu()
     jeu.maison = 'mercenaires'
     jeu.avancer(t0)
-    expect(compter(jeu)).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })
-    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })
+    expect(compter(jeu)).toEqual({ nettoyeurs: 1, ingenieurs: 1, mercenaires: 4 })
+    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 1, ingenieurs: 1, mercenaires: 4 })
     const n = jeu.proposes.find((c) => c.tableau === 'Terre' && maisonDuContrat(c) === 'nettoyeurs')!
     jeu.accepter(n.id, t0)
-    expect(compter(jeu)).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })
+    expect(compter(jeu)).toEqual({ nettoyeurs: 1, ingenieurs: 1, mercenaires: 4 })
   })
 
   it('changer de Maison (ou redevenir neutre) : les missions se complètent au fil des missions prises', () => {
@@ -46,8 +46,8 @@ describe('les missions et leur Maison', () => {
 
   it('la Maison du joueur est sauvegardée', () => {
     const jeu = new Jeu()
-    jeu.maison = 'commercants' as Maison
-    expect(restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!.maison).toBe('commercants')
+    jeu.maison = 'ingenieurs' as Maison
+    expect(restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!.maison).toBe('ingenieurs')
     const mauvaise = JSON.parse(JSON.stringify(sauvegarder(jeu, t0)))
     mauvaise.maison = 'pirates'
     expect(restaurer(mauvaise)).toBeNull()

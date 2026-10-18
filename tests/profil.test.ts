@@ -6,12 +6,12 @@ import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 describe('le Profil', () => {
   it('l’affinité : la part de chaque Maison dans les missions finies', () => {
     const jeu = new Jeu()
-    expect(affinites(jeu)).toEqual({ nettoyeurs: 0, commercants: 0, mercenaires: 0 })
+    expect(affinites(jeu)).toEqual({ nettoyeurs: 0, ingenieurs: 0, mercenaires: 0 })
     expect(maisonPreferee(jeu)).toBeNull()
-    jeu.carnet.missions = { nettoyeurs: 6, commercants: 3, mercenaires: 1 }
-    expect(affinites(jeu)).toEqual({ nettoyeurs: 0.6, commercants: 0.3, mercenaires: 0.1 })
+    jeu.carnet.missions = { nettoyeurs: 6, ingenieurs: 3, mercenaires: 1 }
+    expect(affinites(jeu)).toEqual({ nettoyeurs: 0.6, ingenieurs: 0.3, mercenaires: 0.1 })
     expect(maisonPreferee(jeu)).toBe('nettoyeurs')
-    jeu.carnet.missions = { nettoyeurs: 2, commercants: 2, mercenaires: 1 }
+    jeu.carnet.missions = { nettoyeurs: 2, ingenieurs: 2, mercenaires: 1 }
     expect(maisonPreferee(jeu)).toBeNull() // égalité
   })
 

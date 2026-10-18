@@ -17,7 +17,7 @@ import { statut } from '../moteur/monolithes'
 /** Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
 const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
 
-const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', commercants: '#f5d38a', mercenaires: '#f3c2b0' }
+const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 
 /** « il y a 3 min », « à l'instant ». */

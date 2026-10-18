@@ -41,6 +41,6 @@ export const ELOIGNEMENT_PLEIN = 0.5
 /** Prix de base d'une mission dans la zone de la Terre (crédits) : de 50 à 100, selon la mission. */
 export const PRIX_MIN = 50
 export const PRIX_ECART = 50
-/** Une livraison (deux étapes) paie 40 % de plus ; une chasse (un combat), 50 %. */
+/** Une mission en deux étapes (livraison, remorquage, escorte) paie 40 % de plus ; une chasse (un combat), 50 %. */
 export const FACTEUR_LIVRAISON = 1.4
 export const FACTEUR_CHASSE = 1.5

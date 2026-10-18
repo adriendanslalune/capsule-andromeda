@@ -5,6 +5,7 @@ import { facteurEloignement, recompense, type Contrat } from '../src/moteur/cont
 import { partDuSysteme } from '../src/moteur/tableaux'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
+import { maisonDuContrat } from '../src/donnees/maisons'
 import { planifier } from '../src/moteur/mission'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
@@ -40,6 +41,8 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     for (const c of jeu.proposes) {
       for (const e of c.etapes) expect(corps(e.lieu), e.lieu).toBeDefined()
       if (c.genre === 'livrer') expect(c.etapes.map((e) => e.action)).toEqual(['charger', 'livrer'])
+      else if (c.genre === 'remorquer') expect(c.etapes.map((e) => e.action)).toEqual(['harponner', 'larguer'])
+      else if (c.genre === 'escorter') expect(c.etapes.map((e) => e.action)).toEqual(['rejoindre', 'escorter'])
       else expect(c.etapes).toHaveLength(1)
       if (c.tableau === 'Terre' && c.genre === 'livrer') expect(STATIONS).toContain(c.etapes[0].lieu)
     }
@@ -93,10 +96,11 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     expect(a.proposes).toEqual(b.proposes)
   })
 
-  it('les quatre genres sortent (les Mercenaires chassent et dépannent)', () => {
+  it('les six types sortent, deux par Maison (décision d’Adrien du 18/10/2026)', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
-    expect([...new Set(jeu.proposes.map((c) => c.genre))].sort()).toEqual(['chasser', 'depanner', 'livrer', 'nettoyer'])
+    expect([...new Set(jeu.proposes.map((c) => c.genre))].sort()).toEqual(['chasser', 'depanner', 'escorter', 'livrer', 'nettoyer', 'remorquer'])
+    for (const c of jeu.proposes) expect(maisonDuContrat(c)).toBe({ nettoyer: 'nettoyeurs', remorquer: 'nettoyeurs', chasser: 'mercenaires', escorter: 'mercenaires', depanner: 'ingenieurs', livrer: 'ingenieurs' }[c.genre])
     for (const c of jeu.proposes.filter((x) => x.genre === 'chasser')) expect(corps(c.etapes[0].lieu)?.type).toBe('alien')
   })
 

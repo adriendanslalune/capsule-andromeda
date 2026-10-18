@@ -9,7 +9,7 @@ import type { Contrat } from '../moteur/contrats'
 import { texteDuree, texteRestant } from './textes'
 import { MAISONS, maisonDuContrat, titreMaison, type Maison } from '../donnees/maisons'
 import { TABLEAUX } from '../donnees/tableaux'
-import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat } from './textes-missions'
+import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat, MINI_JEUX } from './textes-missions'
 
 export interface ChoixMissions {
   accepter(id: number): void
@@ -134,7 +134,7 @@ export class VoletMissions {
     for (const { c, d } of triees) {
       const trajet = d === null ? 'hors de portée' : d === 0 ? 'sur place' : `trajet ${texteDuree(d)}`
       html += `<div class="contrat"><div class="titre"><span>${etiquette(c)} <span class="genre">${GENRES_COURTS[c.genre]}</span>${c.portee ? ` <span class="portee">${PORTEES_COURTES[c.portee]}</span>` : ''}</span><span class="prix">${c.recompense} cr.</span></div>`
-        + `<b>${titreContrat(c)}</b><div class="pied"><span><b>${trajet}</b><br>à ${texteDistance(distanceDepuisCapsule(c.etapes[0].lieu, t))}</span>`
+        + `<b>${titreContrat(c)}</b><small class="mini-jeu">mini-jeu : ${MINI_JEUX[c.genre]}</small><div class="pied"><span><b>${trajet}</b><br>à ${texteDistance(distanceDepuisCapsule(c.etapes[0].lieu, t))}</span>`
         + `<span class="boutons"><button type="button" data-choix="voir" data-id="${c.id}">VOIR</button>`
         + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></span></div></div>`
     }

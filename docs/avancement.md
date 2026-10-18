@@ -208,8 +208,14 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
-  - Refonte des Maisons décidée (18/10/2026, à faire) : Nettoyeurs (VIDER, REMORQUER), Mercenaires (ABATTRE au tour par
-    tour, ESCORTER), Ingénieurs à la place des Commerçants (RÉPARER un satellite, AMARRER), commerce ouvert à tous.
+  - Refonte des Maisons (décision d'Adrien du 18/10/2026), étape 2 — **faite, en attente de validation** : les
+    Commerçants deviennent les Ingénieurs (partie enregistrée reprise : Maison et carnet ; canal de Maison des bots
+    réécrit). Six types de mission, deux par Maison : VIDER (épave → tri), REMORQUER (harponner l'épave, puis la larguer
+    à une station), ABATTRE (combat), ESCORTER (rejoindre le convoi à une station, l'escorter jusqu'à sa destination),
+    RÉPARER (dépannage, passé aux Ingénieurs), AMARRER (livraison : charger, puis amarrer). Le type choisi est celui
+    des deux de la Maison qui a un lieu à la portée voulue (sinon pile ou face). Chaque mission affiche son type et son
+    mini-jeu (« mini-jeu : tri des matériaux », « amarrage (bientôt) »…). Remorquage et escorte paient comme une
+    livraison (+40 %). Les mini-jeux REMORQUER, ESCORTER, RÉPARER, AMARRER (et ABATTRE au tour par tour) sont à faire.
   - Commandes de la carte refaites (demande d'Adrien du 18/10/2026) : petits carrés à symbole dessinés à l'encre, en
     deux colonnes. À gauche : système intérieur (jusqu'à Mars), système extérieur (jusqu'à Pluton), capsule, +, −, et
     « calques » qui ouvre trois interrupteurs (Orbites, Noms, Pings ; retirés des Réglages). À droite : Messages, PING.

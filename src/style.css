@@ -499,7 +499,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #missions .maison { display: inline-block; margin: 0 4px 4px 0; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; color: #1f1b18;
   border: 1.5px solid var(--encre); border-radius: 4px; }
 .maison-nettoyeurs { background: #bfe0c8; }
-.maison-commercants { background: #f5d38a; }
+.maison-ingenieurs { background: #f5d38a; }
 .maison-mercenaires { background: #f3c2b0; }
 .filtre-lieux { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
 .filtre-lieux button { flex: none; display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 0 11px; font: inherit;
@@ -987,3 +987,4 @@ body.nuit #marche .baisse { color: #f08a72; }
 #profil .paliers small { font-size: 10px; }
 /* La portée d'une mission dans son système (proche, mi-distance, lointaine). */
 #missions .portee { font-size: 10px; padding: 0 5px; border: 1px dashed currentColor; border-radius: 8px; opacity: 0.75; white-space: nowrap; }
+#missions .mini-jeu { display: block; font-size: 11px; opacity: 0.7; margin-top: 2px; }

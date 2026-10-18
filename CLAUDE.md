@@ -14,15 +14,11 @@ Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : u
 
 Progression : les crédits améliorent les moteurs pour aller plus vite et plus loin. Tutoriel : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune.
 
-Maisons (attribuées selon les activités du joueur, profil en toile d'araignée, peut changer). Refonte décidée par Adrien le 18/10/2026 (à faire, étape par étape) : chaque Maison a sa spécialité et deux types de mission, chacun avec son propre mini-jeu ; en choisissant une mission, le joueur sait à quel mini-jeu il va jouer :
-- Nettoyeurs (récupérer les épaves) : VIDER (le tri des matériaux) et REMORQUER (harponner au bon moment une épave qui tourne sur elle-même, la stabiliser, la ramener).
-- Mercenaires (la sécurité) : ABATTRE (combat au tour par tour) et ESCORTER (protéger un convoi en interceptant les missiles).
-- Ingénieurs (la technique ; ils remplacent les Commerçants) : RÉPARER (un panneau de satellite ou de station à la « Keep Talking », différent de celui de la capsule, avec son chapitre du Manuel) et AMARRER (la livraison se joue à l'arrivée : une manœuvre d'amarrage délicate, vitesse et alignement).
-- Le commerce n'est plus une Maison : le Marché (cours décalés par la lumière) est ouvert à tous.
-En attendant leur mini-jeu, les missions gardent l'action simple actuelle. Description des Maisons avant la refonte :
-- Nettoyeurs : vident les épaves (mini-jeu de tri rapide des matériaux). L'action NETTOYER d'une mission lance ce tri ; les matériaux triés vont dans la soute (décision d'Adrien du 18/10/2026).
-- Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps. Un marché par système (Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton), présenté en graphique de cours façon trading (décision d'Adrien du 18/10/2026).
-- Mercenaires : escortes, chasse aux pirates et aliens (missions de chasse), dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles. Avis d'Adrien sur le prototype (18/10/2026) : beaucoup trop facile ; il imagine plutôt un combat au tour par tour (à reprendre plus tard).
+Maisons (attribuées selon les activités du joueur, profil en toile d'araignée, peut changer). Décision d'Adrien du 18/10/2026 : chaque Maison a sa spécialité et deux types de mission, chacun avec son propre mini-jeu ; en choisissant une mission, le joueur voit son type (son mini-jeu). Types en place ; mini-jeux à faire un par un (en attendant, une simple attente sur place) :
+- Nettoyeurs (récupérer les épaves) : VIDER (le tri des matériaux, fait ; ses matériaux vont dans la soute) et REMORQUER (harponner au bon moment une épave qui tourne sur elle-même, puis la remorquer jusqu'à une station et la larguer).
+- Mercenaires (la sécurité) : ABATTRE (le combat ; prototype en temps réel jugé beaucoup trop facile, à refaire au tour par tour) et ESCORTER (rejoindre un convoi à une station, l'escorter jusqu'à sa destination en interceptant les missiles).
+- Ingénieurs (la technique ; ils remplacent les Commerçants) : RÉPARER (un panneau de satellite ou de station à la « Keep Talking », différent de celui de la capsule, avec son chapitre du Manuel) et AMARRER (livrer une cargaison : charger à une station, puis une manœuvre d'amarrage délicate à l'arrivée, vitesse et alignement).
+- Le commerce n'est plus une Maison : le Marché est ouvert à tous (trading sur tous les systèmes, cours décalés selon le délai lumière, calculés par une formule du temps ; un marché par système, présenté en graphique de cours façon trading).
 
 Missions par système (décision d'Adrien du 18/10/2026, qui remplace les tableaux par planète et par grande lune) : 9 systèmes (Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton), 6 missions chacun ; leurs lieux sont répartis dans tout le système (stations, satellites, épaves, lunes, chasseurs), des courtes et des longues : 3 proches, 2 à mi-distance, 1 lointaine (quand les lieux le permettent). Elles se consultent toutes dans le volet Missions (filtre de système, par défaut celui de la capsule ; on voit les prix d'ailleurs). Le prix d'une mission est fixé à sa création, selon la zone de son système (éloignement depuis la Terre et danger ; barème validé le 18/10/2026, à ajuster plus tard) et l'éloignement du lieu dans le système (×1 tout près de la planète, jusqu'à ×2 au bord : la Lune paie environ 1,5 fois l'ISS), jamais selon la position de la capsule. C'est la campagne qui fait voyager les joueurs. Chaque système a plusieurs stations, toutes en orbite (jamais immobiles). La chasse aux aliens passe par les missions des Mercenaires : le chasseur visé apparaît sur la carte ; le radar ne sert qu'à prévenir d'une menace (un chasseur qui tire). Un chasseur abattu disparaît ; Andromède envoie un renfort ailleurs (stock inépuisable ; plus de renforts dans une zone libérée).
 
@@ -75,7 +71,7 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 4. Pannes et manuel : volet Manuel, modules à réparer, missiles aliens avec décompte, ralentissement de 50 % jusqu'à réparation.
 5. Nettoyeurs : épaves sur la carte, mini-jeu de tri des matériaux.
 6. Combat : Armement (dans le volet Capsule), vue tactique, énergie, tir sur les modules, interception (d'abord un prototype à tester).
-7. Commerçants : volet Marché, cours par formule du temps, décalés selon le délai lumière.
+7. Commerce (ouvert à tous) : volet Marché, cours par formule du temps, décalés selon le délai lumière.
 8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités.
 9. Première zone à libérer : la Lune.
 10. Serveur, comptes, volet Messages, échanges entre joueurs.

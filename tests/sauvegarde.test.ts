@@ -112,3 +112,14 @@ describe('sauvegarde de la partie', () => {
     expect(copie.reparations.bornier).toEqual(r)
   })
 })
+
+describe('les Commerçants devenus Ingénieurs (décision d’Adrien du 18/10/2026)', () => {
+  it('une partie enregistrée avec les Commerçants est reprise avec les Ingénieurs', () => {
+    const s = JSON.parse(JSON.stringify(sauvegarder(enRouteVers('Mars'), t0)))
+    s.maison = 'commercants'
+    s.carnet = { missions: { nettoyeurs: 1, commercants: 4, mercenaires: 2 }, credits: 10, objetsTries: 0 }
+    const copie = restaurer(s)!
+    expect(copie.maison).toBe('ingenieurs')
+    expect(copie.carnet.missions).toEqual({ nettoyeurs: 1, ingenieurs: 4, mercenaires: 2 })
+  })
+})

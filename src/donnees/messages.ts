@@ -17,15 +17,15 @@ export interface Bot {
 export const BOTS: readonly Bot[] = [
   { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre', monolithes: 64 },
   { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre', monolithes: 8 },
-  { pseudo: 'ORION_77', maison: 'commercants', lieu: 'Phobos', marche: 'Mars', monolithes: 132 },
+  { pseudo: 'ORION_77', maison: 'ingenieurs', lieu: 'Phobos', marche: 'Mars', monolithes: 132 },
   { pseudo: 'Babouchka', maison: 'nettoyeurs', lieu: 'Vénus', marche: 'Vénus', monolithes: 271 },
-  { pseudo: 'Kepler9', maison: 'commercants', lieu: 'Callisto', marche: 'Jupiter', monolithes: 23 },
+  { pseudo: 'Kepler9', maison: 'ingenieurs', lieu: 'Callisto', marche: 'Jupiter', monolithes: 23 },
   { pseudo: 'Nemo_II', maison: 'mercenaires', lieu: 'Titan', marche: 'Saturne', monolithes: 517 },
-  { pseudo: 'Pipelette', maison: 'commercants', lieu: 'Lune', marche: 'Terre', monolithes: 3 },
+  { pseudo: 'Pipelette', maison: 'ingenieurs', lieu: 'Lune', marche: 'Terre', monolithes: 3 },
   { pseudo: 'Le_Vieux_Ras', maison: 'nettoyeurs', lieu: 'Neptune', marche: 'Neptune', monolithes: 1000 },
   { pseudo: 'Lune_Rousse', maison: 'mercenaires', lieu: 'Mars', marche: 'Mars', monolithes: 41 },
   { pseudo: 'Comète_Rieuse', maison: 'nettoyeurs', lieu: 'Mercure', marche: 'Mercure', monolithes: 12 },
-  { pseudo: 'Zinzolin', maison: 'commercants', lieu: 'Uranus', marche: 'Uranus', monolithes: 88 },
+  { pseudo: 'Zinzolin', maison: 'ingenieurs', lieu: 'Uranus', marche: 'Uranus', monolithes: 88 },
   { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter', monolithes: 0 },
 ]
 
@@ -70,11 +70,11 @@ export const BAVARDAGES_MAISON: Readonly<Record<Maison, readonly string[]>> = {
     'Soute pleine, je rentre vendre au marché de {marche}. Le verre est à {prix} cr.',
     'Qui veut faire une course de tri ? 30 secondes, le meilleur gagne une ration. 😂',
   ],
-  commercants: [
-    'Entre nous : le {marchandise} est à {prix} cr. au marché de {marche}. Achetez avant que ça se sache.',
-    'N\'oubliez pas : un cours qui vient de loin est un cours du passé.',
-    'Je monte un convoi vers {lieu}, qui s\'associe ?',
-    'Les Nettoyeurs vendent leur ferraille trop bas. Profitons-en. 🤫',
+  ingenieurs: [
+    'Amarrage à {lieu} : arrivez à moins de 0,1 m/s, sinon c\'est le pare-chocs qui prend. 🔧',
+    'Le panneau du relais de {lieu} a encore grillé un fusible. Qui a le manuel sous la main ?',
+    'Je cherche du cuivre pour rebobiner un moteur. Il est à {prix} cr. au marché de {marche}, ça va.',
+    'Règle d\'or : on coupe le courant AVANT de toucher aux câbles. Je dis ça, je dis rien. ⚡',
   ],
   mercenaires: [
     'Chasseur repéré entre la Terre et la Lune. Qui est dispo ?',
@@ -100,7 +100,7 @@ export const REPONSES: Readonly<Record<Intention, readonly string[]>> = {
   aide: ['Tiens bon {joueur} ! Suis le manuel, et coupe le bon câble. 😅', 'J\'arrive… enfin, je suis vers {lieu}, ça va prendre un moment. 😬', 'Une panne ? Capsule › Réparation, et le manuel est ton meilleur ami.'],
   merci: ['De rien {joueur} !', 'Avec plaisir. 🙂', 'Pas de quoi, entre capitaines !'],
   alien: ['Fais gaffe, il y en a plein vers {lieu}.', 'Mets des crans dans les boucliers, et vise leur bouclier d\'abord.', 'Andromède n\'a qu\'à bien se tenir ! 💥'],
-  question: ['Bonne question… je dirais oui ? 🤷', 'Demande aux Commerçants, ils savent tout.', 'Aucune idée. Mais je te dis ça dans {delai}. 😄'],
+  question: ['Bonne question… je dirais oui ? 🤷', 'Demande aux Ingénieurs, ils savent tout.', 'Aucune idée. Mais je te dis ça dans {delai}. 😄'],
   autre: ['Haha 😄', 'Bien reçu {joueur} !', 'Message reçu cinq sur cinq depuis {lieu}.', '👍', 'Ah, ça me rappelle ma première épave…'],
 }
 

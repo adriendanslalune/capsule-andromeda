@@ -73,7 +73,7 @@ describe('nettoyer une épave en mission (décision d’Adrien du 18/10/2026)', 
     expect(jeu.soute).toEqual({ Titane: 1.5, Verre: 0.4 })
     expect(jeu.chargeSoute()).toBeCloseTo(1.9)
     expect(jeu.credits).toBe(50)
-    expect(jeu.carnet).toEqual({ missions: { nettoyeurs: 1, commercants: 0, mercenaires: 0 }, credits: 50, objetsTries: 9 })
+    expect(jeu.carnet).toEqual({ missions: { nettoyeurs: 1, ingenieurs: 0, mercenaires: 0 }, credits: 50, objetsTries: 9 })
   })
 
   it('la soute a une capacité : ce qui ne tient pas est perdu', async () => {
