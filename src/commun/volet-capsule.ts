@@ -3,6 +3,7 @@
 // choix du joueur.
 
 import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
+import { emplacement } from '../moteur/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { COQUE_MAX, ENERGIE_TOTALE, INTERCEPTEURS, MAX_PAR_SYSTEME, SYSTEMES_ENERGIE, type Energie } from '../donnees/combat'
@@ -64,10 +65,25 @@ export function htmlSoute(jeu: Jeu): string {
     + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
     + (!c && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
     + '</div>'
-    + `<div class="bloc"><div class="module"><span><b>Monolithes</b><br><small>trouvés à la radio (PING, volet Navigation)</small></span><span class="ok" style="white-space:nowrap">${jeu.monolithes.trouves.length} / ${NOMBRE_MONOLITHES}</span></div></div>`
+    + htmlMonolithes(jeu)
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
     + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
     + '<p class="note-soute">Pour s\'exercer au tri des matériaux, sans conséquence pour ta capsule.</p>'
+}
+
+/**
+ * Les monolithes de la cale : leur nombre, et chacun avec son numéro et son emplacement (le même pour tous les joueurs :
+ * de quoi s'entraider, demande d'Adrien du 18/10/2026).
+ */
+function htmlMonolithes(jeu: Jeu): string {
+  const trouves = [...jeu.monolithes.trouves].sort((a, b) => a - b)
+  const f = (x: number, n: number) => x.toLocaleString('fr-FR', { minimumFractionDigits: n, maximumFractionDigits: n })
+  return `<h3>Monolithes · ${trouves.length} / ${NOMBRE_MONOLITHES}</h3><div class="bloc">`
+    + (trouves.length
+      ? '<div class="liste-monolithes">' + trouves.map((n) => { const e = emplacement(n); return `<div><b>n° ${n}</b><span>${f(e.ua, 2)} UA · ${f(e.longitude, 1)}°</span></div>` }).join('') + '</div>'
+        + '<p class="note">Emplacement : distance au Soleil et angle autour du Soleil (longitude écliptique), le même pour tous les capitaines.</p>'
+      : '<div>Aucun monolithe pour l\'instant.</div><p class="note">Le bouton PING de la carte (sous les Messages) interroge la radio : le monolithe le plus proche répond.</p>')
+    + '</div>'
 }
 
 /** La répartition de l'énergie : un cran par case, des boutons − et + par système (Armement et combat). */

@@ -23,8 +23,8 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
     }
   }
   if (l.genre === 'echo') {
-    const s = Math.ceil(l.reste / 1000)
-    return { titre: `PING ENVOYÉ · ÉCHO DANS ${s >= 3600 ? texteRestant(l.reste) : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`}`, detail: 'la lumière fait l\'aller-retour jusqu\'au monolithe le plus proche' }
+    // On ne sait pas quand l'écho reviendra (décision d'Adrien du 18/10/2026) : pas de décompte.
+    return { titre: 'PING ENVOYÉ · ON ATTEND L\'ÉCHO…', detail: 'il reviendra à la vitesse de la lumière : bientôt, ou pas' }
   }
   if (l.genre === 'trajet') {
     return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }

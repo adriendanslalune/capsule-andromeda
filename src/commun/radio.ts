@@ -1,23 +1,25 @@
-// La radio des monolithes, en tête du volet Navigation (décision d'Adrien du 18/10/2026) : le bouton PING, et ce que
-// la radio sait (écho attendu, prochain PING, monolithes trouvés). Elle ne calcule rien : elle demande au moteur.
+// Le bouton PING de la carte (décision d'Adrien du 18/10/2026 : sur la carte, à côté des Messages). Il dit ce que la
+// radio sait, sans jamais dire quand l'écho reviendra : ça fait partie de l'inconnu. Rien n'est calculé ici : on
+// demande au moteur.
 
-import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
+import { ATTENTE_PING } from '../donnees/monolithes'
 import type { Jeu } from '../moteur/jeu'
-import { echoEnRoute, peutPinger, prochainPing } from '../moteur/monolithes'
+import { echoEnRoute, peutPinger } from '../moteur/monolithes'
 import { texteRestant } from './textes'
 
-const minutes = (ms: number) => {
-  const s = Math.max(0, Math.ceil(ms / 1000))
-  return s >= 3600 ? texteRestant(ms) : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+export interface EtatBoutonPing {
+  /** pret : on peut pinger ; attente : l'écho n'est pas revenu ; recharge : la radio se recharge (1 h entre deux PING). */
+  etat: 'pret' | 'attente' | 'recharge'
+  /** Recharge de la radio, de 0 à 1. */
+  charge: number
+  /** Ce qu'on dit au joueur s'il touche le bouton sans pouvoir pinger. */
+  texte: string
 }
 
-export function htmlRadio(jeu: Jeu, t: number): string {
+export function etatBoutonPing(jeu: Jeu, t: number): EtatBoutonPing {
   const e = jeu.monolithes
-  const echo = echoEnRoute(e, t)
-  const pret = peutPinger(e, t)
-  const etat = echo ? `écho attendu dans ${minutes(echo.retour - t)}`
-    : pret ? 'prête : le monolithe le plus proche répondra'
-      : `prochain PING dans ${minutes(prochainPing(e) - t)}`
-  return `<div class="radio"><button type="button" data-ping${pret ? '' : ' disabled'}>PING</button>`
-    + `<span><b>RADIO · MONOLITHES</b><small>${etat}</small><small>${e.trouves.length} / ${NOMBRE_MONOLITHES} trouvés</small></span></div>`
+  const charge = Math.min(1, Math.max(0, (t - e.dernierPing) / ATTENTE_PING))
+  if (echoEnRoute(e, t)) return { etat: 'attente', charge, texte: 'PING envoyé : on attend l\'écho… (personne ne sait quand il reviendra)' }
+  if (peutPinger(e, t)) return { etat: 'pret', charge: 1, texte: '' }
+  return { etat: 'recharge', charge, texte: `La radio se recharge : prochain PING dans ${texteRestant(e.dernierPing + ATTENTE_PING - t)}` }
 }

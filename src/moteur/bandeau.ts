@@ -15,8 +15,8 @@ export type LigneBandeau =
   | { genre: 'missile'; alien: string; reste: number; intercepteurs: number }
   /** Modules en panne (au moins un). */
   | { genre: 'panne'; modules: NomModule[] }
-  /** Un PING envoyé : l'écho est attendu dans reste (ms). */
-  | { genre: 'echo'; reste: number }
+  /** Un PING envoyé, son écho pas encore revenu (on ne dit pas quand il reviendra). */
+  | { genre: 'echo' }
   /** En route : destination, instant d'arrivée (ms UTC) et temps restant (ms). */
   | { genre: 'trajet'; cible: string; arrivee: number; reste: number }
   /**
@@ -37,7 +37,7 @@ export function lignesDuBandeau(jeu: Jeu, t: number): LigneBandeau[] {
   }
   if (jeu.pannes.length) lignes.push({ genre: 'panne', modules: [...jeu.pannes] })
   const echo = echoEnRoute(jeu.monolithes, t)
-  if (echo) lignes.push({ genre: 'echo', reste: echo.retour - t })
+  if (echo) lignes.push({ genre: 'echo' })
   const enRoute = m.phase(t) === 'trajet' && m.plan
   if (enRoute) lignes.push({ genre: 'trajet', cible: m.plan!.cible, arrivee: m.plan!.arrivee, reste: m.plan!.arrivee - t })
   const etape = jeu.etapeActuelle()

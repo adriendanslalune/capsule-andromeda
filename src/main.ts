@@ -25,7 +25,7 @@ import { arrivesDepuis, nonLus } from './moteur/messages'
 import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
 import { echosRevenus, localise, monolitheNomme, monolithesEcoutes, placesPossibles } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
-import { htmlRadio } from './commun/radio'
+import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
@@ -62,7 +62,6 @@ const toilePlan = document.querySelector<HTMLCanvasElement>('#plan')!
 const ctxPlan = toilePlan.getContext('2d')!
 const infos = document.querySelector<HTMLDivElement>('#infos')!
 const titre = document.querySelector<HTMLDivElement>('#titre')!
-const boutonRetour = document.querySelector<HTMLButtonElement>('#bouton-retour')!
 
 /**
  * L'horloge : la vraie heure UTC, précise au-dessous de la milliseconde (le moteur la reçoit en paramètre).
@@ -215,10 +214,6 @@ function choisir(nom: string | null, cadrer = false, echelle?: number): void {
   }
 }
 
-boutonRetour.addEventListener('click', () => {
-  choisir(null)
-  carte.voler(carte.echelleGenerale(), performance.now(), { x: 0, y: 0 }, true)
-})
 
 /** Place, sur la carte (km de carte), de ce qui est choisi (la caméra le suit). */
 function positionSuivie(t: number): Point2 {
@@ -254,11 +249,46 @@ function allerALaCapsule(animer = true): void {
   }
 }
 allerALaCapsule(false)
-document.querySelector('#bouton-capsule')!.addEventListener('click', () => allerALaCapsule())
+// Les commandes de la carte (demande d'Adrien du 18/10/2026) : système intérieur (jusqu'à Mars), extérieur (jusqu'à
+// Pluton), capsule, zoom, et ce que montre la carte.
+const choixAffichage = document.querySelector<HTMLDivElement>('#choix-affichage')!
+const boutonAffichage = document.querySelector<HTMLButtonElement>('[data-vue="affichage"]')!
+function vueGenerale(kmParPx: number): void {
+  choisir(null)
+  carte.voler(kmParPx, performance.now(), { x: 0, y: 0 }, true)
+}
+function zoomer(facteur: number): void {
+  const k = carte.kmParPx * facteur
+  if (selection && suivre) carte.voler(k, performance.now(), positionSuivie(horloge()))
+  else carte.voler(k, performance.now(), carte.centre, true)
+}
+document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>('[data-vue], [data-afficher]')
+  if (!b) return
+  const vue = b.dataset.vue
+  if (vue === 'interieur') vueGenerale(carte.echelleGenerale())
+  else if (vue === 'exterieur') vueGenerale(carte.echelleExterieure())
+  else if (vue === 'capsule') allerALaCapsule()
+  else if (vue === 'plus') zoomer(1 / 2.5)
+  else if (vue === 'moins') zoomer(2.5)
+  else if (vue === 'affichage') {
+    choixAffichage.hidden = !choixAffichage.hidden
+    boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
+  } else if (b.dataset.afficher) {
+    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles'
+    reglages[cle] = !reglages[cle]
+    memoriser()
+    afficherChoixAffichage()
+  }
+})
+function afficherChoixAffichage(): void {
+  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles'])
+}
+afficherChoixAffichage()
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
-  if (page === 'navigation') { cadran.afficher(selection); afficherRadio(horloge()) }
+  if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
@@ -268,21 +298,29 @@ const cockpit = new Cockpit((page) => {
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
   (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t) }))
 
-// La radio des monolithes (en tête du volet Navigation) : un PING, l'écho revient à la vitesse de la lumière.
-const elRadio = document.querySelector<HTMLDivElement>('#radio')!
-let radioAffichee = ''
-function afficherRadio(t: number): void {
-  const html = htmlRadio(jeu, t)
-  if (html !== radioAffichee) elRadio.innerHTML = radioAffichee = html
+// Le PING des monolithes, sur la carte sous les Messages : un PING, l'écho revient à la vitesse de la lumière (on ne
+// sait pas quand).
+const boutonPing = document.querySelector<HTMLButtonElement>('#bouton-ping')!
+const chargePing = boutonPing.querySelector<HTMLElement>('.charge')!
+let etatPingAffiche = ''
+function afficherPing(t: number): void {
+  const p = etatBoutonPing(jeu, t)
+  const largeurCharge = p.etat === 'recharge' ? `${Math.round(p.charge * 34)}px` : '0px'
+  const cle = `${p.etat}|${largeurCharge}`
+  if (cle === etatPingAffiche) return
+  etatPingAffiche = cle
+  boutonPing.className = `carre ${p.etat}`
+  chargePing.style.width = largeurCharge
 }
-elRadio.addEventListener('click', (e) => {
-  if (!(e.target as HTMLElement).closest('[data-ping]')) return
+boutonPing.addEventListener('click', () => {
   const t = horloge()
-  const echo = jeu.pinger(t)
-  if (!echo) return
+  const p = etatBoutonPing(jeu, t)
+  if (p.etat !== 'pret') { annoncer(p.texte); return }
+  if (!jeu.pinger(t)) return
   enregistrerPartie()
-  afficherRadio(t)
-  annoncer(`PING envoyé… écho attendu dans ${texteSecondes(echo.retour - t)}`)
+  afficherPing(t)
+  annoncer('PING envoyé. On attend l\'écho…')
+  navigator.vibrate?.(60)
 })
 /** Échos déjà annoncés (ceux revenus avant l'ouverture du jeu ne s'annoncent pas). */
 const echosAnnonces = new Set(echosRevenus(jeu.monolithes, horloge()).map((x) => x.envoye))
@@ -369,7 +407,8 @@ bandeau.addEventListener('click', (e) => {
     if (bloc) montrerReparation(bloc)
     else { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   } else if (ligne === 'contrat') cockpit.ouvrir('missions')
-  else if (ligne === 'trajet' || ligne === 'orbite' || ligne === 'echo') cockpit.ouvrir('navigation')
+  else if (ligne === 'trajet' || ligne === 'orbite') cockpit.ouvrir('navigation')
+  else if (ligne === 'echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
   else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
 })
 
@@ -905,7 +944,7 @@ function image(maintenant: number): void {
   avancerMissions(t)
   suivreEchos(t)
   mettreAJourFiche(t)
-  if (cockpit.pageOuverte === 'navigation') afficherRadio(t)
+  afficherPing(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
@@ -961,7 +1000,6 @@ function image(maintenant: number): void {
     // Titre : le système qu'on regarde ; bouton de retour à la vue générale quand on a zoomé sur un système.
     const titreCarte = carte.titre(t)
     if (titre.textContent !== titreCarte) titre.textContent = titreCarte
-    boutonRetour.hidden = carte.systemeRegarde(t) === 'Soleil'
     // Pointillé vers la destination (sa position actuelle), une fois le trajet proposé.
     const cibleIci = proposee && place && selection !== CAPSULE && !dejaLa(t) ? place : null
     // Orbite de la capsule autour de son astre.

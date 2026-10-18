@@ -19,14 +19,36 @@
     <div id="infos"></div>
     <div id="haut">
       <div id="bandeau"></div>
-      <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div><button id="bouton-capsule" type="button" aria-label="Aller à la capsule">◎ Capsule</button></div>
-      <div id="rangee-messages"><button id="bulle-message" type="button" hidden></button><button id="bouton-messages" type="button" aria-label="Messages"><svg class="picto-messages" viewBox="0 0 40 40" aria-hidden="true"><path class="ondes" d="M29 7.5a6 6 0 0 1 4.5 4.5M30 3.5a10 10 0 0 1 8 8"/><path class="bulle-b" d="M16 17h17a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3l1 5-6-5h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="bulle-a" d="M6 8h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5 1-5h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="antenne" d="M22 8l4-3.5"/><circle class="antenne-bout" cx="26.5" cy="4.2" r="1.6"/><path class="texte" d="M8 13h12M8 17h8"/><circle class="point" cx="22" cy="25" r="1.3"/><circle class="point" cx="26" cy="25" r="1.3"/><circle class="point" cx="30" cy="25" r="1.3"/></svg><span class="pastille" hidden></span></button></div>
+      <div id="titre-carte"><div id="titre"></div></div>
+      <div id="commandes-carte">
+        <div class="colonne gauche">
+          <button type="button" class="carre" data-vue="interieur" aria-label="Système solaire intérieur (jusqu'à Mars)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="8.5"/><circle class="soleil" cx="12" cy="12" r="4.2"/><circle class="planete" cx="20.5" cy="12" r="1.8"/><circle class="planete rouge" cx="6" cy="18" r="1.6"/></svg></button>
+          <button type="button" class="carre" data-vue="exterieur" aria-label="Système solaire extérieur (jusqu'à Pluton)"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="orbite fine" d="M2.5 13.5a8 8 0 0 1 8 8"/><path class="orbite fine" d="M2.5 7.5a14 14 0 0 1 14 14"/><path class="orbite fine" d="M2.5 1.5a20 20 0 0 1 20 20"/><circle class="soleil" cx="2.5" cy="21.5" r="2"/><ellipse class="anneau" cx="16.6" cy="7.5" rx="3.6" ry="1.1" transform="rotate(-25 16.6 7.5)"/><circle class="planete or" cx="16.6" cy="7.5" r="1.8"/></svg></button>
+          <button type="button" class="carre" data-vue="capsule" aria-label="Aller à la capsule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="9" stroke-dasharray="2 2.4"/><path class="chevron" d="M17 12 8.5 16.5 10.5 12 8.5 7.5z"/></svg></button>
+          <span class="ecart"></span>
+          <button type="button" class="carre" data-vue="plus" aria-label="Zoomer"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="trait" d="M12 5.5v13M5.5 12h13"/></svg></button>
+          <button type="button" class="carre" data-vue="moins" aria-label="Dézoomer"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="trait" d="M5.5 12h13"/></svg></button>
+          <span class="ecart"></span>
+          <div class="affichage">
+            <button type="button" class="carre" data-vue="affichage" aria-label="Ce que montre la carte" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="calque c3" d="M12 15.5 20.5 19 12 22.5 3.5 19z"/><path class="calque c2" d="M12 9.5 20.5 13 12 16.5 3.5 13z"/><path class="calque c1" d="M12 3.5 20.5 7 12 10.5 3.5 7z"/></svg></button>
+            <div id="choix-affichage" hidden>
+              <button type="button" data-afficher="orbites"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse class="orbite" cx="12" cy="12" rx="9.5" ry="6"/><circle class="soleil" cx="12" cy="12" r="2"/><circle class="planete" cx="21.5" cy="12" r="1.7"/></svg><span>Orbites</span></button>
+              <button type="button" data-afficher="noms"><svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="16.5" text-anchor="middle">Aa</text></svg><span>Noms</span></button>
+              <button type="button" data-afficher="cercles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="9" stroke-dasharray="1.5 2.5"/><circle class="ping-point" cx="12" cy="12" r="2"/></svg><span>Pings</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="colonne droite">
+          <div id="rangee-messages"><button id="bulle-message" type="button" hidden></button><button id="bouton-messages" type="button" aria-label="Messages"><svg class="picto-messages" viewBox="0 0 40 40" aria-hidden="true"><path class="ondes" d="M29 7.5a6 6 0 0 1 4.5 4.5M30 3.5a10 10 0 0 1 8 8"/><path class="bulle-b" d="M16 17h17a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3l1 5-6-5h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="bulle-a" d="M6 8h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5 1-5h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="antenne" d="M22 8l4-3.5"/><circle class="antenne-bout" cx="26.5" cy="4.2" r="1.6"/><path class="texte" d="M8 13h12M8 17h8"/><circle class="point" cx="22" cy="25" r="1.3"/><circle class="point" cx="26" cy="25" r="1.3"/><circle class="point" cx="30" cy="25" r="1.3"/></svg><span class="pastille" hidden></span></button></div>
+          <button type="button" class="carre" id="bouton-ping" aria-label="PING : chercher un monolithe à la radio"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="onde o2" d="M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/><path class="onde o1" d="M8.1 8.1a5.5 5.5 0 0 0 0 7.8M15.9 8.1a5.5 5.5 0 0 1 0 7.8"/><circle class="ping-point" cx="12" cy="12" r="2.4"/></svg><i class="charge"></i></button>
+        </div>
+      </div>
     </div>
     <div id="message" hidden></div>
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
     <div id="volet" hidden>
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
-      <div class="page" data-contenu="navigation"><div id="radio"></div><div id="cadran"></div></div>
+      <div class="page" data-contenu="navigation" id="cadran"></div>
       <div class="page" data-contenu="capsule" hidden>
         <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="armement">ARMEMENT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
         <div id="capsule"></div>
@@ -56,9 +78,6 @@
           <label><input type="checkbox" data-reglage="etiquette" /> Étiquette (nom, distance)</label>
           <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
         </div>
-        <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
-        <label><input type="checkbox" data-reglage="noms" /> Noms</label>
-        <label><input type="checkbox" data-reglage="cercles" /> Cercles des PING (monolithes)</label>
         <label><input type="checkbox" data-reglage="nuit" /> Mode nuit</label>
         <div class="groupe essais">Essais — accélérer le temps :
           <div class="choix">

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES } from '../src/donnees/monolithes'
 import {
-  croisement, echoEnRoute, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
+  croisement, echoEnRoute, emplacement, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
 } from '../src/moteur/monolithes'
 import { corps, position } from '../src/moteur/corps'
 import { C_KM_S } from '../src/moteur/navigation'
@@ -61,6 +61,17 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     expect(ramasser(e, 1, 1)).toBe(true)
     expect(e.trouves).toEqual([1])
     expect(e.echos.length).toBe(0)
+  })
+
+  it('l’emplacement d’un monolithe : distance au Soleil (UA) et longitude, les mêmes pour tous', () => {
+    for (const m of MONOLITHES.slice(0, 50)) {
+      const e = emplacement(m.numero)
+      expect(e.ua * UA).toBeCloseTo(Math.hypot(m.x, m.y), 0)
+      expect(e.longitude).toBeGreaterThanOrEqual(0)
+      expect(e.longitude).toBeLessThan(360)
+      const a = (e.longitude * Math.PI) / 180
+      expect(e.ua * UA * Math.cos(a)).toBeCloseTo(m.x, -1)
+    }
   })
 
   it('un écho pas encore revenu ne compte pas', () => {

@@ -220,6 +220,10 @@ export class Carte2D {
   echelleGenerale(): number {
     return VUE_GENERALE / (this.largeur / 2)
   }
+  /** Vue du système extérieur : le Soleil au centre, jusqu'à l'orbite de Pluton. */
+  echelleExterieure(): number {
+    return (42 * UA_KM) / (this.largeur / 2)
+  }
   echelleSysteme(planete: string): number {
     return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
   }

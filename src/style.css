@@ -125,40 +125,11 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #titre-carte {
   padding: 0 4px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  justify-content: center;
   pointer-events: none;
 }
-#titre { flex: 1; min-width: 0; font-size: 12px; font-weight: bold; letter-spacing: 0.08em; }
-#bouton-retour {
-  pointer-events: auto;
-  min-height: 44px;
-  padding: 0 12px;
-  font: inherit;
-  font-size: 12px;
-  color: var(--encre);
-  background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
-}
-#bouton-retour[hidden] { display: none; }
-/* Bouton « Capsule » : replace la carte sur la capsule et la suit. */
-#bouton-capsule {
-  pointer-events: auto;
-  margin-left: auto;
-  min-height: 44px;
-  padding: 0 12px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--encre);
-  background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
-  white-space: nowrap;
-}
+#titre { font-size: 12px; font-weight: bold; letter-spacing: 0.08em; text-align: center; }
+
 
 /* Barre des cinq onglets, en bas, à portée du pouce (étape 2 : cadre du cockpit). */
 #onglets {
@@ -954,12 +925,53 @@ body.nuit #marche .baisse { color: #f08a72; }
 #messages .ecrire button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 
-/* La radio des monolithes, en tête du volet Navigation. */
-#radio .radio { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
-#radio button[data-ping] {
-  min-width: 76px; min-height: 48px; border-radius: 24px; border: 1.5px solid var(--encre); background: #d7cdee;
-  color: var(--encre); font: bold 14px ui-monospace, Menlo, monospace; letter-spacing: 0.08em;
+/* Les commandes de la carte (demande d'Adrien du 18/10/2026) : deux colonnes de petits carrés dessinés à l'encre.
+   À gauche, se repérer : système intérieur, extérieur, capsule ; zoom ; ce que montre la carte. À droite, communiquer :
+   les Messages et le PING des monolithes. */
+#commandes-carte { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+#commandes-carte .colonne { display: flex; flex-direction: column; gap: 6px; }
+#commandes-carte .droite { align-items: flex-end; }
+#commandes-carte .ecart { height: 6px; }
+.carre {
+  position: relative; pointer-events: auto; width: 46px; height: 46px; padding: 7px; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre);
 }
-#radio button[data-ping]:disabled { opacity: 0.45; }
-#radio .radio span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
-#radio .radio small { font-size: 12px; opacity: 0.75; }
+.carre:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
+.carre svg, #choix-affichage svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.carre svg *, #choix-affichage svg * { stroke: var(--encre); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; fill: none; }
+.carre .soleil, #choix-affichage .soleil { fill: #f2c66a; }
+.carre .planete, #choix-affichage .planete { fill: #8fd0dc; }
+.carre .planete.rouge { fill: #f3a08b; }
+.carre .planete.or { fill: #f2b53a; }
+.carre .orbite.fine { stroke-width: 1; }
+.carre .chevron { fill: #e04b37; }
+.carre .trait { stroke-width: 2.4; }
+.carre .calque.c1 { fill: #f2c66a; }
+.carre .calque.c2 { fill: #bfe0e8; }
+.carre .calque.c3 { fill: #d7cdee; }
+.carre .ping-point, #choix-affichage .ping-point { fill: #7a5aa8; }
+#choix-affichage text { fill: var(--encre); stroke: none; font: bold 11px var(--police); }
+/* Ce que montre la carte : trois interrupteurs discrets qui s'ouvrent à droite du bouton des calques. */
+#commandes-carte .affichage { position: relative; }
+#choix-affichage { position: absolute; left: 54px; top: 0; display: flex; gap: 6px; pointer-events: auto; }
+#choix-affichage[hidden] { display: none; }
+#choix-affichage button {
+  width: 58px; height: 46px; padding: 4px 4px 2px; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  font: 9px var(--police); color: var(--encre); background: var(--creme); border: 1.5px dashed var(--encre); border-radius: 8px; opacity: 0.6;
+}
+#choix-affichage button svg { width: 24px; height: 24px; flex: none; }
+#choix-affichage button.actif { border-style: solid; opacity: 1; box-shadow: 2px 2px 0 var(--ombre); }
+/* Le PING : grisé pendant que la radio se recharge (la jauge violette se remplit) ; les ondes palpitent tant que
+   l'écho n'est pas revenu. */
+#bouton-ping .onde { stroke: #7a5aa8; stroke-width: 1.7; }
+#bouton-ping .charge { position: absolute; left: 4px; bottom: 3px; height: 3px; width: 0; border-radius: 2px; background: #7a5aa8; }
+#bouton-ping.recharge svg { opacity: 0.4; }
+#bouton-ping.attente .onde { animation: emettre 1.4s ease-in-out infinite; }
+#bouton-ping.attente .o2 { animation-delay: 0.35s; }
+@media (prefers-reduced-motion: reduce) { #bouton-ping .onde { animation: none !important; } }
+/* Le bouton des Messages prend la même taille que les autres carrés. */
+#bouton-messages { width: 46px; height: 46px; }
+/* Les monolithes de la cale : numéro et emplacement, sur deux colonnes. */
+.liste-monolithes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12px; }
+.liste-monolithes div { display: flex; flex-direction: column; padding: 3px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 25%, transparent); }
+.liste-monolithes span { opacity: 0.75; }

@@ -170,19 +170,26 @@ missiles et épaves sur la carte.
     en panne, le trajet en cours est ralenti de moitié jusqu'à réparation (puis repart à pleine vitesse) ; Coque en
     panne : un bloc de plus. Pas de tirs comptés pendant que l'application est fermée.
   - Ce qui fera voyager les joueurs : la campagne (décision d'Adrien du 18/10/2026).
-  - Monolithes (idée d'Adrien du 18/10/2026) — **mécanique faite, en attente de validation** : 1000 monolithes
-    (`src/donnees/monolithes.ts`), fixes par rapport au Soleil, répartis par bandes autour des orbites des planètes,
-    dans les ceintures et entre elles (répartition PROVISOIRE). Volet Navigation : la radio, bouton PING (un par heure,
-    jamais tant que l'écho n'est pas revenu) ; le plus proche pas encore trouvé répond, sans limite de portée ; l'écho
-    revient au bout de l'aller-retour de la lumière (bandeau : « PING ENVOYÉ · ÉCHO DANS 1:09 »). Chaque écho trace sur
-    la carte un cercle pointillé violet (numéro du monolithe) autour de la place d'où il est parti, qui reste fixe : les
-    planètes s'en éloignent. Deux cercles d'un même monolithe : deux places « ? » ; un écho pris d'ailleurs (pas sur la
-    même ligne ; écart d'au moins 0,3 % de la distance) tranche : le monolithe apparaît sur la carte et dans Navigation
-    (« Monolithes localisés »). Y aller, RAMASSER : il passe dans la cale (Capsule › Soute : « 1 / 1000 ») et ses cercles
-    s'effacent. Réglage « Cercles des PING ». Moteur : `src/moteur/monolithes.ts` (tests `tests/monolithes.test.ts`).
-    Depuis la Terre, le plus proche est vers 10 millions de km (écho en 1 min 10 s) ; un tour par la Lune suffit à
-    trancher. À quoi ils servent : piste d'Adrien, des paliers qui donnent un statut et des messages par jour en plus
-    (à préciser avec la limite de 3 messages par jour).
+  - Monolithes (idée d'Adrien du 18/10/2026) — **mécanique faite ; le principe marche (Adrien, 18/10/2026)** : 1000
+    monolithes (`src/donnees/monolithes.ts`), fixes par rapport au Soleil, répartis par bandes autour des orbites des
+    planètes, dans les ceintures et entre elles (répartition PROVISOIRE). Bouton PING sur la carte, sous les Messages
+    (un par heure, jamais tant que l'écho n'est pas revenu ; une jauge violette montre la recharge, les ondes palpitent
+    tant qu'on attend l'écho). Le plus proche pas encore trouvé répond, sans limite de portée ; l'écho revient au bout de
+    l'aller-retour de la lumière, et le jeu ne dit jamais quand (bandeau : « PING ENVOYÉ · ON ATTEND L'ÉCHO… »).
+    Chaque écho trace un cercle pointillé violet (numéro du monolithe) autour de la place d'où il est parti, qui reste
+    fixe : les planètes s'en éloignent. Deux cercles d'un même monolithe : deux places « ? » ; un écho pris d'ailleurs
+    (écart d'au moins 0,3 % de la distance) tranche : le monolithe apparaît sur la carte et dans Navigation
+    (« Monolithes localisés »). Y aller, RAMASSER : il passe dans la cale ; ses cercles s'effacent. Capsule › Soute :
+    « Monolithes · 3 / 1000 » et la liste (numéro, distance au Soleil, longitude), la même pour tous les joueurs.
+    Moteur : `src/moteur/monolithes.ts` (tests `tests/monolithes.test.ts`). Intérêt : collection, statut dans les
+    Messages, et un vrai avantage à définir. La limite de 3 messages par jour est abandonnée (décision d'Adrien).
+  - Commandes de la carte refaites (demande d'Adrien du 18/10/2026) : petits carrés à symbole dessinés à l'encre, en
+    deux colonnes. À gauche : système intérieur (jusqu'à Mars), système extérieur (jusqu'à Pluton), capsule, +, −, et
+    « calques » qui ouvre trois interrupteurs (Orbites, Noms, Pings ; retirés des Réglages). À droite : Messages, PING.
+    Les anciens boutons « ‹ Système solaire » et « ◎ Capsule » disparaissent.
+  - Vitesses des astres vérifiées (Adrien trouvait la Lune immobile) : la Lune avance bien d'environ 13° par jour (un
+    tour en 27,3 jours : en 2 jours, à peine 1/14 de tour) ; planètes et lunes des géantes aussi
+    (`tests/mouvements.test.ts`).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

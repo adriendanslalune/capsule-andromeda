@@ -7,6 +7,7 @@
 
 import { ATTENTE_PING, MONOLITHES, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
 import { C_KM_S } from './navigation'
+import { UA_KM } from './temps'
 
 export interface Point { x: number; y: number }
 
@@ -30,6 +31,15 @@ const PAR_NUMERO = new Map(MONOLITHES.map((m) => [m.numero, m]))
 const PAR_NOM = new Map(MONOLITHES.map((m) => [m.nom, m]))
 export const monolithe = (numero: number): Monolithe | undefined => PAR_NUMERO.get(numero)
 export const monolitheNomme = (nom: string): Monolithe | undefined => PAR_NOM.get(nom)
+
+/**
+ * Emplacement d'un monolithe, le même pour tous les joueurs (pour s'entraider : « il me manque le 846… ») : sa distance
+ * au Soleil (UA) et son angle (longitude écliptique, de 0 à 360°).
+ */
+export function emplacement(numero: number): { ua: number; longitude: number } {
+  const m = PAR_NUMERO.get(numero)!
+  return { ua: Math.hypot(m.x, m.y) / UA_KM, longitude: ((Math.atan2(m.y, m.x) * 180) / Math.PI + 360) % 360 }
+}
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
 
