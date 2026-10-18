@@ -19,6 +19,7 @@ import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
+import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
 import type { SystemeEnergie } from './donnees/combat'
 import { VoletMarche } from './commun/volet-marche'
@@ -231,7 +232,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
   if (page === 'capsule') voletCapsule.afficher(jeu)
-  if (page === 'marche') voletMarche.afficher(horloge())
+  if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -306,7 +307,7 @@ bandeau.addEventListener('click', (e) => {
 
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
-    { credits: jeu.credits, soute: `0/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
+    { credits: jeu.credits, soute: `${jeu.chargeSoute().toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
@@ -402,7 +403,26 @@ function annoncer(texte: string): void {
   finMessage = performance.now() + 4000
 }
 function agirMission(): void {
-  if (jeu.agir(horloge())) { enregistrerPartie(); carteSale = true; dernierVolet = 0 }
+  const t = horloge()
+  // Nettoyer une épave, c'est la trier (décision d'Adrien du 18/10/2026) : les matériaux vont dans la soute.
+  if (jeu.etapeDeTri() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueTri.ouvrir({
+      titre: `ÉPAVE · ${lieu.toUpperCase()}`,
+      surFin: (e) => {
+        const r = jeu.nettoyer(e.materiaux, objetsTries(e), horloge(), vitesse())
+        if (!r) return 'La capsule n\'est plus sur place : rien n\'a été rangé.'
+        traiterEvenements(r.evenements)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        return r.perdu ? `Rangé dans la soute… mais elle est pleine : ${r.perdu.toLocaleString('fr-FR')} t laissées dans l'épave.` : 'Tout est rangé dans la soute.'
+      },
+    })
+    return
+  }
+  if (jeu.agir(t)) { enregistrerPartie(); carteSale = true; dernierVolet = 0 }
 }
 /** Accepte une mission ; depuis l'aperçu, prépare aussitôt le trajet vers son premier lieu (reste à appuyer sur DÉPART). */
 function accepterMission(id: number): void {
@@ -437,7 +457,10 @@ const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('
 })
 /** Fait avancer les missions (actions finies, récompenses) et prévient le joueur. */
 function avancerMissions(t: number): void {
-  const evenements = jeu.avancer(t, vitesse())
+  traiterEvenements(jeu.avancer(t, vitesse()))
+}
+/** Ce que le joueur apprend des événements du jeu (missions, pannes). */
+function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
   for (const e of evenements) {
     if (e.genre === 'contrat-fini') annoncer(`Mission terminée : +${e.contrat.recompense} crédits`)
     else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
@@ -612,7 +635,7 @@ function afficherSoute(): void {
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
-const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge()))
+const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), jeu.soute))
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
 function montrerReparation(bloc?: NomModule): void {
@@ -692,7 +715,7 @@ function image(maintenant: number): void {
   mettreAJourFiche(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
-  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t); dernierMarche = maintenant }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true

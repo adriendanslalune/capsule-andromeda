@@ -114,6 +114,14 @@ missiles et épaves sur la carte.
   PROVISOIRES). Sans conséquence pour la capsule (entraînement).
   - Corrigé au passage : les onglets SOUTE et ARMEMENT se redessinaient à chaque image (un bouton pouvait
     disparaître sous le doigt).
+  - Avis d'Adrien (18/10/2026) : gain trop important, interface moche (à revoir plus tard) ; il faut une trentaine
+    d'objets (fait : 30, dont 14 nouveaux dessins).
+  - Branché sur les missions (décision d'Adrien du 18/10/2026) : NETTOYER lance le tri de l'épave (plus d'attente de
+    2 minutes) ; les objets triés donnent des matériaux (titane, cuivre, ferraille, circuits anciens, verre ; le rebut
+    rien), 0,1 t × la série par objet, rangés dans la soute (20 t ; ce qui ne tient pas reste dans l'épave) ; le tri ne
+    rapporte plus de crédits directement (la récompense de la mission, et plus tard la vente au Marché). Soute réelle
+    (bandeau, Capsule › SOUTE, colonne « soute » du Marché), sauvegardée ; carnet de bord (missions par Maison,
+    crédits gagnés, objets triés) pour le Profil.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

@@ -62,7 +62,7 @@ export class VoletMarche {
     for (const fin of ['pointerup', 'pointercancel', 'pointerleave']) element.addEventListener(fin, () => { this.curseur = null; this.dessinerCurseur() })
   }
 
-  afficher(t: number): void {
+  afficher(t: number, soute: Record<string, number>): void {
     const ici = marcheDeLaCapsule(t)
     const k = this.choisi ?? (ici ? MARCHES.indexOf(ici) : 2)
     const vues = MARCHES.map((m) => vueMarche(m, t))
@@ -130,7 +130,7 @@ export class VoletMarche {
       const lo = Math.min(...h.map((q) => q.cours)), hi = Math.max(...h.map((q) => q.cours)) || 1
       const pts = h.map((q, j) => `${((j / 40) * 70).toFixed(1)},${(20 - ((q.cours - lo) / (hi - lo || 1)) * 18).toFixed(1)}`).join(' ')
       return `<button type="button" data-marchandise="${i}"${i === this.marchandise ? ' class="actif"' : ''}>`
-        + `<span class="nom">${x.fiche.nom}<small>soute —</small></span>`
+        + `<span class="nom">${x.fiche.nom}<small>soute ${soute[x.fiche.nom] ? `${soute[x.fiche.nom].toLocaleString('fr-FR', { maximumFractionDigits: 1 })} t` : '—'}</small></span>`
         + `<svg class="mini" viewBox="0 0 70 22"><polyline points="${pts}"/></svg>`
         + `<span class="valeur">${prix(x.cours)}<small class="${x.variation >= 0 ? 'hausse' : 'baisse'}">${pourcent(x.variation)}</small></span></button>`
     }).join('') + '</div>'

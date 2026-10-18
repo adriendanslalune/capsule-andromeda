@@ -1,8 +1,8 @@
 // Le tri des matériaux d'une épave (étape 5, mini-jeu des Nettoyeurs ; prototype). Les objets sortent un par un
-// (suite reproductible, jamais deux fois le même de suite) ; chaque objet bien trié rapporte GAIN_PAR_OBJET × la série
-// en cours ; une erreur remet la série à 1. Le tri dure DUREE_TRI.
+// (suite reproductible, jamais deux fois le même de suite) ; chaque objet bien trié donne TONNES_PAR_OBJET × la série en
+// cours de sa matière (rien pour le rebut) ; une erreur remet la série à 1. Le tri dure DUREE_TRI.
 
-import { BACS, DUREE_TRI, GAIN_PAR_OBJET, OBJETS_EPAVE, SERIE_MAX, type Bac } from '../donnees/tri'
+import { BACS, DUREE_TRI, OBJETS_EPAVE, SERIE_MAX, TONNES_PAR_OBJET, type Bac } from '../donnees/tri'
 import { hasard } from './contrats'
 
 export interface EtatTri {
@@ -11,7 +11,8 @@ export interface EtatTri {
   /** Numéro (dans OBJETS_EPAVE) de l'objet à trier. */
   objet: number
   serie: number
-  gain: number
+  /** Matériaux récupérés : marchandise → tonnes. */
+  materiaux: Record<string, number>
   /** Objets bien triés, par bac ; erreurs. */
   tries: Record<Bac, number>
   erreurs: number
@@ -28,7 +29,7 @@ function suivant(e: EtatTri): number {
 
 export function nouveauTri(graine: number, t: number): EtatTri {
   const e: EtatTri = {
-    graine, debut: t, objet: -1, serie: 1, gain: 0, erreurs: 0,
+    graine, debut: t, objet: -1, serie: 1, materiaux: {}, erreurs: 0,
     tries: Object.fromEntries(BACS.map((b) => [b.bac, 0])) as Record<Bac, number>,
   }
   e.objet = suivant(e)
@@ -43,9 +44,10 @@ export function resteTri(e: EtatTri, t: number): number {
 /** Jeter l'objet dans un bac : 'juste', 'faux', ou 'fini' si le temps est écoulé. */
 export function trier(e: EtatTri, bac: Bac, t: number): 'juste' | 'faux' | 'fini' {
   if (resteTri(e, t) === 0) return 'fini'
-  const juste = OBJETS_EPAVE[e.objet].bac === bac
+  const o = OBJETS_EPAVE[e.objet]
+  const juste = o.bac === bac
   if (juste) {
-    e.gain += GAIN_PAR_OBJET * e.serie
+    if (o.matiere) e.materiaux[o.matiere] = Math.round(((e.materiaux[o.matiere] ?? 0) + TONNES_PAR_OBJET * e.serie) * 100) / 100
     e.tries[bac]++
     e.serie = Math.min(SERIE_MAX, e.serie + 1)
   } else {
@@ -54,4 +56,14 @@ export function trier(e: EtatTri, bac: Bac, t: number): 'juste' | 'faux' | 'fini
   }
   e.objet = suivant(e)
   return juste ? 'juste' : 'faux'
+}
+
+/** Tonnes récupérées en tout. */
+export function tonnesTriees(e: EtatTri): number {
+  return Math.round(Object.values(e.materiaux).reduce((a, b) => a + b, 0) * 100) / 100
+}
+
+/** Objets bien triés en tout. */
+export function objetsTries(e: EtatTri): number {
+  return Object.values(e.tries).reduce((a, b) => a + b, 0)
 }

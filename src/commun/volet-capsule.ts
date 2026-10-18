@@ -54,12 +54,18 @@ export class VoletCapsule {
  */
 export function htmlSoute(jeu: Jeu): string {
   const c = jeu.cargaison()
-  return `<h3>Soute · 0 / ${CAPACITE_SOUTE} t</h3><div class="bloc">`
-    + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '<div>Soute vide.</div>')
-    + '<p class="note">Les matériaux récupérés dans les épaves et les marchandises achetées au Marché viendront ici.</p></div>'
+  const charge = jeu.chargeSoute()
+  const t = (q: number) => q.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+  const lignes = Object.entries(jeu.soute).filter(([, q]) => q > 0).sort((a, b) => b[1] - a[1])
+  return `<h3>Soute · ${t(charge)} / ${CAPACITE_SOUTE} t</h3>`
+    + `<div class="jauge-soute"><i style="width:${Math.min(100, (100 * charge) / CAPACITE_SOUTE)}%"></i></div><div class="bloc">`
+    + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '')
+    + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
+    + (!c && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
+    + '</div>'
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
     + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
-    + '<p class="note-soute">Le tri des matériaux des Nettoyeurs : un prototype à tester, sans conséquence pour ta capsule.</p>'
+    + '<p class="note-soute">Pour s\'exercer au tri des matériaux, sans conséquence pour ta capsule.</p>'
 }
 
 /** La répartition de l'énergie : un cran par case, des boutons − et + par système (Armement et combat). */

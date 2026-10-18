@@ -13,6 +13,7 @@ import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { MAISONS, type Maison } from '../donnees/maisons'
+import { MARCHANDISES } from '../donnees/marche'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -46,6 +47,9 @@ export interface Sauvegarde {
   maison?: Maison | null
   /** Répartition de l'énergie (absente : celle du départ). */
   energie?: Energie
+  /** La soute (absente : vide) et le carnet de bord (absent : vierge). */
+  soute?: Record<string, number>
+  carnet?: Jeu['carnet']
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -55,7 +59,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, energie: jeu.energie,
+    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet,
   }
 }
 
@@ -115,6 +119,15 @@ export function restaurer(s: unknown): Jeu | null {
     || en.boucliers + en.armes + en.moteurs > ENERGIE_TOTALE)) return null
   const jeu = new Jeu()
   if (en) jeu.energie = { boucliers: en.boucliers, armes: en.armes, moteurs: en.moteurs }
+  if (v.soute !== undefined) {
+    if (!v.soute || typeof v.soute !== 'object' || !Object.entries(v.soute).every(([m, q]) => MARCHANDISES.some((f) => f.nom === m) && nombre(q) && q >= 0)) return null
+    jeu.soute = { ...v.soute }
+  }
+  const c = v.carnet
+  if (c !== undefined) {
+    if (!c || !nombre(c.credits) || !nombre(c.objetsTries) || !c.missions || !MAISONS.every((m) => nombre(c.missions[m.maison]))) return null
+    jeu.carnet = { missions: { ...c.missions }, credits: c.credits, objetsTries: c.objetsTries }
+  }
   jeu.maison = v.maison ?? null
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur

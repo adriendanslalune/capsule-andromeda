@@ -25,6 +25,7 @@ export const MARCHANDISES: readonly FicheMarchandise[] = [
   { nom: 'Cuivre', prix: 50 },
   { nom: 'Titane', prix: 90 },
   { nom: 'Circuits anciens', prix: 110 },
+  { nom: 'Verre', prix: 20 },
   { nom: 'Eau', prix: 8 },
   { nom: 'Hélium 3', prix: 300 },
 ]

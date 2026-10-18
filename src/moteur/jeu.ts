@@ -9,6 +9,7 @@
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
+import { CAPACITE_SOUTE } from '../donnees/marche'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -57,6 +58,10 @@ export class Jeu {
   defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
   /** Répartition de l'énergie entre boucliers, armes et moteurs (Capsule › Armement ; reprise au début d'un combat). */
   energie: Energie = { ...ENERGIE_DEPART }
+  /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
+  soute: Record<string, number> = {}
+  /** Le carnet de bord (pour le Profil) : missions finies par Maison, crédits gagnés, objets triés. */
+  carnet = { missions: { nettoyeurs: 0, commercants: 0, mercenaires: 0 } as Record<Maison, number>, credits: 0, objetsTries: 0 }
   /** Maison du joueur (null : neutre). Choisie selon son affinité à l'étape 8 ; elle change les missions proposées. */
   maison: Maison | null = null
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
@@ -260,15 +265,27 @@ export class Jeu {
       return evenements
     }
     if (t < fin) return evenements
-    const etape = ec.contrat.etapes[ec.etape]
     ec.debutAction = null
+    this.finirEtape(fin, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /**
+   * L'étape actuelle est faite (à l'instant fin) : on passe à la suivante, ou la mission est finie (récompense, et une
+   * nouvelle mission proposée). Avec une vitesse, la capsule part aussitôt vers le lieu de l'étape suivante.
+   */
+  private finirEtape(fin: number, evenements: Evenement[], vitesseEnchainement?: number): void {
+    const ec = this.enCours!
+    const etape = ec.contrat.etapes[ec.etape]
     ec.etape++
     evenements.push({ genre: 'etape-finie', contrat: ec.contrat, etape })
     if (ec.etape >= ec.contrat.etapes.length) {
       this.credits += ec.contrat.recompense
+      this.carnet.credits += ec.contrat.recompense
+      this.carnet.missions[maisonDuContrat(ec.contrat)]++
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
-      this.proposer(t)
+      this.proposer(fin)
     } else if (vitesseEnchainement !== undefined && this.peutNaviguer()) {
       const lieu = ec.contrat.etapes[ec.etape].lieu
       if (!this.surPlace(fin)) {
@@ -279,7 +296,41 @@ export class Jeu {
         }
       }
     }
-    return evenements
+  }
+
+  /** Tonnes dans la soute. */
+  chargeSoute(): number {
+    return Object.values(this.soute).reduce((a, b) => a + b, 0)
+  }
+
+  /** Range des marchandises dans la soute, jusqu'à ce qu'elle soit pleine. Renvoie les tonnes qui n'ont pas tenu. */
+  charger(materiaux: Record<string, number>): number {
+    let perdu = 0
+    for (const [m, q] of Object.entries(materiaux)) {
+      const place = Math.max(0, CAPACITE_SOUTE - this.chargeSoute())
+      const range = Math.round(Math.min(place, q) * 100) / 100
+      if (range > 0) this.soute[m] = Math.round(((this.soute[m] ?? 0) + range) * 100) / 100
+      perdu += q - range
+    }
+    return Math.round(perdu * 100) / 100
+  }
+
+  /** L'étape actuelle est-elle un nettoyage (qui se fait par le tri de l'épave, décision d'Adrien du 18/10/2026) ? */
+  etapeDeTri(): boolean {
+    return this.etapeActuelle()?.action === 'nettoyer'
+  }
+
+  /**
+   * Fin du tri de l'épave d'une étape de nettoyage : les matériaux vont dans la soute (ce qui ne tient pas est perdu),
+   * et l'étape est faite. Renvoie les événements, et les tonnes perdues ; null si ce n'est pas possible ici.
+   */
+  nettoyer(materiaux: Record<string, number>, objetsTries: number, t: number, vitesseEnchainement?: number): { evenements: Evenement[]; perdu: number } | null {
+    if (!this.etapeDeTri() || !this.peutAgir(t)) return null
+    const perdu = this.charger(materiaux)
+    this.carnet.objetsTries += objetsTries
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return { evenements, perdu }
   }
 
   /**

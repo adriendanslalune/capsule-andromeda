@@ -15,7 +15,7 @@ Navigation : toucher un astre ou ouvrir le cadran de navigation. Deux traits : u
 Progression : les crédits améliorent les moteurs pour aller plus vite et plus loin. Tutoriel : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune.
 
 Maisons (attribuées selon les activités du joueur, profil en toile d'araignée, peut changer) :
-- Nettoyeurs : vident les épaves (mini-jeu de tri rapide des matériaux).
+- Nettoyeurs : vident les épaves (mini-jeu de tri rapide des matériaux). L'action NETTOYER d'une mission lance ce tri ; les matériaux triés vont dans la soute (décision d'Adrien du 18/10/2026).
 - Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps. Un marché par système (Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton), présenté en graphique de cours façon trading (décision d'Adrien du 18/10/2026).
 - Mercenaires : escortes, chasse aux pirates et aliens, dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles. Avis d'Adrien sur le prototype (18/10/2026) : beaucoup trop facile ; il imagine plutôt un combat au tour par tour (à reprendre plus tard).
 
