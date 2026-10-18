@@ -16,7 +16,10 @@ import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
 import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
-import { VoletCapsule, htmlSoute } from './commun/volet-capsule'
+import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
+import { VueCombat } from './commun/vue-combat'
+import { repartir } from './moteur/combat'
+import type { SystemeEnergie } from './donnees/combat'
 import { VoletMarche } from './commun/volet-marche'
 import { CAPACITE_SOUTE } from './donnees/marche'
 import { htmlManuel } from './commun/manuel'
@@ -478,7 +481,7 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 // --- Réparation (volet Capsule › RÉPARATION) et Manuel (étape 4) ---
 const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!
 const etatReparation = document.querySelector<HTMLSpanElement>('#etat-reparation')!
-type SousOnglet = 'etat' | 'soute' | 'reparation'
+type SousOnglet = 'etat' | 'soute' | 'armement' | 'reparation'
 let sousOnglet: SousOnglet = 'etat'
 const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!, (a) => {
   // Toucher un module en défaut ouvre ses commandes (demande d'Adrien du 18/10/2026) ; le toucher de nouveau les referme.
@@ -566,9 +569,33 @@ function choisirSousOnglet(s: SousOnglet): void {
   document.querySelector<HTMLDivElement>('#capsule')!.hidden = s !== 'etat'
   zoneReparation.hidden = s !== 'reparation'
   pageSoute.hidden = s !== 'soute'
+  pageArmement.hidden = s !== 'armement'
   if (s === 'reparation') afficherReparation()
   afficherSoute()
+  afficherArmement()
 }
+/** L'onglet ARMEMENT du volet Capsule : l'énergie à répartir (sauvegardée) et le simulateur de combat. */
+const pageArmement = document.querySelector<HTMLDivElement>('#armement')!
+function afficherArmement(): void {
+  if (sousOnglet !== 'armement') return
+  const html = htmlArmement(jeu)
+  if (pageArmement.innerHTML !== html) pageArmement.innerHTML = html
+}
+pageArmement.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
+  if (!b || b.disabled) return
+  if (b.dataset.energie !== undefined) {
+    repartir(jeu.energie, b.dataset.energie as SystemeEnergie, Number(b.dataset.d) as 1 | -1)
+    enregistrerPartie()
+    afficherArmement()
+  } else if (b.dataset.combat !== undefined) vueCombat.ouvrir()
+})
+// La vue de combat (simulateur) : elle part de la répartition de l'Armement, et la garde si on la change en combat.
+const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.energie, (en) => {
+  jeu.energie = en
+  enregistrerPartie()
+  afficherArmement()
+})
 /** L'onglet SOUTE du volet Capsule. */
 const pageSoute = document.querySelector<HTMLDivElement>('#soute')!
 function afficherSoute(): void {

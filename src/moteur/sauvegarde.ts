@@ -13,6 +13,7 @@ import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { MAISONS, type Maison } from '../donnees/maisons'
+import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
  * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4) ; 4 : le numéro de série et les réparations
@@ -43,6 +44,8 @@ export interface Sauvegarde {
   defauts: Partial<Record<NomModule, NomAppareil[]>>
   /** Maison du joueur (absente : neutre). */
   maison?: Maison | null
+  /** Répartition de l'énergie (absente : celle du départ). */
+  energie?: Energie
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -52,7 +55,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison,
+    maison: jeu.maison, energie: jeu.energie,
   }
 }
 
@@ -107,7 +110,11 @@ export function restaurer(s: unknown): Jeu | null {
     MODULES.some((f) => f.nom === m) && Array.isArray(l) && l.every((a) => ficheBloc(m as NomModule).appareils.includes(a))))) return null
   if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
   if (v.maison != null && !MAISONS.some((m) => m.maison === v.maison)) return null
+  const en = v.energie
+  if (en !== undefined && (!en || ![en.boucliers, en.armes, en.moteurs].every((x) => Number.isInteger(x) && x >= 0 && x <= MAX_PAR_SYSTEME)
+    || en.boucliers + en.armes + en.moteurs > ENERGIE_TOTALE)) return null
   const jeu = new Jeu()
+  if (en) jeu.energie = { boucliers: en.boucliers, armes: en.armes, moteurs: en.moteurs }
   jeu.maison = v.maison ?? null
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur

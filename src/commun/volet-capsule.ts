@@ -4,6 +4,7 @@
 
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
+import { COQUE_MAX, ENERGIE_TOTALE, INTERCEPTEURS, MAX_PAR_SYSTEME, SYSTEMES_ENERGIE, type Energie } from '../donnees/combat'
 import type { Jeu } from '../moteur/jeu'
 
 export class VoletCapsule {
@@ -57,4 +58,29 @@ export function htmlSoute(jeu: Jeu): string {
     + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '<div>Soute vide.</div>')
     + '<p class="note">Les matériaux récupérés dans les épaves et les marchandises achetées au Marché viendront ici.</p></div>'
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
+}
+
+/** La répartition de l'énergie : un cran par case, des boutons − et + par système (Armement et combat). */
+export function htmlEnergie(en: Energie): string {
+  const libres = ENERGIE_TOTALE - en.boucliers - en.armes - en.moteurs
+  return SYSTEMES_ENERGIE.map((f) => `<div class="systeme"><span><b>${f.titre}</b><small>${f.role}</small></span><span class="crans">`
+    + `<button type="button" data-energie="${f.systeme}" data-d="-1"${en[f.systeme] === 0 ? ' disabled' : ''} aria-label="moins">−</button>`
+    + Array.from({ length: MAX_PAR_SYSTEME }, (_, i) => `<i${i < en[f.systeme] ? ' class="rempli"' : ''}></i>`).join('')
+    + `<button type="button" data-energie="${f.systeme}" data-d="1"${libres === 0 || en[f.systeme] === MAX_PAR_SYSTEME ? ' disabled' : ''} aria-label="plus">+</button></span></div>`).join('')
+    + `<p class="libres">${libres} cran${libres > 1 ? 's' : ''} libre${libres > 1 ? 's' : ''} sur ${ENERGIE_TOTALE}</p>`
+}
+
+/**
+ * L'onglet ARMEMENT du volet Capsule (étape 6, écrans d'abord ; d'après la maquette validée le 18/10/2026) :
+ * l'énergie à répartir, l'équipement, et le simulateur de combat (le prototype à tester).
+ */
+export function htmlArmement(jeu: Jeu): string {
+  return `<h3>Énergie à répartir</h3><div class="bloc energie">${htmlEnergie(jeu.energie)}</div>`
+    + '<h3>Équipement</h3><div class="bloc">'
+    + '<div class="module"><span><b>Canon à rivets</b><br><small>tire sur un module ennemi</small></span><span class="ok">niv. 1</span></div>'
+    + `<div class="module"><span><b>Intercepteurs</b><br><small>abattent un missile en approche</small></span><span class="ok">${INTERCEPTEURS}</span></div>`
+    + `<div class="module"><span><b>Coque</b><br><small>points de résistance en combat</small></span><span class="ok">${COQUE_MAX}</span></div>`
+    + '<div class="module grise"><span><b>Lance-missiles</b><br><small>à venir</small></span><span class="ok">—</span></div>'
+    + '</div><div class="vers-combat"><button type="button" data-combat>SIMULATEUR DE COMBAT</button></div>'
+    + '<p class="note">Un prototype à tester : un chasseur alien d\'entraînement, sans conséquence pour ta capsule.</p>'
 }

@@ -8,6 +8,7 @@
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
+import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -54,6 +55,8 @@ export class Jeu {
    * raccordés). Liste vide : aucun module raccordé dans ce bloc, il se répare depuis ÉTAT (procédure provisoire).
    */
   defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
+  /** Répartition de l'énergie entre boucliers, armes et moteurs (Capsule › Armement ; reprise au début d'un combat). */
+  energie: Energie = { ...ENERGIE_DEPART }
   /** Maison du joueur (null : neutre). Choisie selon son affinité à l'étape 8 ; elle change les missions proposées. */
   maison: Maison | null = null
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */

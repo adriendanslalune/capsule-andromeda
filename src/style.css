@@ -721,3 +721,88 @@ html, body {
 body.nuit #marche .hausse { color: #8fcf98; }
 body.nuit #marche .baisse { color: #f08a72; }
 #marche .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
+
+/* Capsule › ARMEMENT (étape 6, écrans d'abord) : l'énergie à répartir, l'équipement, le simulateur. */
+#armement { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
+#armement h3, .plein h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
+#armement .bloc { margin: 4px 10px; padding: 8px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+#armement .module { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#armement .module:last-child { border-bottom: none; }
+#armement .module small { opacity: 0.7; }
+#armement .module .ok { font-weight: bold; }
+#armement .module.grise { opacity: 0.45; }
+#armement .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
+.vers-combat { padding: 8px 10px 0; }
+.vers-combat button { width: 100%; min-height: 48px; font: inherit; font-size: 13px; font-weight: bold; letter-spacing: 0.08em; color: #fff;
+  background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+/* L'énergie : des crans à répartir (Armement et combat). */
+.energie .systeme { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+.energie .systeme small { display: block; font-size: 10.5px; opacity: 0.7; line-height: 1.3; }
+.energie .crans { display: flex; align-items: center; gap: 3px; flex: none; }
+.energie .crans i { width: 16px; height: 24px; border: 1.5px solid var(--encre); border-radius: 3px; background: var(--fond); }
+.energie .crans i.rempli { background: var(--moutarde); }
+.energie .crans button { width: 44px; min-height: 44px; font: inherit; font-size: 18px; font-weight: bold; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+.energie .crans button:disabled { opacity: 0.3; }
+.energie .libres { padding-top: 6px; font-size: 11px; opacity: 0.7; }
+
+/* Vues plein écran (combat) : par-dessus la carte, elles se referment pour y revenir. */
+.plein { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--fond); }
+.plein[hidden] { display: none; }
+.plein .entete-plein { display: flex; align-items: center; justify-content: space-between; min-height: 52px;
+  padding: env(safe-area-inset-top) 6px 0 14px; background: var(--moutarde); color: #1f1b18; border-bottom: 2.5px solid var(--encre);
+  font-weight: bold; font-size: 13px; letter-spacing: 0.08em; }
+.plein .entete-plein button { min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #1f1b18;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+.plein .corps { flex: 1; overflow-y: auto; padding: 8px 10px calc(12px + env(safe-area-inset-bottom)); font-size: 13px; }
+.plein .energie { padding: 0 4px; }
+/* La scène du combat. */
+#combat .scene { display: block; width: 100%; height: auto; border: 2px solid var(--encre); border-radius: 10px; touch-action: manipulation; }
+#combat .scene .fond { fill: #efe8d6; }
+#combat .scene .grille { stroke: #2b2138; stroke-width: 0.5; opacity: 0.2; }
+#combat .scene .chasseur { fill: #9d7cc8; stroke: #2b2138; stroke-width: 2.2; stroke-linejoin: round; }
+#combat .scene .nervure { stroke: #2b2138; stroke-width: 0.8; opacity: 0.5; fill: none; }
+#combat .scene .module-ennemi { cursor: pointer; }
+#combat .scene .module-ennemi rect { fill: #faf2dc; stroke: #2b2138; stroke-width: 1.5; }
+#combat .scene .module-ennemi.vise rect { stroke: #e04b37; stroke-width: 3; stroke-dasharray: 5 3; animation: pointiller 1s linear infinite; }
+#combat .scene .module-ennemi.hs rect { fill: #7a6a4a; }
+#combat .scene .module-ennemi text { font: bold 8.5px var(--police); fill: #2b2138; }
+#combat .scene .module-ennemi .pv { font-size: 9px; fill: #b4442f; letter-spacing: 1px; }
+#combat .scene .module-ennemi.hs text { fill: #faf2dc; }
+#combat .scene .tir-capsule { stroke: #f2b53a; stroke-width: 3; stroke-linecap: round; }
+#combat .scene .tir-ennemi { stroke: #e04b37; stroke-width: 2.5; stroke-dasharray: 6 3; stroke-linecap: round; }
+#combat .scene .eclat { fill: #bfe0e8; stroke: #3f63c4; stroke-width: 2; }
+#combat .scene .missile-vol { fill: #e04b37; stroke: #2b2138; stroke-width: 1.1; }
+#combat .scene .decompte { font: bold 11px var(--police); fill: #b4442f; }
+#combat .scene .bouclier { fill: #bfe0e8; stroke: #3f63c4; stroke-width: 2; stroke-dasharray: 3 3; }
+#combat .scene .capsule { fill: #f2c66a; stroke: #2b2138; stroke-width: 1.8; stroke-linejoin: round; }
+#combat .scene .flamme { fill: #f2b53a; stroke: #e04b37; stroke-width: 1.2; }
+/* Sous la scène : coque, message, missile, tir. */
+#combat .etat-combat { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; font-weight: bold; letter-spacing: 0.08em; }
+#combat .jauge-coque { flex: 1; height: 12px; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
+#combat .jauge-coque i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #d9694f 0 4px, #e98a6f 4px 8px); transition: width 0.3s; }
+#combat .message-combat { min-height: 20px; margin-top: 4px; font-size: 12.5px; font-weight: bold; text-align: center; }
+#combat .ligne-combat { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; padding: 6px 8px;
+  border: 1.5px solid var(--encre); border-radius: 8px; }
+#combat .ligne-combat small { display: block; font-size: 10.5px; opacity: 0.7; }
+#combat .ligne-combat.alerte { border: 2px solid #b4442f; background: color-mix(in srgb, #e04b37 14%, var(--fond)); }
+#combat .ligne-combat.alerte b { color: #b4442f; }
+#combat .ligne-combat button { flex: none; min-width: 120px; min-height: 48px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: bold;
+  color: #fff; background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#combat .ligne-combat button:disabled { opacity: 0.4; box-shadow: none; }
+#combat [data-tirer] { background: linear-gradient(90deg, #d9694f var(--charge, 100%), #b9a58f var(--charge, 100%)); }
+#combat [data-tirer]:disabled { opacity: 0.85; color: #1f1b18; }
+/* La fin du combat. */
+#combat .fin-combat { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: color-mix(in srgb, #2b2138 45%, transparent); }
+#combat .fin-combat[hidden] { display: none; }
+#combat .carte-fin { width: 100%; max-width: 320px; padding: 18px 16px 16px; text-align: center; background: var(--fond);
+  border: 3px solid var(--encre); border-radius: 14px; box-shadow: 6px 6px 0 var(--ombre); animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
+#combat .carte-fin b { font-size: 20px; letter-spacing: 0.12em; }
+#combat .carte-fin p { margin: 8px 0 14px; font-size: 13px; }
+#combat .boutons-fin { display: flex; gap: 10px; justify-content: center; }
+#combat .boutons-fin button { min-height: 48px; padding: 0 16px; font: inherit; font-size: 13px; font-weight: bold; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+#combat .boutons-fin button.principal { color: #fff; background: #d9694f; }

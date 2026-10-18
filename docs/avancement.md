@@ -96,6 +96,15 @@ missiles et épaves sur la carte.
     à l'étape 7. ACHETER et VENDRE grisés.
   - Capsule › SOUTE : capacité 20 t (valeur de la maquette), la cargaison d'une livraison chargée, sinon « Soute
     vide » ; bouton vers le Marché. La soute s'affiche aussi au pied du bandeau.
+- Armement et combat (prototype) — **faits, en attente de validation** :
+  - Capsule › ARMEMENT : 6 crans d'énergie à répartir entre boucliers, armes et moteurs (4 au plus chacun ;
+    sauvegardé), l'équipement (canon, 3 intercepteurs, coque 10 ; lance-missiles à venir), SIMULATEUR DE COMBAT.
+  - Vue tactique plein écran contre un chasseur alien d'entraînement (`src/moteur/combat.ts`, testé ; valeurs
+    PROVISOIRES dans `src/donnees/combat.ts`) : 4 modules ennemis à viser (missiles, canon, bouclier qui arrête un tir
+    sur deux, réacteur : détruit, c'est gagné ; désarmé aussi) ; canon ennemi toutes les 4 s (boucliers : 20 % arrêtés
+    par cran ; moteurs : 10 % d'esquive par cran) ; un missile toutes les 15 s, 10 s de vol avec décompte, 3 points de
+    coque, INTERCEPTER ; TIRER se recharge plus vite avec plus d'armes ; FUIR (plus vite avec plus de moteurs). Pas
+    de game over : coque à zéro, retraite. Sans conséquence pour la capsule (simulateur).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 
