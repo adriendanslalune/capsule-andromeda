@@ -47,9 +47,10 @@ export function recompense(genre: GenreContrat, lieux: string[], t: number): num
 
 /**
  * Tire un nouveau contrat ; `exclus` : lieux déjà pris par les autres contrats (pour varier) ; `genreVoulu` : le genre
- * à tirer (sinon au hasard).
+ * à tirer (sinon au hasard) ; `lieuxNettoyage` : les épaves parmi lesquelles choisir un nettoyage.
  */
-export function tirerContrat(id: number, graine: number, t: number, exclus: string[] = [], genreVoulu?: GenreContrat): { contrat: Contrat; graine: number } {
+export function tirerContrat(id: number, graine: number, t: number, exclus: string[] = [], genreVoulu?: GenreContrat,
+  lieuxNettoyage: readonly string[] = LIEUX_NETTOYAGE): { contrat: Contrat; graine: number } {
   let g = graine
   const tirer = <T>(liste: readonly T[]): T => {
     const h = hasard(g)
@@ -62,7 +63,7 @@ export function tirerContrat(id: number, graine: number, t: number, exclus: stri
   }
   const genre = genreVoulu ?? tirer<GenreContrat>(['nettoyer', 'livrer', 'depanner'])
   let etapes: Etape[]
-  if (genre === 'nettoyer') etapes = [{ lieu: parmi(LIEUX_NETTOYAGE), action: 'nettoyer' }]
+  if (genre === 'nettoyer') etapes = [{ lieu: parmi(lieuxNettoyage), action: 'nettoyer' }]
   else if (genre === 'depanner') etapes = [{ lieu: parmi(SATELLITES), action: 'reparer' }]
   else etapes = [{ lieu: tirer(STATIONS), action: 'charger' }, { lieu: parmi(SATELLITES), action: 'livrer' }]
   const contrat = { id, genre, etapes, recompense: recompense(genre, etapes.map((e) => e.lieu), t) }

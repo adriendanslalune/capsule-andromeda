@@ -11,14 +11,16 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { MessageEnvoye } from './messages'
-import { avancerEspace, epaveLa, nouvelEspace, type EtatEspace } from './espace'
+import { avancerEspace, nouvelEspace, toutesLesEpaves, type EtatEspace } from './espace'
+import { distanceDepuisCapsule } from './navigation'
+import { LIEUX_NETTOYAGE } from '../donnees/contrats'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
-import { corps, position } from './corps'
+import { position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
 /**
@@ -39,6 +41,9 @@ export type Evenement =
   /** Un chasseur alien a tiré un missile ; un missile a frappé la capsule (modules en panne). */
   | { genre: 'missile'; alien: string; impact: number }
   | { genre: 'impact'; modules: NomModule[] }
+
+/** Parmi combien d'épaves proches les missions de nettoyage sont tirées. */
+const EPAVES_PROPOSEES = 10
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -195,10 +200,15 @@ export class Jeu {
     // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
     if (this.enPanne('communications')) return
     const voulues = missionsParMaison(this.maison)
+    // Les nettoyages : les épaves (et les débris des satellites) les plus proches de la capsule, où qu'elle soit.
+    let proches: string[] | undefined
+    const epavesProches = () => (proches ??= [...toutesLesEpaves(), ...LIEUX_NETTOYAGE]
+      .map((nom) => ({ nom, d: distanceDepuisCapsule(nom, t) })).sort((x, y) => x.d - y.d).slice(0, EPAVES_PROPOSEES).map((x) => x.nom))
     for (const { maison } of MAISONS) {
       while (this.proposes.filter((c) => maisonDuContrat(c) === maison).length < voulues[maison]) {
         const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
-        const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus, genreDeMaison(maison))
+        const genre = genreDeMaison(maison)
+        const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus, genre, genre === 'nettoyer' ? epavesProches() : undefined)
         this.graine = graine
         if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
         this.proposes.push(contrat)
@@ -332,20 +342,6 @@ export class Jeu {
       if (coqueEnPanne) { const second = autre(m.id + 1); if (second) { this.casser(second); touches.push(second) } }
       evenements.push({ genre: 'impact', modules: touches })
     }
-  }
-
-  /** La capsule est-elle à côté de cette épave libre, et l'épave est-elle là ? */
-  aCoteDeLEpave(nom: string, t: number): boolean {
-    return corps(nom)?.type === 'epave' && epaveLa(this.espace, nom, t) && this.mission.phase(t) === 'orbite' && this.mission.centre(t) === nom
-  }
-
-  /** Vider une épave libre (hors mission) : ses matériaux triés vont dans la soute ; elle reviendra plus tard. */
-  viderEpave(nom: string, materiaux: Record<string, number>, objetsTries: number, t: number): { perdu: number } | null {
-    if (!this.aCoteDeLEpave(nom, t)) return null
-    const perdu = this.charger(materiaux)
-    this.espace.epavesVidees[nom] = t
-    this.carnet.objetsTries += objetsTries
-    return { perdu }
   }
 
   /** Tonnes dans la soute. */

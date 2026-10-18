@@ -1,11 +1,11 @@
-// Ce qui rôde autour de la capsule (étapes 4 et 5, écrans d'abord) : les épaves (là tant qu'on ne les a pas vidées,
-// puis de retour au bout d'un moment), les chasseurs aliens (visibles seulement au radar ; vaincus, remplacés au bout
-// d'un moment) et leurs missiles. Les tirs sont tirés au hasard reproductible (même heure, même chasseur, même tir) ;
-// on ne compte pas les tirs pendant que l'application était fermée (pas de mauvaise surprise au retour).
+// Ce qui rôde autour de la capsule (étapes 4 et 5, écrans d'abord) : les épaves (toujours là ; on les vide en
+// mission), les chasseurs aliens (visibles seulement au radar ; vaincus, remplacés au bout d'un moment) et leurs
+// missiles. Les tirs sont tirés au hasard reproductible (même heure, même chasseur, même tir) ; on ne compte pas les
+// tirs pendant que l'application était fermée (pas de mauvaise surprise au retour).
 
 import {
-  ALIENS, EPAVES, INTERCEPTEURS_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RETOUR_ALIEN, RETOUR_EPAVE,
-  TIRS_PAR_HEURE, VOL_MISSILE,
+  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RETOUR_ALIEN,
+  tirsParHeure, VOL_MISSILE,
 } from '../donnees/espace'
 import { corps, astreDominant, rayonInfluence } from './corps'
 import { etatCapsule } from './capsule'
@@ -18,8 +18,7 @@ export interface Missile { id: number; alien: string; lance: number; impact: num
 
 /** Ce que le jeu retient de l'espace (enregistré avec la partie). */
 export interface EtatEspace {
-  /** Épaves vidées et chasseurs vaincus : quand. */
-  epavesVidees: Record<string, number>
+  /** Chasseurs vaincus : quand. */
   aliensVaincus: Record<string, number>
   missiles: Missile[]
   intercepteurs: number
@@ -29,7 +28,7 @@ export interface EtatEspace {
 }
 
 export function nouvelEspace(): EtatEspace {
-  return { epavesVidees: {}, aliensVaincus: {}, missiles: [], intercepteurs: INTERCEPTEURS_MAX, rechargeDepuis: 0, tirsJusqua: 0 }
+  return { aliensVaincus: {}, missiles: [], intercepteurs: INTERCEPTEURS_MAX, rechargeDepuis: 0, tirsJusqua: 0 }
 }
 
 /** Portée du radar à l'instant t (km) : une part de la sphère d'influence du système où est la capsule. */
@@ -38,33 +37,33 @@ export function porteeRadar(t: number): number {
   return systeme === 'Soleil' ? RADAR_ESPACE : PART_RADAR * rayonInfluence(systeme)
 }
 
-export function epaveLa(e: EtatEspace, nom: string, t: number): boolean {
-  const v = e.epavesVidees[nom]
-  return v === undefined || t - v >= RETOUR_EPAVE
-}
-
 export function alienLa(e: EtatEspace, nom: string, t: number): boolean {
   const v = e.aliensVaincus[nom]
   return v === undefined || t - v >= RETOUR_ALIEN
 }
 
-/** Les chasseurs repérés au radar à l'instant t. */
+/**
+ * Les chasseurs repérés au radar à l'instant t. Il y en a des centaines : le résultat est gardé une seconde (la carte
+ * le demande à chaque image).
+ */
+let memoireRadar: { seconde: number; vaincus: string; noms: string[] } | null = null
 export function aliensReperes(e: EtatEspace, t: number): string[] {
+  const seconde = Math.floor(t / 1000), vaincus = Object.keys(e.aliensVaincus).join('|')
+  if (memoireRadar?.seconde === seconde && memoireRadar.vaincus === vaincus) return memoireRadar.noms
   const portee = porteeRadar(t)
-  return ALIENS.filter((a) => alienLa(e, a.nom, t) && distanceDepuisCapsule(a.nom, t) <= portee).map((a) => a.nom)
+  const noms = ALIENS.filter((a) => alienLa(e, a.nom, t) && distanceDepuisCapsule(a.nom, t) <= portee).map((a) => a.nom)
+  memoireRadar = { seconde, vaincus, noms }
+  return noms
 }
 
-/** Un astre ou un engin est-il sur la carte ? (épaves vidées et chasseurs hors radar : non.) */
+/** Un astre ou un engin est-il sur la carte ? (Les chasseurs hors radar : non. Les épaves : toujours.) */
 export function surLaCarte(e: EtatEspace, nom: string, t: number): boolean {
-  const c = corps(nom)
-  if (c?.type === 'epave') return epaveLa(e, nom, t)
-  if (c?.type === 'alien') return alienLa(e, nom, t) && distanceDepuisCapsule(nom, t) <= porteeRadar(t)
-  return true
+  return corps(nom)?.type !== 'alien' || aliensReperes(e, t).includes(nom)
 }
 
-/** Les épaves présentes. */
-export function epavesLa(e: EtatEspace, t: number): string[] {
-  return EPAVES.filter((x) => epaveLa(e, x.nom, t)).map((x) => x.nom)
+/** Toutes les épaves (elles ne disparaissent jamais). */
+export function toutesLesEpaves(): string[] {
+  return EPAVES.map((x) => x.nom)
 }
 
 /** Petit hachage, entre 0 et 1. */
@@ -79,7 +78,7 @@ function h(s: string): number {
 /** Le tir d'un chasseur pendant l'heure k (instant du tir), ou null. */
 export function tirDeLHeure(alien: string, k: number): number | null {
   const a = ALIENS.find((x) => x.nom === alien)!
-  if (h(`${alien}/${k}`) >= TIRS_PAR_HEURE[a.parent]) return null
+  if (h(`${alien}/${k}`) >= tirsParHeure(a)) return null
   return k * HEURE + Math.floor(h(`${alien}/${k}/quand`) * HEURE)
 }
 
@@ -101,7 +100,7 @@ export function avancerEspace(e: EtatEspace, t: number): { lances: Missile[]; im
     for (const nom of aliensReperes(e, t)) {
       for (let k = Math.floor(depuis / HEURE); k <= Math.floor(t / HEURE); k++) {
         const quand = tirDeLHeure(nom, k)
-        if (quand === null || quand <= depuis || quand > t || e.missiles.some((m) => m.alien === nom)) continue
+        if (quand === null || quand <= depuis || quand > t || e.missiles.some((m) => m.alien === nom) || e.missiles.length >= MISSILES_MAX) continue
         const m = { id: quand, alien: nom, lance: quand, impact: quand + VOL_MISSILE }
         e.missiles.push(m)
         lances.push(m)

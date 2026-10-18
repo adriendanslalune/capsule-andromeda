@@ -141,15 +141,19 @@ missiles et épaves sur la carte.
     nous est adressé (réponse, privé, mention) ; la toucher ouvre la conversation.
 - La carte : épaves, radar, chasseurs aliens, missiles — **faits, en attente de validation** (valeurs PROVISOIRES
   dans `src/donnees/espace.ts` ; `src/moteur/espace.ts`, testé) :
-  - 19 épaves libres partout (autour de chaque planète et de Pluton), dessinées sur la carte et listées dans
-    Navigation (les plus proches) ; Y ALLER, puis VIDER : le tri, matériaux dans la soute (sans mission) ; une épave
-    vidée revient au bout d'un jour.
-  - 20 chasseurs aliens d'Andromède : 1 près de la Terre (loin, au bord du système), de plus en plus nombreux loin du
-    Soleil ; invisibles tant qu'ils ne sont pas au radar (portée : 60 % de la sphère d'influence du système) ; repéré :
-    alerte « RADAR : un chasseur alien repéré », cerclé de cerise sur la carte, en tête de Navigation ; COMBAT (la vue
-    tactique) : vaincu, il disparaît 12 h ; la retraite met la Coque en panne.
-  - Missiles : un chasseur repéré tire de temps en temps (3 % de chance par heure près de la Terre, jusqu'à 60 % vers
-    Neptune) ; 90 s de vol, décompte sur la carte (le missile avance vers la capsule) et en tête du bandeau (qui
+  - Revu après les remarques d'Adrien du 18/10/2026 (`src/donnees/espace.ts`, tiré une fois pour toutes avec une
+    graine fixe : le même monde pour tous) :
+    - environ 150 épaves, dans tous les systèmes et en plein espace (entre les planètes, ceinture d'astéroïdes, ceinture
+      de Kuiper) ; elles ne disparaissent jamais ; on ne les vide qu'en mission : les nettoyages proposés visent les 10
+      épaves (ou débris de satellites) les plus proches de la capsule, où qu'elle soit ; sur la carte, leur nom ne
+      s'écrit qu'en regardant un système de près ;
+    - environ 350 chasseurs aliens, partout (3 au bord du système de la Terre ; 12 à Mars ; 35 à 40 autour de chaque
+      géante ; plus de 150 en plein espace) ; ils errent au hasard (trois ondulations sans rapport entre elles autour
+      de leur orbite : imprévisible) ; radar : 60 % de la sphère d'influence du système, 50 millions de km en plein
+      espace ; repéré : alerte, cerclé de cerise, en tête de Navigation ; COMBAT : vaincu, remplacé au bout de 12 h ;
+      la retraite met la Coque en panne.
+  - Missiles : un chasseur repéré tire de temps en temps (2 % de chance par heure près de la Terre, jusqu'à 15 % par
+    chasseur vers Neptune ; au plus 2 missiles en vol) ; 90 s de vol, décompte sur la carte (le missile avance vers la capsule) et en tête du bandeau (qui
     palpite) ; toucher la ligne l'intercepte (3 intercepteurs, un nouveau toutes les 30 min). Impact : le Moteur tombe
     en panne, le trajet en cours est ralenti de moitié jusqu'à réparation (puis repart à pleine vitesse) ; Coque en
     panne : un bloc de plus. Pas de tirs comptés pendant que l'application est fermée.

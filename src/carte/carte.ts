@@ -666,6 +666,8 @@ export class Carte2D {
       // Petites lunes (des dizaines autour des géantes) : pas de nom.
       const k = corps(d.nom)
       if (k?.type === 'lune' && k.rayon < 100) continue
+      // Épaves (il y en a partout) : leur nom seulement en regardant un système de près.
+      if (k?.type === 'epave' && this.kmParPx > 1e6) continue
       const texte = d.nom
       const l = ctx.measureText(texte).width
       // Astres illustrés : le nom se pose au-delà des rayons du Soleil et des anneaux.

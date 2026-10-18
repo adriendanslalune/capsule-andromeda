@@ -148,10 +148,11 @@ export function restaurer(s: unknown): Jeu | null {
   const es = v.espace
   if (es !== undefined) {
     const dates = (r: unknown) => !!r && typeof r === 'object' && Object.values(r as object).every(nombre)
-    if (!es || !dates(es.epavesVidees) || !dates(es.aliensVaincus) || !Array.isArray(es.missiles)
+    if (!es || !dates(es.aliensVaincus) || !Array.isArray(es.missiles)
       || !es.missiles.every((m) => !!m && [m.id, m.lance, m.impact].every(nombre) && typeof m.alien === 'string' && !!corps(m.alien))
       || ![es.intercepteurs, es.rechargeDepuis, es.tirsJusqua].every(nombre)) return null
-    jeu.espace = { ...es, missiles: es.missiles.map((m) => ({ ...m })) }
+    jeu.espace = { aliensVaincus: { ...es.aliensVaincus }, missiles: es.missiles.map((m) => ({ ...m })), intercepteurs: es.intercepteurs,
+      rechargeDepuis: es.rechargeDepuis, tirsJusqua: es.tirsJusqua }
   }
   const c = v.carnet
   if (c !== undefined) {

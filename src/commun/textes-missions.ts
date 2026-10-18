@@ -1,9 +1,11 @@
 // Textes des missions (« contrats » dans le moteur) : titres, verbes des actions, consignes.
 
 import type { Action, Contrat, Etape, GenreContrat } from '../moteur/contrats'
+import { corps } from '../moteur/corps'
 
-/** Épaves elles-mêmes (on nettoie l'épave), et non des débris autour d'un engin. */
+/** Épaves elles-mêmes (on vide l'épave), et non des débris autour d'un engin. */
 const EPAVES = ['Envisat', 'Vanguard 1']
+const estEpave = (lieu: string) => EPAVES.includes(lieu) || corps(lieu)?.type === 'epave'
 
 /** « l'ISS », « Hubble », « la Lune »… */
 function article(lieu: string): string {
@@ -21,7 +23,7 @@ export function titreContrat(c: Contrat): string {
   const lieu = c.etapes[c.etapes.length - 1].lieu
   if (c.genre === 'livrer') return `Livrer une cargaison ${de(c.etapes[0].lieu)} ${a(lieu)}`
   if (c.genre === 'depanner') return `Réparer ${article(lieu)}`
-  return EPAVES.includes(lieu) ? `Nettoyer l'épave ${lieu}` : `Nettoyer les débris autour ${de(lieu)}`
+  return estEpave(lieu) ? `Vider l'épave ${lieu}` : `Nettoyer les débris autour ${de(lieu)}`
 }
 
 /** Genre d'une mission, en un mot : « NETTOYAGE », « LIVRAISON », « DÉPANNAGE ». */

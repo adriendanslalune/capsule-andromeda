@@ -64,15 +64,20 @@ export const CORPS: readonly Corps[] = [
   ...[...ORBITES_TLE.keys()].map((nom): Corps => ({ nom, type: 'satellite', parent: 'Terre', rayon: 0, ...gabarit(nom) })),
   ...TRAJECTOIRES.map((t): Corps => ({ nom: t.nom, type: 'sonde', parent: null, rayon: 0, ...gabarit(t.nom) })),
   // Épaves et chasseurs aliens (donnees/espace.ts) : le jeu dit lesquels sont là (vidées, vaincus, repérés au radar).
-  ...EPAVES.map((e): Corps => ({ nom: e.nom, type: 'epave', parent: e.parent, rayon: 0, modele: 'epave', tailleM: 20 })),
-  ...ALIENS.map((a): Corps => ({ nom: a.nom, type: 'alien', parent: a.parent, rayon: 0, modele: 'alien', tailleM: 60 })),
+  ...EPAVES.map((e): Corps => ({ nom: e.nom, type: 'epave', parent: e.parent === 'Soleil' ? null : e.parent, rayon: 0, modele: 'epave', tailleM: 20 })),
+  ...ALIENS.map((a): Corps => ({ nom: a.nom, type: 'alien', parent: a.parent === 'Soleil' ? null : a.parent, rayon: 0, modele: 'alien', tailleM: 60 })),
 ]
 
 /** Orbites simples (circulaires, un peu inclinées) des épaves et des aliens. */
 const ORBITES_SIMPLES = new Map<string, ObjetEnOrbite>([...EPAVES, ...ALIENS].map((o) => [o.nom, o]))
 function positionOrbiteSimple(o: ObjetEnOrbite, t: number): Vecteur3 {
   const a = 2 * Math.PI * (o.phase + t / periodeOrbite(o))
-  return { x: o.rayon * Math.cos(a), y: o.rayon * Math.sin(a), z: o.rayon * o.inclinaison * Math.sin(a) }
+  const p = { x: o.rayon * Math.cos(a), y: o.rayon * Math.sin(a), z: o.rayon * o.inclinaison * Math.sin(a) }
+  const e = o.errance
+  if (!e) return p
+  // L'errance d'un chasseur : trois ondulations sans rapport entre elles, sur chaque axe (imprévisible à l'œil).
+  const onde = (k: number) => e.periodes.reduce((s, P, i) => s + Math.sin((2 * Math.PI * t) / P + e.phases[3 * k + i]) / (i + 1), 0) / 1.83
+  return { x: p.x + e.amplitude * onde(0), y: p.y + e.amplitude * onde(1), z: p.z + 0.2 * e.amplitude * onde(2) }
 }
 
 /** Silhouette et envergure d'un engin (l'ISS fait 109 m ; les autres d'après les fiches du jeu). */
@@ -156,6 +161,9 @@ export function position(nom: string, t: number): Vecteur3 {
 function calculerPosition(nom: string, t: number): Vecteur3 {
   if (nom === 'Soleil') return { x: 0, y: 0, z: 0 }
   if (nom === 'Pluton') return positionPluton(t)
+  // En plein espace (épaves, chasseurs) : leur orbite autour du Soleil.
+  const simple = ORBITES_SIMPLES.get(nom)
+  if (simple?.parent === 'Soleil') return positionOrbiteSimple(simple, t)
   const c = PAR_NOM.get(nom)
   if (!c) throw new Error(`Astre inconnu : ${nom}`)
   if (c.type === 'planete') return positionVSOP(nom, t)
