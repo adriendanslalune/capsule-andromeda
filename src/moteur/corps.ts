@@ -11,7 +11,7 @@ import { LISTE_SATELLITES, positionSatellitePlanetocentrique, type Satellite } f
 import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
-import { ALIENS, EPAVES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
+import { ALIENS, EPAVES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
 import { positionPluton } from './pluton'
 import { positionSondeRelative, TRAJECTOIRES } from './sondes'
@@ -66,17 +66,25 @@ export const CORPS: readonly Corps[] = [
   // Épaves et chasseurs aliens (donnees/espace.ts) : le jeu dit lesquels sont là (vidées, vaincus, repérés au radar).
   ...EPAVES.map((e): Corps => ({ nom: e.nom, type: 'epave', parent: e.parent === 'Soleil' ? null : e.parent, rayon: 0, modele: 'epave', tailleM: 20 })),
   ...ALIENS.map((a): Corps => ({ nom: a.nom, type: 'alien', parent: a.parent === 'Soleil' ? null : a.parent, rayon: 0, modele: 'alien', tailleM: 60 })),
+  ...STATIONS_SYSTEMES.map((s): Corps => ({ nom: s.nom, type: 'satellite', parent: s.parent, rayon: 0, modele: 'iss', tailleM: 120 })),
 ]
 
+/**
+ * Génération de chaque chasseur : abattu, il est remplacé par un renfort qui prend sa place dans la flotte, mais
+ * ailleurs sur son orbite et avec une autre errance (le jeu la fixe, voir moteur/espace.ts).
+ */
+export const GENERATIONS_ALIENS = new Map<string, number>()
+
 /** Orbites simples (circulaires, un peu inclinées) des épaves et des aliens. */
-const ORBITES_SIMPLES = new Map<string, ObjetEnOrbite>([...EPAVES, ...ALIENS].map((o) => [o.nom, o]))
+const ORBITES_SIMPLES = new Map<string, ObjetEnOrbite>([...EPAVES, ...ALIENS, ...STATIONS_SYSTEMES].map((o) => [o.nom, o]))
 function positionOrbiteSimple(o: ObjetEnOrbite, t: number): Vecteur3 {
-  const a = 2 * Math.PI * (o.phase + t / periodeOrbite(o))
+  const g = o.errance ? GENERATIONS_ALIENS.get(o.nom) ?? 0 : 0
+  const a = 2 * Math.PI * (o.phase + 0.618 * g + t / periodeOrbite(o))
   const p = { x: o.rayon * Math.cos(a), y: o.rayon * Math.sin(a), z: o.rayon * o.inclinaison * Math.sin(a) }
   const e = o.errance
   if (!e) return p
   // L'errance d'un chasseur : trois ondulations sans rapport entre elles, sur chaque axe (imprévisible à l'œil).
-  const onde = (k: number) => e.periodes.reduce((s, P, i) => s + Math.sin((2 * Math.PI * t) / P + e.phases[3 * k + i]) / (i + 1), 0) / 1.83
+  const onde = (k: number) => e.periodes.reduce((s, P, i) => s + Math.sin((2 * Math.PI * t) / P + e.phases[3 * k + i] + 1.7 * g) / (i + 1), 0) / 1.83
   return { x: p.x + e.amplitude * onde(0), y: p.y + e.amplitude * onde(1), z: p.z + 0.2 * e.amplitude * onde(2) }
 }
 

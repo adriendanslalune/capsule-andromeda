@@ -11,14 +11,14 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { MessageEnvoye } from './messages'
-import { avancerEspace, nouvelEspace, toutesLesEpaves, type EtatEspace } from './espace'
-import { distanceDepuisCapsule } from './navigation'
-import { LIEUX_NETTOYAGE } from '../donnees/contrats'
-import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
+import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
+import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
+import { TABLEAUX } from '../donnees/tableaux'
+import { contexte } from './tableaux'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
-import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
+import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
@@ -41,9 +41,6 @@ export type Evenement =
   /** Un chasseur alien a tiré un missile ; un missile a frappé la capsule (modules en panne). */
   | { genre: 'missile'; alien: string; impact: number }
   | { genre: 'impact'; modules: NomModule[] }
-
-/** Parmi combien d'épaves proches les missions de nettoyage sont tirées. */
-const EPAVES_PROPOSEES = 10
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -193,25 +190,25 @@ export class Jeu {
   }
 
   /**
-   * Complète les missions proposées, Maison par Maison (missionsParMaison : 2 de chaque, ou 4 de la Maison du joueur
-   * et 1 des autres), en variant les lieux.
+   * Complète les tableaux de missions (décisions d'Adrien du 18/10/2026) : chaque planète en a 6, chaque grande lune 4,
+   * réparties entre les Maisons (missionsParMaison) ; chaque mission se passe dans le système de son lieu ; son prix
+   * est fixé par la zone (le membre d'une Maison est payé 25 % de plus pour les missions de sa Maison).
    */
   proposer(t: number): void {
     // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
     if (this.enPanne('communications')) return
-    const voulues = missionsParMaison(this.maison)
-    // Les nettoyages : les épaves (et les débris des satellites) les plus proches de la capsule, où qu'elle soit.
-    let proches: string[] | undefined
-    const epavesProches = () => (proches ??= [...toutesLesEpaves(), ...LIEUX_NETTOYAGE]
-      .map((nom) => ({ nom, d: distanceDepuisCapsule(nom, t) })).sort((x, y) => x.d - y.d).slice(0, EPAVES_PROPOSEES).map((x) => x.nom))
-    for (const { maison } of MAISONS) {
-      while (this.proposes.filter((c) => maisonDuContrat(c) === maison).length < voulues[maison]) {
-        const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
-        const genre = genreDeMaison(maison)
-        const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus, genre, genre === 'nettoyer' ? epavesProches() : undefined)
-        this.graine = graine
-        if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
-        this.proposes.push(contrat)
+    for (const tableau of TABLEAUX) {
+      const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
+      let ctx: ContexteTableau | null = null
+      for (const { maison } of MAISONS) {
+        while (this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison).length < voulues[maison]) {
+          ctx ??= contexte(tableau, this.espace, t)
+          const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
+          const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, ctx, maison, exclus)
+          this.graine = graine
+          if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
+          this.proposes.push(contrat)
+        }
       }
     }
   }
@@ -342,6 +339,20 @@ export class Jeu {
       if (coqueEnPanne) { const second = autre(m.id + 1); if (second) { this.casser(second); touches.push(second) } }
       evenements.push({ genre: 'impact', modules: touches })
     }
+  }
+
+  /** L'étape actuelle est-elle une chasse (qui se fait par un combat, en vue tactique) ? */
+  etapeDeCombat(): boolean {
+    return this.etapeActuelle()?.action === 'abattre'
+  }
+
+  /** Le chasseur de l'étape de chasse est abattu (victoire au combat) : il disparaît, l'étape est faite. */
+  abattre(t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDeCombat() || !this.peutAgir(t)) return null
+    vaincre(this.espace, this.etapeActuelle()!.lieu, t)
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
   }
 
   /** Tonnes dans la soute. */

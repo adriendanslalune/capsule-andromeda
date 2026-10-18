@@ -22,7 +22,8 @@ import { VueTri } from './commun/vue-tri'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
-import { aliensReperes, intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
@@ -101,9 +102,13 @@ suivreMission(mission)
 
 const carte = new Carte2D()
 // La carte ne montre que les épaves présentes et les chasseurs repérés au radar.
-carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t, epavesVisees())
-/** Les épaves que vise une mission : celle en cours, celle qu'on regarde (VOIR), ou celle qu'on a choisie. */
-function epavesVisees(): string[] {
+carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t, cibles())
+/** Le lieu (tableau de missions) où est la capsule. */
+function lieuIci(t: number): string {
+  return tableauDeLaCapsule(mission.phase(t) === 'orbite' ? mission.centre(t) : null, t).lieu
+}
+/** Les épaves et chasseurs que vise une mission : celle en cours, celle qu'on regarde (VOIR), ou celui qu'on a choisi. */
+function cibles(): string[] {
   return [...(jeu.enCours?.contrat.etapes ?? []), ...(apercu?.etapes ?? [])].map((e) => e.lieu).concat(selection ? [selection] : [])
 }
 let largeur = 390, hauteur = 844
@@ -241,14 +246,14 @@ document.querySelector('#bouton-capsule')!.addEventListener('click', () => aller
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
-  if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
+  if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
-  (t) => ({ aliens: aliensReperes(jeu.espace, t), epaves: epavesVisees().filter((n) => corps(n)?.type === 'epave') }))
+  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave') }))
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
@@ -343,11 +348,11 @@ function mettreAJourFiche(t: number): void {
       + (duree === null ? 'hors de portée' : `trajet ${texteDuree(duree)}`)
       + (jeu.enCours ? ' · une mission est déjà en cours' : '')
     if (!jeu.enCours && duree !== null) { depart = true; libelle = 'ACCEPTER'; actionFiche = 'accepter' }
-  } else if (selection && corps(selection)?.type === 'alien') {
-    // Un chasseur repéré au radar : on l'attaque (vue de combat).
-    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>chasseur alien d'Andromède, repéré au radar`
-    depart = surLaCarte(jeu.espace, selection, t)
-    libelle = 'COMBAT'
+  } else if (selection && corps(selection)?.type === 'alien' && jeu.espace.missiles.some((m) => m.alien === selection)) {
+    // Un chasseur qui nous tire dessus : on peut riposter (vue de combat).
+    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>chasseur alien d'Andromède : il te tire dessus !`
+    depart = true
+    libelle = 'RIPOSTER'
     actionFiche = 'combat'
   } else if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
     // Sur le lieu de la mission : le bouton de l'action (RÉPARER, LIVRER…), puis le temps qui reste.
@@ -430,6 +435,25 @@ function annoncer(texte: string): void {
 }
 function agirMission(): void {
   const t = horloge()
+  // Abattre un chasseur (mission des Mercenaires) : le combat en vue tactique ; gagné, l'étape est faite.
+  if (jeu.etapeDeCombat() && jeu.peutAgir(t)) {
+    const alien = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueCombat.ouvrir({
+      titre: `COMBAT · ${alien.toUpperCase()}`,
+      surFin: (fin) => {
+        if (fin === 'victoire') {
+          traiterEvenements(jeu.abattre(horloge(), vitesse()) ?? [])
+          choisir(null)
+          enregistrerPartie()
+          return 'Mission accomplie. Andromède enverra un renfort… ailleurs.'
+        }
+        if (fin === 'retraite') { jeu.casser('coque'); apresChangementDePanne(); return 'La Coque est en panne. Le chasseur est toujours là : la mission continue.' }
+        return 'Il est toujours là : la mission continue.'
+      },
+    })
+    return
+  }
   // Nettoyer une épave, c'est la trier (décision d'Adrien du 18/10/2026) : les matériaux vont dans la soute.
   if (jeu.etapeDeTri() && jeu.peutAgir(t)) {
     const lieu = jeu.etapeActuelle()!.lieu
@@ -500,7 +524,7 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
     }
     else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
     else if (e.genre === 'missile') {
-      annoncer(`⚠ MISSILE EN APPROCHE ! Touche le bandeau pour l'intercepter`)
+      annoncer(`RADAR : le ${e.alien} te tire dessus ! Touche le bandeau pour intercepter le missile`)
       navigator.vibrate?.([200, 100, 200])
     } else if (e.genre === 'impact') {
       annoncer(e.modules.length ? `IMPACT ! En panne : ${e.modules.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}` : 'IMPACT !')
@@ -681,15 +705,8 @@ function ouvrirMessages(canal?: string): void {
 }
 boutonMessages.addEventListener('click', () => ouvrirMessages())
 bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvrirMessages(bulleMessage.dataset.canal) })
-/** Chasseurs déjà repérés (pour annoncer les nouveaux). */
-let reperes = new Set<string>()
 /** Chaque seconde : les non-lus (bouton des Messages, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
 function courrier(): void {
-  // Le radar : un chasseur qui entre dans sa portée est annoncé (décision d'Adrien du 18/10/2026).
-  const vus = new Set(aliensReperes(jeu.espace, horloge()))
-  const nouveau = [...vus].find((a) => !reperes.has(a))
-  if (nouveau) { annoncer(`RADAR : un chasseur alien repéré (${nouveau})`); navigator.vibrate?.(60) }
-  reperes = vus
   const t = Date.now()
   if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)
   const n = nonLus(jeu, t).total
@@ -826,7 +843,7 @@ function image(maintenant: number): void {
   prevoir(t, maintenant)
   avancerMissions(t)
   mettreAJourFiche(t)
-  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
+  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
   if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }

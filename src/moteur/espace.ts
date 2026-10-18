@@ -7,7 +7,7 @@ import {
   ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RETOUR_ALIEN,
   tirsParHeure, VOL_MISSILE,
 } from '../donnees/espace'
-import { corps, astreDominant, rayonInfluence } from './corps'
+import { corps, astreDominant, GENERATIONS_ALIENS, rayonInfluence } from './corps'
 import { etatCapsule } from './capsule'
 import { distanceDepuisCapsule } from './navigation'
 
@@ -18,8 +18,9 @@ export interface Missile { id: number; alien: string; lance: number; impact: num
 
 /** Ce que le jeu retient de l'espace (enregistré avec la partie). */
 export interface EtatEspace {
-  /** Chasseurs vaincus : quand. */
+  /** Chasseurs abattus : quand (leur renfort arrive RETOUR_ALIEN plus tard) ; combien de fois (la génération du renfort). */
   aliensVaincus: Record<string, number>
+  generations: Record<string, number>
   missiles: Missile[]
   intercepteurs: number
   /** Dernière recharge d'intercepteur, et dernier instant où les tirs ont été regardés. */
@@ -28,7 +29,7 @@ export interface EtatEspace {
 }
 
 export function nouvelEspace(): EtatEspace {
-  return { aliensVaincus: {}, missiles: [], intercepteurs: INTERCEPTEURS_MAX, rechargeDepuis: 0, tirsJusqua: 0 }
+  return { aliensVaincus: {}, generations: {}, missiles: [], intercepteurs: INTERCEPTEURS_MAX, rechargeDepuis: 0, tirsJusqua: 0 }
 }
 
 /** Portée du radar à l'instant t (km) : une part de la sphère d'influence du système où est la capsule. */
@@ -57,14 +58,26 @@ export function aliensReperes(e: EtatEspace, t: number): string[] {
 }
 
 /**
- * Un astre ou un engin est-il sur la carte ? Les chasseurs : seulement repérés au radar. Les épaves : seulement celles
- * que vise une mission (acceptée, ou regardée) — sinon la carte serait encombrée (décision d'Adrien du 18/10/2026).
+ * Un astre ou un engin est-il sur la carte ? Les épaves et les chasseurs : seulement ceux que vise une mission (en
+ * cours, regardée ou choisie) — la chasse passe par les missions des Mercenaires, et sinon la carte serait encombrée
+ * (décisions d'Adrien du 18/10/2026) ; et le chasseur qui nous tire dessus (le radar sert à prévenir du danger).
  */
-export function surLaCarte(e: EtatEspace, nom: string, t: number, epavesVisees: readonly string[] = []): boolean {
+export function surLaCarte(e: EtatEspace, nom: string, t: number, visees: readonly string[] = []): boolean {
   const type = corps(nom)?.type
-  if (type === 'alien') return aliensReperes(e, t).includes(nom)
-  if (type === 'epave') return epavesVisees.includes(nom)
+  if (type === 'alien') return alienLa(e, nom, t) && (visees.includes(nom) || e.missiles.some((m) => m.alien === nom))
+  if (type === 'epave') return visees.includes(nom)
   return true
+}
+
+/** Les chasseurs présents d'une région (pas abattus, ou déjà remplacés). */
+export function aliensDe(e: EtatEspace, parent: string, t: number): string[] {
+  return ALIENS.filter((a) => a.parent === parent && alienLa(e, a.nom, t)).map((a) => a.nom)
+}
+
+/** Donne aux chasseurs la génération de leurs renforts (leur place change ; à appeler après une sauvegarde lue). */
+export function appliquerGenerations(e: EtatEspace): void {
+  GENERATIONS_ALIENS.clear()
+  for (const [nom, g] of Object.entries(e.generations)) GENERATIONS_ALIENS.set(nom, g)
 }
 
 /** Toutes les épaves (elles ne disparaissent jamais ; on les vide en mission). */
@@ -130,8 +143,13 @@ export function intercepterMissile(e: EtatEspace, t: number): boolean {
   return true
 }
 
-/** Un chasseur vaincu : il disparaît (et ses missiles avec lui). */
+/**
+ * Un chasseur abattu : il disparaît pour de bon (et ses missiles avec lui) ; un renfort d'Andromède prendra sa place
+ * dans la flotte, ailleurs, au bout de RETOUR_ALIEN (décision d'Adrien du 18/10/2026 : les chasseurs ne s'épuisent pas).
+ */
 export function vaincre(e: EtatEspace, nom: string, t: number): void {
   e.aliensVaincus[nom] = t
+  e.generations[nom] = (e.generations[nom] ?? 0) + 1
+  GENERATIONS_ALIENS.set(nom, e.generations[nom])
   e.missiles = e.missiles.filter((m) => m.alien !== nom)
 }

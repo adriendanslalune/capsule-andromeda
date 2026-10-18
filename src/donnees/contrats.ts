@@ -1,11 +1,11 @@
-// Les missions du joueur autour de la Terre (étape 3 ; règles validées par Adrien le 17/10/2026).
+// Les missions du joueur (étape 3 ; règles validées par Adrien le 17/10/2026, revues le 18/10/2026 : voir tableaux.ts).
 // Dans le code, elles s'appellent « contrats » : le mot « mission » y désigne déjà le voyage de la capsule.
 
 /**
- * Missions proposées en même temps (décision d'Adrien du 18/10/2026) : 6, soit 2 par Maison ; quand le joueur
- * appartient à une Maison, 4 de sa Maison et 1 de chacune des deux autres. Une nouvelle remplace chaque mission prise.
+ * Missions de chaque tableau (décisions d'Adrien du 18/10/2026) : sur une planète 6, soit 2 par Maison ; quand le
+ * joueur appartient à une Maison, 4 de sa Maison et 1 de chacune des deux autres. Sur une lune 4 : une par Maison et
+ * une de plus (de la Maison du joueur ; neutre, d'une Maison tirée au hasard). Une nouvelle remplace chaque mission prise.
  */
-export const CONTRATS_PROPOSES = 6
 export const PAR_MAISON_NEUTRE = 2
 export const PAR_MAISON_CHOISIE = 4
 export const PAR_AUTRE_MAISON = 1
@@ -13,9 +13,6 @@ export const PAR_AUTRE_MAISON = 1
 export const BONUS_MAISON = 1.25
 /** Durée d'une action sur place (charger, livrer, nettoyer, réparer), en temps réel (ms). */
 export const DUREE_ACTION = 2 * 60_000
-/** Récompenses (crédits) : de 50 (tout près de la Terre) à 200 (loin, ou une livraison). */
-export const RECOMPENSE_MIN = 50
-export const RECOMPENSE_MAX = 200
 
 /** Épaves à nettoyer : de vieux satellites morts, et des débris autour des engins en orbite basse. */
 export const LIEUX_NETTOYAGE = ['Envisat', 'Vanguard 1', 'Hubble', 'ISS', 'Tiangong', 'Terra', 'Landsat 9', 'Sentinel-2B', 'Fermi', 'Swift']

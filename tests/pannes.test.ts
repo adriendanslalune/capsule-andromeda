@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { CONTRATS_PROPOSES, DUREE_ACTION } from '../src/donnees/contrats'
+import { DUREE_ACTION } from '../src/donnees/contrats'
+import { TABLEAUX } from '../src/donnees/tableaux'
+
+const CONTRATS_PROPOSES = TABLEAUX.reduce((s, x) => s + x.nombre, 0)
 import type { Contrat } from '../src/moteur/contrats'
 import { Jeu } from '../src/moteur/jeu'
 import { planifier, type Plan } from '../src/moteur/mission'

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { CONTRATS_PROPOSES, DUREE_ACTION, STATIONS } from '../src/donnees/contrats'
+import { DUREE_ACTION, STATIONS } from '../src/donnees/contrats'
+import { TABLEAUX, ZONES } from '../src/donnees/tableaux'
 import { recompense, type Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
@@ -24,20 +25,33 @@ function avecContrat(contrat: Contrat): Jeu {
   return jeu
 }
 
-describe('missions proposées', () => {
-  it('six missions, toutes différentes, sur des lieux qui existent, de 50 à 200 crédits', () => {
+/** Nombre de missions de tous les tableaux : 6 par planète, 4 par grande lune. */
+const TOTAL = TABLEAUX.reduce((s, x) => s + x.nombre, 0)
+
+describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
+  it('6 missions par planète, 4 par grande lune, toutes différentes, sur des lieux qui existent', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
-    expect(jeu.proposes).toHaveLength(CONTRATS_PROPOSES)
-    expect(new Set(jeu.proposes.map((c) => c.id)).size).toBe(CONTRATS_PROPOSES)
+    expect(jeu.proposes).toHaveLength(TOTAL)
+    expect(new Set(jeu.proposes.map((c) => c.id)).size).toBe(TOTAL)
+    for (const x of TABLEAUX) expect(jeu.proposes.filter((c) => c.tableau === x.lieu), x.lieu).toHaveLength(x.nombre)
     for (const c of jeu.proposes) {
       for (const e of c.etapes) expect(corps(e.lieu), e.lieu).toBeDefined()
-      expect(c.recompense).toBeGreaterThanOrEqual(50)
-      expect(c.recompense).toBeLessThanOrEqual(200)
-      if (c.genre === 'livrer') {
-        expect(c.etapes.map((e) => e.action)).toEqual(['charger', 'livrer'])
-        expect(STATIONS).toContain(c.etapes[0].lieu)
-      } else expect(c.etapes).toHaveLength(1)
+      if (c.genre === 'livrer') expect(c.etapes.map((e) => e.action)).toEqual(['charger', 'livrer'])
+      else expect(c.etapes).toHaveLength(1)
+      if (c.tableau === 'Terre' && c.genre === 'livrer') expect(STATIONS).toContain(c.etapes[0].lieu)
+    }
+  })
+
+  it('chaque mission se passe dans le système de son lieu', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    for (const c of jeu.proposes) {
+      const systeme = TABLEAUX.find((x) => x.lieu === c.tableau)!.systeme
+      for (const e of c.etapes) {
+        const k = corps(e.lieu)!
+        expect(e.lieu === systeme || k.parent === systeme || (k.parent === 'Terre' && systeme === 'Terre'), `${c.tableau} : ${e.lieu}`).toBe(true)
+      }
     }
   })
 
@@ -48,23 +62,24 @@ describe('missions proposées', () => {
     expect(a.proposes).toEqual(b.proposes)
   })
 
-  it('les trois genres finissent par sortir', () => {
+  it('les quatre genres sortent (les Mercenaires chassent et dépannent)', () => {
     const jeu = new Jeu()
-    const genres = new Set<string>()
-    for (let k = 0; k < 30; k++) {
-      jeu.proposes = []
-      jeu.proposer(t0)
-      for (const c of jeu.proposes) genres.add(c.genre)
-    }
-    expect([...genres].sort()).toEqual(['depanner', 'livrer', 'nettoyer'])
+    jeu.avancer(t0)
+    expect([...new Set(jeu.proposes.map((c) => c.genre))].sort()).toEqual(['chasser', 'depanner', 'livrer', 'nettoyer'])
+    for (const c of jeu.proposes.filter((x) => x.genre === 'chasser')) expect(corps(c.etapes[0].lieu)?.type).toBe('alien')
   })
 
-  it('récompense : plus loin paie plus, une livraison paie plus', () => {
-    expect(recompense('depanner', ['ISS'], t0)).toBe(50)
-    expect(recompense('depanner', ['GOES-19'], t0)).toBeGreaterThan(recompense('depanner', ['Hubble'], t0))
-    expect(recompense('livrer', ['ISS', 'GOES-19'], t0)).toBeGreaterThan(recompense('depanner', ['GOES-19'], t0))
-    expect(recompense('livrer', ['ISS', 'TESS'], t0)).toBeGreaterThanOrEqual(150)
-    expect(recompense('livrer', ['ISS', 'TESS'], t0)).toBeLessThanOrEqual(200)
+  it('prix : fixé par la zone (loin et dangereux paie plus), jamais par la position de la capsule', () => {
+    expect(recompense('depanner', 1, 0)).toBe(50)
+    expect(recompense('depanner', 1, 1)).toBe(100)
+    expect(recompense('livrer', 1, 0)).toBe(70)
+    expect(recompense('chasser', 1, 0)).toBeGreaterThan(recompense('depanner', 1, 0))
+    expect(recompense('depanner', ZONES.Neptune, 0.5)).toBe(3380) // 75 cr. × 45, à la dizaine
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    const moyenne = (lieu: string) => { const l = jeu.proposes.filter((c) => c.tableau === lieu); return l.reduce((s, c) => s + c.recompense, 0) / l.length }
+    expect(moyenne('Neptune')).toBeGreaterThan(10 * moyenne('Terre'))
+    expect(moyenne('Mercure')).toBeGreaterThan(moyenne('Vénus'))
   })
 })
 
@@ -85,7 +100,7 @@ describe('faire une mission', () => {
     expect(ev.map((e) => e.genre)).toEqual(['etape-finie', 'contrat-fini'])
     expect(jeu.credits).toBe(120)
     expect(jeu.enCours).toBeNull()
-    expect(jeu.proposes).toHaveLength(CONTRATS_PROPOSES)
+    expect(jeu.proposes.filter((c) => c.tableau)).toHaveLength(TOTAL)
   })
 
   it('une livraison : charger à la station, puis livrer', () => {
@@ -121,7 +136,7 @@ describe('faire une mission', () => {
     const [a, b] = jeu.proposes
     expect(jeu.accepter(a.id, t0)).toBe(true)
     expect(jeu.accepter(b.id, t0)).toBe(false)
-    expect(jeu.proposes).toHaveLength(CONTRATS_PROPOSES)
+    expect(jeu.proposes).toHaveLength(TOTAL)
     jeu.abandonner()
     expect(jeu.accepter(b.id, t0)).toBe(true)
   })

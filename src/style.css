@@ -106,6 +106,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #bandeau .enveloppe { animation: flotter 2.4s ease-in-out infinite; }
 #bandeau .balai { transform-origin: 70% 10%; animation: balayer 1.6s ease-in-out infinite; }
 #bandeau .cle { animation: visser 2s ease-in-out infinite; }
+#bandeau .viseur { animation: palpiter 1.2s ease-in-out infinite; }
 #bandeau .action .symbole { animation-duration: 0.7s; }
 @keyframes flotter { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-2px) rotate(4deg); } }
 @keyframes balayer { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
@@ -529,6 +530,12 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 .maison-nettoyeurs { background: #bfe0c8; }
 .maison-commercants { background: #f5d38a; }
 .maison-mercenaires { background: #f3c2b0; }
+.filtre-lieux { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
+.filtre-lieux button { flex: none; display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 0 11px; font: inherit;
+  font-size: 12px; font-weight: bold; line-height: 1.15; color: var(--encre); background: transparent; border: 1.5px solid var(--encre); border-radius: 8px; }
+.filtre-lieux button.lune { font-weight: normal; border-style: dashed; }
+.filtre-lieux button small { font-size: 9.5px; font-weight: normal; opacity: 0.75; }
+.filtre-lieux button.actif { color: #1f1b18; background: var(--moutarde); border-width: 2.5px; border-style: solid; }
 .filtre-maisons { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
 .filtre-maisons button { flex: none; min-height: 44px; padding: 0 9px; font: inherit; font-size: 10px; font-weight: bold; letter-spacing: 0.06em;
   color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 22px; opacity: 0.55; }

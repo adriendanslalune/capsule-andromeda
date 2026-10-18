@@ -153,6 +153,16 @@ missiles et épaves sur la carte.
       de leur orbite : imprévisible) ; radar : 60 % de la sphère d'influence du système, 50 millions de km en plein
       espace ; repéré : alerte, cerclé de cerise, en tête de Navigation ; COMBAT : vaincu, remplacé au bout de 12 h ;
       la retraite met la Coque en panne.
+  - Missions attachées aux lieux (décisions d'Adrien du 18/10/2026) — **faites, en attente de validation** :
+    20 tableaux (9 planètes × 6 missions, 11 grandes lunes × 4 ; `src/donnees/tableaux.ts`, `src/moteur/tableaux.ts`) ;
+    chaque mission se passe dans le système de son lieu (épaves du système ; livraisons entre stations et lunes ;
+    dépannages de stations ; chasses aux chasseurs du système) ; 16 stations dans les autres systèmes (Relais Hermès,
+    Station Arès, Station Zeus…). Volet Missions : rangée des lieux (celui de la capsule marqué « ici », choisi
+    d'office) + filtre par Maison. Prix fixés à la création selon la zone (PROPOSITION à valider : Terre ×1, Lune ×2,
+    Vénus ×4, Mars ×4, Mercure ×8, Jupiter ×12, Saturne ×20, Uranus ×30, Neptune ×45, Pluton ×60).
+    Mercenaires : missions de chasse (« Abattre le Chasseur Ω-12 ») ; le chasseur visé apparaît sur la carte ; une fois
+    à côté, COMBAT ; gagné, il disparaît et un renfort reprend sa place ailleurs au bout de 2 h. Le radar ne sert plus
+    qu'à prévenir : un chasseur qui tire apparaît sur la carte (RIPOSTER), avec son missile.
   - Missiles : un chasseur repéré tire de temps en temps (2 % de chance par heure près de la Terre, jusqu'à 15 % par
     chasseur vers Neptune ; au plus 2 missiles en vol) ; 90 s de vol, décompte sur la carte (le missile avance vers la capsule) et en tête du bandeau (qui
     palpite) ; toucher la ligne l'intercepte (3 intercepteurs, un nouveau toutes les 30 min). Impact : le Moteur tombe

@@ -27,6 +27,8 @@ export interface ObjetEnOrbite {
   errance?: { amplitude: number; periodes: [number, number, number]; phases: number[] }
 }
 
+const o = (nom: string, parent: string, rayon: number, phase: number, inclinaison = 0.15): ObjetEnOrbite => ({ nom, parent, rayon, phase, inclinaison })
+
 /** Période d'une orbite circulaire (ms). */
 export function periodeOrbite(o: ObjetEnOrbite): number {
   return 2 * Math.PI * Math.sqrt(o.rayon ** 3 / GM[o.parent]) * 1000
@@ -125,6 +127,21 @@ export const EPAVES: readonly ObjetEnOrbite[] = MONDE.epaves
 /** Les chasseurs aliens. */
 export const ALIENS: readonly ObjetEnOrbite[] = MONDE.aliens
 
+/**
+ * Les stations des autres systèmes (la Terre a les siennes : l'ISS, Tiangong) : on y charge les cargaisons, on y
+ * livre, on les dépanne. Toujours sur la carte.
+ */
+export const STATIONS_SYSTEMES: readonly ObjetEnOrbite[] = [
+  o('Relais Hermès', 'Mercure', 6_000, 0.1), o('Forge Caloris', 'Mercure', 11_000, 0.6),
+  o('Station Aphrodite', 'Vénus', 14_000, 0.3), o('Aérostat Ishtar', 'Vénus', 32_000, 0.8),
+  o('Station Arès', 'Mars', 15_000, 0.2), o('Dock Olympus', 'Mars', 26_000, 0.7),
+  o('Station Zeus', 'Jupiter', 300_000, 0.15), o('Raffinerie Amalthée', 'Jupiter', 1_300_000, 0.65),
+  o('Station Cronos', 'Saturne', 200_000, 0.4), o('Dock des Anneaux', 'Saturne', 650_000, 0.9),
+  o('Station Herschel', 'Uranus', 110_000, 0.25), o('Relais Miranda', 'Uranus', 320_000, 0.75),
+  o('Station Le Verrier', 'Neptune', 90_000, 0.5), o('Phare Galle', 'Neptune', 260_000, 0.05),
+  o('Station Tombaugh', 'Pluton', 9_000, 0.35), o('Avant-poste Kuiper', 'Pluton', 30_000, 0.85),
+]
+
 /** Chance qu'un chasseur repéré tire un missile, par heure, selon sa région (rare près de la Terre). */
 export function tirsParHeure(o: ObjetEnOrbite): number {
   if (o.parent === 'Soleil') return o.rayon < 2 * UA ? 0.05 : o.rayon < 4 * UA ? 0.08 : o.rayon < 19 * UA ? 0.1 : 0.15
@@ -138,8 +155,8 @@ export const PART_RADAR = 0.6
 export const RADAR_ESPACE = 50_000_000
 /** Durée de vol d'un missile (ms) : le décompte. */
 export const VOL_MISSILE = 90_000
-/** Un chasseur vaincu est remplacé au bout de ce temps. */
-export const RETOUR_ALIEN = 12 * 3_600_000
+/** Un chasseur abattu est remplacé par un renfort d'Andromède (ailleurs dans sa région) au bout de ce temps. */
+export const RETOUR_ALIEN = 2 * 3_600_000
 /** Intercepteurs : au plus 3 ; un nouveau toutes les 30 minutes. */
 export const INTERCEPTEURS_MAX = 3
 export const RECHARGE_INTERCEPTEUR = 30 * 60_000

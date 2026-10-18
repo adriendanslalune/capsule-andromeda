@@ -16,7 +16,7 @@ import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
 import type { MessageEnvoye } from './messages'
-import type { EtatEspace } from './espace'
+import { appliquerGenerations, type EtatEspace } from './espace'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -90,10 +90,10 @@ function planValide(p: unknown): p is Plan {
     && Array.isArray(v.points) && v.points.length >= 2 && v.points.every(point)
 }
 
-const ACTIONS = ['nettoyer', 'charger', 'livrer', 'reparer']
+const ACTIONS = ['nettoyer', 'charger', 'livrer', 'reparer', 'abattre']
 function contratValide(c: unknown): c is Contrat {
   const v = c as Contrat
-  return !!v && nombre(v.id) && ['nettoyer', 'livrer', 'depanner'].includes(v.genre) && nombre(v.recompense)
+  return !!v && nombre(v.id) && ['nettoyer', 'livrer', 'depanner', 'chasser'].includes(v.genre) && nombre(v.recompense)
     && Array.isArray(v.etapes) && v.etapes.length >= 1 && v.etapes.every((e) => !!e && astre(e.lieu) && ACTIONS.includes(e.action))
 }
 function enCoursValide(e: unknown): e is ContratEnCours {
@@ -151,8 +151,9 @@ export function restaurer(s: unknown): Jeu | null {
     if (!es || !dates(es.aliensVaincus) || !Array.isArray(es.missiles)
       || !es.missiles.every((m) => !!m && [m.id, m.lance, m.impact].every(nombre) && typeof m.alien === 'string' && !!corps(m.alien))
       || ![es.intercepteurs, es.rechargeDepuis, es.tirsJusqua].every(nombre)) return null
-    jeu.espace = { aliensVaincus: { ...es.aliensVaincus }, missiles: es.missiles.map((m) => ({ ...m })), intercepteurs: es.intercepteurs,
-      rechargeDepuis: es.rechargeDepuis, tirsJusqua: es.tirsJusqua }
+    jeu.espace = { aliensVaincus: { ...es.aliensVaincus }, generations: dates(es.generations) ? { ...es.generations } : {},
+      missiles: es.missiles.map((m) => ({ ...m })), intercepteurs: es.intercepteurs, rechargeDepuis: es.rechargeDepuis, tirsJusqua: es.tirsJusqua }
+    appliquerGenerations(jeu.espace)
   }
   const c = v.carnet
   if (c !== undefined) {
@@ -167,7 +168,8 @@ export function restaurer(s: unknown): Jeu | null {
   if (avecMissions) {
     jeu.graine = v.graine
     jeu.prochainId = v.prochainId
-    jeu.proposes = v.proposes
+    // Les missions d'avant les tableaux (sans lieu) sont oubliées : les tableaux se remplissent à neuf.
+    jeu.proposes = v.proposes.filter((c) => typeof c.tableau === 'string')
     jeu.enCours = v.enCours
   }
   if (avecPannes) {

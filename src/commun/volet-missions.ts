@@ -1,12 +1,14 @@
 // Le volet Missions : la mission en cours (ses étapes, Y ALLER, l'action sur place, abandonner) et les missions
-// proposées (ACCEPTER), avec leur Maison et un filtre par Maison (demande d'Adrien du 18/10/2026, d'après la
-// maquette). Il ne décide rien : il affiche l'état du jeu et transmet les choix du joueur.
+// proposées (ACCEPTER), avec leur Maison. Deux filtres (demandes d'Adrien du 18/10/2026) : le lieu (chaque planète et
+// grande lune a ses missions ; d'abord celles du lieu de la capsule, mais on peut regarder ailleurs, et leurs prix)
+// et la Maison. Il ne décide rien : il affiche l'état du jeu et transmet les choix du joueur.
 
 import type { Jeu } from '../moteur/jeu'
 import { distanceDepuisCapsule, texteDistance } from '../moteur/navigation'
 import type { Contrat } from '../moteur/contrats'
 import { texteDuree, texteRestant } from './textes'
 import { MAISONS, maisonDuContrat, titreMaison, type Maison } from '../donnees/maisons'
+import { TABLEAUX } from '../donnees/tableaux'
 import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat } from './textes-missions'
 
 export interface ChoixMissions {
@@ -40,6 +42,8 @@ export class VoletMissions {
   private dernier = ''
   private durees = new Map<number, { calcule: number; duree: number | null }>()
   private filtre = lireFiltre()
+  /** Le lieu dont on regarde les missions (null : celui de la capsule). */
+  private lieu: string | null = null
   private derniersArguments: Parameters<VoletMissions['afficher']> | null = null
 
   /** Temps de trajet d'une mission (ms), depuis là où est la capsule, ou null si hors de portée. */
@@ -51,6 +55,11 @@ export class VoletMissions {
     return duree
   }
 
+  /** À l'ouverture du volet : on revient aux missions du lieu de la capsule. */
+  revenirIci(): void {
+    this.lieu = null
+  }
+
   /** À appeler quand la capsule part ou change de vitesse : les temps de trajet sont à recalculer. */
   oublierDurees(): void {
     this.durees.clear()
@@ -58,6 +67,12 @@ export class VoletMissions {
 
   constructor(private element: HTMLElement, choix: ChoixMissions) {
     element.addEventListener('click', (e) => {
+      const l = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-lieu-filtre]')
+      if (l) {
+        this.lieu = l.dataset.lieuFiltre || null
+        if (this.derniersArguments) this.afficher(...this.derniersArguments)
+        return
+      }
       const f = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-filtre]')
       if (f) {
         this.filtre = (f.dataset.filtre || null) as Maison | null
@@ -75,8 +90,10 @@ export class VoletMissions {
     })
   }
 
-  afficher(jeu: Jeu, t: number, vitesse: number, maintenant: number): void {
-    this.derniersArguments = [jeu, t, vitesse, maintenant]
+  /** ici : le lieu (tableau) où est la capsule. */
+  afficher(jeu: Jeu, t: number, vitesse: number, maintenant: number, ici: string): void {
+    this.derniersArguments = [jeu, t, vitesse, maintenant, ici]
+    const lieu = this.lieu ?? ici
     let html = ''
     const ec = jeu.enCours
     if (ec) {
@@ -100,12 +117,16 @@ export class VoletMissions {
         + `<button type="button" class="abandon" data-choix="abandonner">Abandonner la mission</button></div>`
     }
     // Missions proposées : de la plus proche à la plus lointaine en temps de trajet (demande d'Adrien, 17/10/2026).
-    html += '<h3>Missions proposées</h3><div class="filtre-maisons">'
+    // Le lieu : une rangée de tous les lieux à missions (planètes, grandes lunes), celui de la capsule marqué « ici ».
+    html += '<h3>Missions proposées</h3><div class="filtre-lieux">' + TABLEAUX.map((x) => {
+      const lune = x.lieu !== x.systeme
+      return `<button type="button" data-lieu-filtre="${x.lieu === ici ? '' : x.lieu}" class="${lune ? 'lune' : ''}${x.lieu === lieu ? ' actif' : ''}">${x.lieu}${x.lieu === ici ? '<small>ici</small>' : ''}</button>`
+    }).join('') + '</div><div class="filtre-maisons">'
       + `<button type="button" data-filtre=""${this.filtre === null ? ' class="actif"' : ''}>TOUTES</button>`
       + MAISONS.map((m) => `<button type="button" data-filtre="${m.maison}" class="maison-${m.maison}${this.filtre === m.maison ? ' actif' : ''}">${m.titre}</button>`).join('')
       + '</div>'
-    const choisies = jeu.proposes.filter((c) => this.filtre === null || maisonDuContrat(c) === this.filtre)
-    if (!choisies.length) html += `<p class="note">Aucune mission des ${titreMaison(this.filtre!).toLowerCase()} proposée en ce moment.</p>`
+    const choisies = jeu.proposes.filter((c) => c.tableau === lieu && (this.filtre === null || maisonDuContrat(c) === this.filtre))
+    if (!choisies.length) html += `<p class="note">Aucune mission${this.filtre ? ` des ${titreMaison(this.filtre).toLowerCase()}` : ''} ici en ce moment.</p>`
     const triees = choisies.map((c) => ({ c, d: this.duree(jeu, c, t, vitesse, maintenant) }))
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))
     for (const { c, d } of triees) {
@@ -116,6 +137,14 @@ export class VoletMissions {
         + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></span></div></div>`
     }
     if (ec) html += '<p class="note">Une seule mission à la fois : termine ou abandonne celle en cours.</p>'
-    if (html !== this.dernier) this.element.innerHTML = this.dernier = html
+    if (html === this.dernier) return
+    const rangee = this.element.querySelector('.filtre-lieux')?.scrollLeft ?? 0
+    this.element.innerHTML = this.dernier = html
+    // La rangée des lieux garde sa position ; le lieu choisi reste visible.
+    const lieux = this.element.querySelector<HTMLElement>('.filtre-lieux')
+    if (!lieux) return
+    lieux.scrollLeft = rangee
+    const actif = lieux.querySelector<HTMLElement>('.actif')
+    if (actif && (actif.offsetLeft < lieux.scrollLeft || actif.offsetLeft + actif.offsetWidth > lieux.scrollLeft + lieux.clientWidth)) lieux.scrollLeft = actif.offsetLeft - 10
   }
 }

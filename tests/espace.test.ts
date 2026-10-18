@@ -33,13 +33,13 @@ describe('les épaves : partout, tout le temps (décision d’Adrien du 18/10/20
     }
   })
 
-  it('sur la carte, seulement celles que vise une mission ; les nettoyages visent les plus proches de la capsule', () => {
+  it('sur la carte, seulement celles que vise une mission ; les nettoyages de la Terre sont autour de la Terre', () => {
     const e = nouvelEspace()
     expect(EPAVES.some((x) => surLaCarte(e, x.nom, t0))).toBe(false)
     expect(surLaCarte(e, EPAVES[3].nom, t0, [EPAVES[3].nom])).toBe(true)
     const jeu = new Jeu()
     jeu.avancer(t0)
-    const nettoyages = jeu.proposes.filter((c) => maisonDuContrat(c) === 'nettoyeurs')
+    const nettoyages = jeu.proposes.filter((c) => c.tableau === 'Terre' && maisonDuContrat(c) === 'nettoyeurs')
     for (const c of nettoyages) expect(ecart(c.etapes[0].lieu, 'Terre', t0)).toBeLessThan(1_500_000) // autour de la Terre
   })
 })

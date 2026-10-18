@@ -1,7 +1,7 @@
 // Le cadran de navigation (le volet Navigation du cockpit) : la liste des astres où l'on peut aller, avec leur
 // distance à la capsule.
 // Planètes dans l'ordre depuis le Soleil ; une planète qui a des lunes se déplie ; les engins à part ; en tête, ce que
-// le radar a repéré (chasseurs aliens) et, plus bas, les épaves visées par une mission.
+// une mission vise (chasseurs aliens, ou celui qui nous tire dessus) et, plus bas, les épaves visées par une mission.
 // Toucher une ligne choisit la destination (et la carte se place sur son système).
 
 import { CORPS, enfants, type Corps } from '../moteur/corps'
@@ -54,7 +54,7 @@ export class Cadran {
     const { aliens, epaves } = this.reperes(t)
     let html = '<div class="liste">'
     if (aliens.length) {
-      html += '<h3>⚠ Repéré au radar</h3>'
+      html += '<h3>Chasseurs visés</h3>'
       for (const nom of aliens) html += this.ligne(parNom.get(nom)!, t, false)
     }
     html += '<h3>Soleil et planètes</h3>'
