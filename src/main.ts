@@ -817,13 +817,13 @@ function ouvrirMessages(canal?: string): void {
 }
 boutonMessages.addEventListener('click', () => ouvrirMessages())
 bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvrirMessages(bulleMessage.dataset.canal) })
-/** Chaque seconde : les non-lus (bouton des Messages, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
+/** Chaque seconde : les non-lus (bouton des Messages, et la rubrique Messages dans « Plus » ; plus de pastille sur l'onglet Plus, qui faisait doublon), une bulle sur la carte pour ce qui nous est adressé. */
 function courrier(): void {
   const t = Date.now()
   if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)
   const n = nonLus(jeu, t).total
   for (const [el, texte] of [[boutonMessages.querySelector<HTMLElement>('.pastille')!, String(n)],
-    [document.querySelector<HTMLElement>('#onglets .pastille-onglet')!, String(n)], [document.querySelector<HTMLElement>('.pastille-rubrique')!, String(n)]] as [HTMLElement, string][]) {
+    [document.querySelector<HTMLElement>('.pastille-rubrique')!, String(n)]] as [HTMLElement, string][]) {
     el.hidden = n === 0
     if (el.textContent !== texte) el.textContent = texte
   }

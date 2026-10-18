@@ -188,6 +188,11 @@ missiles et épaves sur la carte.
     500, Oracle 1000 (`PALIERS`, `statut()`). Le statut s'affiche en petit (violet) à côté du pseudo dans les Messages
     (bulles, conversations, annuaire) ; les bots ont leur collection (de 0 à 1000 : Le_Vieux_Ras est Oracle). Profil :
     bloc Monolithes (trouvés, statut, les six paliers, combien pour le suivant).
+    Retouches du 18/10/2026 : le bouton PING se grise dès qu'on appuie (écho attendu, puis recharge d'1 h) et reprend
+    ses couleurs quand il est prêt. Bandeau bloqué sur « ON ATTEND L'ÉCHO… » : un PING envoyé en temps accéléré
+    (essais), puis l'application relancée à l'heure vraie, partait « du futur » ; il est maintenant oublié
+    (`oublierFutur`). Plus de pastille de non-lus sur l'onglet Plus (doublon avec le bouton des Messages ; elle reste
+    sur la rubrique Messages, dans Plus).
     Correction du 18/10/2026 (Adrien croyait l'écho perdu) : l'écho revenait bien (1 min près de la Terre, 3 min vers
     Jupiter, 20 min vers Uranus, 1 h 20 vers Pluton), mais revenu l'application fermée, il ne s'annonçait pas, et son
     cercle (10 millions de km) sortait de l'écran. Désormais un écho revenu reste « non vu » (enregistré) : il

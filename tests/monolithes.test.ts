@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES } from '../src/donnees/monolithes'
 import {
-  croisement, palierSuivant, statut, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
+  croisement, oublierFutur, palierSuivant, statut, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
 } from '../src/moteur/monolithes'
 import { corps, position } from '../src/moteur/corps'
 import { C_KM_S } from '../src/moteur/navigation'
@@ -103,6 +103,16 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     expect(statut(1000)).toBe('Oracle')
     expect(palierSuivant(12)).toEqual({ seuil: 50, titre: 'Sourcier' })
     expect(palierSuivant(1000)).toBeNull()
+  })
+
+  it('un PING envoyé en temps accéléré puis l’horloge revenue à l’heure vraie : oublié (pas d’attente sans fin)', () => {
+    const e = nouveauxMonolithes()
+    pinger(e, { x: UA, y: 0 }, t0)
+    pinger(e, { x: UA, y: 1e6 }, t0 + 30 * 24 * H)
+    oublierFutur(e, t0 + H)
+    expect(e.echos.length).toBe(1)
+    expect(echoEnRoute(e, t0 + H)).toBeNull()
+    expect(peutPinger(e, t0 + H)).toBe(true)
   })
 
   it('un écho pas encore revenu ne compte pas', () => {

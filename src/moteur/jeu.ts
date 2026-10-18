@@ -11,7 +11,7 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { MessageEnvoye } from './messages'
-import { localise, monolitheNomme, nouveauxMonolithes, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
+import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { TABLEAUX } from '../donnees/tableaux'
@@ -295,6 +295,7 @@ export class Jeu {
    */
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
+    oublierFutur(this.monolithes, t)
     this.user(t, evenements)
     this.menaces(t, evenements)
     this.proposer(t)

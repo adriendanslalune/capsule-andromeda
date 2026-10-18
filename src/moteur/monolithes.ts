@@ -90,6 +90,15 @@ export function echoEnRoute(e: EtatMonolithes, t: number): Echo | null {
   return e.echos.find((x) => x.retour > t) ?? null
 }
 
+/**
+ * Oublie ce qui a été fait « dans le futur » : un PING envoyé en temps accéléré (essais), puis l'application relancée à
+ * l'heure vraie. Sans ça, l'écho resterait en attente (et la radio indisponible) jusqu'à l'heure de son envoi.
+ */
+export function oublierFutur(e: EtatMonolithes, t: number): void {
+  if (e.dernierPing > t) e.dernierPing = 0
+  if (e.echos.some((x) => x.envoye > t)) e.echos = e.echos.filter((x) => x.envoye <= t)
+}
+
 /** Échos revenus que le joueur n'a pas encore vus (le plus récent d'abord). */
 export function echosNonVus(e: EtatMonolithes, t: number): Echo[] {
   return echosRevenus(e, t).filter((x) => !x.vu).sort((a, b) => b.retour - a.retour)
