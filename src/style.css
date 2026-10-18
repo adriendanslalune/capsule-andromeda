@@ -864,14 +864,29 @@ body.nuit #marche .baisse { color: #f08a72; }
 #profil .rang small { opacity: 0.6; }
 #profil .maison { display: inline-block; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 4px; }
 
-/* Messages : le bouton 💬 et la bulle d'arrivée sur la carte (sous le titre), les pastilles de non-lus. */
+/* Messages : le bouton des Messages et la bulle d'arrivée sur la carte (sous le titre), les pastilles de non-lus. */
 #rangee-messages { display: flex; justify-content: flex-end; align-items: flex-start; gap: 8px; }
-#bouton-messages { position: relative; pointer-events: auto; width: 48px; height: 48px; font-size: 22px; line-height: 1;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 50%; box-shadow: 3px 3px 0 var(--ombre); }
+/* Le bouton des Messages : un pictogramme dessiné à l'encre, en aplats pastel (DA Moebius, demande d'Adrien du
+   18/10/2026) : deux bulles de dialogue et une petite antenne qui émet. Même cadre que les autres boutons de la carte. */
+#bouton-messages { position: relative; pointer-events: auto; width: 52px; height: 48px; padding: 4px;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+#bouton-messages .picto-messages { display: block; width: 100%; height: 100%; overflow: visible; }
+.picto-messages path, .picto-messages circle { stroke: var(--encre); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.picto-messages .bulle-a { fill: #f2c66a; }
+.picto-messages .bulle-b { fill: #bfe0e8; }
+.picto-messages .ondes, .picto-messages .antenne, .picto-messages .texte { fill: none; }
+.picto-messages .antenne-bout { fill: #e04b37; stroke-width: 1.2; }
+.picto-messages .point { fill: #2b2138; stroke: none; }
+/* Les bulles sont des aplats clairs : leur trait et leurs détails restent à l'encre sombre, même la nuit. */
+.picto-messages .bulle-a, .picto-messages .bulle-b, .picto-messages .texte { stroke: #2b2138; }
+.picto-messages .ondes { stroke-width: 1.4; }
+#bouton-messages:has(.pastille:not([hidden])) .ondes { animation: emettre 1.6s ease-in-out infinite; }
+@keyframes emettre { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #bouton-messages .ondes { animation: none !important; } }
 #bouton-messages .pastille, #onglets .pastille-onglet, .pastille-rubrique, #messages .canaux .pastille {
   min-width: 18px; height: 18px; padding: 0 5px; font: bold 10px/15px var(--police); color: #fff; text-align: center;
   background: #e04b37; border: 1.5px solid var(--encre); border-radius: 9px; }
-#bouton-messages .pastille { position: absolute; top: -4px; right: -6px; }
+#bouton-messages .pastille { position: absolute; top: -7px; left: -8px; }
 #onglets .pastille-onglet { position: absolute; top: 3px; right: 6px; }
 .pastille-rubrique { display: inline-block; margin: 0 6px; vertical-align: 2px; }
 #bouton-messages .pastille[hidden], #onglets .pastille-onglet[hidden], .pastille-rubrique[hidden] { display: none; }

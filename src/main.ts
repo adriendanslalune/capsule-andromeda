@@ -654,7 +654,7 @@ function ouvrirMessages(canal?: string): void {
 }
 boutonMessages.addEventListener('click', () => ouvrirMessages())
 bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvrirMessages(bulleMessage.dataset.canal) })
-/** Chaque seconde : les non-lus (bouton 💬, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
+/** Chaque seconde : les non-lus (bouton des Messages, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
 function courrier(): void {
   const t = Date.now()
   if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)

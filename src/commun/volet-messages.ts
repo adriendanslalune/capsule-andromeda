@@ -1,4 +1,4 @@
-// Le volet Messages (dans « Plus », et le bouton 💬 de la carte ; décision d'Adrien du 18/10/2026 : « tout le fun est
+// Le volet Messages (dans « Plus », et le bouton des Messages sur la carte ; décision d'Adrien du 18/10/2026 : « tout le fun est
 // là », accessible et fun). Trois canaux : GÉNÉRAL (tout le système), MAISON (ses membres), PRIVÉS (une conversation
 // par interlocuteur ; toucher un nom ouvre la conversation). Chaque message dit d'où il vient et combien de temps la
 // lumière a mis à l'apporter ; les siens disent s'ils sont encore en route ; une réponse partie mais pas encore

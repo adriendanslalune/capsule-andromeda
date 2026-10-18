@@ -136,7 +136,8 @@ missiles et épaves sur la carte.
     dans… ») (`src/moteur/messages.ts`, testé).
   - Volet Messages (dans « Plus ») : canaux GÉNÉRAL, MAISON (réservé aux membres), PRIVÉS (conversations, annuaire
     des capitaines ; toucher un nom dans le général ouvre le privé) ; phrases rapides à un toucher ; saisie libre.
-  - Sur la carte : un bouton 💬 avec les non-lus (aussi sur l'onglet Plus), et une bulle quand arrive un message qui
+  - Sur la carte : le bouton des Messages (pictogramme Moebius dessiné : deux bulles de dialogue et une antenne qui
+    émet ; demande d'Adrien du 18/10/2026, à la même place) avec les non-lus (aussi sur l'onglet Plus), et une bulle quand arrive un message qui
     nous est adressé (réponse, privé, mention) ; la toucher ouvre la conversation.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
