@@ -201,6 +201,15 @@ missiles et épaves sur la carte.
     cercle (10 millions de km) sortait de l'écran. Désormais un écho revenu reste « non vu » (enregistré) : il
     s'annonce à la réouverture, et le bandeau garde « ÉCHO REÇU · MONOLITHE N° … » ; le toucher cadre la carte sur le
     cercle (ou sur le monolithe, s'il est localisé).
+  - Missions par système (décision d'Adrien du 18/10/2026) — **fait, en attente de validation** : 9 tableaux
+    (un par système) au lieu de 20 (plus de tableaux de lunes : la Lune paie dans le système de la Terre). Lieux
+    répartis dans tout le système ; portée de chaque mission (proche < 8 % de la sphère d'influence, mi-distance
+    < 30 %, lointaine au-delà), tirée parmi celles qui manquent au tableau (3 proches, 2 moyennes, 1 lointaine) ; prix =
+    base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
+    Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
+    « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - Refonte des Maisons décidée (18/10/2026, à faire) : Nettoyeurs (VIDER, REMORQUER), Mercenaires (ABATTRE au tour par
+    tour, ESCORTER), Ingénieurs à la place des Commerçants (RÉPARER un satellite, AMARRER), commerce ouvert à tous.
   - Commandes de la carte refaites (demande d'Adrien du 18/10/2026) : petits carrés à symbole dessinés à l'encre, en
     deux colonnes. À gauche : système intérieur (jusqu'à Mars), système extérieur (jusqu'à Pluton), capsule, +, −, et
     « calques » qui ouvre trois interrupteurs (Orbites, Noms, Pings ; retirés des Réglages). À droite : Messages, PING.

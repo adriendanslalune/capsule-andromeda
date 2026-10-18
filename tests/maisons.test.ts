@@ -18,11 +18,11 @@ describe('les missions et leur Maison', () => {
   }
   const t0 = Date.UTC(2026, 9, 18, 12)
 
-  it('joueur neutre : sur une planète 6 missions, 2 par Maison ; sur une lune 4, une par Maison et une de plus', () => {
+  it('joueur neutre : dans chaque système 6 missions, 2 par Maison', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
     expect(compter(jeu)).toEqual({ nettoyeurs: 2, commercants: 2, mercenaires: 2 })
-    expect(Object.values(compter(jeu, 'Titan')).sort()).toEqual([1, 1, 2])
+    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 2, commercants: 2, mercenaires: 2 })
   })
 
   it('joueur d’une Maison : 4 de sa Maison, 1 de chacune des autres ; une mission prise est remplacée par la même Maison', () => {
@@ -30,7 +30,7 @@ describe('les missions et leur Maison', () => {
     jeu.maison = 'mercenaires'
     jeu.avancer(t0)
     expect(compter(jeu)).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })
-    expect(compter(jeu, 'Titan')).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 2 })
+    expect(compter(jeu, 'Saturne')).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })
     const n = jeu.proposes.find((c) => c.tableau === 'Terre' && maisonDuContrat(c) === 'nettoyeurs')!
     jeu.accepter(n.id, t0)
     expect(compter(jeu)).toEqual({ nettoyeurs: 1, commercants: 1, mercenaires: 4 })

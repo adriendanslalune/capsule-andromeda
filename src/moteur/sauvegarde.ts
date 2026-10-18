@@ -3,6 +3,7 @@
 // Le jeu est en temps réel : on enregistre le trajet lui-même (départ, arrivée, points), pas une position ; un trajet
 // continue donc pendant que l'application est fermée, et la capsule est arrivée si l'heure d'arrivée est passée.
 
+import { TABLEAUX } from '../donnees/tableaux'
 import type { OrbiteCirculaire } from './capsule'
 import type { Contrat } from './contrats'
 import { corps } from './corps'
@@ -182,8 +183,8 @@ export function restaurer(s: unknown): Jeu | null {
   if (avecMissions) {
     jeu.graine = v.graine
     jeu.prochainId = v.prochainId
-    // Les missions d'avant les tableaux (sans lieu) sont oubliées : les tableaux se remplissent à neuf.
-    jeu.proposes = v.proposes.filter((c) => typeof c.tableau === 'string')
+    // Les missions d'avant les tableaux par système (sans système, ou d'une lune) sont oubliées : ils se remplissent à neuf.
+    jeu.proposes = v.proposes.filter((c) => typeof c.tableau === 'string' && TABLEAUX.some((x) => x.lieu === c.tableau))
     jeu.enCours = v.enCours
   }
   if (avecPannes) {

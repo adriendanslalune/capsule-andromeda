@@ -985,3 +985,5 @@ body.nuit #marche .baisse { color: #f08a72; }
   border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 8px; opacity: 0.6; }
 #profil .paliers span.atteint { border: 1.5px solid #7a5aa8; background: #d7cdee; opacity: 1; }
 #profil .paliers small { font-size: 10px; }
+/* La portée d'une mission dans son système (proche, mi-distance, lointaine). */
+#missions .portee { font-size: 10px; padding: 0 5px; border: 1px dashed currentColor; border-radius: 8px; opacity: 0.75; white-space: nowrap; }

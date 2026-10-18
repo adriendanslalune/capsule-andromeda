@@ -14,7 +14,7 @@ import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
-import { TABLEAUX } from '../donnees/tableaux'
+import { PORTEES, TABLEAUX, type Portee } from '../donnees/tableaux'
 import { contexte } from './tableaux'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -212,9 +212,9 @@ export class Jeu {
   }
 
   /**
-   * Complète les tableaux de missions (décisions d'Adrien du 18/10/2026) : chaque planète en a 6, chaque grande lune 4,
-   * réparties entre les Maisons (missionsParMaison) ; chaque mission se passe dans le système de son lieu ; son prix
-   * est fixé par la zone (le membre d'une Maison est payé 25 % de plus pour les missions de sa Maison).
+   * Complète les tableaux de missions (décisions d'Adrien du 18/10/2026) : 6 par système, réparties entre les Maisons
+   * (missionsParMaison) et entre les portées (3 proches, 2 moyennes, 1 lointaine) ; son prix est fixé par la zone du
+   * système et l'éloignement du lieu (le membre d'une Maison est payé 25 % de plus pour les missions de sa Maison).
    */
   proposer(t: number): void {
     // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
@@ -226,7 +226,18 @@ export class Jeu {
         while (this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison).length < voulues[maison]) {
           ctx ??= contexte(tableau, this.espace, t)
           const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
-          const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, ctx, maison, exclus)
+          // La portée voulue : tirée parmi celles qui manquent au tableau (3 proches, 2 moyennes, 1 lointaine), au
+          // prorata de ce qui manque ; puis les autres, au cas où la Maison n'a pas de lieu à cette portée.
+          const ici = this.proposes.filter((c) => c.tableau === tableau.lieu)
+          const manque = (p: Portee) => Math.max(0, PORTEES[p] - ici.filter((c) => c.portee === p).length)
+          const toutes: Portee[] = ['proche', 'moyenne', 'lointaine']
+          const total = toutes.reduce((s, p) => s + manque(p), 0)
+          const h = hasard(this.graine)
+          this.graine = h.graine
+          let r = h.x * total
+          const voulue = toutes.find((p) => (r -= manque(p)) < 0) ?? 'proche'
+          const portees = [voulue, ...toutes.filter((p) => p !== voulue).sort((a, b) => manque(b) - manque(a))]
+          const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, ctx, maison, exclus, portees)
           this.graine = graine
           if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
           this.proposes.push(contrat)

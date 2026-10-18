@@ -1,42 +1,42 @@
-// Les missions sont attachées aux lieux (décision d'Adrien du 18/10/2026) : 6 missions par planète (Pluton compris),
-// 4 par grande lune ; elles se consultent de partout (volet Missions, filtre de lieu). Chaque mission se passe dans le
-// système de son lieu, et son prix est fixé une fois pour toutes selon la zone (voir ZONES).
+// Les missions sont classées par système (décision d'Adrien du 18/10/2026, qui remplace les tableaux par planète et
+// par grande lune) : 6 missions par système, Pluton compris ; elles se consultent de partout (volet Missions, filtre de
+// système). Leurs lieux sont répartis dans tout le système (stations, satellites, épaves, lunes, chasseurs), au plus
+// près de la planète comme au bord de sa zone d'influence ; le prix est fixé une fois pour toutes à la création, selon
+// la zone du système (ZONES) et l'éloignement du lieu (ELOIGNEMENT).
 
 export interface Tableau {
-  /** Le lieu (planète ou lune) dont c'est le tableau de missions. */
+  /** Le système (sa planète) : ses missions se passent chez lui. */
   lieu: string
-  /** Le système (la planète) où se passent ses missions. */
   systeme: string
-  /** 6 pour une planète, 4 pour une lune. */
   nombre: number
 }
 
-const P = (lieu: string): Tableau => ({ lieu, systeme: lieu, nombre: 6 })
-const L = (lieu: string, systeme: string): Tableau => ({ lieu, systeme, nombre: 4 })
+const S = (lieu: string): Tableau => ({ lieu, systeme: lieu, nombre: 6 })
 
-export const TABLEAUX: readonly Tableau[] = [
-  P('Mercure'), P('Vénus'), P('Terre'), L('Lune', 'Terre'), P('Mars'),
-  P('Jupiter'), L('Io', 'Jupiter'), L('Europe', 'Jupiter'), L('Ganymède', 'Jupiter'), L('Callisto', 'Jupiter'),
-  P('Saturne'), L('Titan', 'Saturne'), L('Rhéa', 'Saturne'), L('Japet', 'Saturne'),
-  P('Uranus'), L('Titania', 'Uranus'), L('Obéron', 'Uranus'),
-  P('Neptune'), L('Triton', 'Neptune'),
-  P('Pluton'),
-]
+export const TABLEAUX: readonly Tableau[] = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'].map(S)
 
 /**
- * Validé par Adrien le 18/10/2026 (à ajuster plus tard) : le prix d'une mission dépend de sa zone, pas de là où est la capsule.
- * Facteur de zone = l'éloignement depuis la Terre (le port d'attache de tous, où s'achètent les moteurs) et le danger
- * du lieu. Mercure et Vénus, plus près du Soleil, paient selon la difficulté d'y aller et leur enfer (chaleur,
- * tempêtes solaires) : Vénus comme Mars, Mercure comme la ceinture d'astéroïdes.
+ * Facteur de zone de chaque système (validé par Adrien le 18/10/2026, à ajuster plus tard) : l'éloignement depuis la
+ * Terre (le port d'attache de tous, où s'achètent les moteurs) et le danger. Mercure et Vénus paient selon la
+ * difficulté d'y aller et leur enfer (chaleur, tempêtes solaires).
  */
 export const ZONES: Readonly<Record<string, number>> = {
-  Terre: 1, Lune: 2, Vénus: 4, Mars: 4, Mercure: 8,
-  Jupiter: 12, Io: 12, Europe: 12, Ganymède: 12, Callisto: 12,
-  Saturne: 20, Titan: 20, Rhéa: 20, Japet: 20,
-  Uranus: 30, Titania: 30, Obéron: 30,
-  Neptune: 45, Triton: 45,
-  Pluton: 60,
+  Terre: 1, Vénus: 4, Mars: 4, Mercure: 8, Jupiter: 12, Saturne: 20, Uranus: 30, Neptune: 45, Pluton: 60,
 }
+
+/** Portée d'une mission dans son système : près de la planète, à mi-distance, ou au bord de sa zone d'influence. */
+export type Portee = 'proche' | 'moyenne' | 'lointaine'
+/** Sur les 6 missions d'un système : 3 proches, 2 moyennes, 1 lointaine (des courtes et des longues). */
+export const PORTEES: Readonly<Record<Portee, number>> = { proche: 3, moyenne: 2, lointaine: 1 }
+/** Limites des portées, en part de la sphère d'influence du système (distance du lieu à la planète). */
+export const LIMITE_PROCHE = 0.08
+export const LIMITE_MOYENNE = 0.3
+/**
+ * Facteur d'éloignement du prix : ×1 tout près de la planète, jusqu'à ×2 à la moitié de la sphère d'influence et
+ * au-delà (une mission vers la Lune paie environ 1,5 fois une mission vers l'ISS).
+ */
+export const ELOIGNEMENT_MAX = 2
+export const ELOIGNEMENT_PLEIN = 0.5
 
 /** Prix de base d'une mission dans la zone de la Terre (crédits) : de 50 à 100, selon la mission. */
 export const PRIX_MIN = 50

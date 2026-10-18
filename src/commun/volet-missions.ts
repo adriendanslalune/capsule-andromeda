@@ -38,6 +38,9 @@ function etiquette(c: Contrat): string {
   return `<span class="maison maison-${m}">${titreMaison(m)}</span>`
 }
 
+/** La portée d'une mission dans son système, en un mot (sur sa carte). */
+const PORTEES_COURTES = { proche: 'proche', moyenne: 'mi-distance', lointaine: 'lointaine' } as const
+
 export class VoletMissions {
   private dernier = ''
   private durees = new Map<number, { calcule: number; duree: number | null }>()
@@ -117,10 +120,9 @@ export class VoletMissions {
         + `<button type="button" class="abandon" data-choix="abandonner">Abandonner la mission</button></div>`
     }
     // Missions proposées : de la plus proche à la plus lointaine en temps de trajet (demande d'Adrien, 17/10/2026).
-    // Le lieu : une rangée de tous les lieux à missions (planètes, grandes lunes), celui de la capsule marqué « ici ».
+    // Le système : une rangée des neuf systèmes, celui de la capsule marqué « ici ».
     html += '<h3>Missions proposées</h3><div class="filtre-lieux">' + TABLEAUX.map((x) => {
-      const lune = x.lieu !== x.systeme
-      return `<button type="button" data-lieu-filtre="${x.lieu === ici ? '' : x.lieu}" class="${lune ? 'lune' : ''}${x.lieu === lieu ? ' actif' : ''}">${x.lieu}${x.lieu === ici ? '<small>ici</small>' : ''}</button>`
+      return `<button type="button" data-lieu-filtre="${x.lieu === ici ? '' : x.lieu}" class="${x.lieu === lieu ? 'actif' : ''}">${x.lieu}${x.lieu === ici ? '<small>ici</small>' : ''}</button>`
     }).join('') + '</div><div class="filtre-maisons">'
       + `<button type="button" data-filtre=""${this.filtre === null ? ' class="actif"' : ''}>TOUTES</button>`
       + MAISONS.map((m) => `<button type="button" data-filtre="${m.maison}" class="maison-${m.maison}${this.filtre === m.maison ? ' actif' : ''}">${m.titre}</button>`).join('')
@@ -131,7 +133,7 @@ export class VoletMissions {
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))
     for (const { c, d } of triees) {
       const trajet = d === null ? 'hors de portée' : d === 0 ? 'sur place' : `trajet ${texteDuree(d)}`
-      html += `<div class="contrat"><div class="titre"><span>${etiquette(c)} <span class="genre">${GENRES_COURTS[c.genre]}</span></span><span class="prix">${c.recompense} cr.</span></div>`
+      html += `<div class="contrat"><div class="titre"><span>${etiquette(c)} <span class="genre">${GENRES_COURTS[c.genre]}</span>${c.portee ? ` <span class="portee">${PORTEES_COURTES[c.portee]}</span>` : ''}</span><span class="prix">${c.recompense} cr.</span></div>`
         + `<b>${titreContrat(c)}</b><div class="pied"><span><b>${trajet}</b><br>à ${texteDistance(distanceDepuisCapsule(c.etapes[0].lieu, t))}</span>`
         + `<span class="boutons"><button type="button" data-choix="voir" data-id="${c.id}">VOIR</button>`
         + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></span></div></div>`

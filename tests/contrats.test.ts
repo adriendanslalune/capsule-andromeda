@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { DUREE_ACTION, STATIONS } from '../src/donnees/contrats'
 import { TABLEAUX, ZONES } from '../src/donnees/tableaux'
-import { recompense, type Contrat } from '../src/moteur/contrats'
+import { facteurEloignement, recompense, type Contrat } from '../src/moteur/contrats'
+import { partDuSysteme } from '../src/moteur/tableaux'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
 import { planifier } from '../src/moteur/mission'
@@ -25,11 +26,12 @@ function avecContrat(contrat: Contrat): Jeu {
   return jeu
 }
 
-/** Nombre de missions de tous les tableaux : 6 par planète, 4 par grande lune. */
+/** Nombre de missions de tous les tableaux : 6 par système. */
 const TOTAL = TABLEAUX.reduce((s, x) => s + x.nombre, 0)
 
 describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
-  it('6 missions par planète, 4 par grande lune, toutes différentes, sur des lieux qui existent', () => {
+  it('9 systèmes, 6 missions chacun, toutes différentes, sur des lieux qui existent', () => {
+    expect(TABLEAUX.map((x) => x.lieu)).toEqual(['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'])
     const jeu = new Jeu()
     jeu.avancer(t0)
     expect(jeu.proposes).toHaveLength(TOTAL)
@@ -41,6 +43,35 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
       else expect(c.etapes).toHaveLength(1)
       if (c.tableau === 'Terre' && c.genre === 'livrer') expect(STATIONS).toContain(c.etapes[0].lieu)
     }
+  })
+
+  it('dans chaque système, des missions proches et des lointaines (3 proches, 2 moyennes, 1 lointaine quand le système le permet)', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    for (const x of TABLEAUX) {
+      const ici = jeu.proposes.filter((c) => c.tableau === x.lieu)
+      expect(ici.every((c) => c.portee), x.lieu).toBe(true)
+      expect(ici.some((c) => c.portee === 'proche'), x.lieu).toBe(true)
+    }
+    for (const x of TABLEAUX) {
+      const ici = jeu.proposes.filter((c) => c.tableau === x.lieu)
+      expect(ici.some((c) => c.portee !== 'proche'), x.lieu).toBe(true)
+      expect(ici.filter((c) => c.portee === 'lointaine').length, x.lieu).toBeLessThanOrEqual(2)
+    }
+    // Sur tous les systèmes : à peu près 3 proches, 2 moyennes, 1 lointaine (quand les lieux le permettent).
+    const n = (p: string) => jeu.proposes.filter((c) => c.portee === p).length
+    expect(n('proche')).toBeGreaterThan(n('moyenne'))
+    expect(n('moyenne')).toBeGreaterThan(n('lointaine'))
+    expect(n('lointaine')).toBeGreaterThanOrEqual(5)
+  })
+
+  it('le prix monte avec l’éloignement dans le système, de ×1 à ×2 (la Lune paie environ 1,5 fois l’ISS)', () => {
+    expect(facteurEloignement(0)).toBe(1)
+    expect(facteurEloignement(1)).toBe(2)
+    const lune = partDuSysteme('Lune', 'Terre', t0), iss = partDuSysteme('ISS', 'Terre', t0)
+    expect(facteurEloignement(iss)).toBeLessThan(1.02)
+    expect(facteurEloignement(lune)).toBeGreaterThan(1.4)
+    expect(facteurEloignement(lune)).toBeLessThan(1.65)
   })
 
   it('chaque mission se passe dans le système de son lieu', () => {
