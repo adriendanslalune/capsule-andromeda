@@ -126,6 +126,18 @@ missiles et épaves sur la carte.
   3 à 16 lettres ou chiffres ; sauvegardé) ; toile d'araignée de l'affinité avec les trois Maisons (part de chaque
   Maison dans les missions finies, `src/moteur/profil.ts`, testé) ; Maison : neutre (l'appartenance viendra à
   l'étape 8) ; carnet de bord (missions par Maison, crédits gagnés, objets triés) ; zones à libérer (toutes occupées).
+- Messages — **faits, en attente de validation** (décision d'Adrien : « tout le fun est là », accessible et fun) :
+  - En attendant le serveur (étape 10), 12 bots peuplent le système (`src/donnees/messages.ts`) : pseudo, Maison,
+    astre (de Mercure à Neptune). Ils bavardent (environ un message toutes les 3 minutes, les mêmes pour tous, avec de
+    vrais cours de leur marché), écrivent dans le canal de leur Maison, et parfois en privé au joueur.
+  - Tout voyage à la vitesse de la lumière : chaque message dit d'où il vient et combien la lumière a mis ; les
+    siens disent s'ils sont encore en route ; les bots répondent selon ce qu'on écrit (bonjour, marché, aide, aliens,
+    merci, question), après l'aller-retour de la lumière ; une réponse partie s'annonce (« ✍ a répondu… arrive
+    dans… ») (`src/moteur/messages.ts`, testé).
+  - Volet Messages (dans « Plus ») : canaux GÉNÉRAL, MAISON (réservé aux membres), PRIVÉS (conversations, annuaire
+    des capitaines ; toucher un nom dans le général ouvre le privé) ; phrases rapides à un toucher ; saisie libre.
+  - Sur la carte : un bouton 💬 avec les non-lus (aussi sur l'onglet Plus), et une bulle quand arrive un message qui
+    nous est adressé (réponse, privé, mention) ; la toucher ouvre la conversation.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

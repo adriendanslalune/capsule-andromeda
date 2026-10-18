@@ -863,3 +863,66 @@ body.nuit #marche .baisse { color: #f08a72; }
 #profil .rang:last-of-type { border-bottom: none; }
 #profil .rang small { opacity: 0.6; }
 #profil .maison { display: inline-block; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 4px; }
+
+/* Messages : le bouton 💬 et la bulle d'arrivée sur la carte (sous le titre), les pastilles de non-lus. */
+#rangee-messages { display: flex; justify-content: flex-end; align-items: flex-start; gap: 8px; }
+#bouton-messages { position: relative; pointer-events: auto; width: 48px; height: 48px; font-size: 22px; line-height: 1;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 50%; box-shadow: 3px 3px 0 var(--ombre); }
+#bouton-messages .pastille, #onglets .pastille-onglet, .pastille-rubrique, #messages .canaux .pastille {
+  min-width: 18px; height: 18px; padding: 0 5px; font: bold 10px/15px var(--police); color: #fff; text-align: center;
+  background: #e04b37; border: 1.5px solid var(--encre); border-radius: 9px; }
+#bouton-messages .pastille { position: absolute; top: -4px; right: -6px; }
+#onglets .pastille-onglet { position: absolute; top: 3px; right: 6px; }
+.pastille-rubrique { display: inline-block; margin: 0 6px; vertical-align: 2px; }
+#bouton-messages .pastille[hidden], #onglets .pastille-onglet[hidden], .pastille-rubrique[hidden] { display: none; }
+#bulle-message { pointer-events: auto; flex: 1; max-width: 300px; min-height: 44px; padding: 7px 12px; font: inherit; font-size: 12px; line-height: 1.35;
+  text-align: left; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 14px 14px 4px 14px;
+  box-shadow: 3px 3px 0 var(--ombre); animation: surgir 0.4s cubic-bezier(0.2, 1.5, 0.4, 1); }
+#bulle-message[hidden] { display: none; }
+#bulle-message b { margin-right: 4px; }
+
+/* Le volet Messages : canaux, fil de bulles, phrases rapides et saisie collées en bas. */
+#messages { display: flex; flex-direction: column; min-height: 60dvh; font-size: 13px; line-height: 1.4; }
+#messages .canaux { display: flex; gap: 6px; padding: 8px 10px 6px; position: sticky; top: 0; z-index: 1; background: var(--fond); }
+#messages .canaux button { flex: 1; min-height: 44px; font: inherit; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+#messages .canaux button.actif { background: var(--moutarde); color: #1f1b18; }
+#messages .canaux .pastille { display: inline-block; margin-left: 5px; vertical-align: 1px; }
+#messages .fil { flex: 1; padding: 0 0 8px; }
+#messages h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
+#messages .vide, #messages .info-canal { padding: 14px; font-size: 12px; opacity: 0.7; }
+#messages .bulle { margin: 7px 10px; padding: 7px 11px 6px; max-width: 84%; background: var(--creme); border: 1.5px solid var(--encre);
+  border-radius: 12px 12px 12px 3px; overflow-wrap: anywhere; }
+#messages .bulle.moi { margin-left: auto; border-radius: 12px 12px 3px 12px; background: color-mix(in srgb, var(--moutarde) 45%, var(--fond)); }
+#messages .bulle.en-route { font-size: 12px; font-style: italic; opacity: 0.75; border-style: dashed; background: transparent; }
+#messages .bulle .auteur { display: block; margin-bottom: 1px; font-size: 11px; font-weight: bold; letter-spacing: 0.03em; }
+#messages .bulle .auteur button { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0; font: inherit; color: var(--encre);
+  background: none; border: none; text-decoration: underline dotted; }
+#messages .bulle .auteur i { display: inline-block; width: 10px; height: 10px; border: 1.5px solid #2b2138; border-radius: 50%; }
+#messages .bulle small { display: block; margin-top: 3px; font-size: 10px; opacity: 0.65; }
+#messages .tete-prive { display: flex; align-items: center; gap: 10px; padding: 4px 10px 8px; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
+#messages .tete-prive button { width: 44px; min-height: 44px; font: inherit; font-size: 18px; color: var(--encre); background: var(--creme);
+  border: 2px solid var(--encre); border-radius: 8px; }
+#messages .tete-prive small, #messages .conversation small, #messages .annuaire small { display: block; font-size: 10.5px; opacity: 0.7; }
+#messages .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; font-weight: bold;
+  color: #1f1b18; border: 2px solid #2b2138; border-radius: 50%; }
+#messages .conversation { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 12px; font: inherit; color: var(--encre);
+  text-align: left; background: transparent; border: none; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#messages .conversation .texte { flex: 1; min-width: 0; }
+#messages .conversation small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#messages .conversation .quand { font-size: 10px; opacity: 0.6; white-space: nowrap; }
+#messages .annuaire { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 10px; }
+#messages .annuaire button { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; min-height: 52px; padding: 4px 8px;
+  font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); text-align: left; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 8px; }
+#messages .annuaire .avatar { grid-row: span 2; width: 28px; height: 28px; }
+#messages .annuaire small { font-weight: normal; }
+#messages .saisie { position: sticky; bottom: 0; padding: 6px 0 8px; background: var(--fond); border-top: 1.5px solid var(--encre); }
+#messages .saisie[hidden] { display: none; }
+#messages .rapides { display: flex; gap: 6px; overflow-x: auto; padding: 0 10px 6px; }
+#messages .rapides button { flex: none; min-height: 40px; padding: 0 12px; font: inherit; font-size: 12px; color: var(--encre);
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 20px; }
+#messages .ecrire { display: flex; gap: 6px; padding: 0 10px; }
+#messages .ecrire input { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; font: inherit; font-size: 16px; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; user-select: text; -webkit-user-select: text; }
+#messages .ecrire button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
+  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }

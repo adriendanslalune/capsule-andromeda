@@ -20,6 +20,7 @@
     <div id="haut">
       <div id="bandeau"></div>
       <div id="titre-carte"><button id="bouton-retour" type="button" hidden>‹ Système solaire</button><div id="titre"></div><button id="bouton-capsule" type="button" aria-label="Aller à la capsule">◎ Capsule</button></div>
+      <div id="rangee-messages"><button id="bulle-message" type="button" hidden></button><button id="bouton-messages" type="button" aria-label="Messages">💬<span class="pastille" hidden></span></button></div>
     </div>
     <div id="message" hidden></div>
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
@@ -39,10 +40,11 @@
       </div>
       <div class="page" data-contenu="manuel" id="manuel" hidden></div>
       <div class="page" data-contenu="profil" id="profil" hidden></div>
+      <div class="page" data-contenu="messages" id="messages" hidden></div>
       <div class="page" data-contenu="missions" id="missions" hidden></div>
       <div class="page" data-contenu="marche" id="marche" hidden></div>
       <div class="page" data-contenu="plus" hidden>
-        <button type="button" class="rubrique" disabled>Messages</button>
+        <button type="button" class="rubrique" data-page="messages">Messages <span class="pastille-rubrique" hidden></span>›</button>
         <button type="button" class="rubrique" data-page="profil">Profil ›</button>
         <button type="button" class="rubrique" data-page="manuel">Manuel ›</button>
         <button type="button" class="rubrique" data-page="reglages">Réglages ›</button>
@@ -78,7 +80,7 @@
       <button type="button" data-onglet="capsule">Capsule</button>
       <button type="button" data-onglet="missions">Missions</button>
       <button type="button" data-onglet="marche">Marché</button>
-      <button type="button" data-onglet="plus">Plus</button>
+      <button type="button" data-onglet="plus">Plus<span class="pastille-onglet" hidden></span></button>
     </nav>
     <div id="combat" class="plein" hidden></div>
     <div id="tri" class="plein" hidden></div>

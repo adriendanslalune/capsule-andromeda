@@ -5,14 +5,14 @@
 // touchant la carte.
 // Les onglets pas encore développés sont visibles mais grisés (désactivés dans la page).
 
-export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' | 'profil' | 'plus' | 'reglages'
+export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' | 'profil' | 'messages' | 'plus' | 'reglages'
 
 const TITRES: Record<Page, string> = {
-  navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'MISSIONS', marche: 'MARCHÉ', manuel: 'MANUEL DE MAINTENANCE', profil: 'PROFIL', plus: 'PLUS', reglages: 'RÉGLAGES',
+  navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'MISSIONS', marche: 'MARCHÉ', manuel: 'MANUEL DE MAINTENANCE', profil: 'PROFIL', messages: 'MESSAGES', plus: 'PLUS', reglages: 'RÉGLAGES',
 }
 /** Onglet allumé pour chaque page (le Manuel et les Réglages s'ouvrent depuis « Plus »). */
 const ONGLET: Record<Page, string> = {
-  navigation: 'navigation', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', plus: 'plus', reglages: 'plus',
+  navigation: 'navigation', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus',
 }
 
 export class Cockpit {

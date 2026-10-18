@@ -20,6 +20,8 @@ import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
 import { htmlProfil } from './commun/volet-profil'
+import { VoletMessages } from './commun/volet-messages'
+import { arrivesDepuis, nonLus } from './moteur/messages'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
@@ -236,6 +238,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
+  if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -485,6 +488,7 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
 }
 let dernierVolet = 0
 let dernierMarche = 0
+let dernierCourrier = 0
 
 // Volet Capsule : acheter le moteur suivant (après confirmation) ; les trajets prévus se recalculent à la nouvelle vitesse.
 const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#capsule')!, () => {
@@ -634,6 +638,44 @@ function afficherSoute(): void {
   const html = htmlSoute(jeu)
   if (html !== derniereSoute) pageSoute.innerHTML = derniereSoute = html
 }
+// --- Messages (décision d'Adrien du 18/10/2026 : « tout le fun est là », accessible et fun) ---
+// Les messages vivent en temps réel (Date.now()), pas au temps accéléré des essais.
+const voletMessages = new VoletMessages(document.querySelector<HTMLDivElement>('#messages')!, () => jeu, () => enregistrerPartie())
+// Avant la première ouverture : les 20 dernières minutes de bavardage sont « nouvelles » (le système est vivant).
+if (jeu.lus.debut === undefined) jeu.lus.debut = Date.now() - 20 * 60_000
+const boutonMessages = document.querySelector<HTMLButtonElement>('#bouton-messages')!
+const bulleMessage = document.querySelector<HTMLButtonElement>('#bulle-message')!
+let courrierDepuis = Date.now()
+let finBulle = 0
+/** Ouvre les Messages (sur un canal donné). */
+function ouvrirMessages(canal?: string): void {
+  cockpit.ouvrir('messages')
+  if (canal) voletMessages.ouvrirCanal(canal)
+}
+boutonMessages.addEventListener('click', () => ouvrirMessages())
+bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvrirMessages(bulleMessage.dataset.canal) })
+/** Chaque seconde : les non-lus (bouton 💬, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
+function courrier(): void {
+  const t = Date.now()
+  if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)
+  const n = nonLus(jeu, t).total
+  for (const [el, texte] of [[boutonMessages.querySelector<HTMLElement>('.pastille')!, String(n)],
+    [document.querySelector<HTMLElement>('#onglets .pastille-onglet')!, String(n)], [document.querySelector<HTMLElement>('.pastille-rubrique')!, String(n)]] as [HTMLElement, string][]) {
+    el.hidden = n === 0
+    if (el.textContent !== texte) el.textContent = texte
+  }
+  const nouveaux = arrivesDepuis(jeu, courrierDepuis, t)
+  courrierDepuis = t
+  const m = nouveaux[nouveaux.length - 1]
+  if (m && cockpit.pageOuverte !== 'messages') {
+    bulleMessage.innerHTML = `<b>${m.auteur}</b> ${m.texte.length > 70 ? `${m.texte.slice(0, 68)}…` : m.texte}`
+    bulleMessage.dataset.canal = m.canal
+    bulleMessage.hidden = false
+    finBulle = t + 6000
+    navigator.vibrate?.(30)
+  } else if (!bulleMessage.hidden && t > finBulle) bulleMessage.hidden = true
+}
+
 // Le Profil (dans « Plus ») : rempli à l'ouverture ; le pseudo se change ici.
 const pageProfil = document.querySelector<HTMLDivElement>('#profil')!
 function changerPseudo(): void {
@@ -732,6 +774,7 @@ function image(maintenant: number): void {
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
+  if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true

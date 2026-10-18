@@ -15,6 +15,7 @@ import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
+import type { MessageEnvoye } from './messages'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -53,6 +54,9 @@ export interface Sauvegarde {
   carnet?: Jeu['carnet']
   /** Le pseudo (absent : celui du départ). */
   pseudo?: string
+  /** Les messages envoyés, et ce qui a été lu (absents : rien). */
+  envoyes?: MessageEnvoye[]
+  lus?: Record<string, number>
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -62,7 +66,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo,
+    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus,
   }
 }
 
@@ -129,6 +133,14 @@ export function restaurer(s: unknown): Jeu | null {
   if (v.pseudo !== undefined) {
     if (typeof v.pseudo !== 'string' || !pseudoValide(v.pseudo)) return null
     jeu.pseudo = v.pseudo
+  }
+  if (v.envoyes !== undefined) {
+    if (!Array.isArray(v.envoyes) || !v.envoyes.every((m) => !!m && nombre(m.id) && nombre(m.envoye) && typeof m.canal === 'string' && typeof m.texte === 'string')) return null
+    jeu.envoyes = v.envoyes.map((m) => ({ id: m.id, canal: m.canal, texte: m.texte.slice(0, 200), envoye: m.envoye }))
+  }
+  if (v.lus !== undefined) {
+    if (!v.lus || typeof v.lus !== 'object' || !Object.values(v.lus).every(nombre)) return null
+    jeu.lus = { ...v.lus }
   }
   const c = v.carnet
   if (c !== undefined) {

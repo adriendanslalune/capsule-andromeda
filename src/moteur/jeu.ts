@@ -10,6 +10,7 @@ import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/ca
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
+import type { MessageEnvoye } from './messages'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -58,6 +59,9 @@ export class Jeu {
   defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
   /** Répartition de l'énergie entre boucliers, armes et moteurs (Capsule › Armement ; reprise au début d'un combat). */
   energie: Energie = { ...ENERGIE_DEPART }
+  /** Les messages envoyés par le joueur, et jusqu'à quand chaque canal a été lu (debut : avant, tout est lu). */
+  envoyes: MessageEnvoye[] = []
+  lus: Record<string, number> = {}
   /** Le pseudo du joueur (Profil ; c'est son nom dans les Messages). */
   pseudo = 'Capitaine'
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
