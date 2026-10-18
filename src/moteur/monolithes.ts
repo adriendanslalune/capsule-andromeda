@@ -12,7 +12,11 @@ import { UA_KM } from './temps'
 export interface Point { x: number; y: number }
 
 /** Un écho : envoyé d'une place (centre), il revient avec la distance du monolithe (rayon, km). */
-export interface Echo { monolithe: number; centre: Point; rayon: number; envoye: number; retour: number }
+export interface Echo {
+  monolithe: number; centre: Point; rayon: number; envoye: number; retour: number
+  /** Le joueur a vu l'écho revenu (touché sa ligne du bandeau, ou renvoyé un PING) : sinon, le bandeau le signale. */
+  vu?: boolean
+}
 
 export interface EtatMonolithes {
   /** Numéros des monolithes ramassés. */
@@ -56,6 +60,7 @@ export function peutPinger(e: EtatMonolithes, t: number): boolean {
 /** Envoie un PING depuis la place de la capsule ; renvoie l'écho attendu (ou null si on ne peut pas encore). */
 export function pinger(e: EtatMonolithes, capsule: Point, t: number): Echo | null {
   if (!peutPinger(e, t)) return null
+  marquerEchosVus(e)
   const trouves = new Set(e.trouves)
   let meilleur: Monolithe | null = null, dMin = Infinity
   for (const m of MONOLITHES) {
@@ -73,6 +78,16 @@ export function pinger(e: EtatMonolithes, capsule: Point, t: number): Echo | nul
 /** L'écho en route (envoyé, pas encore revenu), s'il y en a un. */
 export function echoEnRoute(e: EtatMonolithes, t: number): Echo | null {
   return e.echos.find((x) => x.retour > t) ?? null
+}
+
+/** Échos revenus que le joueur n'a pas encore vus (le plus récent d'abord). */
+export function echosNonVus(e: EtatMonolithes, t: number): Echo[] {
+  return echosRevenus(e, t).filter((x) => !x.vu).sort((a, b) => b.retour - a.retour)
+}
+
+/** Les échos revenus sont vus (le joueur a regardé). */
+export function marquerEchosVus(e: EtatMonolithes, t = Infinity): void {
+  for (const x of e.echos) if (x.retour <= t) x.vu = true
 }
 
 /** Échos revenus à l'instant t. */

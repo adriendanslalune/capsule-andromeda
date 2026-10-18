@@ -26,6 +26,12 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
     // On ne sait pas quand l'écho reviendra (décision d'Adrien du 18/10/2026) : pas de décompte.
     return { titre: 'PING ENVOYÉ · ON ATTEND L\'ÉCHO…', detail: 'il reviendra à la vitesse de la lumière : bientôt, ou pas' }
   }
+  if (l.genre === 'echo-recu') {
+    return {
+      titre: l.localise ? `MONOLITHE N° ${l.monolithe} LOCALISÉ !` : `ÉCHO REÇU · MONOLITHE N° ${l.monolithe}`,
+      detail: l.localise ? 'touche ici pour le voir sur la carte' : `à ${texteDistance(l.distance)} · touche ici pour voir le cercle`,
+    }
+  }
   if (l.genre === 'trajet') {
     return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }
   }

@@ -23,7 +23,7 @@ import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
-import { echosRevenus, localise, monolitheNomme, monolithesEcoutes, placesPossibles } from './moteur/monolithes'
+import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
 import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
@@ -45,7 +45,7 @@ import { solution, tourEnergie, type EtatReparation, type Resultat } from './mot
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
+import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
@@ -322,19 +322,30 @@ boutonPing.addEventListener('click', () => {
   annoncer('PING envoyé. On attend l\'écho…')
   navigator.vibrate?.(60)
 })
-/** Échos déjà annoncés (ceux revenus avant l'ouverture du jeu ne s'annoncent pas). */
-const echosAnnonces = new Set(echosRevenus(jeu.monolithes, horloge()).map((x) => x.envoye))
+/** Échos annoncés depuis l'ouverture du jeu ; un écho revenu l'application fermée s'annonce à la réouverture. */
+const echosAnnonces = new Set<number>()
 function suivreEchos(t: number): void {
-  for (const x of echosRevenus(jeu.monolithes, t)) {
+  for (const x of echosNonVus(jeu.monolithes, t)) {
     if (echosAnnonces.has(x.envoye)) continue
     echosAnnonces.add(x.envoye)
     const n = placesPossibles(jeu.monolithes, x.monolithe, t).length
-    annoncer(n === 1 ? `Monolithe n° ${x.monolithe} localisé ! Il est sur la carte (Navigation).`
+    annoncer(n === 1 ? `Monolithe n° ${x.monolithe} localisé ! Touche le bandeau pour le voir.`
       : `Écho du monolithe n° ${x.monolithe} : à ${texteDistance(x.rayon)}${n === 2 ? ' · deux places possibles : re-pingue d\'ailleurs' : ' · déplace-toi et re-pingue'}`)
     navigator.vibrate?.([80, 60, 80])
     if (n === 1 && cockpit.pageOuverte === 'navigation') cadran.afficher(selection)
     carteSale = true
   }
+}
+/** Montre l'écho revenu : le monolithe s'il est localisé, sinon son cercle en entier. */
+function montrerEcho(t: number): void {
+  const x = echosNonVus(jeu.monolithes, t)[0]
+  marquerEchosVus(jeu.monolithes, t)
+  enregistrerPartie()
+  if (!x) return
+  if (localise(jeu.monolithes, x.monolithe, t)) { choisir(`Monolithe n° ${x.monolithe}`, true); return }
+  if (!reglages.cercles) { reglages.cercles = true; memoriser(); afficherChoixAffichage() }
+  choisir(null)
+  carte.voler((1.3 * x.rayon) / (largeur / 2), performance.now(), projeter({ p: { x: x.centre.x, y: x.centre.y, z: 0 }, t }), true)
 }
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
@@ -409,6 +420,7 @@ bandeau.addEventListener('click', (e) => {
   } else if (ligne === 'contrat') cockpit.ouvrir('missions')
   else if (ligne === 'trajet' || ligne === 'orbite') cockpit.ouvrir('navigation')
   else if (ligne === 'echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
+  else if (ligne === 'echo-recu') montrerEcho(horloge())
   else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
 })
 

@@ -182,7 +182,13 @@ missiles et épaves sur la carte.
     (« Monolithes localisés »). Y aller, RAMASSER : il passe dans la cale ; ses cercles s'effacent. Capsule › Soute :
     « Monolithes · 3 / 1000 » et la liste (numéro, distance au Soleil, longitude), la même pour tous les joueurs.
     Moteur : `src/moteur/monolithes.ts` (tests `tests/monolithes.test.ts`). Intérêt : collection, statut dans les
-    Messages, et un vrai avantage à définir. La limite de 3 messages par jour est abandonnée (décision d'Adrien).
+    Messages par paliers (décision d'Adrien du 18/10/2026 : pas d'autre avantage pour l'instant ; pas de saisie d'un
+    emplacement pour localiser un monolithe). La limite de 3 messages par jour est abandonnée (décision d'Adrien).
+    Correction du 18/10/2026 (Adrien croyait l'écho perdu) : l'écho revenait bien (1 min près de la Terre, 3 min vers
+    Jupiter, 20 min vers Uranus, 1 h 20 vers Pluton), mais revenu l'application fermée, il ne s'annonçait pas, et son
+    cercle (10 millions de km) sortait de l'écran. Désormais un écho revenu reste « non vu » (enregistré) : il
+    s'annonce à la réouverture, et le bandeau garde « ÉCHO REÇU · MONOLITHE N° … » ; le toucher cadre la carte sur le
+    cercle (ou sur le monolithe, s'il est localisé).
   - Commandes de la carte refaites (demande d'Adrien du 18/10/2026) : petits carrés à symbole dessinés à l'encre, en
     deux colonnes. À gauche : système intérieur (jusqu'à Mars), système extérieur (jusqu'à Pluton), capsule, +, −, et
     « calques » qui ouvre trois interrupteurs (Orbites, Noms, Pings ; retirés des Réglages). À droite : Messages, PING.

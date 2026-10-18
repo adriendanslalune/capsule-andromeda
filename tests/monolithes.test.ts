@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES } from '../src/donnees/monolithes'
 import {
-  croisement, echoEnRoute, emplacement, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
+  croisement, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
 } from '../src/moteur/monolithes'
 import { corps, position } from '../src/moteur/corps'
 import { C_KM_S } from '../src/moteur/navigation'
@@ -72,6 +72,23 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
       const a = (e.longitude * Math.PI) / 180
       expect(e.ua * UA * Math.cos(a)).toBeCloseTo(m.x, -1)
     }
+  })
+
+  it('un écho revenu reste « non vu » (même l’application fermée) jusqu’à ce qu’on le regarde ou qu’on re-pingue', () => {
+    const e = nouveauxMonolithes()
+    const echo = pinger(e, { x: UA, y: 0 }, t0)!
+    expect(echosNonVus(e, echo.retour - 1)).toEqual([])
+    expect(echosNonVus(e, t0 + 5 * H)).toEqual([echo])
+    const jeu = new Jeu()
+    jeu.monolithes = e
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(echosNonVus(copie.monolithes, t0 + 5 * H).length).toBe(1)
+    marquerEchosVus(e, t0 + 5 * H)
+    expect(echosNonVus(e, t0 + 5 * H)).toEqual([])
+    const e2 = nouveauxMonolithes()
+    pinger(e2, { x: UA, y: 0 }, t0)
+    pinger(e2, { x: UA, y: 1e6 }, t0 + 2 * H)
+    expect(echosNonVus(e2, t0 + 5 * H).length).toBe(1)
   })
 
   it('un écho pas encore revenu ne compte pas', () => {

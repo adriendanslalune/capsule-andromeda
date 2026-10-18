@@ -165,7 +165,7 @@ export function restaurer(s: unknown): Jeu | null {
     if (!mo || !nombre(mo.dernierPing) || !Array.isArray(mo.trouves) || !mo.trouves.every((n) => nombre(n) && !!monolithe(n))
       || !Array.isArray(mo.echos) || !mo.echos.every((x) => !!x && !!monolithe(x.monolithe) && point(x.centre) && [x.rayon, x.envoye, x.retour].every(nombre))) return null
     jeu.monolithes = { trouves: [...new Set(mo.trouves)], dernierPing: mo.dernierPing,
-      echos: mo.echos.map((x) => ({ monolithe: x.monolithe, centre: { x: x.centre.x, y: x.centre.y }, rayon: x.rayon, envoye: x.envoye, retour: x.retour })) }
+      echos: mo.echos.map((x) => ({ monolithe: x.monolithe, centre: { x: x.centre.x, y: x.centre.y }, rayon: x.rayon, envoye: x.envoye, retour: x.retour, ...(x.vu === true ? { vu: true } : {}) })) }
   }
   const c = v.carnet
   if (c !== undefined) {

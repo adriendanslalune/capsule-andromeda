@@ -6,7 +6,7 @@
 import { periode } from './capsule'
 import type { Contrat, Etape } from './contrats'
 import { corps } from './corps'
-import { echoEnRoute } from './monolithes'
+import { echoEnRoute, echosNonVus, localise } from './monolithes'
 import type { Jeu } from './jeu'
 import type { NomModule } from '../donnees/modules'
 
@@ -17,6 +17,8 @@ export type LigneBandeau =
   | { genre: 'panne'; modules: NomModule[] }
   /** Un PING envoyé, son écho pas encore revenu (on ne dit pas quand il reviendra). */
   | { genre: 'echo' }
+  /** Un écho revenu, pas encore vu : quel monolithe, à quelle distance, localisé ou pas. */
+  | { genre: 'echo-recu'; monolithe: number; distance: number; localise: boolean }
   /** En route : destination, instant d'arrivée (ms UTC) et temps restant (ms). */
   | { genre: 'trajet'; cible: string; arrivee: number; reste: number }
   /**
@@ -38,6 +40,9 @@ export function lignesDuBandeau(jeu: Jeu, t: number): LigneBandeau[] {
   if (jeu.pannes.length) lignes.push({ genre: 'panne', modules: [...jeu.pannes] })
   const echo = echoEnRoute(jeu.monolithes, t)
   if (echo) lignes.push({ genre: 'echo' })
+  // L'écho revenu reste signalé tant que le joueur ne l'a pas regardé (même s'il est revenu l'application fermée).
+  const recu = echosNonVus(jeu.monolithes, t)[0]
+  if (recu) lignes.push({ genre: 'echo-recu', monolithe: recu.monolithe, distance: recu.rayon, localise: localise(jeu.monolithes, recu.monolithe, t) })
   const enRoute = m.phase(t) === 'trajet' && m.plan
   if (enRoute) lignes.push({ genre: 'trajet', cible: m.plan!.cible, arrivee: m.plan!.arrivee, reste: m.plan!.arrivee - t })
   const etape = jeu.etapeActuelle()
