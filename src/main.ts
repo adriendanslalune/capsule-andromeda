@@ -43,7 +43,7 @@ import {
 } from './moteur/communications'
 import { solution, tourEnergie, type EtatReparation, type Resultat } from './moteur/reparation'
 import { VoletMissions } from './commun/volet-missions'
-import { texteDate, texteDuree } from './commun/textes'
+import { texteDate, texteDateComplete, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
@@ -444,6 +444,13 @@ function mettreAJourFiche(t: number): void {
     depart = true
     libelle = 'RAMASSER'
     actionFiche = 'ramasser'
+  } else if (selection && !apercu && monolitheNomme(selection) && jeu.monolithes.trouves.includes(monolitheNomme(selection)!.numero)
+    && (dejaLa(t) || !proposee) && enRoute?.cible !== selection) {
+    // Un monolithe déjà ramassé (il reste sur la carte) : quand (demande d'Adrien du 18/10/2026).
+    const quand = jeu.monolithes.ramassesLe[monolitheNomme(selection)!.numero]
+    texte = `<b>${selection.toUpperCase()}</b> · déjà ramassé<br>${quand ? `le ${texteDateComplete(quand)}` : 'date inconnue'}`
+      + (dejaLa(t) ? '' : ` · à ${texteDistance(distanceDepuisCapsule(selection, t))}`)
+    if (!dejaLa(t)) { depart = true; libelle = 'Y ALLER' }
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !jeu.peutNaviguer() && !apercu) {
     // Navigation en panne : impossible de calculer un trajet.
     texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>NAVIGATION EN PANNE : impossible de calculer un trajet`
@@ -468,7 +475,7 @@ function mettreAJourFiche(t: number): void {
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     const genre = corps(selection)?.type
-    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? (jeu.monolithes.trouves.includes(monolitheNomme(selection)!.numero) ? ' · déjà dans ta cale' : ' · localisé à la radio') : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {

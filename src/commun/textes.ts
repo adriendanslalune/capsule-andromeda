@@ -29,6 +29,12 @@ export const texteDate = (t: number) =>
   new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
 /** Date courte : « aujourd'hui à 19:42 », « demain à 07:10 », « 11 nov. à 17:42 », « 3 mars 2028 à 09:00 ». */
+/** « 18 octobre 2026 à 22:05 » (heure du téléphone). */
+export function texteDateComplete(t: number): string {
+  const d = new Date(t)
+  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+}
+
 export function texteDateCourte(t: number, maintenant: number): string {
   const d = new Date(t), m = new Date(maintenant)
   const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })

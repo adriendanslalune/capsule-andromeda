@@ -60,6 +60,7 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     expect(Math.hypot(p[0].x - m.x, p[0].y - m.y)).toBeLessThan(1)
     expect(ramasser(e, 1, 1)).toBe(true)
     expect(e.trouves).toEqual([1])
+    expect(e.ramassesLe[1]).toBe(1)
     expect(e.echos.length).toBe(0)
   })
 
@@ -123,6 +124,15 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     e.echos = []
     const second = pinger(e, ici, t0 + 2 * H)!
     expect(second.monolithe).not.toBe(premier)
+  })
+
+  it('la date du ramassage est enregistrée avec la partie', () => {
+    const jeu = new Jeu()
+    jeu.monolithes.trouves.push(12, 846)
+    jeu.monolithes.ramassesLe[12] = t0
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.monolithes.ramassesLe).toEqual({ 12: t0 })
+    expect(copie.monolithes.trouves).toEqual([12, 846])
   })
 
   it('un écho pas encore revenu ne compte pas', () => {

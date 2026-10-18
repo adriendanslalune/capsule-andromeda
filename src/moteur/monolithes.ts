@@ -21,6 +21,8 @@ export interface Echo {
 export interface EtatMonolithes {
   /** Numéros des monolithes ramassés. */
   trouves: number[]
+  /** Date du ramassage de chacun (ms UTC) ; absente pour ceux ramassés avant qu'on la note. */
+  ramassesLe: Record<number, number>
   /** Échos des monolithes pas encore ramassés (en route ou revenus). */
   echos: Echo[]
   /** Instant du dernier PING (0 : jamais). */
@@ -28,7 +30,7 @@ export interface EtatMonolithes {
 }
 
 export function nouveauxMonolithes(): EtatMonolithes {
-  return { trouves: [], echos: [], dernierPing: 0 }
+  return { trouves: [], ramassesLe: {}, echos: [], dernierPing: 0 }
 }
 
 const PAR_NUMERO = new Map(MONOLITHES.map((m) => [m.numero, m]))
@@ -170,6 +172,7 @@ export function monolithesEcoutes(e: EtatMonolithes, t: number): number[] {
 export function ramasser(e: EtatMonolithes, numero: number, t: number): boolean {
   if (!localise(e, numero, t)) return false
   e.trouves.push(numero)
+  e.ramassesLe[numero] = t
   e.echos = e.echos.filter((x) => x.monolithe !== numero)
   return true
 }
