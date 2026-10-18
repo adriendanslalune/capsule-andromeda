@@ -66,7 +66,10 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   carte avec radar, alien, missile et décompte, épaves, zone occupée ; bandeau à 4 lignes ; tous les volets remplis
   (Navigation avec « Repéré au radar », Capsule avec ÉTAT / SOUTE / RÉPARATION, Missions avec la campagne et les
   maisons, Manuel, Armement, Marché avec le délai lumière, Messages, Profil avec la toile) ; vues plein écran du
-  combat et du tri. Données fictives.
+  combat et du tri. Données fictives. Avis d'Adrien : « vraiment top » ; le bandeau ne le gêne pas ; ajout d'un
+  filtre des missions par Maison ; le Manuel n'a pas besoin d'un onglet (il deviendra le guide du jeu,
+  téléchargeable et vendu en papier). Proposition en test dans la maquette : barre Navigation · Capsule · Missions ·
+  Marché · Plus ; l'Armement en sous-onglet de Capsule ; le Manuel dans Plus (et depuis le panneau de réparation).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

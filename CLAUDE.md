@@ -28,6 +28,8 @@ Précisions d'Adrien du 18/10/2026 (étape 4) :
 - Réparation : un onglet Réparation dans le volet Capsule, un grand panneau plein de modules, cadrans, câbles, écrans, jauges, radios… C'est là qu'on répare, en suivant le Manuel (onglet Manuel), à la manière de « Keep Talking and Nobody Explodes », avec un côté vintage dans l'esprit de Jules Verne.
 - Missiles : très rares près de la Terre (utile pour le tutoriel) ; plus on s'éloigne du Soleil, plus les aliens sont nombreux et plus les missiles sont fréquents. Les aliens sont visibles sur la carte dès qu'on s'en approche à une certaine distance (petite alerte : « le radar a repéré un alien »).
 
+Manuel (précision d'Adrien du 18/10/2026) : à terme, le manuel devient un guide général d'utilisation du jeu, téléchargeable et vendu aussi au format papier. Ses tableaux doivent donc rester les mêmes pour tous les joueurs (rien de propre à une partie dans le texte), pour qu'un exemplaire imprimé serve à tout le monde.
+
 Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via le chat et les échanges. Serveur plus tard (type Supabase).
 
 ## Règles de code

@@ -69,6 +69,11 @@
       .marche th:first-child, .marche td:first-child { text-align: left; }
       .marche td { padding: 8px 4px; text-align: right; border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
       .hausse { color: #3f8a4f; } .baisse { color: #b4442f; }
+      .filtre-maisons { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
+      .filtre-maisons button { flex: none; min-height: 40px; padding: 0 9px; font: inherit; font-size: 10px; font-weight: bold; letter-spacing: 0.06em;
+        color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 20px; opacity: 0.55; }
+      .filtre-maisons button[data-maison="toutes"] { background: var(--creme); color: var(--encre); }
+      .filtre-maisons button.actif { opacity: 1; border-width: 2.5px; box-shadow: 2px 2px 0 var(--ombre); }
       .places { display: flex; gap: 6px; overflow-x: auto; padding: 4px 10px 6px; }
       .places button { flex: none; min-height: 44px; padding: 0 10px; font: inherit; font-size: 11px; color: var(--encre); background: transparent;
         border: 1.5px solid var(--encre); border-radius: 8px; text-align: left; line-height: 1.2; }
@@ -181,7 +186,7 @@
     <div id="infos"><span class="maquette">MAQUETTE · données fictives</span></div>
     <div id="haut">
       <div id="bandeau">
-        <div class="ligne missile"><b><svg class="symbole alerte" viewBox="0 0 16 16"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>MISSILE EN APPROCHE · <span class="compte" id="compte">01:42</span></b><span>intercepter (Armement) ou accélérer</span></div>
+        <div class="ligne missile"><b><svg class="symbole alerte" viewBox="0 0 16 16"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>MISSILE EN APPROCHE · <span class="compte" id="compte">01:42</span></b><span>intercepter (Capsule › Armement) ou accélérer</span></div>
         <div class="ligne"><b>EN ROUTE VERS LA LUNE</b><span>arrivée à 14:09 · dans 2 h 12 min</span></div>
         <div class="ligne contrat"><b><svg class="symbole balai" viewBox="0 0 16 16"><path d="M10 2 6 9M3 10l4-1 2 2-1 4-5-5z"/></svg>MISSION : ÉPAVE · LUNE</b><span>vider l'épave Luna 9</span></div>
         <div class="etat"><span>1 240 crédits · soute 6/20</span><span>moteur niv. 2 · 60 km/s</span></div>
@@ -213,7 +218,7 @@
 
       <!-- CAPSULE : état, soute, réparation. -->
       <div class="page contenu" data-contenu="capsule" hidden>
-        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
+        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="armement">ARMEMENT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
         <div data-sous-page="etat">
           <h3>Moteur</h3>
           <div class="bloc"><b>Niveau 2</b> · 60 km/s
@@ -228,7 +233,7 @@
           </div>
           <h3>Armement embarqué</h3>
           <div class="bloc"><div class="rang"><span>Canon à rivets · Lance-missiles (2) · Intercepteurs (3)</span></div>
-            <button class="bouton large" data-aller="armement">ARMEMENT ›</button></div>
+            <button class="bouton large" data-sous="armement">ARMEMENT ›</button></div>
         </div>
         <div data-sous-page="soute" hidden>
           <h3>Soute · 6 / 20</h3>
@@ -240,6 +245,18 @@
           </div>
           <div style="padding: 0 10px"><button class="bouton large" data-aller="marche">VENDRE AU MARCHÉ ›</button></div>
         </div>
+        <div data-sous-page="armement" hidden>
+        <h3>Énergie à répartir · 6 crans</h3>
+        <div class="bloc" id="repartition"></div>
+        <h3>Armes</h3>
+        <div class="bloc">
+          <div class="rang"><span><b>Canon à rivets</b><br><small>tir sur un module ennemi · 1 cran</small></span><span>niv. 1</span></div>
+          <div class="rang"><span><b>Lance-missiles</b><br><small>2 missiles en réserve</small></span><button class="bouton">+1 · 80 cr.</button></div>
+          <div class="rang"><span><b>Intercepteurs</b><br><small>abattent un missile en approche</small></span><span>3</span></div>
+          <div class="rang"><span><b>Bouclier</b><br><small>absorbe un impact sur deux</small></span><span>niv. 1</span></div>
+        </div>
+        <div style="padding: 0 10px"><button class="bouton large principal" data-plein="combat">SIMULATEUR DE COMBAT</button></div>
+              </div>
         <div data-sous-page="reparation" hidden>
           <div class="note">Le panneau réel (5 blocs de 3 modules) ; les commandes s'ouvrent en touchant un module en défaut.</div>
           <img src="./maquette/panneau.jpg" alt="Panneau de réparation" style="display:block;width:calc(100% - 16px);margin:0 8px;border:2.5px solid var(--encre);border-radius:12px" />
@@ -259,14 +276,21 @@
           <div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Vider l'épave Luna 9</b><br><small>En route vers la Lune · arrivée dans 2 h 12 min</small></span><b>150 cr.</b></div>
         </div>
         <h3>Proposées</h3>
-        <div class="bloc"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Escorter le cargo Hermès</b><br><small>Terre → Lune · 4 h 07 min</small></span><span><b>320 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
-        <div class="bloc"><div class="rang"><span><span class="etiquette maison-c">COMMERÇANTS</span><br><b>Livrer du cuivre à Tiangong</b><br><small>12 min</small></span><span><b>90 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
-        <div class="bloc"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Dépanner Pioneer 10</b><br><small>très loin · 9 j 4 h</small></span><span><b>900 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
-        <div class="bloc"><div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Épave Kosmos 482</b><br><small>3 200 km · 2 min</small></span><span><b>60 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="filtre-maisons">
+          <button class="actif" data-maison="toutes">TOUTES</button><button class="maison-n" data-maison="n">NETTOYEURS</button><button class="maison-c" data-maison="c">COMMERÇANTS</button><button class="maison-m" data-maison="m">MERCENAIRES</button>
+        </div>
+        <div class="bloc" data-de="m"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Escorter le cargo Hermès</b><br><small>Terre → Lune · 4 h 07 min</small></span><span><b>320 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc" data-de="c"><div class="rang"><span><span class="etiquette maison-c">COMMERÇANTS</span><br><b>Livrer du cuivre à Tiangong</b><br><small>12 min</small></span><span><b>90 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc" data-de="m"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Dépanner Pioneer 10</b><br><small>très loin · 9 j 4 h</small></span><span><b>900 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc" data-de="c"><div class="rang"><span><span class="etiquette maison-c">COMMERÇANTS</span><br><b>Acheter de l'eau sur la Lune, la revendre à Tiangong</b><br><small>écart de 4 cr. la tonne · 4 h</small></span><span><b>~120 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc" data-de="n"><div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Débris autour de l'ISS</b><br><small>12 min · 2 min</small></span><span><b>50 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc" data-de="n"><div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Épave Kosmos 482</b><br><small>3 200 km · 2 min</small></span><span><b>60 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
       </div>
 
       <!-- MANUEL -->
       <div class="page" data-contenu="manuel" id="manuel" hidden>
+        <button type="button" class="retour" data-aller="plus" style="margin:-8px -8px 0;width:calc(100% + 16px)">‹ Plus</button>
+        <button type="button" class="vers-panneau">⬇ TÉLÉCHARGER LE MANUEL (PDF)</button>
         <div class="feuille">
           <div class="entete-doc"><div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. CA-MM</div><div>SOMMAIRE</div><div>RÉV. C · 03/2026</div></div>
           <h3>Sommaire</h3>
@@ -284,31 +308,14 @@
 
       <!-- PLUS : les rubriques. -->
       <div class="page" data-contenu="plus" hidden>
-        <button type="button" class="rubrique" data-aller="armement">Armement ›</button>
-        <button type="button" class="rubrique" data-aller="marche">Marché ›</button>
         <button type="button" class="rubrique" data-aller="messages">Messages <span class="etiquette" style="background:#e04b37;color:#fff">2</span> ›</button>
         <button type="button" class="rubrique" data-aller="profil">Profil ›</button>
+        <button type="button" class="rubrique" data-aller="manuel">Manuel · guide du jeu ›</button>
         <button type="button" class="rubrique">Réglages ›</button>
-      </div>
-
-      <!-- ARMEMENT -->
-      <div class="page contenu" data-contenu="armement" hidden>
-        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
-        <h3>Énergie à répartir · 6 crans</h3>
-        <div class="bloc" id="repartition"></div>
-        <h3>Armes</h3>
-        <div class="bloc">
-          <div class="rang"><span><b>Canon à rivets</b><br><small>tir sur un module ennemi · 1 cran</small></span><span>niv. 1</span></div>
-          <div class="rang"><span><b>Lance-missiles</b><br><small>2 missiles en réserve</small></span><button class="bouton">+1 · 80 cr.</button></div>
-          <div class="rang"><span><b>Intercepteurs</b><br><small>abattent un missile en approche</small></span><span>3</span></div>
-          <div class="rang"><span><b>Bouclier</b><br><small>absorbe un impact sur deux</small></span><span>niv. 1</span></div>
-        </div>
-        <div style="padding: 0 10px"><button class="bouton large principal" data-plein="combat">SIMULATEUR DE COMBAT</button></div>
       </div>
 
       <!-- MARCHÉ -->
       <div class="page contenu" data-contenu="marche" hidden>
-        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
         <div class="places">
           <button class="actif">Station Artémis<br>Lune · 1,3 s</button>
           <button>Tiangong<br>Terre · 0 s</button>
@@ -376,7 +383,7 @@
       <button type="button" data-onglet="navigation">Navigation</button>
       <button type="button" data-onglet="capsule">Capsule<span class="pastille">!</span></button>
       <button type="button" data-onglet="missions">Missions<span class="pastille">2</span></button>
-      <button type="button" data-onglet="manuel">Manuel</button>
+      <button type="button" data-onglet="marche">Marché</button>
       <button type="button" data-onglet="plus">Plus<span class="pastille">2</span></button>
     </nav>
 
@@ -429,8 +436,8 @@
     <script type="module">
       const $ = (s) => document.querySelector(s)
       const TITRES = { navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'MISSIONS', manuel: 'MANUEL DE MAINTENANCE', plus: 'PLUS',
-        armement: 'ARMEMENT', marche: 'MARCHÉ', messages: 'MESSAGES', profil: 'PROFIL' }
-      const ONGLET = { armement: 'plus', marche: 'plus', messages: 'plus', profil: 'plus' }
+        marche: 'MARCHÉ', messages: 'MESSAGES', profil: 'PROFIL' }
+      const ONGLET = { manuel: 'plus', messages: 'plus', profil: 'plus' }
       let page = null
       function ouvrir(p) {
         page = p
@@ -472,6 +479,13 @@
         $('#bouton-depart').hidden = false
         $('#bouton-depart').onclick = () => ouvrirPlein(vue)
         $('#trajet').hidden = false
+      })
+
+      // Filtre des missions proposées par Maison (demande d'Adrien du 18/10/2026).
+      document.querySelector('.filtre-maisons').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-maison]'); if (!b) return
+        for (const x of document.querySelectorAll('.filtre-maisons button')) x.classList.toggle('actif', x === b)
+        for (const m of document.querySelectorAll('[data-de]')) m.hidden = b.dataset.maison !== 'toutes' && m.dataset.de !== b.dataset.maison
       })
 
       function avis(t) { $('#avis').textContent = t; $('#avis').hidden = false; clearTimeout(avis.m); avis.m = setTimeout(() => { $('#avis').hidden = true }, 2200) }
