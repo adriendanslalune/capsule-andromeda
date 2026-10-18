@@ -22,6 +22,7 @@ import { VueTri } from './commun/vue-tri'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
+import { aliensReperes, epavesLa, intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
@@ -99,6 +100,8 @@ const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
+// La carte ne montre que les épaves présentes et les chasseurs repérés au radar.
+carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t)
 let largeur = 390, hauteur = 844
 let selection: string | null = null
 /** Vrai si la caméra suit ce qui est choisi (faux une fois qu'on a fait glisser la carte). */
@@ -240,7 +243,8 @@ const cockpit = new Cockpit((page) => {
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
-const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
+const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
+  (t) => ({ aliens: aliensReperes(jeu.espace, t), epaves: epavesLa(jeu.espace, t) }))
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
@@ -273,11 +277,17 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
-let actionFiche: 'depart' | 'agir' | 'accepter' = 'depart'
+let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'vider' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
 /** La destination choisie est-elle là où l'on est déjà (ou la capsule elle-même) ? */
+/** L'épave libre à côté de laquelle est la capsule (en orbite autour d'elle), ou null. */
+function epaveIci(t: number): string | null {
+  const c = mission.phase(t) === 'orbite' ? mission.centre(t) : null
+  return c && jeu.aCoteDeLEpave(c, t) ? c : null
+}
+
 function dejaLa(t: number): boolean {
   return !selection || selection === CAPSULE || (mission.phase(t) === 'orbite' && mission.centre(t) === selection)
 }
@@ -301,7 +311,12 @@ const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
 // réparation ; la mission, le volet Missions ; le trajet ou l'orbite, la Navigation ; crédits et moteur, la Capsule.
 bandeau.addEventListener('click', (e) => {
   const ligne = (e.target as HTMLElement).closest<HTMLElement>('[data-ligne]')?.dataset.ligne
-  if (ligne === 'panne') {
+  if (ligne === 'missile') {
+    // Toucher le missile, c'est l'intercepter (s'il reste un intercepteur).
+    const t = horloge()
+    if (intercepterMissile(jeu.espace, t)) { annoncer(`Missile intercepté ! (${jeu.espace.intercepteurs} intercepteur${jeu.espace.intercepteurs > 1 ? 's' : ''} restant${jeu.espace.intercepteurs > 1 ? 's' : ''})`); enregistrerPartie() }
+    else annoncer('Plus d\'intercepteur ! Un nouveau dans moins de 30 minutes…')
+  } else if (ligne === 'panne') {
     // Un bloc qui se répare sur le panneau, sinon l'onglet ÉTAT (réparation provisoire).
     const bloc = jeu.pannes.find((b) => !jeu.reparationProvisoire(b))
     if (bloc) montrerReparation(bloc)
@@ -330,6 +345,18 @@ function mettreAJourFiche(t: number): void {
       + (duree === null ? 'hors de portée' : `trajet ${texteDuree(duree)}`)
       + (jeu.enCours ? ' · une mission est déjà en cours' : '')
     if (!jeu.enCours && duree !== null) { depart = true; libelle = 'ACCEPTER'; actionFiche = 'accepter' }
+  } else if (selection && corps(selection)?.type === 'alien') {
+    // Un chasseur repéré au radar : on l'attaque (vue de combat).
+    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>chasseur alien d'Andromède, repéré au radar`
+    depart = surLaCarte(jeu.espace, selection, t)
+    libelle = 'COMBAT'
+    actionFiche = 'combat'
+  } else if (epaveIci(t) && (!selection || selection === epaveIci(t))) {
+    // À côté d'une épave libre : on la vide (le tri de ses matériaux).
+    texte = `<b>${epaveIci(t)!.toUpperCase()}</b> · épave, tu es à côté<br>trie ses matériaux : ils iront dans ta soute`
+    depart = true
+    libelle = 'VIDER'
+    actionFiche = 'vider'
   } else if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
     // Sur le lieu de la mission : le bouton de l'action (RÉPARER, LIVRER…), puis le temps qui reste.
     texte = `<b>${etape.lieu.toUpperCase()}</b> · mission<br>${titreContrat(jeu.enCours!.contrat)}`
@@ -337,7 +364,7 @@ function mettreAJourFiche(t: number): void {
     else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
-    texte = `<b>${selection.toUpperCase()}</b><br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    texte = `<b>${selection.toUpperCase()}</b>${corps(selection)?.type === 'epave' ? ' · épave à vider' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
@@ -362,6 +389,8 @@ boutonDepart.addEventListener('click', () => {
   const t = horloge()
   if (actionFiche === 'agir') { agirMission(); return }
   if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
+  if (actionFiche === 'combat') { combattre(selection!); return }
+  if (actionFiche === 'vider') { viderEpaveIci(); return }
   if (!jeu.peutNaviguer()) return
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
@@ -479,7 +508,14 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
       carteSale = true
     }
     else if (e.genre === 'action-interrompue') annoncer('Action interrompue : la capsule est repartie')
-    else if (e.genre === 'panne') {
+    else if (e.genre === 'missile') {
+      annoncer(`⚠ MISSILE EN APPROCHE ! Touche le bandeau pour l'intercepter`)
+      navigator.vibrate?.([200, 100, 200])
+    } else if (e.genre === 'impact') {
+      annoncer(e.modules.length ? `IMPACT ! En panne : ${e.modules.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}` : 'IMPACT !')
+      navigator.vibrate?.(400)
+      apresChangementDePanne()
+    } else if (e.genre === 'panne') {
       annoncer(`PANNE : ${MODULES.find((f) => f.nom === e.module)!.titre} !`)
       apresChangementDePanne()
     }
@@ -654,8 +690,15 @@ function ouvrirMessages(canal?: string): void {
 }
 boutonMessages.addEventListener('click', () => ouvrirMessages())
 bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvrirMessages(bulleMessage.dataset.canal) })
+/** Chasseurs déjà repérés (pour annoncer les nouveaux). */
+let reperes = new Set<string>()
 /** Chaque seconde : les non-lus (bouton des Messages, onglet Plus), une bulle sur la carte pour ce qui nous est adressé. */
 function courrier(): void {
+  // Le radar : un chasseur qui entre dans sa portée est annoncé (décision d'Adrien du 18/10/2026).
+  const vus = new Set(aliensReperes(jeu.espace, horloge()))
+  const nouveau = [...vus].find((a) => !reperes.has(a))
+  if (nouveau) { annoncer(`RADAR : un chasseur alien repéré (${nouveau})`); navigator.vibrate?.(60) }
+  reperes = vus
   const t = Date.now()
   if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)
   const n = nonLus(jeu, t).total
@@ -715,8 +758,46 @@ const pageManuel = document.querySelector<HTMLDivElement>('#manuel')!
 pageManuel.innerHTML = '<button type="button" class="retour" data-page="plus">‹ Plus</button>' + htmlManuel()
 pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => montrerReparation())
 
+/** Attaquer un chasseur repéré (la vue de combat) : vaincu, il disparaît ; la retraite abîme la Coque. */
+function combattre(alien: string): void {
+  cockpit.fermer()
+  vueCombat.ouvrir({
+    titre: `COMBAT · ${alien.toUpperCase()}`,
+    surFin: (fin) => {
+      const t = horloge()
+      if (fin === 'victoire') { vaincre(jeu.espace, alien, t); choisir(null); enregistrerPartie(); return 'Il ne reviendra pas de sitôt. Ses missiles en vol sont tombés avec lui.' }
+      if (fin === 'retraite') { jeu.casser('coque'); apresChangementDePanne(); return 'La Coque est en panne : à réparer (un impact touchera deux blocs).' }
+      return 'Il est toujours là : il peut encore tirer.'
+    },
+  })
+}
+/** Vider l'épave libre à côté de laquelle est la capsule (le tri : ses matériaux vont dans la soute). */
+function viderEpaveIci(): void {
+  const nom = epaveIci(horloge())
+  if (!nom) return
+  cockpit.fermer()
+  vueTri.ouvrir({
+    titre: `ÉPAVE · ${nom.toUpperCase()}`,
+    surFin: (e) => {
+      const r = jeu.viderEpave(nom, e.materiaux, objetsTries(e), horloge())
+      if (!r) return 'La capsule n\'est plus à côté de l\'épave : rien n\'a été rangé.'
+      enregistrerPartie()
+      carteSale = true
+      return r.perdu ? `Rangé dans la soute… mais elle est pleine : ${r.perdu.toLocaleString('fr-FR')} t laissées dans l'épave.` : 'Tout est rangé dans la soute. L\'épave reviendra (d\'autres débris) d\'ici un jour.'
+    },
+  })
+}
+
 /** Après une panne ou une réparation : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */
 function apresChangementDePanne(): void {
+  // En route, le trajet suit la vitesse du moteur : ralenti de moitié tant qu'il est en panne, et de nouveau à pleine
+  // vitesse une fois réparé (décision d'Adrien : un impact ralentit le trajet de 50 % jusqu'à réparation).
+  const t = horloge()
+  const plan = mission.phase(t) === 'trajet' ? mission.plan : null
+  if (plan && plan.vitesse !== vitesse() && jeu.peutNaviguer()) {
+    const p = planifier(mission.etatHeliocentrique(t), plan.cible, t, vitesse())
+    if (p.possible) mission.partir(p.plan)
+  }
   enregistrerPartie()
   voletMissions.oublierDurees()
   planAJour = 0
@@ -836,6 +917,13 @@ function image(maintenant: number): void {
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
     for (const tr of autresTraces) carte.dessinerTraits(ctxPlan, t, null, tr, tr[tr.length - 1], accent, { encre: th.encre, fond: th.halo })
+    // Les missiles aliens en vol, avec leur décompte.
+    if (jeu.espace.missiles.length) {
+      carte.dessinerMissiles(ctxPlan, t, jeu.espace.missiles.map((m) => {
+        const s = Math.max(0, Math.ceil((m.impact - t) / 1000))
+        return { alien: m.alien, fraction: Math.min(1, (t - m.lance) / (m.impact - m.lance)), decompte: `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
+      }), { encre: th.encre, fond: th.halo })
+    }
     // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
     const eviter: { x: number; y: number }[] = []
     if (rendezVous) eviter.push(carte.ecranDe(rendezVous))
@@ -867,6 +955,7 @@ requestAnimationFrame(image)
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {
   andromeda: {
+    horloge: () => horloge(),
     // Essais : la réponse du manuel pour le tour en cours de la réparation d'un module.
     solution: (a: NomAppareil) => {
       const r = jeu.reparation(a)

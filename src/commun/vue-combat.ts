@@ -13,8 +13,14 @@ import { htmlEnergie } from './volet-capsule'
 const PLACES: Record<NomModuleEnnemi, [number, number]> = { missiles: [185, 52], bouclier: [122, 100], reacteur: [248, 100], canon: [185, 122] }
 const CAPSULE: [number, number] = [185, 268]
 
+/** Un combat : son titre, et ce qui arrive à la fin (un vrai chasseur : vaincu, ou la coque abîmée ; le texte dit quoi). */
+export interface OptionsCombat { titre: string; surFin?: (fin: 'victoire' | 'retraite' | 'fuite') => string }
+export const SIMULATEUR: OptionsCombat = { titre: 'SIMULATEUR · CHASSEUR ALIEN' }
+
 export class VueCombat {
   private etat: EtatCombat | null = null
+  private options: OptionsCombat = SIMULATEUR
+  private finRacontee = false
   private cible: NomModuleEnnemi = 'reacteur'
   private message = ''
   private finMessage = 0
@@ -36,7 +42,7 @@ export class VueCombat {
   /** energie : la répartition de départ (celle de l'Armement) ; garder : appelé quand le joueur la change. */
   constructor(private element: HTMLElement, private energie: () => Energie, private garder: (e: Energie) => void) {
     element.innerHTML = `
-      <div class="entete-plein"><span>SIMULATEUR · CHASSEUR ALIEN</span><button type="button" data-fuir>FUIR</button></div>
+      <div class="entete-plein"><span class="titre-combat"></span><button type="button" data-fuir>FUIR</button></div>
       <div class="corps">
         <svg class="scene sans-glisser" viewBox="0 0 370 300"></svg>
         <div class="etat-combat"><span>COQUE</span><span class="jauge-coque"><i></i></span><b class="coque"></b></div>
@@ -66,7 +72,7 @@ export class VueCombat {
       if (!b || b.disabled) return
       const t = Date.now(), etat = this.etat
       if (b.dataset.fermer !== undefined) { this.fermer(); return }
-      if (b.dataset.rejouer !== undefined) { this.ouvrir(); return }
+      if (b.dataset.rejouer !== undefined) { this.ouvrir(this.options); return }
       if (!etat) return
       if (b.dataset.fuir !== undefined) {
         if (etat.fin) this.fermer()
@@ -92,7 +98,10 @@ export class VueCombat {
   }
 
   /** Commence un combat d'entraînement. */
-  ouvrir(): void {
+  ouvrir(options: OptionsCombat = SIMULATEUR): void {
+    this.options = options
+    this.finRacontee = false
+    this.element.querySelector('.titre-combat')!.textContent = options.titre
     const t = Date.now()
     this.etat = nouveauCombat((t % 2147483647) >>> 0, this.energie(), t)
     this.cible = 'reacteur'
@@ -196,12 +205,14 @@ export class VueCombat {
 
     // La fin du combat.
     this.elFin.hidden = !e.fin
-    if (e.fin && !this.elFin.innerHTML.includes(e.fin)) {
+    if (e.fin && !this.finRacontee) {
+      this.finRacontee = true
       const [titre, texteFin] = e.fin === 'victoire' ? ['VICTOIRE !', 'Le chasseur est hors de combat.']
         : e.fin === 'fuite' ? ['FUITE RÉUSSIE', 'La capsule a semé le chasseur.']
           : ['RETRAITE', 'Coque à zéro : la capsule se replie (pas de game over).']
-      this.elFin.innerHTML = `<div class="carte-fin" data-fin="${e.fin}"><b>${titre}</b><p>${texteFin}</p>`
-        + '<div class="boutons-fin"><button type="button" data-rejouer>REJOUER</button><button type="button" class="principal" data-fermer>FERMER</button></div></div>'
+      const suite = this.options.surFin ? this.options.surFin(e.fin) : 'Simulateur : rien n\'arrive à ta capsule.'
+      this.elFin.innerHTML = `<div class="carte-fin" data-fin="${e.fin}"><b>${titre}</b><p>${texteFin}</p><p class="petit">${suite}</p>`
+        + `<div class="boutons-fin">${this.options.surFin ? '' : '<button type="button" data-rejouer>REJOUER</button>'}<button type="button" class="principal" data-fermer>FERMER</button></div></div>`
     }
     if (!e.fin) this.elFin.innerHTML = ''
     this.element.querySelector('[data-fuir]')!.textContent = e.fin ? 'FERMER' : 'FUIR'

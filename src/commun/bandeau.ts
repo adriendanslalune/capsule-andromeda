@@ -8,6 +8,13 @@ import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes 
 
 /** Titre et détail d'une ligne : « EN ROUTE VERS MARS », « arrivée demain à 07:10 · dans 19 h 20 min ». */
 export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string } {
+  if (l.genre === 'missile') {
+    const s = Math.ceil(l.reste / 1000)
+    return {
+      titre: `MISSILE EN APPROCHE · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`,
+      detail: l.intercepteurs ? `touche ici pour l'intercepter (${l.intercepteurs} intercepteur${l.intercepteurs > 1 ? 's' : ''})` : 'plus d\'intercepteur : il va frapper !',
+    }
+  }
   if (l.genre === 'panne') {
     const fiches = l.modules.map((m) => MODULES.find((f) => f.nom === m)!)
     return {
@@ -51,7 +58,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     const { titre, detail } = texteLigne(l, t)
     textes.push(titre, detail)
     // Mission : son symbole animé (plus vif pendant l'action sur place).
-    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' ? SYMBOLE_PANNE : ''
+    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' ? SYMBOLE_PANNE : ''
     const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
     // Toucher une ligne ouvre le volet qui va avec (demande d'Adrien du 18/10/2026 ; voir main.ts).
     return `<div class="ligne ${classe}" data-ligne="${l.genre}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`

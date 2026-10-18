@@ -83,6 +83,11 @@ html, body {
 /* Panne : la ligne la plus urgente, sur fond rosé, avec un triangle qui palpite. */
 #bandeau .ligne.panne { background: color-mix(in srgb, #e04b37 16%, transparent); border-radius: 6px 6px 0 0; }
 #bandeau .ligne.panne b { color: #b4442f; }
+/* Missile en approche : la ligne la plus urgente, sur fond cerise, qui palpite. */
+#bandeau .ligne.missile { background: color-mix(in srgb, #e04b37 30%, transparent); border-radius: 6px 6px 0 0; animation: alerte-missile 1s ease-in-out infinite; }
+#bandeau .ligne.missile b { color: #8f2a1c; }
+body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
+@keyframes alerte-missile { 50% { background: color-mix(in srgb, #e04b37 12%, transparent); } }
 #bandeau .alerte { animation: palpiter 1.2s ease-in-out infinite; }
 @keyframes palpiter { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 /* Symbole animé du genre de mission, discret, devant son titre. */

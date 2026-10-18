@@ -11,13 +11,14 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { MessageEnvoye } from './messages'
+import { avancerEspace, epaveLa, nouvelEspace, type EtatEspace } from './espace'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
-import { position } from './corps'
+import { corps, position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
 /**
@@ -35,6 +36,9 @@ export type Evenement =
   | { genre: 'depart-auto'; contrat: Contrat; lieu: string }
   /** Un module vient de tomber en panne (usure à l'arrivée d'un trajet). */
   | { genre: 'panne'; module: NomModule }
+  /** Un chasseur alien a tiré un missile ; un missile a frappé la capsule (modules en panne). */
+  | { genre: 'missile'; alien: string; impact: number }
+  | { genre: 'impact'; modules: NomModule[] }
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -62,6 +66,8 @@ export class Jeu {
   /** Les messages envoyés par le joueur, et jusqu'à quand chaque canal a été lu (debut : avant, tout est lu). */
   envoyes: MessageEnvoye[] = []
   lus: Record<string, number> = {}
+  /** L'espace autour : épaves vidées, chasseurs vaincus, missiles en vol, intercepteurs. */
+  espace: EtatEspace = nouvelEspace()
   /** Le pseudo du joueur (Profil ; c'est son nom dans les Messages). */
   pseudo = 'Capitaine'
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
@@ -261,6 +267,7 @@ export class Jeu {
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
     this.user(t, evenements)
+    this.menaces(t, evenements)
     this.proposer(t)
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
@@ -303,6 +310,42 @@ export class Jeu {
         }
       }
     }
+  }
+
+  /**
+   * Missiles aliens : les tirs (décompte) et les impacts. Un impact ralentit la capsule (le Moteur tombe en panne :
+   * vitesse divisée par 2 jusqu'à réparation) ; si le Moteur l'est déjà, un autre bloc ; si la Coque est en panne,
+   * l'impact touche un bloc de plus (décisions d'Adrien du 18/10/2026).
+   */
+  private menaces(t: number, evenements: Evenement[]): void {
+    const { lances, impacts } = avancerEspace(this.espace, t)
+    for (const m of lances) evenements.push({ genre: 'missile', alien: m.alien, impact: m.impact })
+    for (const m of impacts) {
+      const coqueEnPanne = this.enPanne('coque')
+      const touches: NomModule[] = []
+      const autre = (graine: number) => {
+        const libres = MODULES.map((f) => f.nom).filter((n) => !this.enPanne(n) && !touches.includes(n))
+        return libres.length ? libres[Math.floor(hasard(graine).x * libres.length)] : null
+      }
+      const premier = !this.enPanne('moteur') ? 'moteur' : autre(m.id)
+      if (premier) { this.casser(premier); touches.push(premier) }
+      if (coqueEnPanne) { const second = autre(m.id + 1); if (second) { this.casser(second); touches.push(second) } }
+      evenements.push({ genre: 'impact', modules: touches })
+    }
+  }
+
+  /** La capsule est-elle à côté de cette épave libre, et l'épave est-elle là ? */
+  aCoteDeLEpave(nom: string, t: number): boolean {
+    return corps(nom)?.type === 'epave' && epaveLa(this.espace, nom, t) && this.mission.phase(t) === 'orbite' && this.mission.centre(t) === nom
+  }
+
+  /** Vider une épave libre (hors mission) : ses matériaux triés vont dans la soute ; elle reviendra plus tard. */
+  viderEpave(nom: string, materiaux: Record<string, number>, objetsTries: number, t: number): { perdu: number } | null {
+    if (!this.aCoteDeLEpave(nom, t)) return null
+    const perdu = this.charger(materiaux)
+    this.espace.epavesVidees[nom] = t
+    this.carnet.objetsTries += objetsTries
+    return { perdu }
   }
 
   /** Tonnes dans la soute. */

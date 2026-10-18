@@ -112,6 +112,8 @@ export class Carte2D {
   pixelRatio = 2
   /** Mode nuit : encre claire sur fond bleu nuit, astres un peu assombris. */
   nuit = false
+  /** Ce qui est sur la carte (le jeu le dit : épaves vidées et chasseurs hors radar n'y sont pas). */
+  surLaCarte: (nom: string, t: number) => boolean = () => true
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -335,12 +337,24 @@ export class Carte2D {
         astre(c, q)
       }
     }
-    // Engins (satellites de la Terre, sondes) : leur silhouette.
-    for (const c of CORPS) {
-      if (c.type !== 'satellite' && c.type !== 'sonde') continue
+    // Engins (satellites de la Terre, sondes), épaves et chasseurs aliens repérés : leur silhouette. Les chasseurs
+    // d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
+    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'satellite' || c.type === 'sonde'))
+      .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
+    for (const c of engins) {
+      if ((c.type === 'alien' || c.type === 'epave') && !this.surLaCarte(c.nom, t)) continue
       const q = this.ecranDe(projeterCorps(c.nom, t))
       if (!dedans(q.x, q.y) || !libre(q.x, q.y, RAYON_ENGIN)) continue
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN })
+      if (c.type === 'alien') {
+        ctx.beginPath()
+        ctx.arc(q.x, q.y, 15, 0, 2 * Math.PI)
+        ctx.setLineDash([3, 3])
+        ctx.lineWidth = 1.5
+        ctx.strokeStyle = '#e04b37'
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
       dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
     }
 
@@ -433,6 +447,57 @@ export class Carte2D {
     ctx.globalAlpha = this.nuit ? 0.3 : 0.4
     ctx.fill()
     ctx.globalAlpha = 1
+  }
+
+  /**
+   * Les missiles aliens en vol : un pointillé cerise du chasseur à la capsule, le missile qui avance dessus (fraction
+   * de son vol) et son décompte.
+   */
+  dessinerMissiles(ctx: CanvasRenderingContext2D, t: number, missiles: { alien: string; fraction: number; decompte: string }[], c: Couleurs2D): void {
+    const capsule = this.place(CAPSULE)
+    if (!capsule) return
+    for (const m of missiles) {
+      const a = this.place(m.alien) ?? this.ecranDe(projeterCorps(m.alien, t))
+      const x = a.x + (capsule.x - a.x) * m.fraction, y = a.y + (capsule.y - a.y) * m.fraction
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo(a.x, a.y)
+      ctx.lineTo(capsule.x, capsule.y)
+      ctx.setLineDash([4, 4])
+      ctx.lineDashOffset = -(performance.now() / 40) % 8
+      ctx.lineWidth = 1.6
+      ctx.strokeStyle = '#e04b37'
+      ctx.globalAlpha = 0.8
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.globalAlpha = 1
+      // Le missile, dans le sens de sa course.
+      ctx.translate(x, y)
+      ctx.rotate(Math.atan2(capsule.y - a.y, capsule.x - a.x))
+      ctx.beginPath()
+      ctx.moveTo(8, 0); ctx.lineTo(3, -2.5); ctx.lineTo(-6, -2.5); ctx.lineTo(-9, -5); ctx.lineTo(-8, 0); ctx.lineTo(-9, 5); ctx.lineTo(-6, 2.5); ctx.lineTo(3, 2.5)
+      ctx.closePath()
+      ctx.fillStyle = '#e04b37'
+      ctx.fill()
+      ctx.lineWidth = 1.2
+      ctx.strokeStyle = c.encre
+      ctx.stroke()
+      ctx.restore()
+      // Le décompte, sur une étiquette cerise.
+      ctx.save()
+      ctx.font = 'bold 11px ui-monospace, Menlo, monospace'
+      const l = ctx.measureText(m.decompte).width + 10
+      ctx.fillStyle = '#e04b37'
+      ctx.strokeStyle = c.encre
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.roundRect(x + 10, y - 9, l, 18, 4)
+      ctx.fill()
+      ctx.stroke()
+      ctx.fillStyle = '#fff'
+      ctx.fillText(m.decompte, x + 15, y + 4)
+      ctx.restore()
+    }
   }
 
   /** Position à l'écran d'un astre déjà dessiné (dont la capsule), ou null. */

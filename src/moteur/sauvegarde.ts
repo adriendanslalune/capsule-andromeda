@@ -16,6 +16,7 @@ import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
 import type { MessageEnvoye } from './messages'
+import type { EtatEspace } from './espace'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -57,6 +58,8 @@ export interface Sauvegarde {
   /** Les messages envoyés, et ce qui a été lu (absents : rien). */
   envoyes?: MessageEnvoye[]
   lus?: Record<string, number>
+  /** L'espace : épaves vidées, chasseurs vaincus, missiles, intercepteurs (absent : tout neuf). */
+  espace?: EtatEspace
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -66,7 +69,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus,
+    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
   }
 }
 
@@ -141,6 +144,14 @@ export function restaurer(s: unknown): Jeu | null {
   if (v.lus !== undefined) {
     if (!v.lus || typeof v.lus !== 'object' || !Object.values(v.lus).every(nombre)) return null
     jeu.lus = { ...v.lus }
+  }
+  const es = v.espace
+  if (es !== undefined) {
+    const dates = (r: unknown) => !!r && typeof r === 'object' && Object.values(r as object).every(nombre)
+    if (!es || !dates(es.epavesVidees) || !dates(es.aliensVaincus) || !Array.isArray(es.missiles)
+      || !es.missiles.every((m) => !!m && [m.id, m.lance, m.impact].every(nombre) && typeof m.alien === 'string' && !!corps(m.alien))
+      || ![es.intercepteurs, es.rechargeDepuis, es.tirsJusqua].every(nombre)) return null
+    jeu.espace = { ...es, missiles: es.missiles.map((m) => ({ ...m })) }
   }
   const c = v.carnet
   if (c !== undefined) {

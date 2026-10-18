@@ -1,6 +1,7 @@
 // Le cadran de navigation (le volet Navigation du cockpit) : la liste des astres où l'on peut aller, avec leur
 // distance à la capsule.
-// Planètes dans l'ordre depuis le Soleil ; une planète qui a des lunes se déplie ; les engins à part.
+// Planètes dans l'ordre depuis le Soleil ; une planète qui a des lunes se déplie ; les engins à part ; en tête, ce que
+// le radar a repéré (chasseurs aliens) et, plus bas, les épaves les plus proches.
 // Toucher une ligne choisit la destination (et la carte se place sur son système).
 
 import { CORPS, enfants, type Corps } from '../moteur/corps'
@@ -11,7 +12,9 @@ const PLANETES = ['Soleil', 'Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Sa
 export class Cadran {
   private ouvertes = new Set<string>()
 
-  constructor(private element: HTMLElement, private choisir: (nom: string) => void, private horloge: () => number) {
+  /** reperes : les chasseurs repérés au radar et les épaves présentes (le jeu le dit). */
+  constructor(private element: HTMLElement, private choisir: (nom: string) => void, private horloge: () => number,
+    private reperes: (t: number) => { aliens: string[]; epaves: string[] } = () => ({ aliens: [], epaves: [] })) {
     element.addEventListener('click', (e) => {
       const cible = (e.target as HTMLElement).closest<HTMLElement>('[data-nom], [data-deplier]')
       if (!cible) return
@@ -48,7 +51,13 @@ export class Cadran {
   private remplir(): void {
     const t = this.horloge()
     const parNom = new Map(CORPS.map((c) => [c.nom, c]))
-    let html = '<div class="liste"><h3>Soleil et planètes</h3>'
+    const { aliens, epaves } = this.reperes(t)
+    let html = '<div class="liste">'
+    if (aliens.length) {
+      html += '<h3>⚠ Repéré au radar</h3>'
+      for (const nom of aliens) html += this.ligne(parNom.get(nom)!, t, false)
+    }
+    html += '<h3>Soleil et planètes</h3>'
     for (const nom of PLANETES) {
       const c = parNom.get(nom)!
       html += this.ligne(c, t, false)
@@ -58,6 +67,9 @@ export class Cadran {
         for (const l of lunes) html += this.ligne(l, t, true)
       }
     }
+    // Les épaves présentes, les plus proches d'abord.
+    html += '<h3>Épaves</h3>'
+    for (const nom of [...epaves].sort((a, b) => distanceDepuisCapsule(a, t) - distanceDepuisCapsule(b, t)).slice(0, 8)) html += this.ligne(parNom.get(nom)!, t, false)
     html += '<h3>Engins</h3>'
     for (const c of CORPS.filter((c) => c.type === 'satellite' || c.type === 'sonde')) html += this.ligne(c, t, false)
     html += '</div>'

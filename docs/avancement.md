@@ -139,6 +139,20 @@ missiles et épaves sur la carte.
   - Sur la carte : le bouton des Messages (pictogramme Moebius dessiné : deux bulles de dialogue et une antenne qui
     émet ; demande d'Adrien du 18/10/2026, à la même place) avec les non-lus (aussi sur l'onglet Plus), et une bulle quand arrive un message qui
     nous est adressé (réponse, privé, mention) ; la toucher ouvre la conversation.
+- La carte : épaves, radar, chasseurs aliens, missiles — **faits, en attente de validation** (valeurs PROVISOIRES
+  dans `src/donnees/espace.ts` ; `src/moteur/espace.ts`, testé) :
+  - 19 épaves libres partout (autour de chaque planète et de Pluton), dessinées sur la carte et listées dans
+    Navigation (les plus proches) ; Y ALLER, puis VIDER : le tri, matériaux dans la soute (sans mission) ; une épave
+    vidée revient au bout d'un jour.
+  - 20 chasseurs aliens d'Andromède : 1 près de la Terre (loin, au bord du système), de plus en plus nombreux loin du
+    Soleil ; invisibles tant qu'ils ne sont pas au radar (portée : 60 % de la sphère d'influence du système) ; repéré :
+    alerte « RADAR : un chasseur alien repéré », cerclé de cerise sur la carte, en tête de Navigation ; COMBAT (la vue
+    tactique) : vaincu, il disparaît 12 h ; la retraite met la Coque en panne.
+  - Missiles : un chasseur repéré tire de temps en temps (3 % de chance par heure près de la Terre, jusqu'à 60 % vers
+    Neptune) ; 90 s de vol, décompte sur la carte (le missile avance vers la capsule) et en tête du bandeau (qui
+    palpite) ; toucher la ligne l'intercepte (3 intercepteurs, un nouveau toutes les 30 min). Impact : le Moteur tombe
+    en panne, le trajet en cours est ralenti de moitié jusqu'à réparation (puis repart à pleine vitesse) ; Coque en
+    panne : un bloc de plus. Pas de tirs comptés pendant que l'application est fermée.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

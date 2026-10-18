@@ -3,11 +3,11 @@
 
 const CORPS = '#23476b', PANNEAU = '#8fd0dc', OR = '#f2b53a', ROSE = '#f3a08b', CLAIR = '#faf2dc', CERISE = '#e04b37'
 
-type Forme = 'station' | 'tiangong' | 'telescope' | 'webb' | 'gaia' | 'bouclier' | 'antenne' | 'sonde' | 'voiture'
+type Forme = 'station' | 'tiangong' | 'telescope' | 'webb' | 'gaia' | 'bouclier' | 'antenne' | 'sonde' | 'voiture' | 'epave' | 'alien'
 const FORMES: Record<string, Forme> = {
   iss: 'station', tiangong: 'tiangong', hubble: 'telescope', observatoire: 'telescope', satellite: 'sonde', webb: 'webb',
   gaia: 'gaia', parker: 'bouclier',
-  'solar-orbiter': 'bouclier', roadster: 'voiture', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
+  'solar-orbiter': 'bouclier', roadster: 'voiture', epave: 'epave', alien: 'alien', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
 }
 
 export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: number, y: number, encre: string, echelle = 1): void {
@@ -81,6 +81,26 @@ export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: 
     ctx.ellipse(0, -1, 6.5, 4, 0, Math.PI, 2 * Math.PI)
     ctx.closePath()
     ctx.fillStyle = CLAIR
+    ctx.fill()
+    ctx.stroke()
+  } else if (forme === 'epave') {
+    // Une épave : un corps cabossé, un panneau arraché de travers, des débris.
+    ctx.rotate(-0.5)
+    chemin([[-3.5, -3], [2.5, -3.5], [3.5, 2], [-1, 3.5], [-3.5, 1.5]], '#a69f86')
+    chemin([[3.5, -1], [8.5, -2.5], [9, 0.5], [4, 1.5]], PANNEAU)
+    trait(-3.5, 0, -7, 2.5)
+    for (const [dx, dy] of [[-6.5, -4], [6, 5], [-8, 4.5]]) {
+      ctx.beginPath()
+      ctx.rect(dx, dy, 1.6, 1.6)
+      ctx.fillStyle = encre
+      ctx.fill()
+    }
+  } else if (forme === 'alien') {
+    // Un chasseur d'Andromède : une pointe violette, des ailes en crochet, un œil vert.
+    chemin([[0, -8.5], [3, -2], [8.5, 3], [3.5, 2], [0, 7], [-3.5, 2], [-8.5, 3], [-3, -2]], '#9d7cc8')
+    ctx.beginPath()
+    ctx.arc(0, -0.5, 2, 0, 2 * Math.PI)
+    ctx.fillStyle = '#b9f08c'
     ctx.fill()
     ctx.stroke()
   } else if (forme === 'voiture') {

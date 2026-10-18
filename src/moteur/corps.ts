@@ -11,6 +11,7 @@ import { LISTE_SATELLITES, positionSatellitePlanetocentrique, type Satellite } f
 import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
+import { ALIENS, EPAVES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
 import { positionPluton } from './pluton'
 import { positionSondeRelative, TRAJECTOIRES } from './sondes'
@@ -18,7 +19,7 @@ import { MS_PAR_JOUR, TT_MOINS_UTC_MS, UA_KM } from './temps'
 import { ajouter, type Vecteur3 } from './vecteur'
 import { positionVSOP } from './vsop87'
 
-export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde'
+export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien'
 
 export interface Corps {
   nom: string
@@ -62,7 +63,17 @@ export const CORPS: readonly Corps[] = [
   ...LISTE_SATELLITES.map((s): Corps => ({ nom: s.nom, type: 'lune', parent: s.planete, rayon: s.rayon ?? 0 })),
   ...[...ORBITES_TLE.keys()].map((nom): Corps => ({ nom, type: 'satellite', parent: 'Terre', rayon: 0, ...gabarit(nom) })),
   ...TRAJECTOIRES.map((t): Corps => ({ nom: t.nom, type: 'sonde', parent: null, rayon: 0, ...gabarit(t.nom) })),
+  // Épaves et chasseurs aliens (donnees/espace.ts) : le jeu dit lesquels sont là (vidées, vaincus, repérés au radar).
+  ...EPAVES.map((e): Corps => ({ nom: e.nom, type: 'epave', parent: e.parent, rayon: 0, modele: 'epave', tailleM: 20 })),
+  ...ALIENS.map((a): Corps => ({ nom: a.nom, type: 'alien', parent: a.parent, rayon: 0, modele: 'alien', tailleM: 60 })),
 ]
+
+/** Orbites simples (circulaires, un peu inclinées) des épaves et des aliens. */
+const ORBITES_SIMPLES = new Map<string, ObjetEnOrbite>([...EPAVES, ...ALIENS].map((o) => [o.nom, o]))
+function positionOrbiteSimple(o: ObjetEnOrbite, t: number): Vecteur3 {
+  const a = 2 * Math.PI * (o.phase + t / periodeOrbite(o))
+  return { x: o.rayon * Math.cos(a), y: o.rayon * Math.sin(a), z: o.rayon * o.inclinaison * Math.sin(a) }
+}
 
 /** Silhouette et envergure d'un engin (l'ISS fait 109 m ; les autres d'après les fiches du jeu). */
 function gabarit(nom: string): { modele: string; tailleM: number } {
@@ -105,6 +116,8 @@ export const RAYON_SYSTEME: ReadonlyMap<string, number> = (() => {
 /** Position relative au parent (km), pour un astre qui a un parent. */
 export function positionRelative(nom: string, t: number): Vecteur3 {
   if (nom === 'Lune') return positionLuneGeocentrique(t + TT_MOINS_UTC_MS)
+  const simple = ORBITES_SIMPLES.get(nom)
+  if (simple) return positionOrbiteSimple(simple, t)
   const lune = LUNES.get(nom)
   if (lune) return positionSatellitePlanetocentrique(lune, t)
   const orbite = ORBITES_TLE.get(nom)
