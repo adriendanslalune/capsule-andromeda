@@ -61,6 +61,12 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   - Bloc Énergie : le Bornier marche ; Fusibles et Accumulateurs dessinés, pas encore raccordés — à faire.
   - Blocs Moteur, Navigation, Coque : dessinés, pas encore raccordés (réparation provisoire depuis ÉTAT) — à faire.
     La pression lue par la règle R6 du Bornier est maintenant sur le module 3B Soupape.
+- Maquette de l'interface du jeu complet (`maquette-interface.html`, demande d'Adrien du 18/10/2026 : voir la
+  cohérence et l'ergonomie une fois tout installé, avant de continuer les pannes) — **en attente de son avis** :
+  carte avec radar, alien, missile et décompte, épaves, zone occupée ; bandeau à 4 lignes ; tous les volets remplis
+  (Navigation avec « Repéré au radar », Capsule avec ÉTAT / SOUTE / RÉPARATION, Missions avec la campagne et les
+  maisons, Manuel, Armement, Marché avec le délai lumière, Messages, Profil avec la toile) ; vues plein écran du
+  combat et du tri. Données fictives.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

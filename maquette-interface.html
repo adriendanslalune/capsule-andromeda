@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+    <title>Maquette du cockpit</title>
+    <!--
+      Maquette de l'interface du jeu « une fois tout installé » (demande d'Adrien du 18/10/2026) : la cohérence et
+      l'ergonomie de l'ensemble, avant de construire les étapes 5 à 10. Données fictives, rien n'est branché au moteur.
+      Elle reprend les vrais styles du jeu (src/style.css) et une vraie capture de la carte ; ce qui est en plus est
+      dessiné ici, dans les mêmes tons Moebius.
+    -->
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      .fond-carte { position: fixed; inset: 0; width: 100vw; height: 100dvh; object-fit: cover; object-position: center top; }
+      #dessus { position: fixed; inset: 0; width: 100vw; height: 100dvh; }
+      #dessus .cliquable { cursor: pointer; }
+      #dessus text { font-family: var(--police); }
+      .radar { animation: balayage 4s linear infinite; transform-origin: 141px 352px; transform-box: view-box; }
+      @keyframes balayage { to { transform: rotate(360deg); } }
+      .palpite { animation: palpiter 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      .tiret { animation: pointiller 0.8s linear infinite; }
+      @keyframes pointiller { to { stroke-dashoffset: -12; } }
+      #infos .maquette { padding: 1px 6px; border: 1.5px dashed currentColor; border-radius: 4px; font-weight: bold; }
+      #bandeau .ligne.missile { background: color-mix(in srgb, #e04b37 16%, transparent); border-radius: 6px 6px 0 0; }
+      #bandeau .ligne.missile b { color: #b4442f; }
+      #bandeau .compte { font-variant-numeric: tabular-nums; }
+      /* Pastilles sur les onglets (nouveautés). */
+      #onglets button { position: relative; }
+      .pastille { position: absolute; top: 5px; right: 8px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 13px;
+        color: #fff; background: #e04b37; border: 1.5px solid var(--encre); border-radius: 8px; }
+      /* Fiche d'un objet touché sur la carte (même place que la fiche de trajet). */
+      #fiche b { letter-spacing: 0.04em; }
+      #fiche button { min-height: 44px; padding: 0 14px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: #d9694f;
+        border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); white-space: nowrap; }
+      /* Contenus des volets (en plus des styles du jeu). */
+      .contenu { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
+      .contenu h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
+      .contenu .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+      .contenu .bloc.fort { border-width: 2.5px; background: var(--creme); }
+      .contenu .rang { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0;
+        border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+      .contenu .rang:last-child { border-bottom: none; }
+      .contenu .rang > :last-child:not(:first-child) { white-space: nowrap; text-align: right; }
+      #repartition-combat .rang { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+      .contenu small { opacity: 0.7; }
+      .contenu .rouge { color: #b4442f; font-weight: bold; }
+      .contenu .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
+      .bouton { min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: var(--creme);
+        border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+      .bouton.principal { color: #fff; background: #d9694f; }
+      .bouton.large { width: 100%; margin-top: 8px; }
+      .jauge { height: 10px; border: 1.5px solid var(--encre); border-radius: 5px; overflow: hidden; background: var(--fond); }
+      .jauge i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #d9694f 0 4px, #e98a6f 4px 8px); }
+      .etiquette { display: inline-block; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; border: 1.5px solid var(--encre); border-radius: 4px; }
+      .maison-n { background: #bfe0c8; } .maison-c { background: #f5d38a; } .maison-m { background: #f3c2b0; }
+      /* Énergie à répartir : des crans. */
+      .crans { display: flex; gap: 4px; align-items: center; }
+      .crans i { width: 18px; height: 22px; border: 1.5px solid var(--encre); border-radius: 3px; background: var(--fond); }
+      .crans i.rempli { background: var(--moutarde); }
+      .crans button { width: 44px; min-height: 40px; font: inherit; font-weight: bold; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+      /* Marché. */
+      .marche { width: 100%; border-collapse: collapse; font-size: 12px; }
+      .marche th { font-size: 10px; letter-spacing: 0.06em; text-align: right; opacity: 0.6; padding: 4px; }
+      .marche th:first-child, .marche td:first-child { text-align: left; }
+      .marche td { padding: 8px 4px; text-align: right; border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+      .hausse { color: #3f8a4f; } .baisse { color: #b4442f; }
+      .places { display: flex; gap: 6px; overflow-x: auto; padding: 4px 10px 6px; }
+      .places button { flex: none; min-height: 44px; padding: 0 10px; font: inherit; font-size: 11px; color: var(--encre); background: transparent;
+        border: 1.5px solid var(--encre); border-radius: 8px; text-align: left; line-height: 1.2; }
+      .places button.actif { background: var(--moutarde); color: #1f1b18; font-weight: bold; }
+      /* Messages. */
+      .fils { display: flex; gap: 6px; padding: 8px 10px 4px; position: sticky; top: 0; background: var(--fond); }
+      .fils button { flex: 1; min-height: 40px; font: inherit; font-size: 11px; font-weight: bold; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+      .fils button.actif { background: var(--moutarde); color: #1f1b18; }
+      .bulle { margin: 6px 10px; padding: 7px 10px; max-width: 82%; border: 1.5px solid var(--encre); border-radius: 10px 10px 10px 2px; background: var(--creme); font-size: 12.5px; }
+      .bulle.moi { margin-left: auto; border-radius: 10px 10px 2px 10px; background: color-mix(in srgb, var(--moutarde) 45%, var(--fond)); }
+      .bulle .qui { display: block; font-size: 10px; font-weight: bold; letter-spacing: 0.05em; opacity: 0.7; }
+      .ecrire { display: flex; gap: 6px; padding: 8px 10px; position: sticky; bottom: 0; background: var(--fond); border-top: 1.5px solid var(--encre); }
+      .ecrire input { flex: 1; min-height: 44px; padding: 0 10px; font: inherit; font-size: 13px; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+      /* Profil : la toile d'araignée. */
+      .toile { display: block; width: 240px; margin: 4px auto 0; }
+      .toile text { font: bold 10px var(--police); fill: var(--encre); }
+      /* Vues plein écran : combat et tri (elles recouvrent la carte et se referment pour y revenir). */
+      .plein { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--fond); }
+      .plein[hidden] { display: none; }
+      .plein .entete-plein { display: flex; align-items: center; justify-content: space-between; padding: calc(8px + env(safe-area-inset-top)) 6px 0 14px;
+        min-height: 52px; background: var(--moutarde); color: #1f1b18; border-bottom: 2.5px solid var(--encre); font-weight: bold; font-size: 13px; letter-spacing: 0.08em; }
+      .plein .entete-plein button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #1f1b18; background: transparent; border: none; }
+      .plein .corps { flex: 1; overflow-y: auto; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); font-size: 13px; }
+      .scene { display: block; width: 100%; border: 2px solid var(--encre); border-radius: 10px; background: #efe8d6; }
+      .scene text { font: bold 9px var(--police); fill: #2b2138; }
+      .scene .module-ennemi { cursor: pointer; }
+      .ligne-combat { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
+      .alerte-missile { margin-top: 8px; padding: 8px 10px; border: 2px solid #b4442f; border-radius: 8px; background: color-mix(in srgb, #e04b37 14%, var(--fond)); }
+      .alerte-missile b { color: #b4442f; }
+      .bacs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+      .bacs button { min-height: 76px; font: inherit; font-size: 12px; font-weight: bold; color: #1f1b18; border: 2.5px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+      .bacs button:active { transform: translate(2px, 2px); box-shadow: none; }
+      .objet { text-align: center; margin-top: 8px; }
+      .objet svg { width: 150px; height: 120px; }
+      .objet .nom-objet { font-weight: bold; font-size: 15px; letter-spacing: 0.04em; }
+      .score { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; }
+      .avis { position: fixed; left: 50%; top: 40%; transform: translateX(-50%); z-index: 40; padding: 10px 16px; font-weight: bold; font-size: 13px;
+        background: var(--moutarde); color: #1f1b18; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+      .avis[hidden] { display: none; }
+    </style>
+  </head>
+  <body>
+    <img class="fond-carte" src="./maquette/carte-terre.jpg" alt="" />
+    <!-- Ce que la carte du jeu complet montrera en plus : radar, alien, missile, épaves, cargo (bot), zone occupée. -->
+    <svg id="dessus" viewBox="0 0 390 844" preserveAspectRatio="xMidYMin slice">
+      <defs>
+        <radialGradient id="balai-radar" cx="0" cy="0" r="1">
+          <stop offset="0" stop-color="#3f8a4f" stop-opacity="0.18" /><stop offset="1" stop-color="#3f8a4f" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <!-- Portée du radar autour de la capsule, et son balayage. -->
+      <circle cx="141" cy="352" r="250" fill="none" stroke="#3f8a4f" stroke-width="1.2" stroke-dasharray="2 6" opacity="0.7" />
+      <path class="radar" d="M141 352 L391 352 A250 250 0 0 0 357 227 Z" fill="#3f8a4f" opacity="0.08" />
+      <text x="292" y="598" font-size="8" fill="#3f8a4f" opacity="0.9">portée radar</text>
+      <!-- Zone occupée : la Lune (à libérer). -->
+      <g>
+        <circle cx="195" cy="428" r="34" fill="none" stroke="#6b4a9e" stroke-width="2" stroke-dasharray="1 4" opacity="0.8" />
+        <rect x="236" y="455" width="122" height="20" rx="4" fill="#d7cdee" stroke="#2b2138" stroke-width="1.5" />
+        <text x="243" y="469" font-size="10" font-weight="bold" fill="#2b2138">OCCUPÉE · 37 % libérée</text>
+      </g>
+      <!-- Épaves (Nettoyeurs : il y en a toujours une près de soi). -->
+      <g class="cliquable" data-objet="epave">
+        <circle cx="62" cy="470" r="22" fill="transparent" />
+        <g transform="translate(62 470) rotate(-25)">
+          <rect x="-7" y="-5" width="14" height="10" fill="#a69f86" stroke="#2b2138" stroke-width="1.2" />
+          <path d="M-7 -1 h-9 l2 -5 h7 M7 1 h7 l-1 5 h-6" fill="#bfe0e8" stroke="#2b2138" stroke-width="1.1" />
+          <path d="M2 -5 l3 -6 M-3 5 l-2 4" stroke="#2b2138" stroke-width="1" />
+        </g>
+        <text x="40" y="496" font-size="10">Épave Kosmos 482</text>
+      </g>
+      <g class="cliquable" data-objet="epave">
+        <circle cx="338" cy="300" r="20" fill="transparent" />
+        <g transform="translate(338 300) rotate(40)">
+          <path d="M-8 -4 l6 -3 l9 2 l-2 8 l-10 2z" fill="#a69f86" stroke="#2b2138" stroke-width="1.2" />
+          <path d="M-2 -7 l-3 -6" stroke="#2b2138" stroke-width="1" />
+        </g>
+        <text x="300" y="326" font-size="10">Épave</text>
+      </g>
+      <!-- Un cargo (bot) : le monde est rempli de bots. -->
+      <g>
+        <g transform="translate(110 610) rotate(20)">
+          <rect x="-9" y="-4" width="18" height="8" rx="2" fill="#f5d38a" stroke="#2b2138" stroke-width="1.2" />
+          <rect x="-13" y="-3" width="4" height="6" fill="#2b2138" />
+        </g>
+        <text x="80" y="632" font-size="9" opacity="0.75">Cargo Hermès</text>
+      </g>
+      <!-- L'alien (repéré au radar) et son missile, avec le décompte. -->
+      <path d="M296 640 L148 362" stroke="#e04b37" stroke-width="1.6" stroke-dasharray="4 4" class="tiret" fill="none" opacity="0.8" />
+      <g class="cliquable" data-objet="missile">
+        <circle cx="228" cy="512" r="22" fill="transparent" />
+        <g transform="translate(228 512) rotate(-152)">
+          <path d="M-9 -2 h14 l5 2 l-5 2 h-14z" fill="#e04b37" stroke="#2b2138" stroke-width="1.1" />
+          <path d="M-9 -2 l-4 -3 M-9 2 l-4 3" stroke="#2b2138" stroke-width="1.1" />
+        </g>
+        <rect x="236" y="503" width="60" height="18" rx="4" fill="#e04b37" stroke="#2b2138" stroke-width="1.5" />
+        <text x="242" y="516" font-size="11" font-weight="bold" fill="#fff" id="compte-carte">⏱ 01:42</text>
+      </g>
+      <g class="cliquable" data-objet="alien">
+        <circle cx="300" cy="648" r="26" fill="transparent" />
+        <g transform="translate(300 648)" class="palpite">
+          <path d="M0 -14 L12 6 L4 3 L0 12 L-4 3 L-12 6 Z" fill="#7d4fb3" stroke="#2b2138" stroke-width="1.6" />
+          <circle cx="0" cy="-2" r="3" fill="#b9f08c" stroke="#2b2138" stroke-width="1" />
+        </g>
+        <rect x="318" y="640" width="64" height="30" rx="4" fill="#faf2dc" stroke="#2b2138" stroke-width="1.6" />
+        <text x="324" y="652" font-size="9" font-weight="bold">CHASSEUR</text>
+        <text x="324" y="664" font-size="9">12 400 km</text>
+      </g>
+    </svg>
+
+    <div id="infos"><span class="maquette">MAQUETTE · données fictives</span></div>
+    <div id="haut">
+      <div id="bandeau">
+        <div class="ligne missile"><b><svg class="symbole alerte" viewBox="0 0 16 16"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>MISSILE EN APPROCHE · <span class="compte" id="compte">01:42</span></b><span>intercepter (Armement) ou accélérer</span></div>
+        <div class="ligne"><b>EN ROUTE VERS LA LUNE</b><span>arrivée à 14:09 · dans 2 h 12 min</span></div>
+        <div class="ligne contrat"><b><svg class="symbole balai" viewBox="0 0 16 16"><path d="M10 2 6 9M3 10l4-1 2 2-1 4-5-5z"/></svg>MISSION : ÉPAVE · LUNE</b><span>vider l'épave Luna 9</span></div>
+        <div class="etat"><span>1 240 crédits · soute 6/20</span><span>moteur niv. 2 · 60 km/s</span></div>
+      </div>
+      <div id="titre-carte"><button id="bouton-retour" type="button">‹ Système solaire</button><div id="titre">SYSTÈME DE LA TERRE</div><button id="bouton-capsule" type="button">◎ Capsule</button></div>
+    </div>
+
+    <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button"></button></div>
+    <div class="avis" id="avis" hidden></div>
+
+    <div id="volet" hidden>
+      <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
+
+      <!-- NAVIGATION : les astres, et ce que le radar a repéré. -->
+      <div class="page" data-contenu="navigation" id="cadran" hidden>
+        <h3>Repéré au radar</h3>
+        <div class="ligne"><button type="button" class="astre" data-objet="alien"><span class="nom">⚠ Chasseur alien</span><span class="distance">12 400 km</span></button></div>
+        <div class="ligne"><button type="button" class="astre" data-objet="epave"><span class="nom">Épave Kosmos 482</span><span class="distance">3 200 km</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Cargo Hermès</span><span class="distance">41 000 km</span></button></div>
+        <h3>Soleil et planètes</h3>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Soleil</span><span class="distance">149 M km</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Mercure</span><span class="distance">171 M km</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Vénus</span><span class="distance">227 M km</span></button></div>
+        <div class="ligne choisie"><button type="button" class="astre"><span class="nom">Terre · Lune ▾</span><span class="distance">vous êtes ici</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Mars <small>· occupée</small></span><span class="distance">286 M km</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Jupiter <small>· occupée</small></span><span class="distance">771 M km</span></button></div>
+        <div class="ligne"><button type="button" class="astre"><span class="nom">Saturne <small>· occupée</small></span><span class="distance">1,4 Md km</span></button></div>
+      </div>
+
+      <!-- CAPSULE : état, soute, réparation. -->
+      <div class="page contenu" data-contenu="capsule" hidden>
+        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
+        <div data-sous-page="etat">
+          <h3>Moteur</h3>
+          <div class="bloc"><b>Niveau 2</b> · 60 km/s
+            <div class="rang"><span>Niveau 3 · 120 km/s<br><small>2 fois plus rapide</small></span><button class="bouton principal" disabled>600 cr.</button></div></div>
+          <h3>Systèmes</h3>
+          <div class="bloc">
+            <div class="rang"><span><b>Communications</b><br><small>en état</small></span><span>✓</span></div>
+            <div class="rang"><span><b class="rouge">Énergie</b><br><small class="rouge">EN PANNE : actions 2 fois plus longues</small></span><button class="bouton principal" data-sous="reparation">PANNEAU</button></div>
+            <div class="rang"><span><b>Moteur</b><br><small>en état</small></span><span>✓</span></div>
+            <div class="rang"><span><b>Navigation</b><br><small>en état</small></span><span>✓</span></div>
+            <div class="rang"><span><b>Coque</b><br><small>en état · bouclier niv. 1</small></span><span>✓</span></div>
+          </div>
+          <h3>Armement embarqué</h3>
+          <div class="bloc"><div class="rang"><span>Canon à rivets · Lance-missiles (2) · Intercepteurs (3)</span></div>
+            <button class="bouton large" data-aller="armement">ARMEMENT ›</button></div>
+        </div>
+        <div data-sous-page="soute" hidden>
+          <h3>Soute · 6 / 20</h3>
+          <div class="bloc">
+            <div class="rang"><span><b>Ferraille</b><br><small>épave Luna 9</small></span><span>3 t</span></div>
+            <div class="rang"><span><b>Cuivre</b></span><span>1 t</span></div>
+            <div class="rang"><span><b>Circuits anciens</b><br><small>se vend bien sur Mars</small></span><span>2 caisses</span></div>
+            <div class="rang"><span><b>Cargaison à livrer</b><br><small>pièces pour Tiangong (mission)</small></span><span>—</span></div>
+          </div>
+          <div style="padding: 0 10px"><button class="bouton large" data-aller="marche">VENDRE AU MARCHÉ ›</button></div>
+        </div>
+        <div data-sous-page="reparation" hidden>
+          <div class="note">Le panneau réel (5 blocs de 3 modules) ; les commandes s'ouvrent en touchant un module en défaut.</div>
+          <img src="./maquette/panneau.jpg" alt="Panneau de réparation" style="display:block;width:calc(100% - 16px);margin:0 8px;border:2.5px solid var(--encre);border-radius:12px" />
+        </div>
+      </div>
+
+      <!-- MISSIONS : la campagne, la mission en cours, les missions proposées (toutes les maisons). -->
+      <div class="page contenu" data-contenu="missions" hidden>
+        <h3>Campagne · acte 1</h3>
+        <div class="bloc fort">
+          <div class="rang"><span><b>Libérer la Lune</b><br><small>chaque épave, livraison, combat près de la Lune compte</small></span><span><b>37 %</b></span></div>
+          <div class="jauge"><i style="width:37%"></i></div>
+          <div class="rang"><small>Ensuite : Mars, les lunes de Jupiter, Saturne, Uranus… Triton.</small></div>
+        </div>
+        <h3>Mission en cours</h3>
+        <div class="bloc fort">
+          <div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Vider l'épave Luna 9</b><br><small>En route vers la Lune · arrivée dans 2 h 12 min</small></span><b>150 cr.</b></div>
+        </div>
+        <h3>Proposées</h3>
+        <div class="bloc"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Escorter le cargo Hermès</b><br><small>Terre → Lune · 4 h 07 min</small></span><span><b>320 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc"><div class="rang"><span><span class="etiquette maison-c">COMMERÇANTS</span><br><b>Livrer du cuivre à Tiangong</b><br><small>12 min</small></span><span><b>90 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc"><div class="rang"><span><span class="etiquette maison-m">MERCENAIRES</span><br><b>Dépanner Pioneer 10</b><br><small>très loin · 9 j 4 h</small></span><span><b>900 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+        <div class="bloc"><div class="rang"><span><span class="etiquette maison-n">NETTOYEURS</span><br><b>Épave Kosmos 482</b><br><small>3 200 km · 2 min</small></span><span><b>60 cr.</b><br><button class="bouton">VOIR</button></span></div></div>
+      </div>
+
+      <!-- MANUEL -->
+      <div class="page" data-contenu="manuel" id="manuel" hidden>
+        <div class="feuille">
+          <div class="entete-doc"><div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. CA-MM</div><div>SOMMAIRE</div><div>RÉV. C · 03/2026</div></div>
+          <h3>Sommaire</h3>
+          <table class="sommaire">
+            <tr><td>1</td><td class="gauche">Communications</td><td>p. 1-2</td></tr>
+            <tr><td>2</td><td class="gauche">Énergie</td><td>p. 2-8</td></tr>
+            <tr><td>3</td><td class="gauche">Moteur</td><td>p. 3-4</td></tr>
+            <tr><td>4</td><td class="gauche">Navigation</td><td>p. 4-6</td></tr>
+            <tr><td>5</td><td class="gauche">Coque</td><td>p. 5-3</td></tr>
+            <tr><td>A</td><td class="gauche">Annexe : armement et interception</td><td>p. A-1</td></tr>
+          </table>
+          <div class="pied-doc"><span>CA-MM RÉV. C</span><span>PAGE 0-1</span><span>NE PAS EMPORTER EN EVA</span></div>
+        </div>
+      </div>
+
+      <!-- PLUS : les rubriques. -->
+      <div class="page" data-contenu="plus" hidden>
+        <button type="button" class="rubrique" data-aller="armement">Armement ›</button>
+        <button type="button" class="rubrique" data-aller="marche">Marché ›</button>
+        <button type="button" class="rubrique" data-aller="messages">Messages <span class="etiquette" style="background:#e04b37;color:#fff">2</span> ›</button>
+        <button type="button" class="rubrique" data-aller="profil">Profil ›</button>
+        <button type="button" class="rubrique">Réglages ›</button>
+      </div>
+
+      <!-- ARMEMENT -->
+      <div class="page contenu" data-contenu="armement" hidden>
+        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
+        <h3>Énergie à répartir · 6 crans</h3>
+        <div class="bloc" id="repartition"></div>
+        <h3>Armes</h3>
+        <div class="bloc">
+          <div class="rang"><span><b>Canon à rivets</b><br><small>tir sur un module ennemi · 1 cran</small></span><span>niv. 1</span></div>
+          <div class="rang"><span><b>Lance-missiles</b><br><small>2 missiles en réserve</small></span><button class="bouton">+1 · 80 cr.</button></div>
+          <div class="rang"><span><b>Intercepteurs</b><br><small>abattent un missile en approche</small></span><span>3</span></div>
+          <div class="rang"><span><b>Bouclier</b><br><small>absorbe un impact sur deux</small></span><span>niv. 1</span></div>
+        </div>
+        <div style="padding: 0 10px"><button class="bouton large principal" data-plein="combat">SIMULATEUR DE COMBAT</button></div>
+      </div>
+
+      <!-- MARCHÉ -->
+      <div class="page contenu" data-contenu="marche" hidden>
+        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
+        <div class="places">
+          <button class="actif">Station Artémis<br>Lune · 1,3 s</button>
+          <button>Tiangong<br>Terre · 0 s</button>
+          <button>Base Ares<br>Mars · 12 min 40 s</button>
+          <button>Callisto<br>Jupiter · 43 min</button>
+        </div>
+        <div class="note" style="opacity:0.8">Cours reçus avec <b>1,3 s</b> de retard (délai de la lumière). Ceux de Mars ont 12 min 40 s : quand tu y arriveras, ils auront bougé.</div>
+        <div class="bloc">
+          <table class="marche">
+            <tr><th>MATÉRIAU</th><th>ACHAT</th><th>VENTE</th><th></th><th>SOUTE</th></tr>
+            <tr><td><b>Ferraille</b></td><td>14</td><td>11</td><td class="hausse">▲</td><td>3 t</td></tr>
+            <tr><td><b>Cuivre</b></td><td>52</td><td>47</td><td class="baisse">▼</td><td>1 t</td></tr>
+            <tr><td><b>Circuits anciens</b></td><td>130</td><td>96</td><td class="baisse">▼</td><td>2</td></tr>
+            <tr><td><b>Eau</b></td><td>8</td><td>6</td><td class="hausse">▲</td><td>—</td></tr>
+            <tr><td><b>Hélium 3</b></td><td>310</td><td>288</td><td class="hausse">▲</td><td>—</td></tr>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;padding:0 10px"><button class="bouton large">ACHETER</button><button class="bouton large principal">VENDRE</button></div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="page contenu" data-contenu="messages" hidden>
+        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
+        <div class="fils"><button class="actif">GÉNÉRAL</button><button>MAISON</button><button>PRIVÉS (2)</button></div>
+        <div class="bulle"><span class="qui">ORION_77 · Mars</span>Quelqu'un vend des circuits sur Phobos ? Les cours de la Lune sont fous.</div>
+        <div class="bulle"><span class="qui">Cargo Hermès (bot) · Terre</span>Je pars pour la Lune à 13:00. Escorte payée 320 cr., qui est partant ?</div>
+        <div class="bulle moi"><span class="qui">TOI</span>Moi, je suis déjà en route.</div>
+        <div class="bulle"><span class="qui">VEGA · Lune</span>Attention, un chasseur rôde entre la Terre et la Lune. Il m'a tiré dessus il y a 1 h.</div>
+        <div class="note">Les messages des autres joueurs arrivent avec le délai de la lumière depuis leur position.</div>
+        <div class="ecrire"><input type="text" placeholder="Écrire…" /><button class="bouton principal">ENVOYER</button></div>
+      </div>
+
+      <!-- PROFIL -->
+      <div class="page contenu" data-contenu="profil" hidden>
+        <button type="button" class="retour" data-aller="plus">‹ Plus</button>
+        <h3>Capitaine Adrien · capsule VR-5B5</h3>
+        <div class="bloc fort" style="text-align:center">
+          <svg class="toile" viewBox="0 0 240 220">
+            <g fill="none" stroke="#1f1b18" stroke-width="0.8" opacity="0.45">
+              <path d="M120 30 L198 165 L42 165 Z" /><path d="M120 70 L163 145 L77 145 Z" /><path d="M120 110 L128 125 L112 125 Z" />
+              <path d="M120 120 L120 30 M120 120 L198 165 M120 120 L42 165" />
+            </g>
+            <path d="M120 44 L170 149 L94 135 Z" fill="#bfe0c8" fill-opacity="0.75" stroke="#1f1b18" stroke-width="2" />
+            <text x="88" y="20">NETTOYEURS</text><text x="168" y="188">COMMERÇANTS</text><text x="6" y="188">MERCENAIRES</text>
+          </svg>
+          <div>Maison : <span class="etiquette maison-n">NETTOYEURS</span> · 62 %</div>
+          <small>La maison change avec ce que tu fais.</small>
+        </div>
+        <h3>Carnet de bord</h3>
+        <div class="bloc">
+          <div class="rang"><span>Épaves vidées</span><b>41</b></div>
+          <div class="rang"><span>Échanges au marché</span><b>18</b></div>
+          <div class="rang"><span>Combats gagnés</span><b>3</b></div>
+          <div class="rang"><span>Distance parcourue</span><b>9,2 M km</b></div>
+        </div>
+        <h3>Zones</h3>
+        <div class="bloc">
+          <div class="rang"><span>Lune</span><b>37 %</b></div>
+          <div class="rang"><span>Mars · lunes de Jupiter · Saturne · Uranus · Triton</span><small>occupées</small></div>
+        </div>
+      </div>
+    </div>
+
+    <nav id="onglets">
+      <button type="button" data-onglet="navigation">Navigation</button>
+      <button type="button" data-onglet="capsule">Capsule<span class="pastille">!</span></button>
+      <button type="button" data-onglet="missions">Missions<span class="pastille">2</span></button>
+      <button type="button" data-onglet="manuel">Manuel</button>
+      <button type="button" data-onglet="plus">Plus<span class="pastille">2</span></button>
+    </nav>
+
+    <!-- COMBAT : vue tactique (prototype à tester à l'étape 6). -->
+    <div class="plein" id="combat" hidden>
+      <div class="entete-plein"><span>COMBAT · CHASSEUR ALIEN</span><button type="button" data-fermer-plein>FUIR</button></div>
+      <div class="corps">
+        <svg class="scene" viewBox="0 0 370 300">
+          <rect x="0" y="0" width="370" height="300" fill="#efe8d6" />
+          <g opacity="0.25" stroke="#2b2138" stroke-width="0.6">
+            <path d="M0 50 H370 M0 100 H370 M0 150 H370 M0 200 H370 M0 250 H370 M60 0 V300 M120 0 V300 M180 0 V300 M240 0 V300 M300 0 V300" />
+          </g>
+          <!-- Le chasseur, vu du dessus, et ses modules à viser. -->
+          <path d="M185 12 L262 98 L226 92 L215 128 L155 128 L144 92 L108 98 Z" fill="#9d7cc8" stroke="#2b2138" stroke-width="2.2" />
+          <path d="M185 12 L185 128" stroke="#2b2138" stroke-width="0.8" opacity="0.5" />
+          <g id="modules-ennemis"></g>
+          <!-- Missiles en vol. -->
+          <g id="missiles-vol"></g>
+          <!-- La capsule. -->
+          <g transform="translate(185 262)">
+            <ellipse rx="44" ry="22" fill="none" stroke="#3f63c4" stroke-width="2" stroke-dasharray="3 3" opacity="0.7" />
+            <path d="M0 -18 L12 10 L0 6 L-12 10 Z" fill="#f2c66a" stroke="#2b2138" stroke-width="1.8" />
+          </g>
+          <text x="10" y="292">BOUCLIER</text>
+        </svg>
+        <div class="alerte-missile" id="alerte-combat"><b>⚠ MISSILE · impact dans <span id="compte-combat">00:09</span></b>
+          <div class="ligne-combat"><span>Intercepteurs : <b id="intercepteurs">3</b></span><button class="bouton principal" id="intercepter">INTERCEPTER</button></div></div>
+        <div class="ligne-combat"><span>Cible : <b id="cible">MISSILES</b> <small>(touche un module)</small></span><button class="bouton principal" id="tirer">TIRER</button></div>
+        <h3 style="font-size:11px;letter-spacing:0.1em;margin-top:10px;opacity:0.6">ÉNERGIE · 6 CRANS</h3>
+        <div id="repartition-combat"></div>
+      </div>
+    </div>
+
+    <!-- TRI : vider une épave (mini-jeu des Nettoyeurs, étape 5). -->
+    <div class="plein" id="tri" hidden>
+      <div class="entete-plein"><span>ÉPAVE KOSMOS 482</span><button type="button" data-fermer-plein>TERMINER</button></div>
+      <div class="corps">
+        <div class="score"><span>⏱ <span id="chrono">0:30</span></span><span>série ×<span id="serie">1</span></span><span id="gain">0 cr.</span></div>
+        <div class="objet"><svg id="dessin-objet" viewBox="0 0 150 120"></svg><div class="nom-objet" id="nom-objet"></div><small>dans quel bac ?</small></div>
+        <div class="bacs">
+          <button style="background:#c9c2b0" data-bac="metal">MÉTAUX</button>
+          <button style="background:#bfe0c8" data-bac="electronique">ÉLECTRONIQUE</button>
+          <button style="background:#bfe0e8" data-bac="verre">VERRE ET CRISTAUX</button>
+          <button style="background:#f3c2b0" data-bac="rebut">REBUT</button>
+        </div>
+        <p style="margin-top:10px;font-size:11px;opacity:0.65">Trier vite remplit la soute de matériaux propres, qui se vendent au Marché.</p>
+      </div>
+    </div>
+
+    <script type="module">
+      const $ = (s) => document.querySelector(s)
+      const TITRES = { navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'MISSIONS', manuel: 'MANUEL DE MAINTENANCE', plus: 'PLUS',
+        armement: 'ARMEMENT', marche: 'MARCHÉ', messages: 'MESSAGES', profil: 'PROFIL' }
+      const ONGLET = { armement: 'plus', marche: 'plus', messages: 'plus', profil: 'plus' }
+      let page = null
+      function ouvrir(p) {
+        page = p
+        $('#volet-titre').textContent = TITRES[p]
+        for (const e of document.querySelectorAll('#volet .page')) e.hidden = e.dataset.contenu !== p
+        for (const b of document.querySelectorAll('#onglets button')) b.classList.toggle('actif', b.dataset.onglet === (ONGLET[p] ?? p))
+        $('#volet').hidden = false
+        $('#trajet').hidden = true
+      }
+      function fermer() {
+        page = null
+        $('#volet').hidden = true
+        for (const b of document.querySelectorAll('#onglets button')) b.classList.remove('actif')
+      }
+      for (const b of document.querySelectorAll('#onglets button')) b.addEventListener('click', () => (page && (ONGLET[page] ?? page) === b.dataset.onglet ? fermer() : ouvrir(b.dataset.onglet)))
+      $('#volet-fermer').addEventListener('click', fermer)
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('[data-aller]'); if (a) ouvrir(a.dataset.aller)
+        const s = e.target.closest('[data-sous]')
+        if (s) {
+          for (const b of document.querySelectorAll('.sous-onglets button')) b.classList.toggle('actif', b.dataset.sous === s.dataset.sous)
+          for (const p of document.querySelectorAll('[data-sous-page]')) p.hidden = p.dataset.sousPage !== s.dataset.sous
+        }
+        const pl = e.target.closest('[data-plein]'); if (pl) ouvrirPlein(pl.dataset.plein)
+        if (e.target.closest('[data-fermer-plein]')) for (const v of document.querySelectorAll('.plein')) v.hidden = true
+      })
+
+      // Objets touchés sur la carte (ou dans la liste du radar) : leur fiche, avec l'action qui va avec.
+      const FICHES = {
+        epave: ['<b>ÉPAVE KOSMOS 482</b> · 3 200 km<br>ferraille, circuits, verre · <i>Nettoyeurs</i>', 'VIDER', 'tri'],
+        alien: ['<b>CHASSEUR ALIEN</b> · 12 400 km<br>armé : missiles · un tir en cours', 'COMBAT', 'combat'],
+        missile: ['<b>MISSILE</b> · impact dans <span class="compte">01:42</span><br>un impact : trajet ralenti de 50 %', 'INTERCEPTER', 'combat'],
+      }
+      for (const o of document.querySelectorAll('[data-objet]')) o.addEventListener('click', () => {
+        const [texte, bouton, vue] = FICHES[o.dataset.objet]
+        fermer()
+        $('#trajet-texte').innerHTML = texte
+        $('#bouton-depart').textContent = bouton
+        $('#bouton-depart').hidden = false
+        $('#bouton-depart').onclick = () => ouvrirPlein(vue)
+        $('#trajet').hidden = false
+      })
+
+      function avis(t) { $('#avis').textContent = t; $('#avis').hidden = false; clearTimeout(avis.m); avis.m = setTimeout(() => { $('#avis').hidden = true }, 2200) }
+      setTimeout(() => avis('📡 Le radar a repéré un alien'), 800)
+
+      // Décompte du missile (il repart de 01:42 en boucle : c'est une maquette).
+      let reste = 102
+      setInterval(() => {
+        reste = reste > 0 ? reste - 1 : 102
+        const t = `${String(Math.floor(reste / 60)).padStart(2, '0')}:${String(reste % 60).padStart(2, '0')}`
+        $('#compte').textContent = t
+        $('#compte-carte').textContent = '⏱ ' + t
+        for (const c of document.querySelectorAll('#trajet .compte')) c.textContent = t
+      }, 1000)
+
+      // Répartition de l'énergie (boucliers, armes, moteurs), partagée entre Armement et le combat.
+      const energie = { BOUCLIERS: 2, ARMES: 3, MOTEURS: 1 }
+      function dessinerRepartition() {
+        const html = Object.entries(energie).map(([k, v]) => `<div class="rang"><b>${k}</b><span class="crans">`
+          + `<button data-e="${k}" data-d="-1">−</button>${[0, 1, 2, 3].map((i) => `<i class="${i < v ? 'rempli' : ''}"></i>`).join('')}<button data-e="${k}" data-d="1">+</button></span></div>`).join('')
+          + `<small>${6 - Object.values(energie).reduce((a, b) => a + b, 0)} cran(s) libre(s)</small>`
+        $('#repartition').innerHTML = html
+        $('#repartition-combat').innerHTML = html
+      }
+      document.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-e]'); if (!b) return
+        const total = Object.values(energie).reduce((a, c) => a + c, 0), d = Number(b.dataset.d)
+        if ((d > 0 && total >= 6) || energie[b.dataset.e] + d < 0 || energie[b.dataset.e] + d > 4) return
+        energie[b.dataset.e] += d
+        dessinerRepartition()
+      })
+      dessinerRepartition()
+
+      // Combat : viser un module, tirer, intercepter le missile.
+      const MODULES_E = [
+        { nom: 'MISSILES', x: 185, y: 56, pv: 3 }, { nom: 'BOUCLIER', x: 132, y: 92, pv: 2 },
+        { nom: 'RÉACTEUR', x: 238, y: 92, pv: 4 }, { nom: 'MOTEURS', x: 185, y: 112, pv: 3 },
+      ]
+      let cible = 0, missile = 9, intercepteurs = 3
+      function dessinerCombat() {
+        $('#modules-ennemis').innerHTML = MODULES_E.map((m, k) => `<g class="module-ennemi" data-m="${k}">`
+          + `<rect x="${m.x - 28}" y="${m.y - 12}" width="56" height="24" rx="4" fill="${m.pv ? '#faf2dc' : '#7a6a4a'}" stroke="${k === cible ? '#e04b37' : '#2b2138'}" stroke-width="${k === cible ? 3 : 1.4}" ${k === cible ? 'stroke-dasharray="4 3"' : ''}/>`
+          + `<text x="${m.x}" y="${m.y - 1}" text-anchor="middle" font-size="8">${m.nom}</text>`
+          + `<text x="${m.x}" y="${m.y + 8}" text-anchor="middle">${'▮'.repeat(m.pv)}${m.pv ? '' : 'HS'}</text></g>`).join('')
+        const y = 70 + (9 - missile) * 18
+        $('#missiles-vol').innerHTML = missile > 0 ? `<g transform="translate(205 ${y}) rotate(100)"><path d="M-9 -2 h14 l5 2 l-5 2 h-14z" fill="#e04b37" stroke="#2b2138" stroke-width="1.1" /></g>`
+          + `<path d="M205 ${y} L190 245" stroke="#e04b37" stroke-dasharray="3 3" />` : ''
+        $('#cible').textContent = MODULES_E[cible].nom
+        $('#compte-combat').textContent = `00:0${Math.max(0, missile)}`
+        $('#intercepteurs').textContent = intercepteurs
+        $('#alerte-combat').style.visibility = missile > 0 ? 'visible' : 'hidden'
+      }
+      $('#modules-ennemis').addEventListener('click', (e) => { const g = e.target.closest('[data-m]'); if (g) { cible = Number(g.dataset.m); dessinerCombat() } })
+      $('#tirer').addEventListener('click', () => { const m = MODULES_E[cible]; if (m.pv) m.pv--; avis(m.pv ? `Touché : ${m.nom}` : `${m.nom} hors service !`); dessinerCombat() })
+      $('#intercepter').addEventListener('click', () => { if (intercepteurs > 0 && missile > 0) { intercepteurs--; missile = 0; avis('Missile intercepté !'); dessinerCombat() } })
+      setInterval(() => {
+        if ($('#combat').hidden) return
+        missile--
+        if (missile === 0) avis('Impact ! Moteur endommagé : trajet ralenti de 50 %')
+        if (missile < -4) missile = 9
+        dessinerCombat()
+      }, 1000)
+
+      // Tri des matériaux de l'épave.
+      const OBJETS = [
+        ['Plaque de titane', 'metal', '<rect x="35" y="30" width="80" height="56" rx="4" fill="#c9c2b0" stroke="#2b2138" stroke-width="3"/><circle cx="45" cy="40" r="3" fill="#2b2138"/><circle cx="105" cy="76" r="3" fill="#2b2138"/>'],
+        ['Carte de circuits', 'electronique', '<rect x="30" y="34" width="90" height="52" rx="3" fill="#8fcf98" stroke="#2b2138" stroke-width="3"/><path d="M40 50 h30 v20 h40 M50 76 v-10 h40" stroke="#d9a43a" stroke-width="3" fill="none"/><rect x="74" y="42" width="18" height="14" fill="#2b2138"/>'],
+        ['Hublot fêlé', 'verre', '<circle cx="75" cy="60" r="38" fill="#a69f86" stroke="#2b2138" stroke-width="3"/><circle cx="75" cy="60" r="27" fill="#bfe0e8" stroke="#2b2138" stroke-width="2"/><path d="M62 44 l10 14 l-6 8 l14 10" stroke="#2b2138" stroke-width="2" fill="none"/>'],
+        ['Mousse isolante', 'rebut', '<path d="M30 70 q10 -40 30 -20 q15 -25 35 -5 q25 -10 25 25 q-5 20 -45 15 q-40 5 -45 -15z" fill="#f6e3b8" stroke="#2b2138" stroke-width="3"/>'],
+        ['Tuyère tordue', 'metal', '<path d="M45 30 h40 l20 60 h-80z" fill="#d9a43a" stroke="#2b2138" stroke-width="3"/><path d="M55 40 l-6 40" stroke="#2b2138" stroke-width="1.5"/>'],
+        ['Cristal de quartz', 'verre', '<path d="M75 18 l22 30 l-8 50 h-28 l-8 -50z" fill="#d7cdee" stroke="#2b2138" stroke-width="3"/><path d="M75 18 v80" stroke="#2b2138" stroke-width="1.2"/>'],
+        ['Relais grillé', 'electronique', '<rect x="45" y="35" width="60" height="44" rx="4" fill="#3a3340" stroke="#2b2138" stroke-width="3"/><path d="M55 79 v14 M75 79 v14 M95 79 v14" stroke="#2b2138" stroke-width="3"/><path d="M60 45 l10 10 l10 -10" stroke="#e04b37" stroke-width="2" fill="none"/>'],
+      ]
+      let actuel = 0, serie = 1, gain = 0, temps = 30
+      function nouvelObjet() {
+        actuel = Math.floor(Math.random() * OBJETS.length)
+        $('#dessin-objet').innerHTML = OBJETS[actuel][2]
+        $('#nom-objet').textContent = OBJETS[actuel][0]
+      }
+      document.querySelector('.bacs').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-bac]'); if (!b || temps <= 0) return
+        if (b.dataset.bac === OBJETS[actuel][1]) { gain += 2 * serie; serie = Math.min(5, serie + 1) } else { serie = 1; navigator.vibrate?.(80) }
+        $('#serie').textContent = serie
+        $('#gain').textContent = `${gain} cr.`
+        nouvelObjet()
+      })
+      setInterval(() => {
+        if ($('#tri').hidden || temps <= 0) return
+        temps--
+        $('#chrono').textContent = `0:${String(temps).padStart(2, '0')}`
+        if (temps === 0) avis(`Épave vidée : ${gain} cr. de matériaux en soute`)
+      }, 1000)
+
+      function ouvrirPlein(v) {
+        fermer()
+        $('#trajet').hidden = true
+        $('#' + v).hidden = false
+        if (v === 'combat') { missile = 9; dessinerCombat() }
+        if (v === 'tri') { temps = 30; serie = 1; gain = 0; $('#gain').textContent = '0 cr.'; $('#serie').textContent = '1'; nouvelObjet() }
+      }
+    </script>
+  </body>
+</html>
