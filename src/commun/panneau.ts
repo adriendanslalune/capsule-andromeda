@@ -49,8 +49,11 @@ export class Panneau {
   private aiguillePression!: SVGLineElement
   private voyants = new Map<NomModule, SVGCircleElement>()
   private dernier = ''
+  private zones: [NomModule, (typeof CADRES)[NomModule]][] = []
+  private selection!: SVGRectElement
 
-  constructor(conteneur: HTMLElement) {
+  /** toucher : appelé quand on touche un module du panneau (pour ouvrir ses commandes). */
+  constructor(conteneur: HTMLElement, private toucher: (m: NomModule) => void) {
     this.svg = document.createElementNS(NS, 'svg')
     this.svg.setAttribute('viewBox', `0 0 ${LARGEUR_PANNEAU} ${HAUTEUR_PANNEAU}`)
     this.svg.setAttribute('class', 'panneau-svg')
@@ -153,6 +156,7 @@ export class Panneau {
     this.graine = [...serie].reduce((s, c) => (s * 31 + c.charCodeAt(0)) % 2147483646, 7) + 1
     this.svg.innerHTML = ''
     this.voyants.clear()
+    this.zones = []
     this.dernier = ''
     const defs = this.el('defs', {})
     const motif = this.el('pattern', { id: 'hachures', width: 4, height: 4, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs)
@@ -240,6 +244,8 @@ export class Panneau {
       this.texte(m.x + 16, m.y + 3, m.nom, 8.5, g, { 'font-weight': 'bold' })
       this.voyants.set(nom, this.voyant(m.x + m.w - 14, m.y + 2, '#8fcf98', g, 4.2))
       cadres.set(nom, g)
+      // Toucher le module ouvre ses commandes (zone par-dessus tout le cadre, ajoutée à la fin : voir zonesDeToucher).
+      this.zones.push([nom, m])
     }
     // 1 · MOTEUR : jauges (l'aiguille de pression est un indice pour l'Énergie), symbole, leviers.
     const mo = CADRES.moteur, gMo = cadres.get('moteur')!
@@ -291,6 +297,19 @@ export class Panneau {
     for (let k = 0; k < 6; k++) this.interrupteur(cq.x + 20 + k * 24, cq.y + 118, gCq)
     // 2 · ÉNERGIE : son contenu change à chaque tour (dessiné par afficher()).
     this.gEnergie = this.g(cadres.get('energie')!)
+    // Zones de toucher des modules, et le cadre de sélection.
+    for (const [nom, m] of this.zones) {
+      const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
+      z.addEventListener('click', () => this.toucher(nom))
+    }
+    this.selection = this.el('rect', { x: 0, y: 0, width: 0, height: 0, rx: 12, fill: 'none', stroke: '#e04b37', 'stroke-width': 3.5, 'stroke-dasharray': '8 5', 'pointer-events': 'none', class: 'selection-module' }) as SVGRectElement
+  }
+
+  /** Entoure le module choisi (null : aucun). */
+  choisir(nom: NomModule | null): void {
+    if (!nom) { this.selection.setAttribute('width', '0'); return }
+    const m = CADRES[nom]
+    for (const [k, v] of Object.entries({ x: m.x - 5, y: m.y - 13, width: m.w + 10, height: m.h + 18 })) this.selection.setAttribute(k, String(v))
   }
 
   /** Met le panneau à jour : voyants des modules en panne, module Énergie, aiguille de pression du Moteur. */

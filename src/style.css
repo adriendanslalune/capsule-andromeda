@@ -397,6 +397,8 @@ html, body {
 .panneau-svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
 .panneau-svg text { font-family: ui-monospace, Menlo, monospace; }
 .panneau-svg .commande { cursor: pointer; }
+.panneau-svg .selection-module { animation: pointiller 1s linear infinite; }
+@keyframes pointiller { to { stroke-dashoffset: -13; } }
 .panneau-svg .clignote { animation: clignoter-panneau 0.9s steps(2) infinite; }
 @keyframes clignoter-panneau { 50% { opacity: 0.25; } }
 .panneau-svg .etincelle { animation: etinceler 0.7s ease-out forwards; transform-box: fill-box; transform-origin: center; }
@@ -408,7 +410,8 @@ html, body {
   background: #e9dfc4; border: 2.5px solid var(--encre); border-radius: 10px 10px 0 0; box-shadow: 0 -3px 0 rgba(43, 33, 56, 0.25);
 }
 .commandes[hidden] { display: none; }
-.titre-commandes { font-size: 10px; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 4px; }
+.titre-commandes { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 4px; }
+.commandes .fermer-commandes { min-height: 34px; min-width: 44px; font-size: 14px; background: var(--creme); box-shadow: none; }
 .grille-commandes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .commandes button {
   min-height: 46px; padding: 2px; font: inherit; font-size: 10px; font-weight: bold; line-height: 1.2;

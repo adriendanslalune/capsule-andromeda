@@ -37,8 +37,9 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
 - 4.2 Panneau de réparation et réparation de l'Énergie — **fait, en attente de validation** : volet Capsule avec deux
   sous-onglets (ÉTAT, RÉPARATION) ; le panneau dessiné (`src/commun/panneau.ts`, propre à chaque numéro de série) ; le
   module Énergie jouable : écran DIAG, voyants de bus, bornier de 5 à 8 câbles étiquetés, ISOLER ; les gestes passent
-  par des boutons COUPER (un par câble, sa couleur et son étiquette) et ISOLER, collés en bas du volet (demande
-  d'Adrien : viser un câble fin était trop difficile) ; 2 ou 3 tours ; 6 règles dont une qui lit la pression du module Moteur et une qui dépend
+  par des boutons COUPER (un par câble, sa couleur et son étiquette) et ISOLER, qui s'ouvrent en touchant le module
+  sur le panneau (entouré d'un pointillé rouge) et se referment par ✕ (demandes d'Adrien : viser un câble fin était
+  trop difficile, et les commandes ne doivent pas rester ouvertes) ; 2 ou 3 tours ; 6 règles dont une qui lit la pression du module Moteur et une qui dépend
   du numéro de série (et sa note manuscrite pour les capsules AN-7) ; erreur : étincelle et 30 s de blocage
   (`src/moteur/reparation.ts`, `src/donnees/manuel-energie.ts`, testés). Numéro de série tiré à chaque nouvelle partie.
   Les autres modules gardent la réparation provisoire en attendant leur mécanique.

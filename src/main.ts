@@ -14,7 +14,7 @@ import { afficherBandeau } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
-import { MODULES } from './donnees/modules'
+import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule } from './commun/volet-capsule'
 import { htmlManuel } from './commun/manuel'
@@ -456,7 +456,16 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!
 const etatReparation = document.querySelector<HTMLSpanElement>('#etat-reparation')!
 let sousOnglet: 'etat' | 'reparation' = 'etat'
-const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!)
+const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!, (m) => {
+  // Toucher un module ouvre ses commandes (demande d'Adrien du 18/10/2026) ; le toucher de nouveau les referme.
+  moduleOuvert = moduleOuvert === m ? null : m
+  panneauReparation.choisir(moduleOuvert)
+  if (moduleOuvert && moduleOuvert !== 'energie') annoncer(jeu.enPanne(moduleOuvert) ? 'Ce module se répare depuis ÉTAT (en attendant sa section du manuel)' : 'Module en état')
+  dernieresCommandes = ''
+  afficherReparation()
+})
+/** Module du panneau dont les commandes sont ouvertes. */
+let moduleOuvert: NomModule | null = null
 /**
  * Les commandes du module Énergie, sous le panneau et toujours visibles (demande d'Adrien du 18/10/2026) : un bouton
  * COUPER par câble, de la couleur du câble et avec son étiquette, et ISOLER.
@@ -467,20 +476,22 @@ const TEINTES_BOUTONS: Record<string, string> = {
 }
 let dernieresCommandes = ''
 function afficherCommandes(e: EtatEnergie): void {
-  const html = !e.tour ? '' : '<div class="titre-commandes">MODULE 2 · ÉNERGIE</div><div class="grille-commandes">'
-    + e.tour.cables.map((c, k) => {
+  const ouvert = !!e.tour && moduleOuvert === 'energie'
+  const html = !ouvert ? '' : '<div class="titre-commandes">MODULE 2 · ÉNERGIE<button type="button" class="fermer-commandes" data-fermer>✕</button></div><div class="grille-commandes">'
+    + e.tour!.cables.map((c, k) => {
       const coupe = e.coupes.includes(k)
       const clair = c.couleur === 'blanc' || c.couleur === 'jaune'
       return `<button type="button" data-cable="${k}"${coupe || e.bloque ? ' disabled' : ''} style="background:${TEINTES_BOUTONS[c.couleur]};color:${clair ? '#1f1b18' : '#fff'}">`
         + `${coupe ? 'coupé' : '✂ COUPER'}<b>${c.circuit}${c.chiffre}</b></button>`
     }).join('')
     + `</div><button type="button" class="isoler" data-isoler${e.bloque ? ' disabled' : ''}>ISOLER</button>`
-  commandesEnergie.hidden = !e.tour
+  commandesEnergie.hidden = !ouvert
   if (html !== dernieresCommandes) commandesEnergie.innerHTML = dernieresCommandes = html
 }
 commandesEnergie.addEventListener('click', (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('button')
   if (!b || b.disabled) return
+  if (b.dataset.fermer !== undefined) { moduleOuvert = null; panneauReparation.choisir(null); afficherReparation(); return }
   if (b.dataset.cable !== undefined) gesteReparation(jeu.couperCableEnergie(Number(b.dataset.cable), horloge()))
   else if (b.dataset.isoler !== undefined) gesteReparation(jeu.basculerIsolerEnergie(horloge()))
 })
@@ -498,7 +509,7 @@ function afficherReparation(): void {
   panneauReparation.afficher(jeu.pannes, e)
   afficherCommandes(e)
   const texte = !jeu.pannes.length ? 'Tous les modules sont en état.'
-    : e.tour ? (e.bloque ? `Protection du bus : ${e.bloque} s` : `Énergie : tour ${e.numero + 1} sur ${e.tours}`)
+    : e.tour ? (e.bloque ? `Protection du bus : ${e.bloque} s` : moduleOuvert === 'energie' ? `Énergie : tour ${e.numero + 1} sur ${e.tours}` : 'Touche le module en panne')
       : `En panne : ${jeu.pannes.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}`
   if (etatReparation.textContent !== texte) etatReparation.textContent = texte
 }
@@ -510,7 +521,7 @@ function gesteReparation(r: Resultat): void {
     annoncer('Erreur ! Protection du bus : module bloqué 30 s')
   } else if (r === 'bloque') annoncer('Module bloqué : patience…')
   else if (r === 'tour-suivant') annoncer('Bien ! Nouveau code de diagnostic')
-  else if (r === 'repare') { annoncer('Énergie réparée : BUS OK'); apresChangementDePanne() }
+  else if (r === 'repare') { annoncer('Énergie réparée : BUS OK'); moduleOuvert = null; panneauReparation.choisir(null); apresChangementDePanne() }
   enregistrerPartie()
   afficherReparation()
 }
