@@ -57,7 +57,7 @@ export class Cockpit {
     this.volet.addEventListener('touchstart', (e) => {
       const cible = e.target as HTMLElement
       const page = cible.closest<HTMLElement>('.page')
-      debut = e.touches.length === 1 && (!page || page.scrollTop <= 0) && !cible.closest('input[type="range"]')
+      debut = e.touches.length === 1 && (!page || page.scrollTop <= 0) && !cible.closest('input[type="range"], .sans-glisser')
         ? { x: e.touches[0].clientX, y: e.touches[0].clientY, page } : null
       if (!debut) return
       // La suite du geste est écoutée sur l'élément touché lui-même : un volet qui se redessine pendant le geste

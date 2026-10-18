@@ -16,7 +16,7 @@ Progression : les crédits améliorent les moteurs pour aller plus vite et plus 
 
 Maisons (attribuées selon les activités du joueur, profil en toile d'araignée, peut changer) :
 - Nettoyeurs : vident les épaves (mini-jeu de tri rapide des matériaux).
-- Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps.
+- Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps. Un marché par système (Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton), présenté en graphique de cours façon trading (décision d'Adrien du 18/10/2026).
 - Mercenaires : escortes, chasse aux pirates et aliens, dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles.
 
 Missions proposées et Maisons (décision d'Adrien du 18/10/2026) : le jeu propose toujours 6 missions, 2 par Maison. Quand un joueur a de l'affinité avec une Maison, le jeu lui propose d'y appartenir ; ce n'est jamais définitif (il peut redevenir neutre, ou choisir une autre Maison si son affinité le permet). Membre d'une Maison, il se voit proposer 4 missions de sa Maison et 1 de chacune des deux autres : plus de choix, et mieux payé (+25 % sur les missions de sa Maison). Plus tard : des avantages entre joueurs d'une même Maison.

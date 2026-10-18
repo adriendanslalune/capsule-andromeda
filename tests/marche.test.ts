@@ -3,31 +3,47 @@ import { MARCHANDISES, MARCHES } from '../src/donnees/marche'
 import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
-import { coursDuMarche, delaiLumiere } from '../src/moteur/marche'
+import { achatVente, cours, delaiLumiere, historique, vueMarche } from '../src/moteur/marche'
 import { maisonDuContrat } from '../src/donnees/maisons'
 
 const t0 = Date.UTC(2026, 9, 18, 12)
 
 describe('le Marché', () => {
-  it('chaque marché est sur un astre ou un engin qui existe', () => {
+  it('un marché par système : les huit planètes et Pluton, tous connus du moteur', () => {
+    expect(MARCHES.map((m) => m.nom)).toEqual(['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'])
     for (const m of MARCHES) expect(corps(m.lieu), m.lieu).toBeDefined()
   })
 
-  it('le délai de la lumière : environ 1,3 s pour la Lune, plusieurs minutes pour Mars', () => {
-    const lune = delaiLumiere('Lune', t0)
-    expect(lune).toBeGreaterThan(1100)
-    expect(lune).toBeLessThan(1500)
-    expect(delaiLumiere('Phobos', t0)).toBeGreaterThan(3 * 60_000)
+  it('les cours de son propre système sont en direct ; ceux de Mars ont des minutes de retard', () => {
+    const terre = vueMarche(MARCHES[2], t0), mars = vueMarche(MARCHES[3], t0)
+    expect(terre.ici).toBe(true)
+    expect(terre.delai).toBe(0)
+    expect(mars.ici).toBe(false)
+    expect(mars.delai).toBeGreaterThan(3 * 60_000)
+    expect(mars.connuA).toBe(t0 - mars.delai)
+    expect(vueMarche(MARCHES[8], t0).delai).toBeGreaterThan(4 * 3_600_000) // Pluton : plus de 4 heures
   })
 
-  it('des cours pour chaque marchandise, achat au-dessus de la vente, toujours les mêmes pour un marché', () => {
-    for (const m of MARCHES) {
-      const c = coursDuMarche(m)
-      expect(c).toHaveLength(MARCHANDISES.length)
-      for (const x of c) expect(x.achat).toBeGreaterThanOrEqual(x.vente)
-      expect(coursDuMarche(m)).toEqual(c)
+  it('le délai de la lumière : environ 1,3 s pour la Lune', () => {
+    expect(delaiLumiere('Lune', t0)).toBeGreaterThan(1100)
+    expect(delaiLumiere('Lune', t0)).toBeLessThan(1500)
+  })
+
+  it('les cours : reproductibles, continus, autour du prix de base, différents d’un marché à l’autre', () => {
+    const [m, f] = [MARCHES[3], MARCHANDISES[1]]
+    expect(cours(m, f, t0)).toBe(cours(m, f, t0))
+    expect(Math.abs(cours(m, f, t0 + 1000) - cours(m, f, t0))).toBeLessThan(0.01 * f.prix)
+    for (const mm of MARCHES) for (const ff of MARCHANDISES) {
+      for (let k = 0; k < 50; k++) {
+        const c = cours(mm, ff, t0 + k * 7_777_777)
+        expect(c).toBeGreaterThan(0.5 * ff.prix)
+        expect(c).toBeLessThan(1.6 * ff.prix)
+      }
     }
-    expect(coursDuMarche(MARCHES[0])).not.toEqual(coursDuMarche(MARCHES[4]))
+    expect(cours(MARCHES[0], f, t0)).not.toBeCloseTo(cours(MARCHES[5], f, t0), 1)
+    const { achat, vente } = achatVente(100)
+    expect(achat).toBeGreaterThan(vente)
+    expect(historique(m, f, t0 - 1000, t0, 10)).toHaveLength(11)
   })
 })
 

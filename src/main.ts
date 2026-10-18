@@ -227,7 +227,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
   if (page === 'capsule') voletCapsule.afficher(jeu)
-  if (page === 'marche') voletMarche.afficher(jeu, horloge())
+  if (page === 'marche') voletMarche.afficher(horloge())
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -577,7 +577,7 @@ function afficherSoute(): void {
   if (pageSoute.innerHTML !== html) pageSoute.innerHTML = html
 }
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
-const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(jeu, horloge()))
+const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge()))
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
 function montrerReparation(bloc?: NomModule): void {
@@ -657,7 +657,7 @@ function image(maintenant: number): void {
   mettreAJourFiche(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
-  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(jeu, t); dernierMarche = maintenant }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t); dernierMarche = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true

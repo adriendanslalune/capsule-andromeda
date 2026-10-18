@@ -88,10 +88,12 @@ missiles et épaves sur la carte.
     réparation provisoire) ; mission → Missions ; trajet ou orbite → Navigation ; crédits et moteur → Capsule.
   - Glisser vers le bas ferme le volet de n'importe où (si son contenu est tout en haut ; le volet suit le doigt).
 - Soute et Marché (écrans) — **faits, en attente de validation** :
-  - Onglet Marché actif : 6 marchés (Tiangong, ISS, Base Artémis sur la Lune, Base Phobos, Callisto, Titan), chacun
-    avec l'âge de ses cours (vrai délai de la lumière depuis la capsule, `src/moteur/marche.ts`, testé) ; le plus
-    proche est choisi d'office ; cours d'essai fixes (±25 % d'un marché à l'autre) pour 6 marchandises ; ACHETER et
-    VENDRE grisés en attendant le commerce (étape 7).
+  - Onglet Marché actif, présentation revue par Adrien le 18/10/2026 : un marché par système (les 8 planètes et
+    Pluton), chacun avec l'âge de ses cours (vrai délai de la lumière depuis sa planète jusqu'à la capsule ; « ici · en
+    direct » dans son propre système) ; graphique de cours façon trading (6 h, 24 h, 7 j) qui s'arrête au dernier
+    cours connu, la fin hachurée « en route » ; lecture au doigt ; liste des 6 marchandises avec leur courbe sur 24 h et
+    leur variation. Formule du temps PROVISOIRE (ondulations reproductibles, `src/moteur/marche.ts`, testé) : à régler
+    à l'étape 7. ACHETER et VENDRE grisés.
   - Capsule › SOUTE : capacité 20 t (valeur de la maquette), la cargaison d'une livraison chargée, sinon « Soute
     vide » ; bouton vers le Marché. La soute s'affiche aussi au pied du bandeau.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.

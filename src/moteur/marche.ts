@@ -1,8 +1,11 @@
-// Le Marché vu depuis la capsule (étape 7, écrans d'abord) : les cours de chaque marché, et le délai de la lumière.
-// Les cours arrivent à la vitesse de la lumière : ceux d'un marché lointain sont vieux de plusieurs minutes. Pour
-// l'instant, cours d'essai fixes, un peu différents d'un marché à l'autre ; la formule du temps viendra ensuite.
+// Le Marché vu depuis la capsule (étape 7, écrans d'abord) : un marché par système, dont les cours arrivent avec le
+// délai de la lumière depuis sa planète. Formule du temps PROVISOIRE (à régler avec Adrien à l'étape 7) : autour d'un
+// prix propre à chaque marché (±25 % du prix de base), des ondulations de périodes différentes (de quelques jours à
+// quelques minutes), décalées pour chaque marché et chaque marchandise. Reproductible : même instant, même cours.
 
-import { MARCHANDISES, MARGE, type FicheMarche } from '../donnees/marche'
+import { MARCHANDISES, MARCHES, MARGE, type FicheMarchandise, type FicheMarche } from '../donnees/marche'
+import { etatCapsule } from './capsule'
+import { astreDominant } from './corps'
 import { C_KM_S, distanceDepuisCapsule } from './navigation'
 
 /** Délai de la lumière (ms) entre un lieu et la capsule, à l'instant t. */
@@ -10,20 +13,64 @@ export function delaiLumiere(lieu: string, t: number): number {
   return (distanceDepuisCapsule(lieu, t) / C_KM_S) * 1000
 }
 
-export interface Cours { marchandise: string; achat: number; vente: number; /** Tendance : -1, 0 ou 1. */ tendance: number }
+/** Le marché du système où se trouve la capsule (là où ses cours sont en direct), ou null (en plein espace). */
+export function marcheDeLaCapsule(t: number): FicheMarche | null {
+  const systeme = astreDominant(etatCapsule(t).position, t)
+  return MARCHES.find((m) => m.lieu === systeme) ?? null
+}
 
-/** Petit hachage d'un texte (pour varier les cours d'essai d'un marché à l'autre, toujours de la même façon). */
+/** Petit hachage d'un texte, entre 0 et 1 (toujours le même pour le même texte). */
 function hachage(s: string): number {
   let h = 2166136261
   for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
   return (h >>> 0) / 4294967296
 }
 
-/** Les cours d'essai d'un marché : le prix de base de chaque marchandise, à ±25 % selon le marché. */
-export function coursDuMarche(m: FicheMarche): Cours[] {
-  return MARCHANDISES.map((f) => {
-    const h = hachage(`${m.nom}/${f.nom}`)
-    const achat = Math.max(1, Math.round(f.prix * (0.75 + 0.5 * h)))
-    return { marchandise: f.nom, achat, vente: Math.max(1, Math.round(achat * (1 - MARGE))), tendance: h < 0.33 ? -1 : h > 0.66 ? 1 : 0 }
+const HEURE = 3_600_000
+/** Les ondulations : période (ms) et amplitude (fraction du prix). */
+const ONDES: readonly [number, number][] = [[4.3 * 24 * HEURE, 0.14], [19 * HEURE, 0.08], [2.7 * HEURE, 0.04], [23 * 60_000, 0.015], [6 * 60_000, 0.006]]
+
+/** Le cours (crédits la tonne) d'une marchandise sur un marché, à l'instant t. */
+export function cours(m: FicheMarche, f: FicheMarchandise, t: number): number {
+  const cle = `${m.nom}/${f.nom}`
+  const base = f.prix * (0.75 + 0.5 * hachage(cle))
+  const onde = ONDES.reduce((s, [p, a], k) => s + a * Math.sin((2 * Math.PI * t) / p + 2 * Math.PI * hachage(`${cle}/${k}`)), 0)
+  return base * (1 + onde)
+}
+
+/** Prix d'achat et de vente autour du cours. */
+export function achatVente(c: number): { achat: number; vente: number } {
+  return { achat: Math.round(c * (1 + MARGE / 2)), vente: Math.max(1, Math.round(c * (1 - MARGE / 2))) }
+}
+
+/** L'historique d'un cours : n + 1 points réguliers de debut à fin (ms UTC). */
+export function historique(m: FicheMarche, f: FicheMarchandise, debut: number, fin: number, n: number): { t: number; cours: number }[] {
+  return Array.from({ length: n + 1 }, (_, k) => {
+    const t = debut + ((fin - debut) * k) / n
+    return { t, cours: cours(m, f, t) }
   })
+}
+
+/** Ce que la capsule sait d'un marché à l'instant t : les cours d'il y a « delai » ms (le délai de la lumière). */
+export interface VueMarche {
+  marche: FicheMarche
+  /** Âge des cours (ms) ; 0 si la capsule est dans ce système. */
+  delai: number
+  ici: boolean
+  /** Instant des derniers cours connus (t − délai). */
+  connuA: number
+  marchandises: { fiche: FicheMarchandise; cours: number; achat: number; vente: number; /** Sur 24 h (fraction). */ variation: number }[]
+}
+
+export function vueMarche(m: FicheMarche, t: number): VueMarche {
+  const ici = marcheDeLaCapsule(t)?.nom === m.nom
+  const delai = ici ? 0 : delaiLumiere(m.lieu, t)
+  const connuA = t - delai
+  return {
+    marche: m, delai, ici, connuA,
+    marchandises: MARCHANDISES.map((f) => {
+      const c = cours(m, f, connuA)
+      return { fiche: f, cours: c, ...achatVente(c), variation: c / cours(m, f, connuA - 24 * HEURE) - 1 }
+    }),
+  }
 }

@@ -1,20 +1,23 @@
-// Le Marché (étape 7, écrans posés d'abord : décision d'Adrien du 18/10/2026). Les marchés du système solaire, les
-// marchandises, et la soute de la capsule. Les cours sont pour l'instant des cours d'essai (fixes) : la formule du
-// temps viendra avec la mécanique du commerce.
+// Le Marché (étape 7, écrans d'abord : décisions d'Adrien du 18/10/2026). Un marché par système : celui de chaque
+// planète (et de Pluton) ; ses cours arrivent à la capsule avec le délai de la lumière depuis cette planète.
+// Les marchandises ont un prix de base ; la formule du temps (provisoire) est dans src/moteur/marche.ts.
 
-/** Un marché : son nom, et l'astre ou l'engin où il se trouve (pour la distance et le délai de la lumière). */
-export interface FicheMarche { nom: string; lieu: string; region: string }
+/** Un marché : le système (sa planète), pour la distance et le délai de la lumière. */
+export interface FicheMarche { nom: string; lieu: string; /** Pastille du système. */ teinte: string }
 
 export const MARCHES: readonly FicheMarche[] = [
-  { nom: 'Tiangong', lieu: 'Tiangong', region: 'Terre' },
-  { nom: 'ISS', lieu: 'ISS', region: 'Terre' },
-  { nom: 'Base Artémis', lieu: 'Lune', region: 'Lune' },
-  { nom: 'Base Phobos', lieu: 'Phobos', region: 'Mars' },
-  { nom: 'Callisto', lieu: 'Callisto', region: 'Jupiter' },
-  { nom: 'Titan', lieu: 'Titan', region: 'Saturne' },
+  { nom: 'Mercure', lieu: 'Mercure', teinte: '#c9c2b0' },
+  { nom: 'Vénus', lieu: 'Vénus', teinte: '#f5d38a' },
+  { nom: 'Terre', lieu: 'Terre', teinte: '#8fc3e0' },
+  { nom: 'Mars', lieu: 'Mars', teinte: '#e98a6f' },
+  { nom: 'Jupiter', lieu: 'Jupiter', teinte: '#e8c9a0' },
+  { nom: 'Saturne', lieu: 'Saturne', teinte: '#f6e3b8' },
+  { nom: 'Uranus', lieu: 'Uranus', teinte: '#bfe0e8' },
+  { nom: 'Neptune', lieu: 'Neptune', teinte: '#8fa8e0' },
+  { nom: 'Pluton', lieu: 'Pluton', teinte: '#d7cdee' },
 ]
 
-/** Une marchandise et son cours d'essai (crédits la tonne). */
+/** Une marchandise et son prix de base (crédits la tonne). */
 export interface FicheMarchandise { nom: string; prix: number }
 
 export const MARCHANDISES: readonly FicheMarchandise[] = [
@@ -28,5 +31,5 @@ export const MARCHANDISES: readonly FicheMarchandise[] = [
 
 /** Capacité de la soute (tonnes ; la maquette validée le 18/10/2026 montre 20). */
 export const CAPACITE_SOUTE = 20
-/** Écart entre le prix d'achat et le prix de vente (le marché garde sa marge). */
+/** Écart entre le prix d'achat et le prix de vente, autour du cours (le marché garde sa marge). */
 export const MARGE = 0.12
