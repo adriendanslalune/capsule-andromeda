@@ -5,7 +5,7 @@
 // monolithe est alors localisé, on peut y aller et le ramasser. Un PING par heure au plus.
 // Tout est compté dans le plan de l'écliptique (celui de la carte).
 
-import { ATTENTE_PING, MONOLITHES, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
+import { ATTENTE_PING, MONOLITHES, PALIERS, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
 import { C_KM_S } from './navigation'
 import { UA_KM } from './temps'
 
@@ -55,6 +55,16 @@ export function prochainPing(e: EtatMonolithes): number {
 
 export function peutPinger(e: EtatMonolithes, t: number): boolean {
   return t >= prochainPing(e) && e.trouves.length < MONOLITHES.length
+}
+
+/** Le statut d'un capitaine selon le nombre de monolithes trouvés (null sous le premier palier). */
+export function statut(nombre: number): string | null {
+  return [...PALIERS].reverse().find((p) => nombre >= p.seuil)?.titre ?? null
+}
+
+/** Le palier suivant (null une fois Oracle). */
+export function palierSuivant(nombre: number): { seuil: number; titre: string } | null {
+  return PALIERS.find((p) => nombre < p.seuil) ?? null
 }
 
 /** Envoie un PING depuis la place de la capsule ; renvoie l'écho attendu (ou null si on ne peut pas encore). */

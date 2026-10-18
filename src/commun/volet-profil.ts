@@ -5,6 +5,8 @@
 import { MAISONS, titreMaison } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
 import { affinites, maisonPreferee } from '../moteur/profil'
+import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
+import { palierSuivant, statut } from '../moteur/monolithes'
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', commercants: '#f5d38a', mercenaires: '#f3c2b0' }
 /** Les zones de la campagne (acte 1). */
@@ -31,6 +33,15 @@ function toile(jeu: Jeu): string {
   return s + '</svg>'
 }
 
+/** La collection de monolithes : le statut dans les Messages, et le chemin jusqu'au palier suivant. */
+function htmlCollection(jeu: Jeu): string {
+  const n = jeu.monolithes.trouves.length, s = statut(n), suivant = palierSuivant(n)
+  return `<h3>Monolithes</h3><div class="bloc"><div class="rang"><span>Trouvés</span><b>${n} / ${NOMBRE_MONOLITHES}</b></div>`
+    + `<div class="rang"><span>Statut dans les Messages</span><b>${s ?? 'aucun'}</b></div>`
+    + `<div class="paliers">${PALIERS.map((p) => `<span class="${n >= p.seuil ? 'atteint' : ''}"><b>${p.titre}</b><small>${p.seuil}</small></span>`).join('')}</div>`
+    + `<p class="petit">${suivant ? `Encore ${suivant.seuil - n} monolithe${suivant.seuil - n > 1 ? 's' : ''} pour devenir <b>${suivant.titre}</b>. Le bouton PING de la carte les cherche à la radio.` : 'Tu as tout trouvé : Oracle !'}</p></div>`
+}
+
 export function htmlProfil(jeu: Jeu): string {
   const pref = maisonPreferee(jeu), c = jeu.carnet
   const total = MAISONS.reduce((s, m) => s + c.missions[m.maison], 0)
@@ -38,6 +49,7 @@ export function htmlProfil(jeu: Jeu): string {
     + `<h3>Capitaine</h3><div class="bloc pseudo"><label for="pseudo">Ton nom dans les Messages</label>`
     + `<div class="ligne-pseudo"><input id="pseudo" type="text" maxlength="16" autocomplete="off" spellcheck="false" value="${jeu.pseudo}"/>`
     + `<button type="button" data-pseudo>OK</button></div><small>Capsule n° ${jeu.numeroSerie} · 3 à 16 lettres ou chiffres</small></div>`
+    + htmlCollection(jeu)
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`
     + `<p>Maison : <b>${jeu.maison ? titreMaison(jeu.maison) : 'aucune (neutre)'}</b></p>`
     + `<p class="petit">${!total ? 'Fais des missions : ta toile se dessinera selon ce que tu préfères faire.'

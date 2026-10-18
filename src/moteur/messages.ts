@@ -4,6 +4,7 @@
 // la lumière : un message parti de Neptune arrive des heures plus tard, et la réponse à un message aussi.
 // Reproductible : les bavardages dépendent seulement de l'heure (les mêmes pour tous) ; les réponses, du message.
 
+import { statut } from './monolithes'
 import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
 import { MARCHANDISES, MARCHES } from '../donnees/marche'
 import type { Maison } from '../donnees/maisons'
@@ -29,6 +30,8 @@ export interface MessageAffiche {
   /** Arrivée à la capsule (envoi + délai de la lumière). */
   recu: number
   deMoi: boolean
+  /** Le statut de l'auteur (paliers des monolithes), s'il en a un. */
+  statut: string | null
 }
 
 /** Un bavardage tous les PAS en moyenne (un créneau sur quatre reste silencieux). */
@@ -77,7 +80,7 @@ function bavardage(k: number, joueur: string): MessageAffiche | null {
     const canal = x < 0.02 ? `prive:${bot.pseudo}` : x < 0.3 ? 'maison' : 'general'
     const modeles = canal === 'general' ? BAVARDAGES : canal === 'maison' ? BAVARDAGES_MAISON[bot.maison] : PRIVES_SPONTANES
     const texte = remplir(choisir(modeles, h(`c${k}/4`)), bot, joueur, envoye, `c${k}`)
-    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: bot.lieu, texte, envoye, recu: envoye + delaiLumiere(bot.lieu, envoye), deMoi: false }
+    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: bot.lieu, texte, envoye, recu: envoye + delaiLumiere(bot.lieu, envoye), deMoi: false, statut: statut(bot.monolithes) }
   }
   if (memoire.size > 5000) memoire.clear()
   memoire.set(cle, m)
@@ -122,7 +125,7 @@ function calculerReponses(m: MessageEnvoye, joueur: string, maisonJoueur: Maison
     const arrivee = m.envoye + delaiLumiere(b.lieu, m.envoye)
     const envoye = arrivee + 8000 + Math.floor(h(`r${m.id}/${b.pseudo}/t`) * 30_000) + n * 6000
     const texte = remplir(choisir(REPONSES[i], h(`r${m.id}/${b.pseudo}/x`)), b, joueur, envoye, `r${m.id}`, marchandise)
-    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: b.lieu, texte, envoye, recu: envoye + delaiLumiere(b.lieu, envoye), deMoi: false }
+    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: b.lieu, texte, envoye, recu: envoye + delaiLumiere(b.lieu, envoye), deMoi: false, statut: statut(b.monolithes) }
   })
 }
 
@@ -135,7 +138,7 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
   }
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
-    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true })
+    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: statut(jeu.monolithes.trouves.length) })
     l.push(...reponses(m, jeu.pseudo, jeu.maison))
   }
   return l

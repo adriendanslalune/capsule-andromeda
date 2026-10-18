@@ -22,6 +22,19 @@ export const ATTENTE_PING = 3_600_000
  */
 export const PRECISION_ECHO = 0.003
 
+/**
+ * Paliers de la collection (validés par Adrien le 18/10/2026) : un statut affiché à côté du pseudo dans les Messages
+ * et dans le Profil. C'est le seul avantage des monolithes pour l'instant (le côté social).
+ */
+export const PALIERS: readonly { seuil: number; titre: string }[] = [
+  { seuil: 10, titre: 'Écouteur' },
+  { seuil: 50, titre: 'Sourcier' },
+  { seuil: 100, titre: 'Arpenteur' },
+  { seuil: 250, titre: 'Cartographe' },
+  { seuil: 500, titre: 'Gardien' },
+  { seuil: 1000, titre: 'Oracle' },
+]
+
 const UA = 149_597_870.7
 
 /** Bandes de distance au Soleil (UA) et nombre de monolithes : autour des orbites des planètes, et entre elles. */

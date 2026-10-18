@@ -12,6 +12,10 @@ import {
   conversations, enRoute, envoyer, etatEnvoi, fil, marquerLu, nonLus, texteDelaiCourt, type Canal, type MessageAffiche,
 } from '../moteur/messages'
 import { delaiLumiere } from '../moteur/marche'
+import { statut } from '../moteur/monolithes'
+
+/** Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
+const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', commercants: '#f5d38a', mercenaires: '#f3c2b0' }
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
@@ -93,18 +97,18 @@ export class VoletMessages {
       const conv = conversations(jeu, t)
       html += conv.length ? conv.map(({ canal, bot, dernier }) => `<button type="button" class="conversation" data-canal="${canal}">`
         + `<span class="avatar" style="background:${TEINTES[bot.maison]}">${bot.pseudo[0]}</span>`
-        + `<span class="texte"><b>${bot.pseudo}</b><small>${echapper(dernier.texte)}</small></span>`
+        + `<span class="texte"><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${echapper(dernier.texte)}</small></span>`
         + `<span class="quand">${ilYa(t - dernier.recu)}</span></button>`).join('')
         : '<p class="vide">Pas encore de conversation privée. Touche le nom d\'un capitaine dans le canal général, ou choisis ci-dessous.</p>'
       html += '<h3>Écrire à…</h3><div class="annuaire">' + BOTS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
-        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}<small>${b.lieu} · ${texteDelaiCourt(delaiLumiere(b.lieu, t))}</small></button>`).join('') + '</div>'
+        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}${badge(statut(b.monolithes))}<small>${b.lieu} · ${texteDelaiCourt(delaiLumiere(b.lieu, t))}</small></button>`).join('') + '</div>'
     } else if (c === 'maison' && !jeu.maison) {
       html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (bientôt, depuis ton Profil) pour parler avec les tiens.</p>'
     } else {
       if (c.startsWith('prive:')) {
         const bot = BOTS.find((b) => `prive:${b.pseudo}` === c)!
         html += `<div class="tete-prive"><button type="button" data-canal="prives">‹</button><span class="avatar" style="background:${TEINTES[bot.maison]}">${bot.pseudo[0]}</span>`
-          + `<span><b>${bot.pseudo}</b><small>${titreMaison(bot.maison)} · ${bot.lieu} · la lumière met ${texteDelaiCourt(delaiLumiere(bot.lieu, t))}</small></span></div>`
+          + `<span><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${titreMaison(bot.maison)} · ${bot.lieu} · la lumière met ${texteDelaiCourt(delaiLumiere(bot.lieu, t))}</small></span></div>`
       } else if (c === 'maison') html += `<p class="info-canal">Canal des ${titreMaison(jeu.maison!).toLowerCase()}</p>`
       const messages = fil(jeu, c, t)
       if (!messages.length) html += '<p class="vide">Aucun message pour l\'instant. Lance la conversation !</p>'
@@ -124,10 +128,10 @@ export class VoletMessages {
   }
 
   private bulle(m: MessageAffiche, t: number): string {
-    if (m.deMoi) return `<div class="bulle moi"><span class="auteur">${echapper(m.auteur)}</span>${echapper(m.texte)}<small>${etatEnvoi(m, t)}</small></div>`
+    if (m.deMoi) return `<div class="bulle moi"><span class="auteur">${echapper(m.auteur)}${badge(m.statut)}</span>${echapper(m.texte)}<small>${etatEnvoi(m, t)}</small></div>`
     const prive = this.canal.startsWith('prive:')
     return `<div class="bulle"><span class="auteur">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}" title="Écrire en privé">`}`
-      + `<i style="background:${m.maison ? TEINTES[m.maison] : '#d7cdee'}"></i>${m.auteur}${prive ? '' : '</button>'}</span>${echapper(m.texte)}`
+      + `<i style="background:${m.maison ? TEINTES[m.maison] : '#d7cdee'}"></i>${m.auteur}${prive ? '' : '</button>'}${badge(m.statut)}</span>${echapper(m.texte)}`
       + `<small>de ${m.lieu} · ${ilYa(t - m.recu)} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small></div>`
   }
 }

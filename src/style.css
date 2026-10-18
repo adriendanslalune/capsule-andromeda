@@ -975,3 +975,11 @@ body.nuit #marche .baisse { color: #f08a72; }
 .liste-monolithes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12px; }
 .liste-monolithes div { display: flex; flex-direction: column; padding: 3px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 25%, transparent); }
 .liste-monolithes span { opacity: 0.75; }
+/* Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
+.statut { font-style: normal; font-size: 10px; font-weight: normal; padding: 0 5px; margin-left: 4px; border: 1px solid currentColor;
+  border-radius: 8px; color: #7a5aa8; white-space: nowrap; vertical-align: 1px; }
+#profil .paliers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+#profil .paliers span { display: flex; flex-direction: column; align-items: center; padding: 5px 2px; font-size: 11px;
+  border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 8px; opacity: 0.6; }
+#profil .paliers span.atteint { border: 1.5px solid #7a5aa8; background: #d7cdee; opacity: 1; }
+#profil .paliers small { font-size: 10px; }

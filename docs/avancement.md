@@ -184,6 +184,10 @@ missiles et épaves sur la carte.
     Moteur : `src/moteur/monolithes.ts` (tests `tests/monolithes.test.ts`). Intérêt : collection, statut dans les
     Messages par paliers (décision d'Adrien du 18/10/2026 : pas d'autre avantage pour l'instant ; pas de saisie d'un
     emplacement pour localiser un monolithe). La limite de 3 messages par jour est abandonnée (décision d'Adrien).
+    Paliers (validés par Adrien le 18/10/2026) : Écouteur 10, Sourcier 50, Arpenteur 100, Cartographe 250, Gardien
+    500, Oracle 1000 (`PALIERS`, `statut()`). Le statut s'affiche en petit (violet) à côté du pseudo dans les Messages
+    (bulles, conversations, annuaire) ; les bots ont leur collection (de 0 à 1000 : Le_Vieux_Ras est Oracle). Profil :
+    bloc Monolithes (trouvés, statut, les six paliers, combien pour le suivant).
     Correction du 18/10/2026 (Adrien croyait l'écho perdu) : l'écho revenait bien (1 min près de la Terre, 3 min vers
     Jupiter, 20 min vers Uranus, 1 h 20 vers Pluton), mais revenu l'application fermée, il ne s'annonçait pas, et son
     cercle (10 millions de km) sortait de l'écran. Désormais un écho revenu reste « non vu » (enregistré) : il

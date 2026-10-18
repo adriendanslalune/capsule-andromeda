@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES } from '../src/donnees/monolithes'
 import {
-  croisement, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
+  croisement, palierSuivant, statut, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
 } from '../src/moteur/monolithes'
 import { corps, position } from '../src/moteur/corps'
 import { C_KM_S } from '../src/moteur/navigation'
@@ -89,6 +89,20 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     pinger(e2, { x: UA, y: 0 }, t0)
     pinger(e2, { x: UA, y: 1e6 }, t0 + 2 * H)
     expect(echosNonVus(e2, t0 + 5 * H).length).toBe(1)
+  })
+
+  it('les paliers : un statut selon le nombre de monolithes trouvés (validés par Adrien le 18/10/2026)', () => {
+    expect(statut(0)).toBeNull()
+    expect(statut(9)).toBeNull()
+    expect(statut(10)).toBe('Écouteur')
+    expect(statut(49)).toBe('Écouteur')
+    expect(statut(50)).toBe('Sourcier')
+    expect(statut(100)).toBe('Arpenteur')
+    expect(statut(250)).toBe('Cartographe')
+    expect(statut(500)).toBe('Gardien')
+    expect(statut(1000)).toBe('Oracle')
+    expect(palierSuivant(12)).toEqual({ seuil: 50, titre: 'Sourcier' })
+    expect(palierSuivant(1000)).toBeNull()
   })
 
   it('un écho pas encore revenu ne compte pas', () => {

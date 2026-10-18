@@ -6,21 +6,27 @@
 
 import type { Maison } from './maisons'
 
-export interface Bot { pseudo: string; maison: Maison; lieu: string; /** Le marché du système où il se trouve. */ marche: string }
+export interface Bot {
+  pseudo: string; maison: Maison; lieu: string
+  /** Le marché du système où il se trouve. */
+  marche: string
+  /** Monolithes trouvés (son statut dans les Messages). */
+  monolithes: number
+}
 
 export const BOTS: readonly Bot[] = [
-  { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre' },
-  { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre' },
-  { pseudo: 'ORION_77', maison: 'commercants', lieu: 'Phobos', marche: 'Mars' },
-  { pseudo: 'Babouchka', maison: 'nettoyeurs', lieu: 'Vénus', marche: 'Vénus' },
-  { pseudo: 'Kepler9', maison: 'commercants', lieu: 'Callisto', marche: 'Jupiter' },
-  { pseudo: 'Nemo_II', maison: 'mercenaires', lieu: 'Titan', marche: 'Saturne' },
-  { pseudo: 'Pipelette', maison: 'commercants', lieu: 'Lune', marche: 'Terre' },
-  { pseudo: 'Le_Vieux_Ras', maison: 'nettoyeurs', lieu: 'Neptune', marche: 'Neptune' },
-  { pseudo: 'Lune_Rousse', maison: 'mercenaires', lieu: 'Mars', marche: 'Mars' },
-  { pseudo: 'Comète_Rieuse', maison: 'nettoyeurs', lieu: 'Mercure', marche: 'Mercure' },
-  { pseudo: 'Zinzolin', maison: 'commercants', lieu: 'Uranus', marche: 'Uranus' },
-  { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter' },
+  { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre', monolithes: 64 },
+  { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre', monolithes: 8 },
+  { pseudo: 'ORION_77', maison: 'commercants', lieu: 'Phobos', marche: 'Mars', monolithes: 132 },
+  { pseudo: 'Babouchka', maison: 'nettoyeurs', lieu: 'Vénus', marche: 'Vénus', monolithes: 271 },
+  { pseudo: 'Kepler9', maison: 'commercants', lieu: 'Callisto', marche: 'Jupiter', monolithes: 23 },
+  { pseudo: 'Nemo_II', maison: 'mercenaires', lieu: 'Titan', marche: 'Saturne', monolithes: 517 },
+  { pseudo: 'Pipelette', maison: 'commercants', lieu: 'Lune', marche: 'Terre', monolithes: 3 },
+  { pseudo: 'Le_Vieux_Ras', maison: 'nettoyeurs', lieu: 'Neptune', marche: 'Neptune', monolithes: 1000 },
+  { pseudo: 'Lune_Rousse', maison: 'mercenaires', lieu: 'Mars', marche: 'Mars', monolithes: 41 },
+  { pseudo: 'Comète_Rieuse', maison: 'nettoyeurs', lieu: 'Mercure', marche: 'Mercure', monolithes: 12 },
+  { pseudo: 'Zinzolin', maison: 'commercants', lieu: 'Uranus', marche: 'Uranus', monolithes: 88 },
+  { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter', monolithes: 0 },
 ]
 
 /** Bavardages du canal général. */
