@@ -105,6 +105,15 @@ missiles et épaves sur la carte.
     par cran ; moteurs : 10 % d'esquive par cran) ; un missile toutes les 15 s, 10 s de vol avec décompte, 3 points de
     coque, INTERCEPTER ; TIRER se recharge plus vite avec plus d'armes ; FUIR (plus vite avec plus de moteurs). Pas
     de game over : coque à zéro, retraite. Sans conséquence pour la capsule (simulateur).
+  - Avis d'Adrien (18/10/2026) : le combat est très facile ; il imagine un moteur au **tour par tour**. À reprendre
+    plus tard (après la mise en place des écrans).
+- Tri d'épave (prototype) — **fait, en attente de validation** : depuis Capsule › SOUTE, ENTRAÎNEMENT AU TRI
+  D'ÉPAVE ; plein écran : 30 s, un objet à la fois (16 objets dessinés, `src/donnees/tri.ts`), quatre gros bacs
+  (métaux, électronique, verre et cristaux, rebut) ; bien trié : 2 cr. × la série (jusqu'à ×5) ; erreur : la série
+  retombe à 1, le bac tremble, le téléphone vibre ; bilan par bac à la fin (`src/moteur/tri.ts`, testé ; valeurs
+  PROVISOIRES). Sans conséquence pour la capsule (entraînement).
+  - Corrigé au passage : les onglets SOUTE et ARMEMENT se redessinaient à chaque image (un bouton pouvait
+    disparaître sous le doigt).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

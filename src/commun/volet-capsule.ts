@@ -58,6 +58,8 @@ export function htmlSoute(jeu: Jeu): string {
     + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '<div>Soute vide.</div>')
     + '<p class="note">Les matériaux récupérés dans les épaves et les marchandises achetées au Marché viendront ici.</p></div>'
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
+    + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
+    + '<p class="note-soute">Le tri des matériaux des Nettoyeurs : un prototype à tester, sans conséquence pour ta capsule.</p>'
 }
 
 /** La répartition de l'énergie : un cran par case, des boutons − et + par système (Armement et combat). */

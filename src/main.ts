@@ -18,6 +18,7 @@ import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { VueCombat } from './commun/vue-combat'
+import { VueTri } from './commun/vue-tri'
 import { repartir } from './moteur/combat'
 import type { SystemeEnergie } from './donnees/combat'
 import { VoletMarche } from './commun/volet-marche'
@@ -576,10 +577,11 @@ function choisirSousOnglet(s: SousOnglet): void {
 }
 /** L'onglet ARMEMENT du volet Capsule : l'énergie à répartir (sauvegardée) et le simulateur de combat. */
 const pageArmement = document.querySelector<HTMLDivElement>('#armement')!
+let dernierArmement = ''
 function afficherArmement(): void {
   if (sousOnglet !== 'armement') return
   const html = htmlArmement(jeu)
-  if (pageArmement.innerHTML !== html) pageArmement.innerHTML = html
+  if (html !== dernierArmement) pageArmement.innerHTML = dernierArmement = html
 }
 pageArmement.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
@@ -598,11 +600,17 @@ const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat'
 })
 /** L'onglet SOUTE du volet Capsule. */
 const pageSoute = document.querySelector<HTMLDivElement>('#soute')!
+let derniereSoute = ''
 function afficherSoute(): void {
   if (sousOnglet !== 'soute') return
+  // Comparer au dernier HTML écrit (le navigateur réécrit innerHTML à sa façon : le comparer redessinerait tout,
+  // à chaque image, et un bouton pourrait disparaître sous le doigt).
   const html = htmlSoute(jeu)
-  if (pageSoute.innerHTML !== html) pageSoute.innerHTML = html
+  if (html !== derniereSoute) pageSoute.innerHTML = derniereSoute = html
 }
+// Le tri d'une épave (entraînement, depuis la SOUTE).
+const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
+pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge()))
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
