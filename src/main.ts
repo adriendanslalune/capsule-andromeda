@@ -103,10 +103,14 @@ const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
-// La carte ne montre que les épaves et les chasseurs visés (ou qui tirent), et les monolithes localisés.
+// La carte ne montre que les épaves et les chasseurs visés (ou qui tirent), et les monolithes localisés ou ramassés
+// (ramassé, il reste sur la carte : demande d'Adrien du 18/10/2026).
+let ramasses = new Set<number>()
 carte.surLaCarte = (nom, t) => {
   const m = monolitheNomme(nom)
-  return m ? localise(jeu.monolithes, m.numero, t) : surLaCarte(jeu.espace, nom, t, cibles())
+  if (!m) return surLaCarte(jeu.espace, nom, t, cibles())
+  if (ramasses.size !== jeu.monolithes.trouves.length) ramasses = new Set(jeu.monolithes.trouves)
+  return ramasses.has(m.numero) || localise(jeu.monolithes, m.numero, t)
 }
 /** Les monolithes localisés (pas encore ramassés), les plus proches d'abord. */
 function monolithesLocalises(t: number): string[] {
@@ -464,7 +468,7 @@ function mettreAJourFiche(t: number): void {
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     const genre = corps(selection)?.type
-    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? (jeu.monolithes.trouves.includes(monolitheNomme(selection)!.numero) ? ' · déjà dans ta cale' : ' · localisé à la radio') : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {

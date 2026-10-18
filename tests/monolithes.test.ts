@@ -115,6 +115,16 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     expect(peutPinger(e, t0 + H)).toBe(true)
   })
 
+  it('un monolithe ramassé ne répond plus aux PING : c’est le suivant le plus proche qui répond', () => {
+    const e = nouveauxMonolithes()
+    const ici = { x: UA, y: 0 }
+    const premier = pinger(e, ici, t0)!.monolithe
+    e.trouves.push(premier)
+    e.echos = []
+    const second = pinger(e, ici, t0 + 2 * H)!
+    expect(second.monolithe).not.toBe(premier)
+  })
+
   it('un écho pas encore revenu ne compte pas', () => {
     const e = nouveauxMonolithes()
     e.echos.push({ monolithe: 2, centre: { x: 0, y: 0 }, rayon: 5, envoye: 0, retour: 10 }, { monolithe: 2, centre: { x: 3, y: 0 }, rayon: 4, envoye: 0, retour: 100 })

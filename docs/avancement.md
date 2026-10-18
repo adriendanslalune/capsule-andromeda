@@ -188,6 +188,8 @@ missiles et épaves sur la carte.
     500, Oracle 1000 (`PALIERS`, `statut()`). Le statut s'affiche en petit (violet) à côté du pseudo dans les Messages
     (bulles, conversations, annuaire) ; les bots ont leur collection (de 0 à 1000 : Le_Vieux_Ras est Oracle). Profil :
     bloc Monolithes (trouvés, statut, les six paliers, combien pour le suivant).
+    Un monolithe ramassé reste sur la carte (son icône ; fiche « déjà dans ta cale ») et ne répond plus aux PING
+    (demande d'Adrien du 18/10/2026 ; test).
     Retouches du 18/10/2026 : le bouton PING se grise dès qu'on appuie (écho attendu, puis recharge d'1 h) et reprend
     ses couleurs quand il est prêt. Bandeau bloqué sur « ON ATTEND L'ÉCHO… » : un PING envoyé en temps accéléré
     (essais), puis l'application relancée à l'heure vraie, partait « du futur » ; il est maintenant oublié
