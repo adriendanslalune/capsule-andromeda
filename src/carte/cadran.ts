@@ -1,7 +1,7 @@
 // Le cadran de navigation (le volet Navigation du cockpit) : la liste des astres où l'on peut aller, avec leur
 // distance à la capsule.
 // Planètes dans l'ordre depuis le Soleil ; une planète qui a des lunes se déplie ; les engins à part ; en tête, ce que
-// le radar a repéré (chasseurs aliens) et, plus bas, les épaves les plus proches.
+// le radar a repéré (chasseurs aliens) et, plus bas, les épaves visées par une mission.
 // Toucher une ligne choisit la destination (et la carte se place sur son système).
 
 import { CORPS, enfants, type Corps } from '../moteur/corps'
@@ -67,9 +67,11 @@ export class Cadran {
         for (const l of lunes) html += this.ligne(l, t, true)
       }
     }
-    // Les épaves présentes, les plus proches d'abord.
-    html += '<h3>Épaves</h3>'
-    for (const nom of [...epaves].sort((a, b) => distanceDepuisCapsule(a, t) - distanceDepuisCapsule(b, t)).slice(0, 8)) html += this.ligne(parNom.get(nom)!, t, false)
+    // Les épaves visées par une mission (les autres ne se montrent pas), les plus proches d'abord.
+    if (epaves.length) {
+      html += '<h3>Épaves</h3>'
+      for (const nom of [...epaves].sort((a, b) => distanceDepuisCapsule(a, t) - distanceDepuisCapsule(b, t))) html += this.ligne(parNom.get(nom)!, t, false)
+    }
     html += '<h3>Engins</h3>'
     for (const c of CORPS.filter((c) => c.type === 'satellite' || c.type === 'sonde')) html += this.ligne(c, t, false)
     html += '</div>'

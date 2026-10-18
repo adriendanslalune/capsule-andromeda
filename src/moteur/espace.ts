@@ -56,12 +56,18 @@ export function aliensReperes(e: EtatEspace, t: number): string[] {
   return noms
 }
 
-/** Un astre ou un engin est-il sur la carte ? (Les chasseurs hors radar : non. Les épaves : toujours.) */
-export function surLaCarte(e: EtatEspace, nom: string, t: number): boolean {
-  return corps(nom)?.type !== 'alien' || aliensReperes(e, t).includes(nom)
+/**
+ * Un astre ou un engin est-il sur la carte ? Les chasseurs : seulement repérés au radar. Les épaves : seulement celles
+ * que vise une mission (acceptée, ou regardée) — sinon la carte serait encombrée (décision d'Adrien du 18/10/2026).
+ */
+export function surLaCarte(e: EtatEspace, nom: string, t: number, epavesVisees: readonly string[] = []): boolean {
+  const type = corps(nom)?.type
+  if (type === 'alien') return aliensReperes(e, t).includes(nom)
+  if (type === 'epave') return epavesVisees.includes(nom)
+  return true
 }
 
-/** Toutes les épaves (elles ne disparaissent jamais). */
+/** Toutes les épaves (elles ne disparaissent jamais ; on les vide en mission). */
 export function toutesLesEpaves(): string[] {
   return EPAVES.map((x) => x.nom)
 }

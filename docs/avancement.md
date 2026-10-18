@@ -145,8 +145,9 @@ missiles et épaves sur la carte.
     graine fixe : le même monde pour tous) :
     - environ 150 épaves, dans tous les systèmes et en plein espace (entre les planètes, ceinture d'astéroïdes, ceinture
       de Kuiper) ; elles ne disparaissent jamais ; on ne les vide qu'en mission : les nettoyages proposés visent les 10
-      épaves (ou débris de satellites) les plus proches de la capsule, où qu'elle soit ; sur la carte, leur nom ne
-      s'écrit qu'en regardant un système de près ;
+      épaves (ou débris de satellites) les plus proches de la capsule, où qu'elle soit ; sur la carte (et dans
+      Navigation), seulement l'épave que vise une mission (en cours, regardée ou choisie) — décision d'Adrien du
+      18/10/2026, sinon trop de bazar ;
     - environ 350 chasseurs aliens, partout (3 au bord du système de la Terre ; 12 à Mars ; 35 à 40 autour de chaque
       géante ; plus de 150 en plein espace) ; ils errent au hasard (trois ondulations sans rapport entre elles autour
       de leur orbite : imprévisible) ; radar : 60 % de la sphère d'influence du système, 50 millions de km en plein

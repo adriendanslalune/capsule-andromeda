@@ -22,7 +22,7 @@ import { VueTri } from './commun/vue-tri'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
-import { aliensReperes, intercepterMissile, surLaCarte, toutesLesEpaves, vaincre } from './moteur/espace'
+import { aliensReperes, intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { repartir } from './moteur/combat'
@@ -101,7 +101,11 @@ suivreMission(mission)
 
 const carte = new Carte2D()
 // La carte ne montre que les épaves présentes et les chasseurs repérés au radar.
-carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t)
+carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t, epavesVisees())
+/** Les épaves que vise une mission : celle en cours, celle qu'on regarde (VOIR), ou celle qu'on a choisie. */
+function epavesVisees(): string[] {
+  return [...(jeu.enCours?.contrat.etapes ?? []), ...(apercu?.etapes ?? [])].map((e) => e.lieu).concat(selection ? [selection] : [])
+}
 let largeur = 390, hauteur = 844
 let selection: string | null = null
 /** Vrai si la caméra suit ce qui est choisi (faux une fois qu'on a fait glisser la carte). */
@@ -244,7 +248,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
-  (t) => ({ aliens: aliensReperes(jeu.espace, t), epaves: toutesLesEpaves() }))
+  (t) => ({ aliens: aliensReperes(jeu.espace, t), epaves: epavesVisees().filter((n) => corps(n)?.type === 'epave') }))
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
