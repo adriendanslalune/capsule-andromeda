@@ -17,6 +17,9 @@ import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, tit
 import { MODULES } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule } from './commun/volet-capsule'
+import { htmlManuel } from './commun/manuel'
+import { Panneau, type EtatEnergie } from './commun/panneau'
+import { solution, tourEnergie, type Resultat } from './moteur/reparation'
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
@@ -68,7 +71,13 @@ function enregistrerPartie(): void {
   if (partieEffacee) return
   try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(sauvegarder(jeu, horloge()))) } catch { /* navigation privée : pas de sauvegarde */ }
 }
-const jeu = chargerPartie() ?? new Jeu()
+/** Nouvelle partie : son propre hasard (missions, pannes) et son numéro de série. */
+function nouvellePartie(): Jeu {
+  const j = new Jeu()
+  j.nouvellePartie(Math.floor(Math.random() * 2 ** 31))
+  return j
+}
+const jeu = chargerPartie() ?? nouvellePartie()
 const mission = jeu.mission
 suivreMission(mission)
 
@@ -441,7 +450,71 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 }, (m) => {
   jeu.reparer(m)
   apresChangementDePanne()
+}, () => montrerReparation())
+
+// --- Réparation (volet Capsule › RÉPARATION) et Manuel (étape 4) ---
+const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!
+const etatReparation = document.querySelector<HTMLSpanElement>('#etat-reparation')!
+let sousOnglet: 'etat' | 'reparation' = 'etat'
+const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!, {
+  couper: (i) => gesteReparation(jeu.couperCableEnergie(i, horloge())),
+  isoler: () => gesteReparation(jeu.basculerIsolerEnergie(horloge())),
 })
+/** Ce que le panneau doit montrer du module Énergie (le moteur du jeu le décide). */
+function etatEnergie(t: number): EtatEnergie {
+  const r = jeu.reparationEnergie()
+  if (!r) return { tour: null, coupes: [], bloque: 0, numero: 0, tours: 0 }
+  return { tour: tourEnergie(r.graine, r.tour), coupes: r.coupes, bloque: Math.max(0, Math.ceil((r.blocageJusqua - t) / 1000)), numero: r.tour, tours: r.tours }
+}
+function afficherReparation(): void {
+  if (sousOnglet !== 'reparation') return
+  const t = horloge()
+  panneauReparation.construire(jeu.numeroSerie)
+  const e = etatEnergie(t)
+  panneauReparation.afficher(jeu.pannes, e)
+  const texte = !jeu.pannes.length ? 'Tous les modules sont en état.'
+    : e.tour ? (e.bloque ? `Protection du bus : ${e.bloque} s` : `Énergie : tour ${e.numero + 1} sur ${e.tours}`)
+      : `En panne : ${jeu.pannes.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}`
+  if (etatReparation.textContent !== texte) etatReparation.textContent = texte
+}
+/** Résultat d'un geste sur le panneau : étincelle, nouveau code, réparation finie. */
+function gesteReparation(r: Resultat): void {
+  if (r === 'erreur') {
+    panneauReparation.etincelle()
+    navigator.vibrate?.(200)
+    annoncer('Erreur ! Protection du bus : module bloqué 30 s')
+  } else if (r === 'bloque') annoncer('Module bloqué : patience…')
+  else if (r === 'tour-suivant') annoncer('Bien ! Nouveau code de diagnostic')
+  else if (r === 'repare') { annoncer('Énergie réparée : BUS OK'); apresChangementDePanne() }
+  enregistrerPartie()
+  afficherReparation()
+}
+function choisirSousOnglet(s: 'etat' | 'reparation'): void {
+  sousOnglet = s
+  for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.classList.toggle('actif', b.dataset.sous === s)
+  document.querySelector<HTMLDivElement>('#capsule')!.hidden = s !== 'etat'
+  zoneReparation.hidden = s !== 'reparation'
+  if (s === 'reparation') afficherReparation()
+}
+for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as 'etat' | 'reparation'))
+/** Ouvre le panneau de réparation, sur le module Énergie s'il est en panne. */
+function montrerReparation(): void {
+  cockpit.ouvrir('capsule')
+  choisirSousOnglet('reparation')
+  if (jeu.enPanne('energie')) {
+    const page = zoneReparation.closest<HTMLElement>('.page')!
+    requestAnimationFrame(() => {
+      // Le haut du module Énergie, juste sous les sous-onglets (collés en haut du volet) et la barre.
+      const svg = zoneReparation.querySelector('svg')!
+      page.scrollTop = svg.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop
+        + Panneau.hauteurEnergie() * svg.getBoundingClientRect().height - 80
+    })
+  }
+}
+zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => cockpit.ouvrir('manuel'))
+const pageManuel = document.querySelector<HTMLDivElement>('#manuel')!
+pageManuel.innerHTML = htmlManuel()
+pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', montrerReparation)
 
 /** Après une panne ou une réparation : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */
 function apresChangementDePanne(): void {
@@ -500,7 +573,7 @@ function image(maintenant: number): void {
   avancerMissions(t)
   mettreAJourFiche(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
-  if (cockpit.pageOuverte === 'capsule') voletCapsule.afficher(jeu)
+  if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation() }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true
@@ -593,6 +666,8 @@ requestAnimationFrame(image)
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {
   andromeda: {
+    // Essais : la réponse du manuel pour le tour en cours de la réparation de l'Énergie.
+    solutionEnergie: () => { const r = jeu.reparationEnergie(); return r ? solution(tourEnergie(r.graine, r.tour), jeu.numeroSerie) : null },
     carte, mission, jeu, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
     accelerer: (k: number) => { acceleration = k },
   },

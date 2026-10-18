@@ -379,6 +379,71 @@ html, body {
 @keyframes tourner { to { transform: rotate(30deg); } }
 @media (prefers-reduced-motion: reduce) { .fenetre, .carte-fenetre, .compteur .aiguille { animation: none; transition: none; } }
 
+/* Volet Capsule : sous-onglets ÉTAT / RÉPARATION. */
+.sous-onglets { display: flex; gap: 6px; padding: 8px 10px 4px; position: sticky; top: 0; background: var(--fond); z-index: 1; }
+.sous-onglets button {
+  flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.06em;
+  color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px;
+}
+.sous-onglets button.actif { color: #1f1b18; background: var(--moutarde); }
+
+/* Panneau de réparation (dessiné en SVG) et sa barre. */
+.barre-reparation { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 10px 6px; font-size: 12px; }
+.barre-reparation button, .vers-panneau {
+  min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre);
+}
+#panneau { margin: 0 8px 10px; border: 2.5px solid var(--encre); border-radius: 12px; overflow: hidden; background: #efe2c4; }
+.panneau-svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.panneau-svg text { font-family: ui-monospace, Menlo, monospace; }
+.panneau-svg .commande { cursor: pointer; }
+.panneau-svg .clignote { animation: clignoter-panneau 0.9s steps(2) infinite; }
+@keyframes clignoter-panneau { 50% { opacity: 0.25; } }
+.panneau-svg .etincelle { animation: etinceler 0.7s ease-out forwards; transform-box: fill-box; transform-origin: center; }
+@keyframes etinceler { from { opacity: 1; transform: scale(0.6); } to { opacity: 0; transform: scale(1.4); } }
+
+/* Le Manuel : maintenance façon NASA des années 60, vieux papier crème, machine à écrire. */
+#manuel { padding: 8px 8px 14px; }
+.vers-panneau { width: 100%; margin-bottom: 6px; }
+#manuel .feuille {
+  position: relative; margin-top: 10px; padding: 16px 12px 12px 22px;
+  font-family: 'Courier Prime', 'Courier New', monospace; color: #2a2622; font-size: 13px; line-height: 1.4;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(160, 120, 60, 0.13) 0 34px, transparent 35px),
+    radial-gradient(ellipse at 85% 92%, rgba(140, 100, 50, 0.18), transparent 50%),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.4), transparent 60%),
+    #f1e7cc;
+  border: 1px solid #b9a77a;
+  box-shadow: 3px 4px 0 rgba(74, 60, 30, 0.25);
+}
+#manuel .feuille::after {
+  content: ''; position: absolute; left: 6px; top: 50px; bottom: 50px; width: 10px;
+  background: radial-gradient(circle, var(--fond) 0 4px, rgba(0,0,0,0.25) 4.5px 5px, transparent 5.5px) 0 0 / 10px 33.3% repeat-y;
+}
+#manuel .entete-doc { display: grid; grid-template-columns: 1fr auto; border: 1.5px solid #2a2622; font-size: 10px; margin-bottom: 10px; }
+#manuel .entete-doc div { padding: 3px 6px; border-right: 1px solid #2a2622; border-bottom: 1px solid #2a2622; }
+#manuel .entete-doc div:nth-child(2n) { border-right: none; text-align: right; }
+#manuel .entete-doc div:nth-last-child(-n+2) { border-bottom: none; }
+#manuel h3 { margin: 0 0 8px; font-size: 14.5px; letter-spacing: 0.03em; text-transform: uppercase; }
+#manuel p, #manuel ol { margin: 0 0 8px; }
+#manuel ol { padding-left: 0; list-style: none; counter-reset: etape; }
+#manuel ol li { counter-increment: etape; display: grid; grid-template-columns: 50px 1fr; gap: 4px; margin-bottom: 6px; }
+#manuel ol li::before { content: '☐ 4.3.' counter(etape); font-weight: bold; }
+#manuel .attention { margin: 8px 0 10px; border: 2px solid #2a2622; font-size: 12px; }
+#manuel .bandeau-att { padding: 2px 6px; font-weight: bold; letter-spacing: 0.2em; text-align: center; color: #f1e7cc;
+  background: repeating-linear-gradient(45deg, #2a2622 0 8px, #6a5a3a 8px 16px); }
+#manuel .contenu-att { padding: 5px 7px; }
+#manuel table { width: 100%; margin: 4px 0 8px; border-collapse: collapse; font-size: 11.5px; }
+#manuel th, #manuel td { border: 1px solid #2a2622; padding: 2px 4px; text-align: center; }
+#manuel th { background: rgba(42, 38, 34, 0.08); }
+#manuel .gauche { text-align: left; }
+#manuel caption { caption-side: top; text-align: left; font-weight: bold; font-size: 11.5px; padding-bottom: 2px; }
+#manuel .petit { font-size: 11.5px; }
+#manuel .pied-doc { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 4px; border-top: 1.5px solid #2a2622; font-size: 10px; }
+#manuel .tampon { position: absolute; right: 12px; top: 82px; transform: rotate(-9deg); padding: 3px 8px; font-weight: bold; font-size: 11px;
+  color: rgba(180, 50, 40, 0.75); border: 2.5px solid rgba(180, 50, 40, 0.75); border-radius: 4px; letter-spacing: 0.1em; }
+#manuel .manuscrit { font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; color: #2c4a8a; font-size: 13px; }
+
 /* Volet Missions : la mission en cours et les missions proposées. */
 #missions { padding: 0 0 12px; }
 #missions h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }

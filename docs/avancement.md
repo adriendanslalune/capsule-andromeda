@@ -25,16 +25,25 @@ Décisions d'Adrien du 18/10/2026 : voir `CLAUDE.md` (modules et effets, provena
 et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
 
 - Fenêtre « Nouveau moteur » (demande d'Adrien, avant l'étape 4) — **fait**.
-- 4.1 Modules et pannes — **fait, en attente de validation** : 5 modules (`src/donnees/modules.ts`) et leurs effets
+- 4.1 Modules et pannes — **fait, validé** : 5 modules (`src/donnees/modules.ts`) et leurs effets
   dans le moteur du jeu (`Jeu` : vitesse divisée par 2, navigation bloquée — plus de trajet ni d'enchaînement des
   étapes —, plus de nouvelles missions, actions deux fois plus longues ; la coque servira aux impacts) ; usure : une
   chance sur 10 à l'arrivée de chaque trajet, tirée une seule fois par trajet (testé) ; pannes sauvegardées (format 3).
   Ligne « PANNE » en tête du bandeau (triangle qui palpite) ; liste des modules dans le volet Capsule avec un bouton
   RÉPARER provisoire (en attendant le panneau du 4.2) ; essai « Provoquer une panne au hasard » dans Réglages.
-- Maquette du panneau de réparation et de trois pages du manuel (`maquette-reparation.html`, en ligne à
-  …/maquette-reparation.html) — **proposée, en attente de validation**.
-- 4.2 Onglet Réparation du volet Capsule : le grand panneau (modules, cadrans, câbles, écrans, jauges, radios) — à faire.
-- 4.3 Onglet Manuel (vintage, Jules Verne) et les procédures de réparation de chaque module — à faire.
+- Maquette du panneau de réparation et du manuel (`maquette-reparation.html`) — **validée** (maquette 2 : panneau Moebius
+  foisonnant, manuel façon NASA, réparations imprévisibles ; Adrien : utiliser plusieurs modules pour une même panne,
+  sans trop de difficulté — les Mercenaires seront les spécialistes).
+- 4.2 Panneau de réparation et réparation de l'Énergie — **fait, en attente de validation** : volet Capsule avec deux
+  sous-onglets (ÉTAT, RÉPARATION) ; le panneau dessiné (`src/commun/panneau.ts`, propre à chaque numéro de série) ; le
+  module Énergie jouable : écran DIAG, voyants de bus, bornier de 5 à 8 câbles étiquetés (toucher un câble par un de
+  ses bouts le coupe), ISOLER ; 2 ou 3 tours ; 6 règles dont une qui lit la pression du module Moteur et une qui dépend
+  du numéro de série (et sa note manuscrite pour les capsules AN-7) ; erreur : étincelle et 30 s de blocage
+  (`src/moteur/reparation.ts`, `src/donnees/manuel-energie.ts`, testés). Numéro de série tiré à chaque nouvelle partie.
+  Les autres modules gardent la réparation provisoire en attendant leur mécanique.
+- 4.3 Onglet Manuel — **commencé** : manuel de maintenance façon NASA (papier crème, machine à écrire), sommaire et
+  section 4 (Énergie) avec les 64 codes et les 6 règles, lus dans les mêmes données que le jeu (`src/commun/manuel.ts`) ;
+  boutons pour passer du panneau au manuel et retour. Sections 1, 2, 3 et 5 à écrire avec leurs mécaniques.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

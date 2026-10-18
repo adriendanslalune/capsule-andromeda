@@ -9,12 +9,14 @@ import { corps } from './corps'
 import { Jeu, type ContratEnCours } from './jeu'
 import type { Plan } from './mission'
 import { MODULES, type NomModule } from '../donnees/modules'
+import { numeroDeSerie } from './jeu'
+import type { EtatReparation } from './reparation'
 
 /**
- * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4). Les sauvegardes des versions précédentes
- * sont encore lues (sans missions, sans pannes) ; une version inconnue est ignorée.
+ * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4) ; 4 : le numéro de série et les réparations
+ * en cours sur le panneau. Les sauvegardes des versions précédentes sont encore lues ; une version inconnue est ignorée.
  */
-export const VERSION_SAUVEGARDE = 3
+export const VERSION_SAUVEGARDE = 4
 
 export interface Sauvegarde {
   version: number
@@ -32,6 +34,9 @@ export interface Sauvegarde {
   /** Pannes : modules en panne, arrivée du dernier trajet dont l'usure a été tirée. */
   pannes: NomModule[]
   usureJusqua: number
+  /** Numéro de série de la capsule et réparations commencées sur le panneau. */
+  numeroSerie: string
+  reparations: Partial<Record<NomModule, EtatReparation>>
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -40,6 +45,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     orbite: jeu.mission.orbite, plan: jeu.mission.plan,
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
+    numeroSerie: jeu.numeroSerie, reparations: jeu.reparations,
   }
 }
 
@@ -75,12 +81,18 @@ function enCoursValide(e: unknown): e is ContratEnCours {
 /** Reconstruit le jeu à partir d'une sauvegarde ; null si elle est illisible ou d'un autre format. */
 export function restaurer(s: unknown): Jeu | null {
   const v = s as Sauvegarde
-  if (!v || ![1, 2, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
+  if (!v || ![1, 2, 3, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
   if (!orbiteValide(v.orbite) || (v.plan !== null && !planValide(v.plan))) return null
   const avecMissions = v.version >= 2
   if (avecMissions && (!nombre(v.graine) || !nombre(v.prochainId) || !Array.isArray(v.proposes) || !v.proposes.every(contratValide)
     || (v.enCours !== null && !enCoursValide(v.enCours)))) return null
   const avecPannes = v.version >= 3
+  const avecPanneau = v.version >= 4
+  const reparationValide = (r: EtatReparation) => !!r && [r.graine, r.tour, r.tours, r.isoler, r.blocageJusqua].every(nombre)
+    && Array.isArray(r.coupes) && r.coupes.every(nombre)
+  if (avecPanneau && (typeof v.numeroSerie !== 'string' || !/^[A-Z]{2}-[1-9][A-Z][0-9]$/.test(v.numeroSerie)
+    || typeof v.reparations !== 'object' || v.reparations === null
+    || !Object.entries(v.reparations).every(([m, r]) => MODULES.some((f) => f.nom === m) && reparationValide(r as EtatReparation)))) return null
   if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
   const jeu = new Jeu()
   jeu.credits = v.credits
@@ -97,5 +109,9 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.pannes = [...v.pannes]
     jeu.usureJusqua = v.usureJusqua
   } else jeu.usureJusqua = v.plan?.arrivee ?? 0 // pas de panne rétroactive sur le dernier trajet d'une vieille partie
+  if (avecPanneau) {
+    jeu.numeroSerie = v.numeroSerie
+    jeu.reparations = v.reparations
+  } else jeu.numeroSerie = numeroDeSerie(jeu.graine)
   return jeu
 }

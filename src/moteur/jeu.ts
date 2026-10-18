@@ -10,6 +10,7 @@ import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/ca
 import { CONTRATS_PROPOSES, DUREE_ACTION } from '../donnees/contrats'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
+import { basculerIsoler, couperCable, nouvelleReparation, type EtatReparation, type Resultat } from './reparation'
 import { position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
@@ -39,6 +40,10 @@ export class Jeu {
   prochainId = 1
   proposes: Contrat[] = []
   enCours: ContratEnCours | null = null
+  /** Numéro de série de la capsule (gravé sur le panneau ; certaines règles du manuel en dépendent). */
+  numeroSerie = numeroDeSerie(20261017)
+  /** Réparations commencées sur le panneau (module → état), jusqu'à ce que le module soit réparé. */
+  reparations: Partial<Record<NomModule, EtatReparation>> = {}
   /** Modules en panne. */
   pannes: NomModule[] = []
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
@@ -57,6 +62,39 @@ export class Jeu {
   /** Répare un module. */
   reparer(m: NomModule): void {
     this.pannes = this.pannes.filter((p) => p !== m)
+    delete this.reparations[m]
+  }
+
+  /** Nouvelle partie : un hasard propre à elle (missions, pannes) et un numéro de série tiré au sort. */
+  nouvellePartie(graine: number): void {
+    this.graine = graine >>> 0
+    this.numeroSerie = numeroDeSerie(this.graine)
+  }
+
+  /** La réparation de l'Énergie sur le panneau (commencée au premier regard), ou null si l'Énergie marche. */
+  reparationEnergie(): EtatReparation | null {
+    if (!this.enPanne('energie')) return null
+    if (!this.reparations.energie) {
+      const h = hasard(this.graine)
+      this.graine = h.graine
+      this.reparations.energie = nouvelleReparation(h.graine)
+    }
+    return this.reparations.energie
+  }
+
+  /** Couper un câble du bornier de l'Énergie ; réparée au dernier tour réussi. */
+  couperCableEnergie(i: number, t: number): Resultat {
+    const r = this.reparationEnergie()
+    return r ? couperCable(r, i, this.numeroSerie, t) : 'ok'
+  }
+
+  /** Basculer ISOLER sur le module Énergie ; réparée au dernier tour réussi. */
+  basculerIsolerEnergie(t: number): Resultat {
+    const r = this.reparationEnergie()
+    if (!r) return 'ok'
+    const res = basculerIsoler(r, this.numeroSerie, t)
+    if (res === 'repare') this.reparer('energie')
+    return res
   }
 
   /** La navigation marche-t-elle (sinon : impossible de calculer un trajet) ? */
@@ -239,4 +277,12 @@ export class Jeu {
     const plans = this.trajetsContrat(c, t, vitesse)
     return plans ? plans.reduce((s, p) => s + p.arrivee - p.depart, 0) : null
   }
+}
+
+/** Numéro de série d'une capsule (« AN-7Q3 ») tiré d'une graine. */
+export function numeroDeSerie(graine: number): string {
+  const LETTRES = 'ABCDEFGHJKLMNPRSTUVWXYZ'
+  let g = graine >>> 0
+  const t = (n: number) => { const h = hasard(g); g = h.graine; return Math.floor(h.x * n) }
+  return `${LETTRES[t(23)]}${LETTRES[t(23)]}-${1 + t(9)}${LETTRES[t(23)]}${t(10)}`
 }

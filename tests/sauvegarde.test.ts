@@ -100,4 +100,15 @@ describe('sauvegarde de la partie', () => {
     mauvaise.pannes = ['propulseur-a-chaussettes']
     expect(restaurer(mauvaise)).toBeNull()
   })
+
+  it('le numéro de série et la réparation en cours sont sauvegardés', () => {
+    const jeu = enRouteVers('Lune')
+    jeu.nouvellePartie(123456)
+    jeu.casser('energie')
+    const r = jeu.reparationEnergie()!
+    r.coupes = [2]
+    const copie = allerRetour(jeu, t0)!
+    expect(copie.numeroSerie).toBe(jeu.numeroSerie)
+    expect(copie.reparations.energie).toEqual(r)
+  })
 })

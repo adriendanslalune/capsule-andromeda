@@ -7,12 +7,13 @@ import type { Jeu } from '../moteur/jeu'
 export class VoletCapsule {
   private dernier = ''
 
-  constructor(private element: HTMLElement, acheter: () => void, reparer: (m: NomModule) => void) {
+  constructor(private element: HTMLElement, acheter: () => void, reparer: (m: NomModule) => void, versPanneau: () => void) {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-choix]')
       if (!b || b.disabled) return
       if (b.dataset.choix === 'acheter') acheter()
       else if (b.dataset.choix === 'reparer') reparer(b.dataset.module as NomModule)
+      else if (b.dataset.choix === 'panneau') versPanneau()
     })
   }
 
@@ -33,9 +34,12 @@ export class VoletCapsule {
     // Modules : en état ou en panne. En attendant le panneau de réparation (4.2), un bouton répare d'un coup.
     html += '<h3>Modules</h3><div class="bloc modules">' + MODULES.map((f) => {
       const panne = jeu.enPanne(f.nom)
-      return `<div class="module${panne ? ' en-panne' : ''}"><span><b>${f.titre}</b><br><small>${panne ? `EN PANNE : ${f.effet}` : 'en état'}</small></span>`
-        + (panne ? `<button type="button" data-choix="reparer" data-module="${f.nom}">RÉPARER</button>` : '<span class="ok">✓</span>') + '</div>'
-    }).join('') + '<p class="note">Réparation provisoire, en attendant le panneau de réparation et le manuel.</p></div>'
+      // L'Énergie se répare sur le panneau ; les autres modules, en attendant leur section du manuel, d'un bouton.
+      const action = !panne ? '<span class="ok">✓</span>'
+        : f.nom === 'energie' ? '<button type="button" data-choix="panneau">PANNEAU</button>'
+          : `<button type="button" data-choix="reparer" data-module="${f.nom}">RÉPARER</button>`
+      return `<div class="module${panne ? ' en-panne' : ''}"><span><b>${f.titre}</b><br><small>${panne ? `EN PANNE : ${f.effet}` : 'en état'}</small></span>${action}</div>`
+    }).join('') + '<p class="note">L\'Énergie se répare sur le panneau, avec le manuel. Les autres modules : réparation provisoire, en attendant leur section du manuel.</p></div>'
     if (html !== this.dernier) this.element.innerHTML = this.dernier = html
   }
 }
