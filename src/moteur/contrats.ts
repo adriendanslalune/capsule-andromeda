@@ -45,8 +45,11 @@ export function recompense(genre: GenreContrat, lieux: string[], t: number): num
   return Math.round(Math.min(RECOMPENSE_MAX, base) / 10) * 10
 }
 
-/** Tire un nouveau contrat ; `exclus` : lieux déjà pris par les autres contrats (pour varier). */
-export function tirerContrat(id: number, graine: number, t: number, exclus: string[] = []): { contrat: Contrat; graine: number } {
+/**
+ * Tire un nouveau contrat ; `exclus` : lieux déjà pris par les autres contrats (pour varier) ; `genreVoulu` : le genre
+ * à tirer (sinon au hasard).
+ */
+export function tirerContrat(id: number, graine: number, t: number, exclus: string[] = [], genreVoulu?: GenreContrat): { contrat: Contrat; graine: number } {
   let g = graine
   const tirer = <T>(liste: readonly T[]): T => {
     const h = hasard(g)
@@ -57,7 +60,7 @@ export function tirerContrat(id: number, graine: number, t: number, exclus: stri
     const libres = liste.filter((l) => !exclus.includes(l))
     return tirer(libres.length ? libres : liste)
   }
-  const genre = tirer<GenreContrat>(['nettoyer', 'livrer', 'depanner'])
+  const genre = genreVoulu ?? tirer<GenreContrat>(['nettoyer', 'livrer', 'depanner'])
   let etapes: Etape[]
   if (genre === 'nettoyer') etapes = [{ lieu: parmi(LIEUX_NETTOYAGE), action: 'nettoyer' }]
   else if (genre === 'depanner') etapes = [{ lieu: parmi(SATELLITES), action: 'reparer' }]

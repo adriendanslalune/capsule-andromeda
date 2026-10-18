@@ -15,16 +15,17 @@ function allerA(jeu: Jeu, lieu: string, t: number): number {
   return p.plan.arrivee
 }
 
-/** Un jeu avec une mission choisie, déjà acceptée. */
+/** Un jeu avec une mission choisie, déjà acceptée (sans usure : ces essais ne parlent pas des pannes). */
 function avecContrat(contrat: Contrat): Jeu {
   const jeu = new Jeu()
+  jeu.usureJusqua = Number.MAX_SAFE_INTEGER
   jeu.proposes = [contrat]
   jeu.accepter(contrat.id, t0)
   return jeu
 }
 
 describe('missions proposées', () => {
-  it('quatre missions, toutes différentes, sur des lieux qui existent, de 50 à 200 crédits', () => {
+  it('six missions, toutes différentes, sur des lieux qui existent, de 50 à 200 crédits', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
     expect(jeu.proposes).toHaveLength(CONTRATS_PROPOSES)

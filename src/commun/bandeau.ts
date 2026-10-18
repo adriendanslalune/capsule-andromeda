@@ -53,10 +53,11 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     // Mission : son symbole animé (plus vif pendant l'action sur place).
     const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' ? SYMBOLE_PANNE : ''
     const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
-    return `<div class="ligne ${classe}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`
+    // Toucher une ligne ouvre le volet qui va avec (demande d'Adrien du 18/10/2026 ; voir main.ts).
+    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`
   })
   textes.push(credits, moteur)
-  const html = lignesHtml.join('') + '<div class="etat"><span data-texte></span><span data-texte></span></div>'
+  const html = lignesHtml.join('') + '<div class="etat" data-ligne="etat"><span data-texte></span><span data-texte></span></div>'
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html

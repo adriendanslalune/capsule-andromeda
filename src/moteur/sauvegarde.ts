@@ -12,6 +12,7 @@ import { MODULES, type NomModule } from '../donnees/modules'
 import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
+import { MAISONS, type Maison } from '../donnees/maisons'
 
 /**
  * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4) ; 4 : le numéro de série et les réparations
@@ -40,6 +41,8 @@ export interface Sauvegarde {
   reparations: Partial<Record<NomAppareil, EtatReparation>>
   /** Modules du panneau en défaut, pour chaque bloc en panne. */
   defauts: Partial<Record<NomModule, NomAppareil[]>>
+  /** Maison du joueur (absente : neutre). */
+  maison?: Maison | null
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -49,6 +52,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
+    maison: jeu.maison,
   }
 }
 
@@ -102,7 +106,9 @@ export function restaurer(s: unknown): Jeu | null {
   if (avecBlocs && (typeof v.defauts !== 'object' || v.defauts === null || !Object.entries(v.defauts).every(([m, l]) =>
     MODULES.some((f) => f.nom === m) && Array.isArray(l) && l.every((a) => ficheBloc(m as NomModule).appareils.includes(a))))) return null
   if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
+  if (v.maison != null && !MAISONS.some((m) => m.maison === v.maison)) return null
   const jeu = new Jeu()
+  jeu.maison = v.maison ?? null
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur
   jeu.mission.orbite = v.orbite

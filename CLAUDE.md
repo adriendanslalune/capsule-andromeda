@@ -19,6 +19,8 @@ Maisons (attribuées selon les activités du joueur, profil en toile d'araignée
 - Commerçants : trading sur tous les systèmes, cours décalés selon le délai lumière, cours calculés par une formule du temps.
 - Mercenaires : escortes, chasse aux pirates et aliens, dépannage d'engins (ISS, Pioneer…). Combat en vue tactique : énergie à répartir (boucliers, armes, moteurs), tir sur les modules ennemis, interception de missiles.
 
+Missions proposées et Maisons (décision d'Adrien du 18/10/2026) : le jeu propose toujours 6 missions, 2 par Maison. Quand un joueur a de l'affinité avec une Maison, le jeu lui propose d'y appartenir ; ce n'est jamais définitif (il peut redevenir neutre, ou choisir une autre Maison si son affinité le permet). Membre d'une Maison, il se voit proposer 4 missions de sa Maison et 1 de chacune des deux autres : plus de choix, et mieux payé. Plus tard : des avantages entre joueurs d'une même Maison.
+
 Missions partout (décision d'Adrien du 17/10/2026) : des épaves à nettoyer partout dans le système solaire, tout le temps (un Nettoyeur doit toujours en trouver) ; les livraisons et les dépannages (satellites, fusées) sont aussi des missions permanentes, dans tout le système solaire, pas seulement autour de la Terre.
 
 Pannes : système de modules à réparer avec un manuel. Les aliens tirent parfois des missiles (décompte visible sur la carte) ; un impact ralentit le trajet de 50 % jusqu'à réparation.
@@ -46,9 +48,10 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 
 ## Interface
 La carte en plein écran est l'interface principale du joueur : c'est le cockpit. Tout le reste vient par-dessus et se referme pour revenir à la carte.
-- Bandeau d'alertes en haut, toujours visible : missile en approche avec décompte, panne en cours, ralentissement, trajet en cours avec heure d'arrivée.
+- Bandeau d'alertes en haut, toujours visible : missile en approche avec décompte, panne en cours, ralentissement, trajet en cours avec heure d'arrivée. Toucher une ligne ouvre le volet qui va avec (la mission ouvre Missions, la panne le panneau de réparation…).
 - Volets qui montent du bas, ouverts depuis une barre de 5 onglets accessible au pouce : Navigation, Capsule (crédits, moteur, modules, armement, réparation), Missions (avec un filtre par Maison), Marché, et « Plus » (Messages, Profil, Manuel, Réglages). Barre validée par Adrien le 18/10/2026 d'après la maquette `maquette-interface.html` ; le Manuel s'ouvre aussi depuis le panneau de réparation.
 - Les onglets pas encore développés sont visibles mais grisés.
+- Un volet se referme en le glissant vers le bas, de n'importe où (quand son contenu est tout en haut).
 - Même direction artistique que la carte : les tons Moebius de la carte (décision d'Adrien du 17/10/2026, qui remplace « noir et blanc, une seule couleur d'alerte »).
 - Heures affichées à l'heure du lieu du joueur (fuseau du téléphone ; pour Adrien, Paris). Le moteur compte en temps universel (UTC).
 Ces choix sont provisoires et seront ajustés après test sur téléphone.

@@ -283,6 +283,19 @@ function prevoir(t: number, maintenant: number): void {
 }
 
 const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
+// Toucher une ligne du bandeau ouvre le volet qui va avec (demande d'Adrien du 18/10/2026) : la panne, le panneau de
+// réparation ; la mission, le volet Missions ; le trajet ou l'orbite, la Navigation ; crédits et moteur, la Capsule.
+bandeau.addEventListener('click', (e) => {
+  const ligne = (e.target as HTMLElement).closest<HTMLElement>('[data-ligne]')?.dataset.ligne
+  if (ligne === 'panne') {
+    // Un bloc qui se répare sur le panneau, sinon l'onglet ÉTAT (réparation provisoire).
+    const bloc = jeu.pannes.find((b) => !jeu.reparationProvisoire(b))
+    if (bloc) montrerReparation(bloc)
+    else { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
+  } else if (ligne === 'contrat') cockpit.ouvrir('missions')
+  else if (ligne === 'trajet' || ligne === 'orbite') cockpit.ouvrir('navigation')
+  else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
+})
 
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t),

@@ -80,6 +80,13 @@ missiles et épaves sur la carte.
   Maison (nettoyage : Nettoyeurs ; livraison : Commerçants ; dépannage : Mercenaires — `src/donnees/maisons.ts`,
   testé) ; boutons TOUTES / NETTOYEURS / COMMERÇANTS / MERCENAIRES au-dessus des missions proposées ; le choix est
   retenu sur le téléphone.
+- Remarques d'Adrien du 18/10/2026 — **faites, en attente de validation** :
+  - 6 missions proposées, 2 par Maison (4 de sa Maison et 1 de chacune des autres quand le joueur en aura choisi
+    une, à l'étape 8 ; déjà prévu dans le moteur et sauvegardé, testé). « Mieux payé » pour la Maison du joueur :
+    montant à décider.
+  - Toucher une ligne du bandeau ouvre le volet qui va avec : panne → panneau de réparation (ou ÉTAT pour un bloc à
+    réparation provisoire) ; mission → Missions ; trajet ou orbite → Navigation ; crédits et moteur → Capsule.
+  - Glisser vers le bas ferme le volet de n'importe où (si son contenu est tout en haut ; le volet suit le doigt).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

@@ -7,7 +7,8 @@
 // L'heure est toujours passée en paramètre, comme partout dans le moteur.
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
-import { CONTRATS_PROPOSES, DUREE_ACTION } from '../donnees/contrats'
+import { DUREE_ACTION } from '../donnees/contrats'
+import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
@@ -53,6 +54,8 @@ export class Jeu {
    * raccordés). Liste vide : aucun module raccordé dans ce bloc, il se répare depuis ÉTAT (procédure provisoire).
    */
   defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
+  /** Maison du joueur (null : neutre). Choisie selon son affinité à l'étape 8 ; elle change les missions proposées. */
+  maison: Maison | null = null
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
 
@@ -163,15 +166,21 @@ export class Jeu {
     return true
   }
 
-  /** Complète la liste des missions proposées (jusqu'à CONTRATS_PROPOSES), en variant les lieux. */
+  /**
+   * Complète les missions proposées, Maison par Maison (missionsParMaison : 2 de chaque, ou 4 de la Maison du joueur
+   * et 1 des autres), en variant les lieux.
+   */
   proposer(t: number): void {
     // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
     if (this.enPanne('communications')) return
-    while (this.proposes.length < CONTRATS_PROPOSES) {
-      const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
-      const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus)
-      this.graine = graine
-      this.proposes.push(contrat)
+    const voulues = missionsParMaison(this.maison)
+    for (const { maison } of MAISONS) {
+      while (this.proposes.filter((c) => maisonDuContrat(c) === maison).length < voulues[maison]) {
+        const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
+        const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus, genreDeMaison(maison))
+        this.graine = graine
+        this.proposes.push(contrat)
+      }
     }
   }
 

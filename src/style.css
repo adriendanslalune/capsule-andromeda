@@ -72,6 +72,9 @@ html, body {
   line-height: 1.4;
 }
 #bandeau:empty { display: none; }
+/* Toucher une ligne du bandeau ouvre le volet qui va avec. */
+#bandeau { pointer-events: auto; cursor: pointer; }
+#bandeau [data-ligne]:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
 #bandeau .ligne { display: flex; flex-direction: column; padding: 5px 12px; }
 #bandeau .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
 #bandeau .ligne b { letter-spacing: 0.04em; }
@@ -222,7 +225,7 @@ html, body {
   background: transparent;
   border: none;
 }
-#volet .page { overflow-y: auto; }
+#volet .page { overflow-y: auto; overscroll-behavior-y: none; }
 #volet .page[hidden] { display: none; }
 #volet .a-venir { padding: 18px 14px; font-size: 13px; opacity: 0.7; }
 #volet .rubrique, #volet .retour {
