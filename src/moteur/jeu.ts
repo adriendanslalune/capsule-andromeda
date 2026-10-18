@@ -9,8 +9,10 @@
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { CONTRATS_PROPOSES, DUREE_ACTION } from '../donnees/contrats'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
+import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
+import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type Etape } from './contrats'
-import { basculerIsoler, couperCable, nouvelleReparation, type EtatReparation, type Resultat } from './reparation'
+import type { EtatReparation, Resultat } from './reparation'
 import { position } from './corps'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
@@ -42,10 +44,15 @@ export class Jeu {
   enCours: ContratEnCours | null = null
   /** Numéro de série de la capsule (gravé sur le panneau ; certaines règles du manuel en dépendent). */
   numeroSerie = numeroDeSerie(20261017)
-  /** Réparations commencées sur le panneau (module → état), jusqu'à ce que le module soit réparé. */
-  reparations: Partial<Record<NomModule, EtatReparation>> = {}
-  /** Modules en panne. */
+  /** Réparations commencées sur le panneau (module du panneau → état), jusqu'à ce que le module soit réparé. */
+  reparations: Partial<Record<NomAppareil, EtatReparation>> = {}
+  /** Blocs (systèmes de la capsule) en panne. */
   pannes: NomModule[] = []
+  /**
+   * Pour chaque bloc en panne, ses modules encore en défaut (un ou deux, tirés à la panne, parmi les modules
+   * raccordés). Liste vide : aucun module raccordé dans ce bloc, il se répare depuis ÉTAT (procédure provisoire).
+   */
+  defauts: Partial<Record<NomModule, NomAppareil[]>> = {}
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
 
@@ -54,15 +61,38 @@ export class Jeu {
     return this.pannes.includes(m)
   }
 
-  /** Met un module en panne (s'il ne l'est pas déjà). */
+  /** Met un bloc en panne (s'il ne l'est pas déjà) : un ou deux de ses modules tombent en défaut. */
   casser(m: NomModule): void {
-    if (!this.enPanne(m)) this.pannes.push(m)
+    if (this.enPanne(m)) return
+    this.pannes.push(m)
+    this.tirerDefauts(m)
   }
 
-  /** Répare un module. */
+  /** Tire les modules en défaut d'un bloc en panne : un ou deux parmi ses modules raccordés. */
+  tirerDefauts(m: NomModule): void {
+    const prets = ficheBloc(m).appareils.filter((a) => APPAREILS_PRETS.includes(a))
+    const a = hasard(this.graine), b = hasard(a.graine)
+    this.graine = b.graine
+    const n = Math.min(prets.length, 1 + Math.floor(a.x * 2))
+    if (n === 1 && prets.length > 1) this.defauts[m] = [prets[Math.floor(b.x * prets.length)]]
+    else this.defauts[m] = n === 2 && prets.length === 3 ? prets.filter((_, k) => k !== Math.floor(b.x * 3)) : prets.slice(0, n)
+  }
+
+  /** Répare un bloc d'un coup (procédure provisoire, ou essai). */
   reparer(m: NomModule): void {
     this.pannes = this.pannes.filter((p) => p !== m)
-    delete this.reparations[m]
+    for (const a of ficheBloc(m).appareils) delete this.reparations[a]
+    delete this.defauts[m]
+  }
+
+  /** Le module du panneau est-il en défaut ? */
+  enDefaut(a: NomAppareil): boolean {
+    return !!this.defauts[blocDe(a).bloc]?.includes(a)
+  }
+
+  /** Le bloc en panne ne se répare-t-il que depuis ÉTAT (aucun de ses modules n'est encore raccordé) ? */
+  reparationProvisoire(m: NomModule): boolean {
+    return this.enPanne(m) && !this.defauts[m]?.length
   }
 
   /** Nouvelle partie : un hasard propre à elle (missions, pannes) et un numéro de série tiré au sort. */
@@ -71,29 +101,31 @@ export class Jeu {
     this.numeroSerie = numeroDeSerie(this.graine)
   }
 
-  /** La réparation de l'Énergie sur le panneau (commencée au premier regard), ou null si l'Énergie marche. */
-  reparationEnergie(): EtatReparation | null {
-    if (!this.enPanne('energie')) return null
-    if (!this.reparations.energie) {
+  /** La réparation d'un module du panneau (commencée au premier regard), ou null s'il n'est pas en défaut. */
+  reparation(a: NomAppareil): EtatReparation | null {
+    if (!this.enDefaut(a)) return null
+    if (!this.reparations[a]) {
       const h = hasard(this.graine)
       this.graine = h.graine
-      this.reparations.energie = nouvelleReparation(h.graine)
+      this.reparations[a] = commencer(a, h.graine)
     }
-    return this.reparations.energie
+    return this.reparations[a]!
   }
 
-  /** Couper un câble du bornier de l'Énergie ; réparée au dernier tour réussi. */
-  couperCableEnergie(i: number, t: number): Resultat {
-    const r = this.reparationEnergie()
-    return r ? couperCable(r, i, this.numeroSerie, t) : 'ok'
-  }
-
-  /** Basculer ISOLER sur le module Énergie ; réparée au dernier tour réussi. */
-  basculerIsolerEnergie(t: number): Resultat {
-    const r = this.reparationEnergie()
+  /**
+   * Un geste sur les commandes d'un module en défaut. Réparé (« repare ») : le module n'est plus en défaut, et le bloc
+   * remarche quand tous ses modules sont réparés.
+   */
+  geste(a: NomAppareil, g: Geste, t: number): Resultat {
+    const r = this.reparation(a)
     if (!r) return 'ok'
-    const res = basculerIsoler(r, this.numeroSerie, t)
-    if (res === 'repare') this.reparer('energie')
+    const res = jouer(a, r, g, this.numeroSerie, t)
+    if (res === 'repare') {
+      const bloc = blocDe(a).bloc
+      delete this.reparations[a]
+      this.defauts[bloc] = this.defauts[bloc]!.filter((d) => d !== a)
+      if (!this.defauts[bloc]!.length) this.reparer(bloc)
+    }
     return res
   }
 

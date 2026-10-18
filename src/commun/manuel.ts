@@ -1,71 +1,123 @@
 // Le Manuel (onglet Manuel ; maquette validée par Adrien le 18/10/2026) : un manuel de maintenance façon NASA des
-// années 60, sur vieux papier crème. Il lit les mêmes données que le panneau (src/donnees/manuel-energie.ts) : ce qui
-// y est écrit est exactement ce que le jeu attend. Pour l'instant : le sommaire et la section 4 (Énergie).
+// années 60, sur vieux papier crème. Il lit les mêmes données que le panneau (src/donnees/manuel-*.ts) : ce qui y est
+// écrit est exactement ce que le jeu attend. Une section par bloc du panneau ; pour l'instant : le sommaire, la
+// section 1 (Communications) et la section 2 (Énergie).
 
 import { CODES_ENERGIE, PREFIXE_R4_INVERSEE, REGLES, TEXTES_REGLES } from '../donnees/manuel-energie'
+import {
+  ANGLES_ANTENNE, BANDES, COLONNES_CHIFFREUR, MORSE, MOTS_TELEGRAPHE, STATIONS, texteFrequence,
+} from '../donnees/manuel-communications'
+
+/** Une feuille du manuel, avec son en-tête et son pied de page. */
+function feuille(doc: string, titre: string, page: string, contenu: string, tampon = false): string {
+  return `<div class="feuille">
+    <div class="entete-doc">
+      <div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. ${doc}</div>
+      <div>${titre}</div><div>RÉV. C · 03/2026</div>
+    </div>
+    ${tampon ? '<span class="tampon">CONFIDENTIEL</span>' : ''}
+    ${contenu}
+    <div class="pied-doc"><span>${doc} RÉV. C</span><span>PAGE ${page}</span><span>NE PAS EMPORTER EN EVA</span></div>
+  </div>`
+}
+
+/** Une procédure numérotée (« ☐ 1.1.1 »). */
+function procedure(numero: string, etapes: string[]): string {
+  return '<ol>' + etapes.map((e, k) => `<li><b>☐ ${numero}.${k + 1}</b><span>${e}</span></li>`).join('') + '</ol>'
+}
+
+function attention(texte: string): string {
+  return `<div class="attention"><div class="bandeau-att">ATTENTION</div><div class="contenu-att">${texte}</div></div>`
+}
+
+/** Deux colonnes côte à côte dans un tableau (pour les longues listes). */
+function enDeuxColonnes<T>(liste: readonly T[], cellules: (x?: T) => string): string {
+  const moitie = Math.ceil(liste.length / 2)
+  return Array.from({ length: moitie }, (_, k) => `<tr>${cellules(liste[k])}${cellules(liste[k + moitie])}</tr>`).join('')
+}
+
+function sectionCommunications(): string {
+  const signes = (m: string) => [...m].map((s) => (s === '.' ? '•' : '▬')).join(' ')
+  const lignesMorse = enDeuxColonnes(Object.entries(MORSE), (e) => (e ? `<td><b>${e[0]}</b></td><td class="morse">${signes(e[1])}</td>` : '<td></td><td></td>'))
+  const lignesMots = enDeuxColonnes(MOTS_TELEGRAPHE, (m) => (m ? `<td>${m.mot}</td><td>${texteFrequence(m.frequence)}</td>` : '<td></td><td></td>'))
+  const lignesStations = STATIONS.map((s, k) => `<tr><td class="symbole-manuel">${s.symbole}</td><td class="gauche">${s.nom}</td>${ANGLES_ANTENNE[k].map((a) => `<td>${a}°</td>`).join('')}</tr>`).join('')
+  const lignesColonnes = Array.from({ length: 7 }, (_, i) => `<tr><td>${i + 1}</td>${COLONNES_CHIFFREUR.map((c) => `<td class="symbole-manuel">${c[i]}</td>`).join('')}</tr>`).join('')
+  return feuille('CA-MM-01', 'SECTION 1 — BLOC COMMUNICATIONS', '1-2', `
+    <h3>1.1 Module 1A — Télégraphe</h3>
+    ${attention('Une émission sur une mauvaise fréquence brouille le poste : module bloqué 30 secondes.')}
+    ${procedure('1.1', [
+      'Observer la <b>lampe</b> du télégraphe : elle clignote un <b>mot</b> en morse, en boucle. Un éclat bref : un point ; un éclat long : un trait. Une pause longue sépare deux lettres ; une pause très longue, la fin du mot.',
+      'Retrouver les lettres dans le <b>TABLEAU 1-1</b>. Quelques lettres suffisent souvent à reconnaître le mot.',
+      'Chercher le mot dans le <b>TABLEAU 1-2</b> : il donne la <b>fréquence</b> de réponse.',
+      'Tourner le <b>cadran</b> jusqu\'à cette fréquence (écran en MHz), puis appuyer sur <b>ÉMETTRE</b>.',
+    ])}
+    <table><caption>TABLEAU 1-1 — ALPHABET MORSE</caption>
+      <tr><th>L.</th><th>SIGNES</th><th>L.</th><th>SIGNES</th></tr>${lignesMorse}</table>
+    <table><caption>TABLEAU 1-2 — FRÉQUENCES DE RÉPONSE (MHz)</caption>
+      <tr><th>MOT</th><th>FRÉQ.</th><th>MOT</th><th>FRÉQ.</th></tr>${lignesMots}</table>
+
+    <h3>1.2 Module 1B — Antenne</h3>
+    ${procedure('1.2', [
+      'Lire le <b>symbole</b> de la station sur la plaque émaillée, et la <b>bande</b> (A, B ou C) sur l\'écran du module.',
+      'Le <b>TABLEAU 1-3</b> donne l\'<b>angle</b> de l\'antenne pour cette station et cette bande (0° : vers le haut, sens des aiguilles d\'une montre).',
+      'Tourner l\'antenne jusqu\'à cet angle, puis <b>VERROUILLER</b>. Une nouvelle station s\'affiche : recommencer (deux pointages).',
+    ])}
+    <table><caption>TABLEAU 1-3 — POINTAGE DE L'ANTENNE</caption>
+      <tr><th>SYMB.</th><th class="gauche">STATION</th>${BANDES.map((b) => `<th>BANDE ${b}</th>`).join('')}</tr>${lignesStations}</table>
+
+    <h3>1.3 Module 1C — Chiffreur</h3>
+    ${procedure('1.3', [
+      'Relever les <b>quatre symboles</b> des touches du chiffreur.',
+      'Dans le <b>TABLEAU 1-4</b>, une seule colonne contient les quatre symboles.',
+      'Enfoncer les touches dans l\'<b>ordre de cette colonne</b>, de haut en bas. Une touche dans le désordre : module bloqué 30 secondes, tout est à refaire.',
+    ])}
+    <table><caption>TABLEAU 1-4 — COLONNES DU CHIFFREUR</caption>
+      <tr><th></th>${COLONNES_CHIFFREUR.map((_, k) => `<th>${['I', 'II', 'III', 'IV', 'V', 'VI'][k]}</th>`).join('')}</tr>${lignesColonnes}</table>
+    <p class="manuscrit">→ le Ж et le Щ se ressemblent, regarder la queue ! — J.</p>`)
+}
+
+function sectionEnergie(): string {
+  const lignesCodes = enDeuxColonnes(CODES_ENERGIE, (c) => (c ? `<td>${c.code}</td><td>${c.circuit}</td><td>${c.regle}</td>` : '<td></td><td></td><td></td>'))
+  const lignesRegles = REGLES.map((r) => `<tr><td>${r}</td><td class="gauche">${TEXTES_REGLES[r]}</td></tr>`).join('')
+  return feuille('CA-MM-02', 'SECTION 2 — BLOC ÉNERGIE', '2-8', `
+    <h3>2.1 Module 2A — Bornier du bus principal</h3>
+    ${attention(`Une seule coupure par tour. Toute erreur (mauvais câble, ISOLER trop tôt) déclenche la protection du bus :
+      module bloqué 30 secondes, le tour recommence.`)}
+    ${procedure('2.1', [
+      'Lire le <b>code de diagnostic</b> sur l\'écran DIAG du module 2A (format E-xxx).',
+      'Chercher ce code dans le <b>TABLEAU 2-1</b> : il donne le <b>circuit</b> en défaut (α, β, γ ou δ) et la <b>règle</b> (R1 à R6).',
+      'Relever les quatre <b>voyants de bus</b> V1 à V4 (allumé : orange ; éteint : sombre).',
+      'Appliquer la règle du <b>TABLEAU 2-2</b> aux seuls câbles du circuit indiqué (étiquette à gauche du bornier : lettre du circuit et chiffre), comptés de haut en bas.',
+      'Basculer <b>ISOLER</b>. Un <b>nouveau code</b> s\'affiche : reprendre en 2.1.1. Quand l\'écran affiche <b>BUS OK</b>, la réparation est terminée (2 ou 3 tours).',
+    ])}
+    <table><caption>TABLEAU 2-1 — CODES DE DIAGNOSTIC</caption>
+      <tr><th>CODE</th><th>CIRC.</th><th>RÈGLE</th><th>CODE</th><th>CIRC.</th><th>RÈGLE</th></tr>${lignesCodes}</table>
+    <table><caption>TABLEAU 2-2 — RÈGLES DE COUPURE</caption>
+      <tr><th>RÈGLE</th><th class="gauche">CÂBLE À COUPER (DANS LE CIRCUIT INDIQUÉ)</th></tr>${lignesRegles}</table>
+    <p class="manuscrit">→ attention : sur les capsules ${PREFIXE_R4_INVERSEE}…, la règle R4 est inversée (pair ↔ impair) ! — J.</p>
+    <p class="petit">Le numéro de série est gravé sur la plaque de laiton, en haut du panneau. La pression se lit sur le grand
+      cadran du module 3B SOUPAPE (bloc Moteur, plus bas sur le panneau) : zone rouge à droite.</p>
+    <p class="petit">Modules 2B FUSIBLES et 2C ACCUMULATEURS : en rédaction.</p>`, true)
+}
 
 /** Le texte du manuel (HTML), avec un bouton pour revenir au panneau de réparation. */
 export function htmlManuel(): string {
-  const moitie = Math.ceil(CODES_ENERGIE.length / 2)
-  const lignesCodes = Array.from({ length: moitie }, (_, k) => {
-    const a = CODES_ENERGIE[k], b = CODES_ENERGIE[k + moitie]
-    const cellules = (c?: typeof a) => (c ? `<td>${c.code}</td><td>${c.circuit}</td><td>${c.regle}</td>` : '<td></td><td></td><td></td>')
-    return `<tr>${cellules(a)}${cellules(b)}</tr>`
-  }).join('')
-  const lignesRegles = REGLES.map((r) => `<tr><td>${r}</td><td class="gauche">${TEXTES_REGLES[r]}</td></tr>`).join('')
   return `
   <button type="button" class="vers-panneau" data-choix="panneau">⚙ PANNEAU DE RÉPARATION</button>
-  <div class="feuille">
-    <div class="entete-doc">
-      <div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. CA-MM</div>
-      <div>SOMMAIRE</div><div>RÉV. C · 03/2026</div>
-    </div>
+  ${feuille('CA-MM', 'SOMMAIRE', '0-1', `
     <h3>Sommaire</h3>
     <table class="sommaire">
-      <tr><td>1</td><td class="gauche">Moteur — leviers, pression, température</td><td>en rédaction</td></tr>
-      <tr><td>2</td><td class="gauche">Navigation — constellations, cadrans</td><td>en rédaction</td></tr>
-      <tr><td>3</td><td class="gauche">Communications — télégraphe, fréquences</td><td>en rédaction</td></tr>
-      <tr><td>4</td><td class="gauche"><b>Énergie — bus électrique principal</b></td><td>p. 4-8</td></tr>
-      <tr><td>5</td><td class="gauche">Coque — vannes, manomètres</td><td>en rédaction</td></tr>
+      <tr><td>1</td><td class="gauche"><b>Communications — télégraphe, antenne, chiffreur</b></td><td>p. 1-2</td></tr>
+      <tr><td>2</td><td class="gauche"><b>Énergie — bornier</b> (fusibles, accumulateurs : en rédaction)</td><td>p. 2-8</td></tr>
+      <tr><td>3</td><td class="gauche">Moteur — leviers, soupape, injecteurs</td><td>en rédaction</td></tr>
+      <tr><td>4</td><td class="gauche">Navigation — constellation, gyroscope, calculateur</td><td>en rédaction</td></tr>
+      <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>
     </table>
-    <p class="petit">En attendant la rédaction des sections 1, 2, 3 et 5, ces modules se réparent depuis l'onglet ÉTAT du
-      volet Capsule (procédure provisoire).</p>
-    <div class="pied-doc"><span>CA-MM RÉV. C</span><span>PAGE 0-1</span><span>NE PAS EMPORTER EN EVA</span></div>
-  </div>
-
-  <div class="feuille">
-    <div class="entete-doc">
-      <div>CAPSULE ANDROMEDA — MANUEL DE MAINTENANCE</div><div>DOC. CA-MM-04</div>
-      <div>SECTION 4 — SOUS-SYSTÈME ÉNERGIE</div><div>RÉV. C · 03/2026</div>
-    </div>
-    <span class="tampon">CONFIDENTIEL</span>
-    <h3>4.3 Rétablissement du bus électrique principal</h3>
-    <div class="attention"><div class="bandeau-att">ATTENTION</div><div class="contenu-att">Une seule coupure par tour.
-      Toute erreur (mauvais câble, ISOLER trop tôt) déclenche la protection du bus : module bloqué 30 secondes, le tour
-      recommence.</div></div>
-    <ol>
-      <li><span>Lire le <b>code de diagnostic</b> sur l'écran DIAG du module 2 (format E-xxx).</span></li>
-      <li><span>Chercher ce code dans le <b>TABLEAU 4-1</b> : il donne le <b>circuit</b> en défaut (α, β, γ ou δ) et la
-        <b>règle</b> (R1 à R6).</span></li>
-      <li><span>Relever les quatre <b>voyants de bus</b> V1 à V4 (allumé : orange ; éteint : sombre).</span></li>
-      <li><span>Appliquer la règle du <b>TABLEAU 4-2</b> aux seuls câbles du circuit indiqué (étiquette à gauche du
-        bornier : lettre du circuit et chiffre), comptés de haut en bas.</span></li>
-      <li><span>Basculer <b>ISOLER</b>. Un <b>nouveau code</b> s'affiche : reprendre en 4.3.1. Quand l'écran affiche
-        <b>BUS OK</b>, la réparation est terminée (2 ou 3 tours).</span></li>
-    </ol>
-    <table>
-      <caption>TABLEAU 4-1 — CODES DE DIAGNOSTIC</caption>
-      <tr><th>CODE</th><th>CIRC.</th><th>RÈGLE</th><th>CODE</th><th>CIRC.</th><th>RÈGLE</th></tr>
-      ${lignesCodes}
-    </table>
-    <table>
-      <caption>TABLEAU 4-2 — RÈGLES DE COUPURE</caption>
-      <tr><th>RÈGLE</th><th class="gauche">CÂBLE À COUPER (DANS LE CIRCUIT INDIQUÉ)</th></tr>
-      ${lignesRegles}
-    </table>
-    <p class="manuscrit">→ attention : sur les capsules ${PREFIXE_R4_INVERSEE}…, la règle R4 est inversée (pair ↔ impair) ! — J.</p>
-    <p class="petit">Le numéro de série est gravé sur la plaque de laiton, en haut du panneau. La pression se lit sur le
-      grand cadran du module 1 (Moteur) : zone rouge à droite.</p>
-    <div class="pied-doc"><span>CA-MM-04 RÉV. C</span><span>PAGE 4-8</span><span>NE PAS EMPORTER EN EVA</span></div>
-  </div>`
+    <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
+      sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
+      commandes.</p>
+    <p class="petit">En attendant la rédaction des sections 3, 4 et 5, ces blocs se réparent depuis l'onglet ÉTAT du volet
+      Capsule (procédure provisoire).</p>`)}
+  ${sectionCommunications()}
+  ${sectionEnergie()}`
 }

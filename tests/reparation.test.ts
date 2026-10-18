@@ -7,11 +7,11 @@ const t0 = Date.UTC(2026, 9, 18, 12)
 
 /** Fait le bon geste du tour en cours (selon le manuel), comme un joueur attentif. */
 function bienJouer(jeu: Jeu, t: number) {
-  const r = jeu.reparationEnergie()!
+  const r = jeu.reparation('bornier')!
   const s = solution(tourEnergie(r.graine, r.tour), jeu.numeroSerie)
-  if ('isolerDeuxFois' in s) { jeu.basculerIsolerEnergie(t); return jeu.basculerIsolerEnergie(t) }
-  jeu.couperCableEnergie(s.couper, t)
-  return jeu.basculerIsolerEnergie(t)
+  if ('isolerDeuxFois' in s) { jeu.geste('bornier', { genre: 'isoler' }, t); return jeu.geste('bornier', { genre: 'isoler' }, t) }
+  jeu.geste('bornier', { genre: 'couper', cable: s.couper }, t)
+  return jeu.geste('bornier', { genre: 'isoler' }, t)
 }
 
 describe('le manuel, section Énergie', () => {
@@ -65,23 +65,23 @@ describe('réparer l’Énergie sur le panneau', () => {
   it('en suivant le manuel, 2 ou 3 tours, puis l’Énergie marche de nouveau', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
-    const tours = jeu.reparationEnergie()!.tours
+    const tours = jeu.reparation('bornier')!.tours
     expect([2, 3]).toContain(tours)
     for (let k = 0; k < tours - 1; k++) expect(bienJouer(jeu, t0)).toBe('tour-suivant')
     expect(bienJouer(jeu, t0)).toBe('repare')
     expect(jeu.enPanne('energie')).toBe(false)
-    expect(jeu.reparations.energie).toBeUndefined()
+    expect(jeu.reparations.bornier).toBeUndefined()
   })
 
   it('une erreur bloque le module 30 secondes, sans rien casser de plus', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
-    const r = jeu.reparationEnergie()!
+    const r = jeu.reparation('bornier')!
     const s = solution(tourEnergie(r.graine, r.tour), jeu.numeroSerie)
     const mauvais = 'couper' in s ? (s.couper + 1) % tourEnergie(r.graine, 0).cables.length : 0
-    expect(jeu.couperCableEnergie(mauvais, t0)).toBe('erreur')
-    expect(jeu.couperCableEnergie(0, t0 + 1000)).toBe('bloque')
-    expect(jeu.basculerIsolerEnergie(t0 + BLOCAGE_ERREUR - 1)).toBe('bloque')
+    expect(jeu.geste('bornier', { genre: 'couper', cable: mauvais }, t0)).toBe('erreur')
+    expect(jeu.geste('bornier', { genre: 'couper', cable: 0 }, t0 + 1000)).toBe('bloque')
+    expect(jeu.geste('bornier', { genre: 'isoler' }, t0 + BLOCAGE_ERREUR - 1)).toBe('bloque')
     expect(r.tour).toBe(0)
     expect(bienJouer(jeu, t0 + BLOCAGE_ERREUR)).not.toBe('erreur')
   })
@@ -89,14 +89,14 @@ describe('réparer l’Énergie sur le panneau', () => {
   it('basculer ISOLER sans avoir coupé le bon câble est une erreur', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
-    let r = jeu.reparationEnergie()!
+    let r = jeu.reparation('bornier')!
     // Cherche une partie où le premier tour demande un câble (pas « ISOLER deux fois »).
     for (let g = 1; 'isolerDeuxFois' in solution(tourEnergie(r.graine, 0), jeu.numeroSerie); g++) {
       jeu.reparations = {}
       jeu.graine = g
-      r = jeu.reparationEnergie()!
+      r = jeu.reparation('bornier')!
     }
-    expect(jeu.basculerIsolerEnergie(t0)).toBe('erreur')
+    expect(jeu.geste('bornier', { genre: 'isoler' }, t0)).toBe('erreur')
   })
 
   it('chaque nouvelle panne de l’Énergie demande une réparation différente', () => {
@@ -104,7 +104,7 @@ describe('réparer l’Énergie sur le panneau', () => {
     const codes = new Set<string>()
     for (let k = 0; k < 20; k++) {
       jeu.casser('energie')
-      const r = jeu.reparationEnergie()!
+      const r = jeu.reparation('bornier')!
       codes.add(tourEnergie(r.graine, 0).diagnostic.code)
       jeu.reparer('energie')
     }

@@ -1,4 +1,4 @@
-// Données du manuel de maintenance, section 4 (Énergie) : le tableau des codes de diagnostic et les règles de coupure
+// Données du manuel de maintenance, section 2 (Énergie, module 2A BORNIER) : le tableau des codes de diagnostic et les règles de coupure
 // (étape 4 ; maquette validée par Adrien le 18/10/2026). Le panneau et le manuel lisent les mêmes données : ce qui est
 // écrit dans le manuel est exactement ce que le jeu attend.
 
@@ -14,7 +14,7 @@ export const COULEURS_CABLES: readonly CouleurCable[] = ['rouge', 'bleu', 'jaune
 export interface CodeDiagnostic { code: string; circuit: Circuit; regle: Regle }
 
 /**
- * TABLEAU 4-1 : 64 codes de diagnostic (« E-3A7 »…), triés. Tirés une fois pour toutes (graine fixe) : le manuel et
+ * TABLEAU 2-1 : 64 codes de diagnostic (« E-3A7 »…), triés. Tirés une fois pour toutes (graine fixe) : le manuel et
  * le panneau en ont la même liste.
  */
 export const CODES_ENERGIE: readonly CodeDiagnostic[] = (() => {
@@ -31,14 +31,14 @@ export const CODES_ENERGIE: readonly CodeDiagnostic[] = (() => {
   return codes.sort((a, b) => a.code.localeCompare(b.code))
 })()
 
-/** TABLEAU 4-2 : les règles de coupure, telles qu'écrites dans le manuel. */
+/** TABLEAU 2-2 : les règles de coupure, telles qu'écrites dans le manuel. */
 export const TEXTES_REGLES: Readonly<Record<Regle, string>> = {
   R1: 'Voyant V1 allumé : le premier câble du circuit. V1 éteint : le dernier.',
   R2: 'Autant de voyants allumés que de câbles rouges dans le circuit : le dernier câble rouge. Sinon : le câble dont la position est le nombre de voyants allumés (aucun : le premier ; trop grand : le dernier).',
   R3: 'Un seul câble jaune dans le circuit : ce câble jaune. Sinon : le deuxième câble du circuit.',
   R4: 'Numéro de série finissant par un chiffre pair : le câble blanc le plus haut du circuit ; impair : le plus bas. Aucun blanc : le premier câble du circuit.',
   R5: 'Voyants V2 et V4 tous deux allumés : ne couper aucun câble, basculer ISOLER deux fois. Sinon : le premier câble bleu du circuit (aucun bleu : le dernier câble).',
-  R6: 'Aiguille de PRESSION du module 1 (Moteur) dans le rouge : le câble dont l\'étiquette porte le plus grand chiffre. Sinon : le plus petit.',
+  R6: 'Aiguille de PRESSION du module 3B SOUPAPE (bloc Moteur) dans le rouge : le câble dont l\'étiquette porte le plus grand chiffre. Sinon : le plus petit.',
 }
 
 /** Note manuscrite du manuel (exception) : sur les capsules dont le numéro de série commence par ce préfixe, R4 est inversée. */

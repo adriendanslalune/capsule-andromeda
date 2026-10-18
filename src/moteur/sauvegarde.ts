@@ -11,12 +11,13 @@ import type { Plan } from './mission'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
+import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 
 /**
  * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4) ; 4 : le numéro de série et les réparations
- * en cours sur le panneau. Les sauvegardes des versions précédentes sont encore lues ; une version inconnue est ignorée.
+ * en cours sur le panneau ; 5 : les blocs et leurs modules en défaut. Les sauvegardes des versions précédentes sont encore lues ; une version inconnue est ignorée.
  */
-export const VERSION_SAUVEGARDE = 4
+export const VERSION_SAUVEGARDE = 5
 
 export interface Sauvegarde {
   version: number
@@ -36,7 +37,9 @@ export interface Sauvegarde {
   usureJusqua: number
   /** Numéro de série de la capsule et réparations commencées sur le panneau. */
   numeroSerie: string
-  reparations: Partial<Record<NomModule, EtatReparation>>
+  reparations: Partial<Record<NomAppareil, EtatReparation>>
+  /** Modules du panneau en défaut, pour chaque bloc en panne. */
+  defauts: Partial<Record<NomModule, NomAppareil[]>>
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -45,7 +48,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     orbite: jeu.mission.orbite, plan: jeu.mission.plan,
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
-    numeroSerie: jeu.numeroSerie, reparations: jeu.reparations,
+    numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
   }
 }
 
@@ -81,18 +84,23 @@ function enCoursValide(e: unknown): e is ContratEnCours {
 /** Reconstruit le jeu à partir d'une sauvegarde ; null si elle est illisible ou d'un autre format. */
 export function restaurer(s: unknown): Jeu | null {
   const v = s as Sauvegarde
-  if (!v || ![1, 2, 3, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
+  if (!v || ![1, 2, 3, 4, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
   if (!orbiteValide(v.orbite) || (v.plan !== null && !planValide(v.plan))) return null
   const avecMissions = v.version >= 2
   if (avecMissions && (!nombre(v.graine) || !nombre(v.prochainId) || !Array.isArray(v.proposes) || !v.proposes.every(contratValide)
     || (v.enCours !== null && !enCoursValide(v.enCours)))) return null
   const avecPannes = v.version >= 3
   const avecPanneau = v.version >= 4
+  const avecBlocs = v.version >= 5
   const reparationValide = (r: EtatReparation) => !!r && [r.graine, r.tour, r.tours, r.isoler, r.blocageJusqua].every(nombre)
-    && Array.isArray(r.coupes) && r.coupes.every(nombre)
+    && Array.isArray(r.coupes) && r.coupes.every(nombre) && (r.reglage === undefined || nombre(r.reglage))
+  // Version 4 : une seule réparation possible, celle de l'Énergie (devenue le bornier du bloc Énergie).
+  const cles = avecBlocs ? BLOCS.flatMap((b) => b.appareils as readonly string[]) : ['energie']
   if (avecPanneau && (typeof v.numeroSerie !== 'string' || !/^[A-Z]{2}-[1-9][A-Z][0-9]$/.test(v.numeroSerie)
     || typeof v.reparations !== 'object' || v.reparations === null
-    || !Object.entries(v.reparations).every(([m, r]) => MODULES.some((f) => f.nom === m) && reparationValide(r as EtatReparation)))) return null
+    || !Object.entries(v.reparations).every(([m, r]) => cles.includes(m) && reparationValide(r as EtatReparation)))) return null
+  if (avecBlocs && (typeof v.defauts !== 'object' || v.defauts === null || !Object.entries(v.defauts).every(([m, l]) =>
+    MODULES.some((f) => f.nom === m) && Array.isArray(l) && l.every((a) => ficheBloc(m as NomModule).appareils.includes(a))))) return null
   if (avecPannes && (!Array.isArray(v.pannes) || !v.pannes.every((m) => MODULES.some((f) => f.nom === m)) || !nombre(v.usureJusqua))) return null
   const jeu = new Jeu()
   jeu.credits = v.credits
@@ -109,9 +117,19 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.pannes = [...v.pannes]
     jeu.usureJusqua = v.usureJusqua
   } else jeu.usureJusqua = v.plan?.arrivee ?? 0 // pas de panne rétroactive sur le dernier trajet d'une vieille partie
-  if (avecPanneau) {
-    jeu.numeroSerie = v.numeroSerie
+  if (avecPanneau) jeu.numeroSerie = v.numeroSerie
+  else jeu.numeroSerie = numeroDeSerie(jeu.graine)
+  if (avecBlocs) {
     jeu.reparations = v.reparations
-  } else jeu.numeroSerie = numeroDeSerie(jeu.graine)
+    jeu.defauts = v.defauts
+  } else {
+    // Avant les blocs : on tire les modules en défaut des blocs en panne ; l'Énergie garde sa réparation en cours.
+    for (const m of jeu.pannes) jeu.tirerDefauts(m)
+    const energie = (v.reparations as Record<string, EtatReparation> | undefined)?.energie
+    if (avecPanneau && energie && jeu.enPanne('energie')) {
+      jeu.defauts.energie = ['bornier']
+      jeu.reparations.bornier = energie
+    }
+  }
   return jeu
 }

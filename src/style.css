@@ -420,7 +420,6 @@ html, body {
 .commandes button b { display: block; font-size: 13px; }
 .commandes button:disabled { opacity: 0.35; box-shadow: none; }
 .commandes button:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
-.commandes .isoler { width: 100%; margin-top: 6px; font-size: 14px; letter-spacing: 0.1em; color: #fff; background: #e04b37; }
 
 /* Le Manuel : maintenance façon NASA des années 60, vieux papier crème, machine à écrire. */
 #manuel { padding: 8px 8px 14px; }
@@ -446,9 +445,8 @@ html, body {
 #manuel .entete-doc div:nth-last-child(-n+2) { border-bottom: none; }
 #manuel h3 { margin: 0 0 8px; font-size: 14.5px; letter-spacing: 0.03em; text-transform: uppercase; }
 #manuel p, #manuel ol { margin: 0 0 8px; }
-#manuel ol { padding-left: 0; list-style: none; counter-reset: etape; }
-#manuel ol li { counter-increment: etape; display: grid; grid-template-columns: 50px 1fr; gap: 4px; margin-bottom: 6px; }
-#manuel ol li::before { content: '☐ 4.3.' counter(etape); font-weight: bold; }
+#manuel ol { padding-left: 0; list-style: none; }
+#manuel ol li { display: grid; grid-template-columns: 58px 1fr; gap: 4px; margin-bottom: 6px; }
 #manuel .attention { margin: 8px 0 10px; border: 2px solid #2a2622; font-size: 12px; }
 #manuel .bandeau-att { padding: 2px 6px; font-weight: bold; letter-spacing: 0.2em; text-align: center; color: #f1e7cc;
   background: repeating-linear-gradient(45deg, #2a2622 0 8px, #6a5a3a 8px 16px); }
@@ -625,3 +623,20 @@ html, body {
 @media (orientation: landscape) and (max-height: 500px) {
   #paysage { display: flex; }
 }
+
+/* Commandes des modules des Communications. */
+.commandes .action { width: 100%; margin-top: 6px; font-size: 14px; letter-spacing: 0.1em; color: #fff; background: #e04b37; }
+.grille-commandes.deux { grid-template-columns: repeat(2, 1fr); }
+.commandes button { background: var(--creme); color: var(--encre); }
+.commandes .symbole { min-height: 64px; font-family: Georgia, serif; font-size: 30px; font-weight: normal; }
+.commandes .symbole small { display: block; font-size: 11px; }
+.ligne-commandes { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.ligne-commandes .lampe { width: 44px; height: 44px; flex: none; }
+.ligne-commandes .affichage {
+  flex: 1; padding: 6px 10px; font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: bold;
+  color: #b9f08c; background: #1f2b22; border: 2px solid var(--encre); border-radius: 6px;
+}
+.ligne-commandes .tour { font-size: 11px; font-weight: bold; }
+.note-commandes { margin-top: 6px; font-size: 11px; text-align: center; }
+#manuel .morse { text-align: left; letter-spacing: 0.05em; }
+#manuel .symbole-manuel { font-family: Georgia, serif; font-size: 16px; }

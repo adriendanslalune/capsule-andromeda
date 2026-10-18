@@ -43,9 +43,24 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   du numéro de série (et sa note manuscrite pour les capsules AN-7) ; erreur : étincelle et 30 s de blocage
   (`src/moteur/reparation.ts`, `src/donnees/manuel-energie.ts`, testés). Numéro de série tiré à chaque nouvelle partie.
   Les autres modules gardent la réparation provisoire en attendant leur mécanique.
-- 4.3 Onglet Manuel — **commencé** : manuel de maintenance façon NASA (papier crème, machine à écrire), sommaire et
-  section 4 (Énergie) avec les 64 codes et les 6 règles, lus dans les mêmes données que le jeu (`src/commun/manuel.ts`) ;
-  boutons pour passer du panneau au manuel et retour. Sections 1, 2, 3 et 5 à écrire avec leurs mécaniques.
+- 4.3 Onglet Manuel — **commencé** : manuel de maintenance façon NASA (papier crème, machine à écrire), sommaire,
+  section 1 (Communications) et section 2 (Énergie : 64 codes et 6 règles), lus dans les mêmes données que le jeu
+  (`src/commun/manuel.ts`) ; boutons pour passer du panneau au manuel et retour. Sections 3, 4 et 5 à écrire avec
+  leurs mécaniques.
+- Panneau en 5 blocs de 3 modules (décision d'Adrien du 18/10/2026) — **fait, en attente de validation** : de haut en
+  bas, 1 Communications (Télégraphe, Antenne, Chiffreur), 2 Énergie (Bornier, Fusibles, Accumulateurs), 3 Moteur
+  (Leviers, Soupape, Injecteurs), 4 Navigation (Constellation, Gyroscope, Calculateur), 5 Coque (Vannes, Brèche, Sas)
+  (`src/donnees/blocs.ts`). Une panne de bloc met 1 ou 2 de ses modules raccordés en défaut (voyant rouge) ; le bloc
+  remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses commandes (`src/commun/commandes.ts`).
+  Sauvegarde au format 5 (les anciennes parties sont reprises : l'Énergie en cours de réparation devient le Bornier).
+  - Bloc Communications — **fait, en attente de validation** (`src/moteur/communications.ts`, testé) :
+    Télégraphe (la lampe clignote un mot en morse, le manuel donne sa fréquence ; régler le cadran, ÉMETTRE ; 1 tour),
+    Antenne (symbole de station et bande, le manuel donne l'angle ; tourner de ±15° ou ±45°, VERROUILLER ; 2 tours),
+    Chiffreur (4 touches à symboles, toutes dans une seule des 6 colonnes du manuel ; les enfoncer dans l'ordre de la
+    colonne ; 1 tour). Erreur : étincelle et 30 s de blocage du module.
+  - Bloc Énergie : le Bornier marche ; Fusibles et Accumulateurs dessinés, pas encore raccordés — à faire.
+  - Blocs Moteur, Navigation, Coque : dessinés, pas encore raccordés (réparation provisoire depuis ÉTAT) — à faire.
+    La pression lue par la règle R6 du Bornier est maintenant sur le module 3B Soupape.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

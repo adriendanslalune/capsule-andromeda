@@ -1,6 +1,6 @@
 // La réparation d'un module en panne, sur le panneau (étape 4, maquette validée par Adrien le 18/10/2026), façon
 // « Keep Talking and Nobody Explodes » : le panneau montre des indices, le manuel dit quoi faire selon ces indices.
-// Pour l'instant : le module Énergie. La réparation se fait en plusieurs tours ; chaque tour tire un nouveau code de
+// Ici : le bornier du bloc Énergie (les autres modules ont leur fichier, comme communications.ts). La réparation se fait en plusieurs tours ; chaque tour tire un nouveau code de
 // diagnostic, de nouveaux câbles, de nouveaux voyants, et l'état d'un autre module (la pression du Moteur), si bien
 // qu'il faut toujours relire le manuel. Une erreur bloque le module 30 secondes, sans rien casser de plus.
 
@@ -28,35 +28,43 @@ export interface TourEnergie {
 /** Ce qu'il faut faire pendant un tour : couper un câble (son numéro dans le bornier), ou basculer ISOLER deux fois. */
 export type Solution = { couper: number } | { isolerDeuxFois: true }
 
-/** L'état d'une réparation en cours (enregistré avec la partie). */
+/** L'état de la réparation d'un module du panneau (enregistré avec la partie). */
 export interface EtatReparation {
   graine: number
-  /** Tour actuel (0, 1…) et nombre de tours à faire (2 ou 3). */
+  /** Tour actuel (0, 1…) et nombre de tours à faire. */
   tour: number
   tours: number
-  /** Câbles déjà coupés pendant ce tour, ISOLER basculé combien de fois. */
+  /** Bornier : câbles déjà coupés pendant ce tour. Chiffreur : touches déjà enfoncées. */
   coupes: number[]
+  /** Bornier : ISOLER basculé combien de fois. */
   isoler: number
+  /** Télégraphe : cran du cadran des fréquences ; Antenne : angle (degrés). */
+  reglage?: number
   /** Après une erreur : module bloqué jusqu'à cet instant (ms UTC). */
   blocageJusqua: number
 }
 
 /** Tire un nombre entier entre 0 et n − 1 ; renvoie aussi la graine suivante. */
-function tirer(g: number, n: number): [number, number] {
+export function tirer(g: number, n: number): [number, number] {
   const h = hasard(g)
   return [Math.floor(h.x * n), h.graine]
 }
 
-/** Commence une réparation : 2 ou 3 tours. */
-export function nouvelleReparation(graine: number): EtatReparation {
+/** Commence une réparation du bornier : 2 ou 3 tours (ou le nombre de tours donné, pour un autre module). */
+export function nouvelleReparation(graine: number, tours?: number): EtatReparation {
   const [n] = tirer(graine, 2)
-  return { graine, tour: 0, tours: 2 + n, coupes: [], isoler: 0, blocageJusqua: 0 }
+  return { graine, tour: 0, tours: tours ?? 2 + n, coupes: [], isoler: 0, blocageJusqua: 0 }
+}
+
+/** Un tirage reproductible propre au tour k d'une réparation : t(n) donne un entier entre 0 et n − 1. */
+export function tirage(graine: number, k: number): (n: number) => number {
+  let g = (graine ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0
+  return (n: number) => { const [v, s] = tirer(g, n); g = s; return v }
 }
 
 /** Le panneau pendant le tour k d'une réparation (reproductible : même graine, même tour, même panneau). */
 export function tourEnergie(graine: number, k: number): TourEnergie {
-  let g = (graine ^ Math.imul(k + 1, 0x9e3779b1)) >>> 0
-  const t = (n: number) => { const [v, s] = tirer(g, n); g = s; return v }
+  const t = tirage(graine, k)
   const diagnostic = CODES_ENERGIE[t(CODES_ENERGIE.length)]
   const voyants = [t(2) === 1, t(2) === 1, t(2) === 1, t(2) === 1] as TourEnergie['voyants']
   // 5 à 8 câbles ; le circuit en défaut en a 2 ou 3, les autres circuits se partagent le reste.
@@ -123,14 +131,16 @@ export function bloque(r: EtatReparation, t: number): boolean {
   return t < r.blocageJusqua
 }
 
-function erreur(r: EtatReparation, t: number): Resultat {
+/** Une erreur : le module est bloqué BLOCAGE_ERREUR, le tour recommence. */
+export function erreur(r: EtatReparation, t: number): Resultat {
   r.blocageJusqua = t + BLOCAGE_ERREUR
   r.coupes = []
   r.isoler = 0
   return 'erreur'
 }
 
-function tourFini(r: EtatReparation): Resultat {
+/** Le tour est réussi : au suivant, ou réparé si c'était le dernier. */
+export function tourFini(r: EtatReparation): Resultat {
   r.tour++
   r.coupes = []
   r.isoler = 0

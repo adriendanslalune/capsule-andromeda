@@ -105,10 +105,10 @@ describe('sauvegarde de la partie', () => {
     const jeu = enRouteVers('Lune')
     jeu.nouvellePartie(123456)
     jeu.casser('energie')
-    const r = jeu.reparationEnergie()!
+    const r = jeu.reparation('bornier')!
     r.coupes = [2]
     const copie = allerRetour(jeu, t0)!
     expect(copie.numeroSerie).toBe(jeu.numeroSerie)
-    expect(copie.reparations.energie).toEqual(r)
+    expect(copie.reparations.bornier).toEqual(r)
   })
 })

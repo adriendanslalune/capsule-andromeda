@@ -1,11 +1,12 @@
 // Le panneau de réparation (volet Capsule › Réparation ; maquette validée par Adrien le 18/10/2026) : une grande tôle en
 // style Moebius, foisonnante — tuyaux, faisceaux de câbles, cadrans, petits écrans, voyants, étiquettes, notes collées —
-// dessinée avec un hasard propre à chaque capsule (son numéro de série). Au milieu du fouillis, les cinq modules.
-// Le module Énergie montre l'écran DIAG, les voyants de bus, le bornier de câbles et l'interrupteur ISOLER ; l'aiguille
-// de pression du module Moteur sert d'indice. Les gestes passent par des boutons sous le panneau (COUPER, ISOLER : demande
-// d'Adrien du 18/10/2026, viser un câble fin était trop difficile). Le panneau ne décide rien : il montre l'état que lui
-// donne le moteur du jeu.
+// dessinée avec un hasard propre à chaque capsule (son numéro de série). Au milieu du fouillis, cinq blocs (un par
+// système de la capsule) de trois modules chacun (décision d'Adrien du 18/10/2026). Les modules raccordés montrent
+// les indices de leur réparation (écrans, lampe morse, antenne, touches à symboles, bornier) ; les gestes passent par
+// des boutons sous le panneau, qui s'ouvrent en touchant le module. Le panneau ne décide rien : il montre l'état que
+// lui donne le moteur du jeu.
 
+import { BLOCS, repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import type { NomModule } from '../donnees/modules'
 import type { CouleurCable } from '../donnees/manuel-energie'
 import type { TourEnergie } from '../moteur/reparation'
@@ -18,20 +19,41 @@ const TEINTES: Record<CouleurCable, string> = {
   rouge: '#e04b37', bleu: '#3f63c4', jaune: '#f2b53a', blanc: '#faf2dc', vert: '#5fb36a', noir: '#3a3340',
 }
 export const LARGEUR_PANNEAU = 390
-export const HAUTEUR_PANNEAU = 1180
+export const HAUTEUR_PANNEAU = 1900
 
-/** Emplacement des cinq modules sur le panneau. */
-const CADRES: Record<NomModule, { x: number; y: number; w: number; h: number; nom: string }> = {
-  moteur: { x: 14, y: 128, w: 186, h: 196, nom: '1 · MOTEUR' },
-  energie: { x: 172, y: 448, w: 206, h: 238, nom: '2 · ÉNERGIE' },
-  communications: { x: 14, y: 448, w: 146, h: 160, nom: '3 · COMMUNIC.' },
-  navigation: { x: 196, y: 196, w: 182, h: 170, nom: '4 · NAVIGATION' },
-  coque: { x: 30, y: 930, w: 170, h: 150, nom: '5 · COQUE' },
+interface Cadre { x: number; y: number; w: number; h: number }
+
+/** Les cinq blocs, de haut en bas, et leur teinte de fond. */
+const CADRES_BLOCS: Record<NomModule, Cadre & { teinte: string }> = {
+  communications: { x: 6, y: 82, w: 378, h: 332, teinte: '#d9e6dc' },
+  energie: { x: 6, y: 480, w: 378, h: 290, teinte: '#f0d9c8' },
+  moteur: { x: 6, y: 836, w: 378, h: 290, teinte: '#e3dcef' },
+  navigation: { x: 6, y: 1192, w: 378, h: 300, teinte: '#d8e5ec' },
+  coque: { x: 6, y: 1558, w: 378, h: 280, teinte: '#ede3c5' },
 }
 
-/** Ce que le panneau doit montrer du module Énergie. */
+/** Emplacement des quinze modules. */
+const CADRES: Record<NomAppareil, Cadre> = {
+  telegraphe: { x: 14, y: 112, w: 204, h: 150 },
+  antenne: { x: 228, y: 112, w: 148, h: 150 },
+  chiffreur: { x: 14, y: 280, w: 362, h: 120 },
+  bornier: { x: 14, y: 510, w: 206, h: 238 },
+  fusibles: { x: 230, y: 510, w: 146, h: 112 },
+  accumulateurs: { x: 230, y: 636, w: 146, h: 112 },
+  leviers: { x: 14, y: 866, w: 214, h: 126 },
+  soupape: { x: 238, y: 866, w: 138, h: 126 },
+  injecteurs: { x: 14, y: 1006, w: 362, h: 106 },
+  constellation: { x: 14, y: 1222, w: 214, h: 150 },
+  gyroscope: { x: 238, y: 1222, w: 138, h: 150 },
+  calculateur: { x: 14, y: 1386, w: 362, h: 92 },
+  vannes: { x: 14, y: 1588, w: 214, h: 120 },
+  breche: { x: 238, y: 1588, w: 138, h: 120 },
+  sas: { x: 14, y: 1722, w: 362, h: 102 },
+}
+
+/** Ce que le panneau doit montrer du bornier (bloc Énergie). */
 export interface EtatEnergie {
-  /** Tour de réparation en cours, ou null si l'Énergie marche. */
+  /** Tour de réparation en cours, ou null si le bornier marche. */
   tour: TourEnergie | null
   coupes: number[]
   /** Module bloqué après une erreur (secondes restantes, 0 sinon). */
@@ -41,19 +63,72 @@ export interface EtatEnergie {
   tours: number
 }
 
+/** Ce que le panneau doit montrer du télégraphe. */
+export interface EtatTelegraphe {
+  /** La lampe : suite de [allumée ?, durée (ms)] répétée en boucle ; null quand le télégraphe marche. */
+  morse: [boolean, number][] | null
+  /** Fréquence affichée (« 3,505 ») et cran du cadran (0 à crans − 1). */
+  frequence: string
+  cran: number
+  crans: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer de l'antenne. */
+export interface EtatAntenne {
+  /** Symbole de la station et bande, ou null quand l'antenne marche. */
+  symbole: string | null
+  bande: string | null
+  /** Angle de l'antenne (degrés, 0 : vers le haut, sens des aiguilles d'une montre). */
+  angle: number
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer du chiffreur. */
+export interface EtatChiffreur {
+  /** Les symboles des quatre touches, ou null quand le chiffreur marche. */
+  touches: string[] | null
+  /** Touches déjà enfoncées (numéros). */
+  enfoncees: number[]
+  bloque: number
+}
+
+/** Tout ce que le panneau montre. */
+export interface EtatPanneau {
+  /** Blocs en panne. */
+  pannes: NomModule[]
+  /** Modules en défaut. */
+  defauts: NomAppareil[]
+  energie: EtatEnergie
+  telegraphe: EtatTelegraphe
+  antenne: EtatAntenne
+  chiffreur: EtatChiffreur
+}
+
+/** L'animation SVG (SMIL) qui fait clignoter une lampe selon une suite morse : couleur allumée, couleur éteinte. */
+export function attributsMorse(morse: [boolean, number][], allumee: string, eteinte: string): Record<string, string> {
+  const total = morse.reduce((s, [, d]) => s + d, 0)
+  let t = 0
+  const temps: string[] = [], valeurs: string[] = []
+  for (const [on, d] of morse) { temps.push((t / total).toFixed(4)); valeurs.push(on ? allumee : eteinte); t += d }
+  return { attributeName: 'fill', dur: `${total}ms`, repeatCount: 'indefinite', calcMode: 'discrete', keyTimes: temps.join(';'), values: valeurs.join(';') }
+}
+
 export class Panneau {
   private svg: SVGSVGElement
   private serie = ''
   private graine = 1
-  private gEnergie!: SVGGElement
+  private groupes = new Map<string, SVGGElement>()
   private aiguillePression!: SVGLineElement
-  private voyants = new Map<NomModule, SVGCircleElement>()
-  private dernier = ''
-  private zones: [NomModule, (typeof CADRES)[NomModule]][] = []
+  private voyantsBlocs = new Map<NomModule, SVGCircleElement>()
+  private voyantsModules = new Map<NomAppareil, SVGCircleElement>()
+  private derniers = new Map<string, string>()
   private selection!: SVGRectElement
 
   /** toucher : appelé quand on touche un module du panneau (pour ouvrir ses commandes). */
-  constructor(conteneur: HTMLElement, private toucher: (m: NomModule) => void) {
+  constructor(conteneur: HTMLElement, private toucher: (a: NomAppareil) => void) {
     this.svg = document.createElementNS(NS, 'svg')
     this.svg.setAttribute('viewBox', `0 0 ${LARGEUR_PANNEAU} ${HAUTEUR_PANNEAU}`)
     this.svg.setAttribute('class', 'panneau-svg')
@@ -149,15 +224,30 @@ export class Panneau {
     }
   }
 
+  /** Un grand cadran rond gradué (antenne), avec ses repères tous les 15° et les angles 0, 90, 180, 270. */
+  private couronne(x: number, y: number, r: number, parent: Element): void {
+    this.el('circle', { cx: x + 2, cy: y + 2, r, fill: OMBRE, opacity: 0.4 }, parent)
+    this.el('circle', { cx: x, cy: y, r, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.6 }, parent)
+    for (let a = 0; a < 360; a += 15) {
+      const ra = a * Math.PI / 180, r1 = r * (a % 45 ? 0.9 : 0.8)
+      this.el('line', { x1: x + r1 * Math.sin(ra), y1: y - r1 * Math.cos(ra), x2: x + r * 0.98 * Math.sin(ra), y2: y - r * 0.98 * Math.cos(ra), stroke: ENCRE, 'stroke-width': a % 45 ? 0.7 : 1.3 }, parent)
+    }
+    for (const a of [0, 90, 180, 270]) {
+      const ra = a * Math.PI / 180, rr = r * 0.66
+      this.texte(x + rr * Math.sin(ra), y - rr * Math.cos(ra) + 2.5, String(a), 7, parent, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    }
+  }
+
   /** Dessine tout le panneau d'une capsule (une seule fois par numéro de série : c'est long). */
   construire(serie: string): void {
     if (serie === this.serie) return
     this.serie = serie
     this.graine = [...serie].reduce((s, c) => (s * 31 + c.charCodeAt(0)) % 2147483646, 7) + 1
     this.svg.innerHTML = ''
-    this.voyants.clear()
-    this.zones = []
-    this.dernier = ''
+    this.voyantsBlocs.clear()
+    this.voyantsModules.clear()
+    this.groupes.clear()
+    this.derniers.clear()
     const defs = this.el('defs', {})
     const motif = this.el('pattern', { id: 'hachures', width: 4, height: 4, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs)
     this.el('line', { x1: 0, y1: 0, x2: 0, y2: 4, stroke: OMBRE, 'stroke-width': 0.9 }, motif)
@@ -169,28 +259,48 @@ export class Panneau {
     this.el('rect', { x: 0, y: 0, width: LARGEUR_PANNEAU, height: HAUTEUR_PANNEAU, fill: 'url(#trame)', opacity: 0.35 })
     for (let y = 0; y < HAUTEUR_PANNEAU; y += 118) this.el('path', { d: `M0 ${y} H${LARGEUR_PANNEAU}`, stroke: ENCRE, 'stroke-width': 0.6, opacity: 0.4 })
 
-    // Grands tuyaux et faisceaux de câbles décoratifs.
-    this.tuyau('M-10 70 H120 Q150 70 150 100 V380 Q150 410 180 410 H400', this.choix(PASTELS), 14)
-    this.tuyau('M400 160 H330 Q300 160 300 190 V640 Q300 670 270 670 H-10', this.choix(PASTELS), 11)
-    this.tuyau('M60 -10 V40 Q60 60 80 60 H90', this.choix(PASTELS), 9)
-    this.tuyau('M-10 860 H90 Q120 860 120 890 V1190', this.choix(PASTELS), 13)
-    this.tuyau('M400 980 H250 Q220 980 220 1010 V1190', this.choix(PASTELS), 10)
-    this.bride(150, 230, true); this.bride(300, 420, true); this.bride(60, 860, false); this.bride(220, 1100, true); this.bride(330, 160, false)
-    this.faisceau(30, 120, 90, 300, 5)
-    this.faisceau(350, 420, 330, 600, 6)
-    this.faisceau(40, 700, 120, 840, 4)
-    this.faisceau(360, 860, 300, 980, 5)
+    // Entre les blocs : tuyaux et faisceaux de câbles qui passent de l'un à l'autre.
+    const blocs = Object.values(CADRES_BLOCS)
+    this.tuyau('M-10 40 H120 Q150 40 150 70 V100', this.choix(PASTELS), 12)
+    blocs.forEach((b, k) => {
+      const y0 = b.y + b.h, y1 = k + 1 < blocs.length ? blocs[k + 1].y : HAUTEUR_PANNEAU, m = (y0 + y1) / 2
+      const x = this.entre(60, 330)
+      this.tuyau(`M-10 ${m - 10} H${x - 30} Q${x} ${m - 10} ${x} ${m + 20} V${y1 + 20}`, this.choix(PASTELS), this.entre(9, 14))
+      this.tuyau(`M400 ${m + 8} H${x + 40}`, this.choix(PASTELS), this.entre(7, 11))
+      this.bride(x, m + 22, true)
+      this.faisceau(this.entre(40, 120), y0 - 10, this.entre(40, 140), y1 + 10, 3 + Math.floor(this.hasard() * 3))
+      this.faisceau(this.entre(250, 350), y0 - 10, this.entre(240, 350), y1 + 10, 3 + Math.floor(this.hasard() * 3))
+    })
 
-    // Le fouillis : petites plaques semées partout, puis les derniers recoins.
-    const zones: { x: number; y: number; w: number; h: number }[] = Object.values(CADRES).map((c) => ({ ...c }))
-    zones.push({ x: 206, y: 14, w: 168, h: 44 }) // plaque du numéro de série
-    const libre = (x: number, y: number, w: number, h: number) => zones.every((z) => x + w < z.x - 4 || x > z.x + z.w + 4 || y + h < z.y - 4 || y > z.y + z.h + 4)
-    for (let essai = 0; essai < 4000; essai++) {
+    // Les blocs (avant le fouillis, qui vient se glisser dans leurs recoins).
+    for (const fiche of BLOCS) {
+      const b = CADRES_BLOCS[fiche.bloc], g = this.g()
+      this.el('rect', { x: b.x + 5, y: b.y + 5, width: b.w, height: b.h, rx: 14, fill: OMBRE, opacity: 0.5 }, g)
+      this.el('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 14, fill: b.teinte, stroke: ENCRE, 'stroke-width': 2.8 }, g)
+      this.el('rect', { x: b.x + 5, y: b.y + 5, width: b.w - 10, height: b.h - 10, rx: 10, fill: 'none', stroke: ENCRE, 'stroke-width': 0.7 }, g)
+      for (const [rx, ry] of [[b.x + 10, b.y + 10], [b.x + b.w - 10, b.y + 10], [b.x + 10, b.y + b.h - 10], [b.x + b.w - 10, b.y + b.h - 10]]) this.rivet(rx, ry, g)
+      const titre = `BLOC ${fiche.numero} · ${fiche.titre}`
+      this.el('rect', { x: b.x + 14, y: b.y - 10, width: titre.length * 6.4 + 34, height: 19, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+      this.texte(b.x + 22, b.y + 4, titre, 9.5, g, { 'font-weight': 'bold' })
+      this.voyantsBlocs.set(fiche.bloc, this.voyant(b.x + 14 + titre.length * 6.4 + 22, b.y, '#8fcf98', g, 4.6))
+    }
+
+    // Le fouillis : petites plaques semées partout (hors des modules ; dans un bloc ou dehors, jamais à cheval).
+    const obstacles: Cadre[] = Object.values(CADRES).map((c) => ({ x: c.x, y: c.y - 10, w: c.w, h: c.h + 10 }))
+    obstacles.push({ x: 206, y: 14, w: 168, h: 44 }) // plaque du numéro de série
+    for (const b of blocs) obstacles.push({ x: b.x + 10, y: b.y - 12, w: 240, h: 24 }) // titres des blocs
+    const touche = (a: Cadre, z: Cadre, marge: number) => !(a.x + a.w < z.x - marge || a.x > z.x + z.w + marge || a.y + a.h < z.y - marge || a.y > z.y + z.h + marge)
+    const dedans = (a: Cadre, z: Cadre) => a.x > z.x + 8 && a.x + a.w < z.x + z.w - 8 && a.y > z.y + 8 && a.y + a.h < z.y + z.h - 8
+    const libre = (x: number, y: number, w: number, h: number) => {
+      const a = { x, y, w, h }
+      return obstacles.every((z) => !touche(a, z, 4)) && blocs.every((b) => dedans(a, b) || !touche(a, b, 5))
+    }
+    for (let essai = 0; essai < 5000; essai++) {
       const grand = essai < 1500
-      const w = grand ? this.entre(40, 110) : this.entre(22, 48), h = grand ? this.entre(30, 80) : this.entre(18, 34)
+      const w = grand ? this.entre(40, 110) : this.entre(22, 48), h = grand ? this.entre(30, 60) : this.entre(18, 34)
       const x = this.entre(2, LARGEUR_PANNEAU - 2 - w), y = this.entre(2, HAUTEUR_PANNEAU - 2 - h)
       if (!libre(x, y, w, h)) continue
-      zones.push({ x, y, w, h })
+      obstacles.push({ x, y, w, h })
       const g = this.g()
       this.plaque(x, y, w, h, this.choix(PASTELS), g)
       const genre = this.hasard()
@@ -205,10 +315,10 @@ export class Panneau {
       }
       if (this.hasard() < 0.6) this.etiquette(x + 4, y + h - 3, this.choix(['Q-12', 'AUX 2', 'NE PAS TOUCHER', 'B7', 'ATT.', 'VENT.', 'R-44', 'LOX', 'CAL.', 'K-3', 'PURGE', 'TEST']), this.choix(['#faf2dc', '#f5d38a', '#f3c2b0']), g)
     }
-    for (let k = 0; k < 2500; k++) {
+    for (let k = 0; k < 3500; k++) {
       const x = this.entre(3, LARGEUR_PANNEAU - 3), y = this.entre(3, HAUTEUR_PANNEAU - 3)
       if (!libre(x - 5, y - 5, 10, 10)) continue
-      zones.push({ x: x - 5, y: y - 5, w: 10, h: 10 })
+      obstacles.push({ x: x - 5, y: y - 5, w: 10, h: 10 })
       const r = this.hasard()
       if (r < 0.35) this.rivet(x, y)
       else if (r < 0.5) this.voyant(x, y, this.choix(['#8fcf98', '#e04b37', '#f2b53a', '#bfe0e8']), this.svg, 2)
@@ -217,7 +327,7 @@ export class Panneau {
       else this.el('rect', { x: x - 4, y: y - 3, width: 8, height: 6, rx: 1, fill: this.choix(PASTELS), stroke: ENCRE, 'stroke-width': 0.7 })
     }
     // Notes collées, à la main.
-    for (const [x, y, t, a] of [[10, 640, 'lire le\nmanuel !!', -6], [250, 1120, 'appeler J.\nsi R5', 5]] as [number, number, string, number][]) {
+    for (const [x, y, t, a] of [[300, 424, 'lire le\nmanuel !!', -6], [20, 1130, 'appeler J.\nsi R5', 5], [290, 1498, 'morse :\nlentement', 4]] as [number, number, string, number][]) {
       const g = this.g(this.svg, { transform: `rotate(${a} ${x + 30} ${y + 20})` })
       this.el('rect', { x, y, width: 64, height: 36, fill: '#fff3a8', stroke: ENCRE, 'stroke-width': 0.8 }, g)
       this.el('rect', { x: x + 20, y: y - 4, width: 24, height: 8, fill: '#e8dfc8', opacity: 0.85 }, g)
@@ -232,73 +342,145 @@ export class Panneau {
     this.dessinerModules()
   }
 
-  /** Cadres des cinq modules, et ce qui ne bouge pas dedans. */
+  /** Cadres des quinze modules, ce qui ne bouge pas dedans, et les groupes de ce qui change. */
   private dessinerModules(): void {
-    const cadres = new Map<NomModule, SVGGElement>()
-    for (const [nom, m] of Object.entries(CADRES) as [NomModule, typeof CADRES.moteur][]) {
+    const cadres = new Map<NomAppareil, SVGGElement>()
+    for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const g = this.g()
       this.el('rect', { x: m.x + 4, y: m.y + 4, width: m.w, height: m.h, rx: 10, fill: OMBRE, opacity: 0.5 }, g)
       this.el('rect', { x: m.x, y: m.y, width: m.w, height: m.h, rx: 10, fill: '#e9dfc4', stroke: ENCRE, 'stroke-width': 2.2 }, g)
       this.el('rect', { x: m.x + 4, y: m.y + 4, width: m.w - 8, height: m.h - 8, rx: 7, fill: 'none', stroke: ENCRE, 'stroke-width': 0.6, 'stroke-dasharray': '3 2' }, g)
-      this.el('rect', { x: m.x + 10, y: m.y - 8, width: m.nom.length * 5.6 + 12, height: 15, rx: 3, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
-      this.texte(m.x + 16, m.y + 3, m.nom, 8.5, g, { 'font-weight': 'bold' })
-      this.voyants.set(nom, this.voyant(m.x + m.w - 14, m.y + 2, '#8fcf98', g, 4.2))
+      const nomAffiche = `${repere(nom)} · ${TITRES_APPAREILS[nom]}`
+      this.el('rect', { x: m.x + 10, y: m.y - 8, width: nomAffiche.length * 5.4 + 12, height: 15, rx: 3, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.3 }, g)
+      this.texte(m.x + 16, m.y + 3, nomAffiche, 8, g, { 'font-weight': 'bold' })
+      this.voyantsModules.set(nom, this.voyant(m.x + m.w - 14, m.y + 2, '#8fcf98', g, 4))
       cadres.set(nom, g)
-      // Toucher le module ouvre ses commandes (zone par-dessus tout le cadre, ajoutée à la fin : voir zonesDeToucher).
-      this.zones.push([nom, m])
     }
-    // 1 · MOTEUR : jauges (l'aiguille de pression est un indice pour l'Énergie), symbole, leviers.
-    const mo = CADRES.moteur, gMo = cadres.get('moteur')!
-    this.aiguillePression = this.cadran(mo.x + 40, mo.y + 48, 24, gMo, 0, true)
-    this.texte(mo.x + 22, mo.y + 84, 'PRESSION', 6, gMo)
-    this.cadran(mo.x + 100, mo.y + 48, 18, gMo); this.texte(mo.x + 88, mo.y + 78, 'TEMP.', 6, gMo)
-    this.el('rect', { x: mo.x + 132, y: mo.y + 28, width: 40, height: 40, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, gMo)
-    this.texte(mo.x + 142, mo.y + 58, this.choix(['♃', '♄', '☿', '♀']), 26, gMo)
-    for (let k = 0; k < 5; k++) {
-      const x = mo.x + 22 + k * 34, y = mo.y + 110
-      this.el('rect', { x: x - 12, y: y + 50, width: 24, height: 12, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, gMo)
-      this.el('rect', { x: x - 3, y: y + 8, width: 6, height: 46, rx: 2, fill: ENCRE }, gMo)
-      this.el('circle', { cx: x, cy: y + 8, r: 8, fill: ['#e04b37', '#bfe0e8', '#f2b53a', '#8fcf98', '#faf2dc'][k], stroke: ENCRE, 'stroke-width': 1.4 }, gMo)
-      this.texte(x - 3, y + 74, ['I', 'II', 'III', 'IV', 'V'][k], 7, gMo)
+    const c = (a: NomAppareil) => [CADRES[a], cadres.get(a)!] as const
+
+    // --- Bloc 2 · Énergie : fusibles et accumulateurs (décor, en attendant d'être raccordés). ---
+    {
+      const [m, g] = c('fusibles')
+      for (let k = 0; k < 8; k++) {
+        const x = m.x + 16 + (k % 4) * 32, y = m.y + 22 + Math.floor(k / 4) * 44
+        this.el('rect', { x: x - 2, y, width: 26, height: 30, rx: 3, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1 }, g)
+        this.el('rect', { x: x + 4, y: y + 4, width: 14, height: 22, rx: 6, fill: '#e8f1f2', stroke: ENCRE, 'stroke-width': 1, opacity: 0.9 }, g)
+        this.el('path', { d: `M${x + 11} ${y + 6} q4 4 0 9 q-4 4 0 9`, fill: 'none', stroke: '#d9a43a', 'stroke-width': 1.2 }, g)
+        this.texte(x + 4, y + 39, `${10 + k * 5}A`, 5.5, g)
+      }
     }
-    // 3 · COMMUNICATIONS : la radio.
-    const co = CADRES.communications, gCo = cadres.get('communications')!
-    this.el('rect', { x: co.x + 12, y: co.y + 16, width: 56, height: 60, rx: 5, fill: '#6b5d4a', stroke: ENCRE, 'stroke-width': 1.4 }, gCo)
-    for (let k = 0; k < 9; k++) this.el('line', { x1: co.x + 16, y1: co.y + 22 + k * 6, x2: co.x + 64, y2: co.y + 22 + k * 6, stroke: '#e9dfc4', 'stroke-width': 2 }, gCo)
-    this.ecran(co.x + 76, co.y + 16, 60, 24, ['3.505', 'MHz'], gCo, 8)
-    this.cadran(co.x + 106, co.y + 64, 16, gCo)
-    this.voyant(co.x + 40, co.y + 92, '#fff3a8', gCo, 6)
-    this.texte(co.x + 14, co.y + 110, 'TÉLÉGRAPHE', 6, gCo)
-    for (let k = 0; k < 4; k++) this.bouton(co.x + 24 + k * 30, co.y + 134, 9, this.choix(PASTELS), gCo)
-    // 4 · NAVIGATION : écran rond, constellation, boutons à symboles.
-    const na = CADRES.navigation, gNa = cadres.get('navigation')!
-    this.el('circle', { cx: na.x + 56, cy: na.y + 70, r: 46, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 2 }, gNa)
-    this.el('circle', { cx: na.x + 56, cy: na.y + 70, r: 30, fill: 'none', stroke: '#3c5a3e', 'stroke-width': 1 }, gNa)
-    this.el('path', { d: `M${na.x + 56} ${na.y + 24} v92 M${na.x + 10} ${na.y + 70} h92`, stroke: '#3c5a3e', 'stroke-width': 1 }, gNa)
-    const etoiles = Array.from({ length: 6 }, () => [this.entre(28, 84), this.entre(38, 102)])
-    this.el('path', { d: 'M' + etoiles.map(([a, b]) => `${na.x + a} ${na.y + b}`).join(' L') + 'z', fill: 'none', stroke: '#b9f08c', 'stroke-width': 0.8, opacity: 0.6 }, gNa)
-    for (const [a, b] of etoiles) this.el('circle', { cx: na.x + a, cy: na.y + b, r: 2.4, fill: '#b9f08c' }, gNa)
-    ;['☉', '☾', '♄', '♂', '♀', '☿'].forEach((s, k) => {
-      const x = na.x + 118 + (k % 2) * 30, y = na.y + 30 + Math.floor(k / 2) * 32
-      this.el('rect', { x: x - 12, y: y - 12, width: 24, height: 24, rx: 4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, gNa)
-      this.texte(x - 6, y + 6, s, 15, gNa)
-    })
-    this.cadran(na.x + 132, na.y + 142, 12, gNa); this.cadran(na.x + 162, na.y + 142, 12, gNa)
-    // 5 · COQUE : manomètre et vannes.
-    const cq = CADRES.coque, gCq = cadres.get('coque')!
-    this.cadran(cq.x + 34, cq.y + 46, 22, gCq); this.texte(cq.x + 24, cq.y + 78, 'BAR', 6, gCq)
-    ;['#d9694f', '#3f63c4', '#8fcf98'].forEach((c, k) => {
-      const x = cq.x + 82 + k * 30, y = cq.y + 46
-      this.el('circle', { cx: x, cy: y, r: 13, fill: 'none', stroke: ENCRE, 'stroke-width': 5.5 }, gCq)
-      this.el('circle', { cx: x, cy: y, r: 13, fill: 'none', stroke: c, 'stroke-width': 3.5 }, gCq)
-      this.el('path', { d: `M${x} ${y - 13} v26 M${x - 13} ${y} h26`, stroke: ENCRE, 'stroke-width': 2 }, gCq)
-      this.texte(x - 2, y + 26, 'ABC'[k], 7, gCq)
-    })
-    for (let k = 0; k < 6; k++) this.interrupteur(cq.x + 20 + k * 24, cq.y + 118, gCq)
-    // 2 · ÉNERGIE : son contenu change à chaque tour (dessiné par afficher()).
-    this.gEnergie = this.g(cadres.get('energie')!)
+    {
+      const [m, g] = c('accumulateurs')
+      for (let k = 0; k < 3; k++) {
+        const x = m.x + 14 + k * 44, y = m.y + 22
+        this.el('rect', { x: x + 10, y: y - 4, width: 14, height: 6, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1 }, g)
+        this.el('rect', { x, y, width: 34, height: 62, rx: 4, fill: this.choix(['#bfe0c8', '#f5d38a', '#bfe0e8']), stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        const niveau = this.entre(0.3, 0.95)
+        this.el('rect', { x: x + 6, y: y + 8, width: 22, height: 46, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+        this.el('rect', { x: x + 6, y: y + 8 + 46 * (1 - niveau), width: 22, height: 46 * niveau, fill: 'url(#hachures)', stroke: 'none' }, g)
+        this.texte(x + 10, y + 76, ['+', '±', '−'][k], 9, g, { 'font-weight': 'bold' })
+      }
+    }
+    // --- Bloc 3 · Moteur : leviers, soupape (l'aiguille de PRESSION sert d'indice au bornier), injecteurs. ---
+    {
+      const [m, g] = c('leviers')
+      for (let k = 0; k < 5; k++) {
+        const x = m.x + 26 + k * 40, y = m.y + 20
+        this.el('rect', { x: x - 12, y: y + 72, width: 24, height: 12, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+        const haut = this.entre(0, 40)
+        this.el('rect', { x: x - 3, y: y + 8 + haut, width: 6, height: 66 - haut, rx: 2, fill: ENCRE }, g)
+        this.el('circle', { cx: x, cy: y + 8 + haut, r: 9, fill: ['#e04b37', '#bfe0e8', '#f2b53a', '#8fcf98', '#faf2dc'][k], stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        this.texte(x - 4, y + 98, ['I', 'II', 'III', 'IV', 'V'][k], 7, g)
+      }
+    }
+    {
+      const [m, g] = c('soupape')
+      this.aiguillePression = this.cadran(m.x + 44, m.y + 54, 30, g, 0, true)
+      this.texte(m.x + 22, m.y + 98, 'PRESSION', 7, g, { 'font-weight': 'bold' })
+      this.cadran(m.x + 108, m.y + 40, 16, g); this.texte(m.x + 96, m.y + 66, 'TEMP.', 6, g)
+      this.el('rect', { x: m.x + 92, y: m.y + 80, width: 34, height: 30, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+      this.texte(m.x + 100, m.y + 102, this.choix(['♃', '♄', '☿', '♀']), 20, g)
+    }
+    {
+      const [m, g] = c('injecteurs')
+      for (let k = 0; k < 6; k++) {
+        const x = m.x + 34 + k * 58, y = m.y + 24
+        this.voyant(x, y, this.choix(['#8fcf98', '#f2b53a', '#c9b88a']), g, 4)
+        this.el('path', { d: `M${x - 14} ${y + 14} h28 l-6 30 h-16z`, fill: this.choix(PASTELS), stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        this.el('path', { d: `M${x - 5} ${y + 44} l-3 14 h16 l-3 -14`, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+        this.texte(x - 6, y + 74, `J${k + 1}`, 7, g)
+      }
+    }
+    // --- Bloc 4 · Navigation : constellation, gyroscope, calculateur. ---
+    {
+      const [m, g] = c('constellation')
+      const cx = m.x + 70, cy = m.y + 78
+      this.el('circle', { cx, cy, r: 54, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 2 }, g)
+      this.el('circle', { cx, cy, r: 34, fill: 'none', stroke: '#3c5a3e', 'stroke-width': 1 }, g)
+      this.el('path', { d: `M${cx} ${cy - 54} v108 M${cx - 54} ${cy} h108`, stroke: '#3c5a3e', 'stroke-width': 1 }, g)
+      const etoiles = Array.from({ length: 6 }, () => [this.entre(-34, 34), this.entre(-34, 34)])
+      this.el('path', { d: 'M' + etoiles.map(([a, b]) => `${cx + a} ${cy + b}`).join(' L') + 'z', fill: 'none', stroke: '#b9f08c', 'stroke-width': 0.8, opacity: 0.6 }, g)
+      for (const [a, b] of etoiles) this.el('circle', { cx: cx + a, cy: cy + b, r: 2.4, fill: '#b9f08c' }, g)
+      this.cadran(m.x + 168, m.y + 46, 16, g); this.cadran(m.x + 168, m.y + 106, 16, g)
+    }
+    {
+      const [m, g] = c('gyroscope')
+      const cx = m.x + 69, cy = m.y + 76
+      for (const [rx, ry, a, couleur] of [[52, 52, 0, '#d9a43a'], [48, 18, 30, '#3f63c4'], [18, 46, -20, '#e04b37']] as [number, number, number, string][]) {
+        this.el('ellipse', { cx, cy, rx, ry, fill: 'none', stroke: ENCRE, 'stroke-width': 5, transform: `rotate(${a} ${cx} ${cy})` }, g)
+        this.el('ellipse', { cx, cy, rx, ry, fill: 'none', stroke: couleur, 'stroke-width': 3, transform: `rotate(${a} ${cx} ${cy})` }, g)
+      }
+      this.el('circle', { cx, cy, r: 9, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    }
+    {
+      const [m, g] = c('calculateur')
+      this.ecran(m.x + 14, m.y + 18, 110, 34, ['ΔV 0412', 'T−00:42'], g, 10)
+      ;['☉', '☾', '♄', '♂', '♀', '☿', '♃', '♁'].forEach((s, k) => {
+        const x = m.x + 150 + (k % 4) * 52, y = m.y + 30 + Math.floor(k / 4) * 34
+        this.el('rect', { x: x - 14, y: y - 13, width: 28, height: 26, rx: 4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+        this.texte(x - 7, y + 6, s, 15, g)
+      })
+      for (let k = 0; k < 6; k++) this.interrupteur(m.x + 22 + k * 17, m.y + 70, g)
+    }
+    // --- Bloc 5 · Coque : vannes, brèche, sas. ---
+    {
+      const [m, g] = c('vannes')
+      ;['#d9694f', '#3f63c4', '#8fcf98'].forEach((couleur, k) => {
+        const x = m.x + 40 + k * 66, y = m.y + 52
+        this.el('circle', { cx: x, cy: y, r: 22, fill: 'none', stroke: ENCRE, 'stroke-width': 7 }, g)
+        this.el('circle', { cx: x, cy: y, r: 22, fill: 'none', stroke: couleur, 'stroke-width': 4.5 }, g)
+        this.el('path', { d: `M${x} ${y - 22} v44 M${x - 22} ${y} h44`, stroke: ENCRE, 'stroke-width': 2.5 }, g)
+        this.el('circle', { cx: x, cy: y, r: 5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+        this.texte(x - 3, y + 40, 'ABC'[k], 8, g, { 'font-weight': 'bold' })
+      })
+    }
+    {
+      const [m, g] = c('breche')
+      this.cadran(m.x + 40, m.y + 50, 26, g); this.texte(m.x + 30, m.y + 90, 'BAR', 7, g)
+      this.el('rect', { x: m.x + 78, y: m.y + 20, width: 48, height: 80, rx: 3, fill: '#c9c2b0', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+      this.el('path', { d: `M${m.x + 84} ${m.y + 30} l10 14 l-6 10 l14 12 l-4 12 l12 14`, fill: 'none', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+      for (let k = 0; k < 4; k++) this.rivet(m.x + 84 + (k % 2) * 36, m.y + 26 + Math.floor(k / 2) * 68, g)
+    }
+    {
+      const [m, g] = c('sas')
+      this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 36, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 2 }, g)
+      this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 26, fill: '#bfe0e8', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; this.rivet(m.x + 56 + 31 * Math.cos(a), m.y + 52 + 31 * Math.sin(a), g) }
+      for (let k = 0; k < 8; k++) this.interrupteur(m.x + 120 + k * 26, m.y + 40, g)
+      this.ecran(m.x + 120, m.y + 60, 120, 26, ['SAS FERMÉ', 'P 1.01'], g, 8)
+      this.voyant(m.x + 270, m.y + 72, '#8fcf98', g, 6); this.voyant(m.x + 300, m.y + 72, '#c9b88a', g, 6); this.voyant(m.x + 330, m.y + 72, '#c9b88a', g, 6)
+    }
+
+    // --- Les modules raccordés : ce qui change à chaque geste est redessiné par afficher(). ---
+    {
+      // Télégraphe : décor (grille du haut-parleur), le reste change.
+      const [m, g] = c('telegraphe')
+      for (let k = 0; k < 6; k++) this.el('line', { x1: m.x + 14, y1: m.y + 76 + k * 5, x2: m.x + 58, y2: m.y + 76 + k * 5, stroke: ENCRE, 'stroke-width': 1.6 }, g)
+      this.groupes.set('telegraphe', this.g(g))
+    }
+    for (const a of ['antenne', 'chiffreur', 'bornier'] as const) this.groupes.set(a, this.g(c(a)[1]))
     // Zones de toucher des modules, et le cadre de sélection.
-    for (const [nom, m] of this.zones) {
+    for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
       z.addEventListener('click', () => this.toucher(nom))
     }
@@ -306,31 +488,119 @@ export class Panneau {
   }
 
   /** Entoure le module choisi (null : aucun). */
-  choisir(nom: NomModule | null): void {
+  choisir(nom: NomAppareil | null): void {
     if (!nom) { this.selection.setAttribute('width', '0'); return }
     const m = CADRES[nom]
     for (const [k, v] of Object.entries({ x: m.x - 5, y: m.y - 13, width: m.w + 10, height: m.h + 18 })) this.selection.setAttribute(k, String(v))
   }
 
-  /** Met le panneau à jour : voyants des modules en panne, module Énergie, aiguille de pression du Moteur. */
-  afficher(pannes: NomModule[], energie: EtatEnergie): void {
-    const cle = JSON.stringify([pannes, energie])
-    if (cle === this.dernier) return
-    this.dernier = cle
-    for (const [nom, v] of this.voyants) {
-      const panne = pannes.includes(nom)
-      v.setAttribute('fill', panne ? '#e04b37' : '#8fcf98')
-      v.classList.toggle('clignote', panne)
-    }
-    // Aiguille de pression : dans le rouge ou non (indice d'un tour de réparation de l'Énergie).
-    const mo = CADRES.moteur, a = energie.tour?.pressionRouge ? 1.75 : -0.9
-    this.aiguillePression.setAttribute('x2', String(mo.x + 40 + 18 * Math.sin(a)))
-    this.aiguillePression.setAttribute('y2', String(mo.y + 48 - 18 * Math.cos(a)))
-    this.dessinerEnergie(energie)
+  /** Redessine une partie si ce qu'elle montre a changé. */
+  private changer(cle: string, valeur: unknown, dessiner: () => void): void {
+    const v = JSON.stringify(valeur)
+    if (this.derniers.get(cle) === v) return
+    this.derniers.set(cle, v)
+    dessiner()
   }
 
-  private dessinerEnergie(e: EtatEnergie): void {
-    const m = CADRES.energie, g = this.gEnergie
+  /** Met le panneau à jour : voyants des blocs et des modules, modules raccordés, aiguille de pression. */
+  afficher(e: EtatPanneau): void {
+    this.changer('voyants', [e.pannes, e.defauts], () => {
+      for (const [nom, v] of this.voyantsBlocs) {
+        const panne = e.pannes.includes(nom)
+        v.setAttribute('fill', panne ? '#e04b37' : '#8fcf98')
+        v.classList.toggle('clignote', panne)
+      }
+      for (const [nom, v] of this.voyantsModules) {
+        const defaut = e.defauts.includes(nom)
+        v.setAttribute('fill', defaut ? '#e04b37' : '#8fcf98')
+        v.classList.toggle('clignote', defaut)
+      }
+    })
+    this.changer('pression', e.energie.tour?.pressionRouge ?? false, () => {
+      // Aiguille de pression : dans le rouge ou non (indice d'un tour de réparation du bornier).
+      const m = CADRES.soupape, a = e.energie.tour?.pressionRouge ? 1.75 : -0.9
+      this.aiguillePression.setAttribute('x2', String(m.x + 44 + 22 * Math.sin(a)))
+      this.aiguillePression.setAttribute('y2', String(m.y + 54 - 22 * Math.cos(a)))
+    })
+    this.changer('bornier', e.energie, () => this.dessinerBornier(e.energie))
+    this.changer('telegraphe', e.telegraphe, () => this.dessinerTelegraphe(e.telegraphe))
+    this.changer('antenne', e.antenne, () => this.dessinerAntenne(e.antenne))
+    this.changer('chiffreur', e.chiffreur, () => this.dessinerChiffreur(e.chiffreur))
+  }
+
+  private dessinerTelegraphe(e: EtatTelegraphe): void {
+    const m = CADRES.telegraphe, g = this.groupes.get('telegraphe')!
+    g.innerHTML = ''
+    // La lampe : elle clignote le mot en morse tant que le télégraphe est en défaut.
+    const lx = m.x + 36, ly = m.y + 42
+    this.el('circle', { cx: lx + 2, cy: ly + 2, r: 19, fill: OMBRE, opacity: 0.45 }, g)
+    this.el('circle', { cx: lx, cy: ly, r: 19, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+    const lampe = this.el('circle', { cx: lx, cy: ly, r: 13, fill: e.morse ? '#5a4e3a' : '#8fcf98', stroke: ENCRE, 'stroke-width': 1 }, g)
+    if (e.morse && !e.bloque) this.el('animate', attributsMorse(e.morse, '#fff3a8', '#5a4e3a'), lampe)
+    this.el('path', { d: `M${lx - 6} ${ly - 6} q3 -4 8 -3`, fill: 'none', stroke: '#fffaf0', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.8 }, g)
+    // L'écran des fréquences.
+    const ecran = e.bloque ? ['BLOQUÉ', `${e.bloque} s`] : e.morse ? [e.frequence, 'MHz'] : ['LIAISON', 'OK']
+    this.ecran(m.x + 70, m.y + 18, 122, 40, ecran, g, 14)
+    // Le cadran des fréquences (sa flèche suit le cran) et le manipulateur.
+    const cx = m.x + 92, cy = m.y + 104, a = (-135 + (270 * e.cran) / Math.max(1, e.crans - 1)) * Math.PI / 180
+    this.el('circle', { cx: cx + 1.5, cy: cy + 1.5, r: 26, fill: OMBRE, opacity: 0.4 }, g)
+    this.el('circle', { cx, cy, r: 26, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    for (let k = 0; k < e.crans; k++) {
+      const b = (-135 + (270 * k) / (e.crans - 1)) * Math.PI / 180
+      this.el('line', { x1: cx + 20 * Math.sin(b), y1: cy - 20 * Math.cos(b), x2: cx + 25 * Math.sin(b), y2: cy - 25 * Math.cos(b), stroke: ENCRE, 'stroke-width': 0.9 }, g)
+    }
+    this.el('circle', { cx, cy, r: 14, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+    this.el('line', { x1: cx, y1: cy, x2: cx + 19 * Math.sin(a), y2: cy - 19 * Math.cos(a), stroke: '#e04b37', 'stroke-width': 3, 'stroke-linecap': 'round' }, g)
+    this.texte(cx - 9, cy + 38, 'FRÉQ.', 6, g)
+    const kx = m.x + 132
+    this.el('rect', { x: kx, y: m.y + 118, width: 62, height: 14, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+    this.el('path', { d: `M${kx + 8} ${m.y + 116} L${kx + 52} ${m.y + 104}`, stroke: '#d9a43a', 'stroke-width': 5, 'stroke-linecap': 'round' }, g)
+    this.el('path', { d: `M${kx + 8} ${m.y + 116} L${kx + 52} ${m.y + 104}`, stroke: ENCRE, 'stroke-width': 1, 'stroke-linecap': 'round' }, g)
+    this.el('circle', { cx: kx + 52, cy: m.y + 102, r: 7, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+    this.texte(kx + 6, m.y + 80, 'ÉMETTRE', 7, g, { 'font-weight': 'bold' })
+  }
+
+  private dessinerAntenne(e: EtatAntenne): void {
+    const m = CADRES.antenne, g = this.groupes.get('antenne')!
+    g.innerHTML = ''
+    const cx = m.x + 74, cy = m.y + 84, r = 46
+    this.couronne(cx, cy, r, g)
+    // L'antenne parabolique, tournée de son angle.
+    const ga = this.g(g, { transform: `rotate(${e.angle} ${cx} ${cy})` })
+    this.el('line', { x1: cx, y1: cy, x2: cx, y2: cy - 26, stroke: ENCRE, 'stroke-width': 3 }, ga)
+    this.el('path', { d: `M${cx - 18} ${cy - 22} Q${cx} ${cy - 36} ${cx + 18} ${cy - 22} Q${cx} ${cy - 28} ${cx - 18} ${cy - 22}z`, fill: '#bfe0e8', stroke: ENCRE, 'stroke-width': 1.6 }, ga)
+    this.el('line', { x1: cx, y1: cy - 26, x2: cx, y2: cy - 40, stroke: ENCRE, 'stroke-width': 1.2 }, ga)
+    this.el('circle', { cx, cy: cy - 41, r: 2.6, fill: '#e04b37', stroke: ENCRE, 'stroke-width': 0.8 }, ga)
+    this.el('circle', { cx, cy, r: 6, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+    // La plaque de la station et l'écran de la bande.
+    this.el('rect', { x: m.x + 8, y: m.y + 14, width: 32, height: 28, rx: 4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    this.texte(m.x + 24, m.y + 35, e.symbole ?? '—', 18, g, { 'text-anchor': 'middle', style: 'font-family: Georgia, serif' })
+    const ecran = e.bloque ? ['BLOQ.', `${e.bloque}s`] : e.bande ? ['BANDE', e.bande] : ['LIAIS.', 'OK']
+    this.ecran(m.x + 100, m.y + 14, 42, 30, ecran, g, 9)
+    if (e.symbole) this.texte(m.x + 112, m.y + 144, `${e.numero + 1}/${e.tours}`, 7, g, { 'font-weight': 'bold' })
+    this.texte(m.x + 8, m.y + 144, `${e.angle}°`, 7, g, { 'font-weight': 'bold' })
+  }
+
+  private dessinerChiffreur(e: EtatChiffreur): void {
+    const m = CADRES.chiffreur, g = this.groupes.get('chiffreur')!
+    g.innerHTML = ''
+    const touches = e.touches ?? ['·', '·', '·', '·']
+    touches.forEach((s, k) => {
+      const x = m.x + 18 + k * 68, y = m.y + 38, enfoncee = e.enfoncees.includes(k)
+      this.voyant(x + 30, m.y + 22, enfoncee ? '#8fcf98' : '#7a6a4a', g, 4)
+      this.el('rect', { x: x + 4, y: y + 4, width: 60, height: 60, rx: 8, fill: OMBRE, opacity: enfoncee ? 0 : 0.5 }, g)
+      const d = enfoncee ? 3 : 0
+      this.el('rect', { x: x + d, y: y + d, width: 60, height: 60, rx: 8, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 2 }, g)
+      this.el('rect', { x: x + 5 + d, y: y + 5 + d, width: 50, height: 50, rx: 5, fill: 'none', stroke: ENCRE, 'stroke-width': 0.6 }, g)
+      this.texte(x + 30 + d, y + 42 + d, s, 30, g, { 'text-anchor': 'middle', style: 'font-family: Georgia, serif' })
+    })
+    const ecran = e.bloque ? ['BLOQUÉ', `${e.bloque} s`] : e.touches ? ['CHIFFRE', `${e.enfoncees.length}/4`] : ['CHIFFRE', 'OK']
+    this.ecran(m.x + 294, m.y + 38, 58, 34, ecran, g, 9)
+    this.cadran(m.x + 322, m.y + 92, 12, g)
+  }
+
+  private dessinerBornier(e: EtatEnergie): void {
+    const m = CADRES.bornier, g = this.groupes.get('bornier')!
     g.innerHTML = ''
     const tour = e.tour
     const ecranTexte = !tour ? ['DIAG', 'BUS OK'] : e.bloque > 0 ? ['PROTECT.', `${e.bloque} s`] : [`DIAG ${e.numero + 1}/${e.tours}`, tour.diagnostic.code]
@@ -341,7 +611,7 @@ export class Panneau {
       this.voyant(m.x + 118 + k * 18, m.y + 36, on ? '#f2b53a' : '#7a6a4a', g, 4)
       this.texte(m.x + 114 + k * 18, m.y + 50, `V${k + 1}`, 6, g)
     })
-    // Le bornier et ses câbles (de haut en bas). Toucher un câble le coupe.
+    // Le bornier et ses câbles (de haut en bas).
     const bx = m.x + 14, by = m.y + 62, H = 128
     this.el('rect', { x: bx, y: by, width: 178, height: H, rx: 6, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1.6 }, g)
     const cables = tour ? tour.cables : [{ couleur: 'rouge', circuit: 'α', chiffre: 1 }, { couleur: 'bleu', circuit: 'β', chiffre: 4 }, { couleur: 'jaune', circuit: 'γ', chiffre: 6 }, { couleur: 'blanc', circuit: 'δ', chiffre: 8 }] as TourEnergie['cables']
@@ -371,19 +641,19 @@ export class Panneau {
     this.cadran(m.x + 180, m.y + 212, 14, g)
   }
 
-  /** Une étincelle sur le module Énergie (erreur). */
-  etincelle(): void {
-    const m = CADRES.energie
+  /** Une étincelle sur un module (erreur). */
+  etincelle(a: NomAppareil): void {
+    const m = CADRES[a]
     const g = this.g(this.svg, { class: 'etincelle' })
     for (let k = 0; k < 10; k++) {
-      const a = (k / 10) * Math.PI * 2, x = m.x + m.w / 2, y = m.y + 126
-      this.el('line', { x1: x + 8 * Math.cos(a), y1: y + 8 * Math.sin(a), x2: x + 34 * Math.cos(a), y2: y + 34 * Math.sin(a), stroke: k % 2 ? '#f2b53a' : '#fff3a8', 'stroke-width': 3, 'stroke-linecap': 'round' }, g)
+      const an = (k / 10) * Math.PI * 2, x = m.x + m.w / 2, y = m.y + m.h / 2
+      this.el('line', { x1: x + 8 * Math.cos(an), y1: y + 8 * Math.sin(an), x2: x + 34 * Math.cos(an), y2: y + 34 * Math.sin(an), stroke: k % 2 ? '#f2b53a' : '#fff3a8', 'stroke-width': 3, 'stroke-linecap': 'round' }, g)
     }
     setTimeout(() => g.remove(), 700)
   }
 
-  /** Position verticale (fraction de la hauteur) du module Énergie, pour y faire défiler le volet. */
-  static hauteurEnergie(): number {
-    return CADRES.energie.y / HAUTEUR_PANNEAU
+  /** Position verticale (fraction de la hauteur) du haut d'un module, pour y faire défiler le volet. */
+  static hauteur(a: NomAppareil): number {
+    return CADRES[a].y / HAUTEUR_PANNEAU
   }
 }
