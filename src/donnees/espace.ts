@@ -131,16 +131,22 @@ export const ALIENS: readonly ObjetEnOrbite[] = MONDE.aliens
  * Les stations des autres systèmes (la Terre a les siennes : l'ISS, Tiangong) : on y charge les cargaisons, on y
  * livre, on les dépanne. Toujours sur la carte.
  */
-export const STATIONS_SYSTEMES: readonly ObjetEnOrbite[] = [
-  o('Relais Hermès', 'Mercure', 6_000, 0.1), o('Forge Caloris', 'Mercure', 11_000, 0.6),
-  o('Station Aphrodite', 'Vénus', 14_000, 0.3), o('Aérostat Ishtar', 'Vénus', 32_000, 0.8),
-  o('Station Arès', 'Mars', 15_000, 0.2), o('Dock Olympus', 'Mars', 26_000, 0.7),
-  o('Station Zeus', 'Jupiter', 300_000, 0.15), o('Raffinerie Amalthée', 'Jupiter', 1_300_000, 0.65),
-  o('Station Cronos', 'Saturne', 200_000, 0.4), o('Dock des Anneaux', 'Saturne', 650_000, 0.9),
-  o('Station Herschel', 'Uranus', 110_000, 0.25), o('Relais Miranda', 'Uranus', 320_000, 0.75),
-  o('Station Le Verrier', 'Neptune', 90_000, 0.5), o('Phare Galle', 'Neptune', 260_000, 0.05),
-  o('Station Tombaugh', 'Pluton', 9_000, 0.35), o('Avant-poste Kuiper', 'Pluton', 30_000, 0.85),
-]
+export const STATIONS_SYSTEMES: readonly ObjetEnOrbite[] = (() => {
+  // 5 stations par système (demande d'Adrien du 18/10/2026 : plus de variété), chacune sur sa propre orbite (rayon en
+  // rayons de la planète : elles tournent, plus vite près de la planète, plus lentement loin).
+  const noms: Record<string, [string, number][]> = {
+    Mercure: [['Relais Hermès', 2.5], ['Forge Caloris', 4.5], ['Observatoire Messenger', 7], ['Dock Mariner', 11], ['Abri Solaire', 18]],
+    Vénus: [['Station Aphrodite', 2.3], ['Aérostat Ishtar', 4], ['Aérostat Lakshmi', 6.5], ['Dock Venera', 10], ['Relais Magellan', 16]],
+    Mars: [['Station Arès', 3], ['Dock Olympus', 5], ['Base Valles', 8], ['Relais Curiosity', 12], ['Station Hellas', 20]],
+    Jupiter: [['Station Zeus', 3.5], ['Raffinerie Amalthée', 6], ['Dock Galilée', 12], ['Station Héra', 20], ['Relais Juno', 35]],
+    Saturne: [['Station Cronos', 3.2], ['Dock des Anneaux', 5], ['Station Huygens', 10], ['Raffinerie Pan', 18], ['Relais Cassini', 30]],
+    Uranus: [['Station Herschel', 3], ['Relais Miranda', 6], ['Dock Voyager', 11], ['Station Puck', 18], ['Phare Cordélia', 28]],
+    Neptune: [['Station Le Verrier', 3], ['Phare Galle', 7], ['Dock Adams', 13], ['Station Néréide', 22], ['Relais Protée', 35]],
+    Pluton: [['Station Tombaugh', 4], ['Avant-poste Kuiper', 8], ['Dock Charon', 14], ['Relais New Horizons', 24], ['Station Styx', 40]],
+  }
+  const x = hasardFixe(1930)
+  return Object.entries(noms).flatMap(([parent, liste]) => liste.map(([nom, k]) => o(nom, parent, k * RAYON[parent], x(), 0.2 * (x() - 0.5))))
+})()
 
 /** Chance qu'un chasseur repéré tire un missile, par heure, selon sa région (rare près de la Terre). */
 export function tirsParHeure(o: ObjetEnOrbite): number {

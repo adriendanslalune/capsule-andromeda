@@ -156,9 +156,10 @@ missiles et épaves sur la carte.
   - Missions attachées aux lieux (décisions d'Adrien du 18/10/2026) — **faites, en attente de validation** :
     20 tableaux (9 planètes × 6 missions, 11 grandes lunes × 4 ; `src/donnees/tableaux.ts`, `src/moteur/tableaux.ts`) ;
     chaque mission se passe dans le système de son lieu (épaves du système ; livraisons entre stations et lunes ;
-    dépannages de stations ; chasses aux chasseurs du système) ; 16 stations dans les autres systèmes (Relais Hermès,
-    Station Arès, Station Zeus…). Volet Missions : rangée des lieux (celui de la capsule marqué « ici », choisi
-    d'office) + filtre par Maison. Prix fixés à la création selon la zone (PROPOSITION à valider : Terre ×1, Lune ×2,
+    dépannages de stations ; chasses aux chasseurs du système) ; 40 stations dans les autres systèmes, 5 par système
+    (Relais Hermès, Station Arès, Station Zeus…), toutes en orbite autour de leur planète (elles avancent, plus vite
+    quand elles sont basses ; test dans `tests/espace.test.ts`) — plus de cibles, moins de missions répétées. Volet Missions : rangée des lieux (celui de la capsule marqué « ici », choisi
+    d'office) + filtre par Maison. Prix fixés à la création selon la zone (validés par Adrien le 18/10/2026, à ajuster plus tard : Terre ×1, Lune ×2,
     Vénus ×4, Mars ×4, Mercure ×8, Jupiter ×12, Saturne ×20, Uranus ×30, Neptune ×45, Pluton ×60).
     Mercenaires : missions de chasse (« Abattre le Chasseur Ω-12 ») ; le chasseur visé apparaît sur la carte ; une fois
     à côté, COMBAT ; gagné, il disparaît et un renfort reprend sa place ailleurs au bout de 2 h. Le radar ne sert plus
@@ -168,6 +169,11 @@ missiles et épaves sur la carte.
     palpite) ; toucher la ligne l'intercepte (3 intercepteurs, un nouveau toutes les 30 min). Impact : le Moteur tombe
     en panne, le trajet en cours est ralenti de moitié jusqu'à réparation (puis repart à pleine vitesse) ; Coque en
     panne : un bloc de plus. Pas de tirs comptés pendant que l'application est fermée.
+  - Ce qui fera voyager les joueurs : la campagne (décision d'Adrien du 18/10/2026).
+  - Monolithes (idée d'Adrien du 18/10/2026, à concevoir avant de coder) : 1000 monolithes cachés dans tout le système
+    solaire (comme les Korogu de Zelda BOTW) ; une radio envoie un PING, on attend l'écho (vitesse de la lumière, temps
+    réel), on se déplace et on recommence 1 ou 2 fois : la triangulation donne un point où aller le prendre. La cale
+    compte les monolithes trouvés. À quoi ils servent : à définir.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

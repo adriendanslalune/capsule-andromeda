@@ -24,7 +24,7 @@ export const TABLEAUX: readonly Tableau[] = [
 ]
 
 /**
- * PROPOSITION (à valider par Adrien) : le prix d'une mission dépend de sa zone, pas de là où est la capsule.
+ * Validé par Adrien le 18/10/2026 (à ajuster plus tard) : le prix d'une mission dépend de sa zone, pas de là où est la capsule.
  * Facteur de zone = l'éloignement depuis la Terre (le port d'attache de tous, où s'achètent les moteurs) et le danger
  * du lieu. Mercure et Vénus, plus près du Soleil, paient selon la difficulté d'y aller et leur enfer (chaleur,
  * tempêtes solaires) : Vénus comme Mars, Mercure comme la ceinture d'astéroïdes.

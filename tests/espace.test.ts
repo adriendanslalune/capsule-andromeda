@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, RECHARGE_INTERCEPTEUR, VOL_MISSILE, tirsParHeure } from '../src/donnees/espace'
+import { ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, RECHARGE_INTERCEPTEUR, VOL_MISSILE, tirsParHeure, STATIONS_SYSTEMES } from '../src/donnees/espace'
 import { corps, position, rayonInfluence } from '../src/moteur/corps'
 import {
   aliensReperes, avancerEspace, intercepterMissile, nouvelEspace, porteeRadar, surLaCarte, tirDeLHeure, vaincre,
@@ -118,5 +118,25 @@ describe('un missile qui frappe la capsule', () => {
     expect(restaurer(s)!.espace).toEqual(jeu.espace)
     s.espace.epavesVidees = { 'Kosmos 482': t0 }
     expect(restaurer(s)!.espace).toEqual(jeu.espace)
+  })
+})
+
+describe('les stations des systèmes (décision d’Adrien du 18/10/2026 : elles orbitent, pas sur place)', () => {
+  it('5 par système, chacune en orbite : même distance à sa planète, mais elle avance', () => {
+    for (const p of ['Mercure', 'Vénus', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton']) {
+      expect(STATIONS_SYSTEMES.filter((s) => s.parent === p).length, p).toBe(5)
+    }
+    expect(new Set(STATIONS_SYSTEMES.map((s) => s.nom)).size).toBe(STATIONS_SYSTEMES.length)
+    const t1 = t0 + 3_600_000
+    for (const s of STATIONS_SYSTEMES) {
+      const d0 = ecart(s.nom, s.parent, t0), d1 = ecart(s.nom, s.parent, t1)
+      expect(d0, s.nom).toBeGreaterThan(1.5 * corps(s.parent)!.rayon)
+      expect(d0, s.nom).toBeLessThan(rayonInfluence(s.parent))
+      expect(Math.abs(d1 - d0) / d0, s.nom).toBeLessThan(0.01)
+      // Elle a bougé autour de sa planète en une heure.
+      const a = position(s.nom, t0), pa = position(s.parent, t0), b = position(s.nom, t1), pb = position(s.parent, t1)
+      const deplacement = norme({ x: (b.x - pb.x) - (a.x - pa.x), y: (b.y - pb.y) - (a.y - pa.y), z: (b.z - pb.z) - (a.z - pa.z) })
+      expect(deplacement, s.nom).toBeGreaterThan(0.001 * d0)
+    }
   })
 })
