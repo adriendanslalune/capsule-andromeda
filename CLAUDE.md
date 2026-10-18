@@ -25,7 +25,7 @@ Pannes : système de modules à réparer avec un manuel. Les aliens tirent parfo
 Précisions d'Adrien du 18/10/2026 (étape 4) :
 - Modules de la capsule et effet de leur panne : Moteur (vitesse divisée par 2), Navigation (pas de nouveau trajet ; le trajet en cours continue), Communications (plus de nouvelles missions), Énergie (actions sur place deux fois plus longues), Coque (sans effet seule ; si elle est en panne, un impact touche deux modules).
 - Pannes : usure au hasard (rare, environ une tous les 10 trajets) et missiles aliens.
-- Réparation : un onglet Réparation dans le volet Capsule, un grand panneau plein de modules, cadrans, câbles, écrans, jauges, radios… C'est là qu'on répare, en suivant le Manuel (onglet Manuel), à la manière de « Keep Talking and Nobody Explodes », avec un côté vintage dans l'esprit de Jules Verne.
+- Réparation : un onglet Réparation dans le volet Capsule, un grand panneau plein de modules, cadrans, câbles, écrans, jauges, radios… C'est là qu'on répare, en suivant le Manuel, à la manière de « Keep Talking and Nobody Explodes », avec un côté vintage dans l'esprit de Jules Verne.
 - Missiles : très rares près de la Terre (utile pour le tutoriel) ; plus on s'éloigne du Soleil, plus les aliens sont nombreux et plus les missiles sont fréquents. Les aliens sont visibles sur la carte dès qu'on s'en approche à une certaine distance (petite alerte : « le radar a repéré un alien »).
 
 Manuel (précision d'Adrien du 18/10/2026) : à terme, le manuel devient un guide général d'utilisation du jeu, téléchargeable et vendu aussi au format papier. Ses tableaux doivent donc rester les mêmes pour tous les joueurs (rien de propre à une partie dans le texte), pour qu'un exemplaire imprimé serve à tout le monde.
@@ -47,7 +47,7 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 ## Interface
 La carte en plein écran est l'interface principale du joueur : c'est le cockpit. Tout le reste vient par-dessus et se referme pour revenir à la carte.
 - Bandeau d'alertes en haut, toujours visible : missile en approche avec décompte, panne en cours, ralentissement, trajet en cours avec heure d'arrivée.
-- Volets qui montent du bas, ouverts depuis une barre de 5 onglets accessible au pouce : Navigation, Capsule (crédits, moteur, modules), Missions, Manuel, et « Plus » (Armement, Marché, Messages, Profil).
+- Volets qui montent du bas, ouverts depuis une barre de 5 onglets accessible au pouce : Navigation, Capsule (crédits, moteur, modules, armement, réparation), Missions (avec un filtre par Maison), Marché, et « Plus » (Messages, Profil, Manuel, Réglages). Barre validée par Adrien le 18/10/2026 d'après la maquette `maquette-interface.html` ; le Manuel s'ouvre aussi depuis le panneau de réparation.
 - Les onglets pas encore développés sont visibles mais grisés.
 - Même direction artistique que la carte : les tons Moebius de la carte (décision d'Adrien du 17/10/2026, qui remplace « noir et blanc, une seule couleur d'alerte »).
 - Heures affichées à l'heure du lieu du joueur (fuseau du téléphone ; pour Adrien, Paris). Le moteur compte en temps universel (UTC).
@@ -61,7 +61,7 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 3. Missions, crédits, moteur — FAIT : volet Missions ; missions simples (nettoyer des débris, livrer une cargaison, dépanner un satellite) qui rapportent des crédits ; amélioration du moteur. Le tutoriel est déplacé à la fin (décision d'Adrien du 18/10/2026 : d'abord toutes les mécaniques).
 4. Pannes et manuel : volet Manuel, modules à réparer, missiles aliens avec décompte, ralentissement de 50 % jusqu'à réparation.
 5. Nettoyeurs : épaves sur la carte, mini-jeu de tri des matériaux.
-6. Combat : volet Armement, vue tactique, énergie, tir sur les modules, interception (d'abord un prototype à tester).
+6. Combat : Armement (dans le volet Capsule), vue tactique, énergie, tir sur les modules, interception (d'abord un prototype à tester).
 7. Commerçants : volet Marché, cours par formule du temps, décalés selon le délai lumière.
 8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités.
 9. Première zone à libérer : la Lune.

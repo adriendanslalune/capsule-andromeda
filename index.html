@@ -27,7 +27,7 @@
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
       <div class="page" data-contenu="navigation" id="cadran"></div>
       <div class="page" data-contenu="capsule" hidden>
-        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
+        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="armement" disabled>ARMEMENT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
         <div id="capsule"></div>
         <div id="reparation" hidden>
           <div class="barre-reparation"><span id="etat-reparation"></span><button type="button" data-choix="manuel">📖 MANUEL</button></div>
@@ -38,10 +38,9 @@
       <div class="page" data-contenu="manuel" id="manuel" hidden></div>
       <div class="page" data-contenu="missions" id="missions" hidden></div>
       <div class="page" data-contenu="plus" hidden>
-        <button type="button" class="rubrique" disabled>Armement</button>
-        <button type="button" class="rubrique" disabled>Marché</button>
         <button type="button" class="rubrique" disabled>Messages</button>
         <button type="button" class="rubrique" disabled>Profil</button>
+        <button type="button" class="rubrique" data-page="manuel">Manuel ›</button>
         <button type="button" class="rubrique" data-page="reglages">Réglages ›</button>
       </div>
       <div class="page" data-contenu="reglages" id="reglages" hidden>
@@ -74,7 +73,7 @@
       <button type="button" data-onglet="navigation">Navigation</button>
       <button type="button" data-onglet="capsule">Capsule</button>
       <button type="button" data-onglet="missions">Missions</button>
-      <button type="button" data-onglet="manuel">Manuel</button>
+      <button type="button" data-onglet="marche" disabled>Marché</button>
       <button type="button" data-onglet="plus">Plus</button>
     </nav>
     <div id="fenetre" class="fenetre" hidden></div>

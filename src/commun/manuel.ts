@@ -1,4 +1,4 @@
-// Le Manuel (onglet Manuel ; maquette validée par Adrien le 18/10/2026) : un manuel de maintenance façon NASA des
+// Le Manuel (dans « Plus », et depuis le panneau de réparation ; maquette validée par Adrien le 18/10/2026) : un manuel de maintenance façon NASA des
 // années 60, sur vieux papier crème. Il lit les mêmes données que le panneau (src/donnees/manuel-*.ts) : ce qui y est
 // écrit est exactement ce que le jeu attend. Une section par bloc du panneau ; pour l'instant : le sommaire, la
 // section 1 (Communications) et la section 2 (Énergie).

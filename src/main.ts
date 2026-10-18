@@ -567,7 +567,7 @@ function montrerReparation(bloc?: NomModule): void {
 }
 zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => cockpit.ouvrir('manuel'))
 const pageManuel = document.querySelector<HTMLDivElement>('#manuel')!
-pageManuel.innerHTML = htmlManuel()
+pageManuel.innerHTML = '<button type="button" class="retour" data-page="plus">‹ Plus</button>' + htmlManuel()
 pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => montrerReparation())
 
 /** Après une panne ou une réparation : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */

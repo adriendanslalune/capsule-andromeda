@@ -385,6 +385,8 @@ html, body {
   flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.06em;
   color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px;
 }
+.sous-onglets button:disabled { opacity: 0.35; }
+#manuel > .retour { margin: -8px -8px 0; width: calc(100% + 16px); }
 .sous-onglets button.actif { color: #1f1b18; background: var(--moutarde); }
 
 /* Panneau de réparation (dessiné en SVG) et sa barre. */

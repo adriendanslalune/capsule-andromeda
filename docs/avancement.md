@@ -70,6 +70,7 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
   filtre des missions par Maison ; le Manuel n'a pas besoin d'un onglet (il deviendra le guide du jeu,
   téléchargeable et vendu en papier). Proposition en test dans la maquette : barre Navigation · Capsule · Missions ·
   Marché · Plus ; l'Armement en sous-onglet de Capsule ; le Manuel dans Plus (et depuis le panneau de réparation).
+  **Barre validée par Adrien et mise dans le jeu** (Marché et Armement grisés en attendant leurs étapes).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 
