@@ -402,6 +402,23 @@ html, body {
 .panneau-svg .etincelle { animation: etinceler 0.7s ease-out forwards; transform-box: fill-box; transform-origin: center; }
 @keyframes etinceler { from { opacity: 1; transform: scale(0.6); } to { opacity: 0; transform: scale(1.4); } }
 
+/* Commandes du module Énergie : collées en bas du volet, toujours visibles. */
+.commandes {
+  position: sticky; bottom: 0; margin: 0 6px; padding: 6px 8px 8px;
+  background: #e9dfc4; border: 2.5px solid var(--encre); border-radius: 10px 10px 0 0; box-shadow: 0 -3px 0 rgba(43, 33, 56, 0.25);
+}
+.commandes[hidden] { display: none; }
+.titre-commandes { font-size: 10px; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 4px; }
+.grille-commandes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.commandes button {
+  min-height: 46px; padding: 2px; font: inherit; font-size: 10px; font-weight: bold; line-height: 1.2;
+  border: 2px solid var(--encre); border-radius: 7px; box-shadow: 2px 2px 0 var(--encre);
+}
+.commandes button b { display: block; font-size: 13px; }
+.commandes button:disabled { opacity: 0.35; box-shadow: none; }
+.commandes button:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+.commandes .isoler { width: 100%; margin-top: 6px; font-size: 14px; letter-spacing: 0.1em; color: #fff; background: #e04b37; }
+
 /* Le Manuel : maintenance façon NASA des années 60, vieux papier crème, machine à écrire. */
 #manuel { padding: 8px 8px 14px; }
 .vers-panneau { width: 100%; margin-bottom: 6px; }

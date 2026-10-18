@@ -1,9 +1,10 @@
 // Le panneau de réparation (volet Capsule › Réparation ; maquette validée par Adrien le 18/10/2026) : une grande tôle en
 // style Moebius, foisonnante — tuyaux, faisceaux de câbles, cadrans, petits écrans, voyants, étiquettes, notes collées —
 // dessinée avec un hasard propre à chaque capsule (son numéro de série). Au milieu du fouillis, les cinq modules.
-// Le module Énergie est jouable : écran DIAG, voyants de bus, bornier de câbles à couper, interrupteur ISOLER ; l'aiguille
-// de pression du module Moteur sert d'indice. Le panneau ne décide rien : il montre l'état que lui donne le moteur du
-// jeu et transmet les gestes.
+// Le module Énergie montre l'écran DIAG, les voyants de bus, le bornier de câbles et l'interrupteur ISOLER ; l'aiguille
+// de pression du module Moteur sert d'indice. Les gestes passent par des boutons sous le panneau (COUPER, ISOLER : demande
+// d'Adrien du 18/10/2026, viser un câble fin était trop difficile). Le panneau ne décide rien : il montre l'état que lui
+// donne le moteur du jeu.
 
 import type { NomModule } from '../donnees/modules'
 import type { CouleurCable } from '../donnees/manuel-energie'
@@ -40,11 +41,6 @@ export interface EtatEnergie {
   tours: number
 }
 
-export interface GestesPanneau {
-  couper(i: number): void
-  isoler(): void
-}
-
 export class Panneau {
   private svg: SVGSVGElement
   private serie = ''
@@ -54,7 +50,7 @@ export class Panneau {
   private voyants = new Map<NomModule, SVGCircleElement>()
   private dernier = ''
 
-  constructor(conteneur: HTMLElement, private gestes: GestesPanneau) {
+  constructor(conteneur: HTMLElement) {
     this.svg = document.createElementNS(NS, 'svg')
     this.svg.setAttribute('viewBox', `0 0 ${LARGEUR_PANNEAU} ${HAUTEUR_PANNEAU}`)
     this.svg.setAttribute('class', 'panneau-svg')
@@ -334,7 +330,7 @@ export class Panneau {
     cables.forEach((c, k) => {
       const y1 = by + pas * (k + 1), y2 = by + pas * (((k * 3 + 2) % n) + 1), couleur = TEINTES[c.couleur]
       const coupe = e.coupes.includes(k)
-      const gc = this.g(g, { class: tour ? 'commande' : '' })
+      const gc = this.g(g)
       const traits = coupe
         ? [`M${bx + 26} ${y1} C${bx + 55} ${y1} ${bx + 70} ${(y1 * 2 + y2) / 3} ${bx + 80} ${(y1 * 2 + y2) / 3 + 3}`, `M${bx + 106} ${(y1 + y2 * 2) / 3 - 3} C${bx + 120} ${y2} ${bx + 135} ${y2} ${bx + 160} ${y2}`]
         : [`M${bx + 26} ${y1} C${bx + 80} ${y1} ${bx + 100} ${y2} ${bx + 160} ${y2}`]
@@ -342,22 +338,16 @@ export class Panneau {
         this.el('path', { d, fill: 'none', stroke: ENCRE, 'stroke-width': 7.5, 'stroke-linecap': 'round' }, gc)
         this.el('path', { d, fill: 'none', stroke: couleur, 'stroke-width': 5, 'stroke-linecap': 'round' }, gc)
       }
-      // Zones de toucher : les deux bouts du câble (près de l'étiquette, près de la borne de droite). Au milieu, les câbles
-      // se croisent : on toucherait le voisin.
-      this.el('rect', { x: bx, y: y1 - pas / 2, width: 70, height: pas, fill: 'transparent' }, gc)
-      this.el('rect', { x: bx + 118, y: y2 - pas / 2, width: 60, height: pas, fill: 'transparent' }, gc)
-      if (tour && !coupe) gc.addEventListener('click', () => this.gestes.couper(k))
       this.el('rect', { x: bx + 2, y: y1 - 6, width: 22, height: 11, rx: 2, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
       this.texte(bx + 5, y1 + 2.5, `${c.circuit}${c.chiffre}`, 7, g, { 'font-weight': 'bold' })
       this.el('circle', { cx: bx + 26, cy: y1, r: 3.5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1 }, g)
       this.el('circle', { cx: bx + 160, cy: y2, r: 3.5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1 }, g)
     })
     // ISOLER.
-    const gi = this.g(g, { class: tour ? 'commande' : '' })
+    const gi = this.g(g)
     this.el('rect', { x: m.x + 12, y: m.y + 196, width: 76, height: 34, rx: 5, fill: '#e04b37', stroke: ENCRE, 'stroke-width': 1.6 }, gi)
     this.el('rect', { x: m.x + 18, y: m.y + 200, width: 64, height: 26, rx: 3, fill: 'url(#hachures)', stroke: ENCRE, 'stroke-width': 0.8 }, gi)
     this.texte(m.x + 27, m.y + 216, 'ISOLER', 9, gi, { 'font-weight': 'bold' })
-    if (tour) gi.addEventListener('click', () => this.gestes.isoler())
     this.cadran(m.x + 120, m.y + 212, 14, g); this.texte(m.x + 140, m.y + 216, 'AMP.', 6, g)
     this.cadran(m.x + 180, m.y + 212, 14, g)
   }

@@ -456,9 +456,33 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!
 const etatReparation = document.querySelector<HTMLSpanElement>('#etat-reparation')!
 let sousOnglet: 'etat' | 'reparation' = 'etat'
-const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!, {
-  couper: (i) => gesteReparation(jeu.couperCableEnergie(i, horloge())),
-  isoler: () => gesteReparation(jeu.basculerIsolerEnergie(horloge())),
+const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!)
+/**
+ * Les commandes du module Énergie, sous le panneau et toujours visibles (demande d'Adrien du 18/10/2026) : un bouton
+ * COUPER par câble, de la couleur du câble et avec son étiquette, et ISOLER.
+ */
+const commandesEnergie = document.querySelector<HTMLDivElement>('#commandes-energie')!
+const TEINTES_BOUTONS: Record<string, string> = {
+  rouge: '#e04b37', bleu: '#3f63c4', jaune: '#f2b53a', blanc: '#faf2dc', vert: '#5fb36a', noir: '#3a3340',
+}
+let dernieresCommandes = ''
+function afficherCommandes(e: EtatEnergie): void {
+  const html = !e.tour ? '' : '<div class="titre-commandes">MODULE 2 · ÉNERGIE</div><div class="grille-commandes">'
+    + e.tour.cables.map((c, k) => {
+      const coupe = e.coupes.includes(k)
+      const clair = c.couleur === 'blanc' || c.couleur === 'jaune'
+      return `<button type="button" data-cable="${k}"${coupe || e.bloque ? ' disabled' : ''} style="background:${TEINTES_BOUTONS[c.couleur]};color:${clair ? '#1f1b18' : '#fff'}">`
+        + `${coupe ? 'coupé' : '✂ COUPER'}<b>${c.circuit}${c.chiffre}</b></button>`
+    }).join('')
+    + `</div><button type="button" class="isoler" data-isoler${e.bloque ? ' disabled' : ''}>ISOLER</button>`
+  commandesEnergie.hidden = !e.tour
+  if (html !== dernieresCommandes) commandesEnergie.innerHTML = dernieresCommandes = html
+}
+commandesEnergie.addEventListener('click', (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('button')
+  if (!b || b.disabled) return
+  if (b.dataset.cable !== undefined) gesteReparation(jeu.couperCableEnergie(Number(b.dataset.cable), horloge()))
+  else if (b.dataset.isoler !== undefined) gesteReparation(jeu.basculerIsolerEnergie(horloge()))
 })
 /** Ce que le panneau doit montrer du module Énergie (le moteur du jeu le décide). */
 function etatEnergie(t: number): EtatEnergie {
@@ -472,6 +496,7 @@ function afficherReparation(): void {
   panneauReparation.construire(jeu.numeroSerie)
   const e = etatEnergie(t)
   panneauReparation.afficher(jeu.pannes, e)
+  afficherCommandes(e)
   const texte = !jeu.pannes.length ? 'Tous les modules sont en état.'
     : e.tour ? (e.bloque ? `Protection du bus : ${e.bloque} s` : `Énergie : tour ${e.numero + 1} sur ${e.tours}`)
       : `En panne : ${jeu.pannes.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}`
