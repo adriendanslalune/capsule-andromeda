@@ -26,7 +26,7 @@
     <div id="trajet" hidden><div id="trajet-texte"></div><button id="bouton-depart" type="button" hidden>DÉPART</button></div>
     <div id="volet" hidden>
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
-      <div class="page" data-contenu="navigation" id="cadran"></div>
+      <div class="page" data-contenu="navigation"><div id="radio"></div><div id="cadran"></div></div>
       <div class="page" data-contenu="capsule" hidden>
         <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="armement">ARMEMENT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
         <div id="capsule"></div>
@@ -58,6 +58,7 @@
         </div>
         <label><input type="checkbox" data-reglage="orbites" /> Orbites</label>
         <label><input type="checkbox" data-reglage="noms" /> Noms</label>
+        <label><input type="checkbox" data-reglage="cercles" /> Cercles des PING (monolithes)</label>
         <label><input type="checkbox" data-reglage="nuit" /> Mode nuit</label>
         <div class="groupe essais">Essais — accélérer le temps :
           <div class="choix">

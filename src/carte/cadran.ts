@@ -1,7 +1,8 @@
 // Le cadran de navigation (le volet Navigation du cockpit) : la liste des astres où l'on peut aller, avec leur
 // distance à la capsule.
 // Planètes dans l'ordre depuis le Soleil ; une planète qui a des lunes se déplie ; les engins à part ; en tête, ce que
-// une mission vise (chasseurs aliens, ou celui qui nous tire dessus) et, plus bas, les épaves visées par une mission.
+// une mission vise (chasseurs aliens, ou celui qui nous tire dessus) et, plus bas, les épaves visées par une mission
+// et les monolithes localisés à la radio.
 // Toucher une ligne choisit la destination (et la carte se place sur son système).
 
 import { CORPS, enfants, type Corps } from '../moteur/corps'
@@ -14,7 +15,7 @@ export class Cadran {
 
   /** reperes : les chasseurs repérés au radar et les épaves présentes (le jeu le dit). */
   constructor(private element: HTMLElement, private choisir: (nom: string) => void, private horloge: () => number,
-    private reperes: (t: number) => { aliens: string[]; epaves: string[] } = () => ({ aliens: [], epaves: [] })) {
+    private reperes: (t: number) => { aliens: string[]; epaves: string[]; monolithes?: string[] } = () => ({ aliens: [], epaves: [] })) {
     element.addEventListener('click', (e) => {
       const cible = (e.target as HTMLElement).closest<HTMLElement>('[data-nom], [data-deplier]')
       if (!cible) return
@@ -51,7 +52,7 @@ export class Cadran {
   private remplir(): void {
     const t = this.horloge()
     const parNom = new Map(CORPS.map((c) => [c.nom, c]))
-    const { aliens, epaves } = this.reperes(t)
+    const { aliens, epaves, monolithes = [] } = this.reperes(t)
     let html = '<div class="liste">'
     if (aliens.length) {
       html += '<h3>Chasseurs visés</h3>'
@@ -71,6 +72,11 @@ export class Cadran {
     if (epaves.length) {
       html += '<h3>Épaves</h3>'
       for (const nom of [...epaves].sort((a, b) => distanceDepuisCapsule(a, t) - distanceDepuisCapsule(b, t))) html += this.ligne(parNom.get(nom)!, t, false)
+    }
+    // Les monolithes localisés à la radio (pas encore ramassés).
+    if (monolithes.length) {
+      html += '<h3>Monolithes localisés</h3>'
+      for (const nom of monolithes) html += this.ligne(parNom.get(nom)!, t, false)
     }
     html += '<h3>Engins</h3>'
     for (const c of CORPS.filter((c) => c.type === 'satellite' || c.type === 'sonde')) html += this.ligne(c, t, false)

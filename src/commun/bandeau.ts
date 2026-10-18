@@ -22,6 +22,10 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
       detail: fiches.length === 1 ? `${fiches[0].effet} · à réparer (Capsule)` : 'à réparer (Capsule)',
     }
   }
+  if (l.genre === 'echo') {
+    const s = Math.ceil(l.reste / 1000)
+    return { titre: `PING ENVOYÉ · ÉCHO DANS ${s >= 3600 ? texteRestant(l.reste) : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`}`, detail: 'la lumière fait l\'aller-retour jusqu\'au monolithe le plus proche' }
+  }
   if (l.genre === 'trajet') {
     return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }
   }

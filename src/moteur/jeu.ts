@@ -11,6 +11,7 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { MessageEnvoye } from './messages'
+import { localise, monolitheNomme, nouveauxMonolithes, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { TABLEAUX } from '../donnees/tableaux'
@@ -70,6 +71,8 @@ export class Jeu {
   lus: Record<string, number> = {}
   /** L'espace autour : épaves vidées, chasseurs vaincus, missiles en vol, intercepteurs. */
   espace: EtatEspace = nouvelEspace()
+  /** Les monolithes : ceux qu'on a ramassés, les échos de la radio. */
+  monolithes: EtatMonolithes = nouveauxMonolithes()
   /** Le pseudo du joueur (Profil ; c'est son nom dans les Messages). */
   pseudo = 'Capitaine'
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
@@ -153,6 +156,25 @@ export class Jeu {
       if (!this.defauts[bloc]!.length) this.reparer(bloc)
     }
     return res
+  }
+
+  /** Envoie un PING depuis la place de la capsule (au plus un par heure) : l'écho attendu, ou null. */
+  pinger(t: number): Echo | null {
+    const r = this.mission.etatHeliocentrique(t).r
+    return pinger(this.monolithes, { x: r.x, y: r.y }, t)
+  }
+
+  /** Le monolithe (localisé, pas encore ramassé) à côté duquel est la capsule, ou null. */
+  monolitheIci(t: number): number | null {
+    if (this.mission.phase(t) !== 'orbite') return null
+    const m = monolitheNomme(this.mission.centre(t))
+    return m && localise(this.monolithes, m.numero, t) ? m.numero : null
+  }
+
+  /** Ramasse le monolithe à côté duquel est la capsule. */
+  ramasserMonolithe(t: number): number | null {
+    const n = this.monolitheIci(t)
+    return n !== null && ramasser(this.monolithes, n, t) ? n : null
   }
 
   /** La navigation marche-t-elle (sinon : impossible de calculer un trajet) ? */

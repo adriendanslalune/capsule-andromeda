@@ -1,0 +1,131 @@
+// La chasse aux monolithes (idée d'Adrien du 18/10/2026). La radio de la capsule envoie un PING ; le monolithe pas
+// encore trouvé le plus proche répond, quelle que soit la distance ; son écho revient au bout de l'aller-retour de la
+// lumière, en vrai temps, et donne sa distance : un cercle autour de la place d'où l'on a pingé. Deux cercles du même
+// monolithe se croisent en deux places possibles ; un troisième, pris d'ailleurs (pas sur la même ligne), tranche : le
+// monolithe est alors localisé, on peut y aller et le ramasser. Un PING par heure au plus.
+// Tout est compté dans le plan de l'écliptique (celui de la carte).
+
+import { ATTENTE_PING, MONOLITHES, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
+import { C_KM_S } from './navigation'
+
+export interface Point { x: number; y: number }
+
+/** Un écho : envoyé d'une place (centre), il revient avec la distance du monolithe (rayon, km). */
+export interface Echo { monolithe: number; centre: Point; rayon: number; envoye: number; retour: number }
+
+export interface EtatMonolithes {
+  /** Numéros des monolithes ramassés. */
+  trouves: number[]
+  /** Échos des monolithes pas encore ramassés (en route ou revenus). */
+  echos: Echo[]
+  /** Instant du dernier PING (0 : jamais). */
+  dernierPing: number
+}
+
+export function nouveauxMonolithes(): EtatMonolithes {
+  return { trouves: [], echos: [], dernierPing: 0 }
+}
+
+const PAR_NUMERO = new Map(MONOLITHES.map((m) => [m.numero, m]))
+const PAR_NOM = new Map(MONOLITHES.map((m) => [m.nom, m]))
+export const monolithe = (numero: number): Monolithe | undefined => PAR_NUMERO.get(numero)
+export const monolitheNomme = (nom: string): Monolithe | undefined => PAR_NOM.get(nom)
+
+const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
+
+/** Instant à partir duquel on peut pinger de nouveau (l'écho revenu, et une heure après le précédent). */
+export function prochainPing(e: EtatMonolithes): number {
+  const enRoute = e.echos.filter((x) => x.envoye === e.dernierPing).map((x) => x.retour)
+  return Math.max(e.dernierPing + ATTENTE_PING, ...enRoute)
+}
+
+export function peutPinger(e: EtatMonolithes, t: number): boolean {
+  return t >= prochainPing(e) && e.trouves.length < MONOLITHES.length
+}
+
+/** Envoie un PING depuis la place de la capsule ; renvoie l'écho attendu (ou null si on ne peut pas encore). */
+export function pinger(e: EtatMonolithes, capsule: Point, t: number): Echo | null {
+  if (!peutPinger(e, t)) return null
+  const trouves = new Set(e.trouves)
+  let meilleur: Monolithe | null = null, dMin = Infinity
+  for (const m of MONOLITHES) {
+    if (trouves.has(m.numero)) continue
+    const d = distance(m, capsule)
+    if (d < dMin) { dMin = d; meilleur = m }
+  }
+  if (!meilleur) return null
+  const echo = { monolithe: meilleur.numero, centre: { x: capsule.x, y: capsule.y }, rayon: dMin, envoye: t, retour: t + (2 * dMin / C_KM_S) * 1000 }
+  e.dernierPing = t
+  e.echos.push(echo)
+  return echo
+}
+
+/** L'écho en route (envoyé, pas encore revenu), s'il y en a un. */
+export function echoEnRoute(e: EtatMonolithes, t: number): Echo | null {
+  return e.echos.find((x) => x.retour > t) ?? null
+}
+
+/** Échos revenus à l'instant t. */
+export function echosRevenus(e: EtatMonolithes, t: number): Echo[] {
+  return e.echos.filter((x) => x.retour <= t)
+}
+
+/** Les deux points où se croisent deux cercles (un seul s'ils se touchent ; aucun s'ils ne se croisent pas). */
+export function croisement(a: Echo, b: Echo): Point[] {
+  const d = distance(a.centre, b.centre)
+  if (d === 0) return []
+  const l = (a.rayon ** 2 - b.rayon ** 2 + d * d) / (2 * d)
+  const h2 = a.rayon ** 2 - l * l
+  if (h2 < -1e-6 * a.rayon ** 2) return []
+  const h = Math.sqrt(Math.max(0, h2))
+  const ux = (b.centre.x - a.centre.x) / d, uy = (b.centre.y - a.centre.y) / d
+  const px = a.centre.x + l * ux, py = a.centre.y + l * uy
+  if (h === 0) return [{ x: px, y: py }]
+  return [{ x: px - h * uy, y: py + h * ux }, { x: px + h * uy, y: py - h * ux }]
+}
+
+/**
+ * Ce que les échos revenus disent d'un monolithe : ses places possibles (aucune avec un seul écho, deux avec deux
+ * échos, une seule quand il est localisé).
+ */
+export function placesPossibles(e: EtatMonolithes, numero: number, t: number): Point[] {
+  const echos = echosRevenus(e, t).filter((x) => x.monolithe === numero)
+  if (echos.length < 2) return []
+  // Pour chaque paire d'échos, leurs deux places possibles ; un autre écho écarte celle qui ne colle pas avec sa
+  // distance. Une paire qui tranche suffit ; sinon, les places de la paire prise de plus loin (le croisement le plus net).
+  let meilleures: Point[] = [], dMax = -1
+  for (let i = 0; i < echos.length; i++) {
+    for (let j = i + 1; j < echos.length; j++) {
+      const a = echos[i], b = echos[j]
+      let places = croisement(a, b)
+      // Deux places presque confondues : c'est la même.
+      if (places.length === 2 && distance(places[0], places[1]) < PRECISION_ECHO * a.rayon) places = [places[0]]
+      if (places.length === 2) {
+        const gardees = places.filter((p) => echos.every((c) => Math.abs(distance(p, c.centre) - c.rayon) < PRECISION_ECHO * c.rayon))
+        if (gardees.length === 1) places = gardees
+      }
+      if (places.length === 1) return places
+      const d = distance(a.centre, b.centre)
+      if (d > dMax) { dMax = d; meilleures = places }
+    }
+  }
+  return meilleures
+}
+
+/** Un monolithe est-il localisé (une seule place possible), et pas encore ramassé ? */
+export function localise(e: EtatMonolithes, numero: number, t: number): boolean {
+  return !e.trouves.includes(numero) && placesPossibles(e, numero, t).length === 1
+}
+
+/** Les monolithes dont on a des échos revenus (pas encore ramassés). */
+export function monolithesEcoutes(e: EtatMonolithes, t: number): number[] {
+  return [...new Set(echosRevenus(e, t).map((x) => x.monolithe))]
+}
+
+/** Ramasse un monolithe localisé (la capsule est à côté : le jeu le vérifie) ; ses échos s'effacent. */
+export function ramasser(e: EtatMonolithes, numero: number, t: number): boolean {
+  if (!localise(e, numero, t)) return false
+  e.trouves.push(numero)
+  e.echos = e.echos.filter((x) => x.monolithe !== numero)
+  return true
+}

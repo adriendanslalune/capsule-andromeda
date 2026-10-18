@@ -23,6 +23,9 @@ import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { echosRevenus, localise, monolitheNomme, monolithesEcoutes, placesPossibles } from './moteur/monolithes'
+import { NOMBRE_MONOLITHES } from './donnees/monolithes'
+import { htmlRadio } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
@@ -101,8 +104,16 @@ const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
-// La carte ne montre que les épaves présentes et les chasseurs repérés au radar.
-carte.surLaCarte = (nom, t) => surLaCarte(jeu.espace, nom, t, cibles())
+// La carte ne montre que les épaves et les chasseurs visés (ou qui tirent), et les monolithes localisés.
+carte.surLaCarte = (nom, t) => {
+  const m = monolitheNomme(nom)
+  return m ? localise(jeu.monolithes, m.numero, t) : surLaCarte(jeu.espace, nom, t, cibles())
+}
+/** Les monolithes localisés (pas encore ramassés), les plus proches d'abord. */
+function monolithesLocalises(t: number): string[] {
+  return monolithesEcoutes(jeu.monolithes, t).filter((n) => localise(jeu.monolithes, n, t)).map((n) => `Monolithe n° ${n}`)
+    .sort((a, b) => distanceDepuisCapsule(a, t) - distanceDepuisCapsule(b, t))
+}
 /** Le lieu (tableau de missions) où est la capsule. */
 function lieuIci(t: number): string {
   return tableauDeLaCapsule(mission.phase(t) === 'orbite' ? mission.centre(t) : null, t).lieu
@@ -140,6 +151,8 @@ redimensionner()
 const CLE_REGLAGES = 'andromeda-reperes-v8'
 const reglages = {
   orbites: true, noms: true,
+  /** Les cercles des échos des PING (monolithes) sur la carte. */
+  cercles: true,
   /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
   nuit: false,
   crochet: true, etiquette: true, fleche: true,
@@ -245,7 +258,7 @@ document.querySelector('#bouton-capsule')!.addEventListener('click', () => aller
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
-  if (page === 'navigation') cadran.afficher(selection)
+  if (page === 'navigation') { cadran.afficher(selection); afficherRadio(horloge()) }
   if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
@@ -253,7 +266,38 @@ const cockpit = new Cockpit((page) => {
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
-  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave') }))
+  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t) }))
+
+// La radio des monolithes (en tête du volet Navigation) : un PING, l'écho revient à la vitesse de la lumière.
+const elRadio = document.querySelector<HTMLDivElement>('#radio')!
+let radioAffichee = ''
+function afficherRadio(t: number): void {
+  const html = htmlRadio(jeu, t)
+  if (html !== radioAffichee) elRadio.innerHTML = radioAffichee = html
+}
+elRadio.addEventListener('click', (e) => {
+  if (!(e.target as HTMLElement).closest('[data-ping]')) return
+  const t = horloge()
+  const echo = jeu.pinger(t)
+  if (!echo) return
+  enregistrerPartie()
+  afficherRadio(t)
+  annoncer(`PING envoyé… écho attendu dans ${texteSecondes(echo.retour - t)}`)
+})
+/** Échos déjà annoncés (ceux revenus avant l'ouverture du jeu ne s'annoncent pas). */
+const echosAnnonces = new Set(echosRevenus(jeu.monolithes, horloge()).map((x) => x.envoye))
+function suivreEchos(t: number): void {
+  for (const x of echosRevenus(jeu.monolithes, t)) {
+    if (echosAnnonces.has(x.envoye)) continue
+    echosAnnonces.add(x.envoye)
+    const n = placesPossibles(jeu.monolithes, x.monolithe, t).length
+    annoncer(n === 1 ? `Monolithe n° ${x.monolithe} localisé ! Il est sur la carte (Navigation).`
+      : `Écho du monolithe n° ${x.monolithe} : à ${texteDistance(x.rayon)}${n === 2 ? ' · deux places possibles : re-pingue d\'ailleurs' : ' · déplace-toi et re-pingue'}`)
+    navigator.vibrate?.([80, 60, 80])
+    if (n === 1 && cockpit.pageOuverte === 'navigation') cadran.afficher(selection)
+    carteSale = true
+  }
+}
 // Toucher la carte referme le volet.
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
@@ -286,7 +330,7 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
-let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' = 'depart'
+let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
@@ -325,7 +369,7 @@ bandeau.addEventListener('click', (e) => {
     if (bloc) montrerReparation(bloc)
     else { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   } else if (ligne === 'contrat') cockpit.ouvrir('missions')
-  else if (ligne === 'trajet' || ligne === 'orbite') cockpit.ouvrir('navigation')
+  else if (ligne === 'trajet' || ligne === 'orbite' || ligne === 'echo') cockpit.ouvrir('navigation')
   else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
 })
 
@@ -338,7 +382,14 @@ function mettreAJourFiche(t: number): void {
   let texte = '', depart = false, libelle = 'DÉPART'
   actionFiche = 'depart'
   const etape = jeu.etapeActuelle(), fin = jeu.finAction()
-  if (selection && !dejaLa(t) && enRoute?.cible !== selection && !jeu.peutNaviguer() && !apercu) {
+  const monolithe = jeu.monolitheIci(t)
+  if (monolithe !== null && !apercu && (!selection || dejaLa(t))) {
+    // À côté d'un monolithe localisé : on le ramasse.
+    texte = `<b>MONOLITHE N° ${monolithe}</b><br>une dalle noire, immobile, qui ne tourne autour de rien`
+    depart = true
+    libelle = 'RAMASSER'
+    actionFiche = 'ramasser'
+  } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !jeu.peutNaviguer() && !apercu) {
     // Navigation en panne : impossible de calculer un trajet.
     texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>NAVIGATION EN PANNE : impossible de calculer un trajet`
   } else if (apercu) {
@@ -361,7 +412,8 @@ function mettreAJourFiche(t: number): void {
     else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
-    texte = `<b>${selection.toUpperCase()}</b>${corps(selection)?.type === 'epave' ? ' · épave (à vider en mission)' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    const genre = corps(selection)?.type
+    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
@@ -387,6 +439,15 @@ boutonDepart.addEventListener('click', () => {
   if (actionFiche === 'agir') { agirMission(); return }
   if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
   if (actionFiche === 'combat') { combattre(selection!); return }
+  if (actionFiche === 'ramasser') {
+    const n = jeu.ramasserMonolithe(t)
+    if (n === null) return
+    enregistrerPartie()
+    choisir(null)
+    annoncer(`Monolithe n° ${n} ramassé ! ${jeu.monolithes.trouves.length} / ${NOMBRE_MONOLITHES} dans la cale`)
+    navigator.vibrate?.([60, 40, 60, 40, 200])
+    return
+  }
   if (!jeu.peutNaviguer()) return
   if (!selection || dejaLa(t)) return
   if (!proposee) { proposee = true; planAJour = 0; return }
@@ -842,7 +903,9 @@ function image(maintenant: number): void {
   const sel = infosSelection(t)
   prevoir(t, maintenant)
   avancerMissions(t)
+  suivreEchos(t)
   mettreAJourFiche(t)
+  if (cockpit.pageOuverte === 'navigation') afficherRadio(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
@@ -907,6 +970,12 @@ function image(maintenant: number): void {
       ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
+    // Les échos des PING : leurs cercles, et les places possibles des monolithes (pas les localisés : ils sont dessinés).
+    if (reglages.cercles && jeu.monolithes.echos.length) {
+      const revenus = echosRevenus(jeu.monolithes, t)
+      const places = monolithesEcoutes(jeu.monolithes, t).map((n) => placesPossibles(jeu.monolithes, n, t)).filter((p) => p.length > 1).flat()
+      carte.dessinerEchos(ctxPlan, t, revenus.map((x) => ({ numero: x.monolithe, centre: x.centre, rayon: x.rayon })), places, { encre: th.encre, fond: th.halo })
+    }
     for (const tr of autresTraces) carte.dessinerTraits(ctxPlan, t, null, tr, tr[tr.length - 1], accent, { encre: th.encre, fond: th.halo })
     // Les missiles aliens en vol, avec leur décompte.
     if (jeu.espace.missiles.length) {

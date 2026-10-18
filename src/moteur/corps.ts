@@ -12,6 +12,7 @@ import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
 import { ALIENS, EPAVES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
+import { MONOLITHES } from '../donnees/monolithes'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
 import { positionPluton } from './pluton'
 import { positionSondeRelative, TRAJECTOIRES } from './sondes'
@@ -19,7 +20,7 @@ import { MS_PAR_JOUR, TT_MOINS_UTC_MS, UA_KM } from './temps'
 import { ajouter, type Vecteur3 } from './vecteur'
 import { positionVSOP } from './vsop87'
 
-export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien'
+export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe'
 
 export interface Corps {
   nom: string
@@ -67,7 +68,10 @@ export const CORPS: readonly Corps[] = [
   ...EPAVES.map((e): Corps => ({ nom: e.nom, type: 'epave', parent: e.parent === 'Soleil' ? null : e.parent, rayon: 0, modele: 'epave', tailleM: 20 })),
   ...ALIENS.map((a): Corps => ({ nom: a.nom, type: 'alien', parent: a.parent === 'Soleil' ? null : a.parent, rayon: 0, modele: 'alien', tailleM: 60 })),
   ...STATIONS_SYSTEMES.map((s): Corps => ({ nom: s.nom, type: 'satellite', parent: s.parent, rayon: 0, modele: 'iss', tailleM: 120 })),
+  // Monolithes (donnees/monolithes.ts) : fixes par rapport au Soleil ; sur la carte une fois localisés.
+  ...MONOLITHES.map((m): Corps => ({ nom: m.nom, type: 'monolithe', parent: null, rayon: 0, modele: 'monolithe', tailleM: 4 })),
 ]
+const PLACES_MONOLITHES = new Map(MONOLITHES.map((m) => [m.nom, { x: m.x, y: m.y, z: 0 }]))
 
 /**
  * Génération de chaque chasseur : abattu, il est remplacé par un renfort qui prend sa place dans la flotte, mais
@@ -169,6 +173,8 @@ export function position(nom: string, t: number): Vecteur3 {
 function calculerPosition(nom: string, t: number): Vecteur3 {
   if (nom === 'Soleil') return { x: 0, y: 0, z: 0 }
   if (nom === 'Pluton') return positionPluton(t)
+  const fixe = PLACES_MONOLITHES.get(nom)
+  if (fixe) return fixe
   // En plein espace (épaves, chasseurs) : leur orbite autour du Soleil.
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple?.parent === 'Soleil') return positionOrbiteSimple(simple, t)

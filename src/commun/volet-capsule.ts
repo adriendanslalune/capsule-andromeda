@@ -2,6 +2,7 @@
 // systèmes de la capsule (blocs du panneau) et leurs pannes (étape 4). Le volet affiche l'état du jeu et transmet le
 // choix du joueur.
 
+import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { COQUE_MAX, ENERGIE_TOTALE, INTERCEPTEURS, MAX_PAR_SYSTEME, SYSTEMES_ENERGIE, type Energie } from '../donnees/combat'
@@ -63,6 +64,7 @@ export function htmlSoute(jeu: Jeu): string {
     + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
     + (!c && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
     + '</div>'
+    + `<div class="bloc"><div class="module"><span><b>Monolithes</b><br><small>trouvés à la radio (PING, volet Navigation)</small></span><span class="ok" style="white-space:nowrap">${jeu.monolithes.trouves.length} / ${NOMBRE_MONOLITHES}</span></div></div>`
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
     + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
     + '<p class="note-soute">Pour s\'exercer au tri des matériaux, sans conséquence pour ta capsule.</p>'

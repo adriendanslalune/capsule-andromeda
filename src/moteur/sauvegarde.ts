@@ -17,6 +17,7 @@ import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
 import type { MessageEnvoye } from './messages'
 import { appliquerGenerations, type EtatEspace } from './espace'
+import { monolithe, type EtatMonolithes } from './monolithes'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, type Energie } from '../donnees/combat'
 
 /**
@@ -60,6 +61,8 @@ export interface Sauvegarde {
   lus?: Record<string, number>
   /** L'espace : épaves vidées, chasseurs vaincus, missiles, intercepteurs (absent : tout neuf). */
   espace?: EtatEspace
+  /** Les monolithes ramassés et les échos (absent : aucun). */
+  monolithes?: EtatMonolithes
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -70,6 +73,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
     maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    monolithes: jeu.monolithes,
   }
 }
 
@@ -154,6 +158,14 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.espace = { aliensVaincus: { ...es.aliensVaincus }, generations: dates(es.generations) ? { ...es.generations } : {},
       missiles: es.missiles.map((m) => ({ ...m })), intercepteurs: es.intercepteurs, rechargeDepuis: es.rechargeDepuis, tirsJusqua: es.tirsJusqua }
     appliquerGenerations(jeu.espace)
+  }
+  const mo = v.monolithes
+  if (mo !== undefined) {
+    const point = (p: unknown) => !!p && nombre((p as { x: unknown }).x) && nombre((p as { y: unknown }).y)
+    if (!mo || !nombre(mo.dernierPing) || !Array.isArray(mo.trouves) || !mo.trouves.every((n) => nombre(n) && !!monolithe(n))
+      || !Array.isArray(mo.echos) || !mo.echos.every((x) => !!x && !!monolithe(x.monolithe) && point(x.centre) && [x.rayon, x.envoye, x.retour].every(nombre))) return null
+    jeu.monolithes = { trouves: [...new Set(mo.trouves)], dernierPing: mo.dernierPing,
+      echos: mo.echos.map((x) => ({ monolithe: x.monolithe, centre: { x: x.centre.x, y: x.centre.y }, rayon: x.rayon, envoye: x.envoye, retour: x.retour })) }
   }
   const c = v.carnet
   if (c !== undefined) {

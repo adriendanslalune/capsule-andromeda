@@ -339,10 +339,10 @@ export class Carte2D {
     }
     // Engins (satellites de la Terre, sondes), épaves et chasseurs aliens repérés : leur silhouette. Les chasseurs
     // d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
-    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'satellite' || c.type === 'sonde'))
+    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde'))
       .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
     for (const c of engins) {
-      if ((c.type === 'alien' || c.type === 'epave') && !this.surLaCarte(c.nom, t)) continue
+      if ((c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe') && !this.surLaCarte(c.nom, t)) continue
       const q = this.ecranDe(projeterCorps(c.nom, t))
       if (!dedans(q.x, q.y) || !libre(q.x, q.y, RAYON_ENGIN)) continue
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN })
@@ -453,6 +453,61 @@ export class Carte2D {
    * Les missiles aliens en vol : un pointillé cerise du chasseur à la capsule, le missile qui avance dessus (fraction
    * de son vol) et son décompte.
    */
+  /**
+   * Les échos des PING : un cercle pointillé par écho revenu, autour de la place d'où il est parti (elle reste fixe
+   * par rapport au Soleil : les planètes s'en éloignent), avec le numéro du monolithe ; ses places possibles marquées
+   * d'un « ? ». Le cercle passe par la loupe de la carte comme tout le reste.
+   */
+  dessinerEchos(ctx: CanvasRenderingContext2D, t: number, cercles: { numero: number; centre: Point2; rayon: number }[],
+    places: Point2[], c: Couleurs2D): void {
+    ctx.save()
+    ctx.lineWidth = 1.2
+    ctx.strokeStyle = '#7a5aa8'
+    ctx.setLineDash([2, 4])
+    ctx.font = '10px ui-monospace, Menlo, monospace'
+    ctx.textBaseline = 'middle'
+    for (const e of cercles) {
+      const n = 180
+      const pts: { x: number; y: number }[] = []
+      for (let k = 0; k <= n; k++) {
+        const a = (2 * Math.PI * k) / n
+        pts.push(this.projeterPoint({ x: e.centre.x + e.rayon * Math.cos(a), y: e.centre.y + e.rayon * Math.sin(a), z: 0 }, t))
+      }
+      ctx.beginPath()
+      pts.forEach((q, k) => (k ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)))
+      ctx.stroke()
+      // Le numéro, sur le premier point du cercle qui est à l'écran.
+      const q = pts.find((p) => p.x > 10 && p.x < this.largeur - 60 && p.y > 150 && p.y < this.hauteur - 130)
+      if (q) {
+        ctx.setLineDash([])
+        ctx.lineWidth = 3
+        ctx.strokeStyle = c.fond
+        ctx.strokeText(`n° ${e.numero}`, q.x + 4, q.y)
+        ctx.fillStyle = '#7a5aa8'
+        ctx.fillText(`n° ${e.numero}`, q.x + 4, q.y)
+        ctx.lineWidth = 1.2
+        ctx.strokeStyle = '#7a5aa8'
+        ctx.setLineDash([2, 4])
+      }
+    }
+    ctx.setLineDash([])
+    ctx.font = 'bold 12px ui-monospace, Menlo, monospace'
+    ctx.textAlign = 'center'
+    for (const p of places) {
+      const q = this.projeterPoint({ x: p.x, y: p.y, z: 0 }, t)
+      ctx.beginPath()
+      ctx.arc(q.x, q.y, 8, 0, 2 * Math.PI)
+      ctx.fillStyle = c.fond
+      ctx.fill()
+      ctx.lineWidth = 1.2
+      ctx.strokeStyle = '#7a5aa8'
+      ctx.stroke()
+      ctx.fillStyle = '#7a5aa8'
+      ctx.fillText('?', q.x, q.y + 0.5)
+    }
+    ctx.restore()
+  }
+
   dessinerMissiles(ctx: CanvasRenderingContext2D, t: number, missiles: { alien: string; fraction: number; decompte: string }[], c: Couleurs2D): void {
     const capsule = this.place(CAPSULE)
     if (!capsule) return

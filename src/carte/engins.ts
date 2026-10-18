@@ -3,11 +3,11 @@
 
 const CORPS = '#23476b', PANNEAU = '#8fd0dc', OR = '#f2b53a', ROSE = '#f3a08b', CLAIR = '#faf2dc', CERISE = '#e04b37'
 
-type Forme = 'station' | 'tiangong' | 'telescope' | 'webb' | 'gaia' | 'bouclier' | 'antenne' | 'sonde' | 'voiture' | 'epave' | 'alien'
+type Forme = 'station' | 'tiangong' | 'telescope' | 'webb' | 'gaia' | 'bouclier' | 'antenne' | 'sonde' | 'voiture' | 'epave' | 'alien' | 'monolithe'
 const FORMES: Record<string, Forme> = {
   iss: 'station', tiangong: 'tiangong', hubble: 'telescope', observatoire: 'telescope', satellite: 'sonde', webb: 'webb',
   gaia: 'gaia', parker: 'bouclier',
-  'solar-orbiter': 'bouclier', roadster: 'voiture', epave: 'epave', alien: 'alien', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
+  'solar-orbiter': 'bouclier', roadster: 'voiture', epave: 'epave', alien: 'alien', monolithe: 'monolithe', 'new-horizons': 'antenne', pioneer: 'antenne', voyager: 'antenne',
 }
 
 export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: number, y: number, encre: string, echelle = 1): void {
@@ -102,6 +102,14 @@ export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: 
     ctx.arc(0, -0.5, 2, 0, 2 * Math.PI)
     ctx.fillStyle = '#b9f08c'
     ctx.fill()
+    ctx.stroke()
+  } else if (forme === 'monolithe') {
+    // Une dalle sombre, haute et mince, un liseré de lumière sur la tranche (le monolithe de « 2001 »).
+    chemin([[-3.5, -9], [3.5, -9], [3.5, 9], [-3.5, 9]], '#2b2138')
+    ctx.beginPath()
+    ctx.moveTo(-1.8, -7.5)
+    ctx.lineTo(-1.8, 7.5)
+    ctx.strokeStyle = '#d7cdee'
     ctx.stroke()
   } else if (forme === 'voiture') {
     chemin([[-8, 2], [-7, -1], [-3, -1.5], [-1, -4], [3, -4], [5, -1.5], [8, -1], [8, 2]], CERISE)

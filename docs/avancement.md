@@ -170,10 +170,19 @@ missiles et épaves sur la carte.
     en panne, le trajet en cours est ralenti de moitié jusqu'à réparation (puis repart à pleine vitesse) ; Coque en
     panne : un bloc de plus. Pas de tirs comptés pendant que l'application est fermée.
   - Ce qui fera voyager les joueurs : la campagne (décision d'Adrien du 18/10/2026).
-  - Monolithes (idée d'Adrien du 18/10/2026, à concevoir avant de coder) : 1000 monolithes cachés dans tout le système
-    solaire (comme les Korogu de Zelda BOTW) ; une radio envoie un PING, on attend l'écho (vitesse de la lumière, temps
-    réel), on se déplace et on recommence 1 ou 2 fois : la triangulation donne un point où aller le prendre. La cale
-    compte les monolithes trouvés. À quoi ils servent : à définir.
+  - Monolithes (idée d'Adrien du 18/10/2026) — **mécanique faite, en attente de validation** : 1000 monolithes
+    (`src/donnees/monolithes.ts`), fixes par rapport au Soleil, répartis par bandes autour des orbites des planètes,
+    dans les ceintures et entre elles (répartition PROVISOIRE). Volet Navigation : la radio, bouton PING (un par heure,
+    jamais tant que l'écho n'est pas revenu) ; le plus proche pas encore trouvé répond, sans limite de portée ; l'écho
+    revient au bout de l'aller-retour de la lumière (bandeau : « PING ENVOYÉ · ÉCHO DANS 1:09 »). Chaque écho trace sur
+    la carte un cercle pointillé violet (numéro du monolithe) autour de la place d'où il est parti, qui reste fixe : les
+    planètes s'en éloignent. Deux cercles d'un même monolithe : deux places « ? » ; un écho pris d'ailleurs (pas sur la
+    même ligne ; écart d'au moins 0,3 % de la distance) tranche : le monolithe apparaît sur la carte et dans Navigation
+    (« Monolithes localisés »). Y aller, RAMASSER : il passe dans la cale (Capsule › Soute : « 1 / 1000 ») et ses cercles
+    s'effacent. Réglage « Cercles des PING ». Moteur : `src/moteur/monolithes.ts` (tests `tests/monolithes.test.ts`).
+    Depuis la Terre, le plus proche est vers 10 millions de km (écho en 1 min 10 s) ; un tour par la Lune suffit à
+    trancher. À quoi ils servent : piste d'Adrien, des paliers qui donnent un statut et des messages par jour en plus
+    (à préciser avec la limite de 3 messages par jour).
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

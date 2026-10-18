@@ -953,3 +953,13 @@ body.nuit #marche .baisse { color: #f08a72; }
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; user-select: text; -webkit-user-select: text; }
 #messages .ecrire button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+
+/* La radio des monolithes, en tête du volet Navigation. */
+#radio .radio { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#radio button[data-ping] {
+  min-width: 76px; min-height: 48px; border-radius: 24px; border: 1.5px solid var(--encre); background: #d7cdee;
+  color: var(--encre); font: bold 14px ui-monospace, Menlo, monospace; letter-spacing: 0.08em;
+}
+#radio button[data-ping]:disabled { opacity: 0.45; }
+#radio .radio span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+#radio .radio small { font-size: 12px; opacity: 0.75; }
