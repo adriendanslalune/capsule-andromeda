@@ -33,7 +33,7 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
 }
 
 /** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
-export interface EtatCapsuleBandeau { credits: number; niveauMoteur: number; vitesse: number; vitesseForcee: boolean }
+export interface EtatCapsuleBandeau { credits: number; soute: string; niveauMoteur: number; vitesse: number; vitesseForcee: boolean }
 
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
 let forme = ''
@@ -42,7 +42,7 @@ let forme = ''
 const SYMBOLE_PANNE = '<svg class="symbole alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
 
 export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
-  const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''}`
+  const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''} · soute ${capsule.soute}`
   const moteur = capsule.vitesseForcee
     ? `vitesse forcée ${capsule.vitesse.toLocaleString('fr-FR')} km/s (essai)`
     : `moteur niv. ${capsule.niveauMoteur} · ${capsule.vitesse.toLocaleString('fr-FR')} km/s`

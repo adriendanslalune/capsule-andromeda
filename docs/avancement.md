@@ -82,11 +82,18 @@ missiles et épaves sur la carte.
   retenu sur le téléphone.
 - Remarques d'Adrien du 18/10/2026 — **faites, en attente de validation** :
   - 6 missions proposées, 2 par Maison (4 de sa Maison et 1 de chacune des autres quand le joueur en aura choisi
-    une, à l'étape 8 ; déjà prévu dans le moteur et sauvegardé, testé). « Mieux payé » pour la Maison du joueur :
-    montant à décider.
+    une, à l'étape 8 ; déjà prévu dans le moteur et sauvegardé, testé). Missions de sa Maison payées +25 %
+    (décision d'Adrien du 18/10/2026, testé).
   - Toucher une ligne du bandeau ouvre le volet qui va avec : panne → panneau de réparation (ou ÉTAT pour un bloc à
     réparation provisoire) ; mission → Missions ; trajet ou orbite → Navigation ; crédits et moteur → Capsule.
   - Glisser vers le bas ferme le volet de n'importe où (si son contenu est tout en haut ; le volet suit le doigt).
+- Soute et Marché (écrans) — **faits, en attente de validation** :
+  - Onglet Marché actif : 6 marchés (Tiangong, ISS, Base Artémis sur la Lune, Base Phobos, Callisto, Titan), chacun
+    avec l'âge de ses cours (vrai délai de la lumière depuis la capsule, `src/moteur/marche.ts`, testé) ; le plus
+    proche est choisi d'office ; cours d'essai fixes (±25 % d'un marché à l'autre) pour 6 marchandises ; ACHETER et
+    VENDRE grisés en attendant le commerce (étape 7).
+  - Capsule › SOUTE : capacité 20 t (valeur de la maquette), la cargaison d'une livraison chargée, sinon « Soute
+    vide » ; bouton vers le Marché. La soute s'affiche aussi au pied du bandeau.
 - 4.4 Aliens sur la carte (plus nombreux loin du Soleil), repérés au radar à une certaine distance, avec une alerte — à faire.
 - 4.5 Missiles : décompte (bandeau et carte), impact (panne du moteur : vitesse divisée par 2 jusqu'à réparation) — à faire.
 

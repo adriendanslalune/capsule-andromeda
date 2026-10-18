@@ -16,7 +16,9 @@ import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
 import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
-import { VoletCapsule } from './commun/volet-capsule'
+import { VoletCapsule, htmlSoute } from './commun/volet-capsule'
+import { VoletMarche } from './commun/volet-marche'
+import { CAPACITE_SOUTE } from './donnees/marche'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { gesteDuBouton, htmlCommandes } from './commun/commandes'
@@ -225,6 +227,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') voletMissions.afficher(jeu, horloge(), vitesse(), performance.now())
   if (page === 'capsule') voletCapsule.afficher(jeu)
+  if (page === 'marche') voletMarche.afficher(jeu, horloge())
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge)
 // Toucher la carte referme le volet.
@@ -299,7 +302,7 @@ bandeau.addEventListener('click', (e) => {
 
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
-    { credits: jeu.credits, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
+    { credits: jeu.credits, soute: `0/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
@@ -451,6 +454,7 @@ function avancerMissions(t: number): void {
   if (evenements.length) enregistrerPartie()
 }
 let dernierVolet = 0
+let dernierMarche = 0
 
 // Volet Capsule : acheter le moteur suivant (après confirmation) ; les trajets prévus se recalculent à la nouvelle vitesse.
 const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#capsule')!, () => {
@@ -474,7 +478,8 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 // --- Réparation (volet Capsule › RÉPARATION) et Manuel (étape 4) ---
 const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!
 const etatReparation = document.querySelector<HTMLSpanElement>('#etat-reparation')!
-let sousOnglet: 'etat' | 'reparation' = 'etat'
+type SousOnglet = 'etat' | 'soute' | 'reparation'
+let sousOnglet: SousOnglet = 'etat'
 const panneauReparation = new Panneau(document.querySelector<HTMLDivElement>('#panneau')!, (a) => {
   // Toucher un module en défaut ouvre ses commandes (demande d'Adrien du 18/10/2026) ; le toucher de nouveau les referme.
   const bloc = blocDe(a)
@@ -555,14 +560,25 @@ function gesteReparation(a: NomAppareil, r: Resultat): void {
   enregistrerPartie()
   afficherReparation()
 }
-function choisirSousOnglet(s: 'etat' | 'reparation'): void {
+function choisirSousOnglet(s: SousOnglet): void {
   sousOnglet = s
   for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.classList.toggle('actif', b.dataset.sous === s)
   document.querySelector<HTMLDivElement>('#capsule')!.hidden = s !== 'etat'
   zoneReparation.hidden = s !== 'reparation'
+  pageSoute.hidden = s !== 'soute'
   if (s === 'reparation') afficherReparation()
+  afficherSoute()
 }
-for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as 'etat' | 'reparation'))
+/** L'onglet SOUTE du volet Capsule. */
+const pageSoute = document.querySelector<HTMLDivElement>('#soute')!
+function afficherSoute(): void {
+  if (sousOnglet !== 'soute') return
+  const html = htmlSoute(jeu)
+  if (pageSoute.innerHTML !== html) pageSoute.innerHTML = html
+}
+// Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
+const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(jeu, horloge()))
+for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
 function montrerReparation(bloc?: NomModule): void {
   cockpit.ouvrir('capsule')
@@ -640,7 +656,8 @@ function image(maintenant: number): void {
   avancerMissions(t)
   mettreAJourFiche(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant); dernierVolet = maintenant }
-  if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation() }
+  if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(jeu, t); dernierMarche = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true

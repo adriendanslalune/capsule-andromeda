@@ -3,6 +3,7 @@
 // choix du joueur.
 
 import { MODULES, type NomModule } from '../donnees/modules'
+import { CAPACITE_SOUTE } from '../donnees/marche'
 import type { Jeu } from '../moteur/jeu'
 
 export class VoletCapsule {
@@ -43,4 +44,17 @@ export class VoletCapsule {
     }).join('') + '<p class="note">Communications et Énergie se réparent sur le panneau, avec le manuel. Moteur, Navigation et Coque : réparation provisoire, en attendant leur section du manuel.</p></div>'
     if (html !== this.dernier) this.element.innerHTML = this.dernier = html
   }
+}
+
+/**
+ * L'onglet SOUTE du volet Capsule (écrans d'abord : décision d'Adrien du 18/10/2026) : ce qui est à bord. Pour
+ * l'instant, la cargaison d'une livraison ; les matériaux des épaves (étape 5) et les marchandises du Marché
+ * (étape 7) viendront ici.
+ */
+export function htmlSoute(jeu: Jeu): string {
+  const c = jeu.cargaison()
+  return `<h3>Soute · 0 / ${CAPACITE_SOUTE} t</h3><div class="bloc">`
+    + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '<div>Soute vide.</div>')
+    + '<p class="note">Les matériaux récupérés dans les épaves et les marchandises achetées au Marché viendront ici.</p></div>'
+    + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
 }

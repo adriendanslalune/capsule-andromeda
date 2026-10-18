@@ -7,7 +7,7 @@
 // L'heure est toujours passée en paramètre, comme partout dans le moteur.
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
-import { DUREE_ACTION } from '../donnees/contrats'
+import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { MAISONS, genreDeMaison, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -179,6 +179,7 @@ export class Jeu {
         const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
         const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, t, exclus, genreDeMaison(maison))
         this.graine = graine
+        if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
         this.proposes.push(contrat)
       }
     }
@@ -192,6 +193,13 @@ export class Jeu {
     this.enCours = { contrat: c, etape: 0, debutAction: null }
     this.proposer(t)
     return true
+  }
+
+  /** La cargaison à bord (livraison chargée, pas encore livrée) : où la livrer, ou null. */
+  cargaison(): { pour: string } | null {
+    const ec = this.enCours
+    if (!ec || ec.contrat.genre !== 'livrer' || ec.etape === 0) return null
+    return { pour: ec.contrat.etapes[ec.contrat.etapes.length - 1].lieu }
   }
 
   /** Abandonne la mission en cours (sans pénalité). */

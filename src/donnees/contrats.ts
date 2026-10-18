@@ -9,6 +9,8 @@ export const CONTRATS_PROPOSES = 6
 export const PAR_MAISON_NEUTRE = 2
 export const PAR_MAISON_CHOISIE = 4
 export const PAR_AUTRE_MAISON = 1
+/** Les missions de la Maison du joueur sont mieux payées : +25 % (décision d'Adrien du 18/10/2026). */
+export const BONUS_MAISON = 1.25
 /** Durée d'une action sur place (charger, livrer, nettoyer, réparer), en temps réel (ms). */
 export const DUREE_ACTION = 2 * 60_000
 /** Récompenses (crédits) : de 50 (tout près de la Terre) à 200 (loin, ou une livraison). */
