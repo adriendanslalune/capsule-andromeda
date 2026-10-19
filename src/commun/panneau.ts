@@ -9,6 +9,7 @@
 import { BLOCS, repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import type { NomModule } from '../donnees/modules'
 import { BORNES, CALIBRES, TEINTES_ACCUS, TEINTES_TEMOIN, type CouleurCable } from '../donnees/manuel-energie'
+import { LEVIERS, TEINTES_INJECTEURS, ZONE_ROUGE, type VoyantInjecteur } from '../donnees/manuel-moteur'
 import type { TourAccumulateurs, TourFusibles } from '../moteur/energie'
 import type { TourEnergie } from '../moteur/reparation'
 
@@ -116,6 +117,42 @@ export interface EtatAccumulateurs {
   bloque: number
 }
 
+/** Ce que le panneau doit montrer des leviers (bloc Moteur). */
+export interface EtatLeviers {
+  /** En défaut (réparation en cours) ? */
+  actif: boolean
+  /** Position des cinq leviers (vrai : en haut). */
+  positions: boolean[]
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer de la soupape. */
+export interface EtatSoupape {
+  /** Le symbole de la plaque (lu par les leviers). */
+  symbole: string
+  /** Température affichée (°C), ou null quand la soupape est en état. */
+  temperature: number | null
+  /** Pression (graduations de 0 à 10) et purge en cours. */
+  pression: number
+  purge: boolean
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer des injecteurs. */
+export interface EtatInjecteurs {
+  /** Voyants des six injecteurs, ou null quand ils sont en état. */
+  voyants: VoyantInjecteur[] | null
+  /** Injecteurs coupés (numéros). */
+  coupes: number[]
+  numero: number
+  tours: number
+  bloque: number
+}
+
 /** Tout ce que le panneau montre. */
 export interface EtatPanneau {
   /** Blocs en panne. */
@@ -128,6 +165,9 @@ export interface EtatPanneau {
   chiffreur: EtatChiffreur
   fusibles: EtatFusibles
   accumulateurs: EtatAccumulateurs
+  leviers: EtatLeviers
+  soupape: EtatSoupape
+  injecteurs: EtatInjecteurs
 }
 
 /** L'animation SVG (SMIL) qui fait clignoter une lampe selon une suite morse : couleur allumée, couleur éteinte. */
@@ -144,7 +184,6 @@ export class Panneau {
   private serie = ''
   private graine = 1
   private groupes = new Map<string, SVGGElement>()
-  private aiguillePression!: SVGLineElement
   private voyantsBlocs = new Map<NomModule, SVGCircleElement>()
   private voyantsModules = new Map<NomAppareil, SVGCircleElement>()
   private derniers = new Map<string, string>()
@@ -381,36 +420,6 @@ export class Panneau {
     }
     const c = (a: NomAppareil) => [CADRES[a], cadres.get(a)!] as const
 
-    // --- Bloc 3 · Moteur : leviers, soupape (l'aiguille de PRESSION sert d'indice au bornier), injecteurs. ---
-    {
-      const [m, g] = c('leviers')
-      for (let k = 0; k < 5; k++) {
-        const x = m.x + 26 + k * 40, y = m.y + 20
-        this.el('rect', { x: x - 12, y: y + 72, width: 24, height: 12, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
-        const haut = this.entre(0, 40)
-        this.el('rect', { x: x - 3, y: y + 8 + haut, width: 6, height: 66 - haut, rx: 2, fill: ENCRE }, g)
-        this.el('circle', { cx: x, cy: y + 8 + haut, r: 9, fill: ['#e04b37', '#bfe0e8', '#f2b53a', '#8fcf98', '#faf2dc'][k], stroke: ENCRE, 'stroke-width': 1.4 }, g)
-        this.texte(x - 4, y + 98, ['I', 'II', 'III', 'IV', 'V'][k], 7, g)
-      }
-    }
-    {
-      const [m, g] = c('soupape')
-      this.aiguillePression = this.cadran(m.x + 44, m.y + 54, 30, g, 0, true)
-      this.texte(m.x + 22, m.y + 98, 'PRESSION', 7, g, { 'font-weight': 'bold' })
-      this.cadran(m.x + 108, m.y + 40, 16, g); this.texte(m.x + 96, m.y + 66, 'TEMP.', 6, g)
-      this.el('rect', { x: m.x + 92, y: m.y + 80, width: 34, height: 30, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
-      this.texte(m.x + 100, m.y + 102, this.choix(['♃', '♄', '☿', '♀']), 20, g)
-    }
-    {
-      const [m, g] = c('injecteurs')
-      for (let k = 0; k < 6; k++) {
-        const x = m.x + 34 + k * 58, y = m.y + 24
-        this.voyant(x, y, this.choix(['#8fcf98', '#f2b53a', '#c9b88a']), g, 4)
-        this.el('path', { d: `M${x - 14} ${y + 14} h28 l-6 30 h-16z`, fill: this.choix(PASTELS), stroke: ENCRE, 'stroke-width': 1.4 }, g)
-        this.el('path', { d: `M${x - 5} ${y + 44} l-3 14 h16 l-3 -14`, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
-        this.texte(x - 6, y + 74, `J${k + 1}`, 7, g)
-      }
-    }
     // --- Bloc 4 · Navigation : constellation, gyroscope, calculateur. ---
     {
       const [m, g] = c('constellation')
@@ -478,7 +487,7 @@ export class Panneau {
       for (let k = 0; k < 6; k++) this.el('line', { x1: m.x + 14, y1: m.y + 76 + k * 5, x2: m.x + 58, y2: m.y + 76 + k * 5, stroke: ENCRE, 'stroke-width': 1.6 }, g)
       this.groupes.set('telegraphe', this.g(g))
     }
-    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs'] as const) this.groupes.set(a, this.g(c(a)[1]))
+    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs'] as const) this.groupes.set(a, this.g(c(a)[1]))
     // Zones de toucher des modules, et le cadre de sélection.
     for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
@@ -516,18 +525,76 @@ export class Panneau {
         v.classList.toggle('clignote', defaut)
       }
     })
-    this.changer('pression', e.energie.tour?.pressionRouge ?? false, () => {
-      // Aiguille de pression : dans le rouge ou non (indice d'un tour de réparation du bornier).
-      const m = CADRES.soupape, a = e.energie.tour?.pressionRouge ? 1.75 : -0.9
-      this.aiguillePression.setAttribute('x2', String(m.x + 44 + 22 * Math.sin(a)))
-      this.aiguillePression.setAttribute('y2', String(m.y + 54 - 22 * Math.cos(a)))
-    })
     this.changer('bornier', e.energie, () => this.dessinerBornier(e.energie))
     this.changer('telegraphe', e.telegraphe, () => this.dessinerTelegraphe(e.telegraphe))
     this.changer('antenne', e.antenne, () => this.dessinerAntenne(e.antenne))
     this.changer('chiffreur', e.chiffreur, () => this.dessinerChiffreur(e.chiffreur))
     this.changer('fusibles', e.fusibles, () => this.dessinerFusibles(e.fusibles))
     this.changer('accumulateurs', e.accumulateurs, () => this.dessinerAccumulateurs(e.accumulateurs))
+    this.changer('leviers', e.leviers, () => this.dessinerLeviers(e.leviers))
+    this.changer('soupape', e.soupape, () => this.dessinerSoupape(e.soupape))
+    this.changer('injecteurs', e.injecteurs, () => this.dessinerInjecteurs(e.injecteurs))
+  }
+
+  private dessinerLeviers(e: EtatLeviers): void {
+    const m = CADRES.leviers, g = this.groupes.get('leviers')!
+    g.innerHTML = ''
+    LEVIERS.forEach((l, k) => {
+      const x = m.x + 26 + k * 40, y = m.y + 20, haut = e.positions[k]
+      // La glissière, la tige et le pommeau (en haut ou en bas).
+      this.el('rect', { x: x - 3, y: y + 6, width: 6, height: 62, rx: 3, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+      this.texte(x + 11, y + 12, 'H', 6, g); this.texte(x + 11, y + 66, 'B', 6, g)
+      this.el('rect', { x: x - 12, y: y + 72, width: 24, height: 12, rx: 3, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+      const py = haut ? y + 12 : y + 56
+      this.el('rect', { x: x - 2.5, y: py, width: 5, height: y + 72 - py, rx: 2, fill: ENCRE }, g)
+      this.el('circle', { cx: x, cy: py, r: 9, fill: l.teinte, stroke: ENCRE, 'stroke-width': 1.4 }, g)
+      this.el('path', { d: `M${x - 4} ${py - 4} q3 -3 7 -2`, fill: 'none', stroke: '#fffaf0', 'stroke-width': 1.6, 'stroke-linecap': 'round', opacity: 0.8 }, g)
+      this.texte(x, y + 98, l.numero, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    })
+    if (e.bloque) this.texte(m.x + m.w - 10, m.y + 18, `BLOQUÉ ${e.bloque} s`, 7, g, { 'text-anchor': 'end', fill: '#e04b37', 'font-weight': 'bold' })
+    else if (e.actif) this.texte(m.x + m.w - 10, m.y + 18, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'end', 'font-weight': 'bold' })
+  }
+
+  private dessinerSoupape(e: EtatSoupape): void {
+    const m = CADRES.soupape, g = this.groupes.get('soupape')!
+    g.innerHTML = ''
+    // Le grand cadran de PRESSION, gradué de 0 à 10 (zone rouge de 8 à 10).
+    const cx = m.x + 50, cy = m.y + 60, r = 36
+    const angle = (p: number) => (-135 + 27 * p) * Math.PI / 180
+    const pt = (p: number, rr: number) => `${cx + rr * Math.sin(angle(p))} ${cy - rr * Math.cos(angle(p))}`
+    this.el('circle', { cx: cx + 2, cy: cy + 2, r, fill: OMBRE, opacity: 0.4 }, g)
+    this.el('circle', { cx, cy, r, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+    this.el('path', { d: `M${pt(ZONE_ROUGE, r * 0.84)} A${r * 0.84} ${r * 0.84} 0 0 1 ${pt(10, r * 0.84)}`, stroke: '#e04b37', 'stroke-width': 5, fill: 'none' }, g)
+    for (let p = 0; p <= 10; p++) {
+      this.el('path', { d: `M${pt(p, r * 0.72)} L${pt(p, r * 0.94)}`, stroke: ENCRE, 'stroke-width': p % 2 ? 0.8 : 1.4 }, g)
+      if (p % 2 === 0) this.texte(cx + r * 0.55 * Math.sin(angle(p)), cy - r * 0.55 * Math.cos(angle(p)) + 2.5, String(p), 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    }
+    this.el('path', { d: `M${cx} ${cy} L${pt(e.pression, r * 0.8)}`, stroke: '#e04b37', 'stroke-width': 3, 'stroke-linecap': 'round' }, g)
+    this.el('circle', { cx, cy, r: 4, fill: ENCRE }, g)
+    this.texte(cx, m.y + 114, 'PRESSION', 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    // La vapeur de la purge.
+    if (e.purge) for (let k = 0; k < 4; k++) this.el('circle', { cx: cx + 28 + k * 5, cy: cy - 30 - k * 6, r: 3 + k * 1.5, fill: '#fffaf0', stroke: ENCRE, 'stroke-width': 0.7, opacity: 0.85 }, g)
+    // L'écran de la température et la plaque du symbole.
+    const ecran = e.bloque ? ['BLOQ.', `${e.bloque}s`] : e.temperature !== null ? ['TEMP', `${e.temperature}°`] : ['TEMP', 'NOM.']
+    this.ecran(m.x + 92, m.y + 14, 40, 30, ecran, g, 9)
+    if (e.temperature !== null && !e.bloque) this.texte(m.x + 112, m.y + 62, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    this.el('rect', { x: m.x + 94, y: m.y + 78, width: 36, height: 32, rx: 4, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    this.texte(m.x + 112, m.y + 102, e.symbole, 20, g, { 'text-anchor': 'middle', style: 'font-family: Georgia, serif' })
+  }
+
+  private dessinerInjecteurs(e: EtatInjecteurs): void {
+    const m = CADRES.injecteurs, g = this.groupes.get('injecteurs')!
+    g.innerHTML = ''
+    for (let k = 0; k < 6; k++) {
+      const x = m.x + 34 + k * 58, y = m.y + 24, coupe = e.coupes.includes(k)
+      this.voyant(x, y, TEINTES_INJECTEURS[e.voyants?.[k] ?? 'vert'], g, 5)
+      this.el('path', { d: `M${x - 14} ${y + 14} h28 l-6 30 h-16z`, fill: coupe ? '#c9c2b0' : PASTELS[k], stroke: ENCRE, 'stroke-width': 1.4 }, g)
+      this.el('path', { d: `M${x - 5} ${y + 44} l-3 14 h16 l-3 -14`, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+      if (coupe) this.el('path', { d: `M${x - 9} ${y + 19} l18 20 M${x + 9} ${y + 19} l-18 20`, stroke: '#e04b37', 'stroke-width': 3, 'stroke-linecap': 'round' }, g)
+      this.texte(x, y + 74, `J${k + 1}`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    }
+    if (e.bloque) this.texte(m.x + m.w - 10, m.y + 100, `BLOQUÉ ${e.bloque} s`, 7, g, { 'text-anchor': 'end', fill: '#e04b37', 'font-weight': 'bold' })
+    else if (e.voyants) this.texte(m.x + m.w - 10, m.y + 100, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'end', 'font-weight': 'bold' })
   }
 
   private dessinerFusibles(e: EtatFusibles): void {

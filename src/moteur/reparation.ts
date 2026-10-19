@@ -147,20 +147,29 @@ export function tourFini(r: EtatReparation): Resultat {
   return r.tour >= r.tours ? 'repare' : 'tour-suivant'
 }
 
+/**
+ * Le tour du bornier tel que le voit le joueur : si la soupape (bloc Moteur) est elle-même en défaut, son aiguille de
+ * PRESSION est dans le rouge quoi qu'il arrive (pressionRouge : vrai), et c'est elle que lit la règle R6.
+ */
+export function tourEnergieVu(graine: number, k: number, pressionRouge?: boolean): TourEnergie {
+  const tour = tourEnergie(graine, k)
+  return pressionRouge === undefined ? tour : { ...tour, pressionRouge }
+}
+
 /** Couper le câble n° i du bornier. */
-export function couperCable(r: EtatReparation, i: number, numeroSerie: string, t: number): Resultat {
+export function couperCable(r: EtatReparation, i: number, numeroSerie: string, t: number, pressionRouge?: boolean): Resultat {
   if (bloque(r, t)) return 'bloque'
   if (r.coupes.includes(i)) return 'ok'
-  const s = solution(tourEnergie(r.graine, r.tour), numeroSerie)
+  const s = solution(tourEnergieVu(r.graine, r.tour, pressionRouge), numeroSerie)
   if ('isolerDeuxFois' in s || s.couper !== i) return erreur(r, t)
   r.coupes.push(i)
   return 'ok'
 }
 
 /** Basculer ISOLER : valide le tour si le bon câble est coupé (ou au second basculement, quand il n'en faut aucun). */
-export function basculerIsoler(r: EtatReparation, numeroSerie: string, t: number): Resultat {
+export function basculerIsoler(r: EtatReparation, numeroSerie: string, t: number, pressionRouge?: boolean): Resultat {
   if (bloque(r, t)) return 'bloque'
-  const s = solution(tourEnergie(r.graine, r.tour), numeroSerie)
+  const s = solution(tourEnergieVu(r.graine, r.tour, pressionRouge), numeroSerie)
   if ('isolerDeuxFois' in s) {
     if (r.coupes.length) return erreur(r, t)
     r.isoler++

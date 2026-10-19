@@ -42,13 +42,17 @@ import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
 import { BORNES } from './donnees/manuel-energie'
+import { COMBINAISONS, SYMBOLES_SOUPAPE } from './donnees/manuel-moteur'
+import {
+  injecteursACouper, positionsLeviers, pressionSoupape, symboleAuRepos, tourInjecteurs, tourLeviers, tourSoupape, zonePurge,
+} from './moteur/propulsion'
 import { gesteDuBouton, htmlCommandes } from './commun/commandes'
 import { APPAREILS_PRETS, BLOCS, blocDe, repere, TITRES_APPAREILS, type NomAppareil } from './donnees/blocs'
 import { FREQUENCES, STATIONS, texteFrequence } from './donnees/manuel-communications'
 import {
   angleAttendu, frequenceReglee, ordreChiffreur, sequenceMorse, tourAntenne, tourChiffreur, tourTelegraphe,
 } from './moteur/communications'
-import { solution, tourEnergie, type EtatReparation, type Resultat } from './moteur/reparation'
+import { solution, tourEnergieVu, type EtatReparation, type Resultat } from './moteur/reparation'
 import { VoletMissions } from './commun/volet-missions'
 import { texteDate, texteDateComplete, texteDuree } from './commun/textes'
 import { CAPSULE, Carte2D } from './carte/carte'
@@ -809,16 +813,35 @@ commandes.addEventListener('click', (ev) => {
   const g = gesteDuBouton(b)
   if (g) gesteReparation(moduleOuvert, jeu.geste(moduleOuvert, g, horloge()))
 })
+// PURGER (module 3B SOUPAPE) se tient appuyé : on purge tant que le doigt reste dessus.
+commandes.addEventListener('pointerdown', (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-purger]')
+  if (!b || b.disabled || moduleOuvert !== 'soupape') return
+  ev.preventDefault()
+  b.setPointerCapture(ev.pointerId)
+  b.classList.add('tenu')
+  gesteReparation('soupape', jeu.geste('soupape', { genre: 'purger', tenir: true }, horloge()))
+})
+const relacherPurge = (ev: PointerEvent) => {
+  const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-purger]')
+  if (!b || !b.classList.contains('tenu')) return
+  b.classList.remove('tenu')
+  gesteReparation('soupape', jeu.geste('soupape', { genre: 'purger', tenir: false }, horloge()))
+}
+commandes.addEventListener('pointerup', relacherPurge)
+commandes.addEventListener('pointercancel', relacherPurge)
 /** Ce que le panneau doit montrer (le moteur du jeu le décide). */
 function etatPanneau(t: number): EtatPanneau {
   const secondes = (r: EtatReparation | null) => r ? Math.max(0, Math.ceil((r.blocageJusqua - t) / 1000)) : 0
   const b = jeu.reparation('bornier'), te = jeu.reparation('telegraphe'), an = jeu.reparation('antenne'), ch = jeu.reparation('chiffreur')
   const fu = jeu.reparation('fusibles'), ac = jeu.reparation('accumulateurs')
+  const le = jeu.reparation('leviers'), so = jeu.reparation('soupape'), inj = jeu.reparation('injecteurs')
+  const tourB = b ? tourEnergieVu(b.graine, b.tour, jeu.pressionForcee()) : null
   const tourAn = an ? tourAntenne(an.graine, an.tour) : null
   return {
     pannes: jeu.pannes,
     defauts: BLOCS.flatMap((f) => jeu.defauts[f.bloc] ?? []),
-    energie: b ? { tour: tourEnergie(b.graine, b.tour), coupes: b.coupes, bloque: secondes(b), numero: b.tour, tours: b.tours }
+    energie: b ? { tour: tourB, coupes: b.coupes, bloque: secondes(b), numero: b.tour, tours: b.tours }
       : { tour: null, coupes: [], bloque: 0, numero: 0, tours: 0 },
     telegraphe: {
       morse: te ? sequenceMorse(tourTelegraphe(te.graine, te.tour).mot) : null,
@@ -832,6 +855,21 @@ function etatPanneau(t: number): EtatPanneau {
     fusibles: { tour: fu ? tourFusibles(fu.graine, fu.tour) : null, numero: fu?.tour ?? 0, tours: fu?.tours ?? 0, bloque: secondes(fu) },
     accumulateurs: {
       tour: ac ? tourAccumulateurs(ac.graine, ac.tour) : null, branches: ac?.coupes ?? [], numero: ac?.tour ?? 0, tours: ac?.tours ?? 0, bloque: secondes(ac),
+    },
+    leviers: {
+      actif: !!le, positions: le ? positionsLeviers(le) : [...COMBINAISONS[symboleAuRepos(jeu.numeroSerie)]],
+      numero: le?.tour ?? 0, tours: le?.tours ?? 0, bloque: secondes(le),
+    },
+    soupape: {
+      symbole: SYMBOLES_SOUPAPE[le ? tourLeviers(le.graine, le.tour).symbole : symboleAuRepos(jeu.numeroSerie)],
+      temperature: so ? tourSoupape(so.graine, so.tour).temperature : null,
+      // En état, l'aiguille indique ce que lit la règle R6 du bornier (dans le rouge ou non).
+      pression: so ? pressionSoupape(so, t) : tourB?.pressionRouge ? 9 : 3.5,
+      purge: so?.reglage !== undefined && !secondes(so), numero: so?.tour ?? 0, tours: so?.tours ?? 0, bloque: secondes(so),
+    },
+    injecteurs: {
+      voyants: inj ? tourInjecteurs(inj.graine, inj.tour).voyants : null, coupes: inj?.coupes ?? [], numero: inj?.tour ?? 0, tours: inj?.tours ?? 0,
+      bloque: secondes(inj),
     },
   }
 }
@@ -1195,11 +1233,14 @@ Object.assign(window, {
     solution: (a: NomAppareil) => {
       const r = jeu.reparation(a)
       if (!r) return null
-      if (a === 'bornier') return solution(tourEnergie(r.graine, r.tour), jeu.numeroSerie)
+      if (a === 'bornier') return solution(tourEnergieVu(r.graine, r.tour, jeu.pressionForcee()), jeu.numeroSerie)
       if (a === 'telegraphe') return tourTelegraphe(r.graine, r.tour)
       if (a === 'antenne') return angleAttendu(tourAntenne(r.graine, r.tour))
       if (a === 'chiffreur') return ordreChiffreur(tourChiffreur(r.graine, r.tour))
       if (a === 'fusibles') return calibreAttendu(tourFusibles(r.graine, r.tour))
+      if (a === 'leviers') return COMBINAISONS[tourLeviers(r.graine, r.tour).symbole].map((h) => (h ? 'H' : 'B')).join(' ')
+      if (a === 'soupape') return zonePurge(tourSoupape(r.graine, r.tour).temperature)
+      if (a === 'injecteurs') return injecteursACouper(tourInjecteurs(r.graine, r.tour)).map((i) => `J${i + 1}`)
       if (a === 'accumulateurs') return ordreCouplage(tourAccumulateurs(r.graine, r.tour)).map((i) => BORNES[i])
       return null
     },

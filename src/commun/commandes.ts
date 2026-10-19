@@ -3,6 +3,7 @@
 
 import { repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import { BORNES, CALIBRES, TEINTES_ACCUS } from '../donnees/manuel-energie'
+import { LEVIERS, TEINTES_INJECTEURS } from '../donnees/manuel-moteur'
 import type { Geste } from '../moteur/appareils'
 import { attributsMorse, type EtatPanneau } from './panneau'
 
@@ -68,6 +69,28 @@ export function htmlCommandes(a: NomAppareil, e: EtatPanneau): string {
         return `<button type="button" ${geste({ genre: 'brancher', accu: k })}${branche || t.bloque ? ' disabled' : ''} style="background:${TEINTES_ACCUS[t.tour!.couleurs[k]]};color:#1f1b18">`
           + `<b>${borne}</b>${branche ? `branché (${t.branches.indexOf(k) + 1})` : 'brancher'}</button>`
       }).join('') + `</div><button type="button" class="action" ${geste({ genre: 'coupler' })}${b}>COUPLER</button>`
+  }
+  if (a === 'leviers' && e.leviers.actif) {
+    const t = e.leviers, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : 'LEVIERS'}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes cinq">' + LEVIERS.map((l, k) =>
+        `<button type="button" ${geste({ genre: 'basculer', levier: k })}${b}><i style="background:${l.teinte}"></i><b>${l.numero}</b>${t.positions[k] ? '▲ haut' : '▼ bas'}</button>`).join('')
+      + `</div><button type="button" class="action" ${geste({ genre: 'enclencher' })}${b}>ENCLENCHER</button>`
+  }
+  if (a === 'soupape' && e.soupape.temperature !== null) {
+    const t = e.soupape
+    // Ce bouton se tient appuyé (voir main.ts) : son texte ne change pas pendant la purge.
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : 'PURGE'}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="note-commandes">Tenir PURGER : l\'aiguille de PRESSION descend. Relâcher dans la bonne zone.</div>'
+      + `<button type="button" class="action purger" data-purger${t.bloque ? ' disabled' : ''}>PURGER (tenir)</button>`
+  }
+  if (a === 'injecteurs' && e.injecteurs.voyants) {
+    const t = e.injecteurs, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : `COUPÉS ${t.coupes.length}`}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes trois">' + t.voyants!.map((v, k) => {
+        const coupe = t.coupes.includes(k)
+        return `<button type="button" class="${coupe ? 'coupe' : ''}" ${geste({ genre: 'injecteur', injecteur: k })}${b}><i style="background:${TEINTES_INJECTEURS[v]}"></i><b>J${k + 1}</b>${coupe ? 'coupé' : 'couper'}</button>`
+      }).join('') + `</div><button type="button" class="action" ${geste({ genre: 'amorcer' })}${b}>AMORCER</button>`
   }
   return ''
 }

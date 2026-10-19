@@ -38,7 +38,7 @@ export const TITRES_APPAREILS: Readonly<Record<NomAppareil, string>> = {
 }
 
 /** Modules déjà raccordés (qui peuvent tomber en défaut et se réparer avec le manuel) ; les autres viendront. */
-export const APPAREILS_PRETS: readonly NomAppareil[] = ['telegraphe', 'antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs']
+export const APPAREILS_PRETS: readonly NomAppareil[] = ['telegraphe', 'antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs']
 
 export function ficheBloc(bloc: NomModule): FicheBloc {
   return BLOCS.find((b) => b.bloc === bloc)!

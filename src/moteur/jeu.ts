@@ -161,7 +161,7 @@ export class Jeu {
   geste(a: NomAppareil, g: Geste, t: number): Resultat {
     const r = this.reparation(a)
     if (!r) return 'ok'
-    const res = jouer(a, r, g, this.numeroSerie, t)
+    const res = jouer(a, r, g, this.numeroSerie, t, this.pressionForcee())
     if (res === 'repare') {
       const bloc = blocDe(a).bloc
       delete this.reparations[a]
@@ -169,6 +169,11 @@ export class Jeu {
       if (!this.defauts[bloc]!.length) this.reparer(bloc)
     }
     return res
+  }
+
+  /** La soupape en défaut a son aiguille de PRESSION dans le rouge (vrai) ; sinon, c'est le tour du bornier qui décide. */
+  pressionForcee(): true | undefined {
+    return this.enDefaut('soupape') ? true : undefined
   }
 
   /** Envoie un PING depuis la place de la capsule (au plus un par heure) : l'écho attendu, ou null. */

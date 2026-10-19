@@ -3,6 +3,9 @@
 // écrit est exactement ce que le jeu attend. Une section par bloc du panneau ; pour l'instant : le sommaire, la
 // section 1 (Communications) et la section 2 (Énergie).
 
+import {
+  COMBINAISONS, LEVIERS, SYMBOLES_SOUPAPE, TEINTES_INJECTEURS, TEXTES_INJECTEURS, ZONE_ROUGE, ZONES_PURGE,
+} from '../donnees/manuel-moteur'
 import { CABLAGE, CABLES, CHIFFRES_GYRO, DISJONCTEURS, LES_BUS, SYMBOLES_GYRO, VOYANTS } from '../donnees/depannage'
 import {
   BORNES, CODES_ENERGIE, COULEURS_ACCUS, ORDRES_COUPLAGE, PREFIXE_R4_INVERSEE, REGLES, TEINTES_ACCUS, TEINTES_TEMOIN, TEMOINS,
@@ -129,6 +132,44 @@ function sectionEnergie(): string {
       <tr><th>LE PLUS<br>CHARGÉ</th>${COULEURS_ACCUS.map((c) => `<th>MILIEU ${pastille(TEINTES_ACCUS[c])}${c.toUpperCase()}</th>`).join('')}</tr>${lignesCouplage}</table>`, true)
 }
 
+function sectionMoteur(): string {
+  const pastille = (teinte: string) => `<span class="pastille-voyant" style="background:${teinte}"></span>`
+  const lignesLeviers = SYMBOLES_SOUPAPE.map((sy, k) => `<tr><td class="symbole-manuel">${sy}</td>${COMBINAISONS[k].map((h) => `<td>${h ? '▲ H' : '▼ B'}</td>`).join('')}</tr>`).join('')
+  const lignesPurge = ZONES_PURGE.map((z) => `<tr><td class="gauche">${z.titre}</td><td>entre ${z.bas} et ${z.haut}</td></tr>`).join('')
+  const lignesInjecteurs = TEXTES_INJECTEURS.map((x) => `<tr><td>${x.orange}</td><td class="gauche">${x.couper}</td></tr>`).join('')
+  return feuille('CA-MM-03', 'SECTION 3 — BLOC MOTEUR', '3-1', `
+    <h3>3.1 Module 3A — Leviers</h3>
+    ${procedure('3.1', [
+      'Lire le <b>symbole</b> sur la plaque jaune du module <b>3B SOUPAPE</b>, à droite des leviers.',
+      'Le <b>TABLEAU 3-1</b> donne la position de chacun des cinq leviers : en haut (H) ou en bas (B).',
+      'Basculer les leviers, puis <b>ENCLENCHER</b>. Un nouveau symbole s\'affiche : recommencer (deux réglages).',
+    ])}
+    <table><caption>TABLEAU 3-1 — POSITION DES LEVIERS</caption>
+      <tr><th>SYMB.</th>${LEVIERS.map((l) => `<th>${pastille(l.teinte)}${l.numero}</th>`).join('')}</tr>${lignesLeviers}</table>
+
+    <h3>3.2 Module 3B — Soupape</h3>
+    ${attention(`Soupape en défaut : surpression, l'aiguille de PRESSION reste dans la zone rouge (${ZONE_ROUGE} à 10).
+      Relâcher la purge hors de la zone prescrite : module bloqué 30 secondes, la pression remonte.`)}
+    ${procedure('3.2', [
+      'Lire la <b>température</b> sur l\'écran TEMP du module.',
+      'Le <b>TABLEAU 3-2</b> donne la zone où relâcher la purge, sur le cadran de PRESSION (graduations de 0 à 10).',
+      'Tenir <b>PURGER</b> : l\'aiguille descend régulièrement. La <b>relâcher</b> quand elle est dans la zone.',
+      'Une nouvelle température s\'affiche : recommencer (deux purges).',
+    ])}
+    <table><caption>TABLEAU 3-2 — ZONE DE PURGE</caption>
+      <tr><th class="gauche">TEMPÉRATURE</th><th>RELÂCHER LA PURGE</th></tr>${lignesPurge}</table>
+    <p class="manuscrit">→ l'aiguille va plus vite qu'on croit : lâcher en entrant dans la zone, pas au milieu ! — J.</p>
+
+    <h3>3.3 Module 3C — Injecteurs</h3>
+    ${procedure('3.3', [
+      `Relever les voyants des six injecteurs J1 à J6 : ${pastille(TEINTES_INJECTEURS.vert)}vert, ${pastille(TEINTES_INJECTEURS.orange)}orange ou ${pastille(TEINTES_INJECTEURS.eteint)}éteint.`,
+      'Compter les voyants <b>orange</b>. Le <b>TABLEAU 3-3</b> dit quels injecteurs couper.',
+      'Couper ces injecteurs (et eux seuls), puis <b>AMORCER</b>. Les voyants changent : recommencer (deux amorçages).',
+    ])}
+    <table><caption>TABLEAU 3-3 — INJECTEURS À COUPER</caption>
+      <tr><th>ORANGE</th><th class="gauche">COUPER</th></tr>${lignesInjecteurs}</table>`)
+}
+
 /**
  * Section 6 : le boîtier technique des engins à dépanner (satellites, stations ; missions RÉPARER des Ingénieurs).
  * Les tableaux sont lus dans donnees/depannage.ts : ce qui est écrit est exactement ce que le jeu attend.
@@ -186,7 +227,7 @@ export function htmlManuel(): string {
     <table class="sommaire">
       <tr><td>1</td><td class="gauche"><b>Communications — télégraphe, antenne, chiffreur</b></td><td>p. 1-2</td></tr>
       <tr><td>2</td><td class="gauche"><b>Énergie — bornier, fusibles, accumulateurs</b></td><td>p. 2-8</td></tr>
-      <tr><td>3</td><td class="gauche">Moteur — leviers, soupape, injecteurs</td><td>en rédaction</td></tr>
+      <tr><td>3</td><td class="gauche"><b>Moteur — leviers, soupape, injecteurs</b></td><td>p. 3-1</td></tr>
       <tr><td>4</td><td class="gauche">Navigation — constellation, gyroscope, calculateur</td><td>en rédaction</td></tr>
       <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>
       <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
@@ -194,9 +235,10 @@ export function htmlManuel(): string {
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
       commandes.</p>
-    <p class="petit">En attendant la rédaction des sections 3, 4 et 5, ces blocs se réparent depuis l'onglet ÉTAT du volet
+    <p class="petit">En attendant la rédaction des sections 4 et 5, ces blocs se réparent depuis l'onglet ÉTAT du volet
       Capsule (procédure provisoire).</p>`)}
   ${sectionCommunications()}
   ${sectionEnergie()}
+  ${sectionMoteur()}
   ${sectionEngins()}`
 }
