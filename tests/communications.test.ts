@@ -57,9 +57,9 @@ describe('les blocs du panneau', () => {
     expect(jeu.defauts.energie!.length).toBeGreaterThan(0)
     expect(jeu.defauts.energie!.every((a) => ['bornier', 'fusibles', 'accumulateurs'].includes(a))).toBe(true)
     // Bloc dont aucun module n'est encore raccordé : réparation provisoire (depuis ÉTAT).
-    jeu.casser('navigation')
-    expect(jeu.defauts.navigation).toEqual([])
-    expect(jeu.reparationProvisoire('navigation')).toBe(true)
+    jeu.casser('coque')
+    expect(jeu.defauts.coque).toEqual([])
+    expect(jeu.reparationProvisoire('coque')).toBe(true)
     expect(jeu.reparationProvisoire('energie')).toBe(false)
     expect(APPAREILS_PRETS).toContain('chiffreur')
   })

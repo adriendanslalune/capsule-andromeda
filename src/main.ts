@@ -43,6 +43,10 @@ import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
 import { BORNES } from './donnees/manuel-energie'
 import { COMBINAISONS, SYMBOLES_SOUPAPE } from './donnees/manuel-moteur'
+import { ANNEAUX, ASTRES, AZIMUTS, CODES_CALCUL, CONSTELLATIONS, HAUTEURS } from './donnees/manuel-navigation'
+import {
+  angleAnneau, cadransConstellation, interrupteursCalcul, ordreGyro, tourCalculateur, tourConstellation,
+} from './moteur/guidage'
 import {
   injecteursACouper, positionsLeviers, pressionSoupape, symboleAuRepos, tourInjecteurs, tourLeviers, tourSoupape, zonePurge,
 } from './moteur/propulsion'
@@ -836,6 +840,8 @@ function etatPanneau(t: number): EtatPanneau {
   const b = jeu.reparation('bornier'), te = jeu.reparation('telegraphe'), an = jeu.reparation('antenne'), ch = jeu.reparation('chiffreur')
   const fu = jeu.reparation('fusibles'), ac = jeu.reparation('accumulateurs')
   const le = jeu.reparation('leviers'), so = jeu.reparation('soupape'), inj = jeu.reparation('injecteurs')
+  const co = jeu.reparation('constellation'), gy = jeu.reparation('gyroscope'), ca = jeu.reparation('calculateur')
+  const cadCo = co ? cadransConstellation(co) : null, tourCa = ca ? tourCalculateur(ca.graine, ca.tour) : null
   const tourB = b ? tourEnergieVu(b.graine, b.tour, jeu.pressionForcee()) : null
   const tourAn = an ? tourAntenne(an.graine, an.tour) : null
   return {
@@ -870,6 +876,18 @@ function etatPanneau(t: number): EtatPanneau {
     injecteurs: {
       voyants: inj ? tourInjecteurs(inj.graine, inj.tour).voyants : null, coupes: inj?.coupes ?? [], numero: inj?.tour ?? 0, tours: inj?.tours ?? 0,
       bloque: secondes(inj),
+    },
+    constellation: {
+      constellation: co ? CONSTELLATIONS[tourConstellation(co.graine, co.tour).constellation] : null,
+      azimut: cadCo ? AZIMUTS[cadCo.azimut] : 0, hauteur: cadCo ? HAUTEURS[cadCo.hauteur] : 45,
+      numero: co?.tour ?? 0, tours: co?.tours ?? 0, bloque: secondes(co),
+    },
+    gyroscope: {
+      actif: !!gy, angles: gy ? [0, 1, 2].map((i) => angleAnneau(gy, i, t)) : [20, 140, 260], freines: gy?.coupes ?? [], bloque: secondes(gy),
+    },
+    calculateur: {
+      code: tourCa ? CODES_CALCUL[tourCa.code].code : null, interrupteurs: ca ? interrupteursCalcul(ca) : [true, false, true, true, false, false],
+      tapes: ca?.coupes ?? [], numero: ca?.tour ?? 0, tours: ca?.tours ?? 0, bloque: secondes(ca),
     },
   }
 }
@@ -1241,6 +1259,9 @@ Object.assign(window, {
       if (a === 'leviers') return COMBINAISONS[tourLeviers(r.graine, r.tour).symbole].map((h) => (h ? 'H' : 'B')).join(' ')
       if (a === 'soupape') return zonePurge(tourSoupape(r.graine, r.tour).temperature)
       if (a === 'injecteurs') return injecteursACouper(tourInjecteurs(r.graine, r.tour)).map((i) => `J${i + 1}`)
+      if (a === 'constellation') { const c = CONSTELLATIONS[tourConstellation(r.graine, r.tour).constellation]; return `${c.nom} : AZ ${c.azimut}°, HT ${c.hauteur}°` }
+      if (a === 'gyroscope') return { ordre: ordreGyro(jeu.numeroSerie).map((i) => ANNEAUX[i].titre), angles: [0, 1, 2].map((i) => angleAnneau(r, i, horloge())) }
+      if (a === 'calculateur') { const c = CODES_CALCUL[tourCalculateur(r.graine, r.tour).code]; return { interrupteurs: c.interrupteurs.map((h) => (h ? 'H' : 'B')).join(' '), astres: c.astres.map((i) => ASTRES[i]).join(' ') } }
       if (a === 'accumulateurs') return ordreCouplage(tourAccumulateurs(r.graine, r.tour)).map((i) => BORNES[i])
       return null
     },

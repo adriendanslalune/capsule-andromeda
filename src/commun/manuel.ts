@@ -6,6 +6,7 @@
 import {
   COMBINAISONS, LEVIERS, SYMBOLES_SOUPAPE, TEINTES_INJECTEURS, TEXTES_INJECTEURS, ZONE_ROUGE, ZONES_PURGE,
 } from '../donnees/manuel-moteur'
+import { ANNEAUX, ASTRES, CODES_CALCUL, CONSTELLATIONS, ORDRES_GYRO, TOLERANCE_GYRO } from '../donnees/manuel-navigation'
 import { CABLAGE, CABLES, CHIFFRES_GYRO, DISJONCTEURS, LES_BUS, SYMBOLES_GYRO, VOYANTS } from '../donnees/depannage'
 import {
   BORNES, CODES_ENERGIE, COULEURS_ACCUS, ORDRES_COUPLAGE, PREFIXE_R4_INVERSEE, REGLES, TEINTES_ACCUS, TEINTES_TEMOIN, TEMOINS,
@@ -170,6 +171,53 @@ function sectionMoteur(): string {
       <tr><th>ORANGE</th><th class="gauche">COUPER</th></tr>${lignesInjecteurs}</table>`)
 }
 
+/** Une constellation de l'atlas, dessinée (étoiles noires sur papier). */
+function carteConstellation(k: number): string {
+  const c = CONSTELLATIONS[k]
+  const p = ([x, y]: readonly [number, number]) => [50 + x * 38, 50 + y * 38]
+  const traits = c.traits.map(([a, b]) => { const [x1, y1] = p(c.etoiles[a]), [x2, y2] = p(c.etoiles[b]); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>` }).join('')
+  const etoiles = c.etoiles.map((e) => { const [x, y] = p(e); return `<circle cx="${x}" cy="${y}" r="4.5"/>` }).join('')
+  return `<figure class="constellation"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" class="fond"/>${traits}${etoiles}</svg>`
+    + `<figcaption><b>${c.nom}</b><span>AZ ${c.azimut}° · HT ${c.hauteur}°</span></figcaption></figure>`
+}
+
+function sectionNavigation(): string {
+  const pastille = (teinte: string) => `<span class="pastille-voyant" style="background:${teinte}"></span>`
+  const lignesGyro = ORDRES_GYRO.map((o) => `<tr><td>${o.chiffres}</td><td class="gauche">${o.ordre.map((i) => `${pastille(ANNEAUX[i].teinte)}${ANNEAUX[i].titre}`).join(' → ')}</td></tr>`).join('')
+  const lignesCodes = CODES_CALCUL.map((c) => `<tr><td>${c.code}</td><td>${c.interrupteurs.map((h) => (h ? '▲' : '▼')).join(' ')}</td>`
+    + `<td class="symbole-manuel">${c.astres.map((a) => ASTRES[a]).join(' ')}</td></tr>`).join('')
+  return feuille('CA-MM-04', 'SECTION 4 — BLOC NAVIGATION', '4-1', `
+    <h3>4.1 Module 4A — Constellation</h3>
+    ${procedure('4.1', [
+      'Observer la <b>constellation</b> sur l\'écran rond du module.',
+      'La retrouver dans l\'<b>ATLAS 4-1</b> : il donne son <b>cap</b>, azimut (AZ) et hauteur (HT).',
+      'Régler le cadran d\'<b>azimut</b> (crans de 30°) et celui de <b>hauteur</b> (crans de 15°), puis <b>POINTER</b>. Une autre constellation s\'affiche : recommencer (deux pointages).',
+    ])}
+    <p class="legende-atlas">ATLAS 4-1 — CONSTELLATIONS DE RÉFÉRENCE</p>
+    <div class="atlas">${CONSTELLATIONS.map((_, k) => carteConstellation(k)).join('')}</div>
+    <p class="manuscrit">→ la Couronne et la Capsule sont toutes deux fermées : regarder où est la pointe ! — J.</p>
+
+    <h3>4.2 Module 4B — Gyroscope</h3>
+    ${attention(`Freiner un anneau hors de son tour, ou loin de l'index (plus de ${TOLERANCE_GYRO}°), libère les trois anneaux :
+      module bloqué 30 secondes.`)}
+    ${procedure('4.2', [
+      'Lire le <b>dernier chiffre</b> du numéro de série, sur la plaque de laiton en haut du panneau.',
+      'Le <b>TABLEAU 4-2</b> donne l\'ordre de freinage des trois anneaux.',
+      'Dans cet ordre, <b>FREINER</b> chaque anneau au moment où son repère passe sous l\'<b>index</b> rouge ▼.',
+    ])}
+    <table><caption>TABLEAU 4-2 — ORDRE DE FREINAGE</caption>
+      <tr><th>DERNIER CHIFFRE</th><th class="gauche">ANNEAUX, DANS L'ORDRE</th></tr>${lignesGyro}</table>
+
+    <h3>4.3 Module 4C — Calculateur</h3>
+    ${procedure('4.3', [
+      'Lire le <b>code de correction</b> sur l\'écran du calculateur (format Δ-xxx).',
+      'Le <b>TABLEAU 4-3</b> donne la position des six <b>interrupteurs</b> (de gauche à droite, ▲ en haut, ▼ en bas) et trois <b>astres</b>.',
+      'Régler les interrupteurs, <b>puis</b> taper les trois astres dans l\'ordre. Un astre tapé avant que les interrupteurs soient réglés est une erreur. Un nouveau code s\'affiche : recommencer (deux corrections).',
+    ])}
+    <table><caption>TABLEAU 4-3 — CODES DE CORRECTION</caption>
+      <tr><th>CODE</th><th>INTERRUPTEURS 1 → 6</th><th>ASTRES</th></tr>${lignesCodes}</table>`)
+}
+
 /**
  * Section 6 : le boîtier technique des engins à dépanner (satellites, stations ; missions RÉPARER des Ingénieurs).
  * Les tableaux sont lus dans donnees/depannage.ts : ce qui est écrit est exactement ce que le jeu attend.
@@ -228,17 +276,18 @@ export function htmlManuel(): string {
       <tr><td>1</td><td class="gauche"><b>Communications — télégraphe, antenne, chiffreur</b></td><td>p. 1-2</td></tr>
       <tr><td>2</td><td class="gauche"><b>Énergie — bornier, fusibles, accumulateurs</b></td><td>p. 2-8</td></tr>
       <tr><td>3</td><td class="gauche"><b>Moteur — leviers, soupape, injecteurs</b></td><td>p. 3-1</td></tr>
-      <tr><td>4</td><td class="gauche">Navigation — constellation, gyroscope, calculateur</td><td>en rédaction</td></tr>
+      <tr><td>4</td><td class="gauche"><b>Navigation — constellation, gyroscope, calculateur</b></td><td>p. 4-1</td></tr>
       <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>
       <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
     </table>
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
       commandes.</p>
-    <p class="petit">En attendant la rédaction des sections 4 et 5, ces blocs se réparent depuis l'onglet ÉTAT du volet
+    <p class="petit">En attendant la rédaction de la section 5, le bloc Coque se répare depuis l'onglet ÉTAT du volet
       Capsule (procédure provisoire).</p>`)}
   ${sectionCommunications()}
   ${sectionEnergie()}
   ${sectionMoteur()}
+  ${sectionNavigation()}
   ${sectionEngins()}`
 }

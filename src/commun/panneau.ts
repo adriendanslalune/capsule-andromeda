@@ -10,6 +10,7 @@ import { BLOCS, repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/bl
 import type { NomModule } from '../donnees/modules'
 import { BORNES, CALIBRES, TEINTES_ACCUS, TEINTES_TEMOIN, type CouleurCable } from '../donnees/manuel-energie'
 import { LEVIERS, TEINTES_INJECTEURS, ZONE_ROUGE, type VoyantInjecteur } from '../donnees/manuel-moteur'
+import { ANNEAUX, ASTRES, type Constellation } from '../donnees/manuel-navigation'
 import type { TourAccumulateurs, TourFusibles } from '../moteur/energie'
 import type { TourEnergie } from '../moteur/reparation'
 
@@ -153,6 +154,41 @@ export interface EtatInjecteurs {
   bloque: number
 }
 
+/** Ce que le panneau doit montrer de la constellation (bloc Navigation). */
+export interface EtatConstellation {
+  /** La constellation à l'écran, ou null quand le module est en état. */
+  constellation: Pick<Constellation, 'etoiles' | 'traits'> | null
+  /** Ce qu'indiquent les cadrans (degrés). */
+  azimut: number
+  hauteur: number
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer du gyroscope. */
+export interface EtatGyroscope {
+  actif: boolean
+  /** Angle du repère de chaque anneau (degrés, 0 : devant l'index). */
+  angles: number[]
+  /** Anneaux freinés (numéros). */
+  freines: number[]
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer du calculateur. */
+export interface EtatCalculateur {
+  /** Le code affiché, ou null quand le calculateur est en état. */
+  code: string | null
+  /** Position des six interrupteurs (vrai : en haut). */
+  interrupteurs: boolean[]
+  /** Touches d'astres déjà tapées (numéros). */
+  tapes: number[]
+  numero: number
+  tours: number
+  bloque: number
+}
+
 /** Tout ce que le panneau montre. */
 export interface EtatPanneau {
   /** Blocs en panne. */
@@ -168,6 +204,9 @@ export interface EtatPanneau {
   leviers: EtatLeviers
   soupape: EtatSoupape
   injecteurs: EtatInjecteurs
+  constellation: EtatConstellation
+  gyroscope: EtatGyroscope
+  calculateur: EtatCalculateur
 }
 
 /** L'animation SVG (SMIL) qui fait clignoter une lampe selon une suite morse : couleur allumée, couleur éteinte. */
@@ -420,37 +459,6 @@ export class Panneau {
     }
     const c = (a: NomAppareil) => [CADRES[a], cadres.get(a)!] as const
 
-    // --- Bloc 4 · Navigation : constellation, gyroscope, calculateur. ---
-    {
-      const [m, g] = c('constellation')
-      const cx = m.x + 70, cy = m.y + 78
-      this.el('circle', { cx, cy, r: 54, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 2 }, g)
-      this.el('circle', { cx, cy, r: 34, fill: 'none', stroke: '#3c5a3e', 'stroke-width': 1 }, g)
-      this.el('path', { d: `M${cx} ${cy - 54} v108 M${cx - 54} ${cy} h108`, stroke: '#3c5a3e', 'stroke-width': 1 }, g)
-      const etoiles = Array.from({ length: 6 }, () => [this.entre(-34, 34), this.entre(-34, 34)])
-      this.el('path', { d: 'M' + etoiles.map(([a, b]) => `${cx + a} ${cy + b}`).join(' L') + 'z', fill: 'none', stroke: '#b9f08c', 'stroke-width': 0.8, opacity: 0.6 }, g)
-      for (const [a, b] of etoiles) this.el('circle', { cx: cx + a, cy: cy + b, r: 2.4, fill: '#b9f08c' }, g)
-      this.cadran(m.x + 168, m.y + 46, 16, g); this.cadran(m.x + 168, m.y + 106, 16, g)
-    }
-    {
-      const [m, g] = c('gyroscope')
-      const cx = m.x + 69, cy = m.y + 76
-      for (const [rx, ry, a, couleur] of [[52, 52, 0, '#d9a43a'], [48, 18, 30, '#3f63c4'], [18, 46, -20, '#e04b37']] as [number, number, number, string][]) {
-        this.el('ellipse', { cx, cy, rx, ry, fill: 'none', stroke: ENCRE, 'stroke-width': 5, transform: `rotate(${a} ${cx} ${cy})` }, g)
-        this.el('ellipse', { cx, cy, rx, ry, fill: 'none', stroke: couleur, 'stroke-width': 3, transform: `rotate(${a} ${cx} ${cy})` }, g)
-      }
-      this.el('circle', { cx, cy, r: 9, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
-    }
-    {
-      const [m, g] = c('calculateur')
-      this.ecran(m.x + 14, m.y + 18, 110, 34, ['ΔV 0412', 'T−00:42'], g, 10)
-      ;['☉', '☾', '♄', '♂', '♀', '☿', '♃', '♁'].forEach((s, k) => {
-        const x = m.x + 150 + (k % 4) * 52, y = m.y + 30 + Math.floor(k / 4) * 34
-        this.el('rect', { x: x - 14, y: y - 13, width: 28, height: 26, rx: 4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
-        this.texte(x - 7, y + 6, s, 15, g)
-      })
-      for (let k = 0; k < 6; k++) this.interrupteur(m.x + 22 + k * 17, m.y + 70, g)
-    }
     // --- Bloc 5 · Coque : vannes, brèche, sas. ---
     {
       const [m, g] = c('vannes')
@@ -487,7 +495,7 @@ export class Panneau {
       for (let k = 0; k < 6; k++) this.el('line', { x1: m.x + 14, y1: m.y + 76 + k * 5, x2: m.x + 58, y2: m.y + 76 + k * 5, stroke: ENCRE, 'stroke-width': 1.6 }, g)
       this.groupes.set('telegraphe', this.g(g))
     }
-    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs'] as const) this.groupes.set(a, this.g(c(a)[1]))
+    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs', 'constellation', 'gyroscope', 'calculateur'] as const) this.groupes.set(a, this.g(c(a)[1]))
     // Zones de toucher des modules, et le cadre de sélection.
     for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
@@ -534,6 +542,79 @@ export class Panneau {
     this.changer('leviers', e.leviers, () => this.dessinerLeviers(e.leviers))
     this.changer('soupape', e.soupape, () => this.dessinerSoupape(e.soupape))
     this.changer('injecteurs', e.injecteurs, () => this.dessinerInjecteurs(e.injecteurs))
+    this.changer('constellation', e.constellation, () => this.dessinerConstellation(e.constellation))
+    this.changer('gyroscope', e.gyroscope, () => this.dessinerGyroscope(e.gyroscope))
+    this.changer('calculateur', e.calculateur, () => this.dessinerCalculateur(e.calculateur))
+  }
+
+  private dessinerConstellation(e: EtatConstellation): void {
+    const m = CADRES.constellation, g = this.groupes.get('constellation')!
+    g.innerHTML = ''
+    // L'écran rond : réticule, et la constellation à reconnaître.
+    const cx = m.x + 70, cy = m.y + 78, R = 54
+    this.el('circle', { cx: cx + 2, cy: cy + 2, r: R, fill: OMBRE, opacity: 0.4 }, g)
+    this.el('circle', { cx, cy, r: R, fill: '#1f2b22', stroke: ENCRE, 'stroke-width': 2 }, g)
+    this.el('circle', { cx, cy, r: 34, fill: 'none', stroke: '#3c5a3e', 'stroke-width': 1 }, g)
+    this.el('path', { d: `M${cx} ${cy - R} v${2 * R} M${cx - R} ${cy} h${2 * R}`, stroke: '#3c5a3e', 'stroke-width': 1 }, g)
+    const c = e.constellation
+    if (c && !e.bloque) {
+      const p = ([x, y]: readonly [number, number]) => [cx + x * 40, cy + y * 40]
+      for (const [a, b] of c.traits) {
+        const [x1, y1] = p(c.etoiles[a]), [x2, y2] = p(c.etoiles[b])
+        this.el('line', { x1, y1, x2, y2, stroke: '#b9f08c', 'stroke-width': 1, opacity: 0.6 }, g)
+      }
+      for (const s of c.etoiles) { const [x, y] = p(s); this.el('circle', { cx: x, cy: y, r: 3, fill: '#b9f08c' }, g) }
+      this.texte(cx, cy + R - 8, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'middle', fill: '#b9f08c' })
+    } else this.texte(cx, cy + 4, e.bloque ? `BLOQUÉ ${e.bloque} s` : 'CAP OK', 9, g, { 'text-anchor': 'middle', fill: '#b9f08c', 'font-weight': 'bold' })
+    // Les deux cadrans : azimut (tout le tour, 0 en haut) et hauteur (de 0 à 90°).
+    const ax = m.x + 172, ay = m.y + 46, r = 20
+    this.el('circle', { cx: ax, cy: ay, r, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    for (let k = 0; k < 12; k++) { const b = k * Math.PI / 6; this.el('line', { x1: ax + 15 * Math.sin(b), y1: ay - 15 * Math.cos(b), x2: ax + 19 * Math.sin(b), y2: ay - 19 * Math.cos(b), stroke: ENCRE, 'stroke-width': k % 3 ? 0.7 : 1.4 }, g) }
+    const aa = e.azimut * Math.PI / 180
+    this.el('line', { x1: ax, y1: ay, x2: ax + 15 * Math.sin(aa), y2: ay - 15 * Math.cos(aa), stroke: '#e04b37', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g)
+    this.texte(ax, ay + 32, `AZ ${e.azimut}°`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    const hx = m.x + 158, hy = m.y + 120
+    this.el('path', { d: `M${hx} ${hy} h30 A30 30 0 0 0 ${hx} ${hy - 30} Z`, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    const ha = e.hauteur * Math.PI / 180
+    this.el('line', { x1: hx, y1: hy, x2: hx + 26 * Math.cos(ha), y2: hy - 26 * Math.sin(ha), stroke: '#e04b37', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g)
+    this.texte(hx + 14, hy + 14, `HT ${e.hauteur}°`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+  }
+
+  private dessinerGyroscope(e: EtatGyroscope): void {
+    const m = CADRES.gyroscope, g = this.groupes.get('gyroscope')!
+    g.innerHTML = ''
+    const cx = m.x + 69, cy = m.y + 84
+    ANNEAUX.forEach((a, k) => {
+      const r = 52 - k * 12, angle = e.angles[k] * Math.PI / 180
+      this.el('circle', { cx, cy, r, fill: 'none', stroke: ENCRE, 'stroke-width': 6 }, g)
+      this.el('circle', { cx, cy, r, fill: 'none', stroke: a.teinte, 'stroke-width': 3.5 }, g)
+      // Le repère de l'anneau.
+      const freine = e.freines.includes(k)
+      this.el('circle', { cx: cx + r * Math.sin(angle), cy: cy - r * Math.cos(angle), r: freine ? 5 : 4, fill: freine ? '#8fcf98' : '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    })
+    this.el('circle', { cx, cy, r: 9, fill: '#f2c66a', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    // L'index, fixe, en haut.
+    this.el('path', { d: `M${cx - 6} ${cy - 66} h12 l-6 9z`, fill: '#e04b37', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+    if (e.bloque) this.texte(cx, cy + 4, `${e.bloque}s`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+  }
+
+  private dessinerCalculateur(e: EtatCalculateur): void {
+    const m = CADRES.calculateur, g = this.groupes.get('calculateur')!
+    g.innerHTML = ''
+    const ecran = e.bloque ? ['BLOQUÉ', `${e.bloque} s`] : e.code ? [`${e.code}  ${e.numero + 1}/${e.tours}`, '■ '.repeat(e.tapes.length) + '□ '.repeat(3 - e.tapes.length)] : ['CORRECTION', 'OK']
+    this.ecran(m.x + 14, m.y + 12, 116, 34, ecran, g, 10)
+    ASTRES.forEach((s, k) => {
+      const x = m.x + 160 + (k % 4) * 50, y = m.y + 28 + Math.floor(k / 4) * 36, tape = e.tapes.includes(k)
+      this.el('rect', { x: x - 15 + (tape ? 2 : 0), y: y - 14 + (tape ? 2 : 0), width: 30, height: 28, rx: 4, fill: tape ? '#bfe0c8' : '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+      this.texte(x + (tape ? 2 : 0), y + 6 + (tape ? 2 : 0), s, 15, g, { 'text-anchor': 'middle', style: 'font-family: Georgia, serif' })
+    })
+    // Les six interrupteurs (en haut ou en bas).
+    e.interrupteurs.forEach((haut, k) => {
+      const x = m.x + 24 + k * 19, y = m.y + 68
+      this.el('rect', { x: x - 5, y: y - 6, width: 10, height: 14, rx: 2, fill: '#cfc3a0', stroke: ENCRE, 'stroke-width': 1 }, g)
+      this.el('line', { x1: x, y1: y + 1, x2: x, y2: haut ? y - 13 : y + 15, stroke: ENCRE, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g)
+      this.el('circle', { cx: x, cy: haut ? y - 13 : y + 15, r: 2.4, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+    })
   }
 
   private dessinerLeviers(e: EtatLeviers): void {

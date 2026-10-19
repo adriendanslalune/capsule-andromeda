@@ -4,6 +4,7 @@
 import { repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import { BORNES, CALIBRES, TEINTES_ACCUS } from '../donnees/manuel-energie'
 import { LEVIERS, TEINTES_INJECTEURS } from '../donnees/manuel-moteur'
+import { ANNEAUX, ASTRES } from '../donnees/manuel-navigation'
 import type { Geste } from '../moteur/appareils'
 import { attributsMorse, type EtatPanneau } from './panneau'
 
@@ -91,6 +92,32 @@ export function htmlCommandes(a: NomAppareil, e: EtatPanneau): string {
         const coupe = t.coupes.includes(k)
         return `<button type="button" class="${coupe ? 'coupe' : ''}" ${geste({ genre: 'injecteur', injecteur: k })}${b}><i style="background:${TEINTES_INJECTEURS[v]}"></i><b>J${k + 1}</b>${coupe ? 'coupé' : 'couper'}</button>`
       }).join('') + `</div><button type="button" class="action" ${geste({ genre: 'amorcer' })}${b}>AMORCER</button>`
+  }
+  if (a === 'constellation' && e.constellation.constellation) {
+    const t = e.constellation, b = t.bloque ? ' disabled' : ''
+    const bouton = (cadran: 'azimut' | 'hauteur', pas: 1 | -1, texte: string) => `<button type="button" ${geste({ genre: 'cap', cadran, pas })}${b}>${texte}</button>`
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : `AZ ${t.azimut}° · HT ${t.hauteur}°`}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes">' + bouton('azimut', -1, '<b>↺</b>azimut') + bouton('azimut', 1, '<b>↻</b>azimut')
+      + bouton('hauteur', -1, '<b>▼</b>hauteur') + bouton('hauteur', 1, '<b>▲</b>hauteur') + '</div>'
+      + `<button type="button" class="action" ${geste({ genre: 'pointer' })}${b}>POINTER</button>`
+  }
+  if (a === 'gyroscope' && e.gyroscope.actif) {
+    const t = e.gyroscope
+    return titre + `<div class="note-commandes">${t.bloque ? `Gyroscope bloqué : ${t.bloque} s` : 'Freiner chaque anneau quand son repère passe sous l\'index ▼.'}</div>`
+      + '<div class="grille-commandes trois">' + ANNEAUX.map((x, k) => {
+        const freine = t.freines.includes(k)
+        return `<button type="button" ${geste({ genre: 'freiner', anneau: k })}${freine || t.bloque ? ' disabled' : ''} style="background:${x.teinte};color:#fff">`
+          + `<b>${x.titre}</b>${freine ? 'freiné' : 'FREINER'}</button>`
+      }).join('') + '</div>'
+  }
+  if (a === 'calculateur' && e.calculateur.code) {
+    const t = e.calculateur, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : t.code}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes six">' + t.interrupteurs.map((h, k) =>
+        `<button type="button" ${geste({ genre: 'interrupteur', interrupteur: k })}${b}><b>${k + 1}</b>${h ? '▲' : '▼'}</button>`).join('') + '</div>'
+      + '<div class="grille-commandes">' + ASTRES.map((s, k) =>
+        `<button type="button" class="symbole" ${geste({ genre: 'astre', astre: k })}${b || (t.tapes.includes(k) ? ' disabled' : '')}>${s}</button>`).join('') + '</div>'
+      + `<div class="note-commandes">${t.tapes.length} astre${t.tapes.length > 1 ? 's' : ''} sur 3</div>`
   }
   return ''
 }

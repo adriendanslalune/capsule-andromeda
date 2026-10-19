@@ -628,6 +628,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 .grille-commandes.deux { grid-template-columns: repeat(2, 1fr); }
 .grille-commandes.trois { grid-template-columns: repeat(3, 1fr); }
 .grille-commandes.cinq { grid-template-columns: repeat(5, 1fr); }
+.grille-commandes.six { grid-template-columns: repeat(6, 1fr); margin-bottom: 5px; }
 .grille-commandes button i { display: inline-block; width: 12px; height: 12px; margin-right: 4px; border-radius: 50%; border: 1.5px solid var(--encre); vertical-align: middle; }
 .grille-commandes button.coupe { background: #c9c2b0; text-decoration: line-through; }
 #commandes .purger { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; min-height: 64px; }
@@ -645,6 +646,14 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 .note-commandes { margin-top: 6px; font-size: 11px; text-align: center; }
 :is(#manuel, .papier) .morse { text-align: left; letter-spacing: 0.05em; }
 :is(#manuel, .papier) .symbole-manuel { font-family: Georgia, serif; font-size: 16px; }
+:is(#manuel, .papier) .legende-atlas { font-weight: bold; font-size: 12px; margin: 14px 0 6px; }
+:is(#manuel, .papier) .atlas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+:is(#manuel, .papier) .constellation { margin: 0; text-align: center; border: 1px solid currentColor; padding: 4px 2px; }
+:is(#manuel, .papier) .constellation svg { width: 100%; max-width: 90px; }
+:is(#manuel, .papier) .constellation .fond { fill: none; stroke: currentColor; stroke-width: 0.8; stroke-dasharray: 2 3; }
+:is(#manuel, .papier) .constellation line { stroke: currentColor; stroke-width: 1.4; }
+:is(#manuel, .papier) .constellation circle:not(.fond) { fill: currentColor; }
+:is(#manuel, .papier) .constellation figcaption { display: flex; flex-direction: column; font-size: 10px; line-height: 1.3; }
 
 /* Volet Marché (étape 7, écrans d'abord) et onglet SOUTE du volet Capsule. */
 #marche, #soute { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }

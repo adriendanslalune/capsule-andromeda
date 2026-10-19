@@ -66,18 +66,23 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
     couleur du milieu ; brancher dans l'ordre puis COUPLER ; 2 tours) (`src/moteur/energie.ts`,
     `src/donnees/manuel-energie.ts`, `tests/energie.test.ts`). Manuel : sections 2.2 et 2.3. Une panne d'Énergie met
     en défaut un ou deux modules parmi les trois.
-  - Bloc Moteur — **fait, en attente de validation** (19/10/2026) : Leviers (le symbole de la plaque de la
+  - Bloc Moteur — **fait, validé par Adrien le 19/10/2026** (« attaque le bloc 4 ») : Leviers (le symbole de la plaque de la
     soupape donne, TABLEAU 3-1, la position haut/bas des cinq leviers ; ENCLENCHER ; 2 tours) ; Soupape (pression dans
     le rouge ; tenir PURGER, l'aiguille descend de 1,2 graduation par seconde ; relâcher dans la zone du TABLEAU 3-2
     selon la température ; 2 tours ; tant qu'elle est en défaut, son aiguille est dans le rouge, et c'est elle que lit
     la règle R6 du bornier) ; Injecteurs (six voyants verts, orange ou éteints ; TABLEAU 3-3 selon le nombre d'orange :
     lesquels couper ; AMORCER ; 2 tours ; simplifié par rapport à la proposition : pas d'ordre de réamorçage)
     (`src/moteur/propulsion.ts`, `src/donnees/manuel-moteur.ts`, `tests/propulsion.test.ts`). Manuel : section 3.
-  - Blocs Navigation, Coque : dessinés, pas encore raccordés (réparation provisoire depuis ÉTAT) — à faire,
-    mécaniques validées par Adrien le 19/10/2026 : 4A Constellation (atlas de constellations, régler azimut et hauteur),
-    4B Gyroscope (freiner les anneaux au passage de l'index, ordre selon le numéro de série), 4C Calculateur (code →
-    interrupteurs et touches d'astres), 5A Vannes (crans selon la pression de la Brèche), 5B Brèche (ordre des rivets
-    selon la forme de la fissure, puis SOUDER), 5C Sas (procédure en 3 étapes, un interrupteur par message).
+  - Bloc Navigation — **fait, en attente de validation** (19/10/2026) : Constellation (l'écran rond montre une
+    constellation ; l'ATLAS 4-1 du manuel, douze constellations dessinées, donne son cap ; régler l'azimut, crans de
+    30°, et la hauteur, crans de 15°, puis POINTER ; 2 tours) ; Gyroscope (trois anneaux or, bleu, rouge tournent à
+    60, 80 et 100°/s ; les freiner un par un quand leur repère passe sous l'index, à 25° près, dans l'ordre du
+    TABLEAU 4-2 selon le dernier chiffre du numéro de série ; 1 tour) ; Calculateur (code Δ-xxx ; TABLEAU 4-3 : six
+    interrupteurs et trois astres ; régler les interrupteurs puis taper les astres dans l'ordre ; 2 tours)
+    (`src/moteur/guidage.ts`, `src/donnees/manuel-navigation.ts`, `tests/guidage.test.ts`). Manuel : section 4.
+  - Bloc Coque : dessiné, pas encore raccordé (réparation provisoire depuis ÉTAT) — à faire, mécaniques validées par
+    Adrien le 19/10/2026 : 5A Vannes (crans selon la pression de la Brèche), 5B Brèche (ordre des rivets selon la forme
+    de la fissure, puis SOUDER), 5C Sas (procédure en 3 étapes, un interrupteur par message).
     La pression lue par la règle R6 du Bornier est maintenant sur le module 3B Soupape.
 - Maquette de l'interface du jeu complet (`maquette-interface.html`, demande d'Adrien du 18/10/2026 : voir la
   cohérence et l'ergonomie une fois tout installé, avant de continuer les pannes) — **en attente de son avis** :

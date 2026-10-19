@@ -9,6 +9,9 @@ import { brancherAccu, coupler, nouveauxAccumulateurs, nouveauxFusibles, remplac
 import {
   amorcer, basculerLevier, couperInjecteur, enclencher, nouveauxInjecteurs, nouveauxLeviers, nouvelleSoupape, purger,
 } from './propulsion'
+import {
+  basculerInterrupteur, freiner, nouveauCalculateur, nouveauGyroscope, nouvelleConstellation, pointer, reglerCap, taperAstre,
+} from './guidage'
 import { basculerIsoler, couperCable, nouvelleReparation, type EtatReparation, type Resultat } from './reparation'
 
 /** Un geste du joueur sur les commandes d'un module. */
@@ -22,6 +25,9 @@ export type Geste =
   | { genre: 'basculer'; levier: number } | { genre: 'enclencher' }
   | { genre: 'purger'; tenir: boolean }
   | { genre: 'injecteur'; injecteur: number } | { genre: 'amorcer' }
+  | { genre: 'cap'; cadran: 'azimut' | 'hauteur'; pas: 1 | -1 } | { genre: 'pointer' }
+  | { genre: 'freiner'; anneau: number }
+  | { genre: 'interrupteur'; interrupteur: number } | { genre: 'astre'; astre: number }
 
 /** Commence la réparation d'un module raccordé. */
 export function commencer(a: NomAppareil, graine: number): EtatReparation {
@@ -34,6 +40,9 @@ export function commencer(a: NomAppareil, graine: number): EtatReparation {
     case 'leviers': return nouveauxLeviers(graine)
     case 'soupape': return nouvelleSoupape(graine)
     case 'injecteurs': return nouveauxInjecteurs(graine)
+    case 'constellation': return nouvelleConstellation(graine)
+    case 'gyroscope': return nouveauGyroscope(graine)
+    case 'calculateur': return nouveauCalculateur(graine)
     default: return nouvelleReparation(graine)
   }
 }
@@ -58,5 +67,10 @@ export function jouer(a: NomAppareil, r: EtatReparation, g: Geste, numeroSerie: 
   if (a === 'soupape' && g.genre === 'purger') return purger(r, g.tenir, t)
   if (a === 'injecteurs' && g.genre === 'injecteur') return couperInjecteur(r, g.injecteur, t)
   if (a === 'injecteurs' && g.genre === 'amorcer') return amorcer(r, t)
+  if (a === 'constellation' && g.genre === 'cap') return reglerCap(r, g.cadran, g.pas, t)
+  if (a === 'constellation' && g.genre === 'pointer') return pointer(r, t)
+  if (a === 'gyroscope' && g.genre === 'freiner') return freiner(r, g.anneau, numeroSerie, t)
+  if (a === 'calculateur' && g.genre === 'interrupteur') return basculerInterrupteur(r, g.interrupteur, t)
+  if (a === 'calculateur' && g.genre === 'astre') return taperAstre(r, g.astre, t)
   return 'ok'
 }
