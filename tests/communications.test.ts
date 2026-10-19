@@ -54,7 +54,8 @@ describe('les blocs du panneau', () => {
     }
     expect([...nombres].sort()).toEqual([1, 2])
     jeu.casser('energie')
-    expect(jeu.defauts.energie).toEqual(['bornier'])
+    expect(jeu.defauts.energie!.length).toBeGreaterThan(0)
+    expect(jeu.defauts.energie!.every((a) => ['bornier', 'fusibles', 'accumulateurs'].includes(a))).toBe(true)
     // Bloc dont aucun module n'est encore raccordé : réparation provisoire (depuis ÉTAT).
     jeu.casser('moteur')
     expect(jeu.defauts.moteur).toEqual([])
@@ -202,6 +203,7 @@ describe('sauvegarde des blocs', () => {
   it('une sauvegarde de la version 4 : l’Énergie en cours de réparation devient le bornier', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
+    jeu.defauts.energie = ['bornier']
     jeu.casser('communications')
     const r = jeu.reparation('bornier')!
     r.coupes = [1]

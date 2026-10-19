@@ -105,6 +105,7 @@ describe('sauvegarde de la partie', () => {
     const jeu = enRouteVers('Lune')
     jeu.nouvellePartie(123456)
     jeu.casser('energie')
+    jeu.defauts.energie = ['bornier']
     const r = jeu.reparation('bornier')!
     r.coupes = [2]
     const copie = allerRetour(jeu, t0)!

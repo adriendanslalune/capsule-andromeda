@@ -40,6 +40,8 @@ import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
+import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
+import { BORNES } from './donnees/manuel-energie'
 import { gesteDuBouton, htmlCommandes } from './commun/commandes'
 import { APPAREILS_PRETS, BLOCS, blocDe, repere, TITRES_APPAREILS, type NomAppareil } from './donnees/blocs'
 import { FREQUENCES, STATIONS, texteFrequence } from './donnees/manuel-communications'
@@ -811,6 +813,7 @@ commandes.addEventListener('click', (ev) => {
 function etatPanneau(t: number): EtatPanneau {
   const secondes = (r: EtatReparation | null) => r ? Math.max(0, Math.ceil((r.blocageJusqua - t) / 1000)) : 0
   const b = jeu.reparation('bornier'), te = jeu.reparation('telegraphe'), an = jeu.reparation('antenne'), ch = jeu.reparation('chiffreur')
+  const fu = jeu.reparation('fusibles'), ac = jeu.reparation('accumulateurs')
   const tourAn = an ? tourAntenne(an.graine, an.tour) : null
   return {
     pannes: jeu.pannes,
@@ -826,6 +829,10 @@ function etatPanneau(t: number): EtatPanneau {
       angle: an?.reglage ?? 0, numero: an?.tour ?? 0, tours: an?.tours ?? 0, bloque: secondes(an),
     },
     chiffreur: { touches: ch ? tourChiffreur(ch.graine, ch.tour).touches : null, enfoncees: ch?.coupes ?? [], bloque: secondes(ch) },
+    fusibles: { tour: fu ? tourFusibles(fu.graine, fu.tour) : null, numero: fu?.tour ?? 0, tours: fu?.tours ?? 0, bloque: secondes(fu) },
+    accumulateurs: {
+      tour: ac ? tourAccumulateurs(ac.graine, ac.tour) : null, branches: ac?.coupes ?? [], numero: ac?.tour ?? 0, tours: ac?.tours ?? 0, bloque: secondes(ac),
+    },
   }
 }
 function afficherReparation(): void {
@@ -1192,6 +1199,8 @@ Object.assign(window, {
       if (a === 'telegraphe') return tourTelegraphe(r.graine, r.tour)
       if (a === 'antenne') return angleAttendu(tourAntenne(r.graine, r.tour))
       if (a === 'chiffreur') return ordreChiffreur(tourChiffreur(r.graine, r.tour))
+      if (a === 'fusibles') return calibreAttendu(tourFusibles(r.graine, r.tour))
+      if (a === 'accumulateurs') return ordreCouplage(tourAccumulateurs(r.graine, r.tour)).map((i) => BORNES[i])
       return null
     },
     carte, mission, jeu, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },

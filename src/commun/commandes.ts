@@ -2,6 +2,7 @@
 // d'Adrien du 18/10/2026). Chaque bouton porte son geste (data-geste, en JSON) ; la page le transmet au jeu.
 
 import { repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
+import { BORNES, CALIBRES, TEINTES_ACCUS } from '../donnees/manuel-energie'
 import type { Geste } from '../moteur/appareils'
 import { attributsMorse, type EtatPanneau } from './panneau'
 
@@ -51,6 +52,22 @@ export function htmlCommandes(a: NomAppareil, e: EtatPanneau): string {
       const enfoncee = t.enfoncees.includes(k)
       return `<button type="button" class="symbole" ${geste({ genre: 'appuyer', touche: k })}${enfoncee || t.bloque ? ' disabled' : ''}>${s}${enfoncee ? '<small>✓</small>' : ''}</button>`
     }).join('') + `</div><div class="note-commandes">${t.bloque ? `Chiffreur bloqué : ${t.bloque} s` : `${t.enfoncees.length} touche${t.enfoncees.length > 1 ? 's' : ''} sur 4`}</div>`
+  }
+  if (a === 'fusibles' && e.fusibles.tour) {
+    const f = e.fusibles, b = f.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${f.bloque ? `BLOQUÉ ${f.bloque} s` : `GRILLÉ : ${CALIBRES[f.tour!.grille]} A`}</div><div class="tour">fusible ${f.numero + 1}/${f.tours}</div></div>`
+      + '<div class="note-commandes">Tiroir de rechange : toucher le fusible à mettre à la place du grillé.</div>'
+      + '<div class="grille-commandes">' + f.tour!.rechanges.map((c, k) =>
+        `<button type="button" ${geste({ genre: 'remplacer', rechange: k })}${b}><b>${c} A</b>remettre</button>`).join('') + '</div>'
+  }
+  if (a === 'accumulateurs' && e.accumulateurs.tour) {
+    const t = e.accumulateurs, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : `BRANCHÉS ${t.branches.length}/3`}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes trois">' + BORNES.map((borne, k) => {
+        const branche = t.branches.includes(k)
+        return `<button type="button" ${geste({ genre: 'brancher', accu: k })}${branche || t.bloque ? ' disabled' : ''} style="background:${TEINTES_ACCUS[t.tour!.couleurs[k]]};color:#1f1b18">`
+          + `<b>${borne}</b>${branche ? `branché (${t.branches.indexOf(k) + 1})` : 'brancher'}</button>`
+      }).join('') + `</div><button type="button" class="action" ${geste({ genre: 'coupler' })}${b}>COUPLER</button>`
   }
   return ''
 }

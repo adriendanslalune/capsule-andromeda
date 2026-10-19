@@ -5,6 +5,7 @@ import type { NomAppareil } from '../donnees/blocs'
 import {
   appuyer, emettre, nouveauChiffreur, nouveauTelegraphe, nouvelleAntenne, reglerFrequence, tournerAntenne, verrouiller,
 } from './communications'
+import { brancherAccu, coupler, nouveauxAccumulateurs, nouveauxFusibles, remplacer } from './energie'
 import { basculerIsoler, couperCable, nouvelleReparation, type EtatReparation, type Resultat } from './reparation'
 
 /** Un geste du joueur sur les commandes d'un module. */
@@ -13,6 +14,8 @@ export type Geste =
   | { genre: 'regler'; pas: number } | { genre: 'emettre' }
   | { genre: 'tourner'; degres: number } | { genre: 'verrouiller' }
   | { genre: 'appuyer'; touche: number }
+  | { genre: 'remplacer'; rechange: number }
+  | { genre: 'brancher'; accu: number } | { genre: 'coupler' }
 
 /** Commence la réparation d'un module raccordé. */
 export function commencer(a: NomAppareil, graine: number): EtatReparation {
@@ -20,6 +23,8 @@ export function commencer(a: NomAppareil, graine: number): EtatReparation {
     case 'telegraphe': return nouveauTelegraphe(graine)
     case 'antenne': return nouvelleAntenne(graine)
     case 'chiffreur': return nouveauChiffreur(graine)
+    case 'fusibles': return nouveauxFusibles(graine)
+    case 'accumulateurs': return nouveauxAccumulateurs(graine)
     default: return nouvelleReparation(graine)
   }
 }
@@ -33,5 +38,8 @@ export function jouer(a: NomAppareil, r: EtatReparation, g: Geste, numeroSerie: 
   if (a === 'antenne' && g.genre === 'tourner') return tournerAntenne(r, g.degres, t)
   if (a === 'antenne' && g.genre === 'verrouiller') return verrouiller(r, t)
   if (a === 'chiffreur' && g.genre === 'appuyer') return appuyer(r, g.touche, t)
+  if (a === 'fusibles' && g.genre === 'remplacer') return remplacer(r, g.rechange, t)
+  if (a === 'accumulateurs' && g.genre === 'brancher') return brancherAccu(r, g.accu, t)
+  if (a === 'accumulateurs' && g.genre === 'coupler') return coupler(r, t)
   return 'ok'
 }

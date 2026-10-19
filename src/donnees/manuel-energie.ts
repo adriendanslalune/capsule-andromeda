@@ -43,3 +43,40 @@ export const TEXTES_REGLES: Readonly<Record<Regle, string>> = {
 
 /** Note manuscrite du manuel (exception) : sur les capsules dont le numéro de série commence par ce préfixe, R4 est inversée. */
 export const PREFIXE_R4_INVERSEE = 'AN-7'
+
+// --- Module 2B FUSIBLES (décision d'Adrien du 19/10/2026) ---
+
+/** Les calibres des huit fusibles du module, dans l'ordre du porte-fusibles (ampères). */
+export const CALIBRES: readonly number[] = [10, 15, 20, 25, 30, 35, 40, 45]
+
+/** Le voyant TÉMOIN du module 2B. */
+export type Temoin = 'vert' | 'jaune' | 'rouge'
+export const TEMOINS: readonly Temoin[] = ['vert', 'jaune', 'rouge']
+export const TEINTES_TEMOIN: Readonly<Record<Temoin, string>> = { vert: '#5fb36a', jaune: '#f2b53a', rouge: '#e04b37' }
+
+/** TABLEAU 2-3 : le calibre du fusible de rechange, selon le voyant TÉMOIN. */
+export const TEXTES_FUSIBLES: Readonly<Record<Temoin, string>> = {
+  vert: 'Le plus petit calibre égal ou supérieur à la CHARGE affichée.',
+  jaune: 'Le calibre immédiatement au-dessus de celui que donnerait le témoin vert (une marche de plus).',
+  rouge: 'Le même calibre que le fusible grillé, quelle que soit la CHARGE.',
+}
+
+// --- Module 2C ACCUMULATEURS (décision d'Adrien du 19/10/2026) ---
+
+/** Les trois accumulateurs, de gauche à droite : leur borne. */
+export const BORNES: readonly string[] = ['+', '±', '−']
+
+/** La couleur de la cuve d'un accumulateur. */
+export type CouleurAccu = 'vert' | 'jaune' | 'bleu'
+export const COULEURS_ACCUS: readonly CouleurAccu[] = ['vert', 'jaune', 'bleu']
+export const TEINTES_ACCUS: Readonly<Record<CouleurAccu, string>> = { vert: '#8fcf98', jaune: '#f2c66a', bleu: '#8fb4e6' }
+
+/**
+ * TABLEAU 2-4 : l'ordre de couplage (numéros des accumulateurs, 0 : +, 1 : ±, 2 : −), selon l'accumulateur le plus
+ * chargé (lignes) et la couleur de celui du milieu (colonnes : vert, jaune, bleu).
+ */
+export const ORDRES_COUPLAGE: readonly (readonly (readonly number[])[])[] = [
+  [[0, 2, 1], [2, 1, 0], [1, 0, 2]],
+  [[2, 0, 1], [1, 2, 0], [0, 1, 2]],
+  [[1, 2, 0], [0, 2, 1], [2, 0, 1]],
+]

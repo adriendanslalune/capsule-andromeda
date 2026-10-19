@@ -4,7 +4,10 @@
 // section 1 (Communications) et la section 2 (Énergie).
 
 import { CABLAGE, CABLES, CHIFFRES_GYRO, DISJONCTEURS, LES_BUS, SYMBOLES_GYRO, VOYANTS } from '../donnees/depannage'
-import { CODES_ENERGIE, PREFIXE_R4_INVERSEE, REGLES, TEXTES_REGLES } from '../donnees/manuel-energie'
+import {
+  BORNES, CODES_ENERGIE, COULEURS_ACCUS, ORDRES_COUPLAGE, PREFIXE_R4_INVERSEE, REGLES, TEINTES_ACCUS, TEINTES_TEMOIN, TEMOINS,
+  TEXTES_FUSIBLES, TEXTES_REGLES,
+} from '../donnees/manuel-energie'
 import {
   ANGLES_ANTENNE, BANDES, COLONNES_CHIFFREUR, MORSE, MOTS_TELEGRAPHE, STATIONS, texteFrequence,
 } from '../donnees/manuel-communications'
@@ -80,6 +83,9 @@ function sectionCommunications(): string {
 function sectionEnergie(): string {
   const lignesCodes = enDeuxColonnes(CODES_ENERGIE, (c) => (c ? `<td>${c.code}</td><td>${c.circuit}</td><td>${c.regle}</td>` : '<td></td><td></td><td></td>'))
   const lignesRegles = REGLES.map((r) => `<tr><td>${r}</td><td class="gauche">${TEXTES_REGLES[r]}</td></tr>`).join('')
+  const pastille = (teinte: string) => `<span class="pastille-voyant" style="background:${teinte}"></span>`
+  const lignesFusibles = TEMOINS.map((t) => `<tr><td class="gauche">${pastille(TEINTES_TEMOIN[t])}${t.toUpperCase()}</td><td class="gauche">${TEXTES_FUSIBLES[t]}</td></tr>`).join('')
+  const lignesCouplage = BORNES.map((b, k) => `<tr><td><b>${b}</b></td>${ORDRES_COUPLAGE[k].map((o) => `<td>${o.map((i) => BORNES[i]).join(' · ')}</td>`).join('')}</tr>`).join('')
   return feuille('CA-MM-02', 'SECTION 2 — BLOC ÉNERGIE', '2-8', `
     <h3>2.1 Module 2A — Bornier du bus principal</h3>
     ${attention(`Une seule coupure par tour. Toute erreur (mauvais câble, ISOLER trop tôt) déclenche la protection du bus :
@@ -98,7 +104,29 @@ function sectionEnergie(): string {
     <p class="manuscrit">→ attention : sur les capsules ${PREFIXE_R4_INVERSEE}…, la règle R4 est inversée (pair ↔ impair) ! — J.</p>
     <p class="petit">Le numéro de série est gravé sur la plaque de laiton, en haut du panneau. La pression se lit sur le grand
       cadran du module 3B SOUPAPE (bloc Moteur, plus bas sur le panneau) : zone rouge à droite.</p>
-    <p class="petit">Modules 2B FUSIBLES et 2C ACCUMULATEURS : en rédaction.</p>`, true)
+
+    <h3>2.2 Module 2B — Fusibles</h3>
+    ${attention('Un fusible du mauvais calibre saute aussitôt : module bloqué 30 secondes.')}
+    ${procedure('2.2', [
+      'Repérer le <b>fusible grillé</b> (verre noirci, fil rompu) et son calibre, gravé dessous.',
+      'Lire la <b>CHARGE</b> sur l\'écran (en ampères) et la couleur du voyant <b>TÉMOIN</b>.',
+      'Le <b>TABLEAU 2-3</b> donne le calibre du fusible de rechange. Calibres du porte-fusibles : 10, 15, 20, 25, 30, 35, 40 et 45 A.',
+      'Prendre ce calibre dans le <b>tiroir de rechange</b>. Si un second fusible grille, recommencer.',
+    ])}
+    <table><caption>TABLEAU 2-3 — CALIBRE DE RECHANGE</caption>
+      <tr><th class="gauche">TÉMOIN</th><th class="gauche">FUSIBLE À REMETTRE</th></tr>${lignesFusibles}</table>
+    <p class="manuscrit">→ CHARGE 27 A, témoin vert : 30 A. Témoin jaune : 35 A. Pas compliqué ! — J.</p>
+
+    <h3>2.3 Module 2C — Accumulateurs</h3>
+    ${attention('Un accumulateur branché hors de son tour fait disjoncter le couplage : module bloqué 30 secondes, tout est à refaire.')}
+    ${procedure('2.3', [
+      'Repérer l\'accumulateur <b>le plus chargé</b> (sa jauge, et sa charge en % sous la borne).',
+      'Noter la <b>couleur de la cuve</b> de l\'accumulateur du <b>milieu</b> (borne ±).',
+      'Le <b>TABLEAU 2-4</b> donne l\'<b>ordre de couplage</b>. Brancher les trois accumulateurs dans cet ordre, puis <b>COUPLER</b>.',
+      'Les charges changent : recommencer (deux couplages).',
+    ])}
+    <table><caption>TABLEAU 2-4 — ORDRE DE COUPLAGE</caption>
+      <tr><th>LE PLUS<br>CHARGÉ</th>${COULEURS_ACCUS.map((c) => `<th>MILIEU ${pastille(TEINTES_ACCUS[c])}${c.toUpperCase()}</th>`).join('')}</tr>${lignesCouplage}</table>`, true)
 }
 
 /**
@@ -157,7 +185,7 @@ export function htmlManuel(): string {
     <h3>Sommaire</h3>
     <table class="sommaire">
       <tr><td>1</td><td class="gauche"><b>Communications — télégraphe, antenne, chiffreur</b></td><td>p. 1-2</td></tr>
-      <tr><td>2</td><td class="gauche"><b>Énergie — bornier</b> (fusibles, accumulateurs : en rédaction)</td><td>p. 2-8</td></tr>
+      <tr><td>2</td><td class="gauche"><b>Énergie — bornier, fusibles, accumulateurs</b></td><td>p. 2-8</td></tr>
       <tr><td>3</td><td class="gauche">Moteur — leviers, soupape, injecteurs</td><td>en rédaction</td></tr>
       <tr><td>4</td><td class="gauche">Navigation — constellation, gyroscope, calculateur</td><td>en rédaction</td></tr>
       <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>

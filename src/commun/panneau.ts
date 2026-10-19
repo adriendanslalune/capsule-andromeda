@@ -8,7 +8,8 @@
 
 import { BLOCS, repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import type { NomModule } from '../donnees/modules'
-import type { CouleurCable } from '../donnees/manuel-energie'
+import { BORNES, CALIBRES, TEINTES_ACCUS, TEINTES_TEMOIN, type CouleurCable } from '../donnees/manuel-energie'
+import type { TourAccumulateurs, TourFusibles } from '../moteur/energie'
 import type { TourEnergie } from '../moteur/reparation'
 
 const NS = 'http://www.w3.org/2000/svg'
@@ -95,6 +96,26 @@ export interface EtatChiffreur {
   bloque: number
 }
 
+/** Ce que le panneau doit montrer des fusibles. */
+export interface EtatFusibles {
+  /** Tour de réparation en cours, ou null si les fusibles sont en état. */
+  tour: TourFusibles | null
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer des accumulateurs. */
+export interface EtatAccumulateurs {
+  /** Tour de réparation en cours, ou null si les accumulateurs sont en état. */
+  tour: TourAccumulateurs | null
+  /** Accumulateurs déjà branchés (numéros, dans l'ordre). */
+  branches: number[]
+  numero: number
+  tours: number
+  bloque: number
+}
+
 /** Tout ce que le panneau montre. */
 export interface EtatPanneau {
   /** Blocs en panne. */
@@ -105,6 +126,8 @@ export interface EtatPanneau {
   telegraphe: EtatTelegraphe
   antenne: EtatAntenne
   chiffreur: EtatChiffreur
+  fusibles: EtatFusibles
+  accumulateurs: EtatAccumulateurs
 }
 
 /** L'animation SVG (SMIL) qui fait clignoter une lampe selon une suite morse : couleur allumée, couleur éteinte. */
@@ -358,29 +381,6 @@ export class Panneau {
     }
     const c = (a: NomAppareil) => [CADRES[a], cadres.get(a)!] as const
 
-    // --- Bloc 2 · Énergie : fusibles et accumulateurs (décor, en attendant d'être raccordés). ---
-    {
-      const [m, g] = c('fusibles')
-      for (let k = 0; k < 8; k++) {
-        const x = m.x + 16 + (k % 4) * 32, y = m.y + 22 + Math.floor(k / 4) * 44
-        this.el('rect', { x: x - 2, y, width: 26, height: 30, rx: 3, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1 }, g)
-        this.el('rect', { x: x + 4, y: y + 4, width: 14, height: 22, rx: 6, fill: '#e8f1f2', stroke: ENCRE, 'stroke-width': 1, opacity: 0.9 }, g)
-        this.el('path', { d: `M${x + 11} ${y + 6} q4 4 0 9 q-4 4 0 9`, fill: 'none', stroke: '#d9a43a', 'stroke-width': 1.2 }, g)
-        this.texte(x + 4, y + 39, `${10 + k * 5}A`, 5.5, g)
-      }
-    }
-    {
-      const [m, g] = c('accumulateurs')
-      for (let k = 0; k < 3; k++) {
-        const x = m.x + 14 + k * 44, y = m.y + 22
-        this.el('rect', { x: x + 10, y: y - 4, width: 14, height: 6, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 1 }, g)
-        this.el('rect', { x, y, width: 34, height: 62, rx: 4, fill: this.choix(['#bfe0c8', '#f5d38a', '#bfe0e8']), stroke: ENCRE, 'stroke-width': 1.4 }, g)
-        const niveau = this.entre(0.3, 0.95)
-        this.el('rect', { x: x + 6, y: y + 8, width: 22, height: 46, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
-        this.el('rect', { x: x + 6, y: y + 8 + 46 * (1 - niveau), width: 22, height: 46 * niveau, fill: 'url(#hachures)', stroke: 'none' }, g)
-        this.texte(x + 10, y + 76, ['+', '±', '−'][k], 9, g, { 'font-weight': 'bold' })
-      }
-    }
     // --- Bloc 3 · Moteur : leviers, soupape (l'aiguille de PRESSION sert d'indice au bornier), injecteurs. ---
     {
       const [m, g] = c('leviers')
@@ -478,7 +478,7 @@ export class Panneau {
       for (let k = 0; k < 6; k++) this.el('line', { x1: m.x + 14, y1: m.y + 76 + k * 5, x2: m.x + 58, y2: m.y + 76 + k * 5, stroke: ENCRE, 'stroke-width': 1.6 }, g)
       this.groupes.set('telegraphe', this.g(g))
     }
-    for (const a of ['antenne', 'chiffreur', 'bornier'] as const) this.groupes.set(a, this.g(c(a)[1]))
+    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs'] as const) this.groupes.set(a, this.g(c(a)[1]))
     // Zones de toucher des modules, et le cadre de sélection.
     for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
@@ -526,6 +526,50 @@ export class Panneau {
     this.changer('telegraphe', e.telegraphe, () => this.dessinerTelegraphe(e.telegraphe))
     this.changer('antenne', e.antenne, () => this.dessinerAntenne(e.antenne))
     this.changer('chiffreur', e.chiffreur, () => this.dessinerChiffreur(e.chiffreur))
+    this.changer('fusibles', e.fusibles, () => this.dessinerFusibles(e.fusibles))
+    this.changer('accumulateurs', e.accumulateurs, () => this.dessinerAccumulateurs(e.accumulateurs))
+  }
+
+  private dessinerFusibles(e: EtatFusibles): void {
+    const m = CADRES.fusibles, g = this.groupes.get('fusibles')!
+    g.innerHTML = ''
+    // Le porte-fusibles : huit fusibles de verre, calibres gravés dessous ; le grillé a le verre noirci et le fil rompu.
+    CALIBRES.forEach((calibre, k) => {
+      const x = m.x + 12 + (k % 4) * 32, y = m.y + 14 + Math.floor(k / 4) * 33
+      const grille = e.tour?.grille === k
+      this.el('rect', { x: x - 2, y, width: 26, height: 22, rx: 3, fill: '#3b3346', stroke: ENCRE, 'stroke-width': 1 }, g)
+      this.el('rect', { x: x + 2, y: y + 3, width: 18, height: 16, rx: 5, fill: grille ? '#4a4038' : '#e8f1f2', stroke: ENCRE, 'stroke-width': 1, opacity: 0.95 }, g)
+      this.el('path', { d: grille ? `M${x + 4} ${y + 11} q3 -4 5 -1 M${x + 13} ${y + 10} q3 3 5 1` : `M${x + 4} ${y + 11} q3 -5 7 0 q4 5 7 0`, fill: 'none', stroke: grille ? '#e04b37' : '#d9a43a', 'stroke-width': 1.3 }, g)
+      if (grille) this.el('path', { d: `M${x + 9} ${y + 6} l3 3 l-2 2 l3 3`, fill: 'none', stroke: '#faf2dc', 'stroke-width': 0.8 }, g)
+      this.texte(x + 1, y + 29, `${calibre}A`, 6, g, { 'font-weight': grille ? 'bold' : 'normal' })
+    })
+    // L'écran de la CHARGE et le voyant TÉMOIN.
+    const ecran = !e.tour ? ['CHARGE', 'OK'] : e.bloque ? ['PROTECT.', `${e.bloque} s`] : [`CHARGE ${e.numero + 1}/${e.tours}`, `${e.tour.charge} A`]
+    this.ecran(m.x + 10, m.y + 82, 86, 24, ecran, g, 8)
+    this.texte(m.x + 104, m.y + 88, 'TÉMOIN', 6, g, { 'font-weight': 'bold' })
+    this.voyant(m.x + 122, m.y + 98, e.tour ? TEINTES_TEMOIN[e.tour.temoin] : '#7a6a4a', g, 5.5)
+  }
+
+  private dessinerAccumulateurs(e: EtatAccumulateurs): void {
+    const m = CADRES.accumulateurs, g = this.groupes.get('accumulateurs')!
+    g.innerHTML = ''
+    const couleurs = e.tour ? e.tour.couleurs.map((c) => TEINTES_ACCUS[c]) : ['#d9cfb4', '#d9cfb4', '#d9cfb4']
+    const niveaux = e.tour ? e.tour.niveaux : [80, 80, 80]
+    BORNES.forEach((borne, k) => {
+      const x = m.x + 14 + k * 44, y = m.y + 18
+      const branche = e.branches.includes(k)
+      // La borne : verte une fois branchée (avec son rang dans le couplage).
+      this.el('rect', { x: x + 10, y: y - 5, width: 14, height: 7, rx: 1.5, fill: branche ? '#5fb36a' : '#a69f86', stroke: ENCRE, 'stroke-width': 1 }, g)
+      this.el('rect', { x, y, width: 34, height: 56, rx: 4, fill: couleurs[k], stroke: ENCRE, 'stroke-width': 1.6 }, g)
+      this.el('rect', { x: x + 6, y: y + 7, width: 22, height: 40, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+      const h = 40 * niveaux[k] / 100
+      this.el('rect', { x: x + 6, y: y + 47 - h, width: 22, height: h, fill: 'url(#hachures)', stroke: 'none' }, g)
+      this.el('line', { x1: x + 6, y1: y + 47 - h, x2: x + 28, y2: y + 47 - h, stroke: ENCRE, 'stroke-width': 1.2 }, g)
+      if (branche) this.texte(x + 17, y + 31, String(e.branches.indexOf(k) + 1), 14, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+      this.texte(x + 17, y + 68, borne, 10, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+      this.texte(x + 17, y + 80, `${niveaux[k]} %`, 7, g, { 'text-anchor': 'middle' })
+    })
+    if (e.bloque) this.texte(m.x + m.w - 12, m.y + 104, `${e.bloque} s`, 7, g, { 'text-anchor': 'end', fill: '#e04b37', 'font-weight': 'bold' })
   }
 
   private dessinerTelegraphe(e: EtatTelegraphe): void {

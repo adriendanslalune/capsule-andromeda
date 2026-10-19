@@ -65,6 +65,7 @@ describe('réparer l’Énergie sur le panneau', () => {
   it('en suivant le manuel, 2 ou 3 tours, puis l’Énergie marche de nouveau', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
+    jeu.defauts.energie = ['bornier']
     const tours = jeu.reparation('bornier')!.tours
     expect([2, 3]).toContain(tours)
     for (let k = 0; k < tours - 1; k++) expect(bienJouer(jeu, t0)).toBe('tour-suivant')
@@ -76,6 +77,7 @@ describe('réparer l’Énergie sur le panneau', () => {
   it('une erreur bloque le module 30 secondes, sans rien casser de plus', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
+    jeu.defauts.energie = ['bornier']
     const r = jeu.reparation('bornier')!
     const s = solution(tourEnergie(r.graine, r.tour), jeu.numeroSerie)
     const mauvais = 'couper' in s ? (s.couper + 1) % tourEnergie(r.graine, 0).cables.length : 0
@@ -89,6 +91,7 @@ describe('réparer l’Énergie sur le panneau', () => {
   it('basculer ISOLER sans avoir coupé le bon câble est une erreur', () => {
     const jeu = new Jeu()
     jeu.casser('energie')
+    jeu.defauts.energie = ['bornier']
     let r = jeu.reparation('bornier')!
     // Cherche une partie où le premier tour demande un câble (pas « ISOLER deux fois »).
     for (let g = 1; 'isolerDeuxFois' in solution(tourEnergie(r.graine, 0), jeu.numeroSerie); g++) {
@@ -104,6 +107,7 @@ describe('réparer l’Énergie sur le panneau', () => {
     const codes = new Set<string>()
     for (let k = 0; k < 20; k++) {
       jeu.casser('energie')
+      jeu.defauts.energie = ['bornier']
       const r = jeu.reparation('bornier')!
       codes.add(tourEnergie(r.graine, 0).diagnostic.code)
       jeu.reparer('energie')

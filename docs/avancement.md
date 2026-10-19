@@ -58,8 +58,21 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
     Antenne (symbole de station et bande, le manuel donne l'angle ; tourner de ±15° ou ±45°, VERROUILLER ; 2 tours),
     Chiffreur (4 touches à symboles, toutes dans une seule des 6 colonnes du manuel ; les enfoncer dans l'ordre de la
     colonne ; 1 tour). Erreur : étincelle et 30 s de blocage du module.
-  - Bloc Énergie : le Bornier marche ; Fusibles et Accumulateurs dessinés, pas encore raccordés — à faire.
-  - Blocs Moteur, Navigation, Coque : dessinés, pas encore raccordés (réparation provisoire depuis ÉTAT) — à faire.
+  - Bloc Énergie — **fait, en attente de validation** (19/10/2026 ; mécaniques des blocs 2 à 5 validées par Adrien
+    le même jour, codées un bloc à la fois) : Bornier ; Fusibles (un ou deux fusibles grillés, un par tour ; l'écran
+    affiche la CHARGE, le voyant TÉMOIN vert, jaune ou rouge ; TABLEAU 2-3 : le plus petit calibre ≥ charge, une
+    marche de plus, ou le calibre du grillé ; on le prend parmi les 4 du tiroir de rechange) ; Accumulateurs (trois
+    accumulateurs + ± −, charges et couleurs de cuve ; TABLEAU 2-4 : l'ordre de couplage selon le plus chargé et la
+    couleur du milieu ; brancher dans l'ordre puis COUPLER ; 2 tours) (`src/moteur/energie.ts`,
+    `src/donnees/manuel-energie.ts`, `tests/energie.test.ts`). Manuel : sections 2.2 et 2.3. Une panne d'Énergie met
+    en défaut un ou deux modules parmi les trois.
+  - Blocs Moteur, Navigation, Coque : dessinés, pas encore raccordés (réparation provisoire depuis ÉTAT) — à faire,
+    mécaniques validées par Adrien le 19/10/2026 : 3A Leviers (combinaison selon le symbole de la Soupape), 3B Soupape
+    (tenir PURGER, relâcher dans la zone selon la température), 3C Injecteurs (couper puis réamorcer selon les voyants
+    orange), 4A Constellation (atlas de constellations, régler azimut et hauteur), 4B Gyroscope (freiner les anneaux
+    au passage de l'index, ordre selon le numéro de série), 4C Calculateur (code → interrupteurs et touches d'astres),
+    5A Vannes (crans selon la pression de la Brèche), 5B Brèche (ordre des rivets selon la forme de la fissure, puis
+    SOUDER), 5C Sas (procédure en 3 étapes, un interrupteur par message).
     La pression lue par la règle R6 du Bornier est maintenant sur le module 3B Soupape.
 - Maquette de l'interface du jeu complet (`maquette-interface.html`, demande d'Adrien du 18/10/2026 : voir la
   cohérence et l'ergonomie une fois tout installé, avant de continuer les pannes) — **en attente de son avis** :

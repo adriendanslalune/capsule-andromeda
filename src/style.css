@@ -626,6 +626,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 /* Commandes des modules des Communications. */
 .commandes .action { width: 100%; margin-top: 6px; font-size: 14px; letter-spacing: 0.1em; color: #fff; background: #e04b37; }
 .grille-commandes.deux { grid-template-columns: repeat(2, 1fr); }
+.grille-commandes.trois { grid-template-columns: repeat(3, 1fr); }
 .commandes button { background: var(--creme); color: var(--encre); }
 .commandes .symbole { min-height: 64px; font-family: Georgia, serif; font-size: 30px; font-weight: normal; }
 .commandes .symbole small { display: block; font-size: 11px; }
