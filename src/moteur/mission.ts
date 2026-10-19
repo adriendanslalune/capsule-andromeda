@@ -27,7 +27,7 @@ const vectoriel = (a: Vecteur3, b: Vecteur3) => ({ x: a.y * b.z - a.z * b.y, y: 
 const scalaire = (a: Vecteur3, b: Vecteur3) => a.x * b.x + a.y * b.y + a.z * b.z
 
 /** Pas des arcs de contournement (radians). */
-const PAS_DETOUR = (30 * Math.PI) / 180
+const PAS_DETOUR = (10 * Math.PI) / 180
 
 /** Vitesse héliocentrique d'un astre (km/s), par différence de positions à ± 30 s. */
 export function vitesseAstre(nom: string, t: number): Vecteur3 {
@@ -81,29 +81,29 @@ function distanceSegment(a: Vecteur3, b: Vecteur3): number {
 }
 
 /**
- * Contournement d'un astre (à l'origine) entre deux points a et b qui lui sont relatifs : rien si la ligne droite
- * passe assez loin (rayon de sécurité r), sinon des points intermédiaires sur un arc (pas de 30° au plus), à une
- * distance qui passe progressivement de celle de a à celle de b, jamais sous le rayon de sécurité.
+ * Contournement d'un astre (à l'origine) entre deux points a et b qui lui sont relatifs, par le plus court chemin
+ * (demande d'Adrien du 19/10/2026) : rien si la ligne droite passe assez loin (rayon de sécurité r) ; sinon, la
+ * tangente de a au cercle, un arc (pas de 10° au plus), puis la tangente du cercle vers b. Renvoie les points
+ * intermédiaires (le point où l'on quitte la tangente de a, l'arc, le point où l'on prend celle de b).
  */
-function contourner(a: Vecteur3, b: Vecteur3, r: number): Vecteur3[] {
+export function contourner(a: Vecteur3, b: Vecteur3, r: number): Vecteur3[] {
   if (distanceSegment(a, b) >= r) return []
   const la = norme(a), lb = norme(b)
   if (la === 0 || lb === 0) return []
-  const ua = fois(a, 1 / la)
-  const angle = Math.acos(Math.min(1, Math.max(-1, scalaire(a, b) / (la * lb))))
-  // Axe de rotation : perpendiculaire à a et b (s'ils sont opposés, n'importe quel axe perpendiculaire à a).
+  // Le plan de a et b (s'ils sont opposés, n'importe quel plan qui contient a).
+  const e1 = fois(a, 1 / la)
   let axe = vectoriel(a, b)
-  if (norme(axe) < 1e-9 * la * lb) axe = vectoriel(a, Math.abs(ua.z) < 0.9 ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 })
-  const k = unitaire(axe)
-  const n = Math.max(2, Math.ceil(angle / PAS_DETOUR))
-  const points: Vecteur3[] = []
-  for (let j = 1; j < n; j++) {
-    const q = j / n, th = angle * q
-    // Rotation de Rodrigues de ua autour de k (k est perpendiculaire à ua).
-    const u = plus(fois(ua, Math.cos(th)), fois(vectoriel(k, ua), Math.sin(th)))
-    points.push(fois(u, Math.max(la ** (1 - q) * lb ** q, 1.06 * r)))
-  }
-  return points
+  if (norme(axe) < 1e-9 * la * lb) axe = vectoriel(a, Math.abs(e1.z) < 0.9 ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 })
+  const e2 = unitaire(vectoriel(unitaire(axe), e1))
+  const thetaB = Math.atan2(scalaire(b, e2), scalaire(b, e1))
+  const R = Math.min(1.06 * r, la, lb)
+  const t1 = Math.acos(Math.min(1, R / la)), t2 = thetaB - Math.acos(Math.min(1, R / lb))
+  if (t2 <= t1) return []
+  const n = Math.max(1, Math.ceil((t2 - t1) / PAS_DETOUR))
+  return Array.from({ length: n + 1 }, (_, j) => {
+    const th = t1 + ((t2 - t1) * j) / n
+    return plus(fois(e1, R * Math.cos(th)), fois(e2, R * Math.sin(th)))
+  })
 }
 
 /** Rayon de l'orbite d'attente autour d'une destination (km) : basse et circulaire ; à 60 m d'un engin. */
@@ -152,10 +152,15 @@ function construire(depart: PointDePassage, t0: number, cible: string, t1: numbe
   const points: PointDePassage[] = [depart]
   let precedent = pa
   if (D !== 'Soleil') {
-    // Sortie du système de départ, dans la direction de la suite du trajet.
-    const suite = milieu[0]?.rel ?? pb
-    const X: PointDePassage = { ancre: D, rel: fois(unitaire(moins(suite, pa)), rayonSortie(D, norme(depart.rel))) }
-    points.push(...contourner(depart.rel, X.rel, securite(D)).map((rel) => ({ ancre: D, rel })), X)
+    // Sortie du système de départ : on contourne l'astre de départ s'il est sur le chemin de la suite du trajet,
+    // jusqu'à ce qu'il ne gêne plus, puis tout droit (le point de sortie est sur cette ligne droite).
+    const suite = moins(milieu[0]?.rel ?? pb, pa)
+    const tour = contourner(depart.rel, suite, securite(D))
+    const dernier = tour[tour.length - 1] ?? depart.rel
+    const u = unitaire(moins(suite, dernier)), R = rayonSortie(D, norme(depart.rel)), k = scalaire(dernier, u)
+    const s = Math.max(1, -k + Math.sqrt(Math.max(0, k * k - scalaire(dernier, dernier) + R * R)))
+    const X: PointDePassage = { ancre: D, rel: plus(dernier, fois(u, s)) }
+    points.push(...tour.map((rel) => ({ ancre: D, rel })), X)
     cles.push(X)
     precedent = plus(pa, X.rel)
   }

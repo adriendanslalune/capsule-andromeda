@@ -31,7 +31,7 @@ function compteur(avant: number): string {
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`
   }).join('')
   const [x0, y0] = point(-120, 80), [x1, y1] = point(120, 80)
-  return `<svg class="compteur" viewBox="0 0 200 175" aria-hidden="true">
+  return `<svg class="compteur" viewBox="0 8 200 204" aria-hidden="true">
     <g class="eclats">${eclats}</g>
     <circle cx="100" cy="110" r="86" class="boitier"/>
     <path d="M${x0} ${y0} A80 80 0 1 1 ${x1} ${y1}" class="arc"/>

@@ -25,6 +25,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   fenêtre « Nouveau moteur » parlent de vitesse max (compteur gradué jusqu'à 20 000 km/s). Mesuré en jeu : Lune
   3 h 43 au niveau 1, 1 h 07 au niveau 10 ; Mars 2 j 21 h au niveau 6 ; Pluton 5 j 20 h au niveau 10. Un changement
   de vitesse en route (panne, réparation) recalcule le trajet comme un nouveau départ (approximation).
+- Corrections demandées par Adrien le 19/10/2026 — **faites** : la fenêtre « Nouveau moteur » (le compteur débordait
+  sur le texte) ; le contournement d'un astre par le plus court chemin, tangente, arc, tangente (la capsule le longe
+  jusqu'à ce qu'il ne gêne plus, puis va droit vers la suite, au lieu de revenir dans son axe initial), dans le moteur
+  (`contourner`, `src/moteur/mission.ts`, testé) comme sur la carte ; le trajet dessiné va droit du départ à l'arrivée
+  (sans les points de sortie et d'entrée des systèmes) et ses coins sont arrondis (courbe, `src/carte/loupe.ts`).
 
 ---
 

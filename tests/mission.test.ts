@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { corps, position } from '../src/moteur/corps'
-import { avancement, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, type Plan } from '../src/moteur/mission'
+import { avancement, contourner, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, type Plan } from '../src/moteur/mission'
 import { ACCELERATION } from '../src/donnees/capsule'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
@@ -18,6 +18,23 @@ function margeMinimale(p: Plan, astres: string[]): number {
   }
   return mini
 }
+
+describe('le contournement d’un astre, par le plus court (demande d’Adrien du 19/10/2026)', () => {
+  it('tangente, arc, tangente : jamais sous le rayon de sécurité, et pas plus long que nécessaire', () => {
+    const a = { x: 3, y: 0.5, z: 0 }, b = { x: -50, y: -0.2, z: 0 }
+    const tour = contourner(a, b, 1)
+    expect(tour.length).toBeGreaterThan(2)
+    for (const q of tour) expect(Math.hypot(q.x, q.y, q.z)).toBeGreaterThanOrEqual(1.059)
+    // On quitte l'arc dès que b est en vue : le dernier point voit b sans recouper le cercle.
+    const fin = tour[tour.length - 1]
+    const d = { x: b.x - fin.x, y: b.y - fin.y, z: b.z - fin.z }, l2 = d.x * d.x + d.y * d.y + d.z * d.z
+    const k = Math.max(0, Math.min(1, -(fin.x * d.x + fin.y * d.y + fin.z * d.z) / l2))
+    expect(Math.hypot(fin.x + k * d.x, fin.y + k * d.y, fin.z + k * d.z)).toBeGreaterThan(1.05)
+    // Par le côté le plus court : a est un peu au-dessus de l'axe, b presque en face ; on passe par le haut.
+    expect(tour.every((q) => q.y > 0)).toBe(true)
+    expect(contourner({ x: 3, y: 2, z: 0 }, { x: -3, y: 2, z: 0 }, 1)).toEqual([])
+  })
+})
 
 describe('la durée d’un trajet (10 g, vitesse maximale du moteur)', () => {
   it('trajet long : accélération, croisière, freinage ; trajet court : on freine avant d’atteindre la vitesse maximale', () => {

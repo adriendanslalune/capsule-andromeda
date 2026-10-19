@@ -183,27 +183,67 @@ function distanceAuSegment(a: Point2, b: Point2, c: Point2): number {
   return Math.hypot(a.x + k * dx - c.x, a.y + k * dy - c.y)
 }
 
-/** Arc qui contourne le disque (centre c, rayon r) de a vers b, par le plus court, en pas de 30° au plus (sans a ni b). */
-function arc(a: Point2, b: Point2, c: Point2, r: number): Point2[] {
+/**
+ * Le plus court chemin de a à b autour du disque (centre c, rayon r) qui coupe le trait [a, b] : la tangente de a au
+ * cercle, un arc (pas de 5° au plus), la tangente vers b (demande d'Adrien du 19/10/2026 : on contourne l'astre
+ * jusqu'à ce qu'il ne gêne plus, puis tout droit). Renvoie les points intermédiaires (sans a ni b).
+ */
+function contournement(a: Point2, b: Point2, c: Point2, r: number): Point2[] {
   const ra = Math.hypot(a.x - c.x, a.y - c.y), rb = Math.hypot(b.x - c.x, b.y - c.y)
-  const ta = Math.atan2(a.y - c.y, a.x - c.x)
-  let d = Math.atan2(b.y - c.y, b.x - c.x) - ta
-  d = Math.atan2(Math.sin(d), Math.cos(d))
-  const n = Math.max(2, Math.ceil(Math.abs(d) / (Math.PI / 6)))
-  const points: Point2[] = []
-  for (let j = 1; j < n; j++) {
-    const q = j / n, th = ta + d * q
-    const rho = Math.max(Math.max(ra, 1) ** (1 - q) * Math.max(rb, 1) ** q, 1.06 * r)
-    points.push({ x: c.x + rho * Math.cos(th), y: c.y + rho * Math.sin(th) })
-  }
-  return points
+  const R = Math.min(1.06 * r, ra, rb)
+  const ta = Math.atan2(a.y - c.y, a.x - c.x), tb = Math.atan2(b.y - c.y, b.x - c.x)
+  let d = Math.atan2(Math.sin(tb - ta), Math.cos(tb - ta))
+  const sens = d < 0 ? -1 : 1
+  d = Math.abs(d)
+  const t1 = Math.acos(Math.min(1, R / ra)), t2 = d - Math.acos(Math.min(1, R / rb))
+  if (t2 <= t1) return []
+  const n = Math.max(1, Math.ceil((t2 - t1) / (Math.PI / 36)))
+  return Array.from({ length: n + 1 }, (_, j) => {
+    const th = ta + sens * (t1 + ((t2 - t1) * j) / n)
+    return { x: c.x + R * Math.cos(th), y: c.y + R * Math.sin(th) }
+  })
+}
+
+/** Chemin de a à b qui contourne, dans l'ordre où le trait les rencontre, les disques qui le gênent (sans a ni b). */
+function cheminLibre(a: Point2, b: Point2, disques: { c: Point2; r: number }[], profondeur = 0): Point2[] {
+  // Un bout du trait tout près du disque (la capsule en orbite basse) : on contourne à sa hauteur, sans traverser l'astre.
+  const genants = disques.map((d) => ({ ...d, r: Math.min(d.r, 0.98 * Math.hypot(a.x - d.c.x, a.y - d.c.y), 0.98 * Math.hypot(b.x - d.c.x, b.y - d.c.y)) }))
+    .filter((d) => distanceAuSegment(a, b, d.c) < d.r)
+  if (!genants.length || profondeur > 4) return []
+  // Le premier disque rencontré en partant de a.
+  const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1
+  genants.sort((p, q) => ((p.c.x - a.x) * dx + (p.c.y - a.y) * dy) / l2 - ((q.c.x - a.x) * dx + (q.c.y - a.y) * dy) / l2)
+  const d = genants[0]
+  const tour = contournement(a, b, d.c, d.r)
+  if (!tour.length) return []
+  const sortie = tour[tour.length - 1]
+  return [...tour, ...cheminLibre(sortie, b, disques.filter((x) => x.c !== d.c), profondeur + 1)]
 }
 
 /**
- * Le trajet dessiné (km de carte) : des traits droits entre les points clés du trajet (moteur/mission.ts), vus à
- * travers la loupe. Le départ est la capsule telle qu'elle est dessinée ; l'arrivée, la destination telle qu'elle sera
- * dessinée à l'arrivée (une planète : là où elle sera ; une lune, un satellite : autour de son astre, tel qu'il est
- * maintenant). Si un trait coupe le disque dessiné d'un astre, il le contourne par un arc.
+ * Adoucit un tracé (coins arrondis, algorithme de Chaikin) en gardant ses deux bouts : le trajet dessiné est une
+ * courbe, pas une suite de traits droits (demande d'Adrien du 19/10/2026).
+ */
+function adoucir(q: Point2[], passes = 3): Point2[] {
+  let l = q
+  for (let k = 0; k < passes && l.length > 2; k++) {
+    const r: Point2[] = [l[0]]
+    for (let i = 0; i < l.length - 1; i++) {
+      const p0 = l[i], p1 = l[i + 1]
+      if (i > 0) r.push({ x: 0.75 * p0.x + 0.25 * p1.x, y: 0.75 * p0.y + 0.25 * p1.y })
+      if (i < l.length - 2) r.push({ x: 0.25 * p0.x + 0.75 * p1.x, y: 0.25 * p0.y + 0.75 * p1.y })
+    }
+    r.push(l[l.length - 1])
+    l = r
+  }
+  return l
+}
+
+/**
+ * Le trajet dessiné (km de carte), vu à travers la loupe : du départ (la capsule telle qu'elle est dessinée) à
+ * l'arrivée (la destination telle qu'elle sera dessinée à l'arrivée : une planète, là où elle sera ; une lune, un
+ * satellite, autour de son astre, tel qu'il est maintenant). Tout droit, sauf pour contourner par le plus court les
+ * disques dessinés des astres qui gênent (départ, arrivée, Soleil) ; les coins sont arrondis.
  */
 export function projeterTrajet(p: Plan, t: number): Point2[] {
   const n = p.cles.length
@@ -228,18 +268,12 @@ export function projeterTrajet(p: Plan, t: number): Point2[] {
     }
     return projeter({ p: ici, t })
   })
-  const trace: Point2[] = [cles[0]]
-  for (let i = 1; i < n; i++) {
-    const a = cles[i - 1], b = cles[i]
-    for (const nom of new Set([p.cles[i - 1].ancre, p.cles[i].ancre, 'Soleil'])) {
-      const c = nom === 'Soleil' ? { x: 0, y: 0 } : projeterCorps(nom, t)
-      const r = obstacle(nom)
-      if (Math.hypot(a.x - c.x, a.y - c.y) < r || Math.hypot(b.x - c.x, b.y - c.y) < r) continue
-      if (distanceAuSegment(a, b, c) < r) { trace.push(...arc(a, b, c, r)); break }
-    }
-    trace.push(b)
-  }
-  return trace
+  // Les points de sortie et d'entrée des systèmes (utiles au moteur) ne servent pas au dessin : on va droit du départ à
+  // l'arrivée, en contournant ce qui gêne.
+  const a = cles[0], b = cles[n - 1]
+  const disques = [...new Set([p.cles[0].ancre, p.cles[n - 1].ancre, 'Soleil'])]
+    .map((nom) => ({ c: nom === 'Soleil' ? { x: 0, y: 0 } : projeterCorps(nom, t), r: obstacle(nom) }))
+  return adoucir([a, ...cheminLibre(a, b, disques), b])
 }
 
 /** Longueur d'un tracé (dans le plan de la carte). */
