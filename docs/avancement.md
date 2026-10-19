@@ -12,7 +12,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
 | 7. Commerce (Marché ouvert à tous) | **en cours** : écrans du Marché faits (voir ci-dessous) |
 | 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
-| 9. Première zone à libérer : la Lune | à faire |
+| 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | à faire, à définir avec Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |

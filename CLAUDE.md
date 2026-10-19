@@ -73,7 +73,7 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 6. Combat : Armement (dans le volet Capsule) ; refait en temps réel, vue du dessus, façon jeu de tir Game Boy (décision d'Adrien du 19/10/2026).
 7. Commerce (ouvert à tous) : volet Marché, cours par formule du temps, décalés selon le délai lumière.
 8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités — appartenance faite (19/10/2026) ; avantages entre membres plus tard.
-9. Première zone à libérer : la Lune.
+9. Campagne de jeu (décision d'Adrien du 19/10/2026, qui remplace « première zone à libérer : la Lune ») : des quêtes principales, dont la Lune ; à définir avec Adrien.
 10. Serveur, comptes, volet Messages, échanges entre joueurs.
 11. Tutoriel autour de la Terre : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune (une fois toutes les mécaniques en place).
 12. Version installable (PWA), puis boutique.
