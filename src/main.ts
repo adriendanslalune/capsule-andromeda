@@ -22,6 +22,7 @@ import { VueTri } from './commun/vue-tri'
 import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
+import { VueEscorte } from './commun/vue-escorte'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -580,6 +581,25 @@ function agirMission(): void {
     })
     return
   }
+  // Escorter un convoi : à l'arrivée, l'embuscade (décision d'Adrien du 18/10/2026 : ESCORTER, Mercenaires).
+  if (jeu.etapeDEscorte() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueEscorte.ouvrir({
+      titre: lieu.toUpperCase(),
+      zone: jeu.zoneEnCours(),
+      surFin: (coups) => {
+        const ev = jeu.escorter(coups, horloge(), vitesse())
+        if (!ev) return 'La capsule n\'est plus sur place : l\'escorte n\'est pas validée.'
+        traiterEvenements(ev)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        return `Le convoi est à bon port, à ${lieu}.`
+      },
+    })
+    return
+  }
   // Remorquer une épave : d'abord la harponner et la stabiliser (décision d'Adrien du 18/10/2026 : REMORQUER).
   if (jeu.etapeDeHarponnage() && jeu.peutAgir(t)) {
     const lieu = jeu.etapeActuelle()!.lieu
@@ -926,6 +946,7 @@ const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
 const vueAmarrage = new VueAmarrage(document.querySelector<HTMLDivElement>('#amarrage')!)
 const vueDepannage = new VueDepannage(document.querySelector<HTMLDivElement>('#depannage')!)
 const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('#remorquage')!)
+const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), jeu.soute))
@@ -1154,5 +1175,6 @@ Object.assign(window, {
     amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
     depannage: () => vueDepannage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est validé.' }),
     remorquage: () => vueRemorquage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est remorqué.' }),
+    escorte: (zone = 1) => vueEscorte.ouvrir({ titre: 'ESSAI', zone, surFin: () => 'Essai : aucun convoi réel.' }),
   },
 })

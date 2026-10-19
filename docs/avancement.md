@@ -208,6 +208,14 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - ESCORTER (19/10/2026) — **fait, en attente de validation** : l'étape ESCORTER (à destination) lance l'embuscade
+    (`src/donnees/escorte.ts`, `src/moteur/escorte.ts`, `src/commun/vue-escorte.ts`, tests `tests/escorte.test.ts`).
+    Trois cargos montent l'écran, la capsule derrière ; des missiles partent des bords vers un cargo (trajectoire en
+    pointillé) ; toucher le ciel lance un intercepteur (rayon d'environ 35 px, 0,3 s de recharge). Un missile qui passe
+    abîme son cargo (fumée) ; deux coups, il est hors d'usage ; les trois hors d'usage : le convoi se replie, la vague
+    recommence. Nombre de missiles selon la zone du système : 10 près de la Terre, 17 vers Jupiter, 22 vers Pluton, et
+    plus serrés. Sans un coup reçu : prime de 10 %. L'étape REJOINDRE (à la station de départ) reste une attente.
+    Réglages PROVISOIRES. Essai : `andromeda.escorte(zone)` (1 = Terre, 60 = Pluton).
   - REMORQUER (19/10/2026) — **fait, en attente de validation** : l'étape HARPONNER se joue en plein écran
     (`src/donnees/remorquage.ts`, `src/moteur/remorquage.ts`, `src/commun/vue-remorquage.ts`, tests
     `tests/remorquage.test.ts`). L'épave (carcasse cabossée) tourne sur elle-même, dans un sens ou l'autre, de 60 à

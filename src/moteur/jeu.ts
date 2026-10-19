@@ -13,11 +13,12 @@ import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
+import { BONUS_SANS_COUP } from '../donnees/escorte'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
-import { PORTEES, TABLEAUX, type Portee } from '../donnees/tableaux'
+import { PORTEES, TABLEAUX, ZONES, type Portee } from '../donnees/tableaux'
 import { contexte } from './tableaux'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
@@ -448,6 +449,28 @@ export class Jeu {
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements
+  }
+
+  /** L'étape actuelle est-elle la fin d'une escorte (l'embuscade sur la dernière ligne droite) ? */
+  etapeDEscorte(): boolean {
+    return this.etapeActuelle()?.action === 'escorter'
+  }
+
+  /**
+   * Le convoi est arrivé : l'étape est faite. Escorté sans un coup reçu, la récompense augmente de 10 %
+   * (BONUS_SANS_COUP). null si ce n'est pas possible ici.
+   */
+  escorter(coups: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDEscorte() || !this.peutAgir(t)) return null
+    if (coups === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_COUP) / 10) * 10
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** Facteur de zone de la mission en cours (son système : 1 pour la Terre … 60 pour Pluton). */
+  zoneEnCours(): number {
+    return ZONES[this.enCours?.contrat.tableau ?? 'Terre'] ?? 1
   }
 
   /** Tonnes dans la soute. */
