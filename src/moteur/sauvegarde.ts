@@ -206,6 +206,8 @@ export function restaurer(s: unknown): Jeu | null {
   if (avecBlocs) {
     jeu.reparations = v.reparations
     jeu.defauts = v.defauts
+    // Un bloc en panne qui se réparait depuis ÉTAT (avant que ses modules soient raccordés) : on tire ses modules en défaut.
+    for (const m of jeu.pannes) if (!jeu.defauts[m]?.length) jeu.tirerDefauts(m)
   } else {
     // Avant les blocs : on tire les modules en défaut des blocs en panne ; l'Énergie garde sa réparation en cours.
     for (const m of jeu.pannes) jeu.tirerDefauts(m)

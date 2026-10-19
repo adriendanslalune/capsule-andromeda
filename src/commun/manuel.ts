@@ -1,12 +1,13 @@
 // Le Manuel (dans « Plus », et depuis le panneau de réparation ; maquette validée par Adrien le 18/10/2026) : un manuel de maintenance façon NASA des
 // années 60, sur vieux papier crème. Il lit les mêmes données que le panneau (src/donnees/manuel-*.ts) : ce qui y est
-// écrit est exactement ce que le jeu attend. Une section par bloc du panneau ; pour l'instant : le sommaire, la
-// section 1 (Communications) et la section 2 (Énergie).
+// écrit est exactement ce que le jeu attend. Le sommaire, une section par bloc du panneau (1 à 5), et la section 6
+// (les engins à dépanner des missions RÉPARER).
 
 import {
   COMBINAISONS, LEVIERS, SYMBOLES_SOUPAPE, TEINTES_INJECTEURS, TEXTES_INJECTEURS, ZONE_ROUGE, ZONES_PURGE,
 } from '../donnees/manuel-moteur'
 import { ANNEAUX, ASTRES, CODES_CALCUL, CONSTELLATIONS, ORDRES_GYRO, TOLERANCE_GYRO } from '../donnees/manuel-navigation'
+import { CRANS_PAR_PRESSION, FISSURES, MESSAGES_SAS, RIVETS, VANNES } from '../donnees/manuel-coque'
 import { CABLAGE, CABLES, CHIFFRES_GYRO, DISJONCTEURS, LES_BUS, SYMBOLES_GYRO, VOYANTS } from '../donnees/depannage'
 import {
   BORNES, CODES_ENERGIE, COULEURS_ACCUS, ORDRES_COUPLAGE, PREFIXE_R4_INVERSEE, REGLES, TEINTES_ACCUS, TEINTES_TEMOIN, TEMOINS,
@@ -218,6 +219,52 @@ function sectionNavigation(): string {
       <tr><th>CODE</th><th>INTERRUPTEURS 1 → 6</th><th>ASTRES</th></tr>${lignesCodes}</table>`)
 }
 
+/** Une forme de fissure, dessinée sur sa plaque (rivets aux coins). */
+function carteFissure(k: number): string {
+  const f = FISSURES[k]
+  const trace = f.trace.map(([x, y]) => `${10 + x * 40} ${8 + y * 64}`).join(' L')
+  return `<figure class="constellation"><svg viewBox="0 0 60 80"><rect x="2" y="2" width="56" height="76" rx="2" class="fond"/>`
+    + `<path d="M${trace}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>`
+    + [[7, 7], [53, 7], [7, 73], [53, 73]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3"/>`).join('')
+    + `</svg><figcaption><b>${f.nom}</b><span>${f.ordre.map((i) => RIVETS[i]).join(' → ')}</span></figcaption></figure>`
+}
+
+function sectionCoque(): string {
+  const sens = (n: number) => (n === 0 ? '—' : `${n > 0 ? '↻' : '↺'} ${Math.abs(n)}`)
+  const lignesVannes = CRANS_PAR_PRESSION.map((l, k) => `<tr><td>${k + 1}</td>${l.map((n) => `<td>${sens(n)}</td>`).join('')}</tr>`).join('')
+  const lignesSas = enDeuxColonnes(MESSAGES_SAS, (m) => (m ? `<td class="gauche">${m.message}</td><td>${m.interrupteur}</td>` : '<td></td><td></td>'))
+  return feuille('CA-MM-05', 'SECTION 5 — BLOC COQUE', '5-1', `
+    <h3>5.1 Module 5A — Vannes</h3>
+    ${attention('Une vanne tournée d\'un cran de trop, ou dans le mauvais sens, et la fuite reprend : module bloqué 30 secondes, les vannes reviennent à leur position.')}
+    ${procedure('5.1', [
+      'Lire la <b>pression</b> sur le manomètre <b>BAR</b> du module <b>5B BRÈCHE</b>, à droite des vannes (de 1 à 9).',
+      'Le <b>TABLEAU 5-1</b> donne de combien de crans tourner chaque vanne : ↻ dans le sens des aiguilles d\'une montre, ↺ en sens inverse, — ne pas y toucher.',
+      'Tourner les vannes, puis <b>ÉTANCHER</b>. La pression change : recommencer (deux étanchéités).',
+    ])}
+    <table><caption>TABLEAU 5-1 — CRANS DES VANNES</caption>
+      <tr><th>BAR</th>${VANNES.map((v) => `<th>VANNE ${v.lettre}</th>`).join('')}</tr>${lignesVannes}</table>
+
+    <h3>5.2 Module 5B — Brèche</h3>
+    ${procedure('5.2', [
+      'Comparer la <b>fissure</b> de la plaque aux six formes du <b>TABLEAU 5-2</b>.',
+      'Frapper les quatre <b>rivets</b> dans l\'ordre indiqué (HG : haut gauche, HD : haut droite, BG : bas gauche, BD : bas droite).',
+      'Puis <b>SOUDER</b>. Une nouvelle fissure apparaît : recommencer (deux soudures).',
+    ])}
+    <p class="legende-atlas">TABLEAU 5-2 — FISSURES ET ORDRE DES RIVETS</p>
+    <div class="atlas">${FISSURES.map((_, k) => carteFissure(k)).join('')}</div>
+
+    <h3>5.3 Module 5C — Sas</h3>
+    ${attention('Un interrupteur basculé hors procédure interrompt le cycle du sas : module bloqué 30 secondes, la procédure reprend à l\'étape 1.')}
+    ${procedure('5.3', [
+      'Lire le <b>message</b> sur l\'écran du sas.',
+      'Le <b>TABLEAU 5-3</b> donne l\'<b>interrupteur</b> à basculer (numérotés de 1 à 8, de gauche à droite).',
+      'Un voyant vert s\'allume et un nouveau message s\'affiche : recommencer. Trois voyants verts : le sas est réparé.',
+    ])}
+    <table><caption>TABLEAU 5-3 — PROCÉDURE DU SAS</caption>
+      <tr><th class="gauche">MESSAGE</th><th>INTER.</th><th class="gauche">MESSAGE</th><th>INTER.</th></tr>${lignesSas}</table>
+    <p class="manuscrit">→ P 1.01 et P 0.82, ce n'est pas pareil. Lire jusqu'au bout ! — J.</p>`)
+}
+
 /**
  * Section 6 : le boîtier technique des engins à dépanner (satellites, stations ; missions RÉPARER des Ingénieurs).
  * Les tableaux sont lus dans donnees/depannage.ts : ce qui est écrit est exactement ce que le jeu attend.
@@ -277,17 +324,16 @@ export function htmlManuel(): string {
       <tr><td>2</td><td class="gauche"><b>Énergie — bornier, fusibles, accumulateurs</b></td><td>p. 2-8</td></tr>
       <tr><td>3</td><td class="gauche"><b>Moteur — leviers, soupape, injecteurs</b></td><td>p. 3-1</td></tr>
       <tr><td>4</td><td class="gauche"><b>Navigation — constellation, gyroscope, calculateur</b></td><td>p. 4-1</td></tr>
-      <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>
+      <tr><td>5</td><td class="gauche"><b>Coque — vannes, brèche, sas</b></td><td>p. 5-1</td></tr>
       <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
     </table>
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
-      commandes.</p>
-    <p class="petit">En attendant la rédaction de la section 5, le bloc Coque se répare depuis l'onglet ÉTAT du volet
-      Capsule (procédure provisoire).</p>`)}
+      commandes.</p>`)}
   ${sectionCommunications()}
   ${sectionEnergie()}
   ${sectionMoteur()}
   ${sectionNavigation()}
+  ${sectionCoque()}
   ${sectionEngins()}`
 }

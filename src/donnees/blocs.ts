@@ -37,10 +37,10 @@ export const TITRES_APPAREILS: Readonly<Record<NomAppareil, string>> = {
   vannes: 'VANNES', breche: 'BRÈCHE', sas: 'SAS',
 }
 
-/** Modules déjà raccordés (qui peuvent tomber en défaut et se réparer avec le manuel) ; les autres viendront. */
+/** Modules raccordés (qui peuvent tomber en défaut et se réparer avec le manuel) : tous, depuis le 19/10/2026. */
 export const APPAREILS_PRETS: readonly NomAppareil[] = [
   'telegraphe', 'antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs',
-  'constellation', 'gyroscope', 'calculateur',
+  'constellation', 'gyroscope', 'calculateur', 'vannes', 'breche', 'sas',
 ]
 
 export function ficheBloc(bloc: NomModule): FicheBloc {

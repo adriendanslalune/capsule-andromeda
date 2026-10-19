@@ -12,6 +12,7 @@ import {
 import {
   basculerInterrupteur, freiner, nouveauCalculateur, nouveauGyroscope, nouvelleConstellation, pointer, reglerCap, taperAstre,
 } from './guidage'
+import { basculerSas, etancher, frapper, nouveauSas, nouvelleBreche, nouvellesVannes, souder, tournerVanne } from './coque'
 import { basculerIsoler, couperCable, nouvelleReparation, type EtatReparation, type Resultat } from './reparation'
 
 /** Un geste du joueur sur les commandes d'un module. */
@@ -28,6 +29,9 @@ export type Geste =
   | { genre: 'cap'; cadran: 'azimut' | 'hauteur'; pas: 1 | -1 } | { genre: 'pointer' }
   | { genre: 'freiner'; anneau: number }
   | { genre: 'interrupteur'; interrupteur: number } | { genre: 'astre'; astre: number }
+  | { genre: 'vanne'; vanne: number; pas: 1 | -1 } | { genre: 'etancher' }
+  | { genre: 'rivet'; rivet: number } | { genre: 'souder' }
+  | { genre: 'sas'; interrupteur: number }
 
 /** Commence la réparation d'un module raccordé. */
 export function commencer(a: NomAppareil, graine: number): EtatReparation {
@@ -35,6 +39,7 @@ export function commencer(a: NomAppareil, graine: number): EtatReparation {
     case 'telegraphe': return nouveauTelegraphe(graine)
     case 'antenne': return nouvelleAntenne(graine)
     case 'chiffreur': return nouveauChiffreur(graine)
+    case 'bornier': return nouvelleReparation(graine)
     case 'fusibles': return nouveauxFusibles(graine)
     case 'accumulateurs': return nouveauxAccumulateurs(graine)
     case 'leviers': return nouveauxLeviers(graine)
@@ -43,7 +48,9 @@ export function commencer(a: NomAppareil, graine: number): EtatReparation {
     case 'constellation': return nouvelleConstellation(graine)
     case 'gyroscope': return nouveauGyroscope(graine)
     case 'calculateur': return nouveauCalculateur(graine)
-    default: return nouvelleReparation(graine)
+    case 'vannes': return nouvellesVannes(graine)
+    case 'breche': return nouvelleBreche(graine)
+    case 'sas': return nouveauSas(graine)
   }
 }
 
@@ -72,5 +79,10 @@ export function jouer(a: NomAppareil, r: EtatReparation, g: Geste, numeroSerie: 
   if (a === 'gyroscope' && g.genre === 'freiner') return freiner(r, g.anneau, numeroSerie, t)
   if (a === 'calculateur' && g.genre === 'interrupteur') return basculerInterrupteur(r, g.interrupteur, t)
   if (a === 'calculateur' && g.genre === 'astre') return taperAstre(r, g.astre, t)
+  if (a === 'vannes' && g.genre === 'vanne') return tournerVanne(r, g.vanne, g.pas, t)
+  if (a === 'vannes' && g.genre === 'etancher') return etancher(r, t)
+  if (a === 'breche' && g.genre === 'rivet') return frapper(r, g.rivet, t)
+  if (a === 'breche' && g.genre === 'souder') return souder(r, t)
+  if (a === 'sas' && g.genre === 'sas') return basculerSas(r, g.interrupteur, t)
   return 'ok'
 }

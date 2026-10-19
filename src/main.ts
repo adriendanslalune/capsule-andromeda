@@ -43,6 +43,8 @@ import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
 import { BORNES } from './donnees/manuel-energie'
 import { COMBINAISONS, SYMBOLES_SOUPAPE } from './donnees/manuel-moteur'
+import { CRANS_PAR_PRESSION, FISSURES, MESSAGES_SAS, RIVETS } from './donnees/manuel-coque'
+import { cransVannes, interrupteursSas, tourBreche, tourSas, tourVannes } from './moteur/coque'
 import { ANNEAUX, ASTRES, AZIMUTS, CODES_CALCUL, CONSTELLATIONS, HAUTEURS } from './donnees/manuel-navigation'
 import {
   angleAnneau, cadransConstellation, interrupteursCalcul, ordreGyro, tourCalculateur, tourConstellation,
@@ -842,6 +844,7 @@ function etatPanneau(t: number): EtatPanneau {
   const le = jeu.reparation('leviers'), so = jeu.reparation('soupape'), inj = jeu.reparation('injecteurs')
   const co = jeu.reparation('constellation'), gy = jeu.reparation('gyroscope'), ca = jeu.reparation('calculateur')
   const cadCo = co ? cadransConstellation(co) : null, tourCa = ca ? tourCalculateur(ca.graine, ca.tour) : null
+  const va = jeu.reparation('vannes'), br = jeu.reparation('breche'), sa = jeu.reparation('sas')
   const tourB = b ? tourEnergieVu(b.graine, b.tour, jeu.pressionForcee()) : null
   const tourAn = an ? tourAntenne(an.graine, an.tour) : null
   return {
@@ -888,6 +891,16 @@ function etatPanneau(t: number): EtatPanneau {
     calculateur: {
       code: tourCa ? CODES_CALCUL[tourCa.code].code : null, interrupteurs: ca ? interrupteursCalcul(ca) : [true, false, true, true, false, false],
       tapes: ca?.coupes ?? [], numero: ca?.tour ?? 0, tours: ca?.tours ?? 0, bloque: secondes(ca),
+    },
+    vannes: { actif: !!va, crans: va ? cransVannes(va) : [0, 0, 0], numero: va?.tour ?? 0, tours: va?.tours ?? 0, bloque: secondes(va) },
+    breche: {
+      fissure: br ? FISSURES[tourBreche(br.graine, br.tour).fissure].trace : null, frappes: br?.coupes ?? [],
+      // Le manomètre montre la pression que lisent les vannes en défaut ; sinon, la pression normale.
+      pression: va ? tourVannes(va.graine, va.tour).pression : 1, numero: br?.tour ?? 0, tours: br?.tours ?? 0, bloque: secondes(br),
+    },
+    sas: {
+      message: sa ? MESSAGES_SAS[tourSas(sa.graine, sa.tour).messages[sa.coupes.length]].message : null, etape: sa?.coupes.length ?? 0,
+      interrupteurs: sa ? interrupteursSas(sa) : Array(8).fill(false), bloque: secondes(sa),
     },
   }
 }
@@ -1262,6 +1275,9 @@ Object.assign(window, {
       if (a === 'constellation') { const c = CONSTELLATIONS[tourConstellation(r.graine, r.tour).constellation]; return `${c.nom} : AZ ${c.azimut}°, HT ${c.hauteur}°` }
       if (a === 'gyroscope') return { ordre: ordreGyro(jeu.numeroSerie).map((i) => ANNEAUX[i].titre), angles: [0, 1, 2].map((i) => angleAnneau(r, i, horloge())) }
       if (a === 'calculateur') { const c = CODES_CALCUL[tourCalculateur(r.graine, r.tour).code]; return { interrupteurs: c.interrupteurs.map((h) => (h ? 'H' : 'B')).join(' '), astres: c.astres.map((i) => ASTRES[i]).join(' ') } }
+      if (a === 'vannes') return CRANS_PAR_PRESSION[tourVannes(r.graine, r.tour).pression - 1]
+      if (a === 'breche') return FISSURES[tourBreche(r.graine, r.tour).fissure].ordre.map((i) => RIVETS[i])
+      if (a === 'sas') return tourSas(r.graine, r.tour).messages.map((m) => MESSAGES_SAS[m].interrupteur)
       if (a === 'accumulateurs') return ordreCouplage(tourAccumulateurs(r.graine, r.tour)).map((i) => BORNES[i])
       return null
     },

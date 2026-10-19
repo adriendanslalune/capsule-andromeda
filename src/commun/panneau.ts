@@ -11,6 +11,7 @@ import type { NomModule } from '../donnees/modules'
 import { BORNES, CALIBRES, TEINTES_ACCUS, TEINTES_TEMOIN, type CouleurCable } from '../donnees/manuel-energie'
 import { LEVIERS, TEINTES_INJECTEURS, ZONE_ROUGE, type VoyantInjecteur } from '../donnees/manuel-moteur'
 import { ANNEAUX, ASTRES, type Constellation } from '../donnees/manuel-navigation'
+import { RIVETS, VANNES, type Fissure } from '../donnees/manuel-coque'
 import type { TourAccumulateurs, TourFusibles } from '../moteur/energie'
 import type { TourEnergie } from '../moteur/reparation'
 
@@ -189,6 +190,39 @@ export interface EtatCalculateur {
   bloque: number
 }
 
+/** Ce que le panneau doit montrer des vannes (bloc Coque). */
+export interface EtatVannes {
+  actif: boolean
+  /** Cran de chaque vanne (0 à 7). */
+  crans: number[]
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer de la brèche. */
+export interface EtatBreche {
+  /** Le tracé de la fissure, ou null quand la plaque est saine. */
+  fissure: Fissure['trace'] | null
+  /** Rivets déjà frappés (numéros). */
+  frappes: number[]
+  /** Pression du manomètre BAR (lue par les vannes). */
+  pression: number
+  numero: number
+  tours: number
+  bloque: number
+}
+
+/** Ce que le panneau doit montrer du sas. */
+export interface EtatSas {
+  /** Le message de l'étape en cours, ou null quand le sas est en état. */
+  message: string | null
+  /** Étapes réussies (0 à 3). */
+  etape: number
+  interrupteurs: boolean[]
+  bloque: number
+}
+
 /** Tout ce que le panneau montre. */
 export interface EtatPanneau {
   /** Blocs en panne. */
@@ -207,6 +241,9 @@ export interface EtatPanneau {
   constellation: EtatConstellation
   gyroscope: EtatGyroscope
   calculateur: EtatCalculateur
+  vannes: EtatVannes
+  breche: EtatBreche
+  sas: EtatSas
 }
 
 /** L'animation SVG (SMIL) qui fait clignoter une lampe selon une suite morse : couleur allumée, couleur éteinte. */
@@ -459,35 +496,6 @@ export class Panneau {
     }
     const c = (a: NomAppareil) => [CADRES[a], cadres.get(a)!] as const
 
-    // --- Bloc 5 · Coque : vannes, brèche, sas. ---
-    {
-      const [m, g] = c('vannes')
-      ;['#d9694f', '#3f63c4', '#8fcf98'].forEach((couleur, k) => {
-        const x = m.x + 40 + k * 66, y = m.y + 52
-        this.el('circle', { cx: x, cy: y, r: 22, fill: 'none', stroke: ENCRE, 'stroke-width': 7 }, g)
-        this.el('circle', { cx: x, cy: y, r: 22, fill: 'none', stroke: couleur, 'stroke-width': 4.5 }, g)
-        this.el('path', { d: `M${x} ${y - 22} v44 M${x - 22} ${y} h44`, stroke: ENCRE, 'stroke-width': 2.5 }, g)
-        this.el('circle', { cx: x, cy: y, r: 5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.2 }, g)
-        this.texte(x - 3, y + 40, 'ABC'[k], 8, g, { 'font-weight': 'bold' })
-      })
-    }
-    {
-      const [m, g] = c('breche')
-      this.cadran(m.x + 40, m.y + 50, 26, g); this.texte(m.x + 30, m.y + 90, 'BAR', 7, g)
-      this.el('rect', { x: m.x + 78, y: m.y + 20, width: 48, height: 80, rx: 3, fill: '#c9c2b0', stroke: ENCRE, 'stroke-width': 1.4 }, g)
-      this.el('path', { d: `M${m.x + 84} ${m.y + 30} l10 14 l-6 10 l14 12 l-4 12 l12 14`, fill: 'none', stroke: ENCRE, 'stroke-width': 1.6 }, g)
-      for (let k = 0; k < 4; k++) this.rivet(m.x + 84 + (k % 2) * 36, m.y + 26 + Math.floor(k / 2) * 68, g)
-    }
-    {
-      const [m, g] = c('sas')
-      this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 36, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 2 }, g)
-      this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 26, fill: '#bfe0e8', stroke: ENCRE, 'stroke-width': 1.6 }, g)
-      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; this.rivet(m.x + 56 + 31 * Math.cos(a), m.y + 52 + 31 * Math.sin(a), g) }
-      for (let k = 0; k < 8; k++) this.interrupteur(m.x + 120 + k * 26, m.y + 40, g)
-      this.ecran(m.x + 120, m.y + 60, 120, 26, ['SAS FERMÉ', 'P 1.01'], g, 8)
-      this.voyant(m.x + 270, m.y + 72, '#8fcf98', g, 6); this.voyant(m.x + 300, m.y + 72, '#c9b88a', g, 6); this.voyant(m.x + 330, m.y + 72, '#c9b88a', g, 6)
-    }
-
     // --- Les modules raccordés : ce qui change à chaque geste est redessiné par afficher(). ---
     {
       // Télégraphe : décor (grille du haut-parleur), le reste change.
@@ -495,7 +503,7 @@ export class Panneau {
       for (let k = 0; k < 6; k++) this.el('line', { x1: m.x + 14, y1: m.y + 76 + k * 5, x2: m.x + 58, y2: m.y + 76 + k * 5, stroke: ENCRE, 'stroke-width': 1.6 }, g)
       this.groupes.set('telegraphe', this.g(g))
     }
-    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs', 'constellation', 'gyroscope', 'calculateur'] as const) this.groupes.set(a, this.g(c(a)[1]))
+    for (const a of ['antenne', 'chiffreur', 'bornier', 'fusibles', 'accumulateurs', 'leviers', 'soupape', 'injecteurs', 'constellation', 'gyroscope', 'calculateur', 'vannes', 'breche', 'sas'] as const) this.groupes.set(a, this.g(c(a)[1]))
     // Zones de toucher des modules, et le cadre de sélection.
     for (const [nom, m] of Object.entries(CADRES) as [NomAppareil, Cadre][]) {
       const z = this.el('rect', { x: m.x, y: m.y - 8, width: m.w, height: m.h + 8, fill: 'transparent', class: 'commande' })
@@ -545,6 +553,79 @@ export class Panneau {
     this.changer('constellation', e.constellation, () => this.dessinerConstellation(e.constellation))
     this.changer('gyroscope', e.gyroscope, () => this.dessinerGyroscope(e.gyroscope))
     this.changer('calculateur', e.calculateur, () => this.dessinerCalculateur(e.calculateur))
+    this.changer('vannes', e.vannes, () => this.dessinerVannes(e.vannes))
+    this.changer('breche', e.breche, () => this.dessinerBreche(e.breche))
+    this.changer('sas', e.sas, () => this.dessinerSas(e.sas))
+  }
+
+  private dessinerVannes(e: EtatVannes): void {
+    const m = CADRES.vannes, g = this.groupes.get('vannes')!
+    g.innerHTML = ''
+    VANNES.forEach((v, k) => {
+      const x = m.x + 40 + k * 66, y = m.y + 52
+      // Les huit crans gravés autour du volant, et le volant tourné de son cran (repère jaune).
+      for (let c = 0; c < 8; c++) { const a = c * Math.PI / 4; this.el('line', { x1: x + 26 * Math.sin(a), y1: y - 26 * Math.cos(a), x2: x + 30 * Math.sin(a), y2: y - 30 * Math.cos(a), stroke: ENCRE, 'stroke-width': c ? 0.8 : 1.6 }, g) }
+      const gv = this.g(g, { transform: `rotate(${e.crans[k] * 45} ${x} ${y})` })
+      this.el('circle', { cx: x, cy: y, r: 21, fill: 'none', stroke: ENCRE, 'stroke-width': 7 }, gv)
+      this.el('circle', { cx: x, cy: y, r: 21, fill: 'none', stroke: v.teinte, 'stroke-width': 4.5 }, gv)
+      this.el('path', { d: `M${x} ${y - 21} v42 M${x - 21} ${y} h42`, stroke: ENCRE, 'stroke-width': 2.5 }, gv)
+      this.el('circle', { cx: x, cy: y - 21, r: 3.5, fill: '#f2b53a', stroke: ENCRE, 'stroke-width': 1 }, gv)
+      this.el('circle', { cx: x, cy: y, r: 5, fill: '#d9a43a', stroke: ENCRE, 'stroke-width': 1.2 }, g)
+      this.texte(x, y + 44, v.lettre, 8, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    })
+    if (e.bloque) this.texte(m.x + m.w - 10, m.y + 16, `BLOQUÉ ${e.bloque} s`, 7, g, { 'text-anchor': 'end', fill: '#e04b37', 'font-weight': 'bold' })
+    else if (e.actif) this.texte(m.x + m.w - 10, m.y + 16, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'end', 'font-weight': 'bold' })
+  }
+
+  private dessinerBreche(e: EtatBreche): void {
+    const m = CADRES.breche, g = this.groupes.get('breche')!
+    g.innerHTML = ''
+    // Le manomètre BAR, gradué de 0 à 10 (lu par les vannes).
+    const cx = m.x + 38, cy = m.y + 54, r = 28
+    const angle = (p: number) => (-135 + 27 * p) * Math.PI / 180
+    this.el('circle', { cx: cx + 1.5, cy: cy + 1.5, r, fill: OMBRE, opacity: 0.4 }, g)
+    this.el('circle', { cx, cy, r, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    for (let p = 0; p <= 10; p++) {
+      const a = angle(p)
+      this.el('line', { x1: cx + r * 0.74 * Math.sin(a), y1: cy - r * 0.74 * Math.cos(a), x2: cx + r * 0.94 * Math.sin(a), y2: cy - r * 0.94 * Math.cos(a), stroke: ENCRE, 'stroke-width': p % 2 ? 0.7 : 1.3 }, g)
+      if (p % 2 === 0) this.texte(cx + r * 0.52 * Math.sin(a), cy - r * 0.52 * Math.cos(a) + 2.2, String(p), 6, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    }
+    const a = angle(e.pression)
+    this.el('line', { x1: cx, y1: cy, x2: cx + r * 0.8 * Math.sin(a), y2: cy - r * 0.8 * Math.cos(a), stroke: '#e04b37', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g)
+    this.el('circle', { cx, cy, r: 3, fill: ENCRE }, g)
+    this.texte(cx, m.y + 100, 'BAR', 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+    // La plaque, sa fissure et ses quatre rivets.
+    const px = m.x + 76, py = m.y + 16, pw = 52, ph = 86
+    this.el('rect', { x: px, y: py, width: pw, height: ph, rx: 3, fill: '#c9c2b0', stroke: ENCRE, 'stroke-width': 1.4 }, g)
+    if (e.fissure && !e.bloque) {
+      this.el('path', { d: 'M' + e.fissure.map(([x, y]) => `${px + 6 + x * (pw - 12)} ${py + 8 + y * (ph - 16)}`).join(' L'), fill: 'none', stroke: ENCRE, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }, g)
+    } else if (!e.fissure) this.el('path', { d: `M${px + 10} ${py + ph / 2} h${pw - 20}`, stroke: '#a69f86', 'stroke-width': 3, 'stroke-dasharray': '3 2' }, g)
+    else this.texte(px + pw / 2, py + ph / 2, `${e.bloque}s`, 8, g, { 'text-anchor': 'middle', fill: '#e04b37', 'font-weight': 'bold' })
+    RIVETS.forEach((_, k) => {
+      const x = px + (k % 2 ? pw - 7 : 7), y = py + (k < 2 ? 7 : ph - 7), frappe = e.frappes.includes(k)
+      this.el('circle', { cx: x, cy: y, r: frappe ? 4.5 : 3.2, fill: frappe ? '#5fb36a' : '#e8c97a', stroke: ENCRE, 'stroke-width': 1 }, g)
+    })
+    if (e.fissure && !e.bloque) this.texte(px + pw / 2, py + ph + 10, `${e.numero + 1}/${e.tours}`, 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+  }
+
+  private dessinerSas(e: EtatSas): void {
+    const m = CADRES.sas, g = this.groupes.get('sas')!
+    g.innerHTML = ''
+    // Le hublot du sas.
+    this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 36, fill: '#a69f86', stroke: ENCRE, 'stroke-width': 2 }, g)
+    this.el('circle', { cx: m.x + 56, cy: m.y + 52, r: 26, fill: e.message ? '#f3c2b0' : '#bfe0e8', stroke: ENCRE, 'stroke-width': 1.6 }, g)
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; this.rivet(m.x + 56 + 31 * Math.cos(a), m.y + 52 + 31 * Math.sin(a), g) }
+    // Les huit interrupteurs, numérotés.
+    e.interrupteurs.forEach((bas, k) => {
+      const x = m.x + 122 + k * 27, y = m.y + 30
+      this.texte(x, y + 28, String(k + 1), 7, g, { 'text-anchor': 'middle', 'font-weight': 'bold' })
+      this.el('rect', { x: x - 6, y: y - 6, width: 12, height: 16, rx: 2, fill: '#cfc3a0', stroke: ENCRE, 'stroke-width': 1 }, g)
+      this.el('line', { x1: x, y1: y + 2, x2: x, y2: bas ? y + 15 : y - 11, stroke: ENCRE, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g)
+      this.el('circle', { cx: x, cy: bas ? y + 15 : y - 11, r: 2.6, fill: '#faf2dc', stroke: ENCRE, 'stroke-width': 0.8 }, g)
+    })
+    const ecran = e.bloque ? ['PROCÉDURE INTERROMPUE', `${e.bloque} s`] : e.message ? [e.message, `ÉTAPE ${e.etape + 1}/3`] : ['SAS FERMÉ', 'P 1.01']
+    this.ecran(m.x + 116, m.y + 64, 140, 30, ecran, g, 9)
+    for (let k = 0; k < 3; k++) this.voyant(m.x + 280 + k * 26, m.y + 79, k < e.etape ? '#8fcf98' : '#c9b88a', g, 6)
   }
 
   private dessinerConstellation(e: EtatConstellation): void {

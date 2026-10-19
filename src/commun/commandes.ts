@@ -5,6 +5,7 @@ import { repere, TITRES_APPAREILS, type NomAppareil } from '../donnees/blocs'
 import { BORNES, CALIBRES, TEINTES_ACCUS } from '../donnees/manuel-energie'
 import { LEVIERS, TEINTES_INJECTEURS } from '../donnees/manuel-moteur'
 import { ANNEAUX, ASTRES } from '../donnees/manuel-navigation'
+import { RIVETS, VANNES } from '../donnees/manuel-coque'
 import type { Geste } from '../moteur/appareils'
 import { attributsMorse, type EtatPanneau } from './panneau'
 
@@ -118,6 +119,30 @@ export function htmlCommandes(a: NomAppareil, e: EtatPanneau): string {
       + '<div class="grille-commandes">' + ASTRES.map((s, k) =>
         `<button type="button" class="symbole" ${geste({ genre: 'astre', astre: k })}${b || (t.tapes.includes(k) ? ' disabled' : '')}>${s}</button>`).join('') + '</div>'
       + `<div class="note-commandes">${t.tapes.length} astre${t.tapes.length > 1 ? 's' : ''} sur 3</div>`
+  }
+  if (a === 'vannes' && e.vannes.actif) {
+    const t = e.vannes, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : 'VANNES'}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes six">' + VANNES.map((v, k) =>
+        `<button type="button" ${geste({ genre: 'vanne', vanne: k, pas: -1 })}${b}><b>↺</b>${v.lettre}</button>`
+        + `<button type="button" ${geste({ genre: 'vanne', vanne: k, pas: 1 })}${b}><b>↻</b>${v.lettre}</button>`).join('') + '</div>'
+      + `<button type="button" class="action" ${geste({ genre: 'etancher' })}${b}>ÉTANCHER</button>`
+  }
+  if (a === 'breche' && e.breche.fissure) {
+    const t = e.breche, b = t.bloque ? ' disabled' : ''
+    const titres = ['haut gauche', 'haut droite', 'bas gauche', 'bas droite']
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : `RIVETS ${t.frappes.length}/4`}</div><div class="tour">tour ${t.numero + 1}/${t.tours}</div></div>`
+      + '<div class="grille-commandes deux">' + RIVETS.map((r, k) => {
+        const frappe = t.frappes.includes(k)
+        return `<button type="button" ${geste({ genre: 'rivet', rivet: k })}${frappe || t.bloque ? ' disabled' : ''}><b>${r}</b>${frappe ? `frappé (${t.frappes.indexOf(k) + 1})` : titres[k]}</button>`
+      }).join('') + `</div><button type="button" class="action" ${geste({ genre: 'souder' })}${b}>SOUDER</button>`
+  }
+  if (a === 'sas' && e.sas.message) {
+    const t = e.sas, b = t.bloque ? ' disabled' : ''
+    return titre + `<div class="ligne-commandes"><div class="affichage">${t.bloque ? `BLOQUÉ ${t.bloque} s` : `ÉTAPE ${t.etape + 1}/3`}</div></div>`
+      + '<div class="note-commandes">Basculer l\'interrupteur que le manuel donne pour le message de l\'écran.</div>'
+      + '<div class="grille-commandes">' + t.interrupteurs.map((bas, k) =>
+        `<button type="button" ${geste({ genre: 'sas', interrupteur: k })}${b}><b>${k + 1}</b>${bas ? '▼' : '▲'}</button>`).join('') + '</div>'
   }
   return ''
 }

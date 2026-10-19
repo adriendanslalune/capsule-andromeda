@@ -56,11 +56,12 @@ describe('les blocs du panneau', () => {
     jeu.casser('energie')
     expect(jeu.defauts.energie!.length).toBeGreaterThan(0)
     expect(jeu.defauts.energie!.every((a) => ['bornier', 'fusibles', 'accumulateurs'].includes(a))).toBe(true)
-    // Bloc dont aucun module n'est encore raccordé : réparation provisoire (depuis ÉTAT).
-    jeu.casser('coque')
-    expect(jeu.defauts.coque).toEqual([])
-    expect(jeu.reparationProvisoire('coque')).toBe(true)
-    expect(jeu.reparationProvisoire('energie')).toBe(false)
+    // Tous les modules sont raccordés : plus aucun bloc ne se répare depuis ÉTAT.
+    for (const b of BLOCS) {
+      jeu.casser(b.bloc)
+      expect(jeu.defauts[b.bloc]!.length).toBeGreaterThan(0)
+      expect(jeu.reparationProvisoire(b.bloc)).toBe(false)
+    }
     expect(APPAREILS_PRETS).toContain('chiffreur')
   })
 
@@ -215,5 +216,13 @@ describe('sauvegarde des blocs', () => {
     expect(copie.defauts.energie).toEqual(['bornier'])
     expect(copie.reparations.bornier).toEqual(r)
     expect(copie.defauts.communications!.length).toBeGreaterThan(0)
+  })
+
+  it('une partie où un bloc en panne se réparait depuis ÉTAT : ses modules sont tirés au chargement', () => {
+    const jeu = new Jeu()
+    jeu.casser('coque')
+    jeu.defauts.coque = []
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.defauts.coque!.length).toBeGreaterThan(0)
   })
 })

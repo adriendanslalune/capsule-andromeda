@@ -73,16 +73,21 @@ et manuel vintage façon Jules Verne, missiles et aliens visibles au radar).
     la règle R6 du bornier) ; Injecteurs (six voyants verts, orange ou éteints ; TABLEAU 3-3 selon le nombre d'orange :
     lesquels couper ; AMORCER ; 2 tours ; simplifié par rapport à la proposition : pas d'ordre de réamorçage)
     (`src/moteur/propulsion.ts`, `src/donnees/manuel-moteur.ts`, `tests/propulsion.test.ts`). Manuel : section 3.
-  - Bloc Navigation — **fait, en attente de validation** (19/10/2026) : Constellation (l'écran rond montre une
+  - Bloc Navigation — **fait, validé par Adrien le 19/10/2026** (« attaque le bloc 5 ») : Constellation (l'écran rond montre une
     constellation ; l'ATLAS 4-1 du manuel, douze constellations dessinées, donne son cap ; régler l'azimut, crans de
     30°, et la hauteur, crans de 15°, puis POINTER ; 2 tours) ; Gyroscope (trois anneaux or, bleu, rouge tournent à
     60, 80 et 100°/s ; les freiner un par un quand leur repère passe sous l'index, à 25° près, dans l'ordre du
     TABLEAU 4-2 selon le dernier chiffre du numéro de série ; 1 tour) ; Calculateur (code Δ-xxx ; TABLEAU 4-3 : six
     interrupteurs et trois astres ; régler les interrupteurs puis taper les astres dans l'ordre ; 2 tours)
     (`src/moteur/guidage.ts`, `src/donnees/manuel-navigation.ts`, `tests/guidage.test.ts`). Manuel : section 4.
-  - Bloc Coque : dessiné, pas encore raccordé (réparation provisoire depuis ÉTAT) — à faire, mécaniques validées par
-    Adrien le 19/10/2026 : 5A Vannes (crans selon la pression de la Brèche), 5B Brèche (ordre des rivets selon la forme
-    de la fissure, puis SOUDER), 5C Sas (procédure en 3 étapes, un interrupteur par message).
+  - Bloc Coque — **fait, en attente de validation** (19/10/2026) : Vannes (le manomètre BAR du module 5B montre une
+    pression de 1 à 9 ; TABLEAU 5-1 : de combien de crans tourner chaque vanne A, B, C, et dans quel sens ; ÉTANCHER ;
+    2 tours ; c'est le nombre de crans tournés qui compte, pas seulement la position finale) ; Brèche (six formes de
+    fissure dessinées dans le TABLEAU 5-2, chacune avec l'ordre de frappe des quatre rivets ; puis SOUDER ; 2 tours) ;
+    Sas (trois étapes ; à chaque étape un message, TABLEAU 5-3 : l'interrupteur à basculer parmi 8 ; une erreur fait
+    tout recommencer) (`src/moteur/coque.ts`, `src/donnees/manuel-coque.ts`, `tests/coque.test.ts`). Manuel : section 5.
+  - **Panneau complet** : les quinze modules sont raccordés ; plus aucun bloc ne se répare depuis ÉTAT (une ancienne
+    partie avec un bloc en panne sans module en défaut les tire au chargement).
     La pression lue par la règle R6 du Bornier est maintenant sur le module 3B Soupape.
 - Maquette de l'interface du jeu complet (`maquette-interface.html`, demande d'Adrien du 18/10/2026 : voir la
   cohérence et l'ergonomie une fois tout installé, avant de continuer les pannes) — **en attente de son avis** :
