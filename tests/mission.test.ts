@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { corps, position } from '../src/moteur/corps'
-import { avancement, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, type Plan } from '../src/moteur/mission'
+import { avancement, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, type Plan } from '../src/moteur/mission'
+import { ACCELERATION } from '../src/donnees/capsule'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
 const JOUR = 86_400_000
@@ -17,6 +18,32 @@ function margeMinimale(p: Plan, astres: string[]): number {
   }
   return mini
 }
+
+describe('la durée d’un trajet (10 g, vitesse maximale du moteur)', () => {
+  it('trajet long : accélération, croisière, freinage ; trajet court : on freine avant d’atteindre la vitesse maximale', () => {
+    const a = ACCELERATION
+    expect(a).toBeCloseTo(0.0980665)
+    // Terre → Lune avec le moteur de départ (30 km/s) : 3 h 38 environ.
+    expect(dureeTrajet(384_400, 30) / 3600).toBeCloseTo(3.64, 1)
+    // Avec un moteur très puissant, la Lune ne descend jamais sous 1 h 06 (2 √(L/a)).
+    expect(dureeTrajet(384_400, 15_360) / 60).toBeCloseTo(66, 0)
+    expect(dureeTrajet(384_400, 15_360)).toBe(dureeTrajet(384_400, 1e9))
+    expect(vitesseDePointe(dureeTrajet(384_400, 15_360), 15_360)).toBeCloseTo(Math.sqrt(a * 384_400), 3)
+    // Le profil reste continu à la limite entre les deux cas.
+    const v = 100, L = (v * v) / a
+    expect(dureeTrajet(L * 0.999999, v)).toBeCloseTo(dureeTrajet(L, v), 1)
+  })
+
+  it('l’avancement suit le trapèze des vitesses (ou le triangle) et finit bien à 1', () => {
+    const plan = (T: number, vitesse: number) => ({ depart: 0, arrivee: T * 1000, vitesse }) as Plan
+    const court = plan(dureeTrajet(384_400, 15_360), 15_360)
+    expect(avancement(court, court.arrivee / 2)).toBeCloseTo(0.5, 6)
+    const long = plan(dureeTrajet(1e8, 30), 30)
+    expect(avancement(long, long.arrivee)).toBeCloseTo(1, 9)
+    expect(avancement(long, 0)).toBe(0)
+    for (let k = 1; k < 20; k++) expect(avancement(long, (k / 20) * long.arrivee)).toBeGreaterThan(avancement(long, ((k - 1) / 20) * long.arrivee))
+  })
+})
 
 describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
   it('vers Mars : plus les moteurs sont puissants, plus le trajet est court', () => {
@@ -36,17 +63,18 @@ describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
     }
   })
 
-  it('vitesse constante en croisière, accélération au départ, freinage à l’arrivée', () => {
+  it('accélération à 10 g, vitesse maximale en croisière, freinage à 10 g (décision d’Adrien du 19/10/2026)', () => {
     const p = planifier(new Mission().etatHeliocentrique(t0), 'Lune', t0, 50)
     if (!p.possible) throw new Error('impossible')
-    const relative = (f: number) => {
-      const t = p.plan.depart + f * (p.plan.arrivee - p.plan.depart)
+    const relative = (t: number) => {
       const v = etatSurTrajet(p.plan, t).v, vt = vitesseAstre('Terre', t)
       return Math.hypot(v.x - vt.x, v.y - vt.y, v.z - vt.z)
     }
-    for (const f of [0.2, 0.4, 0.6, 0.8]) expect(relative(f) / 50).toBeCloseTo(1, 1)
-    expect(relative(0.02)).toBeLessThan(15)
-    expect(relative(0.98)).toBeLessThan(15)
+    const T = p.plan.arrivee - p.plan.depart
+    for (const f of [0.2, 0.4, 0.6, 0.8]) expect(relative(p.plan.depart + f * T) / 50).toBeCloseTo(1, 1)
+    // Une minute après le départ : environ 6 km/s gagnés (10 g), plus la vitesse sur l'orbite de départ.
+    expect(relative(p.plan.depart + 60_000)).toBeLessThan(15)
+    expect(relative(p.plan.arrivee - 60_000)).toBeLessThan(15)
     expect(avancement(p.plan, p.plan.depart)).toBe(0)
     expect(avancement(p.plan, p.plan.arrivee)).toBe(1)
   })

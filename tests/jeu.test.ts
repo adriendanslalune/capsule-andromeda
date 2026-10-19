@@ -1,3 +1,4 @@
+import { NIVEAUX_MOTEUR } from '../src/donnees/capsule'
 import { describe, expect, it } from 'vitest'
 import { lignesDuBandeau } from '../src/moteur/bandeau'
 import { Jeu } from '../src/moteur/jeu'
@@ -25,7 +26,7 @@ describe('état du jeu au départ (décision d’Adrien du 17/10/2026)', () => {
 })
 
 describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
-  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 600) et 4 (250 km/s, 1 500)', () => {
+  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 600) et 4 (240 km/s, 1 500)', () => {
     const jeu = new Jeu()
     expect(jeu.moteurSuivant()).toMatchObject({ niveau: 2, vitesse: 60, prix: 200 })
     jeu.credits = 199
@@ -37,9 +38,21 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     expect(jeu.vitesse()).toBe(60)
     jeu.credits = 10_000
     expect(jeu.acheterMoteur() && jeu.acheterMoteur()).toBe(true)
-    expect(jeu.vitesse()).toBe(250)
+    expect(jeu.vitesse()).toBe(240)
     expect(jeu.credits).toBe(10_000 - 600 - 1500)
+  })
+
+  it('dix niveaux (décision d’Adrien du 19/10/2026) : vitesse ×2, prix ×2,5 environ (après 200 et 600) ; rien après le niveau 10', () => {
+    for (let k = 1; k < NIVEAUX_MOTEUR.length; k++) {
+      expect(NIVEAUX_MOTEUR[k].vitesse).toBe(2 * NIVEAUX_MOTEUR[k - 1].vitesse)
+      if (k > 2) expect(NIVEAUX_MOTEUR[k].prix / NIVEAUX_MOTEUR[k - 1].prix).toBeCloseTo(2.5, 1)
+    }
+    expect(NIVEAUX_MOTEUR).toHaveLength(10)
+    const jeu = new Jeu()
+    jeu.niveauMoteur = 10
+    expect(jeu.vitesse()).toBe(15_360)
     expect(jeu.moteurSuivant()).toBeNull()
+    jeu.credits = 1e9
     expect(jeu.acheterMoteur()).toBe(false)
   })
 

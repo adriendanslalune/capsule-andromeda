@@ -70,7 +70,7 @@ import { astreDominant, corps } from './moteur/corps'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import type { Contrat } from './moteur/contrats'
-import { avancement, planifier, type Plan, type Planification } from './moteur/mission'
+import { avancement, planifier, vitesseDePointe, type Plan, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
@@ -496,10 +496,12 @@ function mettreAJourFiche(t: number): void {
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
-    const dv = `${vitesse()} km/s`
+    const dv = `${vitesse().toLocaleString('fr-FR')} km/s`
     if (prevision.possible) {
       const p = prevision.plan
-      texte = `<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · moteurs ${dv}`
+      // La vitesse de pointe du trajet, face à la vitesse max du moteur : on voit si le moteur limite ce trajet.
+      const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse)).toLocaleString('fr-FR')
+      texte = `<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · pointe ${pointe} / ${dv}`
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {

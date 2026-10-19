@@ -4,9 +4,9 @@
 
 import type { NiveauMoteur } from '../donnees/capsule'
 
-/** Angle de l'aiguille (degrés, 0 = vers le haut) pour une vitesse : échelle logarithmique de 10 à 500 km/s. */
+/** Angle de l'aiguille (degrés, 0 = vers le haut) pour une vitesse : échelle logarithmique de 10 à 20 000 km/s. */
 function angle(v: number): number {
-  const f = Math.log(Math.max(10, Math.min(500, v)) / 10) / Math.log(50)
+  const f = Math.log(Math.max(10, Math.min(20_000, v)) / 10) / Math.log(2000)
   return -120 + 240 * f
 }
 
@@ -18,9 +18,9 @@ function point(a: number, r: number): [number, number] {
 
 /** Le compteur de vitesse : graduations, aiguille fantôme (ancienne vitesse) et aiguille (animée). */
 function compteur(avant: number): string {
-  const graduations = [10, 30, 60, 120, 250, 500].map((v) => {
+  const graduations = [10, 100, 1000, 10_000].map((v) => {
     const [x1, y1] = point(angle(v), 70), [x2, y2] = point(angle(v), 80), [xt, yt] = point(angle(v), 56)
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><text x="${xt}" y="${yt + 4}">${v}</text>`
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><text x="${xt}" y="${yt + 4}">${v >= 1000 ? `${v / 1000}k` : v}</text>`
   }).join('')
   const fines = Array.from({ length: 25 }, (_, k) => {
     const a = -120 + k * 10, [x1, y1] = point(a, 75), [x2, y2] = point(a, 80)
@@ -55,7 +55,7 @@ export function ouvrirFenetreMoteur(actuel: NiveauMoteur, suivant: NiveauMoteur,
     <div class="titre-fenetre">✦ NOUVEAU MOTEUR ✦</div>
     ${compteur(actuel.vitesse)}
     <div class="niveaux"><span>Niveau ${actuel.niveau}</span><span class="fleche">➜</span><b>Niveau ${suivant.niveau}</b></div>
-    <div class="vitesses">${nombre(actuel.vitesse)} km/s ➜ <b>${nombre(suivant.vitesse)} km/s</b><br>${fois} fois plus rapide</div>
+    <div class="vitesses">${nombre(actuel.vitesse)} km/s ➜ <b>${nombre(suivant.vitesse)} km/s</b><br>vitesse max ×${fois} : les longs trajets raccourcissent</div>
     <div class="prix-fenetre">${nombre(suivant.prix)} crédits</div>
     <div class="boutons-fenetre"><button type="button" data-choix="plus-tard">Plus tard</button><button type="button" data-choix="installer">INSTALLER</button></div>
   </div>`

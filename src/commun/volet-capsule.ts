@@ -26,25 +26,26 @@ export class VoletCapsule {
     const m = jeu.moteur(), suivant = jeu.moteurSuivant()
     const nombre = (n: number) => n.toLocaleString('fr-FR')
     const panne = jeu.enPanne('moteur') ? ` <span class="panne">· EN PANNE : ${nombre(jeu.vitesse())} km/s</span>` : ''
-    let html = `<h3>Moteur</h3><div class="bloc"><b>Niveau ${m.niveau}</b> · ${nombre(m.vitesse)} km/s${panne}</div>`
+    let html = `<h3>Moteur</h3><div class="bloc"><b>Niveau ${m.niveau}</b> · vitesse max ${nombre(m.vitesse)} km/s${panne}`
+      + '<div class="manque">Accélération et freinage à 10 g : sur les trajets courts, la capsule n\'a pas le temps d\'atteindre sa vitesse max.</div></div>'
     if (suivant) {
       const manque = suivant.prix - jeu.credits
-      html += `<h3>Moteur suivant</h3><div class="bloc"><div><b>Niveau ${suivant.niveau}</b> · ${nombre(suivant.vitesse)} km/s`
-        + ` · ${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} fois plus rapide</div>`
+      html += `<h3>Moteur suivant</h3><div class="bloc"><div><b>Niveau ${suivant.niveau}</b> · vitesse max ${nombre(suivant.vitesse)} km/s`
+        + ` (×${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}) : les longs trajets raccourcissent</div>`
         + `<div class="achat"><span class="prix">${nombre(suivant.prix)} crédits</span>`
         + `<button type="button" data-choix="acheter"${manque > 0 ? ' disabled' : ''}>ACHETER</button></div>`
         + (manque > 0 ? `<div class="manque">Il manque ${nombre(manque)} crédit${manque > 1 ? 's' : ''} : fais des missions.</div>` : '')
         + '</div>'
-    } else html += '<div class="bloc">Ton moteur est au niveau le plus haut, pour l\'instant.</div>'
-    // Systèmes : en état ou en panne. Ceux dont un module est raccordé se réparent sur le panneau ; les autres, en
-    // attendant leur section du manuel, d'un bouton (procédure provisoire).
+    } else html += '<div class="bloc">Ton moteur est au niveau le plus haut.</div>'
+    // Systèmes : en état ou en panne ; ils se réparent tous sur le panneau, avec le manuel (le bouton RÉPARER ne sert
+    // plus qu'à un bloc en panne sans module en défaut, ce qui n'arrive plus).
     html += '<h3>Modules</h3><div class="bloc modules">' + MODULES.map((f) => {
       const panne = jeu.enPanne(f.nom)
       const action = !panne ? '<span class="ok">✓</span>'
         : !jeu.reparationProvisoire(f.nom) ? `<button type="button" data-choix="panneau" data-module="${f.nom}">PANNEAU</button>`
           : `<button type="button" data-choix="reparer" data-module="${f.nom}">RÉPARER</button>`
       return `<div class="module${panne ? ' en-panne' : ''}"><span><b>${f.titre}</b><br><small>${panne ? `EN PANNE : ${f.effet}` : 'en état'}</small></span>${action}</div>`
-    }).join('') + '<p class="note">Communications et Énergie se réparent sur le panneau, avec le manuel. Moteur, Navigation et Coque : réparation provisoire, en attendant leur section du manuel.</p></div>'
+    }).join('') + '<p class="note">Les cinq blocs se réparent sur le panneau (onglet RÉPARATION), avec le manuel.</p></div>'
     if (html !== this.dernier) this.element.innerHTML = this.dernier = html
   }
 }

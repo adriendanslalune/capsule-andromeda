@@ -7,7 +7,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 1. Carte et navigation | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 3. Missions, crédits, moteur | **fait**, validé le 18/10/2026 (détail ci-dessous) |
-| 4. Pannes et manuel | **en cours** (détail ci-dessous) |
+| 4. Pannes et manuel | **fait** : les quinze modules du panneau sont raccordés (détail ci-dessous), en attente des essais d'Adrien |
 | 5. Nettoyeurs | **fait** (VIDER et REMORQUER ; le largage à la station reste une attente) |
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
 | 7. Commerce (Marché ouvert à tous) | **en cours** : écrans du Marché faits (voir ci-dessous) |
@@ -16,6 +16,15 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
+
+- Profil de vol et moteur (décisions d'Adrien du 19/10/2026) — **fait, en attente des essais d'Adrien** : la capsule
+  accélère à 10 g jusqu'à la vitesse max de son moteur, la garde, puis freine à 10 g (`dureeTrajet`, `vitesseDePointe`,
+  `avancement` dans `src/moteur/mission.ts`, testés) ; trajet court : on freine avant d'atteindre la vitesse max
+  (Terre → Lune jamais sous 1 h 06). Moteur : 10 niveaux, vitesse ×2 (30 → 15 360 km/s), prix ×2,5 (200 → 366 000) ;
+  le niveau 4 passe de 250 à 240 km/s. La fiche du trajet affiche « pointe 196 / 15 360 km/s » ; le volet Capsule et la
+  fenêtre « Nouveau moteur » parlent de vitesse max (compteur gradué jusqu'à 20 000 km/s). Mesuré en jeu : Lune
+  3 h 43 au niveau 1, 1 h 07 au niveau 10 ; Mars 2 j 21 h au niveau 6 ; Pluton 5 j 20 h au niveau 10. Un changement
+  de vitesse en route (panne, réparation) recalcule le trajet comme un nouveau départ (approximation).
 
 ---
 

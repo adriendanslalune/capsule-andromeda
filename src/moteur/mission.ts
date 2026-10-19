@@ -2,9 +2,9 @@
 // orbite autour de la destination.
 //
 // Le trajet (choix d'Adrien du 17/10/2026, qui remplace les vraies trajectoires orbitales, illisibles) : la capsule
-// vise le point de rendez-vous — là où sera la destination à l'arrivée — et y va en ligne droite, à la vitesse de ses
-// moteurs, avec une courte accélération au départ et un freinage à l'arrivée. Plus les moteurs sont puissants, plus
-// elle va vite.
+// vise le point de rendez-vous — là où sera la destination à l'arrivée — et y va en ligne droite. Profil de vol
+// (décision d'Adrien du 19/10/2026) : elle accélère à 10 g jusqu'à la vitesse maximale de son moteur, la garde, puis
+// freine à 10 g pour s'arrêter à l'arrivée ; sur un trajet court, elle commence à freiner avant de l'avoir atteinte.
 // Règle d'or (17/10/2026) : rien ne traverse un astre. Si la ligne droite passe trop près de l'astre autour duquel
 // elle part ou arrive (ou du Soleil), la capsule le contourne par petits arcs.
 //
@@ -12,6 +12,7 @@
 // l'arrivée la planète de la destination ; entre les systèmes, les points sont fixes par rapport au Soleil. Le point
 // d'arrivée d'une planète est fixe par rapport au Soleil : c'est là où elle sera à l'arrivée.
 
+import { ACCELERATION } from '../donnees/capsule'
 import { etatSurOrbite, GM_TERRE, ORBITE_DEPART, type EtatCapsule, type OrbiteCirculaire } from './capsule'
 import { astreDominant, corps, position, rayonInfluence, RAPPORT_MASSE_SOLEIL_ASTRES } from './corps'
 import { GM_SOLEIL } from './orbite'
@@ -25,8 +26,6 @@ const unitaire = (a: Vecteur3) => fois(a, 1 / (norme(a) || 1))
 const vectoriel = (a: Vecteur3, b: Vecteur3) => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x })
 const scalaire = (a: Vecteur3, b: Vecteur3) => a.x * b.x + a.y * b.y + a.z * b.z
 
-/** Part du trajet passée à accélérer (au départ), et autant à freiner (à l'arrivée). */
-const RAMPE = 0.1
 /** Pas des arcs de contournement (radians). */
 const PAS_DETOUR = (30 * Math.PI) / 180
 
@@ -44,7 +43,7 @@ export interface Plan {
   /** Instants de départ et d'arrivée (ms UTC). */
   depart: number
   arrivee: number
-  /** Vitesse de croisière (km/s) : la puissance des moteurs. */
+  /** Vitesse maximale du moteur (km/s) ; la capsule ne l'atteint que si le trajet est assez long. */
   vitesse: number
   /** Points clés (départ, sortie du système de départ, entrée dans celui d'arrivée, arrivée) : pour le dessin. */
   cles: PointDePassage[]
@@ -188,12 +187,26 @@ export function positionsDesPoints(points: PointDePassage[], t: number): Vecteur
   return points.map((p) => positionDuPoint(p, t))
 }
 
+/** Durée (s) d'un trajet de longueur L (km) avec un moteur de vitesse maximale v (km/s), à l'arrêt au départ et à l'arrivée. */
+export function dureeTrajet(L: number, v: number): number {
+  return L >= (v * v) / ACCELERATION ? L / v + v / ACCELERATION : 2 * Math.sqrt(L / ACCELERATION)
+}
+
+/** Vitesse de pointe (km/s) d'un trajet de durée T (s) : la vitesse maximale du moteur, ou moins si le trajet est court. */
+export function vitesseDePointe(T: number, v: number): number {
+  return Math.min(v, (ACCELERATION * T) / 2)
+}
+
 /** Part du trajet parcourue à l'instant t (0 au départ, 1 à l'arrivée) : accélération, croisière, freinage. */
 export function avancement(p: Plan, t: number): number {
-  const tau = Math.min(1, Math.max(0, (t - p.depart) / (p.arrivee - p.depart)))
-  if (tau < RAMPE) return (tau * tau) / (2 * RAMPE * (1 - RAMPE))
-  if (tau > 1 - RAMPE) return 1 - ((1 - tau) * (1 - tau)) / (2 * RAMPE * (1 - RAMPE))
-  return (tau - RAMPE / 2) / (1 - RAMPE)
+  const T = (p.arrivee - p.depart) / 1000
+  const s = Math.min(T, Math.max(0, (t - p.depart) / 1000))
+  if (T <= 0) return 1
+  // Le profil des vitesses : un trapèze (ou un triangle) de pente ±ACCELERATION et de hauteur la vitesse de pointe.
+  const v = vitesseDePointe(T, p.vitesse), ta = v / ACCELERATION, L = v * (T - ta)
+  if (s < ta) return (ACCELERATION * s * s) / 2 / L
+  if (s > T - ta) return 1 - (ACCELERATION * (T - s) * (T - s)) / 2 / L
+  return (v * ta / 2 + v * (s - ta)) / L
 }
 
 /** Point situé à la part f (0 à 1) de la longueur d'une ligne brisée. */
@@ -217,8 +230,8 @@ export function etatSurTrajet(p: Plan, t: number): { r: Vecteur3; v: Vecteur3 } 
 }
 
 /**
- * Trajet de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, à la vitesse de croisière
- * donnée (km/s). Impossible si la destination s'enfuit plus vite que la capsule.
+ * Trajet de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, avec un moteur de vitesse
+ * maximale donnée (km/s). Impossible si la destination s'enfuit plus vite que la capsule.
  */
 export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, vitesse: number): Planification {
   const D = astreDominant(depart.r, t0)
@@ -228,7 +241,7 @@ export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t
     const t1 = t0 + T * 1000
     const c = construire(premier, t0, cible, t1)
     const L = (longueur(positionsDesPoints(c.points, t0)) + longueur(positionsDesPoints(c.points, t1))) / 2
-    return { t1, c, besoin: L / (vitesse * (1 - RAMPE)) }
+    return { t1, c, besoin: dureeTrajet(L, vitesse) }
   }
   // Durées essayées : de 1 seconde à 300 ans, en progression géométrique ; la première assez longue, puis on affine.
   const N = 200, dMin = 1, dMax = 300 * 365.25 * 86_400
