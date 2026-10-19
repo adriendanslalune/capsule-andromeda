@@ -8,7 +8,7 @@
 // saute pas d'un bord à l'autre. Ce n'est que du dessin : le moteur garde les vraies positions.
 
 import { corps, enfants, position, rayonInfluence } from '../moteur/corps'
-import { positionDuPoint, type Plan } from '../moteur/mission'
+import { gmAstre, positionDuPoint, type Plan } from '../moteur/mission'
 import { UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 
@@ -254,9 +254,10 @@ function adoucir(q: Point2[], passes = 3): Point2[] {
  * Le trajet dessiné (km de carte), vu à travers la loupe : du départ (la capsule telle qu'elle est dessinée) à
  * l'arrivée (la destination telle qu'elle sera dessinée à l'arrivée : une planète, là où elle sera ; une lune, un
  * satellite, autour de son astre, tel qu'il est maintenant). Tout droit, sauf pour contourner par le plus court les
- * disques dessinés des astres qui gênent (départ, arrivée, Soleil) ; les coins sont arrondis.
+ * disques dessinés des astres qui gênent (départ, arrivée, Soleil) ; les coins sont arrondis. depart : là où la
+ * capsule est dessinée, si elle part en plein vol (un nouveau cap) ; le tracé part alors de là.
  */
-export function projeterTrajet(p: Plan, t: number): Point2[] {
+export function projeterTrajet(p: Plan, t: number, depart?: Point2): Point2[] {
   const n = p.cles.length
   const minute = 60_000
   const deplacement = (nom: string, u: number) => {
@@ -267,8 +268,11 @@ export function projeterTrajet(p: Plan, t: number): Point2[] {
   const cles = p.cles.map((c, i): Point2 => {
     const ici = positionDuPoint(c, t)
     if (i === 0) {
-      // La capsule au départ : son mouvement est couché dans le plan, comme sur son orbite.
-      const v = p.vitesseDepart
+      // La capsule au départ : son mouvement est couché dans le plan, comme sur son orbite. Partie en plein vol (sa
+      // vitesse n'est pas celle d'une orbite circulaire), on la voit simplement d'en haut.
+      const v = p.vitesseDepart, r = Math.hypot(c.rel.x, c.rel.y, c.rel.z)
+      const orbitale = c.ancre !== 'Soleil' && r > 0 && Math.abs(Math.hypot(v.x, v.y, v.z) / Math.sqrt(gmAstre(c.ancre) / r) - 1) < 0.3
+      if (!orbitale) return projeter({ p: ici, t })
       return projeter({ p: ici, t, suivant: { p: plus(positionDuPoint(c, t + minute), { x: v.x * 60, y: v.y * 60, z: v.z * 60 }), t: t + minute } })
     }
     if (i === n - 1) {
@@ -281,7 +285,7 @@ export function projeterTrajet(p: Plan, t: number): Point2[] {
   })
   // Les points de sortie et d'entrée des systèmes (utiles au moteur) ne servent pas au dessin : on va droit du départ à
   // l'arrivée, en contournant ce qui gêne.
-  const a = cles[0], b = cles[n - 1]
+  const a = depart ?? cles[0], b = cles[n - 1]
   const disques = [...new Set([p.cles[0].ancre, p.cles[n - 1].ancre, 'Soleil'])]
     .map((nom) => ({ c: nom === 'Soleil' ? { x: 0, y: 0 } : projeterCorps(nom, t), r: obstacle(nom) }))
   return adoucir([a, ...cheminLibre(a, b, disques), b])

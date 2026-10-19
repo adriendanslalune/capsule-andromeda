@@ -515,6 +515,27 @@ function mettreAJourFiche(t: number): void {
   document.body.classList.toggle('avec-trajet', !!texte)
 }
 
+/**
+ * Départ en plein vol (nouveau cap, ou trajet recalculé après une panne) : le nouveau tracé part de là où la capsule
+ * était dessinée, accroché à l'astre de départ (sinon elle sauterait : la carte ne place pas pareil un point du vide).
+ */
+let departEnVol: { plan: Plan; ancre: string; rel: Point2 } | null = null
+let derniereCapsuleDessinee: Point2 | null = null
+function partir(plan: Plan, t: number): void {
+  const d = mission.phase(t) === 'trajet' ? derniereCapsuleDessinee : null
+  if (d) {
+    const ancre = plan.cles[0].ancre, c = projeterCorps(ancre, t)
+    departEnVol = { plan, ancre, rel: { x: d.x - c.x, y: d.y - c.y } }
+  } else departEnVol = null
+  mission.partir(plan)
+}
+/** Où commence le tracé d'un trajet parti en plein vol (sinon undefined : le départ normal). */
+function departDessine(plan: Plan, t: number): Point2 | undefined {
+  if (departEnVol?.plan !== plan) return undefined
+  const c = projeterCorps(departEnVol.ancre, t)
+  return { x: c.x + departEnVol.rel.x, y: c.y + departEnVol.rel.y }
+}
+
 boutonDepart.addEventListener('click', () => {
   const t = horloge()
   if (actionFiche === 'agir') { agirMission(); return }
@@ -535,7 +556,7 @@ boutonDepart.addEventListener('click', () => {
   // On recalcule au moment exact du départ.
   const p = planifier(mission.etatHeliocentrique(t), selection, t, vitesse())
   if (!p.possible) return
-  mission.partir(p.plan)
+  partir(p.plan, t)
   enregistrerPartie()
   voletMissions.oublierDurees()
   prevision = null
@@ -1095,7 +1116,7 @@ function apresChangementDePanne(): void {
   const plan = mission.phase(t) === 'trajet' ? mission.plan : null
   if (plan && plan.vitesse !== vitesse() && jeu.peutNaviguer()) {
     const p = planifier(mission.etatHeliocentrique(t), plan.cible, t, vitesse())
-    if (p.possible) mission.partir(p.plan)
+    if (p.possible) partir(p.plan, t)
   }
   enregistrerPartie()
   voletMissions.oublierDurees()
@@ -1166,19 +1187,23 @@ function image(maintenant: number): void {
   const planTrace = apercu ? apercuPlans?.[0] ?? null : prevision?.possible ? prevision.plan : enRoute
   // Aperçu d'une livraison : le second trajet (de la station au satellite), dessiné aussi.
   const autresTraces = apercu && apercuPlans ? apercuPlans.slice(1).map((p) => projeterTrajet(p, t)) : []
-  const trace = planTrace ? projeterTrajet(planTrace, t) : null
-  let trajet = trace
   // En route : la capsule avance à vitesse régulière sur le trajet dessiné ; on ne dessine que ce qui reste.
-  let capsuleDessinee = null
-  if (trace && enRoute && planTrace === enRoute) {
-    const coupe = couperTrace(trace, avancement(enRoute, t))
+  const traceEnRoute = enRoute ? projeterTrajet(enRoute, t, departDessine(enRoute, t)) : null
+  let capsuleDessinee: Point2 | null = null
+  let trace: Point2[] | null = null
+  let trajet: Point2[] | null = null
+  if (traceEnRoute && enRoute && planTrace === enRoute) {
+    const coupe = couperTrace(traceEnRoute, avancement(enRoute, t))
     capsuleDessinee = coupe.point
+    trace = traceEnRoute
     trajet = coupe.reste
-  } else if (trace && enRoute) {
+  } else if (planTrace) {
     // Nouveau cap proposé en route : la capsule reste sur le trajet en cours, le nouveau part de là où elle est dessinée.
-    capsuleDessinee = couperTrace(projeterTrajet(enRoute, t), avancement(enRoute, t)).point
-    trajet = [capsuleDessinee, ...trace.slice(1)]
+    if (traceEnRoute && enRoute) capsuleDessinee = couperTrace(traceEnRoute, avancement(enRoute, t)).point
+    trace = projeterTrajet(planTrace, t, capsuleDessinee ?? undefined)
+    trajet = trace
   }
+  derniereCapsuleDessinee = capsuleDessinee
   const rendezVous = trace ? trace[trace.length - 1] : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100

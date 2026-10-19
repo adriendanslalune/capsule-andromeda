@@ -37,6 +37,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   que la carte resserre les distances en s'éloignant. Ils vont avec le calque Orbites. Essai écarté : une loupe en
   racine cubique (orbite basse illisible, lunes de Jupiter collées à la planète). Le trait rouge du trajet est
   affiné (1,4 px cerné d'encre, au lieu de 2,5).
+- Nouveau cap en plein vol (remarque d'Adrien du 19/10/2026 : le tracé traversait la Terre) — **corrigé** : le trajet
+  proposé était calculé depuis un mauvais point (le départ en plein vol était « couché » sur la carte comme une
+  orbite), puis raccroché à la capsule ; et, le cap pris, la capsule sautait à ce point. Le tracé part maintenant de
+  la capsule telle qu'elle est dessinée (accrochée à l'astre de départ, `partir` et `departDessine` dans main.ts),
+  et un départ en plein vol n'est plus couché (vu d'en haut, `projeterTrajet`).
 
 ---
 
