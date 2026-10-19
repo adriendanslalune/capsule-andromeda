@@ -208,6 +208,16 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - AMARRER (19/10/2026) — **fait, en attente de validation** : la livraison se termine par la manœuvre d'amarrage
+    (`src/moteur/amarrage.ts`, `src/donnees/amarrage.ts`, `src/commun/vue-amarrage.ts`, tests `tests/amarrage.test.ts`).
+    Vue du dessus : la station et son port en haut, la capsule (vaisseau à panneaux solaires) qui approche ; l'échelle
+    suit la distance. Propulseurs tenus au pouce : ▲ ▼ ◀ ▶ (dans l'axe de la capsule : tournée, elle glisse de côté) et
+    ⟲ ⟳ ; une petite dérive pousse sans cesse de côté. Cadrans DISTANCE, VITESSE, ÉCART, ANGLE (verts quand le contact
+    serait bon) ; l'anneau du port passe au vert. Contact : moins de 0,1 m/s, à 0,3 m du centre, à 4° près, sans glisser
+    de côté ; sinon rebond (« Trop vite ! », « De travers ! », « Décentrée ! ») et on recommence, sans échec définitif.
+    Amarrée du premier coup : prime de 10 %. « PLUS TARD » ferme sans livrer (on revient avec AMARRER). Réglages
+    PROVISOIRES (départ à 14 m, décalée jusqu'à 4 m, tournée jusqu'à 25°). Essai : `andromeda.amarrage()`.
+    Sur les missions, « mini-jeu » est remplacé par le poste de la capsule (« à bord : commandes d'amarrage »).
   - Refonte des Maisons (décision d'Adrien du 18/10/2026), étape 2 — **faite, en attente de validation** : les
     Commerçants deviennent les Ingénieurs (partie enregistrée reprise : Maison et carnet ; canal de Maison des bots
     réécrit). Six types de mission, deux par Maison : VIDER (épave → tri), REMORQUER (harponner l'épave, puis la larguer

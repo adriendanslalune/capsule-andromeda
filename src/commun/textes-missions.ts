@@ -36,10 +36,13 @@ export function titreContrat(c: Contrat): string {
 export const GENRES_COURTS: Record<GenreContrat, string> = {
   nettoyer: 'VIDER', remorquer: 'REMORQUER', chasser: 'ABATTRE', escorter: 'ESCORTER', depanner: 'RÉPARER', livrer: 'AMARRER',
 }
-/** Le mini-jeu de chaque type de mission (ceux qui n'existent pas encore : une simple attente sur place). */
-export const MINI_JEUX: Record<GenreContrat, string> = {
-  nettoyer: 'tri des matériaux', remorquer: 'grappin (bientôt)', chasser: 'combat', escorter: 'interception (bientôt)',
-  depanner: 'panneau de réparation (bientôt)', livrer: 'amarrage (bientôt)',
+/**
+ * Le poste de la capsule où se joue chaque type de mission, en mots du jeu (demande d'Adrien du 18/10/2026 : jamais
+ * « mini-jeu » à l'écran, ça casse l'immersion).
+ */
+export const POSTES: Record<GenreContrat, string> = {
+  nettoyer: 'poste de tri', remorquer: 'grappin', chasser: 'poste de combat', escorter: 'tourelle d\'interception',
+  depanner: 'panneau technique', livrer: 'commandes d\'amarrage',
 }
 
 /** Bouton de l'action : « VIDER », « CHARGER », « AMARRER »… */

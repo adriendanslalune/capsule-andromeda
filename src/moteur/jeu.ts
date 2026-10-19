@@ -10,6 +10,7 @@ import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/ca
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
+import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
@@ -384,6 +385,23 @@ export class Jeu {
   abattre(t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeCombat() || !this.peutAgir(t)) return null
     vaincre(this.espace, this.etapeActuelle()!.lieu, t)
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** L'étape actuelle est-elle un amarrage (la livraison d'une cargaison, qui se fait par la manœuvre d'amarrage) ? */
+  etapeDAmarrage(): boolean {
+    return this.etapeActuelle()?.action === 'livrer'
+  }
+
+  /**
+   * Amarrée : la cargaison est livrée, l'étape est faite. Amarrée du premier coup (sans rebond), la récompense augmente
+   * de 10 % (BONUS_SANS_REBOND). null si ce n'est pas possible ici.
+   */
+  amarrer(rebonds: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDAmarrage() || !this.peutAgir(t)) return null
+    if (rebonds === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_REBOND) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements

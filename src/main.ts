@@ -19,6 +19,7 @@ import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
+import { VueAmarrage } from './commun/vue-amarrage'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -577,6 +578,24 @@ function agirMission(): void {
     })
     return
   }
+  // Livrer une cargaison, c'est s'amarrer à la station (décision d'Adrien du 18/10/2026 : AMARRER, Ingénieurs).
+  if (jeu.etapeDAmarrage() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueAmarrage.ouvrir({
+      titre: lieu.toUpperCase(),
+      surFin: (rebonds) => {
+        const ev = jeu.amarrer(rebonds, horloge(), vitesse())
+        if (!ev) return 'La capsule n\'est plus sur place : la cargaison n\'est pas livrée.'
+        traiterEvenements(ev)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        return 'Cargaison livrée.'
+      },
+    })
+    return
+  }
   // Nettoyer une épave, c'est la trier (décision d'Adrien du 18/10/2026) : les matériaux vont dans la soute.
   if (jeu.etapeDeTri() && jeu.peutAgir(t)) {
     const lieu = jeu.etapeActuelle()!.lieu
@@ -865,6 +884,7 @@ pageProfil.addEventListener('click', (e) => { if ((e.target as HTMLElement).clos
 pageProfil.addEventListener('keydown', (e) => { if (e.key === 'Enter') changerPseudo() })
 // Le tri d'une épave (entraînement, depuis la SOUTE).
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
+const vueAmarrage = new VueAmarrage(document.querySelector<HTMLDivElement>('#amarrage')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), jeu.soute))
@@ -1089,5 +1109,7 @@ Object.assign(window, {
     },
     carte, mission, jeu, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
     accelerer: (k: number) => { acceleration = k },
+    // Essais : la manœuvre d'amarrage, sans mission.
+    amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
   },
 })
