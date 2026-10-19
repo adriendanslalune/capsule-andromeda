@@ -8,10 +8,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 2. Cadre du cockpit et socle de jeu | **fait**, validé le 17/10/2026 (détail ci-dessous) |
 | 3. Missions, crédits, moteur | **fait**, validé le 18/10/2026 (détail ci-dessous) |
 | 4. Pannes et manuel | **en cours** (détail ci-dessous) |
-| 5. Nettoyeurs | à faire |
-| 6. Combat | à faire |
-| 7. Commerçants | à faire |
-| 8. Maisons | à faire |
+| 5. Nettoyeurs | **fait** (VIDER et REMORQUER ; le largage à la station reste une attente) |
+| 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
+| 7. Commerce (Marché ouvert à tous) | **en cours** : écrans du Marché faits (voir ci-dessous) |
+| 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
 | 9. Première zone à libérer : la Lune | à faire |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
@@ -208,7 +208,7 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
-  - Appartenance aux Maisons (19/10/2026) — **faite, en attente de validation** : une Maison s'ouvre avec au moins 25
+  - Appartenance aux Maisons (19/10/2026) — **faite, validée par Adrien le 19/10/2026 (lettre d'invitation comprise)** : une Maison s'ouvre avec au moins 25
     missions finies pour elle (5 au départ ; Adrien, 19/10/2026 : « un événement attendu ») et au moins 40 % de toutes
     ses missions (`SEUIL_MISSIONS`, `SEUIL_PART` ; `maisonsOuvertes` dans `src/moteur/profil.ts`). Elle le propose une seule fois, à la fin d'une
     mission ; invitations enregistrées. Lettre d'invitation (19/10/2026, accord d'Adrien) : en plein écran, aux
