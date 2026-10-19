@@ -1061,39 +1061,23 @@ body.nuit #marche .baisse { color: #f08a72; }
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
 #escorte .message-escorte[hidden] { display: none; }
 
-/* Le combat au tour par tour (ABATTRE) : le chasseur et son coup annoncé, la capsule, les ordres du tour. */
-#combat .ennemi, #combat .nous { padding: 10px; margin-bottom: 8px; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
-#combat .ligne-coque { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: bold; letter-spacing: 0.08em; }
-#combat .jauge { flex: 1; height: 12px; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
-#combat .jauge i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #9d7cc8 0 4px, #b9a0dc 4px 8px); transition: width 0.3s; }
-#combat .jauge.notre-coque i { background: repeating-linear-gradient(45deg, #d9694f 0 4px, #e98a6f 4px 8px); }
-#combat .silhouette { display: block; width: 150px; margin: 6px auto 4px; }
-#combat .modules-ennemi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-#combat .modules-ennemi button { min-height: 66px; padding: 5px 2px; display: flex; flex-direction: column; align-items: center; gap: 3px; font: inherit; font-size: 11px;
-  color: var(--encre); background: var(--fond); border: 2px solid var(--encre); border-radius: 8px; }
-#combat .modules-ennemi button.vise { border: 3px dashed #e04b37; background: color-mix(in srgb, #e04b37 10%, var(--fond)); }
-#combat .modules-ennemi button.hs { background: #b8b2a8; }
-#combat .modules-ennemi small { font-size: 9px; opacity: 0.75; }
-#combat .points { display: inline-flex; gap: 3px; vertical-align: middle; }
-#combat .points i { width: 10px; height: 10px; border: 1.5px solid var(--encre); border-radius: 2px; background: transparent; }
-#combat .points i.rempli { background: #e04b37; }
-#combat .points i.rempli.bleu { background: #8fd0dc; }
-#combat .points i.rempli.or { background: #f2b53a; }
-#combat .intention { margin-top: 8px; padding: 8px 10px; text-align: center; color: #efe6d2; background: #3a3340; border-radius: 8px; }
-#combat .intention small { display: block; font-size: 9px; letter-spacing: 0.12em; opacity: 0.7; }
-#combat .intention b { font-size: 16px; letter-spacing: 0.05em; color: #f3a08b; }
-#combat .intention p { margin: 4px 0 0; font-size: 11.5px; }
-#combat .stocks { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10.5px; letter-spacing: 0.06em; }
-#combat .ordres { padding: 10px; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; }
-#combat .rangee { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-#combat .etiquette { width: 74px; font-size: 10px; font-weight: bold; letter-spacing: 0.08em; }
-#combat .rangee button { flex: 1; min-height: 48px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: inherit; font-size: 12px; font-weight: bold;
-  color: var(--encre); background: var(--fond); border: 2px solid var(--encre); border-radius: 8px; }
-#combat .rangee button small { font-size: 9px; font-weight: normal; opacity: 0.75; }
-#combat .rangee button.choisi { background: #f2c66a; box-shadow: 2px 2px 0 var(--ombre); }
-#combat .rangee button:disabled { opacity: 0.4; }
-#combat .rangee.bouclier small { flex-basis: 100%; margin-left: 80px; font-size: 10px; opacity: 0.75; }
-#combat .prevision { margin: 4px 0 8px; font-size: 12px; text-align: center; }
 #combat .fin-tour { display: block; width: 100%; min-height: 54px; font: inherit; font-size: 15px; font-weight: bold; letter-spacing: 0.1em; color: #fff;
   background: #d9694f; border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
-#combat .journal { margin: 0; padding: 8px 10px 8px 26px; font-size: 12px; background: var(--fond); border: 1.5px dashed var(--encre); border-radius: 8px; }
+
+/* Le combat en temps réel (ABATTRE) : la coque, la jauge du chasseur, le terrain, la bombe. */
+#combat .infos-combat { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; font-size: 10px; font-weight: bold; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--encre); }
+#combat .points { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 4px; }
+#combat .points i { width: 8px; height: 10px; border: 1.5px solid var(--encre); border-radius: 2px; }
+#combat .points i.rempli { background: #e04b37; }
+#combat .jauge-chasseur { flex: 1; display: flex; align-items: center; gap: 6px; }
+#combat .jauge { flex: 1; height: 12px; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
+#combat .jauge i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #9d7cc8 0 4px, #b9a0dc 4px 8px); transition: width 0.2s; }
+#combat .vue { position: relative; flex: 1; min-height: 0; }
+#combat canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#combat .bombe { position: absolute; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 72px; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f; border: 2px solid var(--encre); border-radius: 50%; box-shadow: 3px 3px 0 var(--ombre); touch-action: manipulation; }
+#combat .bombe small { font-size: 10px; font-weight: normal; }
+#combat .bombe:disabled { opacity: 0.4; }
+#combat .aide-combat { position: absolute; left: 16px; right: 16px; bottom: 40%; margin: 0; padding: 8px 12px; font-size: 13px; text-align: center; pointer-events: none;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+#combat .aide-combat[hidden] { display: none; }

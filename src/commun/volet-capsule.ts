@@ -6,7 +6,7 @@ import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
 import { emplacement } from '../moteur/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
-import { ARMES, COQUE_MAX, COUT_ESQUIVE, ENERGIE_TOTALE, INTERCEPTEURS, TORPILLES } from '../donnees/combat'
+import { BOMBES, COQUE_MAX } from '../donnees/combat'
 import type { Jeu } from '../moteur/jeu'
 
 export class VoletCapsule {
@@ -89,20 +89,19 @@ function htmlMonolithes(jeu: Jeu): string {
 }
 
 /**
- * L'onglet ARMEMENT du volet Capsule : comment se bat la capsule (combat au tour par tour, décisions d'Adrien du
- * 19/10/2026), son équipement (les améliorations s'achèteront plus tard), et le simulateur de combat.
+ * L'onglet ARMEMENT du volet Capsule : comment se bat la capsule (en temps réel, décision d'Adrien du 19/10/2026), son
+ * équipement (les améliorations s'achèteront plus tard), et le simulateur de combat.
  */
 export function htmlArmement(_jeu: Jeu): string {
-  return '<h3>Le combat</h3><div class="bloc"><p class="note">Au tour par tour. Le chasseur annonce son prochain coup ; '
-    + `tu répartis tes ${ENERGIE_TOTALE} crans d'énergie : l'arme (laser ${ARMES.laser.cout} crans, torpille ${ARMES.torpille.cout}), `
-    + `l'esquive (${COUT_ESQUIVE} crans), et le bouclier prend le reste. Vise un de ses modules, puis FIN DU TOUR.</p></div>`
+  return '<h3>Le combat</h3><div class="bloc"><p class="note">Vu du dessus, en temps réel. Glisse le doigt : la capsule le '
+    + 'suit et tire toute seule. Esquive les balles des aliens ; abats le chasseur. Plus il y a d\'aliens (loin de la Terre), '
+    + 'plus c\'est dur.</p></div>'
     + '<h3>Équipement</h3><div class="bloc">'
-    + `<div class="module"><span><b>Laser</b><br><small>${ARMES.laser.degats} dégâts, freiné par le bouclier ennemi</small></span><span class="ok">niv. 1</span></div>`
-    + `<div class="module"><span><b>Torpilles</b><br><small>${ARMES.torpille.degats} dégâts, traversent le bouclier</small></span><span class="ok">${TORPILLES}</span></div>`
-    + `<div class="module"><span><b>Intercepteurs</b><br><small>abattent un missile annoncé</small></span><span class="ok">${INTERCEPTEURS}</span></div>`
+    + '<div class="module"><span><b>Canons</b><br><small>tir automatique, double</small></span><span class="ok">niv. 1</span></div>'
+    + `<div class="module"><span><b>Bombes</b><br><small>effacent toutes les balles, abîment tous les aliens</small></span><span class="ok">${BOMBES}</span></div>`
     + `<div class="module"><span><b>Coque</b><br><small>à 0 : retraite, la Coque tombe en panne</small></span><span class="ok">${COQUE_MAX}</span></div>`
-    + '<div class="module grise"><span><b>Améliorations</b><br><small>laser, 7ᵉ cran, torpilles : plus tard, avec les crédits</small></span><span class="ok">—</span></div>'
+    + '<div class="module grise"><span><b>Améliorations</b><br><small>canons, bombes, coque : plus tard, avec les crédits</small></span><span class="ok">—</span></div>'
     + '</div><div class="vers-combat"><button type="button" data-combat="1">SIMULATEUR · PRÈS DE LA TERRE</button>'
     + '<button type="button" data-combat="60">SIMULATEUR · VERS PLUTON</button></div>'
-    + '<p class="note">Un chasseur d\'entraînement, sans conséquence pour ta capsule.</p>'
+    + '<p class="note">Un combat d\'entraînement, sans conséquence pour ta capsule.</p>'
 }

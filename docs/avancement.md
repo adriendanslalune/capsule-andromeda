@@ -208,19 +208,16 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
-  - ABATTRE au tour par tour (19/10/2026, règles validées par Adrien) — **fait, en attente de validation** : remplace
-    le prototype temps réel (`src/donnees/combat.ts`, `src/moteur/combat.ts`, `src/commun/vue-combat.ts`, tests
-    `tests/combat.test.ts`). Aucun hasard sur les coups ; l'ennemi annonce son coup : LASER, MISSILE, RAFALE (laser +
-    missile, loin de la Terre), BOUCLIER RENFORCÉ, DÉFENSE (intercepte une torpille), CHARGE (prochain tir doublé, sauf
-    si l'on touche ses ARMES). Chaque tour : 6 crans ; arme (LASER 2 crans, 3 dégâts, freiné par son bouclier ;
-    TORPILLE 3 crans, 3 dégâts, traverse, 3 par combat), ESQUIVE (2 crans, laser ÷2), INTERCEPTEUR (3 par combat, contre
-    un missile), le BOUCLIER prend les crans restants ; la cible (ARMES, BOUCLIER, MOTEUR : un coup abîme le module et
-    la coque ; un module détruit se répare en 2 tours) ; une prévision « tu infligerais / tu recevrais » ; FIN DU TOUR ;
-    le récit du tour. Selon la zone : chasseur de 8 à 20 de coque, laser de 4 à 9. Coque à 0 ou RETRAITE : la Coque de
-    la capsule tombe en panne, le chasseur reste. Victoire sans dégât : prime de 10 %. Simulation d'un joueur parfait :
-    près de la Terre, gagné en 3 ou 4 tours ; vers Neptune et Pluton, perdu environ une fois sur trois. Capsule ›
-    Armement : les règles, l'équipement, deux simulateurs (près de la Terre, vers Pluton) ; l'ancienne répartition de
-    l'énergie disparaît. Réglages PROVISOIRES.
+  - ABATTRE au tour par tour (19/10/2026) : fait, puis abandonné (Adrien pas convaincu ; reste dans l'historique Git).
+  - ABATTRE en temps réel (19/10/2026, décision d'Adrien : « comme les premiers jeux sur Game Boy ») — **fait, en
+    attente de validation** (`src/donnees/combat.ts`, `src/moteur/combat.ts`, `src/commun/vue-combat.ts`, tests
+    `tests/combat.test.ts`). Vue du dessus : on glisse le doigt n'importe où, la capsule le suit (18 unités au-dessus,
+    pour que le pouce ne la cache pas, vitesse limitée) et tire toute seule (double canon) ; petit point d'impact. Le
+    chasseur visé (boss, 30 → 80 de coque) danse en haut et tire des balles visées, en éventail ou en pluie ; ses
+    escorteurs arrivent par vagues (0 près de la Terre, jusqu'à 6 vers Pluton) et tirent sur la capsule. Touchée : −1
+    coque, clignote 1,2 s (invulnérable). BOMBE (3) : efface toutes les balles, 4 dégâts à tous les aliens. Abattre le
+    chasseur : victoire (prime de 10 % sans être touché) ; coque à 0 ou RETRAITE : la Coque tombe en panne. Capsule ›
+    Armement : les règles, l'équipement, deux simulateurs. Réglages PROVISOIRES.
   - ESCORTER (19/10/2026) — **fait, en attente de validation** : l'étape ESCORTER (à destination) lance l'embuscade
     (`src/donnees/escorte.ts`, `src/moteur/escorte.ts`, `src/commun/vue-escorte.ts`, tests `tests/escorte.test.ts`).
     Trois cargos montent l'écran, la capsule derrière ; des missiles partent des bords vers un cargo (trajectoire en

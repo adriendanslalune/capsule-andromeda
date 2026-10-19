@@ -1,195 +1,191 @@
-// Le combat au tour par tour (ABATTRE ; décisions d'Adrien du 19/10/2026). Sans hasard sur les coups : l'ennemi
-// annonce son prochain coup (son « intention »), le joueur y répond. Un tour :
-//   1. le joueur choisit son arme (aucune, laser, torpille), l'esquive, un intercepteur (contre un missile), et la
-//      cible (un module ennemi) ; les crans qui restent vont au bouclier ;
-//   2. les deux camps tirent en même temps ;
-//   3. l'ennemi annonce son coup suivant.
-// Seule l'intention suivante est tirée au hasard (d'un hasard à graine, reproductible), parmi celles que ses modules
-// encore debout lui permettent.
+// Le combat en temps réel (ABATTRE ; décision d'Adrien du 19/10/2026), vu du dessus comme les premiers jeux de tir sur
+// Game Boy. La capsule suit le doigt et tire toute seule ; le chasseur visé par la mission (le « boss ») et ses
+// escorteurs (de plus en plus nombreux loin de la Terre) tirent des balles à esquiver. Abattre le chasseur, c'est
+// gagner ; coque à 0, c'est la retraite. Tout dépend du temps passé en paramètre et d'un hasard à graine.
 
 import {
-  ARMES, BOUCLIER_ENNEMI, BOUCLIER_ENNEMI_EN_PLUS, COQUE_ENNEMI_MAX, MALUS_MISSILE, NIVEAU_RAFALE, PV_MODULES_EN_PLUS, COQUE_ENNEMI_MIN, COQUE_MAX, COUT_ESQUIVE, ENERGIE_TOTALE,
-  INTERCEPTEURS, LASER_ENNEMI_MAX, TORPILLES, TOURS_REPARATION, LASER_ENNEMI_MIN, MODULES_ENNEMI, RENFORT_BOUCLIER, type Arme, type NomModuleEnnemi,
+  BOMBES, CADENCE, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, DEGATS_TIR, ESCORTEURS_MAX, HAUTEUR, INVULNERABLE, LARGEUR,
+  PV_CHASSEUR, PV_ESCORTEUR, RAYON_CAPSULE, TIR_CHASSEUR, TIR_ESCORTEUR, VAGUE, VITESSE_BALLES, VITESSE_CAPSULE, VITESSE_TIR,
 } from '../donnees/combat'
 import { hasard } from './contrats'
 
-/** Ce que l'ennemi annonce pour le tour qui vient. */
-export type Intention =
-  | { genre: 'laser'; degats: number }
-  | { genre: 'missile'; degats: number }
-  /** Un laser et un missile dans le même tour. */
-  | { genre: 'rafale'; laser: number; missile: number }
-  | { genre: 'bouclier' }
-  | { genre: 'defense' }
-  | { genre: 'charge' }
+export type Motif = 'vise' | 'eventail' | 'pluie'
+
+export interface Alien {
+  id: number
+  chef: boolean
+  x: number
+  y: number
+  pv: number
+  pvMax: number
+  /** Prochain tir (s), et le temps de vie (pour son mouvement). */
+  prochainTir: number
+  age: number
+  /** Escorteur : son couloir (x de départ) et son sens. */
+  couloir: number
+  sens: 1 | -1
+}
 
 export interface EtatCombat {
   graine: number
-  /** Niveau de l'ennemi, de 0 (près de la Terre) à 1 (Pluton). */
   niveau: number
+  temps: number
+  capsule: { x: number; y: number }
   coque: number
-  intercepteurs: number
-  torpilles: number
-  coqueEnnemi: number
-  coqueEnnemiMax: number
-  /** Les modules ennemis ; détruit, un module est réparé au tour `reparation`. */
-  modules: { nom: NomModuleEnnemi; pv: number; pvMax: number; reparation: number | null }[]
-  intention: Intention
-  /** L'ennemi a chargé : son prochain tir fera le double. */
-  charge: boolean
-  tour: number
+  invulnerableJusqua: number
+  bombes: number
+  prochainTir: number
+  prochaineVague: number
+  aliens: Alien[]
+  tirs: { x: number; y: number }[]
+  balles: { x: number; y: number; vx: number; vy: number }[]
+  /** Éclats à montrer (où, quand, gros ou petit). */
+  eclats: { x: number; y: number; t: number; gros: boolean }[]
   degatsRecus: number
+  abattus: number
+  prochainId: number
   fin: null | 'victoire' | 'retraite'
 }
 
-/** Ce que le joueur décide pour ce tour. */
-export interface Ordres { arme: Arme | null; esquive: boolean; intercepteur: boolean; cible: NomModuleEnnemi }
+export type EvenementCombat = 'touche' | 'escorteur-abattu' | 'victoire' | 'retraite'
 
-/** Ce qui s'est passé pendant un tour (pour le raconter). */
-export interface Bilan {
-  notreTir: null | { arme: Arme; cible: NomModuleEnnemi; brut: number; arrete: number; degats: number; interceptee: boolean; detruit: boolean }
-  sonCoup: Intention
-  recus: number
-  bouclier: number
-  esquive: boolean
-  intercepte: boolean
-  doublé: boolean
-  chargeAnnulee: boolean
-  /** Modules ennemis réparés à la fin du tour. */
-  repares: NomModuleEnnemi[]
-}
-
-/** Niveau d'un ennemi selon la zone de son système (1 pour la Terre … 60 pour Pluton). */
+/** Niveau d'un combat selon la zone du système (1 pour la Terre … 60 pour Pluton) : de 0 à 1. */
 export function niveauDeZone(zone: number): number {
   return Math.min(1, Math.log2(Math.max(1, zone)) / Math.log2(60))
 }
+const entre = (ab: readonly [number, number], n: number) => ab[0] + (ab[1] - ab[0]) * n
 
-export function laserEnnemi(niveau: number): number {
-  return Math.round(LASER_ENNEMI_MIN + (LASER_ENNEMI_MAX - LASER_ENNEMI_MIN) * niveau)
+/** Combien d'escorteurs à la fois, à ce niveau. */
+export function escorteursMax(niveau: number): number {
+  return Math.round(ESCORTEURS_MAX * niveau)
 }
 
-const enVie = (e: EtatCombat, n: NomModuleEnnemi) => e.modules.find((m) => m.nom === n)!.pv > 0
-
-function tirage(e: EtatCombat): number {
+function x01(e: EtatCombat): number {
   const h = hasard(e.graine)
   e.graine = h.graine
   return h.x
 }
 
-/** L'intention suivante de l'ennemi, parmi celles que ses modules permettent (après une charge : il attaque). */
-function annoncer(e: EtatCombat): Intention {
-  const l = laserEnnemi(e.niveau)
-  const possibles: [Intention, number][] = []
-  if (enVie(e, 'armes')) {
-    const m = l - MALUS_MISSILE
-    possibles.push([{ genre: 'laser', degats: l }, 4], [{ genre: 'missile', degats: m }, 2.5])
-    if (e.niveau >= NIVEAU_RAFALE) possibles.push([{ genre: 'rafale', laser: l - 1, missile: m - 1 }, 1 + 2 * e.niveau])
-    if (!e.charge) possibles.push([{ genre: 'charge' }, 1.2])
-  }
-  if (!e.charge) {
-    if (enVie(e, 'bouclier')) possibles.push([{ genre: 'bouclier' }, 1.2])
-    if (enVie(e, 'moteur')) possibles.push([{ genre: 'defense' }, 1.2])
-  }
-  if (!possibles.length) return { genre: 'defense' }
-  const total = possibles.reduce((s, p) => s + p[1], 0)
-  let r = tirage(e) * total
-  for (const [i, poids] of possibles) if ((r -= poids) < 0) return i
-  return possibles[possibles.length - 1][0]
-}
-
 export function nouveauCombat(graine: number, zone = 1): EtatCombat {
   const niveau = niveauDeZone(zone)
-  const coqueEnnemiMax = Math.round(COQUE_ENNEMI_MIN + (COQUE_ENNEMI_MAX - COQUE_ENNEMI_MIN) * niveau)
-  const e: EtatCombat = {
-    graine, niveau, coque: COQUE_MAX, intercepteurs: INTERCEPTEURS, torpilles: TORPILLES, coqueEnnemi: coqueEnnemiMax, coqueEnnemiMax,
-    modules: MODULES_ENNEMI.map((m) => { const pv = m.pv + Math.round(PV_MODULES_EN_PLUS * niveau); return { nom: m.nom, pv, pvMax: pv, reparation: null } }),
-    intention: { genre: 'laser', degats: 0 }, charge: false, tour: 1, degatsRecus: 0, fin: null,
+  const pv = Math.round(entre(PV_CHASSEUR, niveau))
+  return {
+    graine, niveau, temps: 0, capsule: { x: LARGEUR / 2, y: HAUTEUR - 24 }, coque: COQUE_MAX, invulnerableJusqua: 0,
+    bombes: BOMBES, prochainTir: 0, prochaineVague: 3,
+    aliens: [{ id: 1, chef: true, x: LARGEUR / 2, y: -10, pv, pvMax: pv, prochainTir: 2.5, age: 0, couloir: LARGEUR / 2, sens: 1 }],
+    tirs: [], balles: [], eclats: [], degatsRecus: 0, abattus: 0, prochainId: 2, fin: null,
   }
-  // Premier coup annoncé : jamais une charge (on découvre l'ennemi).
-  do e.intention = annoncer(e)
-  while (e.intention.genre === 'charge')
-  return e
 }
 
-/** Crans d'énergie que coûtent ces ordres (arme et esquive) ; le reste va au bouclier. */
-export function coutOrdres(o: Pick<Ordres, 'arme' | 'esquive'>): number {
-  return (o.arme ? ARMES[o.arme].cout : 0) + (o.esquive ? COUT_ESQUIVE : 0)
-}
-export function bouclierDe(o: Pick<Ordres, 'arme' | 'esquive'>): number {
-  return Math.max(0, ENERGIE_TOTALE - coutOrdres(o))
-}
-export function ordresPossibles(o: Pick<Ordres, 'arme' | 'esquive'>): boolean {
-  return coutOrdres(o) <= ENERGIE_TOTALE
+/** Le chasseur visé (le boss). */
+export function chef(e: EtatCombat): Alien | undefined {
+  return e.aliens.find((a) => a.chef)
 }
 
-/** Bouclier de l'ennemi contre un laser, ce tour (0 si son module est détruit). */
-export function bouclierEnnemi(e: EtatCombat): number {
-  if (!enVie(e, 'bouclier')) return 0
-  return BOUCLIER_ENNEMI + Math.round(BOUCLIER_ENNEMI_EN_PLUS * e.niveau) + (e.intention.genre === 'bouclier' ? RENFORT_BOUCLIER : 0)
+function tirerBalles(e: EtatCombat, a: Alien): void {
+  const v = entre(VITESSE_BALLES, e.niveau)
+  const vers = (dx: number, dy: number, vitesse = v) => { const n = Math.hypot(dx, dy) || 1; e.balles.push({ x: a.x, y: a.y + 4, vx: (dx / n) * vitesse, vy: (dy / n) * vitesse }) }
+  const dx = e.capsule.x - a.x, dy = e.capsule.y - a.y
+  if (!a.chef) { vers(dx, dy); return }
+  // Le chasseur alterne ses motifs : visé, en éventail, en pluie.
+  const motif: Motif = (['vise', 'eventail', 'pluie'] as Motif[])[Math.floor(x01(e) * 3)]
+  if (motif === 'vise') { vers(dx, dy); vers(dx - 12, dy); vers(dx + 12, dy) } else if (motif === 'eventail') {
+    const n = 5 + Math.round(2 * e.niveau)
+    for (let k = 0; k < n; k++) { const ang = Math.PI / 2 + (k - (n - 1) / 2) * 0.22; vers(Math.cos(ang), Math.sin(ang)) }
+  } else for (let k = 0; k < 4; k++) e.balles.push({ x: a.x + (k - 1.5) * 9, y: a.y + 4, vx: 0, vy: v * 0.85 })
 }
 
-/** Joue un tour avec les ordres du joueur ; renvoie son bilan (null si le combat est fini ou les ordres impossibles). */
-export function jouerTour(e: EtatCombat, o: Ordres): Bilan | null {
-  if (e.fin || !ordresPossibles(o) || (o.arme === 'torpille' && e.torpilles === 0)) return null
-  const intention = e.intention
-  const bilan: Bilan = { notreTir: null, sonCoup: intention, recus: 0, bouclier: bouclierDe(o), esquive: o.esquive, intercepte: false, doublé: false, chargeAnnulee: false, repares: [] }
-  // 1. Notre tir.
-  if (o.arme) {
-    const a = ARMES[o.arme]
-    if (o.arme === 'torpille') e.torpilles--
-    const interceptee = o.arme === 'torpille' && intention.genre === 'defense'
-    const arrete = o.arme === 'laser' ? Math.min(a.degats, bouclierEnnemi(e)) : 0
-    const degats = interceptee ? 0 : a.degats - arrete
-    const m = e.modules.find((x) => x.nom === o.cible)!
-    const avant = m.pv
-    m.pv = Math.max(0, m.pv - degats)
-    e.coqueEnnemi = Math.max(0, e.coqueEnnemi - degats)
-    bilan.notreTir = { arme: o.arme, cible: o.cible, brut: a.degats, arrete, degats, interceptee, detruit: avant > 0 && m.pv === 0 }
-    if (bilan.notreTir.detruit) m.reparation = e.tour + TOURS_REPARATION
-    // Ses armes touchées pendant qu'il charge : la charge est annulée.
-    if (intention.genre === 'charge' && o.cible === 'armes' && degats > 0) bilan.chargeAnnulee = true
+/** Une vague d'escorteurs, jusqu'au nombre permis à ce niveau. */
+function vague(e: EtatCombat): void {
+  const max = escorteursMax(e.niveau)
+  const presents = e.aliens.filter((a) => !a.chef).length
+  for (let k = presents; k < max; k++) {
+    const couloir = 12 + 76 * x01(e)
+    e.aliens.push({ id: e.prochainId++, chef: false, x: couloir, y: -8 - 10 * k, pv: PV_ESCORTEUR, pvMax: PV_ESCORTEUR, prochainTir: 1 + 2 * x01(e), age: 0, couloir, sens: x01(e) < 0.5 ? -1 : 1 })
   }
-  // 2. Son coup (s'il est encore là, et s'il a encore ses armes pour un tir).
-  const tire = (intention.genre === 'laser' || intention.genre === 'missile' || intention.genre === 'rafale') && e.coqueEnnemi > 0 && enVie(e, 'armes')
-  if (tire) {
-    const facteur = e.charge ? 2 : 1
-    bilan.doublé = e.charge
-    e.charge = false
-    const laser = intention.genre === 'laser' ? intention.degats : intention.genre === 'rafale' ? intention.laser : 0
-    const missile = intention.genre === 'missile' ? intention.degats : intention.genre === 'rafale' ? intention.missile : 0
-    // Le laser : arrêté cran par cran par le bouclier, ou raté grâce à l'esquive.
-    if (laser) bilan.recus += Math.max(0, Math.ceil((laser * facteur) / (o.esquive ? 2 : 1)) - bilan.bouclier)
-    // Le missile : guidé (ni bouclier ni esquive) ; seul un intercepteur l'arrête.
-    if (missile) {
-      if (o.intercepteur && e.intercepteurs > 0) { e.intercepteurs--; bilan.intercepte = true } else bilan.recus += missile * facteur
-    }
-    e.coque = Math.max(0, e.coque - bilan.recus)
-    e.degatsRecus += bilan.recus
-  }
-  if (intention.genre === 'charge' && !bilan.chargeAnnulee && enVie(e, 'armes')) e.charge = true
-  // 3. La fin, ou le coup suivant.
-  if (e.coqueEnnemi <= 0) e.fin = 'victoire'
-  else if (e.coque <= 0) e.fin = 'retraite'
-  else {
-    e.tour++
-    // Ses modules détruits se réparent (1 point), deux tours plus tard.
-    for (const m of e.modules) if (m.pv === 0 && m.reparation !== null && e.tour >= m.reparation) { m.pv = 1; m.reparation = null; bilan.repares.push(m.nom) }
-    e.intention = annoncer(e)
-  }
-  return bilan
+}
+
+/** Lâche une bombe : toutes les balles disparaissent, tous les aliens sont abîmés. */
+export function bombe(e: EtatCombat): boolean {
+  if (e.fin || e.bombes === 0) return false
+  e.bombes--
+  e.balles = []
+  for (const a of e.aliens) { a.pv -= DEGATS_BOMBE; e.eclats.push({ x: a.x, y: a.y, t: e.temps, gros: true }) }
+  return true
+}
+
+export function retraite(e: EtatCombat): void {
+  if (!e.fin) e.fin = 'retraite'
 }
 
 /**
- * Ce que donneraient ces ordres (sans rien jouer) : les dégâts que recevrait la capsule et ceux qu'elle infligerait.
- * Pour aider le joueur à choisir (l'ennemi a annoncé son coup : tout est connu).
+ * Fait avancer de dt secondes. `doigt` : où est le doigt (unités du terrain), ou null s'il est levé ; la capsule va
+ * se placer au-dessus de lui (DECALAGE_DOIGT), à vitesse limitée.
  */
-export function prevoir(e: EtatCombat, o: Ordres): { recus: number; inflige: number } | null {
-  const copie: EtatCombat = { ...e, modules: e.modules.map((m) => ({ ...m })) }
-  const b = jouerTour(copie, o)
-  return b ? { recus: b.recus, inflige: b.notreTir?.degats ?? 0 } : null
-}
-
-/** Battre en retraite (la Coque de la capsule tombera en panne). */
-export function retraite(e: EtatCombat): void {
-  if (!e.fin) e.fin = 'retraite'
+export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: number } | null): EvenementCombat[] {
+  if (e.fin) return []
+  const ev: EvenementCombat[] = []
+  e.temps += dt
+  e.eclats = e.eclats.filter((x) => e.temps - x.t < 0.5)
+  // La capsule suit le doigt.
+  if (doigt) {
+    const cx = Math.max(4, Math.min(LARGEUR - 4, doigt.x)), cy = Math.max(HAUTEUR * 0.35, Math.min(HAUTEUR - 6, doigt.y - DECALAGE_DOIGT))
+    const dx = cx - e.capsule.x, dy = cy - e.capsule.y, d = Math.hypot(dx, dy), pas = VITESSE_CAPSULE * dt
+    if (d <= pas) e.capsule = { x: cx, y: cy }
+    else e.capsule = { x: e.capsule.x + (dx / d) * pas, y: e.capsule.y + (dy / d) * pas }
+  }
+  // Le tir automatique.
+  if (e.temps >= e.prochainTir) { e.tirs.push({ x: e.capsule.x - 1.5, y: e.capsule.y - 5 }, { x: e.capsule.x + 1.5, y: e.capsule.y - 5 }); e.prochainTir = e.temps + CADENCE }
+  for (const t of e.tirs) t.y -= VITESSE_TIR * dt
+  e.tirs = e.tirs.filter((t) => t.y > -5)
+  // Les vagues d'escorteurs.
+  if (e.temps >= e.prochaineVague) { vague(e); e.prochaineVague = e.temps + VAGUE }
+  // Les aliens bougent et tirent.
+  for (const a of e.aliens) {
+    a.age += dt
+    if (a.chef) {
+      a.y = Math.min(28, a.y + 20 * dt)
+      a.x = LARGEUR / 2 + 32 * Math.sin(a.age * 0.7) * Math.cos(a.age * 0.23)
+    } else {
+      a.y += (14 + 6 * e.niveau) * dt
+      a.x = a.couloir + a.sens * 14 * Math.sin(a.age * 1.6)
+      if (a.y > HAUTEUR + 10) { a.y = -10; a.couloir = 12 + 76 * x01(e) }
+    }
+    if (a.y > 0 && e.temps >= a.prochainTir) {
+      tirerBalles(e, a)
+      a.prochainTir = e.temps + (a.chef ? entre(TIR_CHASSEUR, e.niveau) : TIR_ESCORTEUR) * (0.8 + 0.4 * x01(e))
+    }
+  }
+  // Nos tirs touchent les aliens.
+  for (const t of [...e.tirs]) {
+    const a = e.aliens.find((x) => Math.abs(x.x - t.x) < (x.chef ? 9 : 5) && Math.abs(x.y - t.y) < (x.chef ? 6 : 4))
+    if (!a) continue
+    a.pv -= DEGATS_TIR
+    e.tirs = e.tirs.filter((x) => x !== t)
+    e.eclats.push({ x: t.x, y: t.y, t: e.temps, gros: false })
+  }
+  for (const a of [...e.aliens]) {
+    if (a.pv > 0) continue
+    e.aliens = e.aliens.filter((x) => x !== a)
+    e.eclats.push({ x: a.x, y: a.y, t: e.temps, gros: true })
+    if (a.chef) { e.fin = 'victoire'; ev.push('victoire'); return ev }
+    e.abattus++
+    ev.push('escorteur-abattu')
+  }
+  // Les balles ennemies : elles avancent ; une qui touche la capsule l'abîme (puis un instant d'invulnérabilité).
+  for (const b of e.balles) { b.x += b.vx * dt; b.y += b.vy * dt }
+  e.balles = e.balles.filter((b) => b.x > -5 && b.x < LARGEUR + 5 && b.y > -10 && b.y < HAUTEUR + 5)
+  const touche = e.balles.find((b) => Math.hypot(b.x - e.capsule.x, b.y - e.capsule.y) < RAYON_CAPSULE + 1.2)
+  // Un alien qui percute la capsule, c'est pareil.
+  const percute = e.aliens.find((a) => Math.hypot(a.x - e.capsule.x, a.y - e.capsule.y) < (a.chef ? 8 : 5))
+  if ((touche || percute) && e.temps >= e.invulnerableJusqua) {
+    if (touche) e.balles = e.balles.filter((b) => b !== touche)
+    e.coque--
+    e.degatsRecus++
+    e.invulnerableJusqua = e.temps + INVULNERABLE
+    e.eclats.push({ x: e.capsule.x, y: e.capsule.y, t: e.temps, gros: false })
+    ev.push('touche')
+    if (e.coque <= 0) { e.fin = 'retraite'; ev.push('retraite') }
+  }
+  return ev
 }
