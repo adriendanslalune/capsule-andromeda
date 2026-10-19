@@ -47,6 +47,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   la carte (en attendant le serveur, celles des 12 bots des Messages : corps de type « joueur » en orbite autour de
   leur astre, `src/moteur/corps.ts` ; chevron aux couleurs de leur Maison ; la fiche dit « capitaine des … » et leur
   statut ; Y ALLER possible).
+- Les bots voyagent (demande d'Adrien du 19/10/2026) — **fait** : chacun a ses escales (port d'attache, puis 1 à 4
+  autres lieux de sa région, `escales` dans `src/donnees/messages.ts`) et un moteur (120 à 15 360 km/s) ; il reste 4 à
+  30 h en orbite à une escale, puis vole vers une autre (profil 10 g, en ligne droite vers le rendez-vous). Tout se
+  déduit de l'heure depuis le 1er octobre 2026 (`ouEstLeBot`, `src/moteur/corps.ts`, testé : pas de saut au départ ni
+  à l'arrivée). Leurs messages partent de leur vraie position (délai de la lumière), « {lieu} » devient « la route de
+  Mars » en vol ; la liste des Messages et la fiche de la carte disent « Lune » ou « en route vers Mars ».
 
 ---
 

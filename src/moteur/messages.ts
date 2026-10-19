@@ -4,6 +4,7 @@
 // la lumière : un message parti de Neptune arrive des heures plus tard, et la réponse à un message aussi.
 // Reproductible : les bavardages dépendent seulement de l'heure (les mêmes pour tous) ; les réponses, du message.
 
+import { ouEstLeBot } from './corps'
 import { statut } from './monolithes'
 import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
 import { MARCHANDISES, MARCHES } from '../donnees/marche'
@@ -57,14 +58,26 @@ export function texteDelaiCourt(ms: number): string {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`
 }
 
+/** Où est un bot, pour l'affichage : « Lune », ou « en route vers Mars » (les bots voyagent, voir moteur/corps.ts). */
+export function lieuDuBot(pseudo: string, t: number): string {
+  const ou = ouEstLeBot(pseudo, t)
+  return ou.enRoute ? `en route vers ${ou.vers}` : ou.lieu
+}
+
+/** Où est un bot, dans une phrase (« Bonjour de {lieu} ») : « Lune », ou « la route de Mars ». */
+function lieuDansUnTexte(pseudo: string, t: number): string {
+  const ou = ouEstLeBot(pseudo, t)
+  return ou.enRoute ? `la route de ${ou.vers}` : ou.lieu
+}
+
 /** Remplit les trous d'un texte de bot : pseudo du joueur, lieu, délai, un vrai cours sur le marché du bot. */
 function remplir(modele: string, bot: Bot, joueur: string, t: number, graine: string, marchandiseVoulue?: string): string {
   const marche = MARCHES.find((m) => m.nom === bot.marche)!
   const f = MARCHANDISES.find((m) => m.nom === marchandiseVoulue) ?? choisir(MARCHANDISES, h(`${graine}/m`))
   const prix = Math.round(cours(marche, f, t))
-  return modele.replaceAll('{joueur}', joueur).replaceAll('{lieu}', bot.lieu).replaceAll('{marche}', marche.nom === 'Terre' ? 'la Terre' : marche.nom)
+  return modele.replaceAll('{joueur}', joueur).replaceAll('{lieu}', lieuDansUnTexte(bot.pseudo, t)).replaceAll('{marche}', marche.nom === 'Terre' ? 'la Terre' : marche.nom)
     .replaceAll('{marchandise}', f.nom.toLowerCase()).replaceAll('{prix}', String(prix))
-    .replaceAll('{delai}', texteDelaiCourt(delaiLumiere(bot.lieu, t)))
+    .replaceAll('{delai}', texteDelaiCourt(delaiLumiere(bot.pseudo, t)))
 }
 
 /** Le bavardage d'un créneau (k : numéro du créneau depuis 1970), ou null s'il est silencieux. */
@@ -80,7 +93,7 @@ function bavardage(k: number, joueur: string): MessageAffiche | null {
     const canal = x < 0.02 ? `prive:${bot.pseudo}` : x < 0.3 ? 'maison' : 'general'
     const modeles = canal === 'general' ? BAVARDAGES : canal === 'maison' ? BAVARDAGES_MAISON[bot.maison] : PRIVES_SPONTANES
     const texte = remplir(choisir(modeles, h(`c${k}/4`)), bot, joueur, envoye, `c${k}`)
-    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: bot.lieu, texte, envoye, recu: envoye + delaiLumiere(bot.lieu, envoye), deMoi: false, statut: statut(bot.monolithes) }
+    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statut(bot.monolithes) }
   }
   if (memoire.size > 5000) memoire.clear()
   memoire.set(cle, m)
@@ -122,10 +135,10 @@ function calculerReponses(m: MessageEnvoye, joueur: string, maisonJoueur: Maison
   const i = intention(m.texte)
   const marchandise = MARCHANDISES.find((f) => m.texte.toLowerCase().includes(f.nom.toLowerCase().slice(0, 5)))?.nom
   return repondants(m).filter((b) => m.canal !== 'maison' || b.maison === maisonJoueur).map((b, n) => {
-    const arrivee = m.envoye + delaiLumiere(b.lieu, m.envoye)
+    const arrivee = m.envoye + delaiLumiere(b.pseudo, m.envoye)
     const envoye = arrivee + 8000 + Math.floor(h(`r${m.id}/${b.pseudo}/t`) * 30_000) + n * 6000
     const texte = remplir(choisir(REPONSES[i], h(`r${m.id}/${b.pseudo}/x`)), b, joueur, envoye, `r${m.id}`, marchandise)
-    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: b.lieu, texte, envoye, recu: envoye + delaiLumiere(b.lieu, envoye), deMoi: false, statut: statut(b.monolithes) }
+    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: lieuDuBot(b.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(b.pseudo, envoye), deMoi: false, statut: statut(b.monolithes) }
   })
 }
 
@@ -140,7 +153,7 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
   for (const x of jeu.lettres) {
     const bot = BOTS.find((b) => b.pseudo === x.bot)
     if (!bot) continue
-    l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: bot.lieu, texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.lieu, x.envoye), deMoi: false, statut: statut(bot.monolithes) })
+    l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, x.envoye), texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.pseudo, x.envoye), deMoi: false, statut: statut(bot.monolithes) })
   }
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
@@ -202,7 +215,7 @@ export function marquerLu(jeu: Jeu, canal: Canal, t: number): void {
 /** Où en est un message du joueur : en route vers les autres, ou arrivé partout. */
 export function etatEnvoi(m: MessageAffiche, t: number): string {
   const destinataires = m.canal.startsWith('prive:') ? BOTS.filter((b) => `prive:${b.pseudo}` === m.canal) : BOTS
-  const dernier = Math.max(...destinataires.map((b) => m.envoye + delaiLumiere(b.lieu, m.envoye)))
-  if (t >= dernier) return m.canal.startsWith('prive:') ? `✓ arrivé sur ${destinataires[0].lieu}` : '✓ arrivé dans tout le système'
-  return `📡 en route${m.canal.startsWith('prive:') ? ` vers ${destinataires[0].lieu}` : ''} · encore ${texteDelaiCourt(dernier - t)}`
+  const dernier = Math.max(...destinataires.map((b) => m.envoye + delaiLumiere(b.pseudo, m.envoye)))
+  if (t >= dernier) return m.canal.startsWith('prive:') ? `✓ arrivé à ${destinataires[0].pseudo} (${lieuDuBot(destinataires[0].pseudo, dernier)})` : '✓ arrivé dans tout le système'
+  return `📡 en route${m.canal.startsWith('prive:') ? ` vers ${destinataires[0].pseudo}` : ''} · encore ${texteDelaiCourt(dernier - t)}`
 }

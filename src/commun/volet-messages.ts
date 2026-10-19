@@ -9,7 +9,7 @@ import { BOTS, PHRASES_RAPIDES } from '../donnees/messages'
 import { titreMaison } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
 import {
-  conversations, enRoute, envoyer, etatEnvoi, fil, marquerLu, nonLus, texteDelaiCourt, type Canal, type MessageAffiche,
+  conversations, enRoute, envoyer, etatEnvoi, fil, lieuDuBot, marquerLu, nonLus, texteDelaiCourt, type Canal, type MessageAffiche,
 } from '../moteur/messages'
 import { delaiLumiere } from '../moteur/marche'
 import { statut } from '../moteur/monolithes'
@@ -101,14 +101,14 @@ export class VoletMessages {
         + `<span class="quand">${ilYa(t - dernier.recu)}</span></button>`).join('')
         : '<p class="vide">Pas encore de conversation privée. Touche le nom d\'un capitaine dans le canal général, ou choisis ci-dessous.</p>'
       html += '<h3>Écrire à…</h3><div class="annuaire">' + BOTS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
-        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}${badge(statut(b.monolithes))}<small>${b.lieu} · ${texteDelaiCourt(delaiLumiere(b.lieu, t))}</small></button>`).join('') + '</div>'
+        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}${badge(statut(b.monolithes))}<small>${lieuDuBot(b.pseudo, t)} · ${texteDelaiCourt(delaiLumiere(b.pseudo, t))}</small></button>`).join('') + '</div>'
     } else if (c === 'maison' && !jeu.maison) {
       html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (depuis ton Profil, quand ton affinité le permet) pour parler avec les tiens.</p>'
     } else {
       if (c.startsWith('prive:')) {
         const bot = BOTS.find((b) => `prive:${b.pseudo}` === c)!
         html += `<div class="tete-prive"><button type="button" data-canal="prives">‹</button><span class="avatar" style="background:${TEINTES[bot.maison]}">${bot.pseudo[0]}</span>`
-          + `<span><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${titreMaison(bot.maison)} · ${bot.lieu} · la lumière met ${texteDelaiCourt(delaiLumiere(bot.lieu, t))}</small></span></div>`
+          + `<span><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${titreMaison(bot.maison)} · ${lieuDuBot(bot.pseudo, t)} · la lumière met ${texteDelaiCourt(delaiLumiere(bot.pseudo, t))}</small></span></div>`
       } else if (c === 'maison') html += `<p class="info-canal">Canal des ${titreMaison(jeu.maison!).toLowerCase()}</p>`
       const messages = fil(jeu, c, t)
       if (!messages.length) html += '<p class="vide">Aucun message pour l\'instant. Lance la conversation !</p>'

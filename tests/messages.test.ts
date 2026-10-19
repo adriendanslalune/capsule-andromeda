@@ -19,7 +19,8 @@ describe('les Messages', () => {
     expect(f.length).toBeGreaterThan(80) // environ un toutes les 3 minutes sur 12 h
     for (const m of f) {
       expect(m.recu).toBeLessThanOrEqual(t0)
-      expect(m.recu - m.envoye).toBeCloseTo(delaiLumiere(m.lieu, m.envoye), -1)
+      // Depuis la capsule du bot, où qu'elle soit (les bots voyagent).
+      expect(m.recu - m.envoye).toBeCloseTo(delaiLumiere(m.auteur, m.envoye), -1)
       expect(m.texte).not.toMatch(/\{\w+\}/) // tous les trous remplis
     }
     expect(fil(jeu, 'general', t0)).toEqual(f) // reproductible
@@ -45,9 +46,9 @@ describe('les Messages', () => {
     const jeu = new Jeu()
     jeu.pseudo = 'Adrien'
     envoyer(jeu, 'prive:ORION_77', 'Salut ORION !', t0)
-    const aller = delaiLumiere('Phobos', t0)
+    const aller = delaiLumiere('ORION_77', t0)
     const mien = fil(jeu, 'prive:ORION_77', t0).find((m) => m.deMoi)!
-    expect(etatEnvoi(mien, t0)).toMatch(/en route vers Phobos/)
+    expect(etatEnvoi(mien, t0)).toMatch(/en route vers ORION_77/)
     // La réponse part après l'arrivée chez lui (et un temps de réflexion), et met autant pour revenir.
     const t1 = t0 + aller + 50_000
     expect(enRoute(jeu, 'prive:ORION_77', t1)).toHaveLength(1)
@@ -56,7 +57,7 @@ describe('les Messages', () => {
     const reponse = fil(jeu, 'prive:ORION_77', t2).filter((m) => m.id.startsWith('r'))
     expect(reponse).toHaveLength(1)
     expect(reponse[0].auteur).toBe('ORION_77')
-    expect(reponse[0].texte).toMatch(/Adrien|👋|Phobos|Bonjour/)
+    expect(reponse[0].texte).toMatch(/Adrien|👋|Phobos|Deimos|Mars|Bonjour/)
     expect(conversations(jeu, t2)[0].canal).toBe('prive:ORION_77')
   })
 

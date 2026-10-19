@@ -37,6 +37,7 @@ import { objetsTries } from './moteur/tri'
 import { VoletMarche } from './commun/volet-marche'
 import { CAPACITE_SOUTE } from './donnees/marche'
 import { BOTS } from './donnees/messages'
+import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { htmlManuel } from './commun/manuel'
@@ -498,7 +499,7 @@ function mettreAJourFiche(t: number): void {
     const genre = corps(selection)?.type
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
-      : bot ? ` · capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''}` : ''
+      : bot ? ` · capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}` : ''
     texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'

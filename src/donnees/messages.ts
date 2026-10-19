@@ -12,21 +12,27 @@ export interface Bot {
   marche: string
   /** Monolithes trouvés (son statut dans les Messages). */
   monolithes: number
+  /**
+   * Ses escales (décision d'Adrien du 19/10/2026 : les bots voyagent) : il va de l'une à l'autre, la première est son
+   * port d'attache. Et la vitesse max de son moteur (km/s), selon les niveaux du jeu.
+   */
+  escales: string[]
+  vitesse: number
 }
 
 export const BOTS: readonly Bot[] = [
-  { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre', monolithes: 64 },
-  { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre', monolithes: 8 },
-  { pseudo: 'ORION_77', maison: 'ingenieurs', lieu: 'Phobos', marche: 'Mars', monolithes: 132 },
-  { pseudo: 'Babouchka', maison: 'nettoyeurs', lieu: 'Vénus', marche: 'Vénus', monolithes: 271 },
-  { pseudo: 'Kepler9', maison: 'ingenieurs', lieu: 'Callisto', marche: 'Jupiter', monolithes: 23 },
-  { pseudo: 'Nemo_II', maison: 'mercenaires', lieu: 'Titan', marche: 'Saturne', monolithes: 517 },
-  { pseudo: 'Pipelette', maison: 'ingenieurs', lieu: 'Lune', marche: 'Terre', monolithes: 3 },
-  { pseudo: 'Le_Vieux_Ras', maison: 'nettoyeurs', lieu: 'Neptune', marche: 'Neptune', monolithes: 1000 },
-  { pseudo: 'Lune_Rousse', maison: 'mercenaires', lieu: 'Mars', marche: 'Mars', monolithes: 41 },
-  { pseudo: 'Comète_Rieuse', maison: 'nettoyeurs', lieu: 'Mercure', marche: 'Mercure', monolithes: 12 },
-  { pseudo: 'Zinzolin', maison: 'ingenieurs', lieu: 'Uranus', marche: 'Uranus', monolithes: 88 },
-  { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter', monolithes: 0 },
+  { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre', monolithes: 64, escales: ['Lune', 'Terre', 'ISS'], vitesse: 240 },
+  { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre', monolithes: 8, escales: ['Lune', 'Terre', 'Mars', 'Phobos'], vitesse: 3840 },
+  { pseudo: 'ORION_77', maison: 'ingenieurs', lieu: 'Phobos', marche: 'Mars', monolithes: 132, escales: ['Phobos', 'Deimos', 'Mars'], vitesse: 960 },
+  { pseudo: 'Babouchka', maison: 'nettoyeurs', lieu: 'Vénus', marche: 'Vénus', monolithes: 271, escales: ['Vénus', 'Mercure', 'Terre'], vitesse: 1920 },
+  { pseudo: 'Kepler9', maison: 'ingenieurs', lieu: 'Callisto', marche: 'Jupiter', monolithes: 23, escales: ['Callisto', 'Ganymède', 'Europe', 'Io'], vitesse: 3840 },
+  { pseudo: 'Nemo_II', maison: 'mercenaires', lieu: 'Titan', marche: 'Saturne', monolithes: 517, escales: ['Titan', 'Encelade', 'Rhéa', 'Japet', 'Téthys'], vitesse: 7680 },
+  { pseudo: 'Pipelette', maison: 'ingenieurs', lieu: 'Lune', marche: 'Terre', monolithes: 3, escales: ['Lune', 'ISS', 'Terre'], vitesse: 120 },
+  { pseudo: 'Le_Vieux_Ras', maison: 'nettoyeurs', lieu: 'Neptune', marche: 'Neptune', monolithes: 1000, escales: ['Neptune', 'Triton', 'Néréide'], vitesse: 15360 },
+  { pseudo: 'Lune_Rousse', maison: 'mercenaires', lieu: 'Mars', marche: 'Mars', monolithes: 41, escales: ['Mars', 'Phobos', 'Deimos', 'Lune'], vitesse: 3840 },
+  { pseudo: 'Comète_Rieuse', maison: 'nettoyeurs', lieu: 'Mercure', marche: 'Mercure', monolithes: 12, escales: ['Mercure', 'Vénus'], vitesse: 960 },
+  { pseudo: 'Zinzolin', maison: 'ingenieurs', lieu: 'Uranus', marche: 'Uranus', monolithes: 88, escales: ['Uranus', 'Titania', 'Obéron', 'Miranda'], vitesse: 7680 },
+  { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter', monolithes: 0, escales: ['Europe', 'Io', 'Ganymède'], vitesse: 1920 },
 ]
 
 /** Bavardages du canal général. */
