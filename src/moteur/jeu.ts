@@ -11,6 +11,7 @@ import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
+import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
@@ -402,6 +403,23 @@ export class Jeu {
   amarrer(rebonds: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDAmarrage() || !this.peutAgir(t)) return null
     if (rebonds === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_REBOND) / 10) * 10
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** L'étape actuelle est-elle un dépannage (qui se fait sur le boîtier technique de l'engin) ? */
+  etapeDeDepannage(): boolean {
+    return this.etapeActuelle()?.action === 'reparer'
+  }
+
+  /**
+   * L'engin est réparé : l'étape est faite. Sans une fausse manœuvre, la récompense augmente de 10 %
+   * (BONUS_SANS_ERREUR). null si ce n'est pas possible ici.
+   */
+  depanner(erreurs: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDeDepannage() || !this.peutAgir(t)) return null
+    if (erreurs === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_ERREUR) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements

@@ -208,6 +208,16 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - RÉPARER (19/10/2026) — **fait, en attente de validation** : la mission de dépannage se fait sur le boîtier
+    technique de l'engin (`src/donnees/depannage.ts`, `src/moteur/depannage.ts`, `src/commun/vue-depannage.ts`, tests
+    `tests/depannage.test.ts`). Plaque : lettre du BUS (A à D) et voyant de défaut (rouge, orange, bleu, vert, avec son
+    nom). Trois modules, deux en défaut (tirés au hasard) : 6A DISJONCTEURS (5 leviers ; TABLEAU 6-1 : ceux à laisser
+    levés selon voyant et bus), 6B CÂBLAGE (4 câbles colorés à brancher sur 4 prises ; TABLEAU 6-2 selon le bus ; règle :
+    voyant BLEU, prises 1 et 4 échangées), 6C GYROSCOPE (3 symboles à l'écran, 3 molettes ; TABLEAU 6-3, colonne A·B ou
+    C·D). VÉRIFIER : juste, le module est réparé (lampe verte) ; faux, « fausse manœuvre » comptée, on corrige. Pas de
+    chrono, pas d'échec. Sans fausse manœuvre : prime de 10 % (comme l'amarrage). Manuel : nouvelle section 6 « Engins
+    à dépanner » (sommaire mis à jour), consultable depuis le boîtier (📖 MANUEL). Tableaux fixes, les mêmes pour tous.
+    Essai : `andromeda.depannage()`.
   - AMARRER (19/10/2026) — **fait, validé par Adrien** (« je me suis bien amusé ») : la livraison se termine par la manœuvre d'amarrage
     (`src/moteur/amarrage.ts`, `src/donnees/amarrage.ts`, `src/commun/vue-amarrage.ts`, tests `tests/amarrage.test.ts`).
     Vue du dessus : la station et son port en haut, la capsule (vaisseau à panneaux solaires) qui approche ; l'échelle

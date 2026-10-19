@@ -3,6 +3,7 @@
 // écrit est exactement ce que le jeu attend. Une section par bloc du panneau ; pour l'instant : le sommaire, la
 // section 1 (Communications) et la section 2 (Énergie).
 
+import { CABLAGE, CABLES, CHIFFRES_GYRO, DISJONCTEURS, LES_BUS, SYMBOLES_GYRO, VOYANTS } from '../donnees/depannage'
 import { CODES_ENERGIE, PREFIXE_R4_INVERSEE, REGLES, TEXTES_REGLES } from '../donnees/manuel-energie'
 import {
   ANGLES_ANTENNE, BANDES, COLONNES_CHIFFREUR, MORSE, MOTS_TELEGRAPHE, STATIONS, texteFrequence,
@@ -100,6 +101,54 @@ function sectionEnergie(): string {
     <p class="petit">Modules 2B FUSIBLES et 2C ACCUMULATEURS : en rédaction.</p>`, true)
 }
 
+/**
+ * Section 6 : le boîtier technique des engins à dépanner (satellites, stations ; missions RÉPARER des Ingénieurs).
+ * Les tableaux sont lus dans donnees/depannage.ts : ce qui est écrit est exactement ce que le jeu attend.
+ */
+export function sectionEngins(): string {
+  const lignesDisj = VOYANTS.map((v) => `<tr><td class="gauche"><span class="pastille-voyant" style="background:${v.teinte}"></span>${v.titre}</td>`
+    + LES_BUS.map((b) => `<td>${DISJONCTEURS[v.voyant][b].join(' · ')}</td>`).join('') + '</tr>').join('')
+  const lignesCablage = CABLES.map((c, k) => `<tr><td class="gauche"><span class="pastille-voyant" style="background:${c.teinte}"></span>${c.titre}</td>`
+    + LES_BUS.map((b) => `<td>${CABLAGE[b][k]}</td>`).join('') + '</tr>').join('')
+  const lignesGyro = enDeuxColonnes(SYMBOLES_GYRO.map((s, k) => ({ s, ab: CHIFFRES_GYRO.AB[k], cd: CHIFFRES_GYRO.CD[k] })),
+    (x) => (x ? `<td class="symbole-manuel">${x.s}</td><td>${x.ab}</td><td>${x.cd}</td>` : '<td></td><td></td><td></td>'))
+  return feuille('CA-MM-06', 'SECTION 6 — ENGINS À DÉPANNER', '6-1', `
+    <h3>6.0 Le boîtier technique</h3>
+    <p>Chaque satellite ou station porte un boîtier technique. Sa <b>plaque</b> indique la lettre de son <b>BUS</b> (A, B, C
+      ou D) ; son <b>voyant de défaut</b> est allumé d'une couleur. Deux de ses trois modules sont en défaut : les régler
+      selon les tableaux ci-dessous, puis appuyer sur <b>VÉRIFIER</b>. Une fausse manœuvre ne détruit rien, mais elle se
+      voit dans le rapport d'intervention.</p>
+
+    <h3>6.1 Module 6A — Disjoncteurs</h3>
+    ${procedure('6.1', [
+      'Lire la couleur du <b>voyant</b> et la lettre du <b>BUS</b> sur la plaque.',
+      'Le <b>TABLEAU 6-1</b> donne les disjoncteurs à laisser <b>LEVÉS</b>. Tous les autres doivent être <b>BAISSÉS</b>.',
+      'Basculer les leviers, puis appuyer sur <b>VÉRIFIER</b>.',
+    ])}
+    <table><caption>TABLEAU 6-1 — DISJONCTEURS LEVÉS</caption>
+      <tr><th>VOYANT</th>${LES_BUS.map((b) => `<th>BUS ${b}</th>`).join('')}</tr>${lignesDisj}</table>
+
+    <h3>6.2 Module 6B — Câblage</h3>
+    ${attention('Voyant BLEU : les câbles destinés aux prises 1 et 4 sont ÉCHANGÉS.')}
+    ${procedure('6.2', [
+      'Lire la lettre du <b>BUS</b> sur la plaque.',
+      'Le <b>TABLEAU 6-2</b> donne la prise de chaque câble. Toucher un câble, puis sa prise.',
+      'Si le voyant est <b>BLEU</b>, échanger les prises 1 et 4 (le câble prévu pour la prise 1 va sur la 4, et inversement).',
+      'Les quatre câbles branchés, appuyer sur <b>VÉRIFIER</b>.',
+    ])}
+    <table><caption>TABLEAU 6-2 — PRISES DES CÂBLES</caption>
+      <tr><th>CÂBLE</th>${LES_BUS.map((b) => `<th>BUS ${b}</th>`).join('')}</tr>${lignesCablage}</table>
+
+    <h3>6.3 Module 6C — Gyroscope</h3>
+    ${procedure('6.3', [
+      'L\'écran du gyroscope affiche <b>trois symboles</b>, de gauche à droite.',
+      'Le <b>TABLEAU 6-3</b> donne le chiffre de chaque symbole : colonne <b>A·B</b> pour les bus A et B, colonne <b>C·D</b> pour les bus C et D.',
+      'Régler les trois molettes sur ces chiffres, dans l\'ordre des symboles, puis appuyer sur <b>VÉRIFIER</b>.',
+    ])}
+    <table><caption>TABLEAU 6-3 — CALAGE DU GYROSCOPE</caption>
+      <tr><th>SYMB.</th><th>A·B</th><th>C·D</th><th>SYMB.</th><th>A·B</th><th>C·D</th></tr>${lignesGyro}</table>`)
+}
+
 /** Le texte du manuel (HTML), avec un bouton pour revenir au panneau de réparation. */
 export function htmlManuel(): string {
   return `
@@ -112,6 +161,7 @@ export function htmlManuel(): string {
       <tr><td>3</td><td class="gauche">Moteur — leviers, soupape, injecteurs</td><td>en rédaction</td></tr>
       <tr><td>4</td><td class="gauche">Navigation — constellation, gyroscope, calculateur</td><td>en rédaction</td></tr>
       <tr><td>5</td><td class="gauche">Coque — vannes, brèche, sas</td><td>en rédaction</td></tr>
+      <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
     </table>
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
@@ -119,5 +169,6 @@ export function htmlManuel(): string {
     <p class="petit">En attendant la rédaction des sections 3, 4 et 5, ces blocs se réparent depuis l'onglet ÉTAT du volet
       Capsule (procédure provisoire).</p>`)}
   ${sectionCommunications()}
-  ${sectionEnergie()}`
+  ${sectionEnergie()}
+  ${sectionEngins()}`
 }
