@@ -8,7 +8,7 @@
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
-import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
+import { anneauxGradues, CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
@@ -270,6 +270,39 @@ export class Carte2D {
       ctx.globalAlpha = 0.35
       ctx.fill()
       ctx.globalAlpha = 1
+    }
+
+    // Anneaux gradués autour des planètes dont le système est assez grand à l'écran (avec les orbites) : 1 000 km,
+    // 10 000 km… Ils se resserrent en s'éloignant, la carte écrasant les grandes distances autour des planètes.
+    if (reglages.orbites) {
+      ctx.save()
+      ctx.font = '9px ui-monospace, Menlo, monospace'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.setLineDash([2, 4])
+      ctx.lineWidth = 0.8
+      for (const nom of CENTRES) {
+        if (zoneDessinee(nom) / this.kmParPx < this.largeur * 0.25) continue
+        const q = this.ecranDe(projeterCorps(nom, t))
+        for (const a of anneauxGradues(nom)) {
+          const r = a.rayon / this.kmParPx
+          if (r < 12) continue
+          ctx.beginPath()
+          ctx.arc(q.x, q.y, r, 0, 2 * Math.PI)
+          ctx.strokeStyle = couleurs.encre
+          ctx.globalAlpha = 0.22
+          ctx.stroke()
+          // L'étiquette, en haut de l'anneau, sur un petit fond pour rester lisible parmi les satellites.
+          const texte = `${a.distance.toLocaleString('fr-FR')} km`, w = ctx.measureText(texte).width + 6
+          ctx.globalAlpha = 0.85
+          ctx.fillStyle = couleurs.fond
+          ctx.fillRect(q.x - w / 2, q.y - r - 6, w, 12)
+          ctx.globalAlpha = 0.55
+          ctx.fillStyle = couleurs.encre
+          ctx.fillText(texte, q.x, q.y - r)
+        }
+      }
+      ctx.restore()
     }
 
     // Orbites des planètes et de Pluton : les vraies trajectoires, vues du dessus.
@@ -605,10 +638,11 @@ export class Carte2D {
       }
       ctx.lineJoin = 'round'
       ctx.lineCap = 'round'
-      ctx.lineWidth = 4.5
+      // Un trait fin (demande d'Adrien du 19/10/2026), cerné d'encre pour rester lisible.
+      ctx.lineWidth = 2.6
       ctx.strokeStyle = c.encre
       ctx.stroke()
-      ctx.lineWidth = 2.5
+      ctx.lineWidth = 1.4
       ctx.strokeStyle = accent
       ctx.stroke()
     }

@@ -66,6 +66,17 @@ function etirer(l: Loupe, d: number): number {
 }
 
 /**
+ * Les anneaux gradués d'un système (décision d'Adrien du 19/10/2026) : des cercles à 1 000, 10 000, 100 000 km… du
+ * centre de l'astre, dessinés à travers sa loupe. Ils se resserrent en s'éloignant : on voit que la carte écrase les
+ * grandes distances autour des planètes. Renvoie leur rayon dessiné (km de carte) et leur distance réelle (km).
+ */
+export function anneauxGradues(nom: string): { rayon: number; distance: number }[] {
+  const l = loupe(nom), r: { rayon: number; distance: number }[] = []
+  for (let d = 1_000; d < l.zone; d *= 10) if (d > 1.5 * l.R) r.push({ rayon: etirer(l, d), distance: d })
+  return r
+}
+
+/**
  * Rabat le vecteur r1 dans le plan de la carte, par la rotation (autour de la ligne des nœuds) qui y amène le plan du
  * mouvement (r1, puis r2 un peu plus tard). Un mouvement rétrograde est rabattu « par en dessous », pour garder son sens.
  * Renvoie une direction unitaire dans le plan.

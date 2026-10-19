@@ -30,6 +30,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   jusqu'à ce qu'il ne gêne plus, puis va droit vers la suite, au lieu de revenir dans son axe initial), dans le moteur
   (`contourner`, `src/moteur/mission.ts`, testé) comme sur la carte ; le trajet dessiné va droit du départ à l'arrivée
   (sans les points de sortie et d'entrée des systèmes) et ses coins sont arrondis (courbe, `src/carte/loupe.ts`).
+- Remarque d'Adrien du 19/10/2026 (la Lune paraît à peine plus loin que Chandra alors que le trajet est deux fois plus
+  long : la loupe logarithmique écrase les grandes distances autour des planètes) — option choisie : garder la loupe,
+  et dessiner des **anneaux gradués** (1 000, 10 000, 100 000 km… du centre de la planète, pointillés discrets,
+  étiquette en haut de chaque anneau) autour des planètes dont le système est assez grand à l'écran ; ils montrent
+  que la carte resserre les distances en s'éloignant. Ils vont avec le calque Orbites. Essai écarté : une loupe en
+  racine cubique (orbite basse illisible, lunes de Jupiter collées à la planète). Le trait rouge du trajet est
+  affiné (1,4 px cerné d'encre, au lieu de 2,5).
 
 ---
 
