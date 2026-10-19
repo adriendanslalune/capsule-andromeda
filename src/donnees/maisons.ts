@@ -10,10 +10,10 @@ import { PAR_AUTRE_MAISON, PAR_MAISON_CHOISIE, PAR_MAISON_NEUTRE } from './contr
 export type Maison = 'nettoyeurs' | 'ingenieurs' | 'mercenaires'
 
 /**
- * Pour rejoindre une Maison (règle PROVISOIRE, 19/10/2026) : au moins tant de missions finies pour elle, et au moins
+ * Pour rejoindre une Maison (décision d'Adrien du 19/10/2026 : un événement attendu) : au moins tant de missions finies pour elle, et au moins
  * cette part de toutes ses missions finies.
  */
-export const SEUIL_MISSIONS = 5
+export const SEUIL_MISSIONS = 25
 export const SEUIL_PART = 0.4
 
 export const MAISONS: readonly { maison: Maison; titre: string }[] = [

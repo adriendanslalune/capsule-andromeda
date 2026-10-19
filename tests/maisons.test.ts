@@ -66,19 +66,19 @@ describe('rejoindre une Maison (décision d’Adrien du 18/10/2026 : selon l’a
   it('il faut assez de missions pour elle, et une part suffisante de toutes ses missions', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
-    jeu.carnet.missions = { nettoyeurs: 4, ingenieurs: 0, mercenaires: 0 }
+    jeu.carnet.missions = { nettoyeurs: 24, ingenieurs: 0, mercenaires: 0 }
     expect(maisonsOuvertes(jeu)).toEqual([])
     expect(jeu.rejoindre('nettoyeurs', t0)).toBe(false)
-    jeu.carnet.missions = { nettoyeurs: 5, ingenieurs: 4, mercenaires: 4 }
-    expect(maisonsOuvertes(jeu)).toEqual([]) // 5 / 13 = 38 %
-    jeu.carnet.missions = { nettoyeurs: 6, ingenieurs: 5, mercenaires: 2 }
+    jeu.carnet.missions = { nettoyeurs: 25, ingenieurs: 20, mercenaires: 20 }
+    expect(maisonsOuvertes(jeu)).toEqual([]) // 25 / 65 = 38 %
+    jeu.carnet.missions = { nettoyeurs: 30, ingenieurs: 25, mercenaires: 10 }
     expect(maisonsOuvertes(jeu)).toEqual(['nettoyeurs']) // 46 % ; ingénieurs 38 %
   })
 
   it('rejoindre réorganise les missions (4 de sa Maison, 1 de chacune des autres) ; redevenir neutre aussi', () => {
     const jeu = new Jeu()
     jeu.avancer(t0)
-    jeu.carnet.missions = { nettoyeurs: 1, ingenieurs: 8, mercenaires: 1 }
+    jeu.carnet.missions = { nettoyeurs: 5, ingenieurs: 30, mercenaires: 5 }
     expect(jeu.rejoindre('ingenieurs', t0)).toBe(true)
     expect(jeu.maison).toBe('ingenieurs')
     expect(n(jeu)).toEqual({ nettoyeurs: 1, ingenieurs: 4, mercenaires: 1 })
@@ -90,7 +90,7 @@ describe('rejoindre une Maison (décision d’Adrien du 18/10/2026 : selon l’a
 
   it('une Maison ne propose qu’une fois de la rejoindre ; enregistré avec la partie', () => {
     const jeu = new Jeu()
-    jeu.carnet.missions = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 5 }
+    jeu.carnet.missions = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 25 }
     expect(jeu.nouvellesInvitations()).toEqual(['mercenaires'])
     expect(jeu.nouvellesInvitations()).toEqual([])
     jeu.rejoindre('mercenaires', t0)

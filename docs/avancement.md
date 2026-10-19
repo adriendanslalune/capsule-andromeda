@@ -208,9 +208,9 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
-  - Appartenance aux Maisons (19/10/2026) — **faite, en attente de validation** : une Maison s'ouvre avec au moins 5
-    missions finies pour elle et au moins 40 % de toutes ses missions (`SEUIL_MISSIONS`, `SEUIL_PART`, règle
-    PROVISOIRE ; `maisonsOuvertes` dans `src/moteur/profil.ts`). Elle le propose une seule fois, à la fin d'une
+  - Appartenance aux Maisons (19/10/2026) — **faite, en attente de validation** : une Maison s'ouvre avec au moins 25
+    missions finies pour elle (5 au départ ; Adrien, 19/10/2026 : « un événement attendu ») et au moins 40 % de toutes
+    ses missions (`SEUIL_MISSIONS`, `SEUIL_PART` ; `maisonsOuvertes` dans `src/moteur/profil.ts`). Elle le propose une seule fois, à la fin d'une
     mission (annonce « Les … te proposent de les rejoindre ! ») ; invitations enregistrées. Profil › Maisons : pour
     chaque Maison, la progression (« 3/5 missions · 27 % (il faut 40 %) »), REJOINDRE quand elle est ouverte, MEMBRE,
     et REDEVENIR NEUTRE ; jamais définitif (changer de Maison si l'affinité le permet). Rejoindre réorganise aussitôt
