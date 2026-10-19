@@ -208,9 +208,17 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - Appartenance aux Maisons (19/10/2026) — **faite, en attente de validation** : une Maison s'ouvre avec au moins 5
+    missions finies pour elle et au moins 40 % de toutes ses missions (`SEUIL_MISSIONS`, `SEUIL_PART`, règle
+    PROVISOIRE ; `maisonsOuvertes` dans `src/moteur/profil.ts`). Elle le propose une seule fois, à la fin d'une
+    mission (annonce « Les … te proposent de les rejoindre ! ») ; invitations enregistrées. Profil › Maisons : pour
+    chaque Maison, la progression (« 3/5 missions · 27 % (il faut 40 %) »), REJOINDRE quand elle est ouverte, MEMBRE,
+    et REDEVENIR NEUTRE ; jamais définitif (changer de Maison si l'affinité le permet). Rejoindre réorganise aussitôt
+    les tableaux (4 de sa Maison, 1 de chacune des autres ; les missions en trop sont retirées, les manquantes tirées
+    avec +25 %). Le canal de Maison des Messages s'ouvre aux membres. Tests dans `tests/maisons.test.ts`.
   - ABATTRE au tour par tour (19/10/2026) : fait, puis abandonné (Adrien pas convaincu ; reste dans l'historique Git).
-  - ABATTRE en temps réel (19/10/2026, décision d'Adrien : « comme les premiers jeux sur Game Boy ») — **fait, en
-    attente de validation** (`src/donnees/combat.ts`, `src/moteur/combat.ts`, `src/commun/vue-combat.ts`, tests
+  - ABATTRE en temps réel (19/10/2026, décision d'Adrien : « comme les premiers jeux sur Game Boy ») — **fait, validé
+    par Adrien** (`src/donnees/combat.ts`, `src/moteur/combat.ts`, `src/commun/vue-combat.ts`, tests
     `tests/combat.test.ts`). Vue du dessus : on glisse le doigt n'importe où, la capsule le suit (18 unités au-dessus,
     pour que le pouce ne la cache pas, vitesse limitée) et tire toute seule (double canon) ; petit point d'impact. Le
     chasseur visé (boss, 30 → 80 de coque) danse en haut et tire des balles visées, en éventail ou en pluie ; ses

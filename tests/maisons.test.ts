@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MAISONS, maisonDuContrat, type Maison } from '../src/donnees/maisons'
 import { Jeu } from '../src/moteur/jeu'
+import { maisonsOuvertes } from '../src/moteur/profil'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
 describe('les missions et leur Maison', () => {
@@ -51,5 +52,50 @@ describe('les missions et leur Maison', () => {
     const mauvaise = JSON.parse(JSON.stringify(sauvegarder(jeu, t0)))
     mauvaise.maison = 'pirates'
     expect(restaurer(mauvaise)).toBeNull()
+  })
+})
+
+describe('rejoindre une Maison (décision d’Adrien du 18/10/2026 : selon l’affinité, jamais définitif)', () => {
+  const t0 = Date.UTC(2026, 9, 19, 12)
+  const n = (jeu: Jeu, lieu = 'Terre') => {
+    const r: Record<string, number> = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 0 }
+    for (const c of jeu.proposes.filter((x) => x.tableau === lieu)) r[maisonDuContrat(c)]++
+    return r
+  }
+
+  it('il faut assez de missions pour elle, et une part suffisante de toutes ses missions', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    jeu.carnet.missions = { nettoyeurs: 4, ingenieurs: 0, mercenaires: 0 }
+    expect(maisonsOuvertes(jeu)).toEqual([])
+    expect(jeu.rejoindre('nettoyeurs', t0)).toBe(false)
+    jeu.carnet.missions = { nettoyeurs: 5, ingenieurs: 4, mercenaires: 4 }
+    expect(maisonsOuvertes(jeu)).toEqual([]) // 5 / 13 = 38 %
+    jeu.carnet.missions = { nettoyeurs: 6, ingenieurs: 5, mercenaires: 2 }
+    expect(maisonsOuvertes(jeu)).toEqual(['nettoyeurs']) // 46 % ; ingénieurs 38 %
+  })
+
+  it('rejoindre réorganise les missions (4 de sa Maison, 1 de chacune des autres) ; redevenir neutre aussi', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    jeu.carnet.missions = { nettoyeurs: 1, ingenieurs: 8, mercenaires: 1 }
+    expect(jeu.rejoindre('ingenieurs', t0)).toBe(true)
+    expect(jeu.maison).toBe('ingenieurs')
+    expect(n(jeu)).toEqual({ nettoyeurs: 1, ingenieurs: 4, mercenaires: 1 })
+    expect(n(jeu, 'Pluton')).toEqual({ nettoyeurs: 1, ingenieurs: 4, mercenaires: 1 })
+    expect(jeu.rejoindre(null, t0)).toBe(true)
+    expect(jeu.maison).toBeNull()
+    expect(n(jeu)).toEqual({ nettoyeurs: 2, ingenieurs: 2, mercenaires: 2 })
+  })
+
+  it('une Maison ne propose qu’une fois de la rejoindre ; enregistré avec la partie', () => {
+    const jeu = new Jeu()
+    jeu.carnet.missions = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 5 }
+    expect(jeu.nouvellesInvitations()).toEqual(['mercenaires'])
+    expect(jeu.nouvellesInvitations()).toEqual([])
+    jeu.rejoindre('mercenaires', t0)
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.maison).toBe('mercenaires')
+    expect(copie.invitations).toEqual(['mercenaires'])
   })
 })

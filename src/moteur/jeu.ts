@@ -20,6 +20,7 @@ import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { PORTEES, TABLEAUX, ZONES, type Portee } from '../donnees/tableaux'
 import { contexte } from './tableaux'
+import { maisonsOuvertes } from './profil'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
@@ -85,6 +86,8 @@ export class Jeu {
   carnet = { missions: { nettoyeurs: 0, ingenieurs: 0, mercenaires: 0 } as Record<Maison, number>, credits: 0, objetsTries: 0 }
   /** Maison du joueur (null : neutre). Choisie selon son affinité à l'étape 8 ; elle change les missions proposées. */
   maison: Maison | null = null
+  /** Les Maisons qui ont déjà proposé au joueur de les rejoindre (une seule fois chacune). */
+  invitations: Maison[] = []
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
 
@@ -248,6 +251,33 @@ export class Jeu {
         }
       }
     }
+  }
+
+  /**
+   * Rejoindre une Maison (si l'affinité le permet), ou redevenir neutre (null). Jamais définitif. Les tableaux de
+   * missions se réorganisent : les missions en trop d'une Maison sont retirées, les manquantes tirées.
+   */
+  rejoindre(maison: Maison | null, t: number): boolean {
+    if (maison !== null && !maisonsOuvertes(this).includes(maison)) return false
+    if (maison === this.maison) return false
+    this.maison = maison
+    for (const tableau of TABLEAUX) {
+      const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
+      for (const { maison: m } of MAISONS) {
+        const ici = this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === m)
+        const enTrop = ici.slice(voulues[m])
+        this.proposes = this.proposes.filter((c) => !enTrop.includes(c))
+      }
+    }
+    this.proposer(t)
+    return true
+  }
+
+  /** Les Maisons qui proposent au joueur de les rejoindre maintenant (chacune une seule fois). */
+  nouvellesInvitations(): Maison[] {
+    const nouvelles = maisonsOuvertes(this).filter((m) => m !== this.maison && !this.invitations.includes(m))
+    this.invitations.push(...nouvelles)
+    return nouvelles
   }
 
   /** Accepte une mission proposée (une seule à la fois). Renvoie faux si c'est impossible. */

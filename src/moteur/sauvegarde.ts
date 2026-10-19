@@ -50,6 +50,8 @@ export interface Sauvegarde {
   defauts: Partial<Record<NomModule, NomAppareil[]>>
   /** Maison du joueur (absente : neutre). */
   maison?: Maison | null
+  /** Les Maisons qui ont déjà proposé de les rejoindre (absent : aucune). */
+  invitations?: Maison[]
   /** Répartition de l'énergie (absente : celle du départ). */
   energie?: Energie
   /** La soute (absente : vide) et le carnet de bord (absent : vierge). */
@@ -73,7 +75,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes,
   }
 }
@@ -180,6 +182,7 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.carnet = { missions: { ...c.missions }, credits: c.credits, objetsTries: c.objetsTries }
   }
   jeu.maison = v.maison ?? null
+  if (Array.isArray(v.invitations)) jeu.invitations = MAISONS.map((m) => m.maison).filter((m) => v.invitations!.includes(m))
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur
   jeu.mission.orbite = v.orbite

@@ -35,6 +35,7 @@ import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { VoletMarche } from './commun/volet-marche'
 import { CAPACITE_SOUTE } from './donnees/marche'
+import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
@@ -736,6 +737,10 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
       apresChangementDePanne()
     }
   }
+  // Assez d'affinité avec une Maison : elle propose au joueur de la rejoindre (une seule fois).
+  if (evenements.some((e) => e.genre === 'contrat-fini')) {
+    for (const m of jeu.nouvellesInvitations()) annoncer(`Les ${titreMaison(m).toLowerCase()} te proposent de les rejoindre ! Va voir ton Profil (Plus › Profil).`)
+  }
   if (evenements.length) enregistrerPartie()
 }
 let dernierVolet = 0
@@ -931,7 +936,22 @@ function changerPseudo(): void {
   champ.blur()
   annoncer(`Tu t'appelles maintenant ${p}`)
 }
-pageProfil.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-pseudo]')) changerPseudo() })
+pageProfil.addEventListener('click', (e) => {
+  const cible = e.target as HTMLElement
+  if (cible.closest('[data-pseudo]')) { changerPseudo(); return }
+  // Rejoindre une Maison, ou redevenir neutre (jamais définitif).
+  const b = cible.closest<HTMLElement>('[data-rejoindre]')
+  if (!b) return
+  const maison = (b.dataset.rejoindre || null) as Maison | null
+  const question = maison ? `Rejoindre les ${titreMaison(maison).toLowerCase()} ? Tu pourras toujours changer d'avis.` : 'Redevenir neutre ? Tu pourras rejoindre une Maison plus tard.'
+  if (!confirm(question)) return
+  if (!jeu.rejoindre(maison, horloge())) return
+  enregistrerPartie()
+  voletMissions.oublierDurees()
+  dernierVolet = 0
+  pageProfil.innerHTML = htmlProfil(jeu)
+  annoncer(maison ? `Bienvenue chez les ${titreMaison(maison).toLowerCase()} ! Leurs missions t'attendent.` : 'Te voilà neutre.')
+})
 pageProfil.addEventListener('keydown', (e) => { if (e.key === 'Enter') changerPseudo() })
 // Le tri d'une épave (entraînement, depuis la SOUTE).
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)

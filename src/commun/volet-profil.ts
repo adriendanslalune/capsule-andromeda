@@ -1,10 +1,10 @@
 // Le volet Profil (dans « Plus » ; étape 8, écrans d'abord, d'après la maquette validée le 18/10/2026) : le pseudo du
 // joueur (son nom dans les Messages), la toile d'araignée de son affinité avec les trois Maisons, son carnet de bord
-// et les zones à libérer. L'appartenance à une Maison (proposée selon l'affinité) viendra à l'étape 8.
+// et les zones à libérer, et l'appartenance à une Maison (proposée selon l'affinité, jamais définitive).
 
-import { MAISONS, titreMaison } from '../donnees/maisons'
+import { MAISONS, SEUIL_MISSIONS, SEUIL_PART, titreMaison } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
-import { affinites, maisonPreferee } from '../moteur/profil'
+import { affinites, maisonPreferee, maisonsOuvertes } from '../moteur/profil'
 import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
 import { palierSuivant, statut } from '../moteur/monolithes'
 
@@ -42,6 +42,24 @@ function htmlCollection(jeu: Jeu): string {
     + `<p class="petit">${suivant ? `Encore ${suivant.seuil - n} monolithe${suivant.seuil - n > 1 ? 's' : ''} pour devenir <b>${suivant.titre}</b>. Le bouton PING de la carte les cherche à la radio.` : 'Tu as tout trouvé : Oracle !'}</p></div>`
 }
 
+/**
+ * L'appartenance (décision d'Adrien du 18/10/2026) : chaque Maison, ce qu'il faut pour la rejoindre, le bouton pour
+ * la rejoindre quand l'affinité le permet ; redevenir neutre à tout moment. Jamais définitif.
+ */
+function htmlAppartenance(jeu: Jeu): string {
+  const a = affinites(jeu), ouvertes = maisonsOuvertes(jeu)
+  return '<div class="appartenance">' + MAISONS.map((m) => {
+    const n = jeu.carnet.missions[m.maison], part = Math.round(a[m.maison] * 100)
+    const membre = jeu.maison === m.maison
+    const bouton = membre ? '<span class="membre">MEMBRE</span>'
+      : ouvertes.includes(m.maison) ? `<button type="button" data-rejoindre="${m.maison}">REJOINDRE</button>`
+        : `<small>${Math.min(n, SEUIL_MISSIONS)}/${SEUIL_MISSIONS} missions · ${part} % (il faut ${Math.round(SEUIL_PART * 100)} %)</small>`
+    return `<div class="rang"><span class="maison maison-${m.maison}">${m.titre}</span>${bouton}</div>`
+  }).join('')
+    + (jeu.maison ? '<button type="button" class="neutre" data-rejoindre="">REDEVENIR NEUTRE</button>' : '')
+    + `<p class="petit">Membre d'une Maison : dans chaque système, 4 de ses missions sur 6 (et 1 de chacune des autres), payées 25 % de plus, et son canal dans les Messages. Pour la rejoindre : ${SEUIL_MISSIONS} missions pour elle, et au moins ${Math.round(SEUIL_PART * 100)} % de tes missions. Jamais définitif.</p></div>`
+}
+
 export function htmlProfil(jeu: Jeu): string {
   const pref = maisonPreferee(jeu), c = jeu.carnet
   const total = MAISONS.reduce((s, m) => s + c.missions[m.maison], 0)
@@ -53,8 +71,8 @@ export function htmlProfil(jeu: Jeu): string {
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`
     + `<p>Maison : <b>${jeu.maison ? titreMaison(jeu.maison) : 'aucune (neutre)'}</b></p>`
     + `<p class="petit">${!total ? 'Fais des missions : ta toile se dessinera selon ce que tu préfères faire.'
-      : pref ? `Tu penches vers les <b>${titreMaison(pref).toLowerCase()}</b>. Quand ton affinité sera assez forte, ils te proposeront de les rejoindre (bientôt).`
-        : 'Tu n\'as pas encore de préférence nette.'}</p></div>`
+      : pref ? `Tu penches vers les <b>${titreMaison(pref).toLowerCase()}</b>.` : 'Tu n\'as pas encore de préférence nette.'}</p>`
+    + htmlAppartenance(jeu) + '</div>'
     + '<h3>Carnet de bord</h3><div class="bloc">'
     + MAISONS.map((m) => `<div class="rang"><span><span class="maison maison-${m.maison}">${m.titre}</span> missions</span><b>${c.missions[m.maison]}</b></div>`).join('')
     + `<div class="rang"><span>Crédits gagnés</span><b>${c.credits.toLocaleString('fr-FR')}</b></div>`

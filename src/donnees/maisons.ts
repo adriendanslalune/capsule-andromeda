@@ -2,12 +2,19 @@
 // chacune : vider et remorquer les épaves (Nettoyeurs), abattre et escorter (Mercenaires), réparer et livrer
 // (Ingénieurs, qui remplacent les Commerçants). Le volet Missions s'en sert pour son filtre par Maison ; le jeu propose
 // 2 missions de chaque Maison par système, ou 4 de la Maison du joueur et 1 de chacune des autres quand il en a
-// choisi une. L'appartenance (proposée selon l'affinité, jamais définitive) viendra à l'étape 8.
+// choisi une. L'appartenance est proposée selon l'affinité ; elle n'est jamais définitive (voir moteur/profil.ts).
 
 import type { Contrat, GenreContrat } from '../moteur/contrats'
 import { PAR_AUTRE_MAISON, PAR_MAISON_CHOISIE, PAR_MAISON_NEUTRE } from './contrats'
 
 export type Maison = 'nettoyeurs' | 'ingenieurs' | 'mercenaires'
+
+/**
+ * Pour rejoindre une Maison (règle PROVISOIRE, 19/10/2026) : au moins tant de missions finies pour elle, et au moins
+ * cette part de toutes ses missions finies.
+ */
+export const SEUIL_MISSIONS = 5
+export const SEUIL_PART = 0.4
 
 export const MAISONS: readonly { maison: Maison; titre: string }[] = [
   { maison: 'nettoyeurs', titre: 'NETTOYEURS' },

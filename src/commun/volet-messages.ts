@@ -103,7 +103,7 @@ export class VoletMessages {
       html += '<h3>Écrire à…</h3><div class="annuaire">' + BOTS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
         + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}${badge(statut(b.monolithes))}<small>${b.lieu} · ${texteDelaiCourt(delaiLumiere(b.lieu, t))}</small></button>`).join('') + '</div>'
     } else if (c === 'maison' && !jeu.maison) {
-      html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (bientôt, depuis ton Profil) pour parler avec les tiens.</p>'
+      html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (depuis ton Profil, quand ton affinité le permet) pour parler avec les tiens.</p>'
     } else {
       if (c.startsWith('prive:')) {
         const bot = BOTS.find((b) => `prive:${b.pseudo}` === c)!

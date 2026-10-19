@@ -1081,3 +1081,10 @@ body.nuit #marche .baisse { color: #f08a72; }
 #combat .aide-combat { position: absolute; left: 16px; right: 16px; bottom: 40%; margin: 0; padding: 8px 12px; font-size: 13px; text-align: center; pointer-events: none;
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
 #combat .aide-combat[hidden] { display: none; }
+/* L'appartenance aux Maisons (Profil). */
+#profil .appartenance { margin-top: 8px; text-align: left; }
+#profil .appartenance .rang { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+#profil .appartenance small { font-size: 10.5px; opacity: 0.75; text-align: right; }
+#profil .appartenance button { min-height: 40px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: #f2c66a; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#profil .appartenance button.neutre { display: block; width: 100%; margin-top: 6px; background: var(--fond); }
+#profil .appartenance .membre { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; padding: 4px 8px; border: 2px solid var(--encre); border-radius: 8px; background: #cfe9cf; }
