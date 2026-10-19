@@ -6,7 +6,7 @@ import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
 import { emplacement } from '../moteur/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
-import { COQUE_MAX, ENERGIE_TOTALE, INTERCEPTEURS, MAX_PAR_SYSTEME, SYSTEMES_ENERGIE, type Energie } from '../donnees/combat'
+import { ARMES, COQUE_MAX, COUT_ESQUIVE, ENERGIE_TOTALE, INTERCEPTEURS, TORPILLES } from '../donnees/combat'
 import type { Jeu } from '../moteur/jeu'
 
 export class VoletCapsule {
@@ -88,27 +88,21 @@ function htmlMonolithes(jeu: Jeu): string {
     + '</div>'
 }
 
-/** La répartition de l'énergie : un cran par case, des boutons − et + par système (Armement et combat). */
-export function htmlEnergie(en: Energie): string {
-  const libres = ENERGIE_TOTALE - en.boucliers - en.armes - en.moteurs
-  return SYSTEMES_ENERGIE.map((f) => `<div class="systeme"><span><b>${f.titre}</b><small>${f.role}</small></span><span class="crans">`
-    + `<button type="button" data-energie="${f.systeme}" data-d="-1"${en[f.systeme] === 0 ? ' disabled' : ''} aria-label="moins">−</button>`
-    + Array.from({ length: MAX_PAR_SYSTEME }, (_, i) => `<i${i < en[f.systeme] ? ' class="rempli"' : ''}></i>`).join('')
-    + `<button type="button" data-energie="${f.systeme}" data-d="1"${libres === 0 || en[f.systeme] === MAX_PAR_SYSTEME ? ' disabled' : ''} aria-label="plus">+</button></span></div>`).join('')
-    + `<p class="libres">${libres} cran${libres > 1 ? 's' : ''} libre${libres > 1 ? 's' : ''} sur ${ENERGIE_TOTALE}</p>`
-}
-
 /**
- * L'onglet ARMEMENT du volet Capsule (étape 6, écrans d'abord ; d'après la maquette validée le 18/10/2026) :
- * l'énergie à répartir, l'équipement, et le simulateur de combat (le prototype à tester).
+ * L'onglet ARMEMENT du volet Capsule : comment se bat la capsule (combat au tour par tour, décisions d'Adrien du
+ * 19/10/2026), son équipement (les améliorations s'achèteront plus tard), et le simulateur de combat.
  */
-export function htmlArmement(jeu: Jeu): string {
-  return `<h3>Énergie à répartir</h3><div class="bloc energie">${htmlEnergie(jeu.energie)}</div>`
+export function htmlArmement(_jeu: Jeu): string {
+  return '<h3>Le combat</h3><div class="bloc"><p class="note">Au tour par tour. Le chasseur annonce son prochain coup ; '
+    + `tu répartis tes ${ENERGIE_TOTALE} crans d'énergie : l'arme (laser ${ARMES.laser.cout} crans, torpille ${ARMES.torpille.cout}), `
+    + `l'esquive (${COUT_ESQUIVE} crans), et le bouclier prend le reste. Vise un de ses modules, puis FIN DU TOUR.</p></div>`
     + '<h3>Équipement</h3><div class="bloc">'
-    + '<div class="module"><span><b>Canon à rivets</b><br><small>tire sur un module ennemi</small></span><span class="ok">niv. 1</span></div>'
-    + `<div class="module"><span><b>Intercepteurs</b><br><small>abattent un missile en approche</small></span><span class="ok">${INTERCEPTEURS}</span></div>`
-    + `<div class="module"><span><b>Coque</b><br><small>points de résistance en combat</small></span><span class="ok">${COQUE_MAX}</span></div>`
-    + '<div class="module grise"><span><b>Lance-missiles</b><br><small>à venir</small></span><span class="ok">—</span></div>'
-    + '</div><div class="vers-combat"><button type="button" data-combat>SIMULATEUR DE COMBAT</button></div>'
-    + '<p class="note">Un prototype à tester : un chasseur alien d\'entraînement, sans conséquence pour ta capsule.</p>'
+    + `<div class="module"><span><b>Laser</b><br><small>${ARMES.laser.degats} dégâts, freiné par le bouclier ennemi</small></span><span class="ok">niv. 1</span></div>`
+    + `<div class="module"><span><b>Torpilles</b><br><small>${ARMES.torpille.degats} dégâts, traversent le bouclier</small></span><span class="ok">${TORPILLES}</span></div>`
+    + `<div class="module"><span><b>Intercepteurs</b><br><small>abattent un missile annoncé</small></span><span class="ok">${INTERCEPTEURS}</span></div>`
+    + `<div class="module"><span><b>Coque</b><br><small>à 0 : retraite, la Coque tombe en panne</small></span><span class="ok">${COQUE_MAX}</span></div>`
+    + '<div class="module grise"><span><b>Améliorations</b><br><small>laser, 7ᵉ cran, torpilles : plus tard, avec les crédits</small></span><span class="ok">—</span></div>'
+    + '</div><div class="vers-combat"><button type="button" data-combat="1">SIMULATEUR · PRÈS DE LA TERRE</button>'
+    + '<button type="button" data-combat="60">SIMULATEUR · VERS PLUTON</button></div>'
+    + '<p class="note">Un chasseur d\'entraînement, sans conséquence pour ta capsule.</p>'
 }

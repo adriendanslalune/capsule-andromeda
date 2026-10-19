@@ -8,7 +8,7 @@
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
-import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
+import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
@@ -392,8 +392,10 @@ export class Jeu {
   }
 
   /** Le chasseur de l'étape de chasse est abattu (victoire au combat) : il disparaît, l'étape est faite. */
-  abattre(t: number, vitesseEnchainement?: number): Evenement[] | null {
+  abattre(t: number, vitesseEnchainement?: number, degatsRecus?: number): Evenement[] | null {
     if (!this.etapeDeCombat() || !this.peutAgir(t)) return null
+    // Abattu sans perdre un point de coque : la récompense augmente de 10 % (comme les autres missions).
+    if (degatsRecus === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_DEGAT) / 10) * 10
     vaincre(this.espace, this.etapeActuelle()!.lieu, t)
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)

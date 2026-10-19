@@ -17,7 +17,7 @@ import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, tit
 import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
-import { VueCombat } from './commun/vue-combat'
+import { SIMULATEUR, VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
 import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
@@ -33,10 +33,9 @@ import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
-import { repartir } from './moteur/combat'
-import type { SystemeEnergie } from './donnees/combat'
 import { VoletMarche } from './commun/volet-marche'
 import { CAPACITE_SOUTE } from './donnees/marche'
+import { ZONES } from './donnees/tableaux'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { gesteDuBouton, htmlCommandes } from './commun/commandes'
@@ -568,9 +567,10 @@ function agirMission(): void {
     cockpit.fermer()
     vueCombat.ouvrir({
       titre: `COMBAT · ${alien.toUpperCase()}`,
-      surFin: (fin) => {
+      zone: jeu.zoneEnCours(),
+      surFin: (fin, degats) => {
         if (fin === 'victoire') {
-          traiterEvenements(jeu.abattre(horloge(), vitesse()) ?? [])
+          traiterEvenements(jeu.abattre(horloge(), vitesse(), degats) ?? [])
           choisir(null)
           enregistrerPartie()
           return 'Mission accomplie. Andromède enverra un renfort… ailleurs.'
@@ -868,18 +868,10 @@ function afficherArmement(): void {
 pageArmement.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
   if (!b || b.disabled) return
-  if (b.dataset.energie !== undefined) {
-    repartir(jeu.energie, b.dataset.energie as SystemeEnergie, Number(b.dataset.d) as 1 | -1)
-    enregistrerPartie()
-    afficherArmement()
-  } else if (b.dataset.combat !== undefined) vueCombat.ouvrir()
+  if (b.dataset.combat !== undefined) vueCombat.ouvrir({ ...SIMULATEUR, zone: Number(b.dataset.combat) })
 })
-// La vue de combat (simulateur) : elle part de la répartition de l'Armement, et la garde si on la change en combat.
-const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.energie, (en) => {
-  jeu.energie = en
-  enregistrerPartie()
-  afficherArmement()
-})
+// La vue de combat (au tour par tour) : missions ABATTRE, riposte contre un chasseur qui tire, simulateur.
+const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!)
 /** L'onglet SOUTE du volet Capsule. */
 const pageSoute = document.querySelector<HTMLDivElement>('#soute')!
 let derniereSoute = ''
@@ -976,6 +968,7 @@ function combattre(alien: string): void {
   cockpit.fermer()
   vueCombat.ouvrir({
     titre: `COMBAT · ${alien.toUpperCase()}`,
+    zone: ZONES[lieuIci(horloge())] ?? 1,
     surFin: (fin) => {
       const t = horloge()
       if (fin === 'victoire') { vaincre(jeu.espace, alien, t); choisir(null); enregistrerPartie(); return 'Il ne reviendra pas de sitôt. Ses missiles en vol sont tombés avec lui.' }
