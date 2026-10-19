@@ -21,6 +21,7 @@ import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../don
 import { PORTEES, TABLEAUX, ZONES, type Portee } from '../donnees/tableaux'
 import { contexte } from './tableaux'
 import { maisonsOuvertes } from './profil'
+import { MOTS_DU_PARRAIN, PARRAINS } from '../donnees/messages'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
@@ -47,6 +48,9 @@ export type Evenement =
   /** Un chasseur alien a tiré un missile ; un missile a frappé la capsule (modules en panne). */
   | { genre: 'missile'; alien: string; impact: number }
   | { genre: 'impact'; modules: NomModule[] }
+
+/** Un message privé qu'un bot a écrit au joueur après un événement du jeu. */
+export interface LettreDeBot { id: number; bot: string; texte: string; envoye: number }
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -88,6 +92,8 @@ export class Jeu {
   maison: Maison | null = null
   /** Les Maisons qui ont déjà proposé au joueur de les rejoindre (une seule fois chacune). */
   invitations: Maison[] = []
+  /** Les messages privés que des bots ont écrits au joueur à la suite d'un événement (invitation, bienvenue…). */
+  lettres: LettreDeBot[] = []
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
 
@@ -270,13 +276,21 @@ export class Jeu {
       }
     }
     this.proposer(t)
+    if (maison) this.ecrire(PARRAINS[maison], MOTS_DU_PARRAIN[maison].bienvenue, t)
     return true
   }
 
+  /** Un bot écrit au joueur, en privé (le message voyage à la vitesse de la lumière). */
+  private ecrire(bot: string, texte: string, t: number): void {
+    this.lettres.push({ id: this.lettres.length + 1, bot, texte: texte.replaceAll('{joueur}', this.pseudo), envoye: t })
+  }
+
   /** Les Maisons qui proposent au joueur de les rejoindre maintenant (chacune une seule fois). */
-  nouvellesInvitations(): Maison[] {
+  nouvellesInvitations(t: number): Maison[] {
     const nouvelles = maisonsOuvertes(this).filter((m) => m !== this.maison && !this.invitations.includes(m))
     this.invitations.push(...nouvelles)
+    // Le parrain de la Maison écrit aussi, en privé.
+    for (const m of nouvelles) this.ecrire(PARRAINS[m], MOTS_DU_PARRAIN[m].invitation, t)
     return nouvelles
   }
 

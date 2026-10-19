@@ -211,7 +211,11 @@ missiles et épaves sur la carte.
   - Appartenance aux Maisons (19/10/2026) — **faite, en attente de validation** : une Maison s'ouvre avec au moins 25
     missions finies pour elle (5 au départ ; Adrien, 19/10/2026 : « un événement attendu ») et au moins 40 % de toutes
     ses missions (`SEUIL_MISSIONS`, `SEUIL_PART` ; `maisonsOuvertes` dans `src/moteur/profil.ts`). Elle le propose une seule fois, à la fin d'une
-    mission (annonce « Les … te proposent de les rejoindre ! ») ; invitations enregistrées. Profil › Maisons : pour
+    mission ; invitations enregistrées. Lettre d'invitation (19/10/2026, accord d'Adrien) : en plein écran, aux
+    couleurs de la Maison, cachet et signature de son parrain (Le_Vieux_Ras, ORION_77, Nemo_II ; `PARRAINS`,
+    `LETTRES_INVITATION` dans `src/donnees/messages.ts`, vue `src/commun/vue-invitation.ts`), REJOINDRE ou PLUS TARD ;
+    plusieurs lettres se suivent. Le parrain écrit aussi en privé dans les Messages, à l'invitation puis à l'arrivée
+    dans la Maison (`jeu.lettres`, à la vitesse de la lumière, enregistrées). Essai : `andromeda.invitation('ingenieurs')`. Profil › Maisons : pour
     chaque Maison, la progression (« 3/5 missions · 27 % (il faut 40 %) »), REJOINDRE quand elle est ouverte, MEMBRE,
     et REDEVENIR NEUTRE ; jamais définitif (changer de Maison si l'affinité le permet). Rejoindre réorganise aussitôt
     les tableaux (4 de sa Maison, 1 de chacune des autres ; les missions en trop sont retirées, les manquantes tirées

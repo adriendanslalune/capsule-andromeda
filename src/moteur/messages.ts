@@ -136,6 +136,12 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
     const m = bavardage(k, jeu.pseudo)
     if (m && (m.canal !== 'maison' || m.maison === jeu.maison)) l.push(m)
   }
+  // Les messages que des bots ont écrits au joueur à la suite d'un événement (invitation d'une Maison…) : gardés.
+  for (const x of jeu.lettres) {
+    const bot = BOTS.find((b) => b.pseudo === x.bot)
+    if (!bot) continue
+    l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: bot.lieu, texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.lieu, x.envoye), deMoi: false, statut: statut(bot.monolithes) })
+  }
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
     l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: statut(jeu.monolithes.trouves.length) })

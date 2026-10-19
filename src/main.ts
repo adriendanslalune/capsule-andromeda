@@ -23,6 +23,7 @@ import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
 import { VueEscorte } from './commun/vue-escorte'
+import { VueInvitation } from './commun/vue-invitation'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -712,6 +713,11 @@ function avancerMissions(t: number): void {
   traiterEvenements(jeu.avancer(t, vitesse()))
 }
 /** Ce que le joueur apprend des événements du jeu (missions, pannes). */
+// La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
+const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('#invitation')!, {
+  joueur: () => jeu.pseudo,
+  rejoindre: (m) => entrerDansLaMaison(m),
+})
 function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
   for (const e of evenements) {
     if (e.genre === 'contrat-fini') annoncer(`Mission terminée : +${e.contrat.recompense} crédits`)
@@ -739,7 +745,8 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
   }
   // Assez d'affinité avec une Maison : elle propose au joueur de la rejoindre (une seule fois).
   if (evenements.some((e) => e.genre === 'contrat-fini')) {
-    for (const m of jeu.nouvellesInvitations()) annoncer(`Les ${titreMaison(m).toLowerCase()} te proposent de les rejoindre ! Va voir ton Profil (Plus › Profil).`)
+    const invitations = jeu.nouvellesInvitations(horloge())
+    if (invitations.length) { navigator.vibrate?.([80, 60, 80]); vueInvitation.ouvrir(invitations) }
   }
   if (evenements.length) enregistrerPartie()
 }
@@ -945,13 +952,18 @@ pageProfil.addEventListener('click', (e) => {
   const maison = (b.dataset.rejoindre || null) as Maison | null
   const question = maison ? `Rejoindre les ${titreMaison(maison).toLowerCase()} ? Tu pourras toujours changer d'avis.` : 'Redevenir neutre ? Tu pourras rejoindre une Maison plus tard.'
   if (!confirm(question)) return
-  if (!jeu.rejoindre(maison, horloge())) return
+  entrerDansLaMaison(maison)
+})
+/** Rejoint une Maison (ou redevient neutre) : les tableaux de missions se réorganisent, le parrain écrit. */
+function entrerDansLaMaison(maison: Maison | null): boolean {
+  if (!jeu.rejoindre(maison, horloge())) return false
   enregistrerPartie()
   voletMissions.oublierDurees()
   dernierVolet = 0
   pageProfil.innerHTML = htmlProfil(jeu)
   annoncer(maison ? `Bienvenue chez les ${titreMaison(maison).toLowerCase()} ! Leurs missions t'attendent.` : 'Te voilà neutre.')
-})
+  return true
+}
 pageProfil.addEventListener('keydown', (e) => { if (e.key === 'Enter') changerPseudo() })
 // Le tri d'une épave (entraînement, depuis la SOUTE).
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
@@ -1188,6 +1200,7 @@ Object.assign(window, {
     amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
     depannage: () => vueDepannage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est validé.' }),
     remorquage: () => vueRemorquage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est remorqué.' }),
+    invitation: (m: Maison = 'nettoyeurs') => vueInvitation.ouvrir([m]),
     escorte: (zone = 1) => vueEscorte.ouvrir({ titre: 'ESSAI', zone, surFin: () => 'Essai : aucun convoi réel.' }),
   },
 })

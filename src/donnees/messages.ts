@@ -117,3 +117,47 @@ export const MOTS_INTENTION: readonly [Intention, readonly string[]][] = [
 export const PHRASES_RAPIDES: readonly string[] = [
   'Salut tout le monde ! 👋', 'Qui vend du cuivre ?', 'Besoin d\'aide !', 'Un chasseur dans le coin ?', 'Merci !', '😂', '👍',
 ]
+
+/**
+ * Le parrain de chaque Maison (un de ses capitaines) : il signe la lettre d'invitation et écrit au joueur en privé
+ * (décision d'Adrien du 19/10/2026 : appartenir à une Maison est un événement attendu).
+ */
+export const PARRAINS: Readonly<Record<Maison, string>> = { nettoyeurs: 'Le_Vieux_Ras', ingenieurs: 'ORION_77', mercenaires: 'Nemo_II' }
+
+/** La lettre d'invitation de chaque Maison ({joueur} : le pseudo du joueur). */
+export const LETTRES_INVITATION: Readonly<Record<Maison, string[]>> = {
+  nettoyeurs: [
+    'À l\'attention de {joueur},',
+    'Depuis des semaines, on te voit passer d\'épave en épave, trier le titane du rebut sans faire de chichis. Ici, sur les franges de Neptune, ça se remarque.',
+    'La Maison des Nettoyeurs ne court pas après les médailles : elle remet de l\'ordre dans le ciel, une carcasse après l\'autre. Il nous manque des mains comme les tiennes.',
+    'Si le cœur t\'en dit, ta place est prête.',
+  ],
+  ingenieurs: [
+    'À l\'attention de {joueur},',
+    'Des satellites qui se rallument, des cargaisons amarrées au millimètre : ton travail ne passe pas inaperçu sur les relais de Mars.',
+    'La Maison des Ingénieurs tient debout tout ce qui flotte dans le système solaire. Nous avons besoin de gens qui lisent le Manuel jusqu\'au bout.',
+    'Rejoins-nous : on te gardera un fer à souder chaud.',
+  ],
+  mercenaires: [
+    'À l\'attention de {joueur},',
+    'Les chasseurs d\'Andromède commencent à connaître ta silhouette, et ils ne l\'aiment pas. Nous, si.',
+    'La Maison des Mercenaires garde les convois et nettoie le ciel des intrus. On ne promet ni repos ni gloire, seulement de bons camarades et du travail bien payé.',
+    'Une place t\'attend dans nos rangs.',
+  ],
+}
+
+/** Le message privé du parrain, à l'invitation, puis à l'arrivée dans la Maison. */
+export const MOTS_DU_PARRAIN: Readonly<Record<Maison, { invitation: string; bienvenue: string }>> = {
+  nettoyeurs: {
+    invitation: 'Salut {joueur}. La lettre de la Maison est partie, tu l\'as lue ? Prends ton temps, les épaves ne vont nulle part. 🧹',
+    bienvenue: 'Bienvenue chez les Nettoyeurs, {joueur} ! Le canal de la Maison t\'est ouvert : passe dire bonjour aux autres.',
+  },
+  ingenieurs: {
+    invitation: 'Hé {joueur} ! C\'est moi qui ai glissé ton nom pour la lettre. Réfléchis, et viens nous voir quand tu veux. 🔧',
+    bienvenue: 'Te voilà Ingénieur, {joueur} ! Le canal de la Maison est ouvert : on y parle câbles, fusibles et amarrages ratés.',
+  },
+  mercenaires: {
+    invitation: '{joueur}. Lettre reçue ? On ne la renverra pas deux fois. Mais la porte reste ouverte. ⚔️',
+    bienvenue: 'Dans les rangs, {joueur}. Le canal de la Maison est ouvert : on y partage les chasseurs repérés.',
+  },
+}

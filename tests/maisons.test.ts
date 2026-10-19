@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { MAISONS, maisonDuContrat, type Maison } from '../src/donnees/maisons'
 import { Jeu } from '../src/moteur/jeu'
+import { PARRAINS } from '../src/donnees/messages'
+import { fil } from '../src/moteur/messages'
 import { maisonsOuvertes } from '../src/moteur/profil'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
@@ -91,11 +93,28 @@ describe('rejoindre une Maison (décision d’Adrien du 18/10/2026 : selon l’a
   it('une Maison ne propose qu’une fois de la rejoindre ; enregistré avec la partie', () => {
     const jeu = new Jeu()
     jeu.carnet.missions = { nettoyeurs: 0, ingenieurs: 0, mercenaires: 25 }
-    expect(jeu.nouvellesInvitations()).toEqual(['mercenaires'])
-    expect(jeu.nouvellesInvitations()).toEqual([])
+    expect(jeu.nouvellesInvitations(t0)).toEqual(['mercenaires'])
+    expect(jeu.nouvellesInvitations(t0)).toEqual([])
     jeu.rejoindre('mercenaires', t0)
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.maison).toBe('mercenaires')
     expect(copie.invitations).toEqual(['mercenaires'])
+  })
+
+  it('le parrain de la Maison écrit en privé à l’invitation puis à l’arrivée ; ses lettres voyagent à la vitesse de la lumière', () => {
+    const jeu = new Jeu()
+    jeu.pseudo = 'Zorg'
+    jeu.carnet.missions = { nettoyeurs: 25, ingenieurs: 0, mercenaires: 0 }
+    jeu.nouvellesInvitations(t0)
+    jeu.rejoindre('nettoyeurs', t0 + 1000)
+    expect(jeu.lettres.map((l) => l.bot)).toEqual([PARRAINS.nettoyeurs, PARRAINS.nettoyeurs])
+    expect(jeu.lettres[0].texte).toContain('Zorg')
+    expect(jeu.lettres[0].texte).not.toContain('{joueur}')
+    const canal = `prive:${PARRAINS.nettoyeurs}` as const
+    // Le Vieux Ras est vers Neptune : plus de quatre heures de lumière.
+    expect(fil(jeu, canal, t0 + 60_000)).toHaveLength(0)
+    expect(fil(jeu, canal, t0 + 6 * 3600_000).map((m) => m.texte)).toEqual(jeu.lettres.map((l) => l.texte))
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.lettres).toEqual(jeu.lettres)
   })
 })
