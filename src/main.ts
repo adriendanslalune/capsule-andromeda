@@ -28,7 +28,7 @@ import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
-import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles } from './moteur/monolithes'
+import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
 import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
@@ -36,6 +36,7 @@ import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { VoletMarche } from './commun/volet-marche'
 import { CAPACITE_SOUTE } from './donnees/marche'
+import { BOTS } from './donnees/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { htmlManuel } from './commun/manuel'
@@ -259,7 +260,10 @@ let decalageCapsule: Point2 = { x: 0, y: 0 }
 function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
-  const k = ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou)
+  // Le bouton : assez près pour bien voir la capsule (demande d'Adrien du 19/10/2026), sa planète et elle ; à
+  // l'ouverture du jeu, tout le système de la planète (comme avant).
+  const k = !animer ? (ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou))
+    : ou === 'Soleil' ? 0.35 * carte.echelleGenerale() : Math.min(carte.echelleSysteme(ou), carte.echelleAutourDe(ou, t))
   if (animer) choisir(CAPSULE, false, k)
   else {
     // D'un coup : on place la caméra avant de choisir la capsule (le vol lancé par le choix est alors immobile).
@@ -492,7 +496,10 @@ function mettreAJourFiche(t: number): void {
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     const genre = corps(selection)?.type
-    texte = `<b>${selection.toUpperCase()}</b>${genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio' : ''}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
+    const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
+      : bot ? ` · capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''}` : ''
+    texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {

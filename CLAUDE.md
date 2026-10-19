@@ -37,7 +37,7 @@ Précisions d'Adrien du 18/10/2026 (étape 4) :
 
 Manuel (précision d'Adrien du 18/10/2026) : à terme, le manuel devient un guide général d'utilisation du jeu, téléchargeable et vendu aussi au format papier. Ses tableaux doivent donc rester les mêmes pour tous les joueurs (rien de propre à une partie dans le texte), pour qu'un exemplaire imprimé serve à tout le monde.
 
-Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via le chat et les échanges. Serveur plus tard (type Supabase). Les Messages sont un point essentiel : tout le fun est là, c'est l'interaction avec les autres joueurs ; ils doivent être accessibles et fun (Adrien, 18/10/2026). Les messages voyagent à la vitesse de la lumière.
+Multijoueur : monde rempli de bots ; les autres joueurs apparaissent via le chat et les échanges, et leurs capsules se voient sur la carte (décision d'Adrien du 19/10/2026 : en attendant le serveur, celles des bots, en orbite autour de l'astre où chacun se trouve, aux couleurs de leur Maison ; on peut les toucher et y aller). Serveur plus tard (type Supabase). Les Messages sont un point essentiel : tout le fun est là, c'est l'interaction avec les autres joueurs ; ils doivent être accessibles et fun (Adrien, 18/10/2026). Les messages voyagent à la vitesse de la lumière.
 
 ## Règles de code
 - Moteur (éphémérides, navigation, état du jeu) séparé de l'affichage. L'affichage demande les données au moteur, il ne calcule jamais lui-même.

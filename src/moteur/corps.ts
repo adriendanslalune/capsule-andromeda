@@ -12,6 +12,7 @@ import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
 import { ALIENS, EPAVES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
+import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
 import { positionPluton } from './pluton'
@@ -20,7 +21,7 @@ import { MS_PAR_JOUR, TT_MOINS_UTC_MS, UA_KM } from './temps'
 import { ajouter, type Vecteur3 } from './vecteur'
 import { positionVSOP } from './vsop87'
 
-export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe'
+export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe' | 'joueur'
 
 export interface Corps {
   nom: string
@@ -70,6 +71,9 @@ export const CORPS: readonly Corps[] = [
   ...STATIONS_SYSTEMES.map((s): Corps => ({ nom: s.nom, type: 'satellite', parent: s.parent, rayon: 0, modele: 'iss', tailleM: 120 })),
   // Monolithes (donnees/monolithes.ts) : fixes par rapport au Soleil ; sur la carte une fois localisés.
   ...MONOLITHES.map((m): Corps => ({ nom: m.nom, type: 'monolithe', parent: null, rayon: 0, modele: 'monolithe', tailleM: 4 })),
+  // Les capsules des autres joueurs (demande d'Adrien du 19/10/2026), en attendant le serveur : celles des bots des
+  // Messages, en orbite autour de l'astre où chacun se trouve.
+  ...BOTS.map((b): Corps => ({ nom: b.pseudo, type: 'joueur', parent: b.lieu, rayon: 0, modele: 'capsule', tailleM: 8 })),
 ]
 const PLACES_MONOLITHES = new Map(MONOLITHES.map((m) => [m.nom, { x: m.x, y: m.y, z: 0 }]))
 
@@ -130,8 +134,22 @@ export const RAYON_SYSTEME: ReadonlyMap<string, number> = (() => {
   return m
 })()
 
+/** L'orbite d'une capsule de joueur autour de son astre : rayon (km), période (ms), phase et inclinaison. */
+const ORBITES_JOUEURS = new Map(BOTS.map((b, k) => [b.pseudo, { k, lieu: b.lieu }]))
+function positionJoueur(nom: string, t: number): Vecteur3 | null {
+  const o = ORBITES_JOUEURS.get(nom)
+  if (!o) return null
+  const R = PAR_NOM.get(o.lieu)?.rayon || 1000
+  const rayon = Math.max(2.2 * R, R + 600) * (1 + 0.15 * (o.k % 3))
+  const periode = (3 + (o.k % 5) * 0.7) * 3_600_000
+  const a = 2 * Math.PI * (0.137 * o.k + t / periode)
+  return { x: rayon * Math.cos(a), y: rayon * Math.sin(a), z: 0.2 * rayon * Math.sin(a + o.k) }
+}
+
 /** Position relative au parent (km), pour un astre qui a un parent. */
 export function positionRelative(nom: string, t: number): Vecteur3 {
+  const joueur = positionJoueur(nom, t)
+  if (joueur) return joueur
   if (nom === 'Lune') return positionLuneGeocentrique(t + TT_MOINS_UTC_MS)
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple) return positionOrbiteSimple(simple, t)

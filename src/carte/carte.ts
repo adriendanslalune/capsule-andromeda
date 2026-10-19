@@ -9,6 +9,7 @@ import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
 import { anneauxGradues, CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
+import { BOTS } from '../donnees/messages'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
@@ -39,6 +40,8 @@ const RAYON_POINT = 1.8
 const minimumLune = (rayonKm: number) => (rayonKm >= 1000 ? 10 : rayonKm >= 200 ? 8 : 4.5)
 /** Taille d'une silhouette d'engin (rayon, px) et son échelle de dessin. */
 const RAYON_ENGIN = 6
+/** Teinte des capsules des autres joueurs, selon leur Maison (celles du Profil). */
+const TEINTES_MAISONS: Record<string, string> = { nettoyeurs: '#8fcf98', ingenieurs: '#f2c66a', mercenaires: '#f3a08b' }
 const ECHELLE_ENGIN = 0.75
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
@@ -228,6 +231,35 @@ export class Carte2D {
     return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
   }
 
+  /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
+  private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
+    const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))
+    const maison = BOTS.find((b) => b.pseudo === nom)?.maison
+    ctx.save()
+    ctx.translate(q.x, q.y)
+    ctx.rotate(Math.atan2(q2.y - q.y, q2.x - q.x))
+    ctx.beginPath()
+    ctx.moveTo(6.5, 0)
+    ctx.lineTo(-4, 4.5)
+    ctx.lineTo(-2, 0)
+    ctx.lineTo(-4, -4.5)
+    ctx.closePath()
+    ctx.fillStyle = maison ? TEINTES_MAISONS[maison] : '#d7cdee'
+    ctx.fill()
+    ctx.lineWidth = 1.3
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = couleurs.encre
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  /** Vue rapprochée sur la capsule autour de son astre : l'astre et la capsule à l'écran, avec un peu de marge. */
+  echelleAutourDe(astre: string, t: number): number {
+    const c = projeterCorps(astre, t), q = this.positionCapsule(t)
+    const demi = Math.max(1.8 * Math.hypot(q.x - c.x, q.y - c.y), 2.4 * rayonDessine(astre))
+    return demi / (this.largeur / 2)
+  }
+
   /** Place de la capsule sur la carte (km de carte), hors trajet (en route, elle est sur le trajet dessiné). */
   positionCapsule(t: number): Point2 {
     return projeter({ p: etatCapsule(t).position, t, suivant: { p: etatCapsule(t + 60_000).position, t: t + 60_000 } })
@@ -376,7 +408,7 @@ export class Carte2D {
     }
     // Engins (satellites de la Terre, sondes), épaves et chasseurs aliens repérés : leur silhouette. Les chasseurs
     // d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
-    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde'))
+    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur'))
       .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
     for (const c of engins) {
       if ((c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe') && !this.surLaCarte(c.nom, t)) continue
@@ -392,6 +424,7 @@ export class Carte2D {
         ctx.stroke()
         ctx.setLineDash([])
       }
+      if (c.type === 'joueur') { this.capsuleJoueur(ctx, c.nom, q, t, couleurs); continue }
       dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
     }
 

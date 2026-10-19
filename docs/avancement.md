@@ -42,6 +42,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   orbite), puis raccroché à la capsule ; et, le cap pris, la capsule sautait à ce point. Le tracé part maintenant de
   la capsule telle qu'elle est dessinée (accrochée à l'astre de départ, `partir` et `departDessine` dans main.ts),
   et un départ en plein vol n'est plus couché (vu d'en haut, `projeterTrajet`).
+- Demandes d'Adrien du 19/10/2026 — **faites** : le bouton « capsule » de la carte zoome plus près (la capsule et sa
+  planète, `echelleAutourDe` ; à l'ouverture du jeu, toujours tout le système) ; les capsules des autres joueurs sur
+  la carte (en attendant le serveur, celles des 12 bots des Messages : corps de type « joueur » en orbite autour de
+  leur astre, `src/moteur/corps.ts` ; chevron aux couleurs de leur Maison ; la fiche dit « capitaine des … » et leur
+  statut ; Y ALLER possible).
 
 ---
 
