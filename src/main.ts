@@ -21,6 +21,7 @@ import { VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
 import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
+import { VueRemorquage } from './commun/vue-remorquage'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -579,6 +580,25 @@ function agirMission(): void {
     })
     return
   }
+  // Remorquer une épave : d'abord la harponner et la stabiliser (décision d'Adrien du 18/10/2026 : REMORQUER).
+  if (jeu.etapeDeHarponnage() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueRemorquage.ouvrir({
+      titre: lieu.toUpperCase(),
+      surFin: (rates) => {
+        const ev = jeu.harponner(rates, horloge(), vitesse())
+        if (!ev) return 'La capsule n\'est plus sur place : l\'épave s\'est décrochée.'
+        traiterEvenements(ev)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        const r = jeu.remorque()
+        return r ? `Elle est au bout du câble. Direction ${r.pour}, pour la larguer.` : 'Elle est au bout du câble.'
+      },
+    })
+    return
+  }
   // Réparer un engin, c'est sur son boîtier technique, avec le Manuel (décision d'Adrien du 18/10/2026 : RÉPARER).
   if (jeu.etapeDeDepannage() && jeu.peutAgir(t)) {
     const lieu = jeu.etapeActuelle()!.lieu
@@ -905,6 +925,7 @@ pageProfil.addEventListener('keydown', (e) => { if (e.key === 'Enter') changerPs
 const vueTri = new VueTri(document.querySelector<HTMLDivElement>('#tri')!)
 const vueAmarrage = new VueAmarrage(document.querySelector<HTMLDivElement>('#amarrage')!)
 const vueDepannage = new VueDepannage(document.querySelector<HTMLDivElement>('#depannage')!)
+const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('#remorquage')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), jeu.soute))
@@ -1132,5 +1153,6 @@ Object.assign(window, {
     // Essais : la manœuvre d'amarrage, sans mission.
     amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
     depannage: () => vueDepannage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est validé.' }),
+    remorquage: () => vueRemorquage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est remorqué.' }),
   },
 })

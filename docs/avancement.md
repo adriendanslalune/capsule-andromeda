@@ -208,6 +208,15 @@ missiles et épaves sur la carte.
     base × genre × zone du système × éloignement (×1 à ×2, plein à la moitié de la sphère : la Lune ≈ ×1,5, l'ISS ×1).
     Volet Missions : rangée des 9 systèmes, portée affichée sur chaque mission (« proche », « mi-distance »,
     « lointaine »). Les missions proposées des anciens tableaux de lunes sont oubliées à la reprise de la partie.
+  - REMORQUER (19/10/2026) — **fait, en attente de validation** : l'étape HARPONNER se joue en plein écran
+    (`src/donnees/remorquage.ts`, `src/moteur/remorquage.ts`, `src/commun/vue-remorquage.ts`, tests
+    `tests/remorquage.test.ts`). L'épave (carcasse cabossée) tourne sur elle-même, dans un sens ou l'autre, de 60 à
+    130°/s, avec une rotation qui varie (±25 %) ; un anneau rouge d'accroche sur sa coque. LANCER LE GRAPPIN : il met
+    0,8 s à arriver ; l'anneau doit être face à la capsule (à 18° près, secteur vert) à son arrivée. Raté : il ricoche,
+    1,6 s pour l'enrouler. Accrochée : on freine la rotation en tenant le propulseur ⟲ ou ⟳ qui tourne à l'inverse ;
+    stabilisée sous 4°/s pendant 1,2 s. Harponnée du premier coup : prime de 10 %. L'épave est alors en remorque :
+    Capsule › Soute l'affiche (« En remorque : … à larguer à … »). L'étape LARGUER à la station reste une attente sur
+    place. Réglages PROVISOIRES. Essai : `andromeda.remorquage()`.
   - RÉPARER (19/10/2026) — **fait, en attente de validation** : la mission de dépannage se fait sur le boîtier
     technique de l'engin (`src/donnees/depannage.ts`, `src/moteur/depannage.ts`, `src/commun/vue-depannage.ts`, tests
     `tests/depannage.test.ts`). Plaque : lettre du BUS (A à D) et voyant de défaut (rouge, orange, bleu, vert, avec son

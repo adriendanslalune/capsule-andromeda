@@ -56,14 +56,16 @@ export class VoletCapsule {
  */
 export function htmlSoute(jeu: Jeu): string {
   const c = jeu.cargaison()
+  const r = jeu.remorque()
   const charge = jeu.chargeSoute()
   const t = (q: number) => q.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
   const lignes = Object.entries(jeu.soute).filter(([, q]) => q > 0).sort((a, b) => b[1] - a[1])
   return `<h3>Soute · ${t(charge)} / ${CAPACITE_SOUTE} t</h3>`
     + `<div class="jauge-soute"><i style="width:${Math.min(100, (100 * charge) / CAPACITE_SOUTE)}%"></i></div><div class="bloc">`
     + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '')
+    + (r ? `<div class="module"><span><b>En remorque : ${r.epave}</b><br><small>à larguer à ${r.pour} (mission)</small></span><span class="ok">au câble</span></div>` : '')
     + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
-    + (!c && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
+    + (!c && !r && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
     + '</div>'
     + htmlMonolithes(jeu)
     + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'

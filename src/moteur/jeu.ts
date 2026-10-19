@@ -12,6 +12,7 @@ import { ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
+import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
@@ -265,6 +266,13 @@ export class Jeu {
     return { pour: ec.contrat.etapes[ec.contrat.etapes.length - 1].lieu }
   }
 
+  /** L'épave en remorque (harponnée, pas encore larguée) : laquelle, et la station où la larguer ; ou null. */
+  remorque(): { epave: string; pour: string } | null {
+    const ec = this.enCours
+    if (!ec || ec.contrat.genre !== 'remorquer' || ec.etape === 0) return null
+    return { epave: ec.contrat.etapes[0].lieu, pour: ec.contrat.etapes[1].lieu }
+  }
+
   /** Abandonne la mission en cours (sans pénalité). */
   abandonner(): void {
     this.enCours = null
@@ -420,6 +428,23 @@ export class Jeu {
   depanner(erreurs: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeDepannage() || !this.peutAgir(t)) return null
     if (erreurs === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_ERREUR) / 10) * 10
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** L'étape actuelle est-elle un harponnage (l'épave qui tourne, à harponner puis stabiliser) ? */
+  etapeDeHarponnage(): boolean {
+    return this.etapeActuelle()?.action === 'harponner'
+  }
+
+  /**
+   * L'épave est harponnée et stabilisée : elle est en remorque, l'étape est faite (la suivante : la larguer à la
+   * station). Harponnée du premier coup, la récompense augmente de 10 %. null si ce n'est pas possible ici.
+   */
+  harponner(rates: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDeHarponnage() || !this.peutAgir(t)) return null
+    if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_PREMIER_COUP) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements
