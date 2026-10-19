@@ -48,7 +48,7 @@ Multijoueur : monde rempli de bots ; les autres joueurs n'apparaissent que via l
 - Tout en français : interface, textes, commentaires du code, messages de commit.
 - Téléphone uniquement : écran de référence 390 × 844, cibles tactiles d'au moins 44 px.
 - Ne jamais publier avec des tests rouges (`npm test`, `npm run check`, `npm run build`).
-- Petits pas : une fonctionnalité à la fois, testée, commitée, publiée ; Adrien la valide sur son téléphone avant la suivante.
+- Petits pas : une fonctionnalité à la fois, testée, commitée, publiée. Décision d'Adrien du 19/10/2026 : mettre en place toutes les mécaniques d'abord, sans attendre sa validation de chacune ; il les essaiera ensuite une par une et reviendra au fur et à mesure de ses tests. Les nouvelles règles restent à lui proposer avant de les coder.
 - Pas de changement de règle, d'équilibrage ou d'interface sans l'accord d'Adrien.
 
 ## Interface
