@@ -1443,3 +1443,6 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 #collections .couverture p { margin: 0; font-size: 12px; opacity: 0.85; }
 #collections .couverture button { min-height: 50px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: #7a5aa8;
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+/* Le dépanneur, sous l'effet d'une panne (décision d'Adrien du 20/10/2026). */
+#capsule .depanneur { display: block; width: 100%; min-height: 44px; margin-top: 6px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }

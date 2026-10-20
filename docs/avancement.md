@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Dépanneur (décision d'Adrien du 20/10/2026) — **fait** : Capsule › État, sous chaque panne, « APPELER LE DÉPANNEUR »
+  (moitié des crédits, gratuit sans crédits, après confirmation ; `appelerDepanneur` dans `jeu.ts`, testé).
 - Collections, mode nuit, volets (demandes d'Adrien du 20/10/2026) — **faits** : Plus › Collections, une couverture
   par collection (pour l'instant les monolithes : compte, jauge, statut, prochain palier, OUVRIR LE CLASSEUR ;
   `src/commun/volet-collections.ts`) ; la soute ne parle plus des monolithes ni du comptoir ; le mode nuit passe des

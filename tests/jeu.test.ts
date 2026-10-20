@@ -88,3 +88,20 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     expect(duree()).toBeLessThan(avant * 0.6)
   })
 })
+
+describe('le dépanneur (décision d’Adrien du 20/10/2026)', () => {
+  it('répare un bloc en panne pour la moitié des crédits ; gratuit sans crédits', () => {
+    const jeu = new Jeu()
+    jeu.credits = 1001
+    jeu.casser('moteur')
+    expect(jeu.prixDepanneur()).toBe(500)
+    expect(jeu.appelerDepanneur('moteur')).toBe(500)
+    expect(jeu.credits).toBe(501)
+    expect(jeu.enPanne('moteur')).toBe(false)
+    expect(jeu.appelerDepanneur('moteur')).toBeNull()
+    jeu.credits = 0
+    jeu.casser('coque')
+    expect(jeu.appelerDepanneur('coque')).toBe(0)
+    expect(jeu.enPanne('coque')).toBe(false)
+  })
+})

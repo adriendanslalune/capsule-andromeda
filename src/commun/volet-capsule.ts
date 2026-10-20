@@ -11,13 +11,15 @@ import { avec, picto, SYMBOLE_MODULE } from './symboles'
 export class VoletCapsule {
   private dernier = ''
 
-  constructor(private element: HTMLElement, acheter: () => void, reparer: (m: NomModule) => void, versPanneau: (m: NomModule) => void) {
+  constructor(private element: HTMLElement, acheter: () => void, reparer: (m: NomModule) => void, versPanneau: (m: NomModule) => void,
+    depanneur: (m: NomModule) => void) {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-choix]')
       if (!b || b.disabled) return
       if (b.dataset.choix === 'acheter') acheter()
       else if (b.dataset.choix === 'reparer') reparer(b.dataset.module as NomModule)
       else if (b.dataset.choix === 'panneau') versPanneau(b.dataset.module as NomModule)
+      else if (b.dataset.choix === 'depanneur') depanneur(b.dataset.module as NomModule)
     })
   }
 
@@ -57,7 +59,8 @@ export class VoletCapsule {
       const choix = !panne ? '' : ` data-choix="${jeu.reparationProvisoire(f.nom) ? 'reparer' : 'panneau'}" data-module="${f.nom}"`
       return `<button type="button" class="tuile-module${panne ? ' en-panne' : ''}"${choix}>${picto(SYMBOLE_MODULE[f.nom])}${f.titre === 'Communications' ? 'COMMS' : f.titre === 'Navigation' ? 'NAVIG.' : f.titre.toUpperCase()}<b>${panne ? '!' : '✓'}</b></button>`
     }).join('') + '</div>'
-      + pannes.map((f) => `<div class="effet-panne">${picto('panne')} <b>${f.titre}</b> : ${f.effet}</div>`).join('')
+      + pannes.map((f) => `<div class="effet-panne">${picto('panne')} <b>${f.titre}</b> : ${f.effet}</div>`
+        + `<button type="button" class="depanneur" data-choix="depanneur" data-module="${f.nom}">APPELER LE DÉPANNEUR · ${jeu.prixDepanneur() ? `${nombre(jeu.prixDepanneur())} cr.` : 'gratuit'}</button>`).join('')
       + `<p class="note">${pannes.length ? 'Touche un module en panne pour le réparer sur le panneau, avec le manuel.' : 'Tous les modules sont en état.'}</p></div>`
     if (html !== this.dernier) this.element.innerHTML = this.dernier = html
   }

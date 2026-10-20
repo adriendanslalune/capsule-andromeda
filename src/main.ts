@@ -971,7 +971,14 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 }, (m) => {
   jeu.reparer(m)
   apresChangementDePanne()
-}, (m) => montrerReparation(m))
+}, (m) => montrerReparation(m), (m) => {
+  // Le dépanneur (décision d'Adrien du 20/10/2026) : la moitié des crédits, après confirmation.
+  const titre = MODULES.find((f) => f.nom === m)!.titre, prix = jeu.prixDepanneur()
+  if (!confirm(`Le dépanneur répare le bloc ${titre} tout de suite, pour ${prix ? `${prix.toLocaleString('fr-FR')} crédits (la moitié de tes crédits)` : 'rien (tu n\'as pas de crédits)'}. D'accord ?`)) return
+  jeu.appelerDepanneur(m)
+  apresChangementDePanne()
+  annoncer(`Le dépanneur a réparé le bloc ${titre}`)
+})
 
 // --- Réparation (volet Capsule › RÉPARATION) et Manuel (étape 4) ---
 const zoneReparation = document.querySelector<HTMLDivElement>('#reparation')!

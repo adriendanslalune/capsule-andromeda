@@ -141,6 +141,21 @@ export class Jeu {
     delete this.defauts[m]
   }
 
+  /**
+   * Le dépanneur (décision d'Adrien du 20/10/2026) : pour un joueur coincé, la réparation automatique d'un bloc en
+   * panne coûte la moitié de ses crédits (gratuite s'il n'en a pas). Renvoie ce qu'il a payé, ou null (pas en panne).
+   */
+  prixDepanneur(): number {
+    return Math.floor(this.credits / 2)
+  }
+  appelerDepanneur(m: NomModule): number | null {
+    if (!this.enPanne(m)) return null
+    const prix = this.prixDepanneur()
+    this.credits -= prix
+    this.reparer(m)
+    return prix
+  }
+
   /** Le module du panneau est-il en défaut ? */
   enDefaut(a: NomAppareil): boolean {
     return !!this.defauts[blocDe(a).bloc]?.includes(a)
