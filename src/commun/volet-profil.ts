@@ -78,6 +78,6 @@ export function htmlProfil(jeu: Jeu): string {
     + `<div class="rang"><span>Crédits gagnés</span><b>${c.credits.toLocaleString('fr-FR')}</b></div>`
     + `<div class="rang"><span>Objets triés dans les épaves</span><b>${c.objetsTries}</b></div></div>`
     + '<h3>Zones à libérer</h3><div class="bloc">'
-    + ZONES.map((z) => `<div class="rang"><span>${z}</span><small>occupée</small></div>`).join('')
+    + ZONES.map((z) => `<div class="rang"><span>${z}</span><small>${jeu.zonesLiberees.includes(z) ? '✓ libérée' : 'occupée'}</small></div>`).join('')
     + '<p class="petit">La campagne viendra plus tard : chaque activité dans une zone aidera à la libérer.</p></div>'
 }

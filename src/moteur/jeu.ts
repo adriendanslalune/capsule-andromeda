@@ -29,6 +29,7 @@ import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { position } from './corps'
+import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
 /**
@@ -85,6 +86,12 @@ export class Jeu {
   monolithes: EtatMonolithes = nouveauxMonolithes()
   /** Le pseudo du joueur (Profil ; c'est son nom dans les Messages). */
   pseudo = 'Capitaine'
+  /** Les quêtes commencées (décisions d'Adrien du 20/10/2026), celle qu'on suit sur la carte, les zones libérées. */
+  quetes: Record<string, EtatQuete> = {}
+  queteSuivie: string | null = null
+  zonesLiberees: string[] = []
+  /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
+  annoncesQuetes: string[] = []
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
   soute: Record<string, number> = {}
   /** Le carnet de bord (pour le Profil) : missions finies par Maison, crédits gagnés, objets triés. */
@@ -193,7 +200,14 @@ export class Jeu {
   /** Ramasse le monolithe à côté duquel est la capsule. */
   ramasserMonolithe(t: number): number | null {
     const n = this.monolitheIci(t)
-    return n !== null && ramasser(this.monolithes, n, t) ? n : null
+    if (n === null || !ramasser(this.monolithes, n, t)) return null
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'monolithe' }, t))
+    return n
+  }
+
+  /** L'astre ou l'engin autour duquel la capsule est en orbite (null en plein vol). */
+  lieuEnOrbite(t: number): string | null {
+    return this.mission.phase(t) === 'orbite' ? this.mission.centre(t) : null
   }
 
   /** La navigation marche-t-elle (sinon : impossible de calculer un trajet) ? */
@@ -371,6 +385,8 @@ export class Jeu {
     this.user(t, evenements)
     this.menaces(t, evenements)
     this.proposer(t)
+    // Les quêtes : un lieu atteint, des marchandises à livrer.
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
     const fin = ec.debutAction + (ec.dureeAction ?? DUREE_ACTION)
@@ -401,6 +417,7 @@ export class Jeu {
       this.carnet.missions[maisonDuContrat(ec.contrat)]++
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
+      this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'contrat', contrat: ec.contrat }, fin))
       this.proposer(fin)
     } else if (vitesseEnchainement !== undefined && this.peutNaviguer()) {
       const lieu = ec.contrat.etapes[ec.etape].lieu

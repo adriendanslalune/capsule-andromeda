@@ -12,7 +12,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
 | 7. Commerce (Marché ouvert à tous) | **fait** (20/10/2026) : acheter et vendre, spécialités des marchés ; en attente des essais d'Adrien |
 | 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
-| 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | à faire, à définir avec Adrien |
+| 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | **en cours** : PNJ, quêtes, journal et suivi faits (20/10/2026) ; premier jet de la Lune à corriger par Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
@@ -48,6 +48,23 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   la carte (en attendant le serveur, celles des 12 bots des Messages : corps de type « joueur » en orbite autour de
   leur astre, `src/moteur/corps.ts` ; chevron aux couleurs de leur Maison ; la fiche dit « capitaine des … » et leur
   statut ; Y ALLER possible).
+- PNJ, quêtes, journal (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** :
+  - Données : `src/donnees/quetes.ts` (PNJ : nom, rôle, lieu fixe, couleur, portrait, phrase de repos ; quêtes :
+    type, donneur, conditions, texte d'introduction, étapes, récompense, zone libérée). Moteur : `src/moteur/quetes.ts`
+    (quêtes proposées, signe d'un PNJ, dialogue, acceptation, avancement automatique des étapes : mission finie d'un
+    genre dans un système, lieu atteint, marchandises livrées en orbite, monolithe trouvé ; récompense ; zone
+    libérée), testé (`tests/quetes.test.ts`, la Lune de bout en bout). Sauvegardé avec la partie.
+  - Affichage : fiche de la carte « PARLER » en orbite au lieu d'un PNJ qui a quelque chose à dire (ou si on a touché
+    ce lieu) ; dialogue en plein écran (`src/commun/vue-dialogue.ts`) ; Plus › Journal des quêtes
+    (`src/commun/volet-journal.ts` : en cours, principales d'abord, étapes à venir cachées, SUIVRE, Y ALLER ;
+    terminées) ; ligne de la quête suivie sous le bandeau (la toucher ouvre le journal) ; sur la carte, médaillon de
+    chaque PNJ à son lieu avec « ! » ou « ? », losange doré (principale) ou rond bleu (secondaire), et l'objectif de la
+    quête suivie entouré à son lieu ; le Profil marque les zones libérées.
+  - Premier jet de la Lune (à corriger par Adrien) : Elsa Varga (ISS), Dr Amadou Keïta (Lune), le Veilleur (Hubble),
+    Rosa Mendès (Tiangong). Principales : Un signal sous la Lune → Les guetteurs d'Andromède (2 ABATTRE) et Ravitailler
+    Tycho (5 t d'eau, 2 t de titane) → Le relais de la face cachée (1 RÉPARER) → La Lune libérée (3 ABATTRE). Secondaires :
+    L'oreille du Veilleur (un monolithe), Circuits sous le manteau (3 t de circuits anciens). Récompenses 300 à 1 500.
+  - Portraits : à déposer dans `public/pnj/<id>.webp` (carrés), puis `portrait: 'pnj/<id>.webp'` dans les données.
 - Acheter et vendre (étape 7, proposition validée par Adrien le 20/10/2026) — **fait** : on n'achète et ne vend qu'au
   marché du système où la capsule est en orbite (`marcheIci`, `acheter`, `vendre` dans `src/moteur/jeu.ts`, testés),
   au cours en direct ; achat au cours + 6 %, vente au cours − 6 % ; boutons 1 t, 5 t, MAX / TOUT (par dixièmes de

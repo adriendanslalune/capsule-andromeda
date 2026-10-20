@@ -24,6 +24,10 @@ import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
 import { VueEscorte } from './commun/vue-escorte'
 import { VueInvitation } from './commun/vue-invitation'
+import { VueDialogue } from './commun/vue-dialogue'
+import { htmlJournal } from './commun/volet-journal'
+import { PNJS } from './donnees/quetes'
+import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -320,6 +324,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'marche') voletMarche.afficher(horloge(), etatCommerce())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
+  if (page === 'journal') afficherJournal()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
   (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t) }))
@@ -405,7 +410,7 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
-let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' = 'depart'
+let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' | 'parler' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
@@ -459,6 +464,7 @@ function mettreAJourFiche(t: number): void {
   let texte = '', depart = false, libelle = 'DÉPART'
   actionFiche = 'depart'
   const etape = jeu.etapeActuelle(), fin = jeu.finAction()
+  const pnjs = pnjIci(jeu, t)
   const monolithe = jeu.monolitheIci(t)
   if (monolithe !== null && !apercu && (!selection || dejaLa(t))) {
     // À côté d'un monolithe localisé : on le ramasse.
@@ -494,6 +500,13 @@ function mettreAJourFiche(t: number): void {
     texte = `<b>${etape.lieu.toUpperCase()}</b> · mission<br>${titreContrat(jeu.enCours!.contrat)}`
     if (fin !== null) texte += `<br>${NOMS_ACTIONS[etape.action]} en cours · ${texteSecondes(fin - t)}`
     else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
+  } else if (pnjs.length && !apercu && (!selection || selection === pnjs[0].lieu || dejaLa(t)) && (signePnj(jeu, pnjs[0].id) || selection === pnjs[0].lieu)) {
+    // Un PNJ ici (décisions d'Adrien du 20/10/2026) : on peut lui parler.
+    const p = pnjs[0], s = signePnj(jeu, p.id)
+    texte = `<b>${p.lieu.toUpperCase()}</b> · ${p.nom}<br>${p.role}${s ? ` · ${s.signe === '!' ? 'a quelque chose à te demander' : 'attend de tes nouvelles'}` : ''}`
+    depart = true
+    libelle = 'PARLER'
+    actionFiche = 'parler'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     const genre = corps(selection)?.type
@@ -549,6 +562,14 @@ boutonDepart.addEventListener('click', () => {
   if (actionFiche === 'agir') { agirMission(); return }
   if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
   if (actionFiche === 'combat') { combattre(selection!); return }
+  if (actionFiche === 'parler') {
+    const p = pnjIci(jeu, t)[0]
+    if (!p) return
+    const d = parler(jeu, p.id, t)
+    enregistrerPartie()
+    vueDialogue.ouvrir(d)
+    return
+  }
   if (actionFiche === 'ramasser') {
     const n = jeu.ramasserMonolithe(t)
     if (n === null) return
@@ -756,6 +777,46 @@ function avancerMissions(t: number): void {
   traiterEvenements(jeu.avancer(t, vitesse()))
 }
 /** Ce que le joueur apprend des événements du jeu (missions, pannes). */
+// Les quêtes (décisions d'Adrien du 20/10/2026) : le dialogue avec un PNJ, le journal (Plus › Journal) et la ligne de
+// la quête suivie sous le bandeau.
+const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dialogue')!, {
+  joueur: () => jeu.pseudo,
+  accepter: (id) => {
+    const ok = accepterQuete(jeu, id, horloge())
+    if (ok) { enregistrerPartie(); annoncer(`Nouvelle quête : ${quete(id).titre} (voir le Journal)`); afficherSuivi(true) }
+    return ok
+  },
+})
+const pageJournal = document.querySelector<HTMLDivElement>('#journal')!
+let journalOuvert: string | null = null
+function afficherJournal(): void {
+  pageJournal.innerHTML = htmlJournal(jeu, journalOuvert)
+}
+pageJournal.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>('button')
+  if (!b) return
+  if (b.dataset.ouvrir) journalOuvert = journalOuvert === b.dataset.ouvrir ? '' : b.dataset.ouvrir
+  else if (b.dataset.suivre) { jeu.queteSuivie = b.dataset.suivre; enregistrerPartie(); afficherSuivi(true) }
+  else if (b.dataset.yAller) { cockpit.fermer(); choisir(b.dataset.yAller, true); proposee = true; return }
+  else return
+  afficherJournal()
+})
+const ligneSuivi = document.querySelector<HTMLButtonElement>('#suivi')!
+let dernierSuivi = 0
+/** La quête suivie, en une ligne sous le bandeau : son titre et son objectif en cours. */
+function afficherSuivi(forcer = false): void {
+  if (!forcer && performance.now() - dernierSuivi < 500) return
+  dernierSuivi = performance.now()
+  const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
+  const o = q ? objectif(jeu, q) : null
+  ligneSuivi.hidden = !q || !o
+  if (!q || !o) return
+  const html = `<span class="signe ${q.type}">${q.type === 'principale' ? '◆' : '●'}</span><span><b>${q.titre}</b> · ${o.texte}${o.compte ? ` (${o.compte})` : ''}</span>`
+  if (ligneSuivi.innerHTML !== html) ligneSuivi.innerHTML = html
+  ligneSuivi.classList.toggle('secondaire', q.type === 'secondaire')
+}
+ligneSuivi.addEventListener('click', () => { journalOuvert = jeu.queteSuivie; cockpit.ouvrir('journal') })
+
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
 const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('#invitation')!, {
   joueur: () => jeu.pseudo,
@@ -1204,6 +1265,9 @@ function image(maintenant: number): void {
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true
+  // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
+  afficherSuivi()
+  if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
   const accent = '#d9694f'
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
@@ -1264,6 +1328,12 @@ function image(maintenant: number): void {
       ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
+    // Les PNJ, leurs signes, et l'objectif de la quête suivie.
+    const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null, lieuObjectif = suivie ? objectif(jeu, suivie)?.lieu ?? null : null
+    carte.dessinerPnj(ctxPlan, t, PNJS.map((p) => {
+      const s = signePnj(jeu, p.id)
+      return { lieu: p.lieu, initiale: p.nom.replace(/^(Dr|Le|La) /, '')[0], teinte: p.teinte, signe: s?.signe ?? null, principale: s?.principale ?? false }
+    }), lieuObjectif ? { lieu: lieuObjectif, principale: suivie!.type === 'principale' } : null, { encre: th.encre, fond: th.halo })
     // Les échos des PING : leurs cercles, et les places possibles des monolithes (pas les localisés : ils sont dessinés).
     if (reglages.cercles && jeu.monolithes.echos.length) {
       const revenus = echosRevenus(jeu.monolithes, t)

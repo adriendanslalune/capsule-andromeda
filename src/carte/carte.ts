@@ -231,6 +231,72 @@ export class Carte2D {
     return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
   }
 
+  /**
+   * Les PNJ (décisions d'Adrien du 20/10/2026) : un médaillon à leur lieu (à côté de l'astre ou de l'engin dessiné),
+   * avec un signe s'ils ont quelque chose pour le joueur : « ! » une quête à proposer, « ? » ils attendent son retour.
+   * Petite distinction (demande d'Adrien) : quête principale, losange doré ; secondaire, rond bleu. Et le losange (ou
+   * rond) de l'objectif de la quête suivie, à son lieu.
+   */
+  dessinerPnj(ctx: CanvasRenderingContext2D, t: number, pnjs: { lieu: string; initiale: string; teinte: string; signe: '!' | '?' | null; principale: boolean }[],
+    objectif: { lieu: string; principale: boolean } | null, couleurs: Couleurs2D): void {
+    const placeDe = (lieu: string) => {
+      const d = this.dessines.find((x) => x.nom === lieu)
+      if (d) return d
+      const q = this.ecranDe(projeterCorps(lieu, t))
+      return { x: q.x, y: q.y, r: 4 }
+    }
+    const DORE = '#f2b53a', BLEU = '#8fb4e6'
+    ctx.save()
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    // L'objectif suivi : un grand losange (principale) ou un cercle (secondaire) pointillé autour du lieu.
+    if (objectif) {
+      const p = placeDe(objectif.lieu), r = Math.max(14, p.r + 9)
+      if (p.x > -r && p.x < this.largeur + r && p.y > -r && p.y < this.hauteur + r) {
+        ctx.beginPath()
+        if (objectif.principale) { ctx.moveTo(p.x, p.y - r); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + r); ctx.lineTo(p.x - r, p.y); ctx.closePath() }
+        else ctx.arc(p.x, p.y, r, 0, 2 * Math.PI)
+        ctx.setLineDash([4, 3])
+        ctx.lineWidth = 2
+        ctx.strokeStyle = objectif.principale ? DORE : BLEU
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+    }
+    // Plusieurs PNJ au même lieu : leurs médaillons côte à côte.
+    const parLieu = new Map<string, number>()
+    for (const n of pnjs) {
+      const p = placeDe(n.lieu), k = parLieu.get(n.lieu) ?? 0
+      parLieu.set(n.lieu, k + 1)
+      const x = p.x + p.r * 0.75 + 12 + k * 22, y = p.y - p.r * 0.75 - 12
+      if (x < -20 || x > this.largeur + 20 || y < -20 || y > this.hauteur + 20) continue
+      ctx.beginPath()
+      ctx.arc(x, y, 9, 0, 2 * Math.PI)
+      ctx.fillStyle = n.teinte
+      ctx.fill()
+      ctx.lineWidth = 1.5
+      ctx.strokeStyle = couleurs.encre
+      ctx.stroke()
+      ctx.font = 'bold 10px ui-monospace, Menlo, monospace'
+      ctx.fillStyle = '#1f1b18'
+      ctx.fillText(n.initiale, x, y + 0.5)
+      if (!n.signe) continue
+      // Le signe : losange doré (principale) ou rond bleu (secondaire), au-dessus du médaillon.
+      const sx = x + 8, sy = y - 10
+      ctx.beginPath()
+      if (n.principale) { ctx.moveTo(sx, sy - 8); ctx.lineTo(sx + 8, sy); ctx.lineTo(sx, sy + 8); ctx.lineTo(sx - 8, sy); ctx.closePath() }
+      else ctx.arc(sx, sy, 6.5, 0, 2 * Math.PI)
+      ctx.fillStyle = n.principale ? DORE : BLEU
+      ctx.fill()
+      ctx.lineWidth = 1.3
+      ctx.stroke()
+      ctx.font = 'bold 10px ui-monospace, Menlo, monospace'
+      ctx.fillStyle = '#1f1b18'
+      ctx.fillText(n.signe, sx, sy + 0.5)
+    }
+    ctx.restore()
+  }
+
   /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))

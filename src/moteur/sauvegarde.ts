@@ -13,6 +13,7 @@ import { MODULES, type NomModule } from '../donnees/modules'
 import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
+import { QUETES } from '../donnees/quetes'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
@@ -54,6 +55,9 @@ export interface Sauvegarde {
   invitations?: Maison[]
   /** Les messages des bots après un événement (absent : aucun). */
   lettres?: Jeu['lettres']
+  quetes?: Jeu['quetes']
+  queteSuivie?: string | null
+  zonesLiberees?: string[]
   /** Répartition de l'énergie (absente : celle du départ). */
   energie?: Energie
   /** La soute (absente : vide) et le carnet de bord (absent : vierge). */
@@ -77,7 +81,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes,
   }
 }
@@ -185,6 +189,16 @@ export function restaurer(s: unknown): Jeu | null {
   }
   jeu.maison = v.maison ?? null
   if (Array.isArray(v.lettres)) jeu.lettres = v.lettres.filter((x) => !!x && nombre(x.id) && typeof x.bot === 'string' && typeof x.texte === 'string' && nombre(x.envoye)).map((x) => ({ ...x }))
+  // Les quêtes : seulement celles qui existent encore (le premier jet de la Lune peut changer).
+  if (v.quetes && typeof v.quetes === 'object') {
+    for (const [id, e] of Object.entries(v.quetes)) {
+      if (QUETES.some((q) => q.id === id) && e && nombre(e.etape) && nombre(e.compte) && nombre(e.debut) && (e.fin === null || nombre(e.fin))) {
+        jeu.quetes[id] = { etape: e.etape, compte: e.compte, debut: e.debut, fin: e.fin }
+      }
+    }
+  }
+  if (typeof v.queteSuivie === 'string' && jeu.quetes[v.queteSuivie]) jeu.queteSuivie = v.queteSuivie
+  if (Array.isArray(v.zonesLiberees)) jeu.zonesLiberees = v.zonesLiberees.filter((z) => typeof z === 'string')
   if (Array.isArray(v.invitations)) jeu.invitations = MAISONS.map((m) => m.maison).filter((m) => v.invitations!.includes(m))
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur

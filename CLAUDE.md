@@ -37,6 +37,8 @@ Précisions d'Adrien du 18/10/2026 (étape 4) :
 
 Manuel (précision d'Adrien du 18/10/2026) : à terme, le manuel devient un guide général d'utilisation du jeu, téléchargeable et vendu aussi au format papier. Ses tableaux doivent donc rester les mêmes pour tous les joueurs (rien de propre à une partie dans le texte), pour qu'un exemplaire imprimé serve à tout le monde.
 
+PNJ et quêtes (décisions d'Adrien du 20/10/2026) : des PNJ à lieu fixe (satellite, station, lune, planète) ; on leur parle en orbite à leur lieu (bouton PARLER de la fiche), dans un dialogue en plein écran (portrait, nom, rôle, texte page par page ; linéaire, sans choix à conséquences pour commencer). Portraits générés par Adrien (ChatGPT, style Moebius, carrés) ; en attendant, un médaillon à l'initiale. Quêtes principales (la campagne) ou secondaires : un donneur, des conditions, des étapes qui se cochent toutes seules (parler, aller, missions d'un genre dans un système, livrer des marchandises, trouver des monolithes), une récompense ; la campagne libère des zones. Sur la carte : médaillon du PNJ à son lieu, « ! » (quête à proposer) ou « ? » (il attend ton retour) ; principale : losange doré, secondaire : rond bleu ; l'objectif de la quête suivie est marqué à son lieu. Journal des quêtes dans Plus (en cours, principales d'abord, puis terminées ; SUIVRE, Y ALLER) ; une seule quête suivie, résumée en une ligne sous le bandeau. Premier jet de la Lune (5 quêtes principales, 2 secondaires, 4 PNJ) à corriger par Adrien.
+
 Multijoueur : monde rempli de bots ; les autres joueurs apparaissent via le chat et les échanges, et leurs capsules se voient sur la carte (décision d'Adrien du 19/10/2026 : en attendant le serveur, celles des bots, aux couleurs de leur Maison ; on peut les toucher et y aller ; ils voyagent d'escale en escale, comme la capsule du joueur, et leurs messages partent de là où ils sont). Serveur plus tard (type Supabase). Les Messages sont un point essentiel : tout le fun est là, c'est l'interaction avec les autres joueurs ; ils doivent être accessibles et fun (Adrien, 18/10/2026). Les messages voyagent à la vitesse de la lumière.
 
 ## Règles de code
@@ -73,7 +75,7 @@ On construit le vrai jeu par étapes. Chaque étape doit être jouable sur tél�
 6. Combat : Armement (dans le volet Capsule) ; refait en temps réel, vue du dessus, façon jeu de tir Game Boy (décision d'Adrien du 19/10/2026).
 7. Commerce (ouvert à tous) : volet Marché, cours par formule du temps, décalés selon le délai lumière — acheter et vendre faits (20/10/2026).
 8. Maisons : volet Profil, toile d'araignée, appartenance qui change selon les activités — appartenance faite (19/10/2026) ; avantages entre membres plus tard.
-9. Campagne de jeu (décision d'Adrien du 19/10/2026, qui remplace « première zone à libérer : la Lune ») : des quêtes principales, dont la Lune ; à définir avec Adrien.
+9. Campagne de jeu (décision d'Adrien du 19/10/2026, qui remplace « première zone à libérer : la Lune ») : des quêtes principales, dont la Lune ; à définir avec Adrien — mécanique des PNJ, quêtes et journal faite (20/10/2026), premier jet de la Lune en place.
 10. Serveur, comptes, volet Messages, échanges entre joueurs.
 11. Tutoriel autour de la Terre : moteur lent, missions autour de la Terre jusqu'à pouvoir partir vers la Lune (une fois toutes les mécaniques en place).
 12. Version installable (PWA), puis boutique.
