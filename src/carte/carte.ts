@@ -40,6 +40,8 @@ const RAYON_POINT = 1.8
 const minimumLune = (rayonKm: number) => (rayonKm >= 1000 ? 10 : rayonKm >= 200 ? 8 : 4.5)
 /** Taille d'une silhouette d'engin (rayon, px) et son échelle de dessin. */
 const RAYON_ENGIN = 6
+/** En dessous de cet écart à l'écran (px) entre un lieu et sa planète, ses PNJ ne s'affichent plus (carte trop dézoomée). */
+const SEUIL_PNJ = 24
 /** Teinte des capsules des autres joueurs, selon leur Maison (celles du Profil). */
 const TEINTES_MAISONS: Record<string, string> = { nettoyeurs: '#8fcf98', ingenieurs: '#f2c66a', mercenaires: '#f3a08b' }
 const ECHELLE_ENGIN = 0.75
@@ -263,9 +265,11 @@ export class Carte2D {
         ctx.setLineDash([])
       }
     }
-    // Plusieurs PNJ au même lieu : leurs médaillons côte à côte.
+    // Plusieurs PNJ au même lieu : leurs médaillons côte à côte. En dézoomant, ils s'effacent dès que leur lieu se
+    // confond avec sa planète (demande d'Adrien du 20/10/2026 : ne pas encombrer la carte).
     const parLieu = new Map<string, number>()
     for (const n of pnjs) {
+      if (this.lieuReplie(n.lieu, t)) continue
       const p = placeDe(n.lieu), k = parLieu.get(n.lieu) ?? 0
       parLieu.set(n.lieu, k + 1)
       const x = p.x + p.r * 0.75 + 12 + k * 22, y = p.y - p.r * 0.75 - 12
@@ -295,6 +299,16 @@ export class Carte2D {
       ctx.fillText(n.signe, sx, sy + 0.5)
     }
     ctx.restore()
+  }
+
+  /** Vrai si un lieu est trop près de sa planète à l'écran pour qu'on l'en distingue (la carte est trop dézoomée). */
+  private lieuReplie(lieu: string, t: number): boolean {
+    let c = corps(lieu)
+    while (c?.parent && corps(c.parent)?.type !== 'etoile') c = corps(c.parent)
+    const planete = c && c.nom !== lieu ? c.nom : null
+    if (!planete) return false
+    const a = this.ecranDe(projeterCorps(lieu, t)), b = this.ecranDe(projeterCorps(planete, t))
+    return Math.hypot(a.x - b.x, a.y - b.y) < SEUIL_PNJ
   }
 
   /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
