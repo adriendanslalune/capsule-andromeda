@@ -1317,3 +1317,6 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 #marche .boutons-confirmation button { flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: var(--fond);
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #marche .boutons-confirmation button.principal { color: #fff; background: #d9694f; }
+/* Les bots sont marqués PNJ (décision d'Adrien du 20/10/2026) : des personnages du jeu, pas des joueurs. */
+.bulle .pnj, .annuaire .pnj { margin-left: 5px; padding: 0 4px; font-size: 8.5px; font-style: normal; font-weight: bold; letter-spacing: 0.06em;
+  border: 1px solid currentColor; border-radius: 3px; opacity: 0.6; vertical-align: 1px; }

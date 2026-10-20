@@ -6,7 +6,7 @@
 
 import { ouEstLeBot } from './corps'
 import { statut } from './monolithes'
-import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
+import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, BOTS_BAVARDS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
 import { MARCHANDISES, MARCHES } from '../donnees/marche'
 import type { Maison } from '../donnees/maisons'
 import type { Jeu } from './jeu'
@@ -90,7 +90,7 @@ function bavardage(k: number, joueur: string): MessageAffiche | null {
   let m: MessageAffiche | null = null
   if (h(`c${k}/0`) < 0.75) {
     const envoye = k * PAS + Math.floor(h(`c${k}/1`) * PAS)
-    const bot = choisir(BOTS, h(`c${k}/2`))
+    const bot = choisir(BOTS_BAVARDS, h(`c${k}/2`))
     const x = h(`c${k}/3`)
     const canal = x < 0.02 ? `prive:${bot.pseudo}` : x < 0.3 ? 'maison' : 'general'
     const modeles = canal === 'general' ? BAVARDAGES : canal === 'maison' ? BAVARDAGES_MAISON[bot.maison] : PRIVES_SPONTANES
@@ -114,11 +114,11 @@ export function intention(texte: string): Intention {
 
 /** Les bots qui répondent à un message du joueur : le destinataire d'un privé ; ceux qu'il nomme ; sinon un ou deux. */
 function repondants(m: MessageEnvoye): Bot[] {
-  if (m.canal.startsWith('prive:')) return BOTS.filter((b) => `prive:${b.pseudo}` === m.canal)
-  const nommes = BOTS.filter((b) => m.texte.toLowerCase().includes(b.pseudo.toLowerCase()))
+  if (m.canal.startsWith('prive:')) return BOTS_BAVARDS.filter((b) => `prive:${b.pseudo}` === m.canal)
+  const nommes = BOTS_BAVARDS.filter((b) => m.texte.toLowerCase().includes(b.pseudo.toLowerCase()))
   if (nommes.length) return nommes.slice(0, 2)
-  const a = choisir(BOTS, h(`r${m.id}/a`))
-  const b = choisir(BOTS.filter((x) => x !== a), h(`r${m.id}/b`))
+  const a = choisir(BOTS_BAVARDS, h(`r${m.id}/a`))
+  const b = choisir(BOTS_BAVARDS.filter((x) => x !== a), h(`r${m.id}/b`))
   return h(`r${m.id}/n`) < 0.5 ? [a] : [a, b]
 }
 

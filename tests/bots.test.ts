@@ -17,7 +17,8 @@ describe('les capsules des bots voyagent (décision d’Adrien du 19/10/2026)', 
 
   it('sur une semaine, chaque bot fait escale et voyage ; les mêmes trajets pour tous (déduits de l’heure)', () => {
     for (const b of BOTS) {
-      const etats = Array.from({ length: 7 * 24 }, (_, k) => ouEstLeBot(b.pseudo, t0 + k * H))
+      // Tous les cinq minutes : un saut de puce de l'ISS à la Terre ne dure que quelques minutes.
+      const etats = Array.from({ length: 7 * 24 * 12 }, (_, k) => ouEstLeBot(b.pseudo, t0 + k * H / 12))
       expect(etats.some((e) => e.enRoute), b.pseudo).toBe(true)
       expect(etats.some((e) => !e.enRoute), b.pseudo).toBe(true)
       for (const e of etats) if (e.enRoute) { expect(e.part).toBeGreaterThanOrEqual(0); expect(e.part).toBeLessThan(1); expect(e.vers).not.toBe(e.de) }
@@ -40,5 +41,19 @@ describe('les capsules des bots voyagent (décision d’Adrien du 19/10/2026)', 
         avant = ici
       }
     }
+  })
+})
+
+describe('une centaine de bots (décision d’Adrien du 20/10/2026)', () => {
+  it('100 bots aux pseudos uniques, dont une douzaine de bavards ; seuls les bavards parlent dans le chat', async () => {
+    const { BOTS_BAVARDS } = await import('../src/donnees/messages')
+    const { fil } = await import('../src/moteur/messages')
+    const { Jeu } = await import('../src/moteur/jeu')
+    expect(BOTS).toHaveLength(100)
+    expect(new Set(BOTS.map((b) => b.pseudo)).size).toBe(100)
+    expect(BOTS_BAVARDS).toHaveLength(12)
+    for (const b of BOTS) expect(b.escales.length, b.pseudo).toBeGreaterThanOrEqual(2)
+    const auteurs = new Set(fil(new Jeu(), 'general', t0).map((m) => m.auteur))
+    for (const a of auteurs) expect(BOTS_BAVARDS.some((b) => b.pseudo === a), a).toBe(true)
   })
 })

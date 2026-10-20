@@ -17,6 +17,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Bots (décisions d'Adrien du 20/10/2026) — **fait** : 100 bots (`BOTS` dans `src/donnees/messages.ts`), dont les
+  12 bavards d'avant (`BOTS_BAVARDS` : chat, privés, rumeurs de la Bourse) et 88 figurants tirés une fois pour toutes
+  (pseudo, Maison, région : 40 % autour de la Terre, puis Mars, Jupiter, Saturne, Vénus et Mercure, Uranus, Neptune ;
+  escales et moteur de leur région), muets mais qui voyagent et passent des ordres à la Bourse. Tous marqués « PNJ »
+  (Messages, annuaire, fiche de la carte). Le chat parle trois fois moins (un créneau toutes les 8 min). Bourse : frais
+  d'au moins 5 cr. par ordre (option A) ; TOUT au lieu de MAX (Bourse et Comptoir).
 - Confirmation des ordres (demande d'Adrien du 20/10/2026) — **faite** : à la Bourse, chaque ordre passe par un devis
   (ce qui part, les frais, l'estimation au cours connu, le temps du trajet de l'ordre) puis ANNULER / CONFIRMER
   (`devisOrdre` dans `src/moteur/bourse.ts`, testé) ; au Comptoir, MAX et TOUT demandent aussi confirmation. La

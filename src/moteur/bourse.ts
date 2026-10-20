@@ -9,7 +9,7 @@
 // de la compagnie, et la confirmation revient de même. Les crédits d'un achat partent avec l'ordre ; les actions d'une
 // vente aussi. Frais : FRAIS_BOURSE par ordre, au moins FRAIS_MINIMUM crédits.
 
-import { BOTS } from '../donnees/messages'
+import { BOTS, BOTS_BAVARDS } from '../donnees/messages'
 import { delaiLumiere } from './marche'
 import { COMPAGNIES, FIABILITE_RUMEURS, FRAIS_BOURSE, FRAIS_MINIMUM, RUMEURS_BAISSE, RUMEURS_HAUSSE, type Compagnie } from '../donnees/bourse'
 
@@ -63,7 +63,7 @@ function calculerEvenement(c: Compagnie, i: number, jour: number): Evenement | n
   const hausse = juste ? sens > 0 : sens < 0
   const modeles = hausse ? RUMEURS_HAUSSE : RUMEURS_BAISSE
   const texte = modeles[Math.floor(bruit(i, jour, 6) * modeles.length)].replaceAll('{compagnie}', c.nom).replaceAll('{siege}', c.siege)
-  const bot = BOTS[Math.floor(bruit(i, jour, 7) * BOTS.length)].pseudo
+  const bot = BOTS_BAVARDS[Math.floor(bruit(i, jour, 7) * BOTS_BAVARDS.length)].pseudo
   return { compagnie: c, debut, force, rumeur: { envoye: debut - Math.floor((2 + 4 * bruit(i, jour, 8)) * HEURE), bot, hausse, texte } }
 }
 

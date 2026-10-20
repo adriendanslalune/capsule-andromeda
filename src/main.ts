@@ -515,7 +515,7 @@ function mettreAJourFiche(t: number): void {
     const genre = corps(selection)?.type
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
-      : bot ? ` · capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}` : ''
+      : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}` : ''
     texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}`
     depart = true
     libelle = 'Y ALLER'

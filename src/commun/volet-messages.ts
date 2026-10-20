@@ -5,7 +5,7 @@
 // arrivée s'annonce. Des phrases rapides s'envoient d'un toucher. Le volet ne décide rien : il montre ce que dit le
 // moteur (moteur/messages.ts).
 
-import { BOTS, PHRASES_RAPIDES } from '../donnees/messages'
+import { BOTS, BOTS_BAVARDS, PHRASES_RAPIDES } from '../donnees/messages'
 import { titreMaison } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
 import {
@@ -100,8 +100,8 @@ export class VoletMessages {
         + `<span class="texte"><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${echapper(dernier.texte)}</small></span>`
         + `<span class="quand">${ilYa(t - dernier.recu)}</span></button>`).join('')
         : '<p class="vide">Pas encore de conversation privée. Touche le nom d\'un capitaine dans le canal général, ou choisis ci-dessous.</p>'
-      html += '<h3>Écrire à…</h3><div class="annuaire">' + BOTS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
-        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}${badge(statut(b.monolithes))}<small>${lieuDuBot(b.pseudo, t)} · ${texteDelaiCourt(delaiLumiere(b.pseudo, t))}</small></button>`).join('') + '</div>'
+      html += '<h3>Écrire à…</h3><p class="vide">Les capitaines du jeu (PNJ) en attendant les vrais joueurs.</p><div class="annuaire">' + BOTS_BAVARDS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
+        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}<em class="pnj">PNJ</em>${badge(statut(b.monolithes))}<small>${lieuDuBot(b.pseudo, t)} · ${texteDelaiCourt(delaiLumiere(b.pseudo, t))}</small></button>`).join('') + '</div>'
     } else if (c === 'maison' && !jeu.maison) {
       html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (depuis ton Profil, quand ton affinité le permet) pour parler avec les tiens.</p>'
     } else {
@@ -131,7 +131,7 @@ export class VoletMessages {
     if (m.deMoi) return `<div class="bulle moi"><span class="auteur">${echapper(m.auteur)}${badge(m.statut)}</span>${echapper(m.texte)}<small>${etatEnvoi(m, t)}</small></div>`
     const prive = this.canal.startsWith('prive:')
     return `<div class="bulle"><span class="auteur">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}" title="Écrire en privé">`}`
-      + `<i style="background:${m.maison ? TEINTES[m.maison] : '#d7cdee'}"></i>${m.auteur}${prive ? '' : '</button>'}${badge(m.statut)}</span>${echapper(m.texte)}`
+      + `<i style="background:${m.maison ? TEINTES[m.maison] : '#d7cdee'}"></i>${m.auteur}${prive ? '' : '</button>'}<em class="pnj" title="Personnage du jeu (bot)">PNJ</em>${badge(m.statut)}</span>${echapper(m.texte)}`
       + `<small>de ${m.lieu} · ${ilYa(t - m.recu)} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small></div>`
   }
 }

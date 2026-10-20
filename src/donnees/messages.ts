@@ -18,9 +18,15 @@ export interface Bot {
    */
   escales: string[]
   vitesse: number
+  /**
+   * Bavard : il parle dans le chat et on peut lui écrire. Les autres sont des figurants (décision d'Adrien du
+   * 20/10/2026) : des PNJ qui habillent le monde, comme dans un MMORPG, sans qu'on puisse leur parler.
+   */
+  bavard: boolean
 }
 
-export const BOTS: readonly Bot[] = [
+/** Les bavards : une douzaine de capitaines PNJ qui font vivre les Messages. */
+const BAVARDS: readonly Omit<Bot, 'bavard'>[] = [
   { pseudo: 'Mme_Ferraille', maison: 'nettoyeurs', lieu: 'Lune', marche: 'Terre', monolithes: 64, escales: ['Lune', 'Terre', 'ISS'], vitesse: 240 },
   { pseudo: 'VEGA', maison: 'mercenaires', lieu: 'Lune', marche: 'Terre', monolithes: 8, escales: ['Lune', 'Terre', 'Mars', 'Phobos'], vitesse: 3840 },
   { pseudo: 'ORION_77', maison: 'ingenieurs', lieu: 'Phobos', marche: 'Mars', monolithes: 132, escales: ['Phobos', 'Deimos', 'Mars'], vitesse: 960 },
@@ -34,6 +40,55 @@ export const BOTS: readonly Bot[] = [
   { pseudo: 'Zinzolin', maison: 'ingenieurs', lieu: 'Uranus', marche: 'Uranus', monolithes: 88, escales: ['Uranus', 'Titania', 'Obéron', 'Miranda'], vitesse: 7680 },
   { pseudo: 'Gaston_Vrac', maison: 'nettoyeurs', lieu: 'Europe', marche: 'Jupiter', monolithes: 0, escales: ['Europe', 'Io', 'Ganymède'], vitesse: 1920 },
 ]
+
+/**
+ * Les figurants (décision d'Adrien du 20/10/2026 : une centaine de bots en tout) : des capitaines PNJ tirés une fois
+ * pour toutes (les mêmes pour tous), répartis dans le système (beaucoup autour de la Terre, de moins en moins loin du
+ * Soleil), qui voyagent d'escale en escale et passent des ordres à la Bourse, mais ne parlent pas.
+ */
+const NOMS_FIGURANTS = ['Ardoise', 'Rouille', 'Nova', 'Brume', 'Zéphyr', 'Cobalt', 'Lichen', 'Orage', 'Sextant', 'Gravier', 'Mistral',
+  'Albatros', 'Plancton', 'Saturnin', 'Boussole', 'Lanterne', 'Pollux', 'Castor', 'Sirocco', 'Basalte', 'Mirabelle', 'Écume', 'Tournesol',
+  'Calypso', 'Figaro', 'Hublot', 'Quartz', 'Gargouille', 'Pistache', 'Balthazar', 'Marmotte', 'Céleste', 'Tonnerre', 'Ferblanc',
+  'Opaline', 'Escarbille', 'Taupe', 'Chardon', 'Vermeil', 'Grelot', 'Anis', 'Cormoran', 'Fusain', 'Mandarine']
+const SUFFIXES_FIGURANTS = ['_7', '_II', '42', '_Rouge', '_3000', '_Bleu', '_Jr', '99', '_X', '_Nord', '13', '_Sud']
+/** Les régions où ils vivent : escales, comptoir, vitesse de moteur (min, max) et poids (part des figurants). */
+const REGIONS_FIGURANTS: readonly { escales: string[]; marche: string; vitesses: [number, number]; poids: number }[] = [
+  { escales: ['ISS', 'Lune', 'Terre', 'Tiangong', 'Hubble'], marche: 'Terre', vitesses: [60, 480], poids: 40 },
+  { escales: ['Mars', 'Phobos', 'Deimos'], marche: 'Mars', vitesses: [960, 3840], poids: 20 },
+  { escales: ['Io', 'Europe', 'Ganymède', 'Callisto'], marche: 'Jupiter', vitesses: [1920, 7680], poids: 14 },
+  { escales: ['Titan', 'Encelade', 'Rhéa', 'Japet', 'Téthys'], marche: 'Saturne', vitesses: [3840, 15360], poids: 10 },
+  { escales: ['Vénus', 'Mercure'], marche: 'Vénus', vitesses: [480, 1920], poids: 8 },
+  { escales: ['Uranus', 'Titania', 'Obéron', 'Miranda'], marche: 'Uranus', vitesses: [7680, 15360], poids: 4 },
+  { escales: ['Neptune', 'Triton', 'Néréide'], marche: 'Neptune', vitesses: [7680, 15360], poids: 4 },
+]
+const MAISONS_FIGURANTS: readonly Maison[] = ['nettoyeurs', 'ingenieurs', 'mercenaires']
+
+function figurants(n: number): Bot[] {
+  const hasard = (k: number, s: number) => { const x = Math.sin(k * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x) }
+  const total = REGIONS_FIGURANTS.reduce((a, r) => a + r.poids, 0)
+  const pris = new Set(BAVARDS.map((b) => b.pseudo))
+  const l: Bot[] = []
+  for (let k = 0; l.length < n; k++) {
+    const pseudo = `${NOMS_FIGURANTS[Math.floor(hasard(k, 1) * NOMS_FIGURANTS.length)]}${SUFFIXES_FIGURANTS[Math.floor(hasard(k, 2) * SUFFIXES_FIGURANTS.length)]}`
+    if (pris.has(pseudo)) continue
+    pris.add(pseudo)
+    let x = hasard(k, 3) * total, r = REGIONS_FIGURANTS[0]
+    for (const region of REGIONS_FIGURANTS) { if (x < region.poids) { r = region; break } x -= region.poids }
+    // Ses escales : deux à quatre lieux de sa région, la première est son port d'attache.
+    const escales = r.escales.map((e, i) => ({ e, x: hasard(k, 20 + i) })).sort((a, b) => a.x - b.x).map((o) => o.e).slice(0, Math.min(r.escales.length, 2 + Math.floor(hasard(k, 4) * 3)))
+    const niveaux = Math.round(Math.log2(r.vitesses[1] / r.vitesses[0]))
+    l.push({
+      pseudo, maison: MAISONS_FIGURANTS[Math.floor(hasard(k, 5) * 3)], lieu: escales[0], marche: r.marche,
+      monolithes: Math.floor(Math.pow(hasard(k, 6), 2.5) * 400), escales, vitesse: r.vitesses[0] * 2 ** Math.floor(hasard(k, 7) * (niveaux + 1)), bavard: false,
+    })
+  }
+  return l
+}
+
+/** Tous les bots : les bavards et les figurants, une centaine. */
+export const BOTS: readonly Bot[] = [...BAVARDS.map((b) => ({ ...b, bavard: true })), ...figurants(88)]
+/** Ceux qui parlent (chat, privés, rumeurs). */
+export const BOTS_BAVARDS: readonly Bot[] = BOTS.filter((b) => b.bavard)
 
 /** Bavardages du canal général. */
 export const BAVARDAGES: readonly string[] = [
