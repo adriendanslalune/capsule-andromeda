@@ -37,7 +37,7 @@ describe('le Marché', () => {
     for (const mm of MARCHES) for (const ff of MARCHANDISES) {
       for (let k = 0; k < 50; k++) {
         const c = cours(mm, ff, t0 + k * 7_777_777)
-        // Spécialités (−30 % à +30 %), ±5 % propres au marché, ondulations (±29 % au plus).
+        // Spécialités (−30 % à +30 %), ±5 % propres au marché, ondulations (±4,5 % au plus).
         expect(c).toBeGreaterThan(0.45 * ff.prix)
         expect(c).toBeLessThan(1.8 * ff.prix)
       }
@@ -46,6 +46,16 @@ describe('le Marché', () => {
     const { achat, vente } = achatVente(100)
     expect(achat).toBeGreaterThan(vente)
     expect(historique(m, f, t0 - 1000, t0, 10)).toHaveLength(11)
+  })
+
+  it('prix stables (décision d’Adrien du 20/10/2026) : acheter puis revendre au même comptoir ne rapporte jamais', () => {
+    for (const mm of MARCHES) for (const ff of MARCHANDISES) {
+      const h = historique(mm, ff, t0, t0 + 14 * 24 * 3_600_000, 2000).map((x) => x.cours)
+      expect(achatVente(Math.max(...h)).vente, `${mm.nom}/${ff.nom}`).toBeLessThanOrEqual(achatVente(Math.min(...h)).achat)
+    }
+    // Mais transporter paie : l'Hélium 3 acheté vers Jupiter se revend bien plus cher sur Terre.
+    const h3 = MARCHANDISES.find((x) => x.nom === 'Hélium 3')!
+    expect(achatVente(cours(MARCHES[2], h3, t0)).vente).toBeGreaterThan(1.3 * achatVente(cours(MARCHES[4], h3, t0)).achat)
   })
 })
 

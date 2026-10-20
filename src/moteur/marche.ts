@@ -28,8 +28,12 @@ function hachage(s: string): number {
 }
 
 const HEURE = 3_600_000
-/** Les ondulations : période (ms) et amplitude (fraction du prix). */
-const ONDES: readonly [number, number][] = [[4.3 * 24 * HEURE, 0.14], [19 * HEURE, 0.08], [2.7 * HEURE, 0.04], [23 * 60_000, 0.015], [6 * 60_000, 0.006]]
+/**
+ * Les ondulations : période (ms) et amplitude (fraction du prix). Comptoir aux prix stables (décision d'Adrien du
+ * 20/10/2026) : ±4,5 % au plus, moins que la marge (12 %) : attendre sur place pour revendre plus cher ne rapporte
+ * jamais ; on gagne en transportant, d'un système à ses spécialités.
+ */
+const ONDES: readonly [number, number][] = [[4.3 * 24 * HEURE, 0.022], [19 * HEURE, 0.013], [2.7 * HEURE, 0.007], [23 * 60_000, 0.002], [6 * 60_000, 0.001]]
 
 /** Le cours (crédits la tonne) d'une marchandise sur un marché, à l'instant t. */
 export function cours(m: FicheMarche, f: FicheMarchandise, t: number): number {

@@ -1,4 +1,5 @@
 import { NIVEAUX_MOTEUR } from '../src/donnees/capsule'
+import { CAPACITE_SOUTE } from '../src/donnees/marche'
 import { describe, expect, it } from 'vitest'
 import { lignesDuBandeau } from '../src/moteur/bandeau'
 import { Jeu } from '../src/moteur/jeu'
@@ -33,6 +34,7 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     expect(jeu.acheterMoteur()).toBe(false)
     expect(jeu.niveauMoteur).toBe(1)
     jeu.credits = 300
+    jeu.soute = { Ferraille: 3, Cuivre: 8, Verre: 2 }
     expect(jeu.acheterMoteur()).toBe(true)
     expect(jeu.credits).toBe(100)
     expect(jeu.vitesse()).toBe(60)
@@ -40,6 +42,22 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     expect(jeu.acheterMoteur() && jeu.acheterMoteur()).toBe(true)
     expect(jeu.vitesse()).toBe(240)
     expect(jeu.credits).toBe(10_000 - 600 - 1500)
+    expect(jeu.soute).toEqual({})
+  })
+
+  it('chaque niveau demande aussi des matériaux, pris dans la soute (décision d’Adrien du 20/10/2026)', () => {
+    const jeu = new Jeu()
+    jeu.credits = 1000
+    jeu.soute = { Ferraille: 2.5, Eau: 1 }
+    expect(jeu.manquePourMoteur()).toEqual({ credits: 0, materiaux: { Ferraille: 0.5 } })
+    expect(jeu.acheterMoteur()).toBe(false)
+    expect(jeu.credits).toBe(1000)
+    jeu.soute.Ferraille = 4
+    expect(jeu.acheterMoteur()).toBe(true)
+    expect(jeu.soute).toEqual({ Ferraille: 1, Eau: 1 })
+    expect(jeu.manquePourMoteur()).toEqual({ credits: 0, materiaux: { Cuivre: 3 } })
+    // Tout tient dans la soute de 20 t.
+    for (const n of NIVEAUX_MOTEUR) expect(Object.values(n.materiaux).reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(CAPACITE_SOUTE)
   })
 
   it('dix niveaux (décision d’Adrien du 19/10/2026) : vitesse ×2, prix ×2,5 environ (après 200 et 600) ; rien après le niveau 10', () => {
@@ -65,6 +83,7 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     }
     const avant = duree()
     jeu.credits = 200
+    jeu.soute = { Ferraille: 3 }
     jeu.acheterMoteur()
     expect(duree()).toBeLessThan(avant * 0.6)
   })

@@ -38,7 +38,7 @@ export const BOTS: readonly Bot[] = [
 /** Bavardages du canal général. */
 export const BAVARDAGES: readonly string[] = [
   'Quelqu\'un a vu passer un chasseur près de {lieu} ? Mes boucliers grésillent encore.',
-  '{marchandise} à {prix} cr. la tonne ici, au marché de {marche}. Qui dit mieux ?',
+  '{marchandise} à {prix} cr. la tonne ici, au comptoir de {marche}. Qui dit mieux ?',
   'Bonjour de {lieu} ! Enfin… bonjour d\'il y a {delai}. 😄',
   'Encore une épave autour de Hubble. Personne ne range rien dans ce système !',
   'Astuce de vieux briscard : triez vite, la série monte et on récupère plus de matériaux.',
@@ -46,9 +46,9 @@ export const BAVARDAGES: readonly string[] = [
   'Mon bloc Énergie a encore lâché. Le manuel dit de couper le câble β7… je tremble.',
   'Ici {lieu}. Tout est calme. Trop calme.',
   'Quelqu\'un sait pourquoi Triton a l\'air… bizarre ? 🤔',
-  'Le {marchandise} s\'envole au marché de {marche} : {prix} cr. la tonne ! ▲',
+  'Besoin de {marchandise} pour monter mon moteur. Au comptoir de {marche}, c\'est {prix} cr. la tonne.',
   'Missile intercepté de justesse près de {lieu}. Vive les intercepteurs !',
-  'Le délai de la lumière, c\'est l\'enfer pour le commerce : le temps que j\'apprenne un prix, il a changé.',
+  'Le délai de la lumière, c\'est l\'enfer : le temps qu\'un message arrive, le capitaine est déjà reparti.',
   'Bon appétit à tous. Ce soir : ration n° 12, goût « purée lunaire ». 🥄',
   'Je cherche une escorte pour un convoi depuis {lieu}. Bien payé !',
   'Quelqu\'un a des intercepteurs en trop ?',
@@ -61,10 +61,10 @@ export const BAVARDAGES: readonly string[] = [
   'Cherche du cuivre, je paie bien. Je suis vers {lieu}.',
   'Ma radio capte des bruits étranges depuis Uranus…',
   'Petite pensée pour ceux qui réparent leur panneau à 3 h du matin avec le manuel sur les genoux.',
-  'Il paraît que le marché de Pluton est vieux de presque cinq heures quand il arrive ici. Trader là-bas, c\'est du poker.',
+  'Il paraît que les nouvelles de Pluton ont presque cinq heures quand elles arrivent ici.',
   'J\'ai croisé {joueur} sur le radar tout à l\'heure. Salut à toi ! 👋',
   'Nouvelle épave repérée près de {lieu}, avis aux Nettoyeurs !',
-  'Le cours du {marchandise} a chuté au marché de {marche} ({prix} cr.). C\'est le moment d\'acheter. ▼',
+  'Acheté du {marchandise} au comptoir de {marche} ({prix} cr. la tonne). Un moteur neuf, ça se mérite.',
   'Quelqu\'un a déjà vu un alien de près ? Paraît qu\'ils sentent le chou.',
 ]
 
@@ -73,13 +73,13 @@ export const BAVARDAGES_MAISON: Readonly<Record<Maison, readonly string[]>> = {
   nettoyeurs: [
     'Les gars, l\'épave de Kosmos 482 est pleine de titane. Je vous la laisse. 🎁',
     'Rappel entre nous : le hublot va dans le verre, pas dans les métaux !',
-    'Soute pleine, je rentre vendre au marché de {marche}. Le verre est à {prix} cr.',
+    'Soute pleine, je rentre vendre au comptoir de {marche}. Le verre est à {prix} cr.',
     'Qui veut faire une course de tri ? 30 secondes, le meilleur gagne une ration. 😂',
   ],
   ingenieurs: [
     'Amarrage à {lieu} : arrivez à moins de 0,1 m/s, sinon c\'est le pare-chocs qui prend. 🔧',
     'Le panneau du relais de {lieu} a encore grillé un fusible. Qui a le manuel sous la main ?',
-    'Je cherche du cuivre pour rebobiner un moteur. Il est à {prix} cr. au marché de {marche}, ça va.',
+    'Je cherche du cuivre pour rebobiner un moteur. Il est à {prix} cr. au comptoir de {marche}, ça va.',
     'Règle d\'or : on coupe le courant AVANT de toucher aux câbles. Je dis ça, je dis rien. ⚡',
   ],
   mercenaires: [
@@ -102,7 +102,7 @@ export const PRIVES_SPONTANES: readonly string[] = [
 export type Intention = 'salut' | 'marche' | 'aide' | 'merci' | 'alien' | 'question' | 'autre'
 export const REPONSES: Readonly<Record<Intention, readonly string[]>> = {
   salut: ['Salut {joueur} ! 👋', 'Bienvenue {joueur} ! Ici {lieu}, tout va bien.', 'Coucou ! Ton message a mis {delai} pour arriver jusqu\'à {lieu}. 😄', 'Bonjour bonjour {joueur} !'],
-  marche: ['Ici, au marché de {marche}, le {marchandise} est à {prix} cr. la tonne.', 'J\'en vends ! {prix} cr. la tonne, viens me voir vers {lieu}.', 'Le {marchandise} ? {prix} cr. au marché de {marche} en ce moment. Mais ça bouge vite !'],
+  marche: ['Ici, au comptoir de {marche}, le {marchandise} est à {prix} cr. la tonne.', 'J\'en vends ! {prix} cr. la tonne, viens me voir vers {lieu}.', 'Le {marchandise} ? {prix} cr. au comptoir de {marche}. Ça ne bouge presque pas.'],
   aide: ['Tiens bon {joueur} ! Suis le manuel, et coupe le bon câble. 😅', 'J\'arrive… enfin, je suis vers {lieu}, ça va prendre un moment. 😬', 'Une panne ? Capsule › Réparation, et le manuel est ton meilleur ami.'],
   merci: ['De rien {joueur} !', 'Avec plaisir. 🙂', 'Pas de quoi, entre capitaines !'],
   alien: ['Fais gaffe, il y en a plein vers {lieu}.', 'Mets des crans dans les boucliers, et vise leur bouclier d\'abord.', 'Andromède n\'a qu\'à bien se tenir ! 💥'],

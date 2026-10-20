@@ -10,13 +10,24 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 4. Pannes et manuel | **fait** : les quinze modules du panneau sont raccordés (détail ci-dessous), en attente des essais d'Adrien |
 | 5. Nettoyeurs | **fait** (VIDER et REMORQUER ; le largage à la station reste une attente) |
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
-| 7. Commerce (Marché ouvert à tous) | **fait** (20/10/2026) : acheter et vendre, spécialités des marchés ; en attente des essais d'Adrien |
+| 7. Commerce (Marché ouvert à tous) | **en cours** : refait le 20/10/2026 en deux onglets ; COMPTOIR fait (matériaux, prix stables), BOURSE à faire |
 | 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
 | 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | **en cours** : PNJ, quêtes, journal et suivi faits (20/10/2026) ; premier jet de la Lune à corriger par Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Comptoir et moteur (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** : le Marché a deux
+  onglets, BOURSE (grisée, à faire) et COMPTOIR (`src/commun/volet-comptoir.ts`) : un comptoir par système, prix stables
+  (ondulations de ±4,5 % au plus, sous la marge de 12 % : testé, acheter puis revendre au même comptoir ne rapporte
+  jamais), spécialités marquées « produit ici » / « recherché ici », ce qui manque au moteur marqué en face du matériau ;
+  on touche un matériau pour l'acheter ou le vendre. Le moteur demande des matériaux à chaque niveau (`materiaux` dans
+  `NIVEAUX_MOTEUR`, `manquePourMoteur` et `acheterMoteur` dans `jeu.ts`, testés), affichés dans Capsule › État et
+  dans la fenêtre « Nouveau moteur ». Les messages des bots et les quêtes parlent du comptoir. L'ancien volet du marché
+  (`volet-marche.ts`, graphique de cours façon trading) n'est plus affiché : il servira de base à la Bourse.
+- Tri des épaves : 0,03 t par objet bien trié au lieu de 0,1 t (la soute se remplissait en 3 tris ; demande d'Adrien du
+  20/10/2026).
+- Carte : les médaillons des PNJ s'effacent quand leur lieu se confond avec sa planète (dézoom ; demande d'Adrien).
 - Symboles de l'interface (décision d'Adrien du 20/10/2026, d'après `maquette-symboles.html`) — **fait, en attente
   des essais d'Adrien** : les mots qui reviennent partout deviennent des symboles dessinés (`src/commun/symboles.ts`,
   trait d'encre et aplats pastel ; la valeur reste écrite à côté). Bandeau (en orbite, en route, pied : crédits, soute,

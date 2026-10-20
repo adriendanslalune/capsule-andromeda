@@ -111,7 +111,7 @@ export const QUETES: readonly Quete[] = [
     id: 'lune-3', titre: 'Ravitailler Tycho', type: 'principale', donneur: 'keita', conditions: ['lune-1'],
     intro: [
       'Les gens de Tycho manquent de tout. D\'eau, surtout : le recycleur est à bout. Et de titane, pour colmater le dôme.',
-      'Achète ce qu\'il faut au marché de la Terre et apporte-le-moi ici, en orbite. Je me charge de le faire descendre.',
+      'Achète ce qu\'il faut au comptoir de la Terre et apporte-le-moi ici, en orbite. Je me charge de le faire descendre.',
     ],
     etapes: [
       { genre: 'livrer', lieu: 'Lune', marchandises: { Eau: 5, Titane: 2 } },
@@ -165,7 +165,7 @@ export const QUETES: readonly Quete[] = [
     id: 'rosa', titre: 'Circuits sous le manteau', type: 'secondaire', donneur: 'rosa', conditions: [],
     intro: [
       'Toi, tu as une tête à savoir te taire. J\'ai un client qui paie bien pour des circuits anciens. Trois tonnes.',
-      'Le marché de la Terre en regorge. Apporte-les-moi ici, sur Tiangong, et on ne s\'est jamais vus.',
+      'Le comptoir de la Terre en regorge. Apporte-les-moi ici, sur Tiangong, et on ne s\'est jamais vus.',
     ],
     etapes: [
       { genre: 'livrer', lieu: 'Tiangong', marchandises: { 'Circuits anciens': 3 } },

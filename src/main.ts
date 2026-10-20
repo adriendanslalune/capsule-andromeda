@@ -38,7 +38,7 @@ import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
-import { VoletMarche } from './commun/volet-marche'
+import { VoletComptoir } from './commun/volet-comptoir'
 import { CAPACITE_SOUTE } from './donnees/marche'
 import { BOTS } from './donnees/messages'
 import { lieuDuBot } from './moteur/messages'
@@ -322,7 +322,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
-  if (page === 'marche') voletMarche.afficher(horloge(), etatCommerce())
+  if (page === 'marche') afficherComptoir(horloge())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
   if (page === 'journal') afficherJournal()
@@ -1148,8 +1148,9 @@ const etatCommerce = () => {
   const t = horloge()
   return { soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(t)?.nom ?? null, enVol: mission.phase(t) === 'trajet' }
 }
-// Le Marché : acheter et vendre au marché d'ici (étape 7, décision d'Adrien du 20/10/2026).
-const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), etatCommerce()), (o) => {
+// Le Comptoir (onglet du Marché) : acheter et vendre les matériaux au comptoir d'ici (décision d'Adrien du 20/10/2026).
+const afficherComptoir = (t: number) => voletComptoir.afficher(t, etatCommerce(), jeu.manquePourMoteur().materiaux)
+const voletComptoir = new VoletComptoir(document.querySelector<HTMLDivElement>('#comptoir')!, () => afficherComptoir(horloge()), (o) => {
   const t = horloge()
   const r = o.sens === 'acheter' ? jeu.acheter(o.marchandise, o.tonnes, t) : jeu.vendre(o.marchandise, o.tonnes, t)
   if (!r.tonnes) { annoncer(o.sens === 'acheter' ? 'Achat impossible : soute pleine ou pas assez de crédits' : 'Rien à vendre'); return }
@@ -1158,7 +1159,7 @@ const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#mar
     : `Vendu ${q} t de ${o.marchandise.toLowerCase()} pour ${r.prix.toLocaleString('fr-FR')} crédits`)
   navigator.vibrate?.(30)
   enregistrerPartie()
-  voletMarche.afficher(t, etatCommerce())
+  afficherComptoir(t)
 })
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
@@ -1294,7 +1295,7 @@ function image(maintenant: number): void {
   afficherPing(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
-  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, etatCommerce()); dernierMarche = maintenant }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherComptoir(t); dernierMarche = maintenant }
   if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }

@@ -30,12 +30,23 @@ export class VoletCapsule {
     let html = `<h3>Moteur</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${m.niveau}`)}</b>${avec('vitesse', `${nombre(m.vitesse)} km/s max`)}</div>${panne}`
       + '<div class="manque">Accélération et freinage à 10 g : sur les trajets courts, la capsule n\'a pas le temps d\'atteindre sa vitesse max.</div></div>'
     if (suivant) {
-      const manque = suivant.prix - jeu.credits
+      const manque = jeu.manquePourMoteur()
+      const tonnes = (q: number) => q.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+      // Les matériaux du niveau : ce qu'il faut, ce qu'on a dans la soute (coché quand il y en a assez).
+      const materiaux = Object.entries(suivant.materiaux).map(([nom, n]) => {
+        const assez = !manque.materiaux[nom]
+        return `<div class="materiau${assez ? ' assez' : ''}"><span>${assez ? '✓' : '·'} ${nom}</span><span>${tonnes(Math.min(n, jeu.soute[nom] ?? 0))} / ${n} t</span></div>`
+      }).join('')
+      const bloque = manque.credits > 0 || Object.keys(manque.materiaux).length > 0
+      const conseil = manque.credits > 0 && Object.keys(manque.materiaux).length ? 'fais des missions, et trouve les matériaux au Comptoir ou dans les épaves'
+        : manque.credits > 0 ? 'fais des missions' : 'trouve les matériaux au Comptoir ou dans les épaves'
       html += `<h3>Moteur suivant</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${suivant.niveau}`)}</b>${avec('vitesse', `${nombre(suivant.vitesse)} km/s max`)}`
         + `<span>(×${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })})</span></div>`
+        + `<div class="materiaux-moteur">${avec('soute', 'à fournir')}${materiaux}</div>`
         + `<div class="achat"><span class="prix">${avec('credits', nombre(suivant.prix))}</span>`
-        + `<button type="button" data-choix="acheter"${manque > 0 ? ' disabled' : ''}>ACHETER</button></div>`
-        + (manque > 0 ? `<div class="manque">Il manque ${nombre(manque)} crédit${manque > 1 ? 's' : ''} : fais des missions.</div>` : '')
+        + `<button type="button" data-choix="acheter"${bloque ? ' disabled' : ''}>ACHETER</button></div>`
+        + (bloque ? `<div class="manque">${manque.credits > 0 ? `Il manque ${nombre(manque.credits)} crédit${manque.credits > 1 ? 's' : ''}. ` : ''}`
+          + `${conseil.charAt(0).toUpperCase()}${conseil.slice(1)}.</div>` : '')
         + '</div>'
     } else html += '<div class="bloc">Ton moteur est au niveau le plus haut.</div>'
     // Systèmes : en état ou en panne ; ils se réparent tous sur le panneau, avec le manuel (le bouton RÉPARER ne sert
@@ -70,10 +81,10 @@ export function htmlSoute(jeu: Jeu): string {
     + (c ? `<div class="module"><span><b>Cargaison à livrer</b><br><small>pour ${c.pour} (mission)</small></span><span class="ok">1 caisse</span></div>` : '')
     + (r ? `<div class="module"><span><b>En remorque : ${r.epave}</b><br><small>à larguer à ${r.pour} (mission)</small></span><span class="ok">au câble</span></div>` : '')
     + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
-    + (!c && !r && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils se vendront au Marché.</p>' : '')
+    + (!c && !r && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils servent au moteur, ou se vendent au Comptoir (Marché).</p>' : '')
     + '</div>'
     + htmlMonolithes(jeu)
-    + '<div class="vers-marche"><button type="button" data-page="marche">MARCHÉ ›</button></div>'
+    + '<div class="vers-marche"><button type="button" data-page="marche">COMPTOIR ›</button></div>'
     + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
     + '<p class="note-soute">Pour s\'exercer au tri des matériaux, sans conséquence pour ta capsule.</p>'
 }

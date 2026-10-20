@@ -10,19 +10,26 @@ export interface NiveauMoteur {
   vitesse: number
   /** Prix (crédits) pour passer à ce niveau. */
   prix: number
+  /** Matériaux à fournir (tonnes, pris dans la soute) pour passer à ce niveau. */
+  materiaux: Readonly<Record<string, number>>
 }
 
+/**
+ * Décision d'Adrien du 20/10/2026 : chaque niveau demande aussi des matériaux (l'une des seules utilités des
+ * matériaux), choisis pour que la progression tire vers l'extérieur : le cuivre vers Mercure et Vénus, le titane vers
+ * Mars, l'Hélium 3 vers Jupiter. Tout tient dans la soute de 20 t.
+ */
 export const NIVEAUX_MOTEUR: readonly NiveauMoteur[] = [
-  { niveau: 1, vitesse: 30, prix: 0 },
-  { niveau: 2, vitesse: 60, prix: 200 },
-  { niveau: 3, vitesse: 120, prix: 600 },
-  { niveau: 4, vitesse: 240, prix: 1_500 },
-  { niveau: 5, vitesse: 480, prix: 3_750 },
-  { niveau: 6, vitesse: 960, prix: 9_400 },
-  { niveau: 7, vitesse: 1_920, prix: 23_500 },
-  { niveau: 8, vitesse: 3_840, prix: 58_500 },
-  { niveau: 9, vitesse: 7_680, prix: 146_500 },
-  { niveau: 10, vitesse: 15_360, prix: 366_000 },
+  { niveau: 1, vitesse: 30, prix: 0, materiaux: {} },
+  { niveau: 2, vitesse: 60, prix: 200, materiaux: { Ferraille: 3 } },
+  { niveau: 3, vitesse: 120, prix: 600, materiaux: { Cuivre: 3 } },
+  { niveau: 4, vitesse: 240, prix: 1_500, materiaux: { Cuivre: 5, Verre: 2 } },
+  { niveau: 5, vitesse: 480, prix: 3_750, materiaux: { Titane: 4 } },
+  { niveau: 6, vitesse: 960, prix: 9_400, materiaux: { Titane: 6, 'Circuits anciens': 3 } },
+  { niveau: 7, vitesse: 1_920, prix: 23_500, materiaux: { 'Circuits anciens': 5, 'Hélium 3': 2 } },
+  { niveau: 8, vitesse: 3_840, prix: 58_500, materiaux: { 'Hélium 3': 5 } },
+  { niveau: 9, vitesse: 7_680, prix: 146_500, materiaux: { 'Hélium 3': 8, Titane: 5 } },
+  { niveau: 10, vitesse: 15_360, prix: 366_000, materiaux: { 'Hélium 3': 12, 'Circuits anciens': 6 } },
 ]
 
 /** Accélération (et freinage) de la capsule : 10 g, en km/s². */

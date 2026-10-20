@@ -1264,3 +1264,28 @@ body.nuit #marche .baisse { color: #f08a72; }
 /* Liste des astres : une pastille de la couleur de l'astre. */
 .pastille-astre { display: inline-block; width: 11px; height: 11px; margin-right: 8px; border-radius: 50%; border: 1.5px solid var(--encre); vertical-align: -1px; }
 :is(#manuel, .papier) .symbole-cockpit .picto { width: 22px; height: 22px; }
+/* Moteur suivant : les matériaux à fournir, ce qu'on en a dans la soute. */
+#capsule .materiaux-moteur { margin-top: 8px; font-size: 12px; }
+#capsule .materiau { display: flex; justify-content: space-between; padding: 2px 0 2px 8px; color: #b4442f; }
+#capsule .materiau.assez { color: inherit; opacity: 0.8; }
+.prix-fenetre small { display: block; font-size: 11px; font-weight: normal; }
+/* Le Comptoir (onglet du Marché) : les matériaux, prix d'achat et de vente, ce qu'on en a à bord. */
+#comptoir .tete-comptoir { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 14px 6px; }
+#comptoir .tete-comptoir > b { font-size: 15px; }
+#comptoir > .raison { margin: 0 14px 6px; font-size: 12px; line-height: 1.4; }
+#comptoir > .vers-ici { margin: 0 14px 8px; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold;
+  color: var(--encre); background: var(--moutarde); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#comptoir .liste-comptoir { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }
+#comptoir .materiau-comptoir + .materiau-comptoir { border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
+#comptoir .materiau-comptoir.ouvert { background: color-mix(in srgb, var(--moutarde) 22%, transparent); }
+#comptoir .tete-materiau { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 54px; padding: 6px 12px; font: inherit; font-size: 13px;
+  color: var(--encre); background: transparent; border: none; text-align: left; }
+#comptoir .tete-materiau .nom { flex: 1; display: flex; flex-direction: column; }
+#comptoir .specialite, #comptoir .besoin { font-size: 10.5px; font-weight: bold; }
+#comptoir .bon-marche { color: #3f8a4f; } #comptoir .recherche { color: #b4442f; }
+body.nuit #comptoir .bon-marche { color: #8fcf98; } body.nuit #comptoir .recherche { color: #f08a72; }
+#comptoir .besoin { display: inline-flex; align-items: center; gap: 3px; color: #7a5aa8; }
+#comptoir .prix-comptoir { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; }
+#comptoir .prix-comptoir b { font-size: 13px; }
+#comptoir .a-bord { width: 48px; text-align: right; font-size: 12px; font-weight: bold; }
+#comptoir .commerce { margin: 0; padding: 0 12px 10px; }

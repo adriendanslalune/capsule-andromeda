@@ -56,7 +56,8 @@ export function ouvrirFenetreMoteur(actuel: NiveauMoteur, suivant: NiveauMoteur,
     ${compteur(actuel.vitesse)}
     <div class="niveaux"><span>Niveau ${actuel.niveau}</span><span class="fleche">➜</span><b>Niveau ${suivant.niveau}</b></div>
     <div class="vitesses">${nombre(actuel.vitesse)} km/s ➜ <b>${nombre(suivant.vitesse)} km/s</b><br>vitesse max ×${fois} : les longs trajets raccourcissent</div>
-    <div class="prix-fenetre">${nombre(suivant.prix)} crédits</div>
+    <div class="prix-fenetre">${nombre(suivant.prix)} crédits${Object.keys(suivant.materiaux).length
+      ? `<small>+ ${Object.entries(suivant.materiaux).map(([nom, n]) => `${n} t de ${nom.toLowerCase()}`).join(' et ')}</small>` : ''}</div>
     <div class="boutons-fenetre"><button type="button" data-choix="plus-tard">Plus tard</button><button type="button" data-choix="installer">INSTALLER</button></div>
   </div>`
   fond.hidden = false

@@ -235,11 +235,29 @@ export class Jeu {
     return NIVEAUX_MOTEUR.find((n) => n.niveau === this.niveauMoteur + 1) ?? null
   }
 
-  /** Achète le moteur suivant, si les crédits suffisent. Renvoie vrai si l'achat est fait. */
+  /** Ce qui manque pour le moteur suivant : crédits, et tonnes de chaque matériau (vide si rien ne manque). */
+  manquePourMoteur(): { credits: number; materiaux: Record<string, number> } {
+    const m = this.moteurSuivant()
+    if (!m) return { credits: 0, materiaux: {} }
+    const materiaux: Record<string, number> = {}
+    for (const [nom, n] of Object.entries(m.materiaux)) {
+      const manque = Math.round((n - (this.soute[nom] ?? 0)) * 100) / 100
+      if (manque > 0) materiaux[nom] = manque
+    }
+    return { credits: Math.max(0, m.prix - this.credits), materiaux }
+  }
+
+  /** Achète le moteur suivant, si les crédits et les matériaux de la soute suffisent. Renvoie vrai si l'achat est fait. */
   acheterMoteur(): boolean {
     const m = this.moteurSuivant()
-    if (!m || this.credits < m.prix) return false
+    const manque = this.manquePourMoteur()
+    if (!m || manque.credits > 0 || Object.keys(manque.materiaux).length) return false
     this.credits -= m.prix
+    for (const [nom, n] of Object.entries(m.materiaux)) {
+      const reste = Math.round(((this.soute[nom] ?? 0) - n) * 100) / 100
+      if (reste > 0) this.soute[nom] = reste
+      else delete this.soute[nom]
+    }
     this.niveauMoteur = m.niveau
     return true
   }
