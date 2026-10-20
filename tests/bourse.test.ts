@@ -159,14 +159,16 @@ describe('le devis d’un ordre (avant confirmation)', () => {
     const p = portefeuilleVide()
     const d = devisOrdre(p, 20, 'phare', 'acheter', Infinity, t0)!
     expect(d.quantite).toBe(20)
-    expect(d.frais).toBeCloseTo(0.2, 6)
-    expect(d.estime).toBeCloseTo((20 * 0.99) / d.cours, 6)
+    expect(d.frais).toBe(5) // au moins 5 crédits (option A d'Adrien)
+    expect(d.estime).toBeCloseTo(15 / d.cours, 6)
+    expect(devisOrdre(p, 900, 'phare', 'acheter', 900, t0)!.frais).toBeCloseTo(9, 6)
+    expect(devisOrdre(p, 5, 'phare', 'acheter', 5, t0)).toBeNull()
     expect(p.ordres).toHaveLength(0)
     expect(devisOrdre(p, 0, 'phare', 'acheter', 100, t0)).toBeNull()
     p.positions.phare = { actions: 2, investi: 80 }
     const v = devisOrdre(p, 0, 'phare', 'vendre', 5, t0)!
     expect(v.quantite).toBe(2)
-    expect(v.estime).toBeCloseTo(2 * v.cours * 0.99, 6)
+    expect(v.estime).toBeCloseTo(2 * v.cours - 5, 6)
     expect(p.positions.phare.actions).toBe(2)
   })
 })

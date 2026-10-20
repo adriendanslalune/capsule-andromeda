@@ -33,8 +33,10 @@ export const COMPAGNIES: readonly Compagnie[] = [
   { id: 'confins', nom: 'Société des Confins', siege: 'Pluton', metier: 'Exploration du bout du système', caractere: 'Spéculative : le casino du lot', teinte: '#c9b8e8', prix: 12, volatilite: 0.08, evenements: 0.4 },
 ]
 
-/** Frais de la Bourse sur chaque ordre (fraction du montant). */
+/** Frais de la Bourse sur chaque ordre : une fraction du montant, et au moins FRAIS_MINIMUM crédits (option A
+ *  choisie par Adrien le 20/10/2026 : les tout petits ordres n'ont plus d'intérêt). */
 export const FRAIS_BOURSE = 0.01
+export const FRAIS_MINIMUM = 5
 
 /** Ce qu'on investit d'un coup (crédits) ; « MAX » vient en plus. */
 export const MONTANTS_ACHAT: readonly number[] = [100, 500, 1000]

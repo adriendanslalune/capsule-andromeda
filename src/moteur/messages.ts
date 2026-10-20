@@ -36,8 +36,9 @@ export interface MessageAffiche {
   statut: string | null
 }
 
-/** Un bavardage tous les PAS en moyenne (un créneau sur quatre reste silencieux). */
-const PAS = 150_000
+/** Un bavardage tous les PAS en moyenne (un créneau sur quatre reste silencieux). Demande d'Adrien du 20/10/2026 :
+ *  ça parlait trop ; 2 min 30 → 8 min (un message toutes les 10 à 11 minutes en moyenne). */
+const PAS = 480_000
 /** On garde 12 heures de conversations. */
 const MEMOIRE = 12 * 3_600_000
 

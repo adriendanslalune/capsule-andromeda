@@ -16,7 +16,8 @@ describe('les Messages', () => {
   it('le système bavarde : des messages dans le canal général, arrivés avec le délai de la lumière', () => {
     const jeu = new Jeu()
     const f = fil(jeu, 'general', t0)
-    expect(f.length).toBeGreaterThan(80) // environ un toutes les 3 minutes sur 12 h
+    expect(f.length).toBeGreaterThan(25) // environ un toutes les 10 minutes sur 12 h (demande d'Adrien du 20/10/2026 : ça parlait trop)
+    expect(f.length).toBeLessThan(110)
     for (const m of f) {
       expect(m.recu).toBeLessThanOrEqual(t0)
       // Depuis la capsule du bot, où qu'elle soit (les bots voyagent).

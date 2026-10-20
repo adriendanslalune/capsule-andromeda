@@ -5,7 +5,7 @@
 // bots ; enfin toutes les compagnies. Un ordre part à la vitesse de la lumière et s'exécute au cours de son arrivée.
 // Le doigt posé sur le graphique lit le cours à un instant. La vue ne calcule rien : tout vient de moteur/bourse.ts.
 
-import { COMPAGNIES, FRAIS_BOURSE, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
+import { COMPAGNIES, FRAIS_BOURSE, FRAIS_MINIMUM, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
 import { compagnie, devisOrdre, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
 import { avec } from './symboles'
 import { texteRestant } from './textes'
@@ -112,14 +112,14 @@ export class VoletBourse {
       const achat = devis.sens === 'acheter'
       html += `<div class="confirmation"><b>${achat ? 'Acheter' : 'Vendre'} des actions ${c.nom} ?</b>`
         + (achat ? `<div><span>Tu engages</span><b>${entier(devis.quantite)} cr.</b></div>` : `<div><span>Tu vends</span><b>${actions(devis.quantite)} action${devis.quantite >= 2 ? 's' : ''}</b></div>`)
-        + `<div><span>Frais (${FRAIS_BOURSE * 100} %)</span><b>${prix(devis.frais)} cr.</b></div>`
+        + `<div><span>Frais (${FRAIS_BOURSE * 100} %, au moins ${FRAIS_MINIMUM} cr.)</span><b>${prix(devis.frais)} cr.</b></div>`
         + `<div><span>Au cours connu (${prix(devis.cours)})</span><b>≈ ${achat ? `${actions(devis.estime)} action${devis.estime >= 2 ? 's' : ''}` : `${entier(devis.estime)} cr.`}</b></div>`
         + `<p>L'ordre arrivera au siège (${c.siege}) dans <b>${texteDelai(devis.delai)}</b> et s'exécutera au cours de ce moment-là : il peut avoir bougé.</p>`
         + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
     } else html += '<div class="commerce">'
-      + `<div class="ligne-commerce"><span>ACHETER</span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'MAX', etat.credits < 1)}</div>`
+      + `<div class="ligne-commerce"><span>ACHETER</span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'TOUT', etat.credits <= FRAIS_MINIMUM)}</div>`
       + `<div class="ligne-commerce"><span>VENDRE</span>${PARTS_VENTE.map((f) => bouton('vendre', pos ? pos.actions * f : 0, f === 1 ? 'TOUT' : f === 0.5 ? '½' : '¼', !pos)).join('')}</div>`
-      + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver au siège (${c.siege}) ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre.</p></div></div>`
+      + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver au siège (${c.siege}) ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre, au moins ${FRAIS_MINIMUM} cr.</p></div></div>`
 
     // Le fil des ordres des bots (connus, eux aussi, avec le délai de la lumière).
     const bots = ordresDesBots(c, vue.connuA - 6 * HEURE, vue.connuA).slice(0, 6)

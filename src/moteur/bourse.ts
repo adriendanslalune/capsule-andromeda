@@ -7,11 +7,11 @@
 //   trois fois sur quatre).
 // Les ordres du joueur partent de la capsule à la vitesse de la lumière, s'exécutent au cours de leur arrivée au siège
 // de la compagnie, et la confirmation revient de même. Les crédits d'un achat partent avec l'ordre ; les actions d'une
-// vente aussi. Frais : FRAIS_BOURSE par ordre.
+// vente aussi. Frais : FRAIS_BOURSE par ordre, au moins FRAIS_MINIMUM crédits.
 
 import { BOTS } from '../donnees/messages'
 import { delaiLumiere } from './marche'
-import { COMPAGNIES, FIABILITE_RUMEURS, FRAIS_BOURSE, RUMEURS_BAISSE, RUMEURS_HAUSSE, type Compagnie } from '../donnees/bourse'
+import { COMPAGNIES, FIABILITE_RUMEURS, FRAIS_BOURSE, FRAIS_MINIMUM, RUMEURS_BAISSE, RUMEURS_HAUSSE, type Compagnie } from '../donnees/bourse'
 
 /** Début des cours (avant : le cours de référence). */
 export const ORIGINE_BOURSE = Date.UTC(2026, 9, 1)
@@ -196,6 +196,9 @@ export function valeurPortefeuille(p: Portefeuille, t: number): { valeur: number
   return { valeur, investi }
 }
 
+/** Les frais d'un ordre (crédits), selon son montant. */
+export const fraisOrdre = (montant: number) => Math.max(FRAIS_MINIMUM, montant * FRAIS_BOURSE)
+
 /** Le devis d'un ordre, avant de le confirmer : ce qui part, les frais, et ce qu'on obtiendrait au cours connu. */
 export interface Devis { sens: 'acheter' | 'vendre'; compagnie: Compagnie; /** Crédits engagés (achat) ou actions vendues. */ quantite: number; frais: number; /** Actions (achat) ou crédits (vente) estimés. */ estime: number; cours: number; delai: number }
 
@@ -205,13 +208,13 @@ export function devisOrdre(p: Portefeuille, credits: number, id: string, sens: '
   const v = vueAction(c, t)
   if (sens === 'acheter') {
     const montant = Math.floor(Math.min(quantite, credits))
-    if (montant < 1) return null
-    return { sens, compagnie: c, quantite: montant, frais: montant * FRAIS_BOURSE, estime: (montant * (1 - FRAIS_BOURSE)) / v.cours, cours: v.cours, delai: v.delai }
+    if (montant <= FRAIS_MINIMUM) return null
+    return { sens, compagnie: c, quantite: montant, frais: fraisOrdre(montant), estime: (montant - fraisOrdre(montant)) / v.cours, cours: v.cours, delai: v.delai }
   }
   const pos = p.positions[id]
   if (!pos || pos.actions <= 0) return null
   const n = Math.min(quantite, pos.actions), brut = n * v.cours
-  return { sens, compagnie: c, quantite: n, frais: brut * FRAIS_BOURSE, estime: brut * (1 - FRAIS_BOURSE), cours: v.cours, delai: v.delai }
+  return { sens, compagnie: c, quantite: n, frais: fraisOrdre(brut), estime: Math.max(0, brut - fraisOrdre(brut)), cours: v.cours, delai: v.delai }
 }
 
 /**
@@ -224,7 +227,7 @@ export function passerOrdre(p: Portefeuille, credits: { valeur: number }, id: st
   const o: OrdreBourse = { id: t + p.ordres.length, compagnie: id, sens, credits: 0, actions: 0, cout: 0, gain: null, envoye: t, arrivee: t + delai, prix: null, confirme: null }
   if (sens === 'acheter') {
     const montant = Math.floor(Math.min(quantite, credits.valeur))
-    if (montant < 1) return null
+    if (montant <= FRAIS_MINIMUM) return null
     credits.valeur -= montant
     o.credits = montant
   } else {
@@ -256,12 +259,12 @@ export function avancerOrdres(p: Portefeuille, credits: { valeur: number }, t: n
     }
     if (o.confirme === null || t < o.confirme) continue
     if (o.sens === 'acheter') {
-      o.actions = (o.credits * (1 - FRAIS_BOURSE)) / o.prix!
+      o.actions = (o.credits - fraisOrdre(o.credits)) / o.prix!
       const pos = p.positions[o.compagnie] ??= { actions: 0, investi: 0 }
       pos.actions += o.actions
       pos.investi += o.credits
     } else {
-      o.credits = Math.floor(o.actions * o.prix! * (1 - FRAIS_BOURSE))
+      o.credits = Math.floor(Math.max(0, o.actions * o.prix! - fraisOrdre(o.actions * o.prix!)))
       credits.valeur += o.credits
       o.gain = o.credits - o.cout
     }

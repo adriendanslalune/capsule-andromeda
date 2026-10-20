@@ -31,7 +31,7 @@ export class VoletComptoir {
   /** Marchandise dépliée (ses boutons ACHETER / VENDRE), par son nom. */
   private ouverte: string | null = null
 
-  /** MAX ou TOUT, en attente de confirmation (demande d'Adrien du 20/10/2026 : pas de gros achat d'un seul doigt). */
+  /** TOUT (acheter ou vendre), en attente de confirmation (demande d'Adrien du 20/10/2026 : pas de gros achat d'un seul doigt). */
   private aConfirmer: Ordre | null = null
 
   /** devis : ce que donnerait un ordre (tonnes, crédits), sans rien changer. */
@@ -96,7 +96,7 @@ export class VoletComptoir {
           return ligne + '</div>'
         }
         ligne += '<div class="commerce">'
-          + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, off)).join('')}${lot('acheter', Infinity, 'MAX', off)}</div>`
+          + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, off)).join('')}${lot('acheter', Infinity, 'TOUT', off)}</div>`
           + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, rien)).join('')}${lot('vendre', Infinity, 'TOUT', rien)}</div>`
         if (possible && charge >= CAPACITE_SOUTE - 0.05) ligne += '<p class="raison">Soute pleine : vends quelque chose pour faire de la place.</p>'
         else if (possible && etat.credits < x.achat) ligne += `<p class="raison">Pas assez de crédits : une tonne coûte ${x.achat} crédits.</p>`
