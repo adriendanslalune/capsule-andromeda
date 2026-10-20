@@ -39,7 +39,7 @@ const NOMS_PORTEES = { proche: 'proche', moyenne: 'à mi-distance', lointaine: '
 function portee(c: Contrat): string {
   if (!c.portee) return ''
   const n = PORTEES[c.portee]
-  return `<span class="val portee" data-symbole="Mission ${NOMS_PORTEES[c.portee]} dans son système">${[1, 2, 3].map((k) => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span>`
+  return `<span class="val portee" data-symbole="Contrat ${NOMS_PORTEES[c.portee]} dans son système">${[1, 2, 3].map((k) => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span>`
 }
 
 /** La tuile du type de mission : la couleur de sa Maison, le dessin et le nom de son type. */
@@ -121,20 +121,20 @@ export class VoletMissions {
           : jeu.surPlace(t)
           ? `<button type="button" class="principal" data-choix="agir">${VERBES[e.action]}</button>`
           : `<button type="button" class="principal" data-choix="aller" data-lieu="${e.lieu}">Y ALLER</button><span class="consigne">${consigne(e)} · ${texteDistance(distanceDepuisCapsule(e.lieu, t))}</span>`
-      html += `<h3>Mission en cours</h3><div class="contrat en-cours"><div class="carte-mission">${tuile(ec.contrat)}<div class="corps-mission"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${avec('credits', String(ec.contrat.recompense))}</span></div>`
+      html += `<h3>Contrat en cours</h3><div class="contrat en-cours"><div class="carte-mission">${tuile(ec.contrat)}<div class="corps-mission"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${avec('credits', String(ec.contrat.recompense))}</span></div>`
         + `${avec('poste', POSTES[ec.contrat.genre], 'poste')}</div></div><ol>${etapes}</ol><div class="actions">${bouton}</div>`
-        + `<button type="button" class="abandon" data-choix="abandonner">Abandonner la mission</button></div>`
+        + `<button type="button" class="abandon" data-choix="abandonner">Abandonner le contrat</button></div>`
     }
     // Missions proposées : de la plus proche à la plus lointaine en temps de trajet (demande d'Adrien, 17/10/2026).
     // Le système : une rangée des neuf systèmes, celui de la capsule marqué « ici ».
-    html += '<h3>Missions proposées</h3><div class="filtre-lieux">' + TABLEAUX.map((x) => {
+    html += '<h3>Contrats proposés</h3><div class="filtre-lieux">' + TABLEAUX.map((x) => {
       return `<button type="button" data-lieu-filtre="${x.lieu === ici ? '' : x.lieu}" class="${x.lieu === lieu ? 'actif' : ''}">${x.lieu}${x.lieu === ici ? '<small>ici</small>' : ''}</button>`
     }).join('') + '</div><div class="filtre-maisons">'
       + `<button type="button" data-filtre=""${this.filtre === null ? ' class="actif"' : ''}>TOUTES</button>`
       + MAISONS.map((m) => `<button type="button" data-filtre="${m.maison}" class="maison-${m.maison}${this.filtre === m.maison ? ' actif' : ''}">${m.titre}</button>`).join('')
       + '</div>'
     const choisies = jeu.proposes.filter((c) => c.tableau === lieu && (this.filtre === null || maisonDuContrat(c) === this.filtre))
-    if (!choisies.length) html += `<p class="note">Aucune mission${this.filtre ? ` des ${titreMaison(this.filtre).toLowerCase()}` : ''} ici en ce moment.</p>`
+    if (!choisies.length) html += `<p class="note">Aucun contrat${this.filtre ? ` des ${titreMaison(this.filtre).toLowerCase()}` : ''} ici en ce moment.</p>`
     const triees = choisies.map((c) => ({ c, d: this.duree(jeu, c, t, vitesse, maintenant) }))
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))
     for (const { c, d } of triees) {
@@ -145,7 +145,7 @@ export class VoletMissions {
         + `<div class="boutons"><button type="button" data-choix="voir" data-id="${c.id}" aria-label="Voir sur la carte">${picto('voir')}</button>`
         + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></div></div></div></div>`
     }
-    if (ec) html += '<p class="note">Une seule mission à la fois : termine ou abandonne celle en cours.</p>'
+    if (ec) html += '<p class="note">Un seul contrat à la fois : termine ou abandonne celui en cours.</p>'
     if (html === this.dernier) return
     const rangee = this.element.querySelector('.filtre-lieux')?.scrollLeft ?? 0
     this.element.innerHTML = this.dernier = html

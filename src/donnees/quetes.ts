@@ -102,7 +102,7 @@ export const QUETES: readonly Quete[] = [
       'Les Mercenaires ont des contrats sur eux. Prends-en deux, abats-les, et la route de Tycho s\'ouvrira un peu.',
     ],
     etapes: [
-      { genre: 'mission', mission: 'chasser', systeme: 'Terre', nombre: 2, texte: 'Abats 2 chasseurs dans le système de la Terre (missions ABATTRE des Mercenaires)' },
+      { genre: 'mission', mission: 'chasser', systeme: 'Terre', nombre: 2, texte: 'Abats 2 chasseurs dans le système de la Terre (contrats ABATTRE des Mercenaires)' },
       { genre: 'parler', pnj: 'elsa', texte: ['Deux de moins. Ils vont envoyer des renforts, bien sûr. Mais pour quelques jours, ils sont aveugles. Merci, capitaine.'] },
     ],
     recompense: 600,
@@ -126,7 +126,7 @@ export const QUETES: readonly Quete[] = [
       'Un satellite en panne fera l\'affaire, une fois remis en état. Les Ingénieurs en ont toujours un sur les bras.',
     ],
     etapes: [
-      { genre: 'mission', mission: 'depanner', systeme: 'Terre', nombre: 1, texte: 'Répare un engin dans le système de la Terre (mission RÉPARER des Ingénieurs)' },
+      { genre: 'mission', mission: 'depanner', systeme: 'Terre', nombre: 1, texte: 'Répare un engin dans le système de la Terre (contrat RÉPARER des Ingénieurs)' },
       { genre: 'parler', pnj: 'keita', texte: ['J\'entends Tycho ! Clairement ! Ils te saluent, capitaine… et ils ont un plan. Va voir Elsa.'] },
     ],
     recompense: 700,

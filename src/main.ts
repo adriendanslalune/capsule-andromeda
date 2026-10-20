@@ -348,12 +348,11 @@ afficherChoixAffichage()
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
-  if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
+  if (page === 'missions') { voletMissions.revenirIci(); afficherOngletJournal() }
   if (page === 'capsule') voletCapsule.afficher(jeu)
   if (page === 'marche') afficherMarche(horloge())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
-  if (page === 'journal') afficherJournal()
   if (page === 'boutique') document.querySelector<HTMLElement>('#boutique')!.innerHTML = htmlBoutique()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
@@ -501,7 +500,7 @@ bandeau.addEventListener('click', (e) => {
     const bloc = jeu.pannes.find((b) => !jeu.reparationProvisoire(b))
     if (bloc) montrerReparation(bloc)
     else { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
-  } else if (ligne === 'contrat') cockpit.ouvrir('missions')
+  } else if (ligne === 'contrat') ouvrirJournal('contrats')
   else if (ligne === 'trajet' || ligne === 'orbite') cockpit.ouvrir('navigation')
   else if (ligne === 'echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
   else if (ligne === 'echo-recu') montrerEcho(horloge())
@@ -550,7 +549,7 @@ function mettreAJourFiche(t: number): void {
     actionFiche = 'combat'
   } else if (etape && (fin !== null || jeu.peutAgir(t)) && (!selection || dejaLa(t) || selection === etape.lieu)) {
     // Sur le lieu de la mission : le bouton de l'action (RÉPARER, LIVRER…), puis le temps qui reste.
-    texte = `<b>${etape.lieu.toUpperCase()}</b> · mission<br>${titreContrat(jeu.enCours!.contrat)}`
+    texte = `<b>${etape.lieu.toUpperCase()}</b> · contrat<br>${titreContrat(jeu.enCours!.contrat)}`
     if (fin !== null) texte += `<br>${NOMS_ACTIONS[etape.action]} en cours · ${texteSecondes(fin - t)}`
     else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
   } else if (pnjs.length && !apercu && (!selection || selection === pnjs[0].lieu || dejaLa(t)) && (signePnj(jeu, pnjs[0].id) || selection === pnjs[0].lieu)) {
@@ -808,7 +807,7 @@ function accepterMission(id: number): void {
     planAJour = 0
   }
 }
-const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('#missions')!, {
+const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('#contrats')!, {
   accepter: accepterMission,
   voir: (id) => {
     const c = jeu.proposes.find((p) => p.id === id)
@@ -821,7 +820,7 @@ const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('
   allerA: (lieu) => { cockpit.fermer(); choisir(lieu, true); proposee = true; planAJour = 0 },
   agir: agirMission,
   abandonner: () => {
-    if (!confirm('Abandonner la mission en cours ?')) return
+    if (!confirm('Abandonner le contrat en cours ?')) return
     jeu.abandonner()
     enregistrerPartie()
     dernierVolet = 0
@@ -832,8 +831,8 @@ function avancerMissions(t: number): void {
   traiterEvenements(jeu.avancer(t, vitesse()))
 }
 /** Ce que le joueur apprend des événements du jeu (missions, pannes). */
-// Les quêtes (décisions d'Adrien du 20/10/2026) : le dialogue avec un PNJ, le journal (Plus › Journal) et la ligne de
-// la quête suivie sous le bandeau.
+// Les quêtes (décisions d'Adrien du 20/10/2026) : le dialogue avec un PNJ, l'onglet Journal (quêtes et contrats) et la
+// ligne de la quête suivie sous le bandeau.
 const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dialogue')!, {
   joueur: () => jeu.pseudo,
   accepter: (id) => {
@@ -845,8 +844,42 @@ const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dia
 const pageJournal = document.querySelector<HTMLDivElement>('#journal')!
 let journalOuvert: string | null = null
 function afficherJournal(): void {
-  pageJournal.innerHTML = htmlJournal(jeu, journalOuvert)
+  const html = htmlJournal(jeu, journalOuvert)
+  if (pageJournal.innerHTML !== html) pageJournal.innerHTML = html
 }
+// L'onglet Journal (décision d'Adrien du 20/10/2026) : ce qui est en cours en haut, puis deux sous-onglets, QUÊTES
+// (principales, secondaires, terminées) et CONTRATS (les missions des Maisons) ; le dernier choisi est retenu.
+const CLE_ONGLET_JOURNAL = 'andromeda-onglet-journal'
+let ongletJournal: 'quetes' | 'contrats' = (() => { try { return localStorage.getItem(CLE_ONGLET_JOURNAL) === 'contrats' ? 'contrats' : 'quetes' } catch { return 'quetes' } })()
+const enCoursJournal = document.querySelector<HTMLDivElement>('#en-cours-journal')!
+function afficherOngletJournal(): void {
+  document.querySelector<HTMLElement>('#journal')!.hidden = ongletJournal !== 'quetes'
+  document.querySelector<HTMLElement>('#contrats')!.hidden = ongletJournal !== 'contrats'
+  for (const b of document.querySelectorAll<HTMLElement>('[data-journal-onglet]')) b.classList.toggle('actif', b.dataset.journalOnglet === ongletJournal)
+  // En cours : la quête suivie et le contrat en cours, chacun mène à son sous-onglet.
+  const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null, o = q ? objectif(jeu, q) : null
+  const ec = jeu.enCours, e = jeu.etapeActuelle()
+  let html = ''
+  if (q && o) html += `<button type="button" data-journal-onglet="quetes" class="ligne-en-cours ${q.type}"><span class="signe">${q.type === 'principale' ? '◆' : '●'}</span><span><b>${q.titre}</b><small>${o.texte}${o.compte ? ` (${o.compte})` : ''}</small></span></button>`
+  if (ec && e) html += `<button type="button" data-journal-onglet="contrats" class="ligne-en-cours">${picto(SYMBOLE_GENRE[ec.contrat.genre])}<span><b>${titreContrat(ec.contrat)}</b><small>${VERBES[e.action].charAt(0)}${VERBES[e.action].slice(1).toLowerCase()} — ${e.lieu}</small></span></button>`
+  if (enCoursJournal.innerHTML !== html) enCoursJournal.innerHTML = html
+  enCoursJournal.hidden = !html
+  if (ongletJournal === 'quetes') afficherJournal()
+  else voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge()))
+}
+/** Ouvre le Journal sur un de ses sous-onglets. */
+function ouvrirJournal(o: typeof ongletJournal): void {
+  ongletJournal = o
+  if (cockpit.pageOuverte === 'missions') afficherOngletJournal()
+  else cockpit.ouvrir('missions')
+}
+document.querySelector<HTMLElement>('#missions')!.addEventListener('click', (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-journal-onglet]')
+  if (!b) return
+  ongletJournal = b.dataset.journalOnglet as typeof ongletJournal
+  try { localStorage.setItem(CLE_ONGLET_JOURNAL, ongletJournal) } catch { /* pas de mémoire : tant pis */ }
+  afficherOngletJournal()
+})
 pageJournal.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>('button')
   if (!b) return
@@ -870,7 +903,7 @@ function afficherSuivi(forcer = false): void {
   if (ligneSuivi.innerHTML !== html) ligneSuivi.innerHTML = html
   ligneSuivi.classList.toggle('secondaire', q.type === 'secondaire')
 }
-ligneSuivi.addEventListener('click', () => { journalOuvert = jeu.queteSuivie; cockpit.ouvrir('journal') })
+ligneSuivi.addEventListener('click', () => { journalOuvert = jeu.queteSuivie; ouvrirJournal('quetes') })
 
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
 const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('#invitation')!, {
@@ -1375,7 +1408,7 @@ function image(maintenant: number): void {
   mettreAJourFiche(t)
   afficherPing(t)
   afficherRadar(t)
-  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
+  if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherMarche(t); dernierMarche = maintenant }
   if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }

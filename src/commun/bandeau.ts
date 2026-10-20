@@ -47,7 +47,7 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
         : consigne(l.etape)
     // Titre court (une ligne) : le genre et le lieu final ; le détail dit quoi faire.
     const lieu = l.contrat.etapes[l.contrat.etapes.length - 1].lieu
-    return { titre: `MISSION : ${GENRES_COURTS[l.contrat.genre]} · ${lieu.toUpperCase()}`, detail: `${detail}${n}` }
+    return { titre: `CONTRAT : ${GENRES_COURTS[l.contrat.genre]} · ${lieu.toUpperCase()}`, detail: `${detail}${n}` }
   }
   const valeurs: [NomSymbole, string][] = [[l.engin ? 'distance' : 'altitude', texteDistance(l.altitude)]]
   if (l.tour !== null) valeurs.push(['tour', texteDuree(l.tour * 1000)])

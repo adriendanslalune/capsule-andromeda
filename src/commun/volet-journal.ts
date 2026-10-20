@@ -1,4 +1,4 @@
-// Le journal des quêtes (Plus › Journal ; décisions d'Adrien du 20/10/2026), comme dans les MMORPG : les quêtes en
+// Les quêtes de l'onglet Journal (sous-onglet QUÊTES ; décisions d'Adrien du 20/10/2026), comme dans les MMORPG : les quêtes en
 // cours (principales d'abord), chacune avec le portrait de son donneur, ses étapes (cochées, en cours), sa récompense,
 // et les boutons SUIVRE (celle qu'on voit sur la carte) et Y ALLER ; puis les quêtes finies. Rien n'est calculé ici :
 // tout vient de moteur/quetes.ts.
@@ -41,7 +41,7 @@ function carte(jeu: Jeu, q: Quete, ouverte: boolean): string {
 export function htmlJournal(jeu: Jeu, ouverte: string | null): string {
   const cours = enCours(jeu), finies = terminees(jeu)
   const deplie = ouverte ?? jeu.queteSuivie
-  let html = '<button type="button" class="retour" data-page="plus">‹ Plus</button>'
+  let html = ''
   if (!cours.length && !finies.length) {
     return html + '<p class="vide-journal">Aucune quête pour l\'instant. Sur la carte, un <b>!</b> près d\'un personnage signale qu\'il a quelque chose à te demander : va en orbite à son lieu et parle-lui. Commence par Elsa Varga, sur l\'ISS.</p>'
   }

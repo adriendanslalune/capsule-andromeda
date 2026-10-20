@@ -17,6 +17,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Onglet Journal (décision d'Adrien du 20/10/2026) — **fait** : l'onglet Missions devient Journal ; en haut, la quête
+  suivie et le contrat en cours (chacun mène à son sous-onglet) ; sous-onglets QUÊTES (l'ancien journal de Plus, qui
+  n'y est plus) et CONTRATS (l'ancien volet Missions) ; le dernier choisi est retenu. À l'écran, les missions des
+  Maisons s'appellent des contrats (bandeau, fiche, volet).
 - Divers du 20/10/2026 — **fait** : Charon, la grande lune de Pluton (`src/astro/charon.ts`, orbite réelle, phase
   approchée, testée) ; le balayage du radar ne se dessine plus quand sa portée ne fait que quelques pixels (vues du
   système solaire) ; vitrine de la boutique (Plus › Boutique, `src/donnees/boutique.ts`, articles grisés « BIENTÔT »).

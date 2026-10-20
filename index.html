@@ -64,13 +64,11 @@
       </div>
       <div class="page" data-contenu="manuel" id="manuel" hidden></div>
       <div class="page" data-contenu="profil" id="profil" hidden></div>
-      <div class="page" data-contenu="journal" id="journal" hidden></div>
       <div class="page" data-contenu="messages" id="messages" hidden></div>
-      <div class="page" data-contenu="missions" id="missions" hidden></div>
+      <div class="page" data-contenu="missions" id="missions" hidden><div id="en-cours-journal"></div><div class="sous-onglets" id="onglets-journal"><button type="button" data-journal-onglet="quetes" class="actif">QUÊTES</button><button type="button" data-journal-onglet="contrats">CONTRATS</button></div><div id="journal"></div><div id="contrats" hidden></div></div>
       <div class="page" data-contenu="marche" id="marche" hidden><div class="sous-onglets" id="onglets-marche"><button type="button" data-marche-onglet="bourse" class="actif">BOURSE</button><button type="button" data-marche-onglet="comptoir">COMPTOIR</button></div><div id="bourse"></div><div id="comptoir" hidden></div></div>
       <div class="page" data-contenu="plus" hidden>
         <button type="button" class="rubrique" data-page="messages">Messages <span class="pastille-rubrique" hidden></span>›</button>
-        <button type="button" class="rubrique" data-page="journal">Journal des quêtes ›</button>
         <button type="button" class="rubrique" data-page="profil">Profil ›</button>
         <button type="button" class="rubrique" data-page="manuel">Manuel ›</button>
         <button type="button" class="rubrique" data-page="reglages">Réglages ›</button>
@@ -104,7 +102,7 @@
     <nav id="onglets">
       <button type="button" data-onglet="navigation">Navig.</button>
       <button type="button" data-onglet="capsule">Capsule</button>
-      <button type="button" data-onglet="missions">Missions</button>
+      <button type="button" data-onglet="missions">Journal</button>
       <button type="button" data-onglet="marche">Marché</button>
       <button type="button" data-onglet="plus">Plus</button>
     </nav>

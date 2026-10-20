@@ -461,10 +461,10 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #missions .prix { font-weight: bold; white-space: nowrap; }
 #missions .pied { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; }
 #missions .boutons { display: flex; gap: 6px; }
-#missions ol { list-style: none; margin: 6px 0; font-size: 12px; }
-#missions li { padding: 2px 0; opacity: 0.55; }
-#missions li.actuelle { opacity: 1; font-weight: bold; }
-#missions li.faite { opacity: 0.55; text-decoration: line-through; }
+#contrats ol { list-style: none; margin: 6px 0; font-size: 12px; }
+#contrats li { padding: 2px 0; opacity: 0.55; }
+#contrats li.actuelle { opacity: 1; font-weight: bold; }
+#contrats li.faite { opacity: 0.55; text-decoration: line-through; }
 #missions .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 #missions .consigne { font-size: 12px; }
 #missions .action-en-cours { font-weight: bold; padding: 10px 0; }
@@ -1191,7 +1191,7 @@ body.nuit #marche .baisse { color: #f08a72; }
 #journal .etapes { margin: 0; padding: 4px 14px 4px 16px; list-style: none; font-size: 12px; line-height: 1.6; }
 #journal .etapes .en-cours { font-weight: bold; }
 #journal .etapes .faite { opacity: 0.6; }
-#journal .etapes .a-venir { opacity: 0.45; }
+#journal .etapes .a-venir { opacity: 0.45; padding: 0; font-size: inherit; }
 #journal .donneur { margin: 4px 14px 8px; font-size: 11px; opacity: 0.8; }
 #journal .boutons-quete { display: flex; gap: 8px; padding: 0 10px 10px; }
 #journal .boutons-quete button { flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
@@ -1345,3 +1345,14 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 #boutique .article button { min-height: 44px; padding: 0 10px; font: inherit; font-size: 11px; font-weight: bold; color: var(--encre);
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; opacity: 0.4; }
 #boutique .note { margin: 10px 14px; font-size: 11.5px; opacity: 0.75; }
+/* L'onglet Journal (décision d'Adrien du 20/10/2026) : en cours, puis QUÊTES et CONTRATS. */
+#missions #journal { padding: 0 10px; }
+#en-cours-journal { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 0; }
+#en-cours-journal[hidden] { display: none; }
+#en-cours-journal .ligne-en-cours { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 10px; font: inherit; font-size: 12px;
+  text-align: left; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#en-cours-journal .ligne-en-cours > span:last-child { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#en-cours-journal small { font-size: 11px; opacity: 0.8; }
+#en-cours-journal .signe { font-size: 16px; color: #d9a43a; }
+#en-cours-journal .secondaire .signe { color: #6f9bd6; }
+#en-cours-journal .picto { width: 24px; height: 24px; }
