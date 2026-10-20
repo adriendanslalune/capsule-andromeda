@@ -17,6 +17,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Radio, Voix perdues (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** : données
+  `src/donnees/radio.ts` (150 voix, horaires 30 min / 6 h, premier jet des 15 textes de la Terre et de la Lune),
+  moteur `src/moteur/radio.ts` (fréquences, émission, netteté, enregistrement en 10 s ; testé, sauvegardé), poste TSF
+  `src/commun/vue-radio.ts` (cadran, molette au millième, vumètre, texte brouillé selon la netteté, bruit blanc et
+  chant sans paroles en Web Audio, son coupable ; bande FM grisée pour les groupes), bouton RADIO sous le RADAR,
+  couverture et carnet dans Plus › Collections (`src/commun/vue-carnet.ts`). Essais : `andromeda.voix()` donne les voix
+  qui émettent dans le système de la capsule.
 - Dépanneur (décision d'Adrien du 20/10/2026) — **fait** : Capsule › État, sous chaque panne, « APPELER LE DÉPANNEUR »
   (moitié des crédits, gratuit sans crédits, après confirmation ; `appelerDepanneur` dans `jeu.ts`, testé).
 - Collections, mode nuit, volets (demandes d'Adrien du 20/10/2026) — **faits** : Plus › Collections, une couverture

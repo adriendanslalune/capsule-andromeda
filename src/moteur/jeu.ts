@@ -12,6 +12,7 @@ import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/comba
 import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
 import { avancerRadar, radarEteint, type EtatRadar } from './radar'
+import { radioNeuve, type EtatRadio } from './radio'
 import { avancerOrdres, compagnie, passerOrdre, portefeuilleVide, type OrdreBourse, type Portefeuille } from './bourse'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
@@ -98,6 +99,8 @@ export class Jeu {
   bourse: Portefeuille = portefeuilleVide()
   /** Le radar de la carte (sa jauge ; pas sauvegardé : il repart éteint). */
   radar: EtatRadar = radarEteint()
+  /** La radio : sa fréquence, les Voix perdues enregistrées. */
+  radio: EtatRadio = radioNeuve()
   annoncesBourse: OrdreBourse[] = []
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
   soute: Record<string, number> = {}

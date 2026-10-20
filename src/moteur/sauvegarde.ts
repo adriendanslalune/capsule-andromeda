@@ -15,6 +15,7 @@ import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { QUETES } from '../donnees/quetes'
 import { COMPAGNIES } from '../donnees/bourse'
+import { NOMBRE_VOIX } from '../donnees/radio'
 import type { OrdreBourse, Portefeuille } from './bourse'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
@@ -76,6 +77,8 @@ export interface Sauvegarde {
   monolithes?: EtatMonolithes
   /** La Bourse : actions et ordres (absente : rien). */
   bourse?: Portefeuille
+  /** La radio : fréquence et voix enregistrées (absente : neuve). */
+  radio?: { frequence: number; captees: number[]; captureesLe: Record<number, number> }
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -86,7 +89,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
     maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
-    monolithes: jeu.monolithes, bourse: jeu.bourse,
+    monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
 
@@ -212,6 +215,12 @@ export function restaurer(s: unknown): Jeu | null {
     }
     if (Array.isArray(v.bourse.ordres)) jeu.bourse.ordres = v.bourse.ordres.filter(ordreValide).map((o) => ({ ...o }))
     if (Array.isArray(v.bourse.journal)) jeu.bourse.journal = v.bourse.journal.filter(ordreValide).map((o) => ({ ...o })).slice(0, 20)
+  }
+  // La radio : seulement des voix qui existent.
+  if (v.radio && typeof v.radio === 'object') {
+    if (nombre(v.radio.frequence)) jeu.radio.frequence = v.radio.frequence
+    if (Array.isArray(v.radio.captees)) jeu.radio.captees = v.radio.captees.filter((n) => nombre(n) && n >= 1 && n <= NOMBRE_VOIX)
+    for (const n of jeu.radio.captees) if (nombre(v.radio.captureesLe?.[n])) jeu.radio.captureesLe[n] = v.radio.captureesLe[n]
   }
   if (typeof v.queteSuivie === 'string' && jeu.quetes[v.queteSuivie]) jeu.queteSuivie = v.queteSuivie
   if (Array.isArray(v.zonesLiberees)) jeu.zonesLiberees = v.zonesLiberees.filter((z) => typeof z === 'string')

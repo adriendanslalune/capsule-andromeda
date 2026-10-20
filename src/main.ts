@@ -20,6 +20,10 @@ import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { SIMULATEUR, VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
 import { VueClasseur } from './commun/vue-classeur'
+import { VueRadio } from './commun/vue-radio'
+import { VueCarnet } from './commun/vue-carnet'
+import { ecouter as ecouterRadio, emet, texteVoix, VOIX } from './moteur/radio'
+import { BANDE_OC, VOIX_PAR_SYSTEME } from './donnees/radio'
 import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
@@ -413,6 +417,26 @@ boutonRadar.addEventListener('click', () => {
   afficherRadar(t)
   carteSale = true
 })
+// La RADIO, sous le RADAR (décisions d'Adrien du 20/10/2026) : le poste TSF, bande OC, les Voix perdues.
+/** Le système où est la capsule (là où elle peut capter ses voix), ou null en plein espace. */
+function systemeDeLaCapsule(t: number): string | null {
+  const s = astreDominant(mission.etat(t).position, t)
+  return s in VOIX_PAR_SYSTEME ? s : null
+}
+const vueRadio = new VueRadio(document.querySelector<HTMLDivElement>('#radio')!, {
+  frequence: () => jeu.radio.frequence,
+  regler: (f) => { jeu.radio.frequence = Math.round(Math.min(BANDE_OC.max, Math.max(BANDE_OC.min, f)) * 1000) / 1000 },
+  ecouter: () => {
+    const t = horloge(), systeme = systemeDeLaCapsule(t)
+    const r = ecouterRadio(jeu.radio, systeme, t)
+    const voix = r.capte?.voix ?? null
+    if (r.nouvelle) { enregistrerPartie(); annoncer(`Voix perdue n° ${r.nouvelle} enregistrée : elle est dans tes Collections`); navigator.vibrate?.([40, 60, 40]) }
+    return { voix, texte: voix ? texteVoix(voix) : null, nettete: r.capte?.nettete ?? 0, enregistrement: r.enregistrement,
+      dejaEnregistree: !!voix && jeu.radio.captees.includes(voix.numero) && !r.nouvelle, nouvelle: !!r.nouvelle, systeme }
+  },
+})
+document.querySelector('#bouton-radio')!.addEventListener('click', () => vueRadio.ouvrir())
+document.querySelector('#radio [data-fermer]')!.addEventListener('click', () => enregistrerPartie())
 /** Échos annoncés depuis l'ouverture du jeu ; un écho revenu l'application fermée s'annonce à la réouverture. */
 const echosAnnonces = new Set<number>()
 function suivreEchos(t: number): void {
@@ -1273,7 +1297,11 @@ const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escor
 pageSoute.addEventListener('click', (e) => {
   if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir()
 })
-document.querySelector('#collections')!.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir() })
+document.querySelector('#collections')!.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir()
+  if ((e.target as HTMLElement).closest('[data-carnet]')) vueCarnet.ouvrir()
+})
+const vueCarnet = new VueCarnet(document.querySelector<HTMLDivElement>('#carnet')!, () => jeu.radio)
 // Le classeur des monolithes (Plus › Collections), en plein écran.
 const vueClasseur = new VueClasseur(document.querySelector<HTMLDivElement>('#classeur')!, () => jeu.monolithes)
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
@@ -1456,6 +1484,7 @@ function image(maintenant: number): void {
   mettreAJourFiche(t)
   afficherPing(t)
   afficherRadar(t)
+  vueRadio.afficher()
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherMarche(t); dernierMarche = maintenant }
@@ -1588,6 +1617,8 @@ requestAnimationFrame(image)
 Object.assign(window, {
   andromeda: {
     horloge: () => horloge(),
+    // Essais : les Voix perdues qui émettent en ce moment dans le système de la capsule (numéro, fréquence).
+    voix: () => VOIX.filter((v) => v.systeme === systemeDeLaCapsule(horloge()) && emet(v, horloge())).map((v) => ({ numero: v.numero, frequence: v.frequence })),
     // Essais : la réponse du manuel pour le tour en cours de la réparation d'un module.
     solution: (a: NomAppareil) => {
       const r = jeu.reparation(a)
