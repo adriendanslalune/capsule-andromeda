@@ -39,6 +39,8 @@ import { tableauDeLaCapsule } from './moteur/tableaux'
 import { pseudoValide } from './moteur/profil'
 import { objetsTries } from './moteur/tri'
 import { VoletComptoir } from './commun/volet-comptoir'
+import { texteDelai, VoletBourse } from './commun/volet-bourse'
+import { compagnie } from './moteur/bourse'
 import { CAPACITE_SOUTE } from './donnees/marche'
 import { BOTS } from './donnees/messages'
 import { lieuDuBot } from './moteur/messages'
@@ -322,7 +324,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
-  if (page === 'marche') afficherComptoir(horloge())
+  if (page === 'marche') afficherMarche(horloge())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
   if (page === 'journal') afficherJournal()
@@ -1161,6 +1163,35 @@ const voletComptoir = new VoletComptoir(document.querySelector<HTMLDivElement>('
   enregistrerPartie()
   afficherComptoir(t)
 })
+// La Bourse (onglet du Marché, décisions d'Adrien du 20/10/2026) : un ordre part vers le siège de la compagnie à la
+// vitesse de la lumière ; sa confirmation est annoncée à son retour (voir la boucle).
+const voletBourse = new VoletBourse(document.querySelector<HTMLDivElement>('#bourse')!, () => afficherMarche(horloge()), (o) => {
+  const t = horloge()
+  const ordre = jeu.ordreBourse(o.compagnie, o.sens, o.quantite, t)
+  if (!ordre) { annoncer(o.sens === 'acheter' ? 'Ordre impossible : pas assez de crédits' : 'Ordre impossible : pas d\'actions à vendre'); return }
+  const c = compagnie(o.compagnie)!
+  annoncer(`Ordre parti vers ${c.siege} : il y arrive dans ${texteDelai(ordre.arrivee - t)}`)
+  navigator.vibrate?.(30)
+  enregistrerPartie()
+  afficherMarche(t)
+})
+// Les deux onglets du Marché ; le dernier choisi est retenu sur le téléphone.
+const CLE_ONGLET_MARCHE = 'andromeda-onglet-marche'
+let ongletMarche: 'bourse' | 'comptoir' = (() => { try { return localStorage.getItem(CLE_ONGLET_MARCHE) === 'comptoir' ? 'comptoir' : 'bourse' } catch { return 'bourse' } })()
+function afficherMarche(t: number): void {
+  document.querySelector<HTMLElement>('#bourse')!.hidden = ongletMarche !== 'bourse'
+  document.querySelector<HTMLElement>('#comptoir')!.hidden = ongletMarche !== 'comptoir'
+  for (const b of document.querySelectorAll<HTMLElement>('[data-marche-onglet]')) b.classList.toggle('actif', b.dataset.marcheOnglet === ongletMarche)
+  if (ongletMarche === 'bourse') voletBourse.afficher(t, { portefeuille: jeu.bourse, credits: jeu.credits })
+  else afficherComptoir(t)
+}
+for (const b of document.querySelectorAll<HTMLElement>('[data-marche-onglet]')) {
+  b.addEventListener('click', () => {
+    ongletMarche = b.dataset.marcheOnglet as typeof ongletMarche
+    try { localStorage.setItem(CLE_ONGLET_MARCHE, ongletMarche) } catch { /* pas de mémoire : tant pis */ }
+    afficherMarche(horloge())
+  })
+}
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
 function montrerReparation(bloc?: NomModule): void {
@@ -1295,7 +1326,7 @@ function image(maintenant: number): void {
   afficherPing(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
-  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherComptoir(t); dernierMarche = maintenant }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherMarche(t); dernierMarche = maintenant }
   if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
@@ -1303,6 +1334,14 @@ function image(maintenant: number): void {
   // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
   afficherSuivi()
   if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
+  // Une confirmation de la Bourse revenue à la capsule.
+  if (jeu.annoncesBourse.length && message.hidden) {
+    const o = jeu.annoncesBourse.shift()!, c = compagnie(o.compagnie)!
+    const n = o.actions.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+    annoncer(o.sens === 'acheter' ? `Bourse : ${n} actions ${c.nom} achetées à ${Math.round(o.prix!).toLocaleString('fr-FR')}`
+      : `Bourse : ${n} actions ${c.nom} vendues, ${(o.gain ?? 0) >= 0 ? '+' : '−'}${Math.abs(o.gain ?? 0).toLocaleString('fr-FR')} cr. de ${(o.gain ?? 0) >= 0 ? 'gain' : 'perte'}`)
+    enregistrerPartie()
+  }
   const accent = '#d9694f'
   // Les deux traits : le trajet (en cours, ou prévu vers la destination) et le point de rendez-vous.
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null

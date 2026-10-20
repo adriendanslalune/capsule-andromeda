@@ -10,21 +10,31 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 4. Pannes et manuel | **fait** : les quinze modules du panneau sont raccordés (détail ci-dessous), en attente des essais d'Adrien |
 | 5. Nettoyeurs | **fait** (VIDER et REMORQUER ; le largage à la station reste une attente) |
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
-| 7. Commerce (Marché ouvert à tous) | **en cours** : refait le 20/10/2026 en deux onglets ; COMPTOIR fait (matériaux, prix stables), BOURSE à faire |
+| 7. Commerce (Marché ouvert à tous) | **fait** : refait le 20/10/2026 en deux onglets, BOURSE et COMPTOIR ; en attente des essais d'Adrien |
 | 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
 | 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | **en cours** : PNJ, quêtes, journal et suivi faits (20/10/2026) ; premier jet de la Lune à corriger par Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Bourse (décisions d'Adrien du 20/10/2026) — **faite, en attente des essais d'Adrien** : 9 compagnies
+  (`src/donnees/bourse.ts`), cours communs à tous (`src/moteur/bourse.ts`, testés) : pas de 2 minutes depuis le
+  1er octobre 2026, un fond qui dérive lentement (retour vers la référence en ~60 jours), un écart qui s'agite (retour
+  en ~1,5 jour), les ordres des bots qui poussent le cours, et des gros mouvements d'une heure annoncés 2 à 6 h avant par
+  une rumeur dans le canal général (juste 3 fois sur 4). Ordres du joueur : de n'importe où, à la vitesse de la lumière
+  jusqu'au siège, exécutés au cours de l'arrivée, confirmés au retour ; crédits ou actions partent avec l'ordre ; frais
+  1 %. Volet `src/commun/volet-bourse.ts` : portefeuille en direct et ordres en route, fiche de la compagnie (cours
+  connu et son âge, graphique 6 h / 24 h / 7 j, position, ACHETER 100/500/1000/MAX, VENDRE ¼/½/TOUT, derniers ordres
+  des bots), liste des compagnies. Sauvegardée. Mesuré sur un an : Vanguard bouge d'environ 1 % par jour, la Jovienne
+  de 11 %, les Confins de 17 % ; acheter sur une rumeur de hausse rapporte en moyenne de 0 % (stables) à +11 %
+  (Confins), avec de gros écarts : à surveiller aux essais. Les vrais joueurs pèseront sur les cours avec le serveur.
 - Comptoir et moteur (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** : le Marché a deux
   onglets, BOURSE (grisée, à faire) et COMPTOIR (`src/commun/volet-comptoir.ts`) : un comptoir par système, prix stables
   (ondulations de ±4,5 % au plus, sous la marge de 12 % : testé, acheter puis revendre au même comptoir ne rapporte
   jamais), spécialités marquées « produit ici » / « recherché ici », ce qui manque au moteur marqué en face du matériau ;
   on touche un matériau pour l'acheter ou le vendre. Le moteur demande des matériaux à chaque niveau (`materiaux` dans
   `NIVEAUX_MOTEUR`, `manquePourMoteur` et `acheterMoteur` dans `jeu.ts`, testés), affichés dans Capsule › État et
-  dans la fenêtre « Nouveau moteur ». Les messages des bots et les quêtes parlent du comptoir. L'ancien volet du marché
-  (`volet-marche.ts`, graphique de cours façon trading) n'est plus affiché : il servira de base à la Bourse.
+  dans la fenêtre « Nouveau moteur ». Les messages des bots et les quêtes parlent du comptoir. Le graphique de cours de l'ancien marché est passé dans la Bourse.
 - Tri des épaves : 0,03 t par objet bien trié au lieu de 0,1 t (la soute se remplissait en 3 tris ; demande d'Adrien du
   20/10/2026).
 - Carte : les médaillons des PNJ s'effacent quand leur lieu se confond avec sa planète (dézoom ; demande d'Adrien).

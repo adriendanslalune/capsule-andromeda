@@ -11,6 +11,7 @@ import { MARCHANDISES, MARCHES } from '../donnees/marche'
 import type { Maison } from '../donnees/maisons'
 import type { Jeu } from './jeu'
 import { cours, delaiLumiere } from './marche'
+import { rumeursEntre } from './bourse'
 
 /** Un canal : 'general', 'maison', ou une conversation privée avec un bot ('prive:VEGA'). */
 export type Canal = string
@@ -148,6 +149,11 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
   for (let k = Math.floor((t - MEMOIRE) / PAS); k <= Math.floor(t / PAS); k++) {
     const m = bavardage(k, jeu.pseudo)
     if (m && (m.canal !== 'maison' || m.maison === jeu.maison)) l.push(m)
+  }
+  // Les rumeurs de la Bourse : un bot les fait courir dans le canal général, quelques heures avant un gros mouvement.
+  for (const e of rumeursEntre(t - MEMOIRE, t)) {
+    const bot = BOTS.find((b) => b.pseudo === e.rumeur.bot)!, envoye = e.rumeur.envoye
+    l.push({ id: `b${e.compagnie.id}/${envoye}`, canal: 'general', auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte: e.rumeur.texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statut(bot.monolithes) })
   }
   // Les messages que des bots ont écrits au joueur à la suite d'un événement (invitation d'une Maison…) : gardés.
   for (const x of jeu.lettres) {

@@ -10,7 +10,8 @@ import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/ca
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/combat'
 import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
-import { achatVente, cours, marcheDeLaCapsule } from './marche'
+import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
+import { avancerOrdres, compagnie, passerOrdre, portefeuilleVide, type OrdreBourse, type Portefeuille } from './bourse'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
@@ -92,6 +93,9 @@ export class Jeu {
   zonesLiberees: string[] = []
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
+  /** La Bourse : actions, ordres en route, derniers ordres confirmés ; et les confirmations à annoncer. */
+  bourse: Portefeuille = portefeuilleVide()
+  annoncesBourse: OrdreBourse[] = []
   /** La soute : marchandise → tonnes (au plus CAPACITE_SOUTE en tout). */
   soute: Record<string, number> = {}
   /** Le carnet de bord (pour le Profil) : missions finies par Maison, crédits gagnés, objets triés. */
@@ -233,6 +237,27 @@ export class Jeu {
   /** Le moteur suivant (à acheter), ou null au niveau le plus haut. */
   moteurSuivant(): NiveauMoteur | null {
     return NIVEAUX_MOTEUR.find((n) => n.niveau === this.niveauMoteur + 1) ?? null
+  }
+
+  /**
+   * Passe un ordre à la Bourse, de n'importe où : il part vers le siège de la compagnie à la vitesse de la lumière.
+   * Achat : `quantite` crédits (Infinity : tout) ; vente : `quantite` actions.
+   */
+  ordreBourse(id: string, sens: 'acheter' | 'vendre', quantite: number, t: number): OrdreBourse | null {
+    const c = compagnie(id)
+    if (!c) return null
+    const credits = { valeur: this.credits }
+    const o = passerOrdre(this.bourse, credits, id, sens, quantite, t, delaiLumiere(c.siege, t))
+    this.credits = credits.valeur
+    return o
+  }
+
+  /** Les ordres de Bourse arrivés au siège s'exécutent ; les confirmations revenues à la capsule changent le portefeuille. */
+  avancerBourse(t: number): void {
+    if (!this.bourse.ordres.length) return
+    const credits = { valeur: this.credits }
+    this.annoncesBourse.push(...avancerOrdres(this.bourse, credits, t, delaiLumiere))
+    this.credits = credits.valeur
   }
 
   /** Ce qui manque pour le moteur suivant : crédits, et tonnes de chaque matériau (vide si rien ne manque). */
@@ -405,6 +430,7 @@ export class Jeu {
     this.proposer(t)
     // Les quêtes : un lieu atteint, des marchandises à livrer.
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
+    this.avancerBourse(t)
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
     const fin = ec.debutAction + (ec.dureeAction ?? DUREE_ACTION)

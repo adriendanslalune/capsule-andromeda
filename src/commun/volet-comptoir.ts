@@ -7,7 +7,19 @@
 import { CAPACITE_SOUTE, LOTS, MARCHES, SPECIALITES } from '../donnees/marche'
 import { marcheDeLaCapsule, vueMarche } from '../moteur/marche'
 import { avec, picto } from './symboles'
-import type { EtatCommerce, Ordre } from './volet-marche'
+
+/** Ce que le volet doit savoir de la capsule pour le commerce. */
+export interface EtatCommerce {
+  soute: Record<string, number>
+  credits: number
+  /** Le comptoir où l'on peut commercer (en orbite dans son système), ou null. */
+  ici: string | null
+  /** La capsule est-elle en plein vol ? */
+  enVol: boolean
+}
+
+/** Un ordre du joueur : acheter ou vendre tant de tonnes (Infinity : tout ce qu'on peut). */
+export type Ordre = { sens: 'acheter' | 'vendre'; marchandise: string; tonnes: number }
 
 /** Le système, avec son article : « de la Terre », « de Mars ». */
 const du = (nom: string) => (nom === 'Terre' ? 'de la Terre' : `de ${nom}`)

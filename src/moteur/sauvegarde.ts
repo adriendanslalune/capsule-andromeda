@@ -14,6 +14,8 @@ import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { QUETES } from '../donnees/quetes'
+import { COMPAGNIES } from '../donnees/bourse'
+import type { OrdreBourse, Portefeuille } from './bourse'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
@@ -72,6 +74,8 @@ export interface Sauvegarde {
   espace?: EtatEspace
   /** Les monolithes ramassés et les échos (absent : aucun). */
   monolithes?: EtatMonolithes
+  /** La Bourse : actions et ordres (absente : rien). */
+  bourse?: Portefeuille
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -82,7 +86,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
     maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
-    monolithes: jeu.monolithes,
+    monolithes: jeu.monolithes, bourse: jeu.bourse,
   }
 }
 
@@ -196,6 +200,18 @@ export function restaurer(s: unknown): Jeu | null {
         jeu.quetes[id] = { etape: e.etape, compte: e.compte, debut: e.debut, fin: e.fin }
       }
     }
+  }
+  // La Bourse : seulement les compagnies qui existent, des nombres valides.
+  if (v.bourse && typeof v.bourse === 'object') {
+    const connue = (id: unknown) => COMPAGNIES.some((x) => x.id === id)
+    const ordreValide = (o: OrdreBourse) => !!o && connue(o.compagnie) && (o.sens === 'acheter' || o.sens === 'vendre')
+      && [o.id, o.credits, o.actions, o.cout, o.envoye, o.arrivee].every(nombre) && (o.prix === null || nombre(o.prix))
+      && (o.confirme === null || nombre(o.confirme)) && (o.gain === null || nombre(o.gain))
+    for (const [id, p] of Object.entries(v.bourse.positions ?? {})) {
+      if (connue(id) && p && nombre(p.actions) && nombre(p.investi) && p.actions > 0) jeu.bourse.positions[id] = { actions: p.actions, investi: p.investi }
+    }
+    if (Array.isArray(v.bourse.ordres)) jeu.bourse.ordres = v.bourse.ordres.filter(ordreValide).map((o) => ({ ...o }))
+    if (Array.isArray(v.bourse.journal)) jeu.bourse.journal = v.bourse.journal.filter(ordreValide).map((o) => ({ ...o })).slice(0, 20)
   }
   if (typeof v.queteSuivie === 'string' && jeu.quetes[v.queteSuivie]) jeu.queteSuivie = v.queteSuivie
   if (Array.isArray(v.zonesLiberees)) jeu.zonesLiberees = v.zonesLiberees.filter((z) => typeof z === 'string')
