@@ -525,6 +525,8 @@ const vitesse = () => (reglages.forcerVitesse ? reglages.vitesse : jeu.vitesse()
 const fiche = document.querySelector<HTMLDivElement>('#trajet')!
 const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
+const boutonCommuniquer = document.querySelector<HTMLButtonElement>('#bouton-communiquer')!
+boutonCommuniquer.addEventListener('click', () => { if (selection) ouvrirMessages(`prive:${selection}`) })
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
 let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' | 'parler' = 'depart'
@@ -629,7 +631,7 @@ function mettreAJourFiche(t: number): void {
     const genre = corps(selection)?.type
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
-      : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}` : ''
+      : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}${bot.bavard ? '' : ' · ne répond pas aux messages'}` : ''
     texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}`
     depart = true
     libelle = 'Y ALLER'
@@ -650,9 +652,16 @@ function mettreAJourFiche(t: number): void {
   fiche.hidden = !texte
   if (ficheTexte.innerHTML !== texte) ficheTexte.innerHTML = texte
   boutonDepart.hidden = !depart
+  // La capsule d'un autre capitaine : on peut aussi lui écrire en privé (demande d'Adrien du 20/10/2026 ; les figurants
+  // muets ne répondent pas, pas de bouton pour eux).
+  const capitaine = selection && corps(selection)?.type === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
+  boutonCommuniquer.hidden = !texte || !capitaine?.bavard
   const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
   if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
+  // Le cadran de vitesse se pose au-dessus de la fiche, quelle que soit sa hauteur.
+  const haut = texte ? `${fiche.offsetHeight}px` : '0px'
+  if (document.body.style.getPropertyValue('--fiche') !== haut) document.body.style.setProperty('--fiche', haut)
 }
 
 /**

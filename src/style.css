@@ -1508,18 +1508,26 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 #carnet .bande.captee { display: block; border: 2px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: 2px 2px 0 var(--ombre); }
 #carnet .bande.captee small { display: block; font-size: 11px; opacity: 0.75; margin: 2px 0 4px; }
 #carnet .bande.captee p { margin: 0; font-size: 12.5px; line-height: 1.5; }
-/* Le cadran de vitesse (demande d'Adrien du 20/10/2026), en bas à droite de la carte ; il remonte au-dessus de la fiche
-   du trajet. */
-#cadran-vitesse { position: fixed; right: 10px; bottom: calc(80px + env(safe-area-inset-bottom)); width: 86px; height: 86px; z-index: 1; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; border: 2px solid var(--encre); border-radius: 50%; background: var(--creme); box-shadow: 3px 3px 0 var(--ombre); }
-body.avec-trajet #cadran-vitesse { bottom: calc(166px + env(safe-area-inset-bottom)); }
+/* Le cadran de vitesse (demandes d'Adrien du 20/10/2026), en bas à droite de la carte, un peu transparent pour rester
+   discret ; il se pose au-dessus de la fiche du trajet. La vitesse s'écrit sur une plaque sous le cadran : elle a la
+   place, même à 15 360 km/s. */
+#cadran-vitesse { position: fixed; right: 10px; bottom: calc(102px + var(--fiche, 0px) + env(safe-area-inset-bottom)); width: 96px; height: 96px; z-index: 1;
+  pointer-events: none; display: flex; flex-direction: column; align-items: center; border: 2px solid color-mix(in srgb, var(--encre) 70%, transparent); border-radius: 50%;
+  background: color-mix(in srgb, var(--creme) 72%, transparent); box-shadow: 2px 2px 0 color-mix(in srgb, var(--ombre) 50%, transparent); }
+body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(safe-area-inset-bottom)); }
 #cadran-vitesse svg { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); overflow: visible; }
-#cadran-vitesse .fond-cadran { fill: none; stroke: color-mix(in srgb, var(--encre) 18%, transparent); stroke-width: 6; stroke-linecap: round; }
+#cadran-vitesse .fond-cadran { fill: none; stroke: color-mix(in srgb, var(--encre) 15%, transparent); stroke-width: 6; stroke-linecap: round; }
 #cadran-vitesse .phase-cadran { fill: none; stroke: #f2b53a; stroke-width: 6; stroke-linecap: round; }
 #cadran-vitesse[data-phase="accelere"] .phase-cadran { stroke: #5fb36a; }
 #cadran-vitesse[data-phase="freine"] .phase-cadran { stroke: #e04b37; }
-#cadran-vitesse .graduations line { stroke: var(--encre); stroke-width: 1.2; }
+#cadran-vitesse .graduations line { stroke: var(--encre); stroke-width: 1.2; opacity: 0.8; }
 #cadran-vitesse .aiguille-vitesse { stroke: #e04b37; stroke-width: 2.5; stroke-linecap: round; }
 #cadran-vitesse .axe { fill: var(--encre); }
-#cadran-vitesse .valeur-vitesse { position: absolute; bottom: 15px; font-size: 10px; white-space: nowrap; }
-#cadran-vitesse .phase-vitesse { position: absolute; bottom: 5px; font-size: 7.5px; font-weight: bold; letter-spacing: 0.04em; opacity: 0.75; }
+#cadran-vitesse .phase-vitesse { position: absolute; bottom: 9px; font-size: 8px; font-weight: bold; letter-spacing: 0.04em; opacity: 0.8; }
+#cadran-vitesse .valeur-vitesse { position: absolute; top: calc(100% + 4px); padding: 1px 7px; font-size: 11px; white-space: nowrap; border-radius: 6px;
+  background: color-mix(in srgb, var(--creme) 80%, transparent); border: 1.5px solid color-mix(in srgb, var(--encre) 60%, transparent); }
+/* La fiche : ses boutons l'un sous l'autre (COMMUNIQUER avec un capitaine, Y ALLER…). */
+#trajet .boutons-fiche { display: flex; flex-direction: column; gap: 6px; flex: none; }
+#bouton-communiquer { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.04em; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#bouton-communiquer[hidden] { display: none; }
