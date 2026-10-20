@@ -196,6 +196,24 @@ export function valeurPortefeuille(p: Portefeuille, t: number): { valeur: number
   return { valeur, investi }
 }
 
+/** Le devis d'un ordre, avant de le confirmer : ce qui part, les frais, et ce qu'on obtiendrait au cours connu. */
+export interface Devis { sens: 'acheter' | 'vendre'; compagnie: Compagnie; /** Crédits engagés (achat) ou actions vendues. */ quantite: number; frais: number; /** Actions (achat) ou crédits (vente) estimés. */ estime: number; cours: number; delai: number }
+
+export function devisOrdre(p: Portefeuille, credits: number, id: string, sens: 'acheter' | 'vendre', quantite: number, t: number): Devis | null {
+  const c = compagnie(id)
+  if (!c || !(quantite > 0)) return null
+  const v = vueAction(c, t)
+  if (sens === 'acheter') {
+    const montant = Math.floor(Math.min(quantite, credits))
+    if (montant < 1) return null
+    return { sens, compagnie: c, quantite: montant, frais: montant * FRAIS_BOURSE, estime: (montant * (1 - FRAIS_BOURSE)) / v.cours, cours: v.cours, delai: v.delai }
+  }
+  const pos = p.positions[id]
+  if (!pos || pos.actions <= 0) return null
+  const n = Math.min(quantite, pos.actions), brut = n * v.cours
+  return { sens, compagnie: c, quantite: n, frais: brut * FRAIS_BOURSE, estime: brut * (1 - FRAIS_BOURSE), cours: v.cours, delai: v.delai }
+}
+
 /**
  * Passe un ordre. Achat : `quantite` crédits (pris tout de suite). Vente : `quantite` actions (elles partent avec
  * l'ordre). `delai` : le temps que met la lumière jusqu'au siège. Renvoie l'ordre, ou null s'il est impossible.

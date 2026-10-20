@@ -6,7 +6,7 @@
 // Le doigt posé sur le graphique lit le cours à un instant. La vue ne calcule rien : tout vient de moteur/bourse.ts.
 
 import { COMPAGNIES, FRAIS_BOURSE, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
-import { compagnie, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
+import { compagnie, devisOrdre, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
 import { avec } from './symboles'
 import { texteRestant } from './textes'
 
@@ -44,13 +44,17 @@ export class VoletBourse {
   private periode = 1
   private curseur: number | null = null
   private points: { t: number; cours: number; x: number; y: number }[] = []
+  /** L'ordre choisi, en attente de confirmation (demande d'Adrien du 20/10/2026 : rien ne part sans confirmer). */
+  private aConfirmer: OrdreAction | null = null
 
   constructor(private element: HTMLElement, private rafraichir: () => void, private ordonner: (o: OrdreAction) => void) {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
       if (!b || b.disabled) return
-      if (b.dataset.ordre) { this.ordonner({ compagnie: b.dataset.compagnie!, sens: b.dataset.ordre as OrdreAction['sens'], quantite: Number(b.dataset.quantite) }); return }
-      if (b.dataset.action !== undefined) this.choisie = b.dataset.action
+      if (b.dataset.ordre) this.aConfirmer = { compagnie: b.dataset.compagnie!, sens: b.dataset.ordre as OrdreAction['sens'], quantite: Number(b.dataset.quantite) }
+      else if (b.dataset.confirmer !== undefined && this.aConfirmer) { const o = this.aConfirmer; this.aConfirmer = null; this.ordonner(o); return }
+      else if (b.dataset.annuler !== undefined) this.aConfirmer = null
+      else if (b.dataset.action !== undefined) { this.choisie = b.dataset.action; this.aConfirmer = null }
       else if (b.dataset.periode !== undefined) this.periode = Number(b.dataset.periode)
       else return
       this.rafraichir()
@@ -91,7 +95,7 @@ export class VoletBourse {
     html += `<div class="tete-cours"><div><b>${c.nom}</b><small>${c.metier} · siège : ${c.siege}</small><small class="caractere">${c.caractere}</small></div>`
       + `<div class="droite"><b class="grand">${prix(vue.cours)}</b><small>cr. l'action</small>`
       + `<span class="${sens(vue.variation)}">${pourcent(vue.variation)} <small>24 h</small></span></div></div>`
-    html += `<p class="age">Cours d'il y a <b>${texteDelai(vue.delai)}</b> : le temps que met la lumière pour venir de ${c.siege} jusqu'à ta capsule.</p>`
+    html += `<p class="age">Cours d'il y a <b>${texteDelai(vue.delai)}</b> : le temps que met la lumière pour venir de son siège (${c.siege}) jusqu'à ta capsule.</p>`
     html += `<div class="bloc graphe">${this.graphique(c.id, c.nom, c.teinte, t, vue.connuA)}<div class="periodes">`
       + PERIODES.map((q, i) => `<button type="button" data-periode="${i}"${i === this.periode ? ' class="actif"' : ''}>${q.nom}</button>`).join('') + '</div>'
 
@@ -102,10 +106,20 @@ export class VoletBourse {
     }
     const bouton = (s: 'acheter' | 'vendre', q: number, texte: string, off: boolean) =>
       `<button type="button" data-ordre="${s}" data-compagnie="${c.id}" data-quantite="${q}"${off ? ' disabled' : ''}${s === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
-    html += '<div class="commerce">'
+    const devis = this.aConfirmer?.compagnie === c.id ? devisOrdre(p, etat.credits, c.id, this.aConfirmer.sens, this.aConfirmer.quantite, t) : null
+    if (devis) {
+      // La confirmation : ce qui part, les frais, ce qu'on obtiendrait au cours connu, le temps du trajet de l'ordre.
+      const achat = devis.sens === 'acheter'
+      html += `<div class="confirmation"><b>${achat ? 'Acheter' : 'Vendre'} des actions ${c.nom} ?</b>`
+        + (achat ? `<div><span>Tu engages</span><b>${entier(devis.quantite)} cr.</b></div>` : `<div><span>Tu vends</span><b>${actions(devis.quantite)} action${devis.quantite >= 2 ? 's' : ''}</b></div>`)
+        + `<div><span>Frais (${FRAIS_BOURSE * 100} %)</span><b>${prix(devis.frais)} cr.</b></div>`
+        + `<div><span>Au cours connu (${prix(devis.cours)})</span><b>≈ ${achat ? `${actions(devis.estime)} action${devis.estime >= 2 ? 's' : ''}` : `${entier(devis.estime)} cr.`}</b></div>`
+        + `<p>L'ordre arrivera au siège (${c.siege}) dans <b>${texteDelai(devis.delai)}</b> et s'exécutera au cours de ce moment-là : il peut avoir bougé.</p>`
+        + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
+    } else html += '<div class="commerce">'
       + `<div class="ligne-commerce"><span>ACHETER</span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'MAX', etat.credits < 1)}</div>`
       + `<div class="ligne-commerce"><span>VENDRE</span>${PARTS_VENTE.map((f) => bouton('vendre', pos ? pos.actions * f : 0, f === 1 ? 'TOUT' : f === 0.5 ? '½' : '¼', !pos)).join('')}</div>`
-      + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver à ${c.siege} ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre.</p></div></div>`
+      + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver au siège (${c.siege}) ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre.</p></div></div>`
 
     // Le fil des ordres des bots (connus, eux aussi, avec le délai de la lumière).
     const bots = ordresDesBots(c, vue.connuA - 6 * HEURE, vue.connuA).slice(0, 6)
@@ -197,7 +211,7 @@ function ligneOrdre(o: OrdreBourse, t: number): string {
   const c = compagnie(o.compagnie)!
   const quoi = o.sens === 'acheter' ? `Achat ${c.nom} · ${entier(o.credits)} cr.` : `Vente ${c.nom} · ${actions(o.actions)} action${o.actions >= 2 ? 's' : ''}`
   let ou: string
-  if (o.prix === null) ou = `📡 en route vers ${c.siege} · arrive dans ${texteRestant(o.arrivee - t)}`
+  if (o.prix === null) ou = `📡 en route vers le siège (${c.siege}) · arrive dans ${texteRestant(o.arrivee - t)}`
   else if (o.confirme !== null && t < o.confirme) ou = `exécuté à ${prix(o.prix)} · confirmation dans ${texteRestant(o.confirme - t)}`
   else ou = o.sens === 'acheter' ? `✓ ${actions(o.actions)} actions à ${prix(o.prix)}` : `✓ vendu à ${prix(o.prix)} · <span class="${sens(o.gain ?? 0)}">${(o.gain ?? 0) >= 0 ? '+' : '−'}${entier(Math.abs(o.gain ?? 0))} cr.</span>`
   return `<div class="ordre-bourse"><b>${quoi}</b><small>${ou}</small></div>`

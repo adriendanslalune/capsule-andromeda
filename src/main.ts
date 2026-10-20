@@ -1162,7 +1162,7 @@ const voletComptoir = new VoletComptoir(document.querySelector<HTMLDivElement>('
   navigator.vibrate?.(30)
   enregistrerPartie()
   afficherComptoir(t)
-})
+}, (o) => (o.sens === 'acheter' ? jeu.acheter(o.marchandise, o.tonnes, horloge(), true) : jeu.vendre(o.marchandise, o.tonnes, horloge(), true)))
 // La Bourse (onglet du Marché, décisions d'Adrien du 20/10/2026) : un ordre part vers le siège de la compagnie à la
 // vitesse de la lumière ; sa confirmation est annoncée à son retour (voir la boucle).
 const voletBourse = new VoletBourse(document.querySelector<HTMLDivElement>('#bourse')!, () => afficherMarche(horloge()), (o) => {
@@ -1170,7 +1170,7 @@ const voletBourse = new VoletBourse(document.querySelector<HTMLDivElement>('#bou
   const ordre = jeu.ordreBourse(o.compagnie, o.sens, o.quantite, t)
   if (!ordre) { annoncer(o.sens === 'acheter' ? 'Ordre impossible : pas assez de crédits' : 'Ordre impossible : pas d\'actions à vendre'); return }
   const c = compagnie(o.compagnie)!
-  annoncer(`Ordre parti vers ${c.siege} : il y arrive dans ${texteDelai(ordre.arrivee - t)}`)
+  annoncer(`Ordre parti vers le siège de ${c.nom} (${c.siege}) : il y arrive dans ${texteDelai(ordre.arrivee - t)}`)
   navigator.vibrate?.(30)
   enregistrerPartie()
   afficherMarche(t)

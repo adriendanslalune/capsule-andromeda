@@ -1308,3 +1308,12 @@ body.nuit #comptoir .bon-marche { color: #8fcf98; } body.nuit #comptoir .recherc
 #bourse .hausse { color: #3f8a4f; } #bourse .baisse { color: #b4442f; }
 body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color: #f08a72; }
 #bourse .tete-cours .droite span { white-space: nowrap; }
+/* La confirmation d'un ordre de Bourse (ou d'un gros achat au Comptoir) : rien ne part sans confirmer. */
+#marche .confirmation { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--encre); border-radius: 8px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); font-size: 12.5px; }
+#marche .confirmation > b { display: block; font-size: 14px; margin-bottom: 6px; }
+#marche .confirmation > div:not(.boutons-confirmation) { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+#marche .confirmation p { margin: 6px 0 0; font-size: 11.5px; line-height: 1.4; opacity: 0.85; }
+#marche .boutons-confirmation { display: flex; gap: 8px; margin-top: 10px; }
+#marche .boutons-confirmation button { flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: var(--fond);
+  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#marche .boutons-confirmation button.principal { color: #fff; background: #d9694f; }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { COMPAGNIES, FRAIS_BOURSE } from '../src/donnees/bourse'
 import { corps } from '../src/moteur/corps'
 import {
-  avancerOrdres, coursAction, evenementDuJour, historiqueAction, ORIGINE_BOURSE, ordresDesBots, passerOrdre, portefeuilleVide, rumeursEntre,
+  avancerOrdres, coursAction, devisOrdre, evenementDuJour, historiqueAction, ORIGINE_BOURSE, ordresDesBots, passerOrdre, portefeuilleVide, rumeursEntre,
 } from '../src/moteur/bourse'
 
 const t0 = Date.UTC(2026, 9, 20, 12)
@@ -151,5 +151,22 @@ describe('les rumeurs dans les Messages', () => {
     const m = fil(new Jeu(), 'general', t).find((x) => x.texte === e.rumeur.texte)!
     expect(m.auteur).toBe(e.rumeur.bot)
     expect(m.recu).toBeLessThan(e.debut)
+  })
+})
+
+describe('le devis d’un ordre (avant confirmation)', () => {
+  it('montre ce qui part, les frais et l’estimation au cours connu, sans rien changer', () => {
+    const p = portefeuilleVide()
+    const d = devisOrdre(p, 20, 'phare', 'acheter', Infinity, t0)!
+    expect(d.quantite).toBe(20)
+    expect(d.frais).toBeCloseTo(0.2, 6)
+    expect(d.estime).toBeCloseTo((20 * 0.99) / d.cours, 6)
+    expect(p.ordres).toHaveLength(0)
+    expect(devisOrdre(p, 0, 'phare', 'acheter', 100, t0)).toBeNull()
+    p.positions.phare = { actions: 2, investi: 80 }
+    const v = devisOrdre(p, 0, 'phare', 'vendre', 5, t0)!
+    expect(v.quantite).toBe(2)
+    expect(v.estime).toBeCloseTo(2 * v.cours * 0.99, 6)
+    expect(p.positions.phare.actions).toBe(2)
   })
 })

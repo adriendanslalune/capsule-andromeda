@@ -17,6 +17,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Confirmation des ordres (demande d'Adrien du 20/10/2026) — **faite** : à la Bourse, chaque ordre passe par un devis
+  (ce qui part, les frais, l'estimation au cours connu, le temps du trajet de l'ordre) puis ANNULER / CONFIRMER
+  (`devisOrdre` dans `src/moteur/bourse.ts`, testé) ; au Comptoir, MAX et TOUT demandent aussi confirmation. La
+  Bourse marche en plein vol (vérifié).
 - Bourse (décisions d'Adrien du 20/10/2026) — **faite, en attente des essais d'Adrien** : 9 compagnies
   (`src/donnees/bourse.ts`), cours communs à tous (`src/moteur/bourse.ts`, testés) : pas de 2 minutes depuis le
   1er octobre 2026, un fond qui dérive lentement (retour vers la référence en ~60 jours), un écart qui s'agite (retour

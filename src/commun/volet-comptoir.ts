@@ -31,13 +31,23 @@ export class VoletComptoir {
   /** Marchandise dépliée (ses boutons ACHETER / VENDRE), par son nom. */
   private ouverte: string | null = null
 
-  constructor(private element: HTMLElement, private rafraichir: () => void, private commercer: (o: Ordre) => void) {
+  /** MAX ou TOUT, en attente de confirmation (demande d'Adrien du 20/10/2026 : pas de gros achat d'un seul doigt). */
+  private aConfirmer: Ordre | null = null
+
+  /** devis : ce que donnerait un ordre (tonnes, crédits), sans rien changer. */
+  constructor(private element: HTMLElement, private rafraichir: () => void, private commercer: (o: Ordre) => void,
+    private devis: (o: Ordre) => { tonnes: number; prix: number }) {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
       if (!b || b.disabled) return
-      if (b.dataset.sens) { this.commercer({ sens: b.dataset.sens as Ordre['sens'], marchandise: b.dataset.nomMarchandise!, tonnes: Number(b.dataset.tonnes) }); return }
-      if (b.dataset.comptoir !== undefined) this.choisi = Number(b.dataset.comptoir)
-      else if (b.dataset.ouvrir !== undefined) this.ouverte = this.ouverte === b.dataset.ouvrir ? null : b.dataset.ouvrir
+      if (b.dataset.sens) {
+        const o: Ordre = { sens: b.dataset.sens as Ordre['sens'], marchandise: b.dataset.nomMarchandise!, tonnes: Number(b.dataset.tonnes) }
+        if (o.tonnes !== Infinity) { this.commercer(o); return }
+        this.aConfirmer = o
+      } else if (b.dataset.confirmer !== undefined && this.aConfirmer) { const o = this.aConfirmer; this.aConfirmer = null; this.commercer(o); return }
+      else if (b.dataset.annuler !== undefined) this.aConfirmer = null
+      else if (b.dataset.comptoir !== undefined) { this.choisi = Number(b.dataset.comptoir); this.aConfirmer = null }
+      else if (b.dataset.ouvrir !== undefined) { this.ouverte = this.ouverte === b.dataset.ouvrir ? null : b.dataset.ouvrir; this.aConfirmer = null }
       else return
       this.rafraichir()
     })
@@ -77,6 +87,14 @@ export class VoletComptoir {
         const off = !possible || charge >= CAPACITE_SOUTE - 0.05 || etat.credits < x.achat, rien = !possible || stock <= 0
         const lot = (sens: 'acheter' | 'vendre', n: number, texte: string, desactive: boolean) =>
           `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${desactive ? ' disabled' : ''}${sens === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
+        const d = this.aConfirmer?.marchandise === nom && possible ? this.devis(this.aConfirmer) : null
+        if (d && d.tonnes > 0) {
+          const achat = this.aConfirmer!.sens === 'acheter'
+          ligne += `<div class="commerce"><div class="confirmation"><b>${achat ? 'Acheter' : 'Vendre'} ${t1(d.tonnes)} t de ${nom.toLowerCase()} ?</b>`
+            + `<div><span>${achat ? 'Pour' : 'Tu reçois'}</span><b>${d.prix.toLocaleString('fr-FR')} cr.</b></div>`
+            + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
+          return ligne + '</div>'
+        }
         ligne += '<div class="commerce">'
           + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, off)).join('')}${lot('acheter', Infinity, 'MAX', off)}</div>`
           + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, rien)).join('')}${lot('vendre', Infinity, 'TOUT', rien)}</div>`

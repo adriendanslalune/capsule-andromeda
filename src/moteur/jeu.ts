@@ -598,7 +598,7 @@ export class Jeu {
    * Achète des tonnes d'une marchandise au marché d'ici (au prix d'achat, cours + 6 %), dans la limite de la place en
    * soute et des crédits (par dixièmes de tonne). Renvoie ce qui a été acheté : tonnes et crédits payés.
    */
-  acheter(nom: string, tonnes: number, t: number): { tonnes: number; prix: number } {
+  acheter(nom: string, tonnes: number, t: number, devis = false): { tonnes: number; prix: number } {
     const m = this.marcheIci(t), f = MARCHANDISES.find((x) => x.nom === nom)
     if (!m || !f) return { tonnes: 0, prix: 0 }
     const unitaire = achatVente(cours(m, f, t)).achat
@@ -606,18 +606,21 @@ export class Jeu {
     const q = Math.floor(Math.min(tonnes, place, this.credits / unitaire) * 10 + 1e-9) / 10
     if (q <= 0) return { tonnes: 0, prix: 0 }
     const prix = Math.round(q * unitaire)
+    // Le devis (avant confirmation) : sans rien changer.
+    if (devis) return { tonnes: q, prix }
     this.credits -= prix
     this.soute[nom] = Math.round(((this.soute[nom] ?? 0) + q) * 100) / 100
     return { tonnes: q, prix }
   }
 
   /** Vend des tonnes d'une marchandise au marché d'ici (au prix de vente, cours − 6 %). Renvoie tonnes et crédits reçus. */
-  vendre(nom: string, tonnes: number, t: number): { tonnes: number; prix: number } {
+  vendre(nom: string, tonnes: number, t: number, devis = false): { tonnes: number; prix: number } {
     const m = this.marcheIci(t), f = MARCHANDISES.find((x) => x.nom === nom)
     const stock = this.soute[nom] ?? 0
     if (!m || !f || stock <= 0) return { tonnes: 0, prix: 0 }
     const q = Math.round(Math.min(tonnes, stock) * 100) / 100
     const prix = Math.round(q * achatVente(cours(m, f, t)).vente)
+    if (devis) return { tonnes: q, prix }
     this.credits += prix
     const reste = Math.round((stock - q) * 100) / 100
     if (reste > 0) this.soute[nom] = reste
