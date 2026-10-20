@@ -253,11 +253,18 @@ export class Carte2D {
     ctx.restore()
   }
 
-  /** Vue rapprochée sur la capsule autour de son astre : l'astre et la capsule à l'écran, avec un peu de marge. */
-  echelleAutourDe(astre: string, t: number): number {
-    const c = projeterCorps(astre, t), q = this.positionCapsule(t)
-    const demi = Math.max(1.8 * Math.hypot(q.x - c.x, q.y - c.y), 2.4 * rayonDessine(astre))
-    return demi / (this.largeur / 2)
+  /**
+   * Gros plan sur la capsule (demande d'Adrien du 20/10/2026 : « on doit la voir de près ») : le bord de l'astre où
+   * elle est, la capsule au centre et les engins voisins ; en plein espace, 2 millions de km autour d'elle.
+   */
+  echelleGrosPlan(astre: string, t: number): number {
+    let demi = 2e6
+    if (astre !== 'Soleil') {
+      const c = projeterCorps(astre, t), q = this.positionCapsule(t)
+      const hauteur = Math.max(0, Math.hypot(q.x - c.x, q.y - c.y) - rayonDessine(astre))
+      demi = Math.max(0.12 * rayonDessine(astre), 1.25 * hauteur)
+    }
+    return Math.max(KM_PAR_PX_MIN, demi / (this.largeur / 2))
   }
 
   /** Place de la capsule sur la carte (km de carte), hors trajet (en route, elle est sur le trajet dessiné). */

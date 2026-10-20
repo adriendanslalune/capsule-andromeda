@@ -261,10 +261,10 @@ let decalageCapsule: Point2 = { x: 0, y: 0 }
 function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
-  // Le bouton : assez près pour bien voir la capsule (demande d'Adrien du 19/10/2026), sa planète et elle ; à
-  // l'ouverture du jeu, tout le système de la planète (comme avant).
+  // Le bouton : un gros plan sur la capsule (demandes d'Adrien du 19 et du 20/10/2026) ; à l'ouverture du jeu, tout le
+  // système de la planète (comme avant).
   const k = !animer ? (ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou))
-    : ou === 'Soleil' ? 0.35 * carte.echelleGenerale() : Math.min(carte.echelleSysteme(ou), carte.echelleAutourDe(ou, t))
+    : carte.echelleGrosPlan(ou, t)
   if (animer) choisir(CAPSULE, false, k)
   else {
     // D'un coup : on place la caméra avant de choisir la capsule (le vol lancé par le choix est alors immobile).
