@@ -320,7 +320,7 @@ export class Carte2D {
   /** Le rayon du radar à l'écran (px) : là où tombe un point à sa portée, la carte n'étant pas à l'échelle partout. */
   private rayonRadar(position: Vecteur3, cap: { x: number; y: number }, portee: number, t: number): number {
     const q = this.projeterPoint({ x: position.x + portee, y: position.y, z: position.z }, t)
-    return Math.min(Math.hypot(this.largeur, this.hauteur), Math.max(40, Math.hypot(q.x - cap.x, q.y - cap.y)))
+    return Math.min(Math.hypot(this.largeur, this.hauteur), Math.hypot(q.x - cap.x, q.y - cap.y))
   }
 
   /** Le balayage du radar : un cercle de portée, et un faisceau vert qui tourne, avec sa traîne. */
@@ -541,7 +541,10 @@ export class Carte2D {
     const cap = capsuleDessinee ? this.ecranDe(capsuleDessinee)
       : this.projeterPoint(etatCap.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
     const radar = this.radar(t)
-    if (radar?.actif) this.balayage(ctx, cap, radar.angle, this.rayonRadar(etatCap.position, cap, radar.portee, t))
+    // Vu de loin, sa portée ne fait que quelques pixels : on ne le dessine pas (demande d'Adrien du 20/10/2026 : à
+    // l'échelle du système solaire, le radar ne couvre presque rien).
+    const rayonRadar = radar?.actif ? this.rayonRadar(etatCap.position, cap, radar.portee, t) : 0
+    if (radar && rayonRadar >= 12) this.balayage(ctx, cap, radar.angle, rayonRadar)
     // Engins (satellites, sondes, stations), capsules des autres, épaves et chasseurs aliens : leur silhouette, s'ils
     // se voient (radar, mission, menace). Les chasseurs d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
     const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur'))

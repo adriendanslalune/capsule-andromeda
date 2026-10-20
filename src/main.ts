@@ -26,6 +26,7 @@ import { VueEscorte } from './commun/vue-escorte'
 import { VueInvitation } from './commun/vue-invitation'
 import { VueDialogue } from './commun/vue-dialogue'
 import { htmlJournal } from './commun/volet-journal'
+import { htmlBoutique } from './commun/volet-boutique'
 import { PNJS } from './donnees/quetes'
 import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
@@ -353,6 +354,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
   if (page === 'journal') afficherJournal()
+  if (page === 'boutique') document.querySelector<HTMLElement>('#boutique')!.innerHTML = htmlBoutique()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
   (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t),

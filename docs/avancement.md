@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Divers du 20/10/2026 — **fait** : Charon, la grande lune de Pluton (`src/astro/charon.ts`, orbite réelle, phase
+  approchée, testée) ; le balayage du radar ne se dessine plus quand sa portée ne fait que quelques pixels (vues du
+  système solaire) ; vitrine de la boutique (Plus › Boutique, `src/donnees/boutique.ts`, articles grisés « BIENTÔT »).
 - Radar de la carte (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** :
   `src/moteur/radar.ts` (testé : jauge glissante de 30 s, balayage d'un tour en 4 s, écho qui s'efface en 5 s), bouton
   RADAR sous le PING (vert quand il tourne, jauge verte, rouge et grisé jauge pleine), balayage dessiné autour de la

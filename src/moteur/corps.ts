@@ -6,6 +6,7 @@
 // il demande les positions ici.
 
 import { positionLuneGeocentrique } from '../astro/lune'
+import { positionCharon, RAYON_CHARON } from '../astro/charon'
 import { positionTLEGeocentrique } from '../astro/iss'
 import { LISTE_SATELLITES, positionSatellitePlanetocentrique, type Satellite } from '../astro/satellites'
 import { twoline2satrec, type SatRec } from '../astro/sgp4'
@@ -63,6 +64,7 @@ export const CORPS: readonly Corps[] = [
   ...PLANETES.map((nom, i): Corps => ({ nom, type: 'planete', parent: null, rayon: RAYONS_PLANETES[i] })),
   { nom: 'Pluton', type: 'naine', parent: null, rayon: RAYON_PLUTON },
   { nom: 'Lune', type: 'lune', parent: 'Terre', rayon: 1737.4 },
+  { nom: 'Charon', type: 'lune', parent: 'Pluton', rayon: RAYON_CHARON },
   ...LISTE_SATELLITES.map((s): Corps => ({ nom: s.nom, type: 'lune', parent: s.planete, rayon: s.rayon ?? 0 })),
   ...[...ORBITES_TLE.keys()].map((nom): Corps => ({ nom, type: 'satellite', parent: 'Terre', rayon: 0, ...gabarit(nom) })),
   ...TRAJECTOIRES.map((t): Corps => ({ nom: t.nom, type: 'sonde', parent: null, rayon: 0, ...gabarit(t.nom) })),
@@ -221,6 +223,7 @@ function positionBot(pseudo: string, t: number): Vecteur3 | null {
 /** Position relative au parent (km), pour un astre qui a un parent. */
 export function positionRelative(nom: string, t: number): Vecteur3 {
   if (nom === 'Lune') return positionLuneGeocentrique(t + TT_MOINS_UTC_MS)
+  if (nom === 'Charon') return positionCharon(t)
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple) return positionOrbiteSimple(simple, t)
   const lune = LUNES.get(nom)
