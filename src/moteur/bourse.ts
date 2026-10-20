@@ -1,5 +1,5 @@
 // La Bourse (décisions d'Adrien du 20/10/2026). Les cours sont les mêmes pour tous : une formule du temps, imprévisible
-// mais reproductible. Pour chaque compagnie, pas à pas (toutes les 2 minutes depuis le 1er octobre 2026) :
+// mais reproductible. Pour chaque compagnie, pas à pas (toutes les minutes depuis le 1er octobre 2026 ; demande d'Adrien du 20/10/2026) :
 // - un « fond » qui dérive lentement (et revient doucement vers le cours de référence en quelques mois) ;
 // - un écart qui s'agite et revient vers le fond en un jour et demi ;
 // - les ordres des bots, qui poussent le cours (et se voient dans le fil des ordres) ;
@@ -15,8 +15,8 @@ import { COMPAGNIES, FIABILITE_RUMEURS, FRAIS_BOURSE, FRAIS_MINIMUM, RUMEURS_BAI
 
 /** Début des cours (avant : le cours de référence). */
 export const ORIGINE_BOURSE = Date.UTC(2026, 9, 1)
-/** Un pas de cours. */
-const PAS = 120_000
+/** Un pas de cours : une minute. */
+const PAS = 60_000
 const JOUR = 86_400_000
 const HEURE = 3_600_000
 const PAS_PAR_JOUR = JOUR / PAS
@@ -89,7 +89,9 @@ const calcules = COMPAGNIES.map(() => ({ fond: [0] as number[], ecart: [0] as nu
 function logCours(c: Compagnie, k: number): number {
   if (k <= 0) return 0
   const i = indice(c), s = calcules[i]
-  const pasF = c.volatilite * 0.02, pasE = c.volatilite * 0.075
+  // Les écarts d'un pas, réglés pour la même nervosité par jour quel que soit le pas (calés sur un pas de 2 minutes).
+  const echelle = Math.sqrt(PAS / 120_000)
+  const pasF = c.volatilite * 0.02 * echelle, pasE = c.volatilite * 0.075 * echelle
   for (let n = s.fond.length; n <= k; n++) {
     const t = ORIGINE_BOURSE + n * PAS
     let poussee = 0

@@ -19,6 +19,7 @@ import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { SIMULATEUR, VueCombat } from './commun/vue-combat'
 import { VueTri } from './commun/vue-tri'
+import { VueClasseur } from './commun/vue-classeur'
 import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
@@ -126,11 +127,14 @@ function nouvellePartie(): Jeu {
   j.nouvellePartie(Math.floor(Math.random() * 2 ** 31))
   return j
 }
-const jeu = chargerPartie() ?? nouvellePartie()
+const partieChargee = chargerPartie()
+const jeu = partieChargee ?? nouvellePartie()
 const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
+const plaque = () => { carte.plaqueCapsule = `${jeu.numeroSerie} · ${jeu.pseudo}` }
+plaque()
 // Ce que montre la carte (décisions d'Adrien du 20/10/2026) : d'office, les astres et les monolithes localisés ou
 // ramassés (ramassé, il reste sur la carte : demande du 18/10/2026) ; ce que vise une mission ou la quête suivie, la
 // destination choisie, et un chasseur qui tire ; tout le reste (engins, capsules des autres, aliens) seulement au
@@ -1188,6 +1192,33 @@ function courrier(): void {
   } else if (!bulleMessage.hidden && t > finBulle) bulleMessage.hidden = true
 }
 
+// Au tout début du jeu (demande d'Adrien du 20/10/2026) : la capsule a reçu son numéro ; le joueur choisit le nom de
+// son capitaine (3 à 16 caractères). Il pourra le changer plus tard dans le Profil.
+if (!partieChargee) {
+  const bienvenue = document.createElement('div')
+  bienvenue.id = 'bienvenue'
+  bienvenue.className = 'plein'
+  bienvenue.innerHTML = `<div class="carte-bienvenue"><h2 class="titre-pulp">Bienvenue à bord&nbsp;!</h2>
+    <p>Ta capsule vient de sortir des chantiers. Elle porte le numéro <b>${jeu.numeroSerie}</b>.</p>
+    <p>Quel est le nom de son capitaine&nbsp;?</p>
+    <input id="nom-capitaine" type="text" maxlength="16" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="ton nom de capitaine" />
+    <small>3 à 16 lettres, chiffres, - ou _</small>
+    <button type="button" class="principal">PRENDRE LES COMMANDES</button></div>`
+  document.body.append(bienvenue)
+  const champ = bienvenue.querySelector<HTMLInputElement>('#nom-capitaine')!
+  const valider = () => {
+    const p = champ.value.trim()
+    if (!pseudoValide(p)) { champ.classList.add('erreur'); annoncer('Nom : 3 à 16 lettres, chiffres, - ou _'); return }
+    jeu.pseudo = p
+    plaque()
+    enregistrerPartie()
+    bienvenue.remove()
+    annoncer(`Capitaine ${p}, la capsule ${jeu.numeroSerie} est à toi`)
+  }
+  bienvenue.querySelector('button')!.addEventListener('click', valider)
+  champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') valider() })
+}
+
 // Le Profil (dans « Plus ») : rempli à l'ouverture ; le pseudo se change ici.
 const pageProfil = document.querySelector<HTMLDivElement>('#profil')!
 function changerPseudo(): void {
@@ -1195,6 +1226,7 @@ function changerPseudo(): void {
   const p = champ.value.trim()
   if (!pseudoValide(p)) { annoncer('Pseudo : 3 à 16 lettres, chiffres, - ou _'); return }
   jeu.pseudo = p
+  plaque()
   enregistrerPartie()
   champ.blur()
   annoncer(`Tu t'appelles maintenant ${p}`)
@@ -1227,7 +1259,12 @@ const vueAmarrage = new VueAmarrage(document.querySelector<HTMLDivElement>('#ama
 const vueDepannage = new VueDepannage(document.querySelector<HTMLDivElement>('#depannage')!)
 const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('#remorquage')!)
 const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
-pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
+pageSoute.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir()
+  if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir()
+})
+// Le classeur des monolithes (Capsule › Soute), en plein écran.
+const vueClasseur = new VueClasseur(document.querySelector<HTMLDivElement>('#classeur')!, () => jeu.monolithes)
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const etatCommerce = () => {
   const t = horloge()
@@ -1386,7 +1423,7 @@ document.querySelector('#recommencer')!.addEventListener('click', () => {
 /** Nom et distance de la destination, pour son étiquette. */
 function infosSelection(t: number): { nom: string; distance: string } | null {
   if (!selection) return null
-  if (selection === CAPSULE) return { nom: CAPSULE, distance: 'vous êtes ici' }
+  if (selection === CAPSULE) return { nom: `Capsule ${jeu.numeroSerie}`, distance: `cap. ${jeu.pseudo} · vous êtes ici` }
   return { nom: selection, distance: texteDistance(distanceDepuisCapsule(selection, t)) }
 }
 

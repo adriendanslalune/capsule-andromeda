@@ -3,7 +3,6 @@
 // choix du joueur.
 
 import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
-import { emplacement } from '../moteur/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BOMBES, COQUE_MAX } from '../donnees/combat'
@@ -94,14 +93,11 @@ export function htmlSoute(jeu: Jeu): string {
  * de quoi s'entraider, demande d'Adrien du 18/10/2026).
  */
 function htmlMonolithes(jeu: Jeu): string {
-  const trouves = [...jeu.monolithes.trouves].sort((a, b) => a - b)
-  const f = (x: number, n: number) => x.toLocaleString('fr-FR', { minimumFractionDigits: n, maximumFractionDigits: n })
-  return `<h3>Monolithes · ${trouves.length} / ${NOMBRE_MONOLITHES}</h3><div class="bloc">`
-    + (trouves.length
-      ? '<div class="liste-monolithes">' + trouves.map((n) => { const e = emplacement(n); return `<div><b>n° ${n}</b><span>${f(e.ua, 2)} UA · ${f(e.longitude, 1)}°</span></div>` }).join('') + '</div>'
-        + '<p class="note">Emplacement : distance au Soleil et angle autour du Soleil (longitude écliptique), le même pour tous les capitaines.</p>'
-      : '<div>Aucun monolithe pour l\'instant.</div><p class="note">Le bouton PING de la carte (sous les Messages) interroge la radio : le monolithe le plus proche répond.</p>')
-    + '</div>'
+  const n = jeu.monolithes.trouves.length
+  return `<h3>Monolithes · ${n} / ${NOMBRE_MONOLITHES}</h3><div class="bloc">`
+    + (n ? '<p class="note">Chacun est rangé dans le classeur, avec son emplacement (distance au Soleil et angle autour du Soleil), le même pour tous les capitaines.</p>'
+      : '<p class="note">Aucun monolithe pour l\'instant. Le bouton PING de la carte (sous les Messages) interroge la radio : le monolithe le plus proche répond.</p>')
+    + '<div class="vers-combat"><button type="button" data-classeur>OUVRIR LE CLASSEUR</button></div></div>'
 }
 
 /**

@@ -17,6 +17,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Demandes d'Adrien du 20/10/2026 (suite) — **faites** : la Bourse avance d'un pas par minute (même nervosité par
+  jour) ; titres pulp des années 50 (police Bowlby One SC, Google Fonts) sur les volets, les écrans pleins, la fenêtre
+  du moteur, la lettre d'invitation ; au premier lancement, « Bienvenue à bord ! » : le numéro de la capsule et le choix
+  du nom du capitaine ; numéro et capitaine écrits sous la capsule (`carte.plaqueCapsule`) et dans son étiquette ;
+  classeur des monolithes (`src/commun/vue-classeur.ts`, `pageClasseur` testé dans `src/moteur/monolithes.ts`),
+  ouvert depuis Capsule › Soute, qui remplace la liste.
 - Onglet Journal (décision d'Adrien du 20/10/2026) — **fait** : l'onglet Missions devient Journal ; en haut, la quête
   suivie et le contrat en cours (chacun mène à son sous-onglet) ; sous-onglets QUÊTES (l'ancien journal de Plus, qui
   n'y est plus) et CONTRATS (l'ancien volet Missions) ; le dernier choisi est retenu. À l'écran, les missions des

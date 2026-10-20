@@ -153,3 +153,19 @@ describe('les monolithes (idée d’Adrien du 18/10/2026)', () => {
     expect(copie.monolithes).toEqual(jeu.monolithes)
   })
 })
+
+describe('le classeur des monolithes (demande d’Adrien du 20/10/2026)', () => {
+  it('des pages de 9 cases, dans l’ordre croissant ; les trouvés avec leur emplacement et leur date', async () => {
+    const { pageClasseur, PAGES_CLASSEUR, nouveauxMonolithes, emplacement } = await import('../src/moteur/monolithes')
+    const e = nouveauxMonolithes()
+    e.trouves = [3, 12]
+    e.ramassesLe = { 3: 1000, 12: 2000 }
+    expect(PAGES_CLASSEUR).toBe(112)
+    const p1 = pageClasseur(e, 1)
+    expect(p1.map((c) => c.numero)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(p1[2]).toEqual({ numero: 3, trouve: true, ...emplacement(3), le: 1000 })
+    expect(p1[0]).toEqual({ numero: 1, trouve: false })
+    expect(pageClasseur(e, 2)[2]).toMatchObject({ numero: 12, trouve: true })
+    expect(pageClasseur(e, 112).map((c) => c.numero)).toEqual([1000])
+  })
+})

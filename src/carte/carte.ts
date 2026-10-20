@@ -125,6 +125,8 @@ export class Carte2D {
   visibilite: (nom: string, t: number, angle: number) => number = () => 1
   /** Le radar s'il tourne ou si ses échos s'effacent : l'angle du balayage (radians, à l'écran) et sa portée (km). */
   radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
+  /** Ce qui est écrit sous la capsule du joueur : son numéro et le nom de son capitaine (demande d'Adrien du 20/10/2026). */
+  plaqueCapsule = ''
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -616,6 +618,20 @@ export class Carte2D {
     ctx.strokeStyle = couleurs.encre
     ctx.stroke()
     ctx.restore()
+    // Sa plaque : numéro et capitaine, en petit sous le chevron (sauf quand son étiquette est affichée).
+    if (this.plaqueCapsule && selection !== CAPSULE) {
+      ctx.save()
+      ctx.font = 'bold 9.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.lineJoin = 'round'
+      ctx.lineWidth = 3
+      ctx.strokeStyle = couleurs.fond
+      ctx.fillStyle = '#b4442f'
+      ctx.strokeText(this.plaqueCapsule, x, y + 10)
+      ctx.fillText(this.plaqueCapsule, x, y + 10)
+      ctx.restore()
+    }
 
     if (reglages.noms) this.noms(ctx, couleurs, selection)
 

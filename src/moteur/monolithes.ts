@@ -5,7 +5,7 @@
 // monolithe est alors localisé, on peut y aller et le ramasser. Un PING par heure au plus.
 // Tout est compté dans le plan de l'écliptique (celui de la carte).
 
-import { ATTENTE_PING, MONOLITHES, PALIERS, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
+import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES, PALIERS, PRECISION_ECHO, type Monolithe } from '../donnees/monolithes'
 import { C_KM_S } from './navigation'
 import { UA_KM } from './temps'
 
@@ -63,6 +63,25 @@ export function peutPinger(e: EtatMonolithes, t: number): boolean {
 export function statut(nombre: number): string | null {
   return [...PALIERS].reverse().find((p) => nombre >= p.seuil)?.titre ?? null
 }
+
+/** Une case du classeur des monolithes : son numéro, et s'il est trouvé, où il est et quand on l'a ramassé. */
+export interface CaseClasseur { numero: number; trouve: boolean; ua?: number; longitude?: number; le?: number }
+
+/** Monolithes par page du classeur (trois rangées de trois, comme un classeur de cartes à collectionner). */
+export const CASES_PAR_PAGE = 9
+
+/** Une page du classeur (numérotée à partir de 1) : les monolithes dans l'ordre croissant, trouvés ou non. */
+export function pageClasseur(e: EtatMonolithes, page: number): CaseClasseur[] {
+  const trouves = new Set(e.trouves)
+  const l: CaseClasseur[] = []
+  for (let n = (page - 1) * CASES_PAR_PAGE + 1; n <= Math.min(page * CASES_PAR_PAGE, NOMBRE_MONOLITHES); n++) {
+    l.push(trouves.has(n) ? { numero: n, trouve: true, ...emplacement(n), le: e.ramassesLe[n] } : { numero: n, trouve: false })
+  }
+  return l
+}
+
+/** Le nombre de pages du classeur. */
+export const PAGES_CLASSEUR = Math.ceil(NOMBRE_MONOLITHES / CASES_PAR_PAGE)
 
 /** Le palier suivant (null une fois Oracle). */
 export function palierSuivant(nombre: number): { seuil: number; titre: string } | null {
