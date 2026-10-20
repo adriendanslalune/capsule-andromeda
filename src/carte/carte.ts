@@ -24,7 +24,7 @@ export interface ReglagesCarte { orbites: boolean; noms: boolean }
 export interface Couleurs2D { encre: string; fond: string }
 
 /** Ce qui est dessiné à l'écran (pour le toucher et les repères). */
-interface Dessine { nom: string; x: number; y: number; r: number }
+interface Dessine { nom: string; x: number; y: number; r: number; /** Opacité (un écho du radar qui s'efface). */ alpha?: number }
 
 /** Taille minimale à l'écran (rayon, px) quand on dézoome, dans l'ordre des vraies tailles (le Soleil énorme, Mercure
  *  petite) : assez grande pour que chaque planète soit illustrée dès l'ouverture (essai demandé par Adrien le
@@ -117,8 +117,14 @@ export class Carte2D {
   pixelRatio = 2
   /** Mode nuit : encre claire sur fond bleu nuit, astres un peu assombris. */
   nuit = false
-  /** Ce qui est sur la carte (le jeu le dit : épaves vidées et chasseurs hors radar n'y sont pas). */
-  surLaCarte: (nom: string, t: number) => boolean = () => true
+  /**
+   * Ce qu'on voit d'un engin, d'une capsule, d'un alien, d'une épave ou d'un monolithe, de 0 (caché) à 1 : le jeu le dit
+   * (radar, missions, menaces ; décisions d'Adrien du 20/10/2026). `angle` : sa direction à l'écran depuis la capsule
+   * (radians), pour le balayage du radar.
+   */
+  visibilite: (nom: string, t: number, angle: number) => number = () => 1
+  /** Le radar s'il tourne ou si ses échos s'effacent : l'angle du balayage (radians, à l'écran) et sa portée (km). */
+  radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -311,6 +317,43 @@ export class Carte2D {
     return Math.hypot(a.x - b.x, a.y - b.y) < SEUIL_PNJ
   }
 
+  /** Le rayon du radar à l'écran (px) : là où tombe un point à sa portée, la carte n'étant pas à l'échelle partout. */
+  private rayonRadar(position: Vecteur3, cap: { x: number; y: number }, portee: number, t: number): number {
+    const q = this.projeterPoint({ x: position.x + portee, y: position.y, z: position.z }, t)
+    return Math.min(Math.hypot(this.largeur, this.hauteur), Math.max(40, Math.hypot(q.x - cap.x, q.y - cap.y)))
+  }
+
+  /** Le balayage du radar : un cercle de portée, et un faisceau vert qui tourne, avec sa traîne. */
+  private balayage(ctx: CanvasRenderingContext2D, c: { x: number; y: number }, angle: number, r: number): void {
+    const VERT = '95, 179, 106'
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(c.x, c.y, r, 0, 2 * Math.PI)
+    ctx.setLineDash([2, 5])
+    ctx.lineWidth = 1
+    ctx.strokeStyle = `rgba(${VERT}, 0.55)`
+    ctx.stroke()
+    ctx.setLineDash([])
+    // La traîne : un quart de tour qui s'estompe derrière le faisceau.
+    const traine = Math.PI / 2, pas = 24
+    for (let k = 0; k < pas; k++) {
+      const a0 = angle - (traine * (k + 1)) / pas, a1 = angle - (traine * k) / pas
+      ctx.beginPath()
+      ctx.moveTo(c.x, c.y)
+      ctx.arc(c.x, c.y, r, a0, a1)
+      ctx.closePath()
+      ctx.fillStyle = `rgba(${VERT}, ${0.16 * (1 - k / pas)})`
+      ctx.fill()
+    }
+    ctx.beginPath()
+    ctx.moveTo(c.x, c.y)
+    ctx.lineTo(c.x + r * Math.cos(angle), c.y + r * Math.sin(angle))
+    ctx.lineWidth = 1.5
+    ctx.strokeStyle = `rgba(${VERT}, 0.85)`
+    ctx.stroke()
+    ctx.restore()
+  }
+
   /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))
@@ -493,15 +536,23 @@ export class Carte2D {
         astre(c, q)
       }
     }
-    // Engins (satellites de la Terre, sondes), épaves et chasseurs aliens repérés : leur silhouette. Les chasseurs
-    // d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
+    // Le radar : un balayage qui tourne autour de la capsule, comme celui d'un sous-marin.
+    const etatCap = etatCapsule(t)
+    const cap = capsuleDessinee ? this.ecranDe(capsuleDessinee)
+      : this.projeterPoint(etatCap.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
+    const radar = this.radar(t)
+    if (radar?.actif) this.balayage(ctx, cap, radar.angle, this.rayonRadar(etatCap.position, cap, radar.portee, t))
+    // Engins (satellites, sondes, stations), capsules des autres, épaves et chasseurs aliens : leur silhouette, s'ils
+    // se voient (radar, mission, menace). Les chasseurs d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
     const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur'))
       .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
     for (const c of engins) {
-      if ((c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe') && !this.surLaCarte(c.nom, t)) continue
       const q = this.ecranDe(projeterCorps(c.nom, t))
-      if (!dedans(q.x, q.y) || !libre(q.x, q.y, RAYON_ENGIN)) continue
-      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN })
+      if (!dedans(q.x, q.y)) continue
+      const alpha = this.visibilite(c.nom, t, Math.atan2(q.y - cap.y, q.x - cap.x))
+      if (alpha <= 0 || !libre(q.x, q.y, RAYON_ENGIN)) continue
+      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN, alpha })
+      ctx.globalAlpha = alpha
       if (c.type === 'alien') {
         ctx.beginPath()
         ctx.arc(q.x, q.y, 15, 0, 2 * Math.PI)
@@ -511,15 +562,14 @@ export class Carte2D {
         ctx.stroke()
         ctx.setLineDash([])
       }
-      if (c.type === 'joueur') { this.capsuleJoueur(ctx, c.nom, q, t, couleurs); continue }
-      dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
+      if (c.type === 'joueur') this.capsuleJoueur(ctx, c.nom, q, t, couleurs)
+      else dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
+      ctx.globalAlpha = 1
     }
 
     // La capsule : un petit chevron cerise, dans le sens de sa marche.
-    const etat = etatCapsule(t)
     // En route : sa place sur le trajet dessiné (elle y avance à vitesse régulière, voir loupe.ts).
-    let { x, y } = capsuleDessinee ? this.ecranDe(capsuleDessinee)
-      : this.projeterPoint(etat.position, t, { p: etatCapsule(t + 60_000).position, t: t + 60_000 })
+    let { x, y } = cap
     // Vue de loin, la capsule tomberait sur le disque de son astre : on la pose juste à côté, sans le cacher.
     for (const d of this.dessines) {
       const ecart = Math.hypot(x - d.x, y - d.y)
@@ -893,8 +943,10 @@ export class Carte2D {
         if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < 144 || b.y1 > this.hauteur - 120) continue
         if (occupes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0)) continue
         occupes.push(b)
+        ctx.globalAlpha = d.alpha ?? 1
         ctx.strokeText(texte, p.x, p.y)
         ctx.fillText(texte, p.x, p.y)
+        ctx.globalAlpha = 1
         break
       }
     }

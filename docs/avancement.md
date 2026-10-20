@@ -17,6 +17,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Radar de la carte (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** :
+  `src/moteur/radar.ts` (testé : jauge glissante de 30 s, balayage d'un tour en 4 s, écho qui s'efface en 5 s), bouton
+  RADAR sous le PING (vert quand il tourne, jauge verte, rouge et grisé jauge pleine), balayage dessiné autour de la
+  capsule (`balayage` dans `carte.ts`), visibilité décidée par le jeu (`carte.visibilite` dans `main.ts`). La liste du
+  volet Navigation montre encore tous les engins (question posée à Adrien).
 - Bots (décisions d'Adrien du 20/10/2026) — **fait** : 100 bots (`BOTS` dans `src/donnees/messages.ts`), dont les
   12 bavards d'avant (`BOTS_BAVARDS` : chat, privés, rumeurs de la Bourse) et 88 figurants tirés une fois pour toutes
   (pseudo, Maison, région : 40 % autour de la Terre, puis Mars, Jupiter, Saturne, Vénus et Mercure, Uranus, Neptune ;

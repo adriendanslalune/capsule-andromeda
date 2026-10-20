@@ -31,7 +31,8 @@ import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } 
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
-import { intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { alienLa, intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { angleRadar, basculerRadar, echoRadar, EFFACEMENT_RADAR, jaugeRadar, PORTEE_RADAR } from './moteur/radar'
 import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
 import { etatBoutonPing } from './commun/radio'
@@ -129,14 +130,29 @@ const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
-// La carte ne montre que les épaves et les chasseurs visés (ou qui tirent), et les monolithes localisés ou ramassés
-// (ramassé, il reste sur la carte : demande d'Adrien du 18/10/2026).
+// Ce que montre la carte (décisions d'Adrien du 20/10/2026) : d'office, les astres et les monolithes localisés ou
+// ramassés (ramassé, il reste sur la carte : demande du 18/10/2026) ; ce que vise une mission ou la quête suivie, la
+// destination choisie, et un chasseur qui tire ; tout le reste (engins, capsules des autres, aliens) seulement au
+// passage du radar, dans sa portée, puis l'écho s'efface. Les épaves ne se montrent qu'en mission (décision du 18/10).
 let ramasses = new Set<number>()
-carte.surLaCarte = (nom, t) => {
+carte.visibilite = (nom, t, angle) => {
   const m = monolitheNomme(nom)
-  if (!m) return surLaCarte(jeu.espace, nom, t, cibles())
-  if (ramasses.size !== jeu.monolithes.trouves.length) ramasses = new Set(jeu.monolithes.trouves)
-  return ramasses.has(m.numero) || localise(jeu.monolithes, m.numero, t)
+  if (m) {
+    if (ramasses.size !== jeu.monolithes.trouves.length) ramasses = new Set(jeu.monolithes.trouves)
+    return ramasses.has(m.numero) || localise(jeu.monolithes, m.numero, t) ? 1 : 0
+  }
+  const type = corps(nom)?.type
+  if (type === 'alien' || type === 'epave') {
+    if (surLaCarte(jeu.espace, nom, t, cibles())) return 1
+    if (type === 'epave' || !alienLa(jeu.espace, nom, t)) return 0
+  } else if (cibles().includes(nom) || nom === objectifSuivi(t)) return 1
+  if (distanceDepuisCapsule(nom, t) > PORTEE_RADAR) return 0
+  return echoRadar(jeu.radar, angle, t)
+}
+carte.radar = (t) => (jeu.radar.actif ? { angle: angleRadar(jeu.radar, t), portee: PORTEE_RADAR, actif: true } : null)
+/** Le lieu de l'objectif de la quête suivie (il reste sur la carte). */
+function objectifSuivi(_t: number): string | null {
+  return jeu.queteSuivie ? objectif(jeu, quete(jeu.queteSuivie))?.lieu ?? null : null
 }
 /** Les monolithes localisés (pas encore ramassés), les plus proches d'abord. */
 function monolithesLocalises(t: number): string[] {
@@ -355,6 +371,28 @@ boutonPing.addEventListener('click', () => {
   afficherPing(t)
   annoncer('PING envoyé. On attend l\'écho…')
   navigator.vibrate?.(60)
+})
+// Le RADAR, sous le PING : on l'allume et l'éteint ; sa jauge monte pendant qu'il tourne (pleine en 30 s : il
+// s'arrête) et redescend quand il est éteint ; tant qu'elle n'est pas pleine, on peut le rallumer.
+const boutonRadar = document.querySelector<HTMLButtonElement>('#bouton-radar')!
+const chargeRadar = boutonRadar.querySelector<HTMLElement>('.charge')!
+let etatRadarAffiche = ''
+function afficherRadar(t: number): void {
+  const j = jaugeRadar(jeu.radar, t)
+  const etat = jeu.radar.actif ? 'actif' : j >= 1 ? 'plein' : 'pret'
+  const cle = `${etat}|${Math.round(j * 34)}`
+  if (cle === etatRadarAffiche) return
+  etatRadarAffiche = cle
+  boutonRadar.className = `carre ${etat}`
+  chargeRadar.style.width = `${Math.round(j * 34)}px`
+}
+boutonRadar.addEventListener('click', () => {
+  const t = horloge()
+  const avant = jeu.radar.actif
+  if (basculerRadar(jeu.radar, t)) navigator.vibrate?.(30)
+  else if (!avant) annoncer('Radar en surchauffe : attends que la jauge redescende un peu')
+  afficherRadar(t)
+  carteSale = true
 })
 /** Échos annoncés depuis l'ouverture du jeu ; un écho revenu l'application fermée s'annonce à la réouverture. */
 const echosAnnonces = new Set<number>()
@@ -1324,6 +1362,7 @@ function image(maintenant: number): void {
   suivreEchos(t)
   mettreAJourFiche(t)
   afficherPing(t)
+  afficherRadar(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherMarche(t); dernierMarche = maintenant }
@@ -1366,8 +1405,10 @@ function image(maintenant: number): void {
   }
   derniereCapsuleDessinee = capsuleDessinee
   const rendezVous = trace ? trace[trace.length - 1] : null
-  // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie).
-  const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && acceleration === 1 && maintenant - dernierDessinCarte < 100
+  // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
+  // chaque image tant que le radar tourne ou que ses échos s'effacent.
+  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR
+  const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
     dernierDessinCarte = maintenant
     carteSale = false

@@ -1320,3 +1320,16 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 /* Les bots sont marqués PNJ (décision d'Adrien du 20/10/2026) : des personnages du jeu, pas des joueurs. */
 .bulle .pnj, .annuaire .pnj { margin-left: 5px; padding: 0 4px; font-size: 8.5px; font-style: normal; font-weight: bold; letter-spacing: 0.06em;
   border: 1px solid currentColor; border-radius: 3px; opacity: 0.6; vertical-align: 1px; }
+/* Le RADAR (décisions d'Adrien du 20/10/2026) : vert quand il tourne, sa jauge monte ; grisé jauge pleine. */
+#bouton-radar .ecran { fill: #e6f2e2; }
+#bouton-radar .anneau-radar { stroke-width: 1; stroke-dasharray: 1.5 2; }
+#bouton-radar .faisceau { fill: rgba(95, 179, 106, 0.45); stroke: none; }
+#bouton-radar .trait-radar { stroke: #3f8a4f; stroke-width: 1.7; }
+#bouton-radar .blip { fill: #3f8a4f; stroke: none; }
+#bouton-radar .charge { position: absolute; left: 4px; bottom: 3px; height: 3px; width: 0; border-radius: 2px; background: #5fb36a; }
+#bouton-radar.actif { background: #cfe8c8; }
+#bouton-radar.actif svg { animation: tourner-radar 4s linear infinite; }
+#bouton-radar.plein .charge { background: #e04b37; }
+#bouton-radar.plein svg { filter: grayscale(1); opacity: 0.4; }
+@keyframes tourner-radar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #bouton-radar.actif svg { animation: none; } }
