@@ -36,6 +36,7 @@
               <button type="button" data-afficher="orbites"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse class="orbite" cx="12" cy="12" rx="9.5" ry="6"/><circle class="soleil" cx="12" cy="12" r="2"/><circle class="planete" cx="21.5" cy="12" r="1.7"/></svg><span>Orbites</span></button>
               <button type="button" data-afficher="noms"><svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="16.5" text-anchor="middle">Aa</text></svg><span>Noms</span></button>
               <button type="button" data-afficher="cercles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="9" stroke-dasharray="1.5 2.5"/><circle class="ping-point" cx="12" cy="12" r="2"/></svg><span>Pings</span></button>
+              <button type="button" data-afficher="nuit"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="lune-nuit" d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/><circle class="etoile-nuit" cx="7" cy="6" r="0.9"/><circle class="etoile-nuit" cx="4.5" cy="11" r="0.7"/></svg><span>Nuit</span></button>
             </div>
           </div>
         </div>
@@ -69,12 +70,14 @@
       <div class="page" data-contenu="marche" id="marche" hidden><div class="sous-onglets" id="onglets-marche"><button type="button" data-marche-onglet="bourse" class="actif">BOURSE</button><button type="button" data-marche-onglet="comptoir">COMPTOIR</button></div><div id="bourse"></div><div id="comptoir" hidden></div></div>
       <div class="page" data-contenu="plus" hidden>
         <button type="button" class="rubrique" data-page="messages">Messages <span class="pastille-rubrique" hidden></span>›</button>
+        <button type="button" class="rubrique" data-page="collections">Collections ›</button>
         <button type="button" class="rubrique" data-page="profil">Profil ›</button>
         <button type="button" class="rubrique" data-page="manuel">Manuel ›</button>
         <button type="button" class="rubrique" data-page="reglages">Réglages ›</button>
         <button type="button" class="rubrique" data-page="boutique">Boutique ›</button>
       </div>
       <div class="page" data-contenu="boutique" id="boutique" hidden></div>
+      <div class="page" data-contenu="collections" id="collections" hidden></div>
       <div class="page" data-contenu="reglages" id="reglages" hidden>
         <button type="button" class="retour" data-page="plus">‹ Plus</button>
         <div class="groupe">Destination :
@@ -82,7 +85,6 @@
           <label><input type="checkbox" data-reglage="etiquette" /> Étiquette (nom, distance)</label>
           <label><input type="checkbox" data-reglage="fleche" /> Flèche hors champ</label>
         </div>
-        <label><input type="checkbox" data-reglage="nuit" /> Mode nuit</label>
         <div class="groupe essais">Essais — accélérer le temps :
           <div class="choix">
             <label><input type="radio" name="acceleration" value="1" /> ×1</label>

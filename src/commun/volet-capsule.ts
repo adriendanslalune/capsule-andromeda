@@ -2,7 +2,6 @@
 // systèmes de la capsule (blocs du panneau) et leurs pannes (étape 4). Le volet affiche l'état du jeu et transmet le
 // choix du joueur.
 
-import { NOMBRE_MONOLITHES } from '../donnees/monolithes'
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BOMBES, COQUE_MAX } from '../donnees/combat'
@@ -82,23 +81,10 @@ export function htmlSoute(jeu: Jeu): string {
     + lignes.map(([m, q]) => `<div class="module"><span><b>${m}</b></span><span class="ok">${t(q)} t</span></div>`).join('')
     + (!c && !r && !lignes.length ? '<div>Soute vide.</div><p class="note">Les matériaux triés dans les épaves (missions de nettoyage) viennent ici ; ils servent au moteur, ou se vendent au Comptoir (Marché).</p>' : '')
     + '</div>'
-    + htmlMonolithes(jeu)
-    + '<div class="vers-marche"><button type="button" data-page="marche">COMPTOIR ›</button></div>'
     + '<div class="vers-combat"><button type="button" data-tri>ENTRAÎNEMENT AU TRI D\'ÉPAVE</button></div>'
     + '<p class="note-soute">Pour s\'exercer au tri des matériaux, sans conséquence pour ta capsule.</p>'
 }
 
-/**
- * Les monolithes de la cale : leur nombre, et chacun avec son numéro et son emplacement (le même pour tous les joueurs :
- * de quoi s'entraider, demande d'Adrien du 18/10/2026).
- */
-function htmlMonolithes(jeu: Jeu): string {
-  const n = jeu.monolithes.trouves.length
-  return `<h3>Monolithes · ${n} / ${NOMBRE_MONOLITHES}</h3><div class="bloc">`
-    + (n ? '<p class="note">Chacun est rangé dans le classeur, avec son emplacement (distance au Soleil et angle autour du Soleil), le même pour tous les capitaines.</p>'
-      : '<p class="note">Aucun monolithe pour l\'instant. Le bouton PING de la carte (sous les Messages) interroge la radio : le monolithe le plus proche répond.</p>')
-    + '<div class="vers-combat"><button type="button" data-classeur>OUVRIR LE CLASSEUR</button></div></div>'
-}
 
 /**
  * L'onglet ARMEMENT du volet Capsule : comment se bat la capsule (en temps réel, décision d'Adrien du 19/10/2026), son

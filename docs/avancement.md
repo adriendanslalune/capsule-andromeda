@@ -17,6 +17,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Collections, mode nuit, volets (demandes d'Adrien du 20/10/2026) — **faits** : Plus › Collections, une couverture
+  par collection (pour l'instant les monolithes : compte, jauge, statut, prochain palier, OUVRIR LE CLASSEUR ;
+  `src/commun/volet-collections.ts`) ; la soute ne parle plus des monolithes ni du comptoir ; le mode nuit passe des
+  Réglages aux calques de la carte ; tous les volets ont la même hauteur.
 - Demandes d'Adrien du 20/10/2026 (suite) — **faites** : la Bourse avance d'un pas par minute (même nervosité par
   jour) ; titres pulp des années 50 (police Bowlby One SC, Google Fonts) sur les volets, les écrans pleins, la fenêtre
   du moteur, la lettre d'invitation ; au premier lancement, « Bienvenue à bord ! » : le numéro de la capsule et le choix

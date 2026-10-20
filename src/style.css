@@ -1419,3 +1419,27 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #classeur .tourner button:disabled { opacity: 0.3; box-shadow: none; }
 #classeur input[type="range"] { width: 100%; min-height: 44px; accent-color: #7a5aa8; }
+/* Le mode nuit, en accès rapide parmi les calques de la carte (demande d'Adrien du 20/10/2026). */
+#choix-affichage .lune-nuit { fill: #3b4466; }
+#choix-affichage .etoile-nuit { fill: #f2c66a; stroke: none; }
+/* Tous les volets ont la même taille (demande d'Adrien du 20/10/2026) : le titre ne saute plus d'un onglet à l'autre. */
+#volet { height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+/* Les collections (Plus › Collections) : une couverture par collection. */
+#collections { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
+#collections .couverture { margin: 10px; padding: 14px; display: grid; grid-template-columns: 92px 1fr; gap: 10px 14px; align-items: center;
+  border: 2.5px solid var(--encre); border-radius: 12px; box-shadow: 4px 4px 0 var(--ombre);
+  background: linear-gradient(160deg, #e9e0f7 0%, var(--creme) 60%); }
+#collections .illustration { width: 92px; height: 120px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--encre);
+  border-radius: 8px; background: #d9cfb8; }
+#collections .illustration svg { height: 100px; }
+#collections svg .sol { fill: #c9b8e8; } #collections svg .pierre { fill: #2b2138; } #collections svg .reflet { fill: #5d4a7a; }
+#collections svg .glyphe { stroke: #d7cdee; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+#collections .texte-couverture { display: flex; flex-direction: column; gap: 4px; }
+#collections .titre-pulp { font-size: 22px; }
+#collections .compte { font-size: 26px; line-height: 1; } #collections .compte small { font-size: 13px; opacity: 0.7; }
+#collections .jauge-collection { height: 8px; border: 1.5px solid var(--encre); border-radius: 5px; background: var(--fond); overflow: hidden; }
+#collections .jauge-collection i { display: block; height: 100%; min-width: 2px; background: #7a5aa8; }
+#collections .couverture p, #collections .couverture button { grid-column: 1 / -1; }
+#collections .couverture p { margin: 0; font-size: 12px; opacity: 0.85; }
+#collections .couverture button { min-height: 50px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: #7a5aa8;
+  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }

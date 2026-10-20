@@ -28,6 +28,7 @@ import { VueInvitation } from './commun/vue-invitation'
 import { VueDialogue } from './commun/vue-dialogue'
 import { htmlJournal } from './commun/volet-journal'
 import { htmlBoutique } from './commun/volet-boutique'
+import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
 import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
@@ -338,14 +339,16 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
     choixAffichage.hidden = !choixAffichage.hidden
     boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
   } else if (b.dataset.afficher) {
-    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles'
+    // Les calques, et le mode nuit en accès rapide (demande d'Adrien du 20/10/2026).
+    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'
     reglages[cle] = !reglages[cle]
     memoriser()
+    if (cle === 'nuit') appliquerTheme()
     afficherChoixAffichage()
   }
 })
 function afficherChoixAffichage(): void {
-  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles'])
+  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])
 }
 afficherChoixAffichage()
 
@@ -357,6 +360,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'marche') afficherMarche(horloge())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
+  if (page === 'collections') document.querySelector<HTMLElement>('#collections')!.innerHTML = htmlCollections(jeu)
   if (page === 'boutique') document.querySelector<HTMLElement>('#boutique')!.innerHTML = htmlBoutique()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
@@ -1261,9 +1265,9 @@ const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('
 const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
 pageSoute.addEventListener('click', (e) => {
   if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir()
-  if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir()
 })
-// Le classeur des monolithes (Capsule › Soute), en plein écran.
+document.querySelector('#collections')!.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir() })
+// Le classeur des monolithes (Plus › Collections), en plein écran.
 const vueClasseur = new VueClasseur(document.querySelector<HTMLDivElement>('#classeur')!, () => jeu.monolithes)
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const etatCommerce = () => {

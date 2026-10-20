@@ -7,14 +7,14 @@
 
 import { picto, type NomSymbole } from './symboles'
 
-export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' | 'profil' | 'messages' | 'plus' | 'reglages' | 'boutique'
+export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' | 'profil' | 'messages' | 'plus' | 'reglages' | 'boutique' | 'collections'
 
 const TITRES: Record<Page, string> = {
-  navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'JOURNAL', marche: 'MARCHÉ', manuel: 'MANUEL DE MAINTENANCE', profil: 'PROFIL', messages: 'MESSAGES', plus: 'PLUS', reglages: 'RÉGLAGES', boutique: 'BOUTIQUE',
+  navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'JOURNAL', marche: 'MARCHÉ', manuel: 'MANUEL DE MAINTENANCE', profil: 'PROFIL', messages: 'MESSAGES', plus: 'PLUS', reglages: 'RÉGLAGES', boutique: 'BOUTIQUE', collections: 'COLLECTIONS',
 }
 /** Onglet allumé pour chaque page (le Manuel et les Réglages s'ouvrent depuis « Plus »). */
 const ONGLET: Record<Page, string> = {
-  navigation: 'navigation', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus',
+  navigation: 'navigation', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'plus',
 }
 
 export class Cockpit {
