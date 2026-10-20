@@ -1080,7 +1080,10 @@ const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('
 const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
-const etatCommerce = () => ({ soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(horloge())?.nom ?? null })
+const etatCommerce = () => {
+  const t = horloge()
+  return { soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(t)?.nom ?? null, enVol: mission.phase(t) === 'trajet' }
+}
 // Le Marché : acheter et vendre au marché d'ici (étape 7, décision d'Adrien du 20/10/2026).
 const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), etatCommerce()), (o) => {
   const t = horloge()

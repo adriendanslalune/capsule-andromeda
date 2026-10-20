@@ -32,6 +32,8 @@ export interface EtatCommerce {
   credits: number
   /** Le marché où l'on peut commercer (en orbite dans son système), ou null. */
   ici: string | null
+  /** La capsule est-elle en plein vol ? */
+  enVol: boolean
 }
 
 /** Un ordre du joueur : acheter ou vendre tant de tonnes (Infinity : tout ce qu'on peut). */
@@ -142,17 +144,28 @@ export class VoletMarche {
     // Acheter et vendre : seulement ici, en orbite dans le système de ce marché.
     const charge = Object.values(soute).reduce((a, b) => a + b, 0), stock = soute[f.nom] ?? 0
     const t1 = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
-    if (etat.ici === m.nom) {
-      const plein = charge >= CAPACITE_SOUTE - 0.05 || etat.credits < choisie.achat
-      const lot = (sens: 'acheter' | 'vendre', n: number, texte: string, off: boolean) =>
-        `<button type="button" data-sens="${sens}" data-tonnes="${n}"${off ? ' disabled' : ''}${sens === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
-      html += '<div class="commerce">'
-        + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, plein)).join('')}${lot('acheter', Infinity, 'MAX', plein)}</div>`
-        + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, stock <= 0)).join('')}${lot('vendre', Infinity, 'TOUT', stock <= 0)}</div>`
-        + `<p class="petit">Soute ${t1(charge)}/${CAPACITE_SOUTE} t · ${f.nom.toLowerCase()} à bord : ${stock ? `${t1(stock)} t` : 'aucun'} · ${etat.credits.toLocaleString('fr-FR')} crédits</p></div>`
+    // Les boutons sont toujours là ; grisés, avec la raison, quand on ne peut pas commercer sur ce marché.
+    const possible = etat.ici === m.nom
+    const plein = !possible || charge >= CAPACITE_SOUTE - 0.05 || etat.credits < choisie.achat
+    const rien = !possible || stock <= 0
+    const lot = (sens: 'acheter' | 'vendre', n: number, texte: string, off: boolean) =>
+      `<button type="button" data-sens="${sens}" data-tonnes="${n}"${off ? ' disabled' : ''}${sens === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
+    html += '<div class="commerce">'
+      + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, plein)).join('')}${lot('acheter', Infinity, 'MAX', plein)}</div>`
+      + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, rien)).join('')}${lot('vendre', Infinity, 'TOUT', rien)}</div>`
+    if (possible) {
+      if (charge >= CAPACITE_SOUTE - 0.05) html += '<p class="raison">Soute pleine : vends quelque chose pour faire de la place.</p>'
+      else if (etat.credits < choisie.achat) html += `<p class="raison">Pas assez de crédits : une tonne coûte ${choisie.achat} crédits. Fais des missions, ou vends ce que tu as dans la soute.</p>`
+      html += `<p class="petit">Soute ${t1(charge)}/${CAPACITE_SOUTE} t · ${f.nom.toLowerCase()} à bord : ${stock ? `${t1(stock)} t` : 'aucun'} · ${etat.credits.toLocaleString('fr-FR')} crédits</p>`
     } else {
-      html += `<p class="note">Pour acheter ou vendre au marché de ${m.nom}, mets-toi en orbite dans son système : ici, on ne fait que regarder les cours${vue.ici ? '' : ' (avec le retard de la lumière)'}.</p>`
+      const raison = etat.enVol ? 'En plein vol, pas de commerce : on achète et on vend une fois en orbite.'
+        : !etat.ici ? 'Pas de marché ici : mets-toi en orbite dans le système d\'une planète (ou de Pluton) pour commercer.'
+          : `Ta capsule est dans le système ${etat.ici === 'Terre' ? 'de la Terre' : `de ${etat.ici}`} : on n'achète et ne vend qu'à son marché. Ici, on ne fait que regarder les cours.`
+      const iciK = etat.ici ? MARCHES.findIndex((x) => x.nom === etat.ici) : -1
+      html += `<p class="raison">${raison}</p>`
+        + (iciK >= 0 ? `<button type="button" class="vers-ici" data-marche="${iciK}">MARCHÉ ${etat.ici === 'Terre' ? 'DE LA TERRE' : `DE ${etat.ici!.toUpperCase()}`} ›</button>` : '')
     }
+    html += '</div>'
     html += '</div>'
 
     // Les marchandises de ce marché : courbe des dernières 24 h, cours, variation.

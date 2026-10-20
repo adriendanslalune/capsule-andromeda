@@ -51,7 +51,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Acheter et vendre (étape 7, proposition validée par Adrien le 20/10/2026) — **fait** : on n'achète et ne vend qu'au
   marché du système où la capsule est en orbite (`marcheIci`, `acheter`, `vendre` dans `src/moteur/jeu.ts`, testés),
   au cours en direct ; achat au cours + 6 %, vente au cours − 6 % ; boutons 1 t, 5 t, MAX / TOUT (par dixièmes de
-  tonne, dans la limite de la soute de 20 t et des crédits) ; ailleurs, le volet explique qu'on ne fait que regarder.
+  tonne, dans la limite de la soute de 20 t et des crédits). Les boutons sont toujours affichés (remarque d'Adrien du
+  20/10/2026 : « je n'ai aucun bouton ») ; grisés, avec la raison : en vol, pas de marché ici, marché d'un autre
+  système (avec un raccourci vers le marché d'ici), soute pleine, pas assez de crédits.
   Spécialités des marchés (`SPECIALITES`, `src/donnees/marche.ts`) : de −30 % à +30 % selon où une marchandise se
   produit ou manque (Hélium 3 bon marché vers Jupiter et Saturne, cher vers la Terre ; Eau bon marché vers Saturne,
   Uranus et Pluton ; Titane vers Mars ; Cuivre vers Mercure et Vénus ; Ferraille et circuits anciens vers la Terre…),
