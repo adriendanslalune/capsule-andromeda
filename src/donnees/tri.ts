@@ -52,6 +52,7 @@ export const DUREE_TRI = 30_000
 /**
  * Tonnes récupérées par objet bien trié, multipliées par la série en cours (jusqu'à SERIE_MAX) : trier vite et sans
  * erreur récupère plus de matériaux. (Le tri ne rapporte plus de crédits : ce sont les matériaux qui se vendent.)
+ * Demande d'Adrien du 20/10/2026 : la soute se remplissait en 3 tris ; 0,1 t → 0,03 t (environ 2 t par tri réussi).
  */
-export const TONNES_PAR_OBJET = 0.1
+export const TONNES_PAR_OBJET = 0.03
 export const SERIE_MAX = 5
