@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <title>Maquette des symboles</title>
+    <!--
+      Proposition (demande d'Adrien du 20/10/2026) : des symboles à la place des textes qui se répètent partout
+      (crédits, soute, durée, arrivée, distance, vitesse, Maisons, types de mission, modules), pour une interface plus
+      lisible et plus aérée. Avant / après sur les écrans les plus chargés. Rien n'est branché au moteur.
+    -->
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      html, body { overflow: auto; height: auto; -webkit-user-select: text; user-select: text; }
+      body { padding: 16px 16px 60px; max-width: 430px; margin: 0 auto; font-size: 13px; line-height: 1.45; }
+      h1 { font-size: 17px; margin: 4px 0 4px; }
+      h2 { font-size: 14px; margin: 26px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--encre); }
+      p.note { opacity: 0.8; margin: 6px 0; }
+      .p { display: inline-block; width: 18px; height: 18px; vertical-align: -4px; flex: none; }
+      .p svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      .p svg * { stroke: var(--encre); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; fill: none; }
+      .p .or { fill: #f2c66a; } .p .bleu { fill: #bfe0e8; } .p .vert { fill: #bfe0c8; } .p .rose { fill: #f3c2b0; }
+      .p .mauve { fill: #d7cdee; } .p .rouge { fill: #e04b37; } .p .plein { fill: var(--encre); }
+      /* Le lexique */
+      .lexique { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+      .lexique div { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 25%, transparent); }
+      .lexique .p { width: 24px; height: 24px; }
+      /* Avant / après */
+      .etiquette { display: inline-block; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 1px 6px; border: 1.5px solid var(--encre); border-radius: 4px; margin: 10px 0 4px; }
+      .etiquette.apres { background: var(--moutarde); }
+      .cadre { background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); padding: 8px 10px; }
+      .ligne { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .val { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+      .mince { font-size: 11px; opacity: 0.75; }
+      .titre { font-weight: bold; letter-spacing: 0.5px; }
+      .sep { border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); margin: 6px 0; }
+      .bouton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 0 12px; border: 2px solid var(--encre); border-radius: 8px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); font-weight: bold; font-size: 12px; }
+      .bouton.rouge { background: #e8604a; color: #fff; }
+      .bouton .p { width: 22px; height: 22px; }
+      /* Carte de mission */
+      .tuile { width: 64px; height: 52px; border: 2px solid var(--encre); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; }
+      .tuile .p { width: 28px; height: 28px; }
+      .tuile small { font-size: 8px; font-weight: bold; letter-spacing: 0.5px; margin-top: 1px; }
+      .nettoyeurs { background: #bfe0c8; } .ingenieurs { background: #f5d38a; } .mercenaires { background: #f3c2b0; }
+      .distance i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--encre); margin-right: 2px; }
+      .distance i.on { background: var(--encre); }
+      /* Barre d'onglets */
+      .onglets { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid var(--encre); border-radius: 10px; overflow: hidden; background: var(--creme); }
+      .onglets div { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 0 4px; font-size: 9px; font-weight: bold; border-left: 1.5px solid var(--encre); }
+      .onglets div:first-child { border-left: 0; }
+      .onglets div.actif { background: var(--moutarde); }
+      .onglets .p { width: 26px; height: 26px; }
+      .onglets.avant div { padding: 14px 0; font-size: 11px; }
+      /* Modules */
+      .modules { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+      .module { border: 2px solid var(--encre); border-radius: 10px; padding: 6px 0 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--creme); position: relative; }
+      .module .p { width: 28px; height: 28px; }
+      .module small { font-size: 8px; font-weight: bold; }
+      .module b { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--encre); font-size: 10px; display: flex; align-items: center; justify-content: center; }
+      .module b.ok { background: #bfe0c8; } .module b.ko { background: #e04b37; color: #fff; }
+      .module.panne { background: color-mix(in srgb, #e04b37 14%, var(--creme)); }
+      .liste-avant div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 25%, transparent); }
+      .astre { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--encre); vertical-align: -2px; margin-right: 8px; }
+      ul.regles { padding-left: 18px; } ul.regles li { margin: 5px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Symboles : moins de texte, plus d'air</h1>
+    <p class="note">Proposition à valider. Même trait que les boutons de la carte (encre, aplats pastel). Les textes qui racontent (titres, dialogues, Manuel) restent du texte ; ce sont les <b>valeurs qui reviennent partout</b> qui passent en symboles.</p>
+
+    <h2>1. Le lexique</h2>
+    <div class="lexique" id="lexique"></div>
+
+    <h2>2. Le bandeau (en haut de la carte)</h2>
+    <span class="etiquette">AVANT</span>
+    <div class="cadre">
+      <div class="titre">EN ORBITE AUTOUR DE LA TERRE</div>
+      <div>altitude 400 km · un tour en 1 h 32 min</div>
+      <div class="sep"></div>
+      <div class="ligne" style="justify-content:space-between"><span>1 234 crédits · soute 3/20</span><span>moteur niv. 1 · 30 km/s</span></div>
+    </div>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="cadre">
+      <div class="ligne"><span class="val" data-p="orbite"></span><span class="titre">TERRE</span><span class="val mince" data-p="altitude">400 km</span><span class="val mince" data-p="tour">1 h 32</span></div>
+      <div class="sep"></div>
+      <div class="ligne" style="justify-content:space-between"><span class="val" data-p="credits"><b>1 234</b></span><span class="val" data-p="soute">3/20 t</span><span class="val" data-p="moteur">niv. 1</span><span class="val" data-p="vitesse">30 km/s</span></div>
+    </div>
+
+    <h2>3. La fiche du trajet</h2>
+    <span class="etiquette">AVANT</span>
+    <div class="cadre ligne" style="flex-wrap:nowrap">
+      <div style="flex:1"><b>LUNE</b> · trajet 3 h 41 min<br>arrivée le 20 octobre 2026 à 12:27<br>· pointe 30 / 30 km/s</div>
+      <span class="bouton rouge">DÉPART</span>
+    </div>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="cadre ligne" style="flex-wrap:nowrap">
+      <div style="flex:1">
+        <div class="titre" style="font-size:15px">LUNE</div>
+        <div class="ligne" style="margin-top:3px"><span class="val" data-p="duree">3 h 41</span><span class="val" data-p="arrivee">12:27</span><span class="val" data-p="vitesse">30/30</span></div>
+      </div>
+      <span class="bouton rouge"><span class="p" data-p="depart"></span>DÉPART</span>
+    </div>
+    <p class="note">La date n'apparaît que si l'arrivée n'est pas aujourd'hui (« demain 03:10 », « 24/10 18:00 »).</p>
+
+    <h2>4. Une mission</h2>
+    <span class="etiquette">AVANT</span>
+    <div class="cadre">
+      <div class="ligne" style="justify-content:space-between"><span><span class="etiquette" style="margin:0;background:#bfe0c8;font-size:9px">NETTOYEURS</span> VIDER <span class="mince">(proche)</span></span><b>80 cr.</b></div>
+      <b>Vider l'épave Vanguard 1</b><div class="mince">à bord : poste de tri</div>
+      <div class="ligne" style="justify-content:space-between;margin-top:4px"><span><b>trajet 6 min</b><br><span class="mince">à 4 650 km</span></span><span><span class="bouton">VOIR</span> <span class="bouton">ACCEPTER</span></span></div>
+    </div>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="cadre ligne" style="flex-wrap:nowrap;align-items:flex-start">
+      <div class="tuile nettoyeurs"><span class="p" data-p="vider"></span><small>VIDER</small></div>
+      <div style="flex:1;min-width:0">
+        <div class="ligne" style="justify-content:space-between;flex-wrap:nowrap"><b>Épave Vanguard 1</b><span class="val" data-p="credits"><b>80</b></span></div>
+        <div class="ligne mince" style="margin-top:2px"><span class="val" data-p="duree">6 min</span><span class="val distance"><i class="on"></i><i></i><i></i></span></div>
+        <div class="ligne" style="justify-content:flex-end;margin-top:6px"><span class="bouton"><span class="p" data-p="voir"></span></span><span class="bouton">ACCEPTER</span></div>
+      </div>
+    </div>
+    <p class="note">La couleur de la tuile dit la Maison, le dessin dit le type. Les points ●○○ : proche, mi-distance, lointaine. Le poste de la capsule (« poste de tri ») passe dans la fiche VOIR.</p>
+    <div class="cadre" style="margin-top:8px">
+      <div style="display:grid;grid-template-columns:repeat(3,64px);gap:10px;justify-content:space-around">
+        <div class="tuile nettoyeurs"><span class="p" data-p="vider"></span><small>VIDER</small></div>
+        <div class="tuile nettoyeurs"><span class="p" data-p="remorquer"></span><small>REMORQUER</small></div>
+        <div class="tuile ingenieurs"><span class="p" data-p="reparer"></span><small>RÉPARER</small></div>
+        <div class="tuile ingenieurs"><span class="p" data-p="amarrer"></span><small>AMARRER</small></div>
+        <div class="tuile mercenaires"><span class="p" data-p="abattre"></span><small>ABATTRE</small></div>
+        <div class="tuile mercenaires"><span class="p" data-p="escorter"></span><small>ESCORTER</small></div>
+      </div>
+    </div>
+
+    <h2>5. La barre d'onglets</h2>
+    <span class="etiquette">AVANT</span>
+    <div class="onglets avant"><div>Navigation</div><div>Capsule</div><div class="actif">Missions</div><div>Marché</div><div>Plus</div></div>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="onglets"><div><span class="p" data-p="nav"></span>Navig.</div><div><span class="p" data-p="capsule"></span>Capsule</div><div class="actif"><span class="p" data-p="missions"></span>Missions</div><div><span class="p" data-p="marche"></span>Marché</div><div><span class="p" data-p="plus"></span>Plus</div></div>
+    <p class="note">Je garde un petit mot sous chaque symbole : sur 5 onglets, c'est ce qui évite de chercher.</p>
+
+    <h2>6. Les modules de la capsule</h2>
+    <span class="etiquette">AVANT</span>
+    <div class="cadre liste-avant">
+      <div><span><b>Moteur</b><br><span class="mince">en état</span></span>✓</div>
+      <div><span><b>Navigation</b><br><span class="mince">en état</span></span>✓</div>
+      <div><span><b>Communications</b><br><span class="mince">en panne</span></span>!</div>
+      <div><span><b>Énergie</b><br><span class="mince">en état</span></span>✓</div>
+      <div style="border:0"><span><b>Coque</b><br><span class="mince">en état</span></span>✓</div>
+    </div>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="modules">
+      <div class="module"><span class="p" data-p="moteur"></span><small>MOTEUR</small><b class="ok">✓</b></div>
+      <div class="module"><span class="p" data-p="navigation"></span><small>NAVIG.</small><b class="ok">✓</b></div>
+      <div class="module panne"><span class="p" data-p="comms"></span><small>COMMS</small><b class="ko">!</b></div>
+      <div class="module"><span class="p" data-p="energie"></span><small>ÉNERGIE</small><b class="ok">✓</b></div>
+      <div class="module"><span class="p" data-p="coque"></span><small>COQUE</small><b class="ok">✓</b></div>
+    </div>
+    <p class="note">Toucher un module en panne ouvre directement le panneau de réparation à son bloc. Les mêmes symboles servent dans le bandeau : <span class="val" data-p="panne"><span class="p" data-p="comms"></span> en panne</span>.</p>
+
+    <h2>7. La liste des astres (Navigation)</h2>
+    <span class="etiquette apres">APRÈS</span>
+    <div class="cadre liste-avant">
+      <div><span><span class="astre" style="background:#f2c66a"></span>Soleil</span><span class="val" data-p="distance">0,996 UA</span></div>
+      <div><span><span class="astre" style="background:#8fd0dc"></span>Terre</span><span class="val" data-p="distance">6 770 km</span></div>
+      <div style="border:0"><span><span class="astre" style="background:#f3a08b"></span>Mars</span><span class="ligne" style="gap:12px"><span class="val" data-p="distance">1,52 UA</span><span class="val mince" data-p="lunes">2</span></span></div>
+    </div>
+
+    <h2>Les règles que je propose</h2>
+    <ul class="regles">
+      <li>Un symbole = toujours la même chose, partout (bandeau, volets, fiches, Manuel).</li>
+      <li>Les valeurs restent écrites en chiffres à côté : le symbole remplace le <i>mot</i>, jamais le nombre.</li>
+      <li>Appui long sur un symbole : son nom s'affiche une seconde (pour apprendre sans lire le Manuel).</li>
+      <li>Le Manuel gagne une page « Symboles » (le lexique ci-dessus), imprimable comme le reste.</li>
+      <li>Pas d'emoji : ils changent d'un téléphone à l'autre et cassent le style Moebius. Tout est dessiné.</li>
+    </ul>
+
+    <script>
+      // Les symboles (24 × 24, trait d'encre, aplats pastel), dans le même esprit que les boutons de la carte.
+      const P = {
+        credits: ['Crédits', '<circle class="or" cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 9.2l.9 1.9 2 .2-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.2z" class="plein"/>'],
+        soute: ['Soute', '<path class="bleu" d="M4 9h16v10.5H4z"/><path d="M4 9l2.5-4h11L20 9M9.5 12.5h5"/>'],
+        moteur: ['Moteur', '<path class="mauve" d="M8 3.5h8v6l2.5 4.5h-13L8 9.5z"/><path class="or" d="M8.5 14c0 3 1.7 5.5 3.5 7 1.8-1.5 3.5-4 3.5-7z"/>'],
+        vitesse: ['Vitesse', '<path d="M4 7l5 5-5 5M10.5 7l5 5-5 5M17 7l3 5-3 5"/>'],
+        duree: ['Durée du trajet', '<path class="or" d="M8 6h8c0 4-4 4.5-4 6s4 2 4 6H8c0-4 4-4.5 4-6s-4-2-4-6z"/><path d="M6 3.5h12M6 20.5h12"/>'],
+        arrivee: ['Heure d\'arrivée', '<path d="M6 21V3.5"/><path class="rouge" d="M6 4h12l-3 3.5 3 3.5H6"/>'],
+        distance: ['Distance', '<path d="M3 12h18M3 8v8M21 8v8M7.5 12v-2M12 12V9M16.5 12v-2"/>'],
+        orbite: ['En orbite', '<ellipse cx="12" cy="12" rx="9.5" ry="5" stroke-dasharray="2 2"/><circle class="bleu" cx="12" cy="12" r="4"/><path class="rouge" d="M20 10.6l1.8 1.2-1.8 1.2z"/>'],
+        altitude: ['Altitude', '<path d="M12 20V5M8 8.5 12 4.5l4 4"/><path d="M4 20.5h16"/>'],
+        tour: ['Un tour d\'orbite', '<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M18 3.5v3.5h-3.5"/>'],
+        depart: ['Départ', '<path class="or" d="M19 12 5 5l4 7-4 7z"/>'],
+        voir: ['Voir', '<path class="bleu" d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="plein" cx="12" cy="12" r="2.8"/>'],
+        lunes: ['Lunes', '<circle class="mauve" cx="10" cy="12" r="5.5"/><circle class="plein" cx="19" cy="8" r="1.6"/><circle cx="18.5" cy="17" r="1.3"/>'],
+        // Types de mission
+        vider: ['VIDER (épave)', '<path d="M5 8h14l-1.5 11h-11z" class="vert"/><path d="M3.5 8h17M9.5 8V5.5h5V8M10 12l2-2 2 2M12 10v6"/>'],
+        remorquer: ['REMORQUER', '<path class="vert" d="M14 14l5 5 2-2-5-5z"/><path d="M14 14 9 9M9 9c-1-1-3-1.5-4 0s0 3 1 3.5M9 9c1 1 1.5 3 0 4s-3 0-3.5-1"/><path d="M3 3l4 4" stroke-dasharray="1.5 1.5"/>'],
+        reparer: ['RÉPARER', '<path class="or" d="M14.5 3.5a5 5 0 0 0-5 6.5l-6 6 4 4 6-6a5 5 0 0 0 6.5-5L17 12l-4.5-1.5L11 6z"/>'],
+        amarrer: ['AMARRER', '<path class="or" d="M14 5h6.5v14H14z"/><path d="M3 12h8M8 8.5 11.5 12 8 15.5"/><path d="M14 9.5h-2v5h2"/>'],
+        abattre: ['ABATTRE', '<circle class="rose" cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/>'],
+        escorter: ['ESCORTER', '<path class="rose" d="M12 3 19.5 6v5.5c0 5-3.5 8-7.5 9.5-4-1.5-7.5-4.5-7.5-9.5V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'],
+        // Onglets
+        nav: ['Navigation', '<circle class="bleu" cx="12" cy="12" r="9"/><path class="rouge" d="M12 4.5l2.2 7.5h-4.4z"/><path d="M12 19.5l2.2-7.5h-4.4z"/>'],
+        capsule: ['Capsule', '<path class="or" d="M5 15.5C5 9 9 4 12 3c3 1 7 6 7 12.5z"/><path d="M5 15.5l-1.5 4h17l-1.5-4"/><circle class="bleu" cx="12" cy="10" r="2.2"/>'],
+        missions: ['Missions', '<path class="creme" d="M6 3.5h12v17H6z" style="fill:#faf2dc"/><path d="M9 3.5V2h6v1.5M9 9h6M9 12.5h6M9 16h4"/>'],
+        marche: ['Marché', '<path d="M3.5 20.5h17M3.5 3.5v17"/><path class="rouge" style="fill:none;stroke:#e04b37" d="M6 15l4-4 3 2.5 6-7"/><path d="M16 6.5h3v3"/>'],
+        plus: ['Plus', '<circle class="plein" cx="5.5" cy="12" r="1.8"/><circle class="plein" cx="12" cy="12" r="1.8"/><circle class="plein" cx="18.5" cy="12" r="1.8"/>'],
+        // Modules
+        navigation: ['Module Navigation', '<circle class="bleu" cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path class="rouge" d="M9 15l2-5 4-1-2 5z"/>'],
+        comms: ['Communications', '<path d="M12 21V11M8.5 21h7"/><circle class="or" cx="12" cy="9.5" r="2"/><path d="M7.5 5a6.5 6.5 0 0 0 0 9M16.5 5a6.5 6.5 0 0 1 0 9"/>'],
+        energie: ['Énergie', '<path class="or" d="M13.5 2.5 5 13.5h6l-1.5 8 8.5-11h-6z"/>'],
+        coque: ['Coque', '<path class="mauve" d="M4 6.5h16v11H4z"/><circle class="plein" cx="7" cy="9.5" r="0.9"/><circle class="plein" cx="17" cy="9.5" r="0.9"/><circle class="plein" cx="7" cy="14.5" r="0.9"/><circle class="plein" cx="17" cy="14.5" r="0.9"/>'],
+        panne: ['Panne', '<path class="rouge" d="M12 3.5 21 19.5H3z"/><path style="stroke:#fff" d="M12 9.5v4.5M12 16.8v.2"/>'],
+        missile: ['Missile en approche', '<path class="rose" d="M4 20 15 9l2.5-5 2.5 2.5-5 2.5L4 20z"/><path d="M8 13l-3-.5M11 16l.5 3"/>'],
+        principale: ['Quête principale', '<path class="or" d="M12 3.5 19.5 12 12 20.5 4.5 12z"/>'],
+        secondaire: ['Quête secondaire', '<circle cx="12" cy="12" r="7.5" style="fill:#8fbfe0"/>'],
+        monolithe: ['Monolithe', '<path class="mauve" d="M9 3.5h6v17H9z"/><path d="M6 20.5h12"/>'],
+      }
+      const svg = (k) => `<span class="p"><svg viewBox="0 0 24 24">${P[k][1]}</svg></span>`
+      const lex = ['credits', 'soute', 'moteur', 'vitesse', 'duree', 'arrivee', 'distance', 'orbite', 'altitude', 'tour', 'lunes', 'voir',
+        'vider', 'remorquer', 'reparer', 'amarrer', 'abattre', 'escorter',
+        'navigation', 'comms', 'energie', 'coque', 'panne', 'missile', 'principale', 'secondaire', 'monolithe']
+      document.getElementById('lexique').innerHTML = lex.map((k) => `<div>${svg(k)}<span>${P[k][0]}</span></div>`).join('')
+      // Les .val reçoivent leur symbole devant leur texte ; les .p vides deviennent le symbole.
+      for (const el of document.querySelectorAll('[data-p]')) {
+        const k = el.dataset.p
+        if (el.classList.contains('p')) el.outerHTML = svg(k)
+        else if (el.classList.contains('val') && !el.querySelector('.p')) el.insertAdjacentHTML('afterbegin', svg(k))
+      }
+    </script>
+  </body>
+</html>
