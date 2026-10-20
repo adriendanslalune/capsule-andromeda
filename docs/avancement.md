@@ -10,7 +10,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 4. Pannes et manuel | **fait** : les quinze modules du panneau sont raccordés (détail ci-dessous), en attente des essais d'Adrien |
 | 5. Nettoyeurs | **fait** (VIDER et REMORQUER ; le largage à la station reste une attente) |
 | 6. Combat | **fait**, ABATTRE en temps réel validé le 19/10/2026 (amélioration de l'armement plus tard) |
-| 7. Commerce (Marché ouvert à tous) | **en cours** : écrans du Marché faits (voir ci-dessous) |
+| 7. Commerce (Marché ouvert à tous) | **fait** (20/10/2026) : acheter et vendre, spécialités des marchés ; en attente des essais d'Adrien |
 | 8. Maisons | **appartenance faite**, validée le 19/10/2026 (lettre d'invitation) ; avantages entre membres plus tard |
 | 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | à faire, à définir avec Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
@@ -48,6 +48,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   la carte (en attendant le serveur, celles des 12 bots des Messages : corps de type « joueur » en orbite autour de
   leur astre, `src/moteur/corps.ts` ; chevron aux couleurs de leur Maison ; la fiche dit « capitaine des … » et leur
   statut ; Y ALLER possible).
+- Acheter et vendre (étape 7, proposition validée par Adrien le 20/10/2026) — **fait** : on n'achète et ne vend qu'au
+  marché du système où la capsule est en orbite (`marcheIci`, `acheter`, `vendre` dans `src/moteur/jeu.ts`, testés),
+  au cours en direct ; achat au cours + 6 %, vente au cours − 6 % ; boutons 1 t, 5 t, MAX / TOUT (par dixièmes de
+  tonne, dans la limite de la soute de 20 t et des crédits) ; ailleurs, le volet explique qu'on ne fait que regarder.
+  Spécialités des marchés (`SPECIALITES`, `src/donnees/marche.ts`) : de −30 % à +30 % selon où une marchandise se
+  produit ou manque (Hélium 3 bon marché vers Jupiter et Saturne, cher vers la Terre ; Eau bon marché vers Saturne,
+  Uranus et Pluton ; Titane vers Mars ; Cuivre vers Mercure et Vénus ; Ferraille et circuits anciens vers la Terre…),
+  plus ±5 % propres à chaque marché (au lieu de ±25 % au hasard).
 - Les bots voyagent (demande d'Adrien du 19/10/2026) — **fait** : chacun a ses escales (port d'attache, puis 1 à 4
   autres lieux de sa région, `escales` dans `src/donnees/messages.ts`) et un moteur (120 à 15 360 km/s) ; il reste 4 à
   30 h en orbite à une escale, puis vole vers une autre (profil 10 g, en ligne droite vers le rendez-vous). Tout se

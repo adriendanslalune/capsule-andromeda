@@ -1,9 +1,10 @@
-// Le Marché vu depuis la capsule (étape 7, écrans d'abord) : un marché par système, dont les cours arrivent avec le
-// délai de la lumière depuis sa planète. Formule du temps PROVISOIRE (à régler avec Adrien à l'étape 7) : autour d'un
-// prix propre à chaque marché (±25 % du prix de base), des ondulations de périodes différentes (de quelques jours à
-// quelques minutes), décalées pour chaque marché et chaque marchandise. Reproductible : même instant, même cours.
+// Le Marché vu depuis la capsule (étape 7) : un marché par système, dont les cours arrivent avec le délai de la lumière
+// depuis sa planète. Formule du temps : autour d'un prix propre à chaque marché (le prix de base, ses spécialités de
+// −30 % à +30 %, et ±5 % propres au marché), des ondulations de périodes différentes (de quelques jours à quelques
+// minutes), décalées pour chaque marché et chaque marchandise. Reproductible : même instant, même cours, pour tous.
+// On n'achète et ne vend qu'au marché du système où la capsule est en orbite, au cours en direct (voir jeu.ts).
 
-import { MARCHANDISES, MARCHES, MARGE, type FicheMarchandise, type FicheMarche } from '../donnees/marche'
+import { MARCHANDISES, MARCHES, MARGE, SPECIALITES, type FicheMarchandise, type FicheMarche } from '../donnees/marche'
 import { etatCapsule } from './capsule'
 import { astreDominant } from './corps'
 import { C_KM_S, distanceDepuisCapsule } from './navigation'
@@ -33,7 +34,7 @@ const ONDES: readonly [number, number][] = [[4.3 * 24 * HEURE, 0.14], [19 * HEUR
 /** Le cours (crédits la tonne) d'une marchandise sur un marché, à l'instant t. */
 export function cours(m: FicheMarche, f: FicheMarchandise, t: number): number {
   const cle = `${m.nom}/${f.nom}`
-  const base = f.prix * (0.75 + 0.5 * hachage(cle))
+  const base = f.prix * (SPECIALITES[m.nom]?.[f.nom] ?? 1) * (0.95 + 0.1 * hachage(cle))
   const onde = ONDES.reduce((s, [p, a], k) => s + a * Math.sin((2 * Math.PI * t) / p + 2 * Math.PI * hachage(`${cle}/${k}`)), 0)
   return base * (1 + onde)
 }

@@ -30,6 +30,26 @@ export const MARCHANDISES: readonly FicheMarchandise[] = [
   { nom: 'Hélium 3', prix: 300 },
 ]
 
+/**
+ * Les spécialités des marchés (proposition validée par Adrien le 20/10/2026) : une marchandise est moins chère là où
+ * elle se produit, plus chère là où elle manque (de −30 % à +30 % autour du prix de base). C'est ce qui fait des routes
+ * commerciales rentables : acheter l'Hélium 3 vers Jupiter, le revendre vers la Terre…
+ */
+export const SPECIALITES: Readonly<Record<string, Readonly<Record<string, number>>>> = {
+  Mercure: { Cuivre: 0.7, Verre: 0.75, Eau: 1.3 },
+  Vénus: { Cuivre: 0.8, Verre: 0.75, Eau: 1.3 },
+  Terre: { Ferraille: 0.7, 'Circuits anciens': 0.7, Titane: 1.15, 'Hélium 3': 1.3 },
+  Mars: { Titane: 0.7, Verre: 1.2, Eau: 1.2, 'Hélium 3': 1.2 },
+  Jupiter: { 'Hélium 3': 0.7, Titane: 1.25, Verre: 1.2 },
+  Saturne: { Eau: 0.7, 'Hélium 3': 0.75, Cuivre: 1.25, 'Circuits anciens': 1.2 },
+  Uranus: { Eau: 0.75, Cuivre: 1.3 },
+  Neptune: { Ferraille: 1.3, 'Circuits anciens': 1.3 },
+  Pluton: { Eau: 0.7, Ferraille: 1.3, 'Circuits anciens': 1.3 },
+}
+
+/** Ce qu'on achète ou vend d'un coup (tonnes) ; « tout » vient en plus. */
+export const LOTS: readonly number[] = [1, 5]
+
 /** Capacité de la soute (tonnes ; la maquette validée le 18/10/2026 montre 20). */
 export const CAPACITE_SOUTE = 20
 /** Écart entre le prix d'achat et le prix de vente, autour du cours (le marché garde sa marge). */

@@ -2,9 +2,10 @@
 // avec l'âge de ses cours (délai de la lumière depuis sa planète jusqu'à la capsule) ; pour la marchandise choisie, un
 // graphique de cours façon trading, qui s'arrête là où s'arrête ce qu'on sait : la fin, hachurée, est « en route » (la
 // lumière n'est pas encore arrivée) ; puis toutes les marchandises du marché, avec leur courbe des dernières 24 h.
-// Le doigt posé sur le graphique lit le cours à un instant. Acheter et vendre viendront avec le commerce.
+// Le doigt posé sur le graphique lit le cours à un instant. Acheter et vendre (décision d'Adrien du 20/10/2026) : au
+// marché du système où la capsule est en orbite seulement, par 1 t, 5 t ou tout ; ailleurs, on regarde les cours.
 
-import { MARCHANDISES, MARCHES } from '../donnees/marche'
+import { CAPACITE_SOUTE, LOTS, MARCHANDISES, MARCHES } from '../donnees/marche'
 import { historique, marcheDeLaCapsule, vueMarche } from '../moteur/marche'
 
 /** Âge des cours, lisible : « 1,3 s », « 12 min 48 s », « 4 h 05 min ». */
@@ -25,6 +26,17 @@ const prix = (c: number) => c.toLocaleString('fr-FR', { maximumFractionDigits: c
 const pourcent = (v: number) => `${v >= 0 ? '▲' : '▼'} ${Math.abs(v * 100).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`
 const heure = (t: number, jours: boolean) => new Date(t).toLocaleString('fr-FR', jours ? { day: '2-digit', month: '2-digit' } : { hour: '2-digit', minute: '2-digit' })
 
+/** Ce que le volet doit savoir de la capsule pour le commerce. */
+export interface EtatCommerce {
+  soute: Record<string, number>
+  credits: number
+  /** Le marché où l'on peut commercer (en orbite dans son système), ou null. */
+  ici: string | null
+}
+
+/** Un ordre du joueur : acheter ou vendre tant de tonnes (Infinity : tout ce qu'on peut). */
+export type Ordre = { sens: 'acheter' | 'vendre'; marchandise: string; tonnes: number }
+
 export class VoletMarche {
   private dernier = ''
   /** Marché choisi (son numéro dans MARCHES), ou null : celui du système de la capsule (sinon la Terre). */
@@ -36,10 +48,14 @@ export class VoletMarche {
   /** Points du graphique affiché (pour la lecture au doigt). */
   private points: { t: number; cours: number; x: number; y: number }[] = []
 
-  constructor(private element: HTMLElement, private rafraichir: () => void) {
+  constructor(private element: HTMLElement, private rafraichir: () => void, private commercer: (o: Ordre) => void) {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
-      if (!b) return
+      if (!b || b.disabled) return
+      if (b.dataset.sens) {
+        this.commercer({ sens: b.dataset.sens as Ordre['sens'], marchandise: MARCHANDISES[this.marchandise].nom, tonnes: Number(b.dataset.tonnes) })
+        return
+      }
       if (b.dataset.marche !== undefined) this.choisi = Number(b.dataset.marche)
       else if (b.dataset.marchandise !== undefined) this.marchandise = Number(b.dataset.marchandise)
       else if (b.dataset.periode !== undefined) this.periode = Number(b.dataset.periode)
@@ -62,7 +78,8 @@ export class VoletMarche {
     for (const fin of ['pointerup', 'pointercancel', 'pointerleave']) element.addEventListener(fin, () => { this.curseur = null; this.dessinerCurseur() })
   }
 
-  afficher(t: number, soute: Record<string, number>): void {
+  afficher(t: number, etat: EtatCommerce): void {
+    const soute = etat.soute
     const ici = marcheDeLaCapsule(t)
     const k = this.choisi ?? (ici ? MARCHES.indexOf(ici) : 2)
     const vues = MARCHES.map((m) => vueMarche(m, t))
@@ -121,8 +138,22 @@ export class VoletMarche {
     svg += '<g class="curseur"></g></svg>'
     html += `<div class="bloc graphe">${svg}<div class="periodes">`
       + PERIODES.map((q, i) => `<button type="button" data-periode="${i}"${i === this.periode ? ' class="actif"' : ''}>${q.nom}</button>`).join('')
-      + `</div><div class="achat-vente"><span>achat <b>${choisie.achat}</b> · vente <b>${choisie.vente}</b></span>`
-      + '<button type="button" disabled>ACHETER</button><button type="button" class="principal" disabled>VENDRE</button></div></div>'
+      + `</div><div class="achat-vente"><span>achat <b>${choisie.achat}</b> · vente <b>${choisie.vente}</b> <small>cr. la tonne</small></span></div>`
+    // Acheter et vendre : seulement ici, en orbite dans le système de ce marché.
+    const charge = Object.values(soute).reduce((a, b) => a + b, 0), stock = soute[f.nom] ?? 0
+    const t1 = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+    if (etat.ici === m.nom) {
+      const plein = charge >= CAPACITE_SOUTE - 0.05 || etat.credits < choisie.achat
+      const lot = (sens: 'acheter' | 'vendre', n: number, texte: string, off: boolean) =>
+        `<button type="button" data-sens="${sens}" data-tonnes="${n}"${off ? ' disabled' : ''}${sens === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
+      html += '<div class="commerce">'
+        + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, plein)).join('')}${lot('acheter', Infinity, 'MAX', plein)}</div>`
+        + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, stock <= 0)).join('')}${lot('vendre', Infinity, 'TOUT', stock <= 0)}</div>`
+        + `<p class="petit">Soute ${t1(charge)}/${CAPACITE_SOUTE} t · ${f.nom.toLowerCase()} à bord : ${stock ? `${t1(stock)} t` : 'aucun'} · ${etat.credits.toLocaleString('fr-FR')} crédits</p></div>`
+    } else {
+      html += `<p class="note">Pour acheter ou vendre au marché de ${m.nom}, mets-toi en orbite dans son système : ici, on ne fait que regarder les cours${vue.ici ? '' : ' (avec le retard de la lumière)'}.</p>`
+    }
+    html += '</div>'
 
     // Les marchandises de ce marché : courbe des dernières 24 h, cours, variation.
     html += '<h3>Marchandises</h3><div class="liste-cours">' + vue.marchandises.map((x, i) => {
@@ -134,7 +165,7 @@ export class VoletMarche {
         + `<svg class="mini" viewBox="0 0 70 22"><polyline points="${pts}"/></svg>`
         + `<span class="valeur">${prix(x.cours)}<small class="${x.variation >= 0 ? 'hausse' : 'baisse'}">${pourcent(x.variation)}</small></span></button>`
     }).join('') + '</div>'
-    html += '<p class="note">Formule des cours provisoire, en crédits la tonne. Acheter et vendre viendront avec le commerce (étape 7).</p>'
+    html += '<p class="note">Cours en crédits la tonne. On achète au cours + 6 %, on vend au cours − 6 % ; chaque système a ses spécialités, moins chères là où elles se produisent.</p>'
 
     if (html === this.dernier) return
     const rangee = this.element.querySelector('.places')?.scrollLeft ?? 0

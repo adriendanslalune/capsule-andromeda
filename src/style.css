@@ -706,6 +706,14 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #marche .achat-vente button.principal { color: #fff; background: #d9694f; }
 #marche .achat-vente button:disabled { opacity: 0.35; box-shadow: none; }
+#marche .commerce { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+#marche .ligne-commerce { display: flex; align-items: center; gap: 6px; }
+#marche .ligne-commerce span { flex: 1; font-size: 11px; font-weight: bold; letter-spacing: 0.08em; }
+#marche .ligne-commerce button { min-height: 44px; min-width: 56px; padding: 0 10px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#marche .ligne-commerce button.principal { color: #fff; background: #d9694f; }
+#marche .ligne-commerce button:disabled { opacity: 0.35; box-shadow: none; }
+#marche .commerce .petit { margin: 0; font-size: 11px; opacity: 0.75; }
 #marche h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 14px 4px; opacity: 0.6; }
 #marche .liste-cours { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }
 #marche .liste-cours button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 4px 12px; font: inherit;

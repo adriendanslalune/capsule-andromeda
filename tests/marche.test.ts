@@ -4,6 +4,7 @@ import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
 import { achatVente, cours, delaiLumiere, historique, vueMarche } from '../src/moteur/marche'
+import { planifier } from '../src/moteur/mission'
 import { maisonDuContrat } from '../src/donnees/maisons'
 
 const t0 = Date.UTC(2026, 9, 18, 12)
@@ -36,8 +37,9 @@ describe('le Marché', () => {
     for (const mm of MARCHES) for (const ff of MARCHANDISES) {
       for (let k = 0; k < 50; k++) {
         const c = cours(mm, ff, t0 + k * 7_777_777)
-        expect(c).toBeGreaterThan(0.5 * ff.prix)
-        expect(c).toBeLessThan(1.6 * ff.prix)
+        // Spécialités (−30 % à +30 %), ±5 % propres au marché, ondulations (±29 % au plus).
+        expect(c).toBeGreaterThan(0.45 * ff.prix)
+        expect(c).toBeLessThan(1.8 * ff.prix)
       }
     }
     expect(cours(MARCHES[0], f, t0)).not.toBeCloseTo(cours(MARCHES[5], f, t0), 1)
@@ -70,5 +72,61 @@ describe('Maison du joueur', () => {
     const b = membre.proposes.find((c) => maisonDuContrat(c) === 'nettoyeurs')!
     expect(b.etapes).toEqual(a.etapes)
     expect(b.recompense).toBe(Math.round((a.recompense * 1.25) / 10) * 10)
+  })
+
+  it('les spécialités font des routes rentables : l’Hélium 3 acheté vers Jupiter se revend bien plus cher vers la Terre', () => {
+    const jupiter = MARCHES.find((x) => x.nom === 'Jupiter')!, terre = MARCHES.find((x) => x.nom === 'Terre')!
+    const he3 = MARCHANDISES.find((x) => x.nom === 'Hélium 3')!
+    let gagnant = 0
+    for (let k = 0; k < 100; k++) {
+      const t = t0 + k * 3 * 3_600_000
+      if (achatVente(cours(terre, he3, t)).vente > achatVente(cours(jupiter, he3, t)).achat) gagnant++
+    }
+    expect(gagnant).toBeGreaterThan(80)
+  })
+})
+
+describe('acheter et vendre (étape 7, décision d’Adrien du 20/10/2026)', () => {
+  it('seulement en orbite dans un système qui a un marché, au cours en direct, dans la limite de la soute et des crédits', () => {
+    const jeu = new Jeu()
+    expect(jeu.marcheIci(t0)?.nom).toBe('Terre')
+    jeu.credits = 1000
+    const f = MARCHANDISES.find((x) => x.nom === 'Cuivre')!
+    const unitaire = achatVente(cours(jeu.marcheIci(t0)!, f, t0)).achat
+    const a = jeu.acheter('Cuivre', 5, t0)
+    expect(a.tonnes).toBe(5)
+    expect(a.prix).toBe(Math.round(5 * unitaire))
+    expect(jeu.credits).toBe(1000 - a.prix)
+    expect(jeu.soute.Cuivre).toBe(5)
+    // Pas assez de crédits : on achète ce qu'on peut payer (par dixièmes de tonne).
+    jeu.credits = Math.round(2.55 * unitaire)
+    expect(jeu.acheter('Cuivre', 5, t0).tonnes).toBe(2.5)
+    // La soute (20 t) limite aussi.
+    jeu.credits = 1e9
+    expect(jeu.acheter('Ferraille', 100, t0).tonnes).toBeCloseTo(20 - 7.5, 5)
+    expect(jeu.chargeSoute()).toBeCloseTo(20, 5)
+    expect(jeu.acheter('Eau', 1, t0).tonnes).toBe(0)
+  })
+
+  it('vendre rapporte le prix de vente (moins que l’achat) ; tout vendre vide la place', () => {
+    const jeu = new Jeu()
+    jeu.soute = { Titane: 3.4 }
+    const avant = jeu.credits
+    const v = jeu.vendre('Titane', 99, t0)
+    expect(v.tonnes).toBe(3.4)
+    expect(jeu.credits - avant).toBe(v.prix)
+    expect(jeu.soute.Titane).toBeUndefined()
+    expect(jeu.vendre('Titane', 1, t0).tonnes).toBe(0)
+  })
+
+  it('en plein vol, pas de commerce', () => {
+    const jeu = new Jeu()
+    const p = planifier(jeu.mission.etatHeliocentrique(t0), 'Mars', t0, jeu.vitesse())
+    if (!p.possible) throw new Error('impossible')
+    jeu.mission.partir(p.plan)
+    const t = t0 + 3600_000
+    expect(jeu.marcheIci(t)).toBeNull()
+    jeu.credits = 1000
+    expect(jeu.acheter('Cuivre', 1, t).tonnes).toBe(0)
   })
 })

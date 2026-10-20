@@ -9,7 +9,8 @@
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/combat'
-import { CAPACITE_SOUTE } from '../donnees/marche'
+import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
+import { achatVente, cours, marcheDeLaCapsule } from './marche'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
@@ -522,6 +523,45 @@ export class Jeu {
   /** Facteur de zone de la mission en cours (son système : 1 pour la Terre … 60 pour Pluton). */
   zoneEnCours(): number {
     return ZONES[this.enCours?.contrat.tableau ?? 'Terre'] ?? 1
+  }
+
+  /**
+   * Le marché où la capsule peut commercer à l'instant t : celui du système où elle est en orbite (pas en plein vol),
+   * ou null. On y achète et vend au cours en direct.
+   */
+  marcheIci(t: number): FicheMarche | null {
+    return this.mission.phase(t) === 'orbite' ? marcheDeLaCapsule(t) : null
+  }
+
+  /**
+   * Achète des tonnes d'une marchandise au marché d'ici (au prix d'achat, cours + 6 %), dans la limite de la place en
+   * soute et des crédits (par dixièmes de tonne). Renvoie ce qui a été acheté : tonnes et crédits payés.
+   */
+  acheter(nom: string, tonnes: number, t: number): { tonnes: number; prix: number } {
+    const m = this.marcheIci(t), f = MARCHANDISES.find((x) => x.nom === nom)
+    if (!m || !f) return { tonnes: 0, prix: 0 }
+    const unitaire = achatVente(cours(m, f, t)).achat
+    const place = CAPACITE_SOUTE - this.chargeSoute()
+    const q = Math.floor(Math.min(tonnes, place, this.credits / unitaire) * 10 + 1e-9) / 10
+    if (q <= 0) return { tonnes: 0, prix: 0 }
+    const prix = Math.round(q * unitaire)
+    this.credits -= prix
+    this.soute[nom] = Math.round(((this.soute[nom] ?? 0) + q) * 100) / 100
+    return { tonnes: q, prix }
+  }
+
+  /** Vend des tonnes d'une marchandise au marché d'ici (au prix de vente, cours − 6 %). Renvoie tonnes et crédits reçus. */
+  vendre(nom: string, tonnes: number, t: number): { tonnes: number; prix: number } {
+    const m = this.marcheIci(t), f = MARCHANDISES.find((x) => x.nom === nom)
+    const stock = this.soute[nom] ?? 0
+    if (!m || !f || stock <= 0) return { tonnes: 0, prix: 0 }
+    const q = Math.round(Math.min(tonnes, stock) * 100) / 100
+    const prix = Math.round(q * achatVente(cours(m, f, t)).vente)
+    this.credits += prix
+    const reste = Math.round((stock - q) * 100) / 100
+    if (reste > 0) this.soute[nom] = reste
+    else delete this.soute[nom]
+    return { tonnes: q, prix }
   }
 
   /** Tonnes dans la soute. */

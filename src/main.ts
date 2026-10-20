@@ -317,7 +317,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'navigation') cadran.afficher(selection)
   if (page === 'missions') { voletMissions.revenirIci(); voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge())) }
   if (page === 'capsule') voletCapsule.afficher(jeu)
-  if (page === 'marche') voletMarche.afficher(horloge(), jeu.soute)
+  if (page === 'marche') voletMarche.afficher(horloge(), etatCommerce())
   if (page === 'profil') pageProfil.innerHTML = htmlProfil(jeu)
   if (page === 'messages') voletMessages.afficher(Date.now(), true)
 })
@@ -1080,7 +1080,19 @@ const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('
 const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
 pageSoute.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir() })
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
-const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), jeu.soute))
+const etatCommerce = () => ({ soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(horloge())?.nom ?? null })
+// Le Marché : acheter et vendre au marché d'ici (étape 7, décision d'Adrien du 20/10/2026).
+const voletMarche = new VoletMarche(document.querySelector<HTMLDivElement>('#marche')!, () => voletMarche.afficher(horloge(), etatCommerce()), (o) => {
+  const t = horloge()
+  const r = o.sens === 'acheter' ? jeu.acheter(o.marchandise, o.tonnes, t) : jeu.vendre(o.marchandise, o.tonnes, t)
+  if (!r.tonnes) { annoncer(o.sens === 'acheter' ? 'Achat impossible : soute pleine ou pas assez de crédits' : 'Rien à vendre'); return }
+  const q = r.tonnes.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+  annoncer(o.sens === 'acheter' ? `Acheté ${q} t de ${o.marchandise.toLowerCase()} pour ${r.prix.toLocaleString('fr-FR')} crédits`
+    : `Vendu ${q} t de ${o.marchandise.toLowerCase()} pour ${r.prix.toLocaleString('fr-FR')} crédits`)
+  navigator.vibrate?.(30)
+  enregistrerPartie()
+  voletMarche.afficher(t, etatCommerce())
+})
 for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.addEventListener('click', () => choisirSousOnglet(b.dataset.sous as SousOnglet))
 /** Ouvre le panneau de réparation, sur le premier module en défaut (du bloc donné, sinon de tous). */
 function montrerReparation(bloc?: NomModule): void {
@@ -1184,7 +1196,7 @@ function image(maintenant: number): void {
   afficherPing(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { voletMissions.afficher(jeu, t, vitesse(), maintenant, lieuIci(t)); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
-  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, jeu.soute); dernierMarche = maintenant }
+  if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { voletMarche.afficher(t, etatCommerce()); dernierMarche = maintenant }
   if (maintenant - dernierCourrier > 1000) { courrier(); dernierCourrier = maintenant }
   // Aperçu d'une mission : ses trajets, recalculés une fois par seconde (les lieux bougent).
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
