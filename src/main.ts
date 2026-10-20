@@ -87,7 +87,7 @@ import { astreDominant, corps } from './moteur/corps'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import type { Contrat } from './moteur/contrats'
-import { avancement, planifier, vitesseDePointe, type Plan, type Planification } from './moteur/mission'
+import { avancement, planifier, vitesseDePointe, vitesseEnVol, type Plan, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
@@ -437,6 +437,39 @@ const vueRadio = new VueRadio(document.querySelector<HTMLDivElement>('#radio')!,
 })
 document.querySelector('#bouton-radio')!.addEventListener('click', () => vueRadio.ouvrir())
 document.querySelector('#radio [data-fermer]')!.addEventListener('click', () => enregistrerPartie())
+// Le cadran de vitesse (demande d'Adrien du 20/10/2026), en bas à droite de la carte : la vitesse de la capsule en
+// temps réel, de 0 à la vitesse max de son moteur, et la phase du vol (accélère, croisière, freine, en orbite).
+const cadranVitesse = document.querySelector<HTMLElement>('#cadran-vitesse')!
+const ARC_CADRAN = { debut: -210, fin: 30 }
+const pointCadran = (a: number, r: number) => ({ x: 50 + r * Math.cos((a * Math.PI) / 180), y: 54 + r * Math.sin((a * Math.PI) / 180) })
+{
+  let g = ''
+  for (let k = 0; k <= 10; k++) {
+    const a = ARC_CADRAN.debut + ((ARC_CADRAN.fin - ARC_CADRAN.debut) * k) / 10, p = pointCadran(a, 38), q = pointCadran(a, k % 5 ? 33 : 30)
+    g += `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}"/>`
+  }
+  cadranVitesse.querySelector('.graduations')!.innerHTML = g
+}
+let cadranAffiche = ''
+function afficherCadranVitesse(t: number): void {
+  const plan = mission.phase(t) === 'trajet' ? mission.plan : null
+  const v = plan ? vitesseEnVol(plan, t) : null
+  const max = plan ? plan.vitesse : vitesse()
+  const kms = v?.vitesse ?? 0
+  const phase = !v ? 'EN ORBITE' : v.phase === 'accelere' ? 'ACCÉLÈRE' : v.phase === 'freine' ? 'FREINE' : v.phase === 'croisiere' ? 'CROISIÈRE' : 'ARRIVÉE'
+  const texte = kms < 10 ? kms.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : Math.round(kms).toLocaleString('fr-FR')
+  const a = ARC_CADRAN.debut + (ARC_CADRAN.fin - ARC_CADRAN.debut) * Math.min(1, kms / max)
+  const cle = `${texte}|${phase}|${a.toFixed(1)}`
+  if (cle === cadranAffiche) return
+  cadranAffiche = cle
+  cadranVitesse.querySelector('.aiguille-vitesse')!.setAttribute('transform', `rotate(${(a + 90).toFixed(1)} 50 54)`)
+  cadranVitesse.querySelector('.valeur-vitesse')!.textContent = `${texte} km/s`
+  cadranVitesse.querySelector('.phase-vitesse')!.textContent = phase
+  cadranVitesse.dataset.phase = v?.phase ?? 'orbite'
+  // L'arc de la phase : de 0 à la vitesse actuelle, vert à l'accélération, moutarde en croisière, cerise au freinage.
+  const p0 = pointCadran(ARC_CADRAN.debut, 38), p1 = pointCadran(a, 38)
+  cadranVitesse.querySelector('.phase-cadran')!.setAttribute('d', kms > 0 ? `M${p0.x.toFixed(1)} ${p0.y.toFixed(1)}A38 38 0 ${a - ARC_CADRAN.debut > 180 ? 1 : 0} 1 ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}` : '')
+}
 /** Échos annoncés depuis l'ouverture du jeu ; un écho revenu l'application fermée s'annonce à la réouverture. */
 const echosAnnonces = new Set<number>()
 function suivreEchos(t: number): void {
@@ -1485,6 +1518,7 @@ function image(maintenant: number): void {
   afficherPing(t)
   afficherRadar(t)
   vueRadio.afficher()
+  afficherCadranVitesse(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
   if (cockpit.pageOuverte === 'marche' && maintenant - dernierMarche > 1000) { afficherMarche(t); dernierMarche = maintenant }

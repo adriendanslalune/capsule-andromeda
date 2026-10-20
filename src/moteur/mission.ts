@@ -214,6 +214,20 @@ export function avancement(p: Plan, t: number): number {
   return (v * ta / 2 + v * (s - ta)) / L
 }
 
+/**
+ * Vitesse de la capsule à l'instant t sur son trajet (km/s) et la phase du vol (demande d'Adrien du 20/10/2026 : un
+ * cadran de vitesse sur la carte) : elle accélère à 10 g, garde sa vitesse de pointe, puis freine à 10 g.
+ */
+export function vitesseEnVol(p: Plan, t: number): { vitesse: number; pointe: number; phase: 'accelere' | 'croisiere' | 'freine' | 'arrivee' } {
+  const T = (p.arrivee - p.depart) / 1000, s = (t - p.depart) / 1000
+  const v = vitesseDePointe(Math.max(0, T), p.vitesse), ta = v / ACCELERATION
+  if (T <= 0 || s >= T) return { vitesse: 0, pointe: v, phase: 'arrivee' }
+  const x = Math.max(0, s)
+  if (x < ta) return { vitesse: ACCELERATION * x, pointe: v, phase: 'accelere' }
+  if (x > T - ta) return { vitesse: ACCELERATION * (T - x), pointe: v, phase: 'freine' }
+  return { vitesse: v, pointe: v, phase: 'croisiere' }
+}
+
 /** Point situé à la part f (0 à 1) de la longueur d'une ligne brisée. */
 export function pointSurLigne(q: Vecteur3[], f: number): Vecteur3 {
   let reste = f * longueur(q)

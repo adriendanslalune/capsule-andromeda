@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Cadran de vitesse (demande d'Adrien du 20/10/2026) — **fait** : `vitesseEnVol` dans `src/moteur/mission.ts` (testé),
+  cadran rond en bas à droite de la carte (`#cadran-vitesse`, `afficherCadranVitesse` dans `main.ts`).
 - Radio, Voix perdues (décisions d'Adrien du 20/10/2026) — **fait, en attente des essais d'Adrien** : données
   `src/donnees/radio.ts` (150 voix, horaires 30 min / 6 h, premier jet des 15 textes de la Terre et de la Lune),
   moteur `src/moteur/radio.ts` (fréquences, émission, netteté, enregistrement en 10 s ; testé, sauvegardé), poste TSF
