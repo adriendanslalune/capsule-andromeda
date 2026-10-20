@@ -7,6 +7,8 @@
 
 import { CORPS, enfants, type Corps } from '../moteur/corps'
 import { distanceDepuisCapsule, texteDistance } from '../moteur/navigation'
+import { avec } from '../commun/symboles'
+import { couleurAstre } from './couleurs'
 
 const PLANETES = ['Soleil', 'Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton']
 
@@ -42,10 +44,11 @@ export class Cadran {
     const lunes = c.type === 'planete' || c.type === 'naine' ? enfants(c.nom).filter((e) => e.type === 'lune') : []
     const choisie = c.nom === this.selection ? ' choisie' : ''
     const deplier = lunes.length
-      ? `<button type="button" class="deplier" data-deplier="${c.nom}">${this.ouvertes.has(c.nom) ? '▾' : '▸'} ${lunes.length} lune${lunes.length > 1 ? 's' : ''}</button>`
+      ? `<button type="button" class="deplier" data-deplier="${c.nom}" aria-label="${lunes.length} lunes">${avec('lunes', `${lunes.length} ${this.ouvertes.has(c.nom) ? '▾' : '▸'}`)}</button>`
       : ''
     return `<div class="ligne${retrait ? ' retrait' : ''}${choisie}"><button type="button" class="astre" data-nom="${c.nom}">`
-      + `<span class="nom">${c.nom}</span><span class="distance">${texteDistance(distanceDepuisCapsule(c.nom, t))}</span>`
+      + `<span class="nom">${c.type === 'planete' || c.type === 'naine' || c.type === 'lune' || c.type === 'etoile' ? `<i class="pastille-astre" style="background:${couleurAstre(c)}"></i>` : ''}${c.nom}</span>`
+      + `<span class="distance">${avec('distance', texteDistance(distanceDepuisCapsule(c.nom, t)))}</span>`
       + `</button>${deplier}</div>`
   }
 

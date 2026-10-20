@@ -17,6 +17,16 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Symboles de l'interface (décision d'Adrien du 20/10/2026, d'après `maquette-symboles.html`) — **fait, en attente
+  des essais d'Adrien** : les mots qui reviennent partout deviennent des symboles dessinés (`src/commun/symboles.ts`,
+  trait d'encre et aplats pastel ; la valeur reste écrite à côté). Bandeau (en orbite, en route, pied : crédits, soute,
+  moteur, vitesse), fiche du trajet (durée, heure d'arrivée sans la date si c'est aujourd'hui, vitesse de pointe / max),
+  barre d'onglets (symbole et petit mot), cartes de mission (tuile aux couleurs de la Maison avec le dessin du type,
+  poste de la capsule gardé à la demande d'Adrien, durée, portée en points ●○○, VOIR devient un œil), volet Capsule
+  (moteur en symboles, les cinq modules en tuiles avec une pastille ; toucher un module en panne ouvre le panneau),
+  liste des astres (pastille de couleur, distance, lunes). Appui long sur un symbole : son nom s'affiche. Le Manuel
+  gagne la section 7 « Symboles du cockpit ».
+
 - Profil de vol et moteur (décisions d'Adrien du 19/10/2026) — **fait, en attente des essais d'Adrien** : la capsule
   accélère à 10 g jusqu'à la vitesse max de son moteur, la garde, puis freine à 10 g (`dureeTrajet`, `vitesseDePointe`,
   `avancement` dans `src/moteur/mission.ts`, testés) ; trajet court : on freine avant d'atteindre la vitesse max

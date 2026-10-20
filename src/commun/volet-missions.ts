@@ -10,6 +10,7 @@ import { texteDuree, texteRestant } from './textes'
 import { MAISONS, maisonDuContrat, titreMaison, type Maison } from '../donnees/maisons'
 import { TABLEAUX } from '../donnees/tableaux'
 import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat, POSTES } from './textes-missions'
+import { avec, picto, SYMBOLE_GENRE } from './symboles'
 
 export interface ChoixMissions {
   accepter(id: number): void
@@ -32,14 +33,19 @@ function lireFiltre(): Maison | null {
   } catch { return null }
 }
 
-/** L'étiquette de la Maison d'une mission (aux couleurs de la Maison). */
-function etiquette(c: Contrat): string {
-  const m = maisonDuContrat(c)
-  return `<span class="maison maison-${m}">${titreMaison(m)}</span>`
+/** La portée d'une mission dans son système, en points (●○○ proche, ●●○ mi-distance, ●●● lointaine). */
+const PORTEES = { proche: 1, moyenne: 2, lointaine: 3 } as const
+const NOMS_PORTEES = { proche: 'proche', moyenne: 'à mi-distance', lointaine: 'lointaine' } as const
+function portee(c: Contrat): string {
+  if (!c.portee) return ''
+  const n = PORTEES[c.portee]
+  return `<span class="val portee" data-symbole="Mission ${NOMS_PORTEES[c.portee]} dans son système">${[1, 2, 3].map((k) => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span>`
 }
 
-/** La portée d'une mission dans son système, en un mot (sur sa carte). */
-const PORTEES_COURTES = { proche: 'proche', moyenne: 'mi-distance', lointaine: 'lointaine' } as const
+/** La tuile du type de mission : la couleur de sa Maison, le dessin et le nom de son type. */
+function tuile(c: Contrat): string {
+  return `<div class="tuile-type maison-${maisonDuContrat(c)}" data-symbole="Maison des ${titreMaison(maisonDuContrat(c)).toLowerCase()}">${picto(SYMBOLE_GENRE[c.genre])}<small>${GENRES_COURTS[c.genre]}</small></div>`
+}
 
 export class VoletMissions {
   private dernier = ''
@@ -115,8 +121,8 @@ export class VoletMissions {
           : jeu.surPlace(t)
           ? `<button type="button" class="principal" data-choix="agir">${VERBES[e.action]}</button>`
           : `<button type="button" class="principal" data-choix="aller" data-lieu="${e.lieu}">Y ALLER</button><span class="consigne">${consigne(e)} · ${texteDistance(distanceDepuisCapsule(e.lieu, t))}</span>`
-      html += `<h3>Mission en cours</h3><div class="contrat en-cours">${etiquette(ec.contrat)}<div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${ec.contrat.recompense} cr.</span></div>`
-        + `<ol>${etapes}</ol><div class="actions">${bouton}</div>`
+      html += `<h3>Mission en cours</h3><div class="contrat en-cours"><div class="carte-mission">${tuile(ec.contrat)}<div class="corps-mission"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${avec('credits', String(ec.contrat.recompense))}</span></div>`
+        + `${avec('poste', POSTES[ec.contrat.genre], 'poste')}</div></div><ol>${etapes}</ol><div class="actions">${bouton}</div>`
         + `<button type="button" class="abandon" data-choix="abandonner">Abandonner la mission</button></div>`
     }
     // Missions proposées : de la plus proche à la plus lointaine en temps de trajet (demande d'Adrien, 17/10/2026).
@@ -132,11 +138,12 @@ export class VoletMissions {
     const triees = choisies.map((c) => ({ c, d: this.duree(jeu, c, t, vitesse, maintenant) }))
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))
     for (const { c, d } of triees) {
-      const trajet = d === null ? 'hors de portée' : d === 0 ? 'sur place' : `trajet ${texteDuree(d)}`
-      html += `<div class="contrat"><div class="titre"><span>${etiquette(c)} <span class="genre">${GENRES_COURTS[c.genre]}</span>${c.portee ? ` <span class="portee">${PORTEES_COURTES[c.portee]}</span>` : ''}</span><span class="prix">${c.recompense} cr.</span></div>`
-        + `<b>${titreContrat(c)}</b><small class="poste">à bord : ${POSTES[c.genre]}</small><div class="pied"><span><b>${trajet}</b><br>à ${texteDistance(distanceDepuisCapsule(c.etapes[0].lieu, t))}</span>`
-        + `<span class="boutons"><button type="button" data-choix="voir" data-id="${c.id}">VOIR</button>`
-        + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></span></div></div>`
+      const trajet = d === null ? 'hors de portée' : d === 0 ? 'sur place' : texteDuree(d)
+      html += `<div class="contrat"><div class="carte-mission">${tuile(c)}<div class="corps-mission">`
+        + `<div class="titre"><b>${titreContrat(c)}</b><span class="prix">${avec('credits', String(c.recompense))}</span></div>`
+        + `${avec('poste', POSTES[c.genre], 'poste')}<div class="vals">${avec('duree', trajet)}${portee(c)}</div>`
+        + `<div class="boutons"><button type="button" data-choix="voir" data-id="${c.id}" aria-label="Voir sur la carte">${picto('voir')}</button>`
+        + `<button type="button" data-choix="accepter" data-id="${c.id}"${ec ? ' disabled' : ''}>ACCEPTER</button></div></div></div></div>`
     }
     if (ec) html += '<p class="note">Une seule mission à la fois : termine ou abandonne celle en cours.</p>'
     if (html === this.dernier) return

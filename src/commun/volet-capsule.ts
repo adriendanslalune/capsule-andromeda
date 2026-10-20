@@ -8,6 +8,7 @@ import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
 import { BOMBES, COQUE_MAX } from '../donnees/combat'
 import type { Jeu } from '../moteur/jeu'
+import { avec, picto, SYMBOLE_MODULE } from './symboles'
 
 export class VoletCapsule {
   private dernier = ''
@@ -26,26 +27,29 @@ export class VoletCapsule {
     const m = jeu.moteur(), suivant = jeu.moteurSuivant()
     const nombre = (n: number) => n.toLocaleString('fr-FR')
     const panne = jeu.enPanne('moteur') ? ` <span class="panne">· EN PANNE : ${nombre(jeu.vitesse())} km/s</span>` : ''
-    let html = `<h3>Moteur</h3><div class="bloc"><b>Niveau ${m.niveau}</b> · vitesse max ${nombre(m.vitesse)} km/s${panne}`
+    let html = `<h3>Moteur</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${m.niveau}`)}</b>${avec('vitesse', `${nombre(m.vitesse)} km/s max`)}</div>${panne}`
       + '<div class="manque">Accélération et freinage à 10 g : sur les trajets courts, la capsule n\'a pas le temps d\'atteindre sa vitesse max.</div></div>'
     if (suivant) {
       const manque = suivant.prix - jeu.credits
-      html += `<h3>Moteur suivant</h3><div class="bloc"><div><b>Niveau ${suivant.niveau}</b> · vitesse max ${nombre(suivant.vitesse)} km/s`
-        + ` (×${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}) : les longs trajets raccourcissent</div>`
-        + `<div class="achat"><span class="prix">${nombre(suivant.prix)} crédits</span>`
+      html += `<h3>Moteur suivant</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${suivant.niveau}`)}</b>${avec('vitesse', `${nombre(suivant.vitesse)} km/s max`)}`
+        + `<span>(×${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })})</span></div>`
+        + `<div class="achat"><span class="prix">${avec('credits', nombre(suivant.prix))}</span>`
         + `<button type="button" data-choix="acheter"${manque > 0 ? ' disabled' : ''}>ACHETER</button></div>`
         + (manque > 0 ? `<div class="manque">Il manque ${nombre(manque)} crédit${manque > 1 ? 's' : ''} : fais des missions.</div>` : '')
         + '</div>'
     } else html += '<div class="bloc">Ton moteur est au niveau le plus haut.</div>'
     // Systèmes : en état ou en panne ; ils se réparent tous sur le panneau, avec le manuel (le bouton RÉPARER ne sert
     // plus qu'à un bloc en panne sans module en défaut, ce qui n'arrive plus).
-    html += '<h3>Modules</h3><div class="bloc modules">' + MODULES.map((f) => {
+    // Les cinq modules en tuiles (décision d'Adrien du 20/10/2026) : une pastille dit leur état ; toucher un module en
+    // panne ouvre le panneau de réparation à son bloc. Sous les tuiles, l'effet de chaque panne.
+    const pannes = MODULES.filter((f) => jeu.enPanne(f.nom))
+    html += '<h3>Modules</h3><div class="bloc"><div class="tuiles-modules">' + MODULES.map((f) => {
       const panne = jeu.enPanne(f.nom)
-      const action = !panne ? '<span class="ok">✓</span>'
-        : !jeu.reparationProvisoire(f.nom) ? `<button type="button" data-choix="panneau" data-module="${f.nom}">PANNEAU</button>`
-          : `<button type="button" data-choix="reparer" data-module="${f.nom}">RÉPARER</button>`
-      return `<div class="module${panne ? ' en-panne' : ''}"><span><b>${f.titre}</b><br><small>${panne ? `EN PANNE : ${f.effet}` : 'en état'}</small></span>${action}</div>`
-    }).join('') + '<p class="note">Les cinq blocs se réparent sur le panneau (onglet RÉPARATION), avec le manuel.</p></div>'
+      const choix = !panne ? '' : ` data-choix="${jeu.reparationProvisoire(f.nom) ? 'reparer' : 'panneau'}" data-module="${f.nom}"`
+      return `<button type="button" class="tuile-module${panne ? ' en-panne' : ''}"${choix}>${picto(SYMBOLE_MODULE[f.nom])}${f.titre === 'Communications' ? 'COMMS' : f.titre === 'Navigation' ? 'NAVIG.' : f.titre.toUpperCase()}<b>${panne ? '!' : '✓'}</b></button>`
+    }).join('') + '</div>'
+      + pannes.map((f) => `<div class="effet-panne">${picto('panne')} <b>${f.titre}</b> : ${f.effet}</div>`).join('')
+      + `<p class="note">${pannes.length ? 'Touche un module en panne pour le réparer sur le panneau, avec le manuel.' : 'Tous les modules sont en état.'}</p></div>`
     if (html !== this.dernier) this.element.innerHTML = this.dernier = html
   }
 }

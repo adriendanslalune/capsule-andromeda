@@ -3,11 +3,16 @@
 import { MODULES } from '../donnees/modules'
 import type { LigneBandeau } from '../moteur/bandeau'
 import { texteDistance } from '../moteur/navigation'
-import { autourDe, texteDateCourte, texteDuree, texteRestant } from './textes'
+import { texteArrivee, texteDuree, texteRestant } from './textes'
+import { picto, type NomSymbole } from './symboles'
 import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes } from './textes-missions'
 
-/** Titre et détail d'une ligne : « EN ROUTE VERS MARS », « arrivée demain à 07:10 · dans 19 h 20 min ». */
-export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string } {
+/**
+ * Titre et détail d'une ligne : « PANNE : MOTEUR », « vitesse divisée par 2 · à réparer (Capsule) ». Les lignes calmes
+ * (en orbite, en route) ont un symbole devant le titre et leurs valeurs en symboles (décision d'Adrien du 20/10/2026) :
+ * « (orbite) TERRE », « (altitude) 400 km (tour) 1 h 32 min ».
+ */
+export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail: string; symbole?: NomSymbole; valeurs?: [NomSymbole, string][] } {
   if (l.genre === 'missile') {
     const s = Math.ceil(l.reste / 1000)
     return {
@@ -33,7 +38,7 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
     }
   }
   if (l.genre === 'trajet') {
-    return { titre: `EN ROUTE VERS ${l.cible.toUpperCase()}`, detail: `arrivée ${texteDateCourte(l.arrivee, t)} · dans ${texteRestant(l.reste)}` }
+    return { titre: l.cible.toUpperCase(), detail: '', symbole: 'route', valeurs: [['arrivee', texteArrivee(l.arrivee, t)], ['duree', texteRestant(l.reste)]] }
   }
   if (l.genre === 'contrat') {
     const n = l.contrat.etapes.length > 1 ? ` (étape ${l.numero + 1}/${l.contrat.etapes.length})` : ''
@@ -44,9 +49,9 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
     const lieu = l.contrat.etapes[l.contrat.etapes.length - 1].lieu
     return { titre: `MISSION : ${GENRES_COURTS[l.contrat.genre]} · ${lieu.toUpperCase()}`, detail: `${detail}${n}` }
   }
-  const ou = l.engin ? `à ${texteDistance(l.altitude)}` : `altitude ${texteDistance(l.altitude)}`
-  const tour = l.tour !== null ? ` · un tour en ${texteDuree(l.tour * 1000)}` : ''
-  return { titre: `EN ORBITE ${autourDe(l.centre)}`, detail: `${ou}${tour}` }
+  const valeurs: [NomSymbole, string][] = [[l.engin ? 'distance' : 'altitude', texteDistance(l.altitude)]]
+  if (l.tour !== null) valeurs.push(['tour', texteDuree(l.tour * 1000)])
+  return { titre: l.centre.toUpperCase(), detail: '', symbole: 'orbite', valeurs }
 }
 
 /** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
@@ -59,22 +64,25 @@ let forme = ''
 const SYMBOLE_PANNE = '<svg class="symbole alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
 
 export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
-  const credits = `${capsule.credits.toLocaleString('fr-FR')} crédit${capsule.credits > 1 ? 's' : ''} · soute ${capsule.soute}`
-  const moteur = capsule.vitesseForcee
-    ? `vitesse forcée ${capsule.vitesse.toLocaleString('fr-FR')} km/s (essai)`
-    : `moteur niv. ${capsule.niveauMoteur} · ${capsule.vitesse.toLocaleString('fr-FR')} km/s`
+  const nombre = (n: number) => n.toLocaleString('fr-FR')
   const textes: string[] = []
+  // Une valeur : son symbole, puis son texte (seul le texte change d'une seconde à l'autre).
+  const valeur = (nom: NomSymbole, texte: string) => { textes.push(texte); return `<span class="val">${picto(nom)}<span data-texte></span></span>` }
   const lignesHtml = lignes.map((l) => {
-    const { titre, detail } = texteLigne(l, t)
-    textes.push(titre, detail)
+    const { titre, detail, symbole: nom, valeurs } = texteLigne(l, t)
+    textes.push(titre)
     // Mission : son symbole animé (plus vif pendant l'action sur place).
-    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' ? SYMBOLE_PANNE : ''
+    const symbole = nom ? picto(nom) + ' ' : l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' ? SYMBOLE_PANNE : ''
     const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
+    const bas = valeurs ? `<span class="vals">${valeurs.map(([n, v]) => valeur(n, v)).join('')}</span>` : (textes.push(detail), '<span data-texte></span>')
     // Toucher une ligne ouvre le volet qui va avec (demande d'Adrien du 18/10/2026 ; voir main.ts).
-    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><b>${symbole}<span data-texte></span></b><span data-texte></span></div>`
+    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><b>${symbole}<span data-texte></span></b>${bas}</div>`
   })
-  textes.push(credits, moteur)
-  const html = lignesHtml.join('') + '<div class="etat" data-ligne="etat"><span data-texte></span><span data-texte></span></div>'
+  // Le pied : crédits, soute, moteur et sa vitesse.
+  const etat = valeur('credits', nombre(capsule.credits)) + valeur('soute', `${capsule.soute} t`)
+    + (capsule.vitesseForcee ? valeur('vitesse', `${nombre(capsule.vitesse)} km/s (essai)`)
+      : valeur('moteur', `niv. ${capsule.niveauMoteur}`) + valeur('vitesse', `${nombre(capsule.vitesse)} km/s`))
+  const html = lignesHtml.join('') + `<div class="etat" data-ligne="etat">${etat}</div>`
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html

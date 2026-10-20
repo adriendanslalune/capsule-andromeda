@@ -167,7 +167,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
   position: fixed;
   left: 8px;
   right: 8px;
-  bottom: calc(66px + env(safe-area-inset-bottom));
+  bottom: calc(72px + env(safe-area-inset-bottom));
   max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
@@ -517,7 +517,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #message {
   position: fixed;
   left: 50%;
-  bottom: calc(150px + env(safe-area-inset-bottom));
+  bottom: calc(156px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   max-width: calc(100% - 32px);
   padding: 10px 16px;
@@ -577,7 +577,7 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(70px + env(safe-area-inset-bottom));
+  bottom: calc(76px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -978,7 +978,6 @@ body.nuit #marche .baisse { color: #f08a72; }
 #profil .paliers span.atteint { border: 1.5px solid #7a5aa8; background: #d7cdee; opacity: 1; }
 #profil .paliers small { font-size: 10px; }
 /* La portée d'une mission dans son système (proche, mi-distance, lointaine). */
-#missions .portee { font-size: 10px; padding: 0 5px; border: 1px dashed currentColor; border-radius: 8px; opacity: 0.75; white-space: nowrap; }
 #missions .poste { display: block; font-size: 11px; opacity: 0.7; margin-top: 2px; }
 
 /* L'amarrage (AMARRER) : la vue du dessus, les cadrans, les propulseurs au pouce. */
@@ -1199,3 +1198,69 @@ body.nuit #marche .baisse { color: #f08a72; }
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #journal .boutons-quete button.principal { color: #fff; background: #d9694f; }
 #journal .boutons-quete button:disabled { opacity: 0.5; box-shadow: none; }
+
+/* Les symboles de l'interface (décision d'Adrien du 20/10/2026 ; src/commun/symboles.ts) : trait d'encre, aplats
+   pastel, comme les boutons de la carte. La valeur reste écrite à côté. */
+.picto { display: inline-block; flex: none; width: 1.35em; height: 1.35em; vertical-align: -0.32em; }
+.picto svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.picto svg * { stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; fill: none; }
+.picto .or { fill: #f2c66a; } .picto .bleu { fill: #bfe0e8; } .picto .vert { fill: #bfe0c8; } .picto .rose { fill: #f3c2b0; }
+.picto .mauve { fill: #d7cdee; } .picto .rouge { fill: #e04b37; } .picto .plein { fill: currentColor; } .picto .creme { fill: #faf2dc; }
+.picto .bleu-quete { fill: #8fbfe0; } .picto .blanc { stroke: #fff; } .picto .trait-rouge { stroke: #e04b37; }
+.val { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
+.vals { display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 2px; }
+/* Appui long sur un symbole : son nom, dans une petite bulle. */
+#nom-symbole {
+  position: fixed; z-index: 50; max-width: 220px; padding: 5px 9px; font-size: 12px; font-weight: bold; pointer-events: none;
+  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 6px; box-shadow: 2px 2px 0 var(--ombre);
+}
+#nom-symbole[hidden] { display: none; }
+
+/* Bandeau : les valeurs en symboles. */
+#bandeau .ligne .vals { font-size: 11.5px; }
+#bandeau .etat .val b { font-size: 12px; }
+
+/* Barre d'onglets : un symbole, un petit mot dessous. */
+#onglets button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 54px; font-size: 9.5px; }
+#onglets button .picto { width: 25px; height: 25px; }
+
+/* Missions : une tuile aux couleurs de la Maison, avec le dessin du type. */
+#missions .carte-mission { display: flex; gap: 10px; align-items: flex-start; }
+#missions .tuile-type {
+  flex: none; width: 58px; min-height: 58px; padding: 5px 2px 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 2px solid var(--encre); border-radius: 10px; color: #1f1b18;
+}
+#missions .tuile-type .picto { width: 28px; height: 28px; }
+#missions .tuile-type small { font-size: 8px; font-weight: bold; letter-spacing: 0.02em; }
+#missions .corps-mission { flex: 1; min-width: 0; }
+#missions .corps-mission .vals { font-size: 12px; margin-top: 3px; }
+#missions .poste { display: flex; width: fit-content; margin-top: 2px; font-size: 11px; opacity: 0.8; }
+#missions .portee { gap: 0; opacity: 0.8; }
+#missions .portee i { display: inline-block; width: 7px; height: 7px; margin-right: 2px; border-radius: 50%; border: 1.5px solid currentColor; }
+#missions .portee i.on { background: currentColor; }
+#missions .boutons { justify-content: flex-end; margin-top: 6px; }
+#missions button[data-choix="voir"] { padding: 0 10px; }
+#missions button[data-choix="voir"] .picto { width: 24px; height: 24px; }
+
+/* Capsule : les cinq modules en tuiles, une pastille dit leur état. */
+#capsule .tuiles-modules { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding-top: 8px; }
+#capsule .tuile-module {
+  position: relative; min-height: 58px; padding: 6px 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font: inherit; font-size: 8px; font-weight: bold; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 10px;
+}
+#capsule .tuile-module .picto { width: 28px; height: 28px; }
+#capsule .tuile-module.en-panne { background: color-mix(in srgb, #e04b37 16%, var(--creme)); }
+#capsule .tuile-module > b {
+  position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--encre);
+  display: flex; align-items: center; justify-content: center; font-size: 11px; background: #bfe0c8; color: #1f1b18;
+}
+#capsule .tuile-module.en-panne > b { background: #e04b37; color: #fff; }
+#capsule .effet-panne { margin-top: 8px; font-size: 12px; color: #b4442f; }
+/* Fiche du trajet : la destination, puis durée, arrivée, vitesse en symboles. */
+#trajet-texte .destination { display: block; font-size: 14px; letter-spacing: 0.04em; }
+#trajet-texte .vals { margin-top: 2px; }
+#bouton-depart { display: inline-flex; align-items: center; gap: 6px; }
+#bouton-depart .picto { width: 20px; height: 20px; }
+/* Liste des astres : une pastille de la couleur de l'astre. */
+.pastille-astre { display: inline-block; width: 11px; height: 11px; margin-right: 8px; border-radius: 50%; border: 1.5px solid var(--encre); vertical-align: -1px; }
+:is(#manuel, .papier) .symbole-cockpit .picto { width: 22px; height: 22px; }

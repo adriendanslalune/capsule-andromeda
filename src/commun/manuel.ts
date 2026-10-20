@@ -16,6 +16,7 @@ import {
 import {
   ANGLES_ANTENNE, BANDES, COLONNES_CHIFFREUR, MORSE, MOTS_TELEGRAPHE, STATIONS, texteFrequence,
 } from '../donnees/manuel-communications'
+import { LEXIQUE, SYMBOLES, picto } from './symboles'
 
 /** Une feuille du manuel, avec son en-tête et son pied de page. */
 function feuille(doc: string, titre: string, page: string, contenu: string, tampon = false): string {
@@ -313,6 +314,22 @@ export function sectionEngins(): string {
       <tr><th>SYMB.</th><th>A·B</th><th>C·D</th><th>SYMB.</th><th>A·B</th><th>C·D</th></tr>${lignesGyro}</table>`)
 }
 
+/**
+ * Section 7 : les symboles du cockpit (décision d'Adrien du 20/10/2026). Les mêmes pour tous : la page s'imprime comme
+ * le reste du Manuel.
+ */
+function sectionSymboles(): string {
+  const lignes = enDeuxColonnes(LEXIQUE, (n) => (n ? `<td class="symbole-cockpit">${picto(n)}</td><td class="gauche">${SYMBOLES[n][0]}</td>` : '<td></td><td></td>'))
+  return feuille('CA-MM-07', 'SECTION 7 — SYMBOLES DU COCKPIT', '7-1', `
+    <h3>7.0 Lire le cockpit</h3>
+    <p>Les écrans du cockpit remplacent les mots qui reviennent souvent par des symboles ; la valeur reste écrite à côté.
+      Un symbole veut toujours dire la même chose. En vol, un <b>appui long</b> sur un symbole affiche son nom.</p>
+    <table><caption>TABLEAU 7-1 — SYMBOLES</caption>
+      <tr><th>SYMB.</th><th>SIGNIFICATION</th><th>SYMB.</th><th>SIGNIFICATION</th></tr>${lignes}</table>
+    <p class="petit">Missions : la couleur de la tuile donne la Maison (vert : Nettoyeurs, jaune : Ingénieurs, rose :
+      Mercenaires) ; les points ●○○, ●●○, ●●● disent si la mission est proche, à mi-distance ou lointaine dans son système.</p>`)
+}
+
 /** Le texte du manuel (HTML), avec un bouton pour revenir au panneau de réparation. */
 export function htmlManuel(): string {
   return `
@@ -326,6 +343,7 @@ export function htmlManuel(): string {
       <tr><td>4</td><td class="gauche"><b>Navigation — constellation, gyroscope, calculateur</b></td><td>p. 4-1</td></tr>
       <tr><td>5</td><td class="gauche"><b>Coque — vannes, brèche, sas</b></td><td>p. 5-1</td></tr>
       <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
+      <tr><td>7</td><td class="gauche"><b>Symboles du cockpit</b></td><td>p. 7-1</td></tr>
     </table>
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
@@ -335,5 +353,6 @@ export function htmlManuel(): string {
   ${sectionMoteur()}
   ${sectionNavigation()}
   ${sectionCoque()}
-  ${sectionEngins()}`
+  ${sectionEngins()}
+  ${sectionSymboles()}`
 }

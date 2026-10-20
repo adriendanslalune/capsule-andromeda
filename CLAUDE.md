@@ -61,6 +61,7 @@ La carte en plein écran est l'interface principale du joueur : c'est le cockpit
 - Les onglets pas encore développés sont visibles mais grisés.
 - Un volet se referme en le glissant vers le bas, de n'importe où (quand son contenu est tout en haut).
 - Même direction artistique que la carte : les tons Moebius de la carte (décision d'Adrien du 17/10/2026, qui remplace « noir et blanc, une seule couleur d'alerte »).
+- Symboles (décision d'Adrien du 20/10/2026) : les mots qui reviennent partout (crédits, soute, durée, arrivée, distance, vitesse, types de mission, modules…) sont des symboles dessinés (`src/commun/symboles.ts`), jamais des emojis ; la valeur reste écrite à côté ; un symbole veut toujours dire la même chose ; appui long : son nom ; lexique dans le Manuel (section 7). Les textes qui racontent restent du texte. Sur une mission, le poste de la capsule reste affiché.
 - Heures affichées à l'heure du lieu du joueur (fuseau du téléphone ; pour Adrien, Paris). Le moteur compte en temps universel (UTC).
 Ces choix sont provisoires et seront ajustés après test sur téléphone.
 

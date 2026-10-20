@@ -46,6 +46,11 @@ export function texteDateCourte(t: number, maintenant: number): string {
   return `${date} à ${heure}`
 }
 
+/** Heure d'arrivée, au plus court : « 12:27 » (aujourd'hui), « demain 07:10 », « 11 nov. 17:42 ». */
+export function texteArrivee(t: number, maintenant: number): string {
+  return texteDateCourte(t, maintenant).replace(/^aujourd'hui à /, '').replace(' à ', ' ')
+}
+
 /** « AUTOUR DE LA TERRE », « AUTOUR D'URANUS », « AUTOUR DU SOLEIL », « À CÔTÉ DE ISS »… */
 export function autourDe(nom: string): string {
   if (corps(nom)?.tailleM) return `À CÔTÉ DE ${nom.toUpperCase()}`

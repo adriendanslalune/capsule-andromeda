@@ -66,7 +66,8 @@ import {
 } from './moteur/communications'
 import { solution, tourEnergieVu, type EtatReparation, type Resultat } from './moteur/reparation'
 import { VoletMissions } from './commun/volet-missions'
-import { texteDate, texteDateComplete, texteDuree } from './commun/textes'
+import { texteArrivee, texteDateComplete, texteDuree } from './commun/textes'
+import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
@@ -477,21 +478,21 @@ function mettreAJourFiche(t: number): void {
     // Un monolithe déjà ramassé (il reste sur la carte) : quand (demande d'Adrien du 18/10/2026).
     const quand = jeu.monolithes.ramassesLe[monolitheNomme(selection)!.numero]
     texte = `<b>${selection.toUpperCase()}</b> · déjà ramassé<br>${quand ? `le ${texteDateComplete(quand)}` : 'date inconnue'}`
-      + (dejaLa(t) ? '' : ` · à ${texteDistance(distanceDepuisCapsule(selection, t))}`)
+      + (dejaLa(t) ? '' : ` · ${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}`)
     if (!dejaLa(t)) { depart = true; libelle = 'Y ALLER' }
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !jeu.peutNaviguer() && !apercu) {
     // Navigation en panne : impossible de calculer un trajet.
-    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>NAVIGATION EN PANNE : impossible de calculer un trajet`
+    texte = `<b>${selection.toUpperCase()}</b> · ${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}<br>${picto('panne')} NAVIGATION EN PANNE : impossible de calculer un trajet`
   } else if (apercu) {
     // Aperçu d'une mission : son titre, son temps de trajet, sa récompense, et ACCEPTER.
     const duree = apercuPlans ? apercuPlans.reduce((s, p) => s + p.arrivee - p.depart, 0) : null
-    texte = `<b>APERÇU · ${GENRES_COURTS[apercu.genre]}</b> · ${apercu.recompense} crédits<br>${titreContrat(apercu)}<br>`
-      + (duree === null ? 'hors de portée' : `trajet ${texteDuree(duree)}`)
+    texte = `<b>${picto(SYMBOLE_GENRE[apercu.genre])} ${GENRES_COURTS[apercu.genre]}</b> · ${avec('credits', String(apercu.recompense))}<br>${titreContrat(apercu)}<br>`
+      + (duree === null ? 'hors de portée' : avec('duree', texteDuree(duree)))
       + (jeu.enCours ? ' · une mission est déjà en cours' : '')
     if (!jeu.enCours && duree !== null) { depart = true; libelle = 'ACCEPTER'; actionFiche = 'accepter' }
   } else if (selection && corps(selection)?.type === 'alien' && jeu.espace.missiles.some((m) => m.alien === selection)) {
     // Un chasseur qui nous tire dessus : on peut riposter (vue de combat).
-    texte = `<b>${selection.toUpperCase()}</b> · à ${texteDistance(distanceDepuisCapsule(selection, t))}<br>chasseur alien d'Andromède : il te tire dessus !`
+    texte = `<b>${selection.toUpperCase()}</b> · ${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}<br>chasseur alien d'Andromède : il te tire dessus !`
     depart = true
     libelle = 'RIPOSTER'
     actionFiche = 'combat'
@@ -513,7 +514,7 @@ function mettreAJourFiche(t: number): void {
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
       : bot ? ` · capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}` : ''
-    texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>à ${texteDistance(distanceDepuisCapsule(selection, t))}`
+    texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
@@ -522,7 +523,8 @@ function mettreAJourFiche(t: number): void {
       const p = prevision.plan
       // La vitesse de pointe du trajet, face à la vitesse max du moteur : on voit si le moteur limite ce trajet.
       const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse)).toLocaleString('fr-FR')
-      texte = `<b>${selection.toUpperCase()}</b> · trajet ${texteDuree(p.arrivee - p.depart)}<br>arrivée le ${texteDate(p.arrivee)} · pointe ${pointe} / ${dv}`
+      texte = `<b class="destination">${selection.toUpperCase()}</b><span class="vals">${avec('duree', texteDuree(p.arrivee - p.depart))}`
+        + `${avec('arrivee', texteArrivee(p.arrivee, t))}${avec('vitesse', `${pointe}/${dv}`)}</span>`
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {
@@ -532,7 +534,8 @@ function mettreAJourFiche(t: number): void {
   fiche.hidden = !texte
   if (ficheTexte.innerHTML !== texte) ficheTexte.innerHTML = texte
   boutonDepart.hidden = !depart
-  boutonDepart.textContent = libelle
+  const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
+  if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
 }
 
@@ -1221,6 +1224,37 @@ document.querySelector('#provoquer-panne')!.addEventListener('click', () => {
 
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).
 surveillerMisesAJour(enregistrerPartie)
+
+// Appui long sur un symbole : son nom s'affiche un instant, au-dessus (décision d'Adrien du 20/10/2026). Le toucher qui
+// a montré le nom ne déclenche pas le bouton qui contient le symbole.
+const bulleSymbole = document.createElement('div')
+bulleSymbole.id = 'nom-symbole'
+bulleSymbole.hidden = true
+document.body.append(bulleSymbole)
+let appuiSymbole = 0, cacherSymbole = 0, nomMontre = false
+document.addEventListener('pointerdown', (e) => {
+  clearTimeout(appuiSymbole)
+  nomMontre = false
+  const s = (e.target as HTMLElement).closest<HTMLElement>('[data-symbole]')
+  if (!s) return
+  appuiSymbole = window.setTimeout(() => {
+    bulleSymbole.textContent = s.dataset.symbole!
+    bulleSymbole.hidden = false
+    const r = s.getBoundingClientRect(), l = bulleSymbole.offsetWidth, h = bulleSymbole.offsetHeight
+    bulleSymbole.style.left = `${Math.min(window.innerWidth - l - 8, Math.max(8, r.left + r.width / 2 - l / 2))}px`
+    bulleSymbole.style.top = `${r.top - h - 8 > 8 ? r.top - h - 8 : r.bottom + 8}px`
+    nomMontre = true
+    clearTimeout(cacherSymbole)
+    cacherSymbole = window.setTimeout(() => { bulleSymbole.hidden = true }, 1600)
+  }, 450)
+}, true)
+for (const ev of ['pointerup', 'pointercancel', 'scroll']) document.addEventListener(ev, () => clearTimeout(appuiSymbole), true)
+document.addEventListener('click', (e) => {
+  if (!nomMontre) return
+  nomMontre = false
+  e.preventDefault()
+  e.stopPropagation()
+}, true)
 
 // Sauvegarde aussi quand on quitte l'application (ou qu'elle passe en arrière-plan).
 document.addEventListener('visibilitychange', () => { if (document.hidden) enregistrerPartie() })

@@ -5,6 +5,8 @@
 // touchant la carte.
 // Les onglets pas encore développés sont visibles mais grisés (désactivés dans la page).
 
+import { picto, type NomSymbole } from './symboles'
+
 export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' | 'profil' | 'messages' | 'plus' | 'reglages' | 'journal'
 
 const TITRES: Record<Page, string> = {
@@ -25,6 +27,8 @@ export class Cockpit {
     this.volet = document.querySelector<HTMLElement>('#volet')!
     this.titre = document.querySelector<HTMLElement>('#volet-titre')!
     for (const b of document.querySelectorAll<HTMLButtonElement>('#onglets [data-onglet]')) {
+      // Un symbole au-dessus du mot (décision d'Adrien du 20/10/2026).
+      b.insertAdjacentHTML('afterbegin', picto(b.dataset.onglet as NomSymbole))
       b.addEventListener('click', () => {
         const p = b.dataset.onglet as Page
         if (this.page !== null && ONGLET[this.page] === p) this.fermer()
