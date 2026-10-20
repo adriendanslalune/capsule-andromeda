@@ -145,14 +145,23 @@ carte.visibilite = (nom, t, angle) => {
   if (type === 'alien' || type === 'epave') {
     if (surLaCarte(jeu.espace, nom, t, cibles())) return 1
     if (type === 'epave' || !alienLa(jeu.espace, nom, t)) return 0
-  } else if (cibles().includes(nom) || nom === objectifSuivi(t)) return 1
+  } else if (lieuxConnus().includes(nom)) return 1
   if (distanceDepuisCapsule(nom, t) > PORTEE_RADAR) return 0
   return echoRadar(jeu.radar, angle, t)
 }
 carte.radar = (t) => (jeu.radar.actif ? { angle: angleRadar(jeu.radar, t), portee: PORTEE_RADAR, actif: true } : null)
-/** Le lieu de l'objectif de la quête suivie (il reste sur la carte). */
-function objectifSuivi(_t: number): string | null {
-  return jeu.queteSuivie ? objectif(jeu, quete(jeu.queteSuivie))?.lieu ?? null : null
+/** Ce qui reste sur la carte et dans la liste Navigation hors radar : ce que visent une mission ou la quête suivie, la
+ *  destination choisie, et le lieu d'un PNJ qui a quelque chose à dire (« ! » ou « ? »). */
+let lieuxConnusMemo: { quand: number; lieux: string[] } = { quand: -1, lieux: [] }
+function lieuxConnus(): string[] {
+  // Calculé au plus une fois par image (la carte le demande pour chaque objet).
+  const maintenant = performance.now()
+  if (maintenant - lieuxConnusMemo.quand < 16) return lieuxConnusMemo.lieux
+  const l = cibles()
+  if (jeu.queteSuivie) { const o = objectif(jeu, quete(jeu.queteSuivie))?.lieu; if (o) l.push(o) }
+  for (const p of PNJS) if (signePnj(jeu, p.id)) l.push(p.lieu)
+  lieuxConnusMemo = { quand: maintenant, lieux: l }
+  return l
 }
 /** Les monolithes localisés (pas encore ramassés), les plus proches d'abord. */
 function monolithesLocalises(t: number): string[] {
@@ -346,7 +355,8 @@ const cockpit = new Cockpit((page) => {
   if (page === 'journal') afficherJournal()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
-  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t) }))
+  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t),
+    engins: [...new Set(lieuxConnus())].slice().filter((n) => corps(n)?.type === 'satellite' || corps(n)?.type === 'sonde') }))
 
 // Le PING des monolithes, sur la carte sous les Messages : un PING, l'écho revient à la vitesse de la lumière (on ne
 // sait pas quand).
