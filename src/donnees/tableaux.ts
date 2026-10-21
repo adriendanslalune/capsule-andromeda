@@ -44,3 +44,11 @@ export const PRIX_ECART = 50
 /** Une mission en deux étapes (livraison, remorquage, escorte) paie 40 % de plus ; une chasse (un combat), 50 %. */
 export const FACTEUR_LIVRAISON = 1.4
 export const FACTEUR_CHASSE = 1.5
+
+/**
+ * Début de partie (demande d'Adrien du 21/10/2026 : « pas trop chiant dès le début ») : dans le système de la Terre,
+ * les lieux des contrats restent à moins de 25 minutes de vol de la planète au moteur actuel (distance ≤ vitesse max ×
+ * 25 min : 45 000 km au niveau 1, 90 000 au niveau 2…). Le cercle s'élargit à chaque moteur ; au niveau 4, il couvre
+ * tout le système.
+ */
+export const VOL_MAX_DEBUT = 25 * 60

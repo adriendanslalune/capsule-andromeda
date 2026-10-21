@@ -23,7 +23,8 @@ import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
-import { PORTEES, TABLEAUX, ZONES, type Portee } from '../donnees/tableaux'
+import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, type Portee } from '../donnees/tableaux'
+import { EPAVES } from '../donnees/espace'
 import { contexte } from './tableaux'
 import { maisonsOuvertes } from './profil'
 import { MOTS_DU_PARRAIN, PARRAINS } from '../donnees/messages'
@@ -421,12 +422,23 @@ export class Jeu {
   proposer(t: number): void {
     // Communications en panne : plus de nouvelles missions (celles déjà proposées restent).
     if (this.enPanne('communications')) return
+    // Début de partie : dans le système de la Terre, les contrats restent à portée du moteur (VOL_MAX_DEBUT) ; ceux
+    // proposés plus loin (avant cette règle) sont retirés et remplacés.
+    const porteeTerre = this.moteur().vitesse * VOL_MAX_DEBUT
+    const terre = position('Terre', t)
+    const horsPortee = (c: Contrat) => c.tableau === 'Terre' && c.etapes.some((e) => {
+      const p = position(e.lieu, t)
+      return Math.hypot(p.x - terre.x, p.y - terre.y, p.z - terre.z) > porteeTerre
+    })
+    // Un remorquage dont « l'épave » n'en est pas une (une station, un satellite en service) : retiré.
+    const aberrant = (c: Contrat) => c.genre === 'remorquer' && !EPAVES.some((e) => e.nom === c.etapes[0].lieu)
+    this.proposes = this.proposes.filter((c) => !horsPortee(c) && !aberrant(c))
     for (const tableau of TABLEAUX) {
       const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
       let ctx: ContexteTableau | null = null
       for (const { maison } of MAISONS) {
         while (this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison).length < voulues[maison]) {
-          ctx ??= contexte(tableau, this.espace, t)
+          ctx ??= contexte(tableau, this.espace, t, tableau.systeme === 'Terre' ? porteeTerre : Infinity)
           const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
           // La portée voulue : tirée parmi celles qui manquent au tableau (3 proches, 2 moyennes, 1 lointaine), au
           // prorata de ce qui manque ; puis les autres, au cas où la Maison n'a pas de lieu à cette portée.

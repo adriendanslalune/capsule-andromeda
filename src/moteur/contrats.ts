@@ -56,6 +56,8 @@ export interface ContexteTableau {
   tableau: Tableau
   /** Épaves à vider, débris à nettoyer. */
   epaves: readonly string[]
+  /** Les vraies épaves, qu'on peut remorquer jusqu'à une station (jamais une station ni un satellite en service). */
+  remorquables: readonly string[]
   /** Où charger une cargaison, et où la livrer. */
   departs: readonly string[]
   arrivees: readonly string[]
@@ -91,18 +93,19 @@ export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, m
   const voulue = portees[0]
   const aPortee = (liste: readonly string[]) => liste.some((l) => classe(l) === voulue)
   const [g1, g2, lieux1, lieux2]: [GenreContrat, GenreContrat, readonly string[], readonly string[]] =
-    maison === 'nettoyeurs' ? ['nettoyer', 'remorquer', ctx.epaves, ctx.epaves]
+    maison === 'nettoyeurs' ? ['nettoyer', 'remorquer', ctx.epaves, ctx.remorquables]
       : maison === 'mercenaires' ? ['chasser', 'escorter', ctx.aliens, ctx.arrivees]
         : ['depanner', 'livrer', ctx.depannages, ctx.arrivees]
   const pile = x() < 0.5
   let genre: GenreContrat = !lieux1.length ? g2 : !lieux2.length ? g1
     : aPortee(lieux1) && !aPortee(lieux2) ? g1 : aPortee(lieux2) && !aPortee(lieux1) ? g2 : pile ? g1 : g2
-  // Pas de station dans le système : ni remorquage, ni escorte, ni livraison.
-  if (!ctx.departs.length && genre !== g1) genre = g1
+  // Pas de station dans le système (ou aucune destination ailleurs qu'au départ) : ni remorquage, ni escorte, ni livraison.
+  const destinations = ctx.departs.length > 1 ? ctx.arrivees : ctx.arrivees.filter((l) => !ctx.departs.includes(l))
+  if ((!ctx.departs.length || (genre !== 'remorquer' && !destinations.length)) && genre !== g1) genre = g1
   let etapes: Etape[]
   const station = () => tirer(ctx.departs)
   if (genre === 'nettoyer') etapes = [{ lieu: parmi(ctx.epaves), action: 'nettoyer' }]
-  else if (genre === 'remorquer') etapes = [{ lieu: parmi(ctx.epaves), action: 'harponner' }, { lieu: station(), action: 'larguer' }]
+  else if (genre === 'remorquer') etapes = [{ lieu: parmi(ctx.remorquables), action: 'harponner' }, { lieu: station(), action: 'larguer' }]
   else if (genre === 'depanner') etapes = [{ lieu: parmi(ctx.depannages), action: 'reparer' }]
   else if (genre === 'chasser') etapes = [{ lieu: parmi(ctx.aliens), action: 'abattre' }]
   else {

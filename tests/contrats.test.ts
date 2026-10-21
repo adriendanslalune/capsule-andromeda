@@ -3,7 +3,8 @@ import { DUREE_ACTION, STATIONS } from '../src/donnees/contrats'
 import { TABLEAUX, ZONES } from '../src/donnees/tableaux'
 import { facteurEloignement, recompense, type Contrat } from '../src/moteur/contrats'
 import { partDuSysteme } from '../src/moteur/tableaux'
-import { corps } from '../src/moteur/corps'
+import { corps, position } from '../src/moteur/corps'
+import { EPAVES } from '../src/donnees/espace'
 import { Jeu } from '../src/moteur/jeu'
 import { maisonDuContrat } from '../src/donnees/maisons'
 import { planifier } from '../src/moteur/mission'
@@ -56,7 +57,8 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
       expect(ici.every((c) => c.portee), x.lieu).toBe(true)
       expect(ici.some((c) => c.portee === 'proche'), x.lieu).toBe(true)
     }
-    for (const x of TABLEAUX) {
+    // (La Terre au moteur de départ : tout est proche, voir le début de partie.)
+    for (const x of TABLEAUX.filter((x) => x.lieu !== 'Terre')) {
       const ici = jeu.proposes.filter((c) => c.tableau === x.lieu)
       expect(ici.some((c) => c.portee !== 'proche'), x.lieu).toBe(true)
       expect(ici.filter((c) => c.portee === 'lointaine').length, x.lieu).toBeLessThanOrEqual(2)
@@ -66,6 +68,40 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     expect(n('proche')).toBeGreaterThan(n('moyenne'))
     expect(n('moyenne')).toBeGreaterThan(n('lointaine'))
     expect(n('lointaine')).toBeGreaterThanOrEqual(5)
+  })
+
+  it('début de partie (demande d’Adrien du 21/10/2026) : autour de la Terre, les contrats restent à 25 minutes de vol du moteur', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    const distance = (l: string) => { const p = position(l, t0), q = position('Terre', t0); return Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z) }
+    const loin = (j: Jeu) => Math.max(...j.proposes.filter((c) => c.tableau === 'Terre').flatMap((c) => c.etapes.map((e) => distance(e.lieu))))
+    expect(jeu.proposes.filter((c) => c.tableau === 'Terre')).toHaveLength(6)
+    expect(loin(jeu)).toBeLessThanOrEqual(30 * 25 * 60)
+    // Un contrat d'avant la règle, trop loin, est remplacé ; le cercle s'élargit avec le moteur.
+    jeu.proposes.find((c) => c.tableau === 'Terre')!.etapes[0].lieu = 'Lune'
+    jeu.proposer(t0)
+    expect(loin(jeu)).toBeLessThanOrEqual(30 * 25 * 60)
+    jeu.niveauMoteur = 4
+    jeu.proposes = []
+    jeu.proposer(t0)
+    expect(loin(jeu)).toBeGreaterThan(30 * 25 * 60)
+  })
+
+  it('pas d’aberration : on ne remorque qu’une vraie épave, jusqu’à une autre station ; on ne livre jamais au point de départ', () => {
+    for (let k = 0; k < 40; k++) {
+      const jeu = new Jeu()
+      jeu.graine = 1000 + k
+      jeu.niveauMoteur = 1 + (k % 6)
+      jeu.avancer(t0)
+      for (const c of jeu.proposes) {
+        if (c.genre === 'remorquer') {
+          expect(EPAVES.some((e) => e.nom === c.etapes[0].lieu), c.etapes[0].lieu).toBe(true)
+          expect(c.etapes[1].lieu).not.toBe(c.etapes[0].lieu)
+        }
+        if (c.etapes.length === 2) expect(c.etapes[1].lieu, `${c.genre} ${c.etapes[0].lieu}`).not.toBe(c.etapes[0].lieu)
+        for (const e of c.etapes) expect(e.lieu, c.genre).toBeTruthy()
+      }
+    }
   })
 
   it('le prix monte avec l’éloignement dans le système, de ×1 à ×2 (la Lune paie environ 1,5 fois l’ISS)', () => {

@@ -57,6 +57,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   chat a été essayée puis retirée (Adrien : « ça n'apporte pas grand chose »). Le cadran de vitesse affiche deux
   décimales. Les quêtes se terminent toutes dans le dialogue du PNJ, qui montre déjà son portrait (médaillon en
   attendant les images d'Adrien : champ `portrait` des PNJ, image carrée dans `public/`).
+- Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** :
+  - Contrats sans aberration : un remorquage ne vise qu'une vraie épave (`remorquables` dans `ContexteTableau`), plus
+    jamais une station ou un satellite en service (« remorquer l'épave ISS jusqu'à l'ISS ») ; pas de livraison ni
+    d'escorte sans destination ailleurs qu'au départ ; les contrats aberrants déjà proposés sont retirés.
+  - Début de partie : autour de la Terre, les lieux des contrats restent à moins de vitesse max × 25 min de la planète
+    (`VOL_MAX_DEBUT`, `contexte(..., porteeKm)`) ; les contrats proposés plus loin sont remplacés ; testé.
+  - Fenêtre du nouveau moteur : l'essai du cadran à l'installation, piloté image par image (il se joue même si le
+    téléphone réduit les animations), puis EN ROUTE !
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

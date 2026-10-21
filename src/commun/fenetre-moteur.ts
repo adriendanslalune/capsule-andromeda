@@ -1,6 +1,7 @@
 // La fenêtre « Nouveau moteur » (demande d'Adrien du 18/10/2026) : une belle fenêtre qui s'ouvre pour confirmer
-// l'achat. Un grand compteur de vitesse montre l'ancienne et la nouvelle vitesse ; à l'installation, l'aiguille monte
-// jusqu'à la nouvelle vitesse, des éclats jaillissent, puis la fenêtre se referme.
+// l'achat. Un grand compteur de vitesse montre l'ancienne et la nouvelle vitesse. À l'installation (demande d'Adrien du
+// 21/10/2026 : on doit voir le cadran s'améliorer), le moteur s'essaie : l'aiguille grimpe jusqu'en butée, retombe et
+// se cale sur la nouvelle vitesse, le chiffre défile, l'arc gagné s'allume, le cadran tremble et des éclats jaillissent.
 
 import type { NiveauMoteur } from '../donnees/capsule'
 
@@ -36,7 +37,9 @@ function compteur(avant: number): string {
     <circle cx="100" cy="110" r="86" class="boitier"/>
     <path d="M${x0} ${y0} A80 80 0 1 1 ${x1} ${y1}" class="arc"/>
     <g class="graduations">${fines}${graduations}</g>
-    <text x="100" y="150" class="unite">km/s</text>
+    <path d="" class="arc-gagne"/>
+    <text x="100" y="146" class="unite">km/s</text>
+    <text x="100" y="176" class="compte">${avant.toLocaleString('fr-FR')}</text>
     <g class="aiguille fantome" style="transform: rotate(${angle(avant)}deg)"><path d="M100 110 L97 112 L100 40 L103 112 Z"/></g>
     <g class="aiguille" style="transform: rotate(${angle(avant)}deg)"><path d="M100 110 L96 113 L100 36 L104 113 Z"/></g>
     <circle cx="100" cy="110" r="7" class="moyeu"/>
@@ -61,19 +64,67 @@ export function ouvrirFenetreMoteur(actuel: NiveauMoteur, suivant: NiveauMoteur,
     <div class="boutons-fenetre"><button type="button" data-choix="plus-tard">Plus tard</button><button type="button" data-choix="installer">INSTALLER</button></div>
   </div>`
   fond.hidden = false
-  const fermer = () => { fond.classList.add('ferme'); setTimeout(() => { fond.hidden = true; fond.classList.remove('ferme', 'installe') }, 250) }
+  const fermer = () => { fond.classList.add('ferme'); setTimeout(() => { fond.hidden = true; fond.classList.remove('ferme', 'installe', 'cale') }, 250) }
   fond.onclick = (e) => {
     const cible = e.target as HTMLElement
     const choix = cible.closest<HTMLElement>('[data-choix]')?.dataset.choix
     if (cible === fond || choix === 'plus-tard') { fermer(); return }
     if (choix !== 'installer' || fond.classList.contains('installe')) return
     if (!installer()) { fermer(); return }
-    // L'aiguille monte jusqu'à la nouvelle vitesse, des éclats jaillissent, puis la fenêtre se referme.
     fond.classList.add('installe')
-    const aiguille = fond.querySelector<SVGGElement>('.aiguille:not(.fantome)')!
-    requestAnimationFrame(() => { aiguille.style.transform = `rotate(${angle(suivant.vitesse)}deg)` })
-    fond.querySelector('.titre-fenetre')!.textContent = '✦ MOTEUR INSTALLÉ ! ✦'
     fond.querySelector('.boutons-fenetre')!.innerHTML = ''
-    setTimeout(fermer, 2200)
+    navigator.vibrate?.([60, 40, 60, 40, 200])
+    animer(fond, actuel.vitesse, suivant.vitesse, () => {
+      fond.querySelector('.titre-fenetre')!.textContent = '✦ MOTEUR INSTALLÉ ! ✦'
+      fond.querySelector('.boutons-fenetre')!.innerHTML = '<button type="button" class="principal" data-choix="plus-tard">EN ROUTE !</button>'
+    })
   }
+}
+
+/** Arc du cadran entre deux angles (degrés). */
+function arc(a0: number, a1: number, r: number): string {
+  const [x0, y0] = point(a0, r), [x1, y1] = point(a1, r)
+  return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`
+}
+
+/**
+ * L'essai du nouveau moteur (3 s environ, piloté image par image : il se joue même si le téléphone réduit les
+ * animations) : l'aiguille grimpe en butée, retombe et se cale sur la nouvelle vitesse en rebondissant ; le chiffre
+ * défile, l'arc gagné s'allume ; à la fin, le cadran tremble et des éclats jaillissent.
+ */
+function animer(fond: HTMLElement, avant: number, apres: number, fini: () => void): void {
+  const aiguille = fond.querySelector<SVGGElement>('.aiguille:not(.fantome)')!
+  const compte = fond.querySelector<SVGTextElement>('.compte')!
+  const gagne = fond.querySelector<SVGPathElement>('.arc-gagne')!
+  const compteur = fond.querySelector<SVGSVGElement>('.compteur')!
+  const BUTEE = 20_000, MONTEE = 700, DESCENTE = 1300
+  const debut = performance.now()
+  const doux = (k: number) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2)
+  // Un rebond au bout (l'aiguille dépasse un peu, puis revient).
+  const rebond = (k: number) => 1 + 2.4 * (k - 1) ** 3 + 1.4 * (k - 1) ** 2
+  const vitesseEn = (ms: number): number => {
+    if (ms < MONTEE) return avant * (BUTEE / avant) ** doux(ms / MONTEE)
+    const k = Math.min(1, (ms - MONTEE) / DESCENTE)
+    return BUTEE * (apres / BUTEE) ** rebond(k)
+  }
+  const image = (maintenant: number) => {
+    const ms = maintenant - debut
+    const v = vitesseEn(ms)
+    aiguille.style.transform = `rotate(${angle(v)}deg)`
+    // Le chiffre suit l'aiguille en descente ; il se cale sur la nouvelle vitesse.
+    const affiche = ms < MONTEE ? avant : ms >= MONTEE + DESCENTE ? apres : Math.round(Math.max(apres, Math.min(BUTEE, v)))
+    compte.textContent = affiche.toLocaleString('fr-FR')
+    if (ms > MONTEE) {
+      const k = Math.min(1, (ms - MONTEE) / DESCENTE)
+      gagne.setAttribute('d', arc(angle(avant), angle(avant) + (angle(apres) - angle(avant)) * doux(k), 80))
+    }
+    // Le cadran vibre pendant que le moteur hurle.
+    const secousse = ms < MONTEE + 300 ? 2.2 * Math.sin(ms / 18) : 0
+    compteur.style.transform = `translate(${secousse.toFixed(2)}px, ${(secousse * 0.6).toFixed(2)}px)`
+    if (ms < MONTEE + DESCENTE) { requestAnimationFrame(image); return }
+    compteur.style.transform = ''
+    fond.classList.add('cale')
+    fini()
+  }
+  requestAnimationFrame(image)
 }

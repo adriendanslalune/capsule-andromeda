@@ -21,20 +21,28 @@ export function porteeDe(part: number): Portee {
   return part < LIMITE_PROCHE ? 'proche' : part < LIMITE_MOYENNE ? 'moyenne' : 'lointaine'
 }
 
-/** Les lieux d'un système où l'on peut faire des missions, avec leur éloignement de la planète. */
-export function contexte(tableau: Tableau, espace: EtatEspace, t: number): ContexteTableau {
+/**
+ * Les lieux d'un système où l'on peut faire des missions, avec leur éloignement de la planète. porteeKm : seulement les
+ * lieux à moins de cette distance de la planète (le début de partie, voir VOL_MAX_DEBUT).
+ */
+export function contexte(tableau: Tableau, espace: EtatEspace, t: number, porteeKm = Infinity): ContexteTableau {
   const s = tableau.systeme
   const terre = s === 'Terre'
-  const stations = terre ? STATIONS : STATIONS_SYSTEMES.filter((x) => x.parent === s).map((x) => x.nom)
+  const c = position(s, t)
+  const pres = (l: readonly string[]) => (porteeKm === Infinity ? [...l]
+    : l.filter((nom) => { const p = position(nom, t); return Math.hypot(p.x - c.x, p.y - c.y, p.z - c.z) <= porteeKm }))
+  const stations = pres(terre ? STATIONS : STATIONS_SYSTEMES.filter((x) => x.parent === s).map((x) => x.nom))
   // Les grandes lunes du système (les six plus grosses).
   const lunes = enfants(s).filter((c) => c.type === 'lune').sort((a, b) => b.rayon - a.rayon).slice(0, 6).map((c) => c.nom)
-  const epaves = [...EPAVES.filter((e) => e.parent === s).map((e) => e.nom), ...(terre ? LIEUX_NETTOYAGE : [])]
-  const depannages = terre ? [...SATELLITES, ...STATIONS] : stations
-  const arrivees = [...stations, ...lunes, ...(terre ? SATELLITES : [])]
-  const aliens = aliensDe(espace, s, t)
+  // Les vraies épaves (qu'on peut remorquer), et les lieux où l'on nettoie des débris (autour d'un satellite, d'une station).
+  const remorquables = pres(EPAVES.filter((e) => e.parent === s).map((e) => e.nom))
+  const epaves = [...remorquables, ...pres(terre ? LIEUX_NETTOYAGE : [])]
+  const depannages = pres(terre ? [...SATELLITES, ...STATIONS] : stations)
+  const arrivees = pres([...stations, ...lunes, ...(terre ? SATELLITES : [])])
+  const aliens = pres(aliensDe(espace, s, t))
   const parts = new Map<string, number>()
   for (const nom of new Set([...epaves, ...stations, ...arrivees, ...depannages, ...aliens])) parts.set(nom, partDuSysteme(nom, s, t))
-  return { tableau, epaves, departs: stations, arrivees, depannages, aliens, parts }
+  return { tableau, epaves, remorquables, departs: stations, arrivees, depannages, aliens, parts }
 }
 
 /** Le tableau du système où est la capsule ; en plein espace, celui de la planète la plus proche. */
