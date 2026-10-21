@@ -19,6 +19,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Le Soleil a aussi sa ligne dans la bande des systèmes, sous « Tout » : un gros plan sur lui (demande d'Adrien du
+  21/10/2026).
 - Demandes d'Adrien du 21/10/2026 : les petites lunes (moins de 100 km) ne se dessinent que de près (sous 2 000 km par
   pixel) ou si on les vise (`PETITE_LUNE`, `ZOOM_PETITES_LUNES`, `carte.toujoursVisible`) ; choisir une planète dans
   la bande des systèmes fait un gros plan sur elle, anneaux compris (`echellePlanete`).

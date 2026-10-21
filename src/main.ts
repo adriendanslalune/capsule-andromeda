@@ -357,14 +357,15 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
   }
 })
 // Les systèmes (décision d'Adrien du 21/10/2026, qui remplace les boutons « système intérieur » et « extérieur ») :
-// une bande à côté du bouton, le Soleil (tout le système solaire) et les 9 systèmes ; celui de la capsule est marqué.
+// une bande à côté du bouton, « Tout » (le système solaire), le Soleil et les 9 systèmes ; celui de la capsule est marqué.
 const choixSysteme = document.querySelector<HTMLDivElement>('#choix-systeme')!
 const boutonSystemes = document.querySelector<HTMLButtonElement>('[data-vue="systemes"]')!
 function ouvrirSystemes(ouvrir: boolean): void {
   if (ouvrir) {
     const t = horloge(), ici = astreDominant(mission.etat(t).position, t)
-    choixSysteme.innerHTML = ['Soleil', ...CENTRES].map((nom) => `<button type="button" data-systeme="${nom}"${nom === ici ? ' class="ici"' : ''}>`
-      + `<i style="background:${couleurAstre(corps(nom)!)}"></i>${nom === 'Soleil' ? 'Tout' : nom}${nom === ici ? '<small>ici</small>' : ''}</button>`).join('')
+    choixSysteme.innerHTML = '<button type="button" data-systeme="tout"><i class="tout"></i>Tout</button>'
+      + ['Soleil', ...CENTRES].map((nom) => `<button type="button" data-systeme="${nom}"${nom === ici ? ' class="ici"' : ''}>`
+      + `<i style="background:${couleurAstre(corps(nom)!)}"></i>${nom}${nom === ici ? '<small>ici</small>' : ''}</button>`).join('')
     choixAffichage.hidden = true
     boutonAffichage.setAttribute('aria-expanded', 'false')
   }
@@ -376,9 +377,9 @@ choixSysteme.addEventListener('click', (e) => {
   if (!b) return
   ouvrirSystemes(false)
   const nom = b.dataset.systeme!
-  // Le Soleil : tout le système solaire ; une planète : un gros plan sur elle (dézoomer montre son système), choisie
+  // Tout : le système solaire ; le Soleil ou une planète : un gros plan sur lui (dézoomer montre son système), choisi
   // (sa fiche, Y ALLER).
-  if (nom === 'Soleil') vueGenerale(carte.echelleExterieure())
+  if (nom === 'tout') vueGenerale(carte.echelleExterieure())
   else choisir(nom, false, carte.echellePlanete(nom))
 })
 function afficherChoixAffichage(): void {
