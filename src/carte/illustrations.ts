@@ -571,41 +571,80 @@ export function aUneIllustration(nom: string): boolean {
 
 /** Étendue du dessin autour du disque, en rayons (rayons du Soleil, anneaux de Saturne et d'Uranus). */
 const ETENDUE: Record<string, number> = { Soleil: 2.7, Saturne: 2.45, Uranus: 1.8 }
-/** Les dessins déjà faits (clé : astre, rayon arrondi, direction du Soleil arrondie), les plus récents en dernier. */
+/** Les dessins déjà faits (clé : astre, rayon du palier, direction du Soleil arrondie), les plus récents en dernier. */
 const DEJA_DESSINES = new Map<string, HTMLCanvasElement>()
-/** Rayons arrondis par pas de 12 % : en zoomant, l'astre n'est redessiné qu'à chaque pas, et sinon agrandi. */
-const PAS_RAYON = Math.log(1.12)
-/** Côté maximal (pixels du téléphone) d'un dessin gardé ; au-delà, on dessine directement. */
+/** Pixels gardés au plus (tous dessins confondus) : au-delà, on oublie les plus anciens. */
+const PIXELS_MAX = 24_000_000
+/** Côté maximal (pixels du téléphone) d'un dessin gardé. */
 const COTE_MAX = 2400
+
+/** Un dessin de l'astre au rayon rp (palier), sur une toile à part. */
+function preparer(nom: string, rp: number, angle: number | null, echelle: number): HTMLCanvasElement {
+  const ext = ETENDUE[nom] ?? 1.08
+  const toile = document.createElement('canvas')
+  toile.width = toile.height = Math.ceil(2 * rp * ext * echelle)
+  const c = toile.getContext('2d')!
+  c.scale(echelle, echelle)
+  dessinerDirect(c, nom, rp * ext, rp * ext, rp, angle)
+  return toile
+}
+
+/** Garde un dessin, en oubliant les plus anciens si la mémoire déborde. */
+function garder(cle: string, toile: HTMLCanvasElement): void {
+  DEJA_DESSINES.set(cle, toile)
+  let pixels = 0
+  for (const t of DEJA_DESSINES.values()) pixels += t.width * t.height
+  for (const [k, t] of DEJA_DESSINES) {
+    if (pixels <= PIXELS_MAX || k === cle) break
+    pixels -= t.width * t.height
+    DEJA_DESSINES.delete(k)
+  }
+}
+
+/** Palier du rayon r : la puissance de 2 juste au-dessus (on réduit le dessin, jamais on ne l'agrandit). */
+const palier = (r: number) => 2 ** Math.ceil(Math.log2(Math.max(16, r)))
+/** Finesse du dessin d'un palier (pixels du téléphone par pixel de l'écran), ou 0 s'il serait trop grand. */
+function finesse(nom: string, rp: number, echelleEcran: number): number {
+  const e = Math.min(2, echelleEcran, COTE_MAX / (2 * rp * (ETENDUE[nom] ?? 1.08)))
+  return e >= 0.9 ? e : 0
+}
+
+/** Prépare, quand le téléphone n'a rien à faire, les paliers voisins (le zoom y passera sans à-coup). */
+const enAttente = new Set<string>()
+function preparerVoisins(nom: string, rp: number, angle: number | null, echelleEcran: number): void {
+  for (const v of [rp * 2, rp / 2]) {
+    const e = finesse(nom, v, echelleEcran)
+    const cle = `${nom}|${v}|${angle}`
+    if (!e || v < 16 || DEJA_DESSINES.has(cle) || enAttente.has(cle)) continue
+    enAttente.add(cle)
+    const faire = () => { enAttente.delete(cle); if (!DEJA_DESSINES.has(cle)) garder(cle, preparer(nom, v, angle, e)) }
+    if ('requestIdleCallback' in window) requestIdleCallback(faire, { timeout: 1500 })
+    else setTimeout(faire, 200)
+  }
+}
 
 /**
  * Dessine l'astre illustré centré en (x, y), disque de rayon r (pixels). versSoleil : direction du Soleil à l'écran
  * (radians), pour la face de nuit ; null pour le Soleil.
- * Le dessin est gardé et seulement agrandi tant que le rayon change peu : redessiner une grande planète à chaque image
- * faisait ramer le téléphone en zoomant (Adrien, 21/10/2026).
+ * Le dessin est fait une fois par palier de taille (×2), puis seulement réduit : redessiner la Terre à chaque image,
+ * puis à chaque cran du zoom, faisait ramer le téléphone d'Adrien (21/10/2026). Les paliers voisins se préparent
+ * quand le téléphone n'a rien d'autre à faire.
  */
 export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,
   versSoleil: number | null): void {
   if (!FICHES[nom]) return
-  const echelle = Math.min(2, ctx.getTransform().a || 1)
-  const ext = ETENDUE[nom] ?? 1.08
-  const rp = Math.exp(Math.round(Math.log(r) / PAS_RAYON) * PAS_RAYON)
-  const cote = Math.ceil(2 * rp * ext * echelle)
-  if (cote > COTE_MAX) { dessinerDirect(ctx, nom, x, y, r, versSoleil); return }
+  const echelleEcran = ctx.getTransform().a || 1
+  const rp = palier(r)
+  const e = finesse(nom, rp, echelleEcran)
+  if (!e) { dessinerDirect(ctx, nom, x, y, r, versSoleil); return }
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
-  const cle = `${nom}|${rp.toFixed(3)}|${angle}`
+  const cle = `${nom}|${rp}|${angle}`
   let toile = DEJA_DESSINES.get(cle)
   if (toile) DEJA_DESSINES.delete(cle)
-  else {
-    toile = document.createElement('canvas')
-    toile.width = toile.height = cote
-    const c = toile.getContext('2d')!
-    c.scale(echelle, echelle)
-    dessinerDirect(c, nom, rp * ext, rp * ext, rp, angle)
-    // Huit dessins au plus en mémoire.
-    if (DEJA_DESSINES.size >= 8) DEJA_DESSINES.delete(DEJA_DESSINES.keys().next().value!)
-  }
-  DEJA_DESSINES.set(cle, toile)
+  else toile = preparer(nom, rp, angle, e)
+  garder(cle, toile)
+  preparerVoisins(nom, rp, angle, echelleEcran)
+  const ext = ETENDUE[nom] ?? 1.08
   ctx.drawImage(toile, x - r * ext, y - r * ext, 2 * r * ext, 2 * r * ext)
 }
 

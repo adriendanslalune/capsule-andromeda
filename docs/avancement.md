@@ -19,6 +19,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Résultat des essais d'Adrien (21/10/2026) : seule la case « sans illustration » réglait le lag, et seulement autour
+  de la Terre (la seule planète qu'on voit en très gros plan). Cause : la Terre illustrée était redessinée à chaque
+  cran de 12 % du zoom. Maintenant, un dessin par palier ×2 (réduit, jamais agrandi), les paliers voisins préparés
+  quand le téléphone n'a rien à faire (`requestIdleCallback`), 24 millions de pixels gardés au plus. Zoom complet
+  Terre-Lune → ISS : plus aucun redessin pendant une image. À confirmer par Adrien, illustrations remises.
 - Essais de fluidité (Adrien, 21/10/2026, Galaxy Z Fold 7, écran à 120 Hz) dans Plus › Réglages : densité 2 au lieu
   de 3, plafond à 60 ou 30 images par seconde, astres sans illustration, sans poussière, sans ceintures tramées
   (`fluDensite2`… dans les réglages, `carte.essais`) ; le compteur du haut donne aussi le temps de calcul d'une image
