@@ -32,3 +32,32 @@ export function confirmer(q: Question): Promise<boolean> {
     document.body.append(fond)
   })
 }
+
+/** Une fenêtre de félicitations (une zone libérée…) : le titre pulp, le portrait du PNJ qui parle, ses mots, la liste de ce qui s'ouvre. */
+export interface Felicitation {
+  titre: string
+  /** Le médaillon du PNJ (HTML, voir vue-dialogue.ts), son nom et son rôle. */
+  portrait: string
+  nom: string
+  role: string
+  texte: string[]
+  /** Ce que ça ouvre (une ligne chacun). */
+  ouvre: string[]
+  bouton: string
+}
+
+export function feliciter(f: Felicitation): Promise<void> {
+  return new Promise((fini) => {
+    const fond = document.createElement('div')
+    fond.className = 'confirmation-jeu felicitation'
+    const ouvre = f.ouvre.length ? `<div class="ouvre"><b>Ce qui s'ouvre</b><ul>${f.ouvre.map((o) => `<li>${echapper(o)}</li>`).join('')}</ul></div>` : ''
+    fond.innerHTML = `<div class="carte-confirmation" role="dialog" aria-modal="true"><div class="titre-confirmation"><span class="titre-pulp">${echapper(f.titre)}</span></div>`
+      + `<div class="pnj-felicitation">${f.portrait}<div><b>${echapper(f.nom)}</b><small>${echapper(f.role)}</small></div></div>`
+      + `<div class="texte-confirmation">${f.texte.map((p) => `<p>${echapper(p)}</p>`).join('')}</div>${ouvre}`
+      + `<div class="boutons-confirmation-jeu"><button type="button" class="principal">${echapper(f.bouton)}</button></div></div>`
+    fond.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('button')) { fond.remove(); fini() }
+    })
+    document.body.append(fond)
+  })
+}

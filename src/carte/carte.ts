@@ -991,6 +991,59 @@ export class Carte2D {
     }
   }
 
+  /**
+   * Le feu d'artifice d'une zone libérée (demande d'Adrien du 21/10/2026), pendant 2 minutes : des fusées montent de
+   * l'astre et éclatent en gerbes pastel qui retombent et s'éteignent. Reproductible (tirages selon le numéro de fusée).
+   */
+  dessinerFeux(ctx: CanvasRenderingContext2D, feux: { zone: string; age: number }[]): void {
+    const COULEURS = ['#e04b37', '#f2a72e', '#3f8fd2', '#4caf6a', '#9b6fd6', '#e86aa0', '#e8c22e']
+    const PERIODE = 450, MONTEE = 700, ECLAT = 1600
+    ctx.save()
+    for (const f of feux) {
+      const p = this.place(f.zone)
+      if (!p) continue
+      const portee = Math.max(80, Math.min(150, p.r * 2.4))
+      // Les dernières secondes, les tirs s'espacent puis s'arrêtent.
+      const fin = 120_000 - ECLAT - MONTEE
+      for (let n = Math.max(0, Math.floor((f.age - MONTEE - ECLAT) / PERIODE)); n * PERIODE <= Math.min(f.age, fin); n++) {
+        const h = (k: number) => { const x = Math.sin(n * 12.9898 + k * 78.233 + f.zone.length * 3.7) * 43758.5453; return x - Math.floor(x) }
+        if (n * PERIODE > fin - 15_000 && h(9) < 0.5) continue
+        const vie = f.age - n * PERIODE
+        if (vie < 0) continue
+        const angle = -Math.PI / 2 + (h(1) - 0.5) * 1.8, haut = portee * (0.7 + 0.5 * h(2))
+        const cx = p.x + Math.cos(angle) * (p.r + haut), cy = p.y + Math.sin(angle) * (p.r + haut)
+        const couleur = COULEURS[Math.floor(h(3) * COULEURS.length)]
+        if (vie < MONTEE) {
+          // La fusée qui monte : un trait court.
+          const k = vie / MONTEE, e = 1 - (1 - k) * (1 - k)
+          const x = p.x + Math.cos(angle) * (p.r + haut * e), y = p.y + Math.sin(angle) * (p.r + haut * e)
+          ctx.strokeStyle = couleur
+          ctx.lineWidth = 2.5
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - Math.cos(angle) * 12, y - Math.sin(angle) * 12); ctx.stroke()
+          continue
+        }
+        const k = (vie - MONTEE) / ECLAT
+        if (k >= 1) continue
+        const rayon = portee * (0.35 + 0.25 * h(4)) * (1 - (1 - k) ** 3), chute = 14 * k * k
+        ctx.globalAlpha = 1 - k
+        ctx.fillStyle = ctx.strokeStyle = couleur
+        ctx.lineWidth = 2.2
+        ctx.lineCap = 'round'
+        const etincelles = 18 + Math.floor(h(5) * 10), trainee = rayon * 0.35 * (1 - k)
+        for (let i = 0; i < etincelles; i++) {
+          const a = (2 * Math.PI * i) / etincelles + h(6), x = cx + Math.cos(a) * rayon, y = cy + Math.sin(a) * rayon + chute
+          // Une traînée vers le cœur de la gerbe, et l'étincelle au bout.
+          ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * trainee, y - Math.sin(a) * trainee - chute * 0.3); ctx.lineTo(x, y); ctx.stroke()
+          ctx.beginPath(); ctx.arc(x, y, k < 0.15 ? 3.2 : 2.3, 0, 2 * Math.PI); ctx.fill()
+        }
+        // L'éclair au cœur de la gerbe.
+        if (k < 0.2) { ctx.globalAlpha = 1 - k / 0.2; ctx.fillStyle = '#fffbe8'; ctx.beginPath(); ctx.arc(cx, cy, 10 * (1 - k / 0.2) + 3, 0, 2 * Math.PI); ctx.fill() }
+        ctx.globalAlpha = 1
+      }
+    }
+    ctx.restore()
+  }
+
   /** Le drapeau pirate d'une zone occupée par Andromède : un mât et un fanion noir à tête de mort, planté au-dessus. */
   private drapeau(ctx: CanvasRenderingContext2D, x: number, y: number, couleurs: Couleurs2D): void {
     ctx.save()

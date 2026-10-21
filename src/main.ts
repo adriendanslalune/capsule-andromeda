@@ -31,13 +31,13 @@ import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
 import { VueEscorte } from './commun/vue-escorte'
 import { VueInvitation } from './commun/vue-invitation'
-import { VueDialogue } from './commun/vue-dialogue'
+import { VueDialogue, medaillon } from './commun/vue-dialogue'
 import { htmlJournal } from './commun/volet-journal'
 import { htmlBoutique } from './commun/volet-boutique'
-import { confirmer } from './commun/confirmation'
+import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, assautIci, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -517,7 +517,8 @@ function afficherCadranVitesse(t: number): void {
   const max = plan ? plan.vitesse : vitesse()
   const kms = v?.vitesse ?? 0
   const phase = !v ? 'EN ORBITE' : v.phase === 'accelere' ? 'ACCÉLÈRE' : v.phase === 'freine' ? 'FREINE' : v.phase === 'croisiere' ? 'CROISIÈRE' : 'ARRIVÉE'
-  const texte = kms < 10 ? kms.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : Math.round(kms).toLocaleString('fr-FR')
+  // Avec les décimales (demande d'Adrien du 21/10/2026) : on voit la vitesse grimper.
+  const texte = kms.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const a = ARC_CADRAN.debut + (ARC_CADRAN.fin - ARC_CADRAN.debut) * Math.min(1, kms / max)
   const cle = `${texte}|${phase}|${a.toFixed(1)}`
   if (cle === cadranAffiche) return
@@ -1716,6 +1717,13 @@ function image(maintenant: number): void {
   // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
   afficherSuivi()
   if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
+  // Une zone libérée : sa fenêtre, une fois le combat refermé (demande d'Adrien du 21/10/2026).
+  if (jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
+    const l = liberation(jeu.liberationsAAnnoncer.shift()!)
+    navigator.vibrate?.([120, 80, 120, 80, 240])
+    void feliciter({ titre: `${l.zone} libérée !`, portrait: medaillon(l.pnj, 'portrait'), nom: l.pnj.nom, role: l.pnj.role,
+      texte: l.texte.map((x) => x.replaceAll('{joueur}', jeu.pseudo)), ouvre: l.ouvre, bouton: 'VIVE LA RÉSISTANCE !' })
+  }
   // Une confirmation de la Bourse revenue à la capsule.
   if (jeu.annoncesBourse.length && message.hidden) {
     const o = jeu.annoncesBourse.shift()!, c = compagnie(o.compagnie)!
@@ -1750,7 +1758,7 @@ function image(maintenant: number): void {
   const rendezVous = trace ? trace[trace.length - 1] : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
-  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR
+  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
     dernierDessinCarte = maintenant
@@ -1792,6 +1800,9 @@ function image(maintenant: number): void {
       const s = signePnj(jeu, p.id)
       return { lieu: p.lieu, initiale: p.nom.replace(/^(Dr|Le|La) /, '')[0], teinte: p.teinte, signe: s?.signe ?? null, principale: s?.principale ?? false }
     }), lieuObjectif ? { lieu: lieuObjectif, principale: suivie!.type === 'principale' } : null, { encre: th.encre, fond: th.halo })
+    // Les feux d'artifice des zones libérées (2 minutes).
+    const feux = jeu.feuxEnCours(t)
+    if (feux.length) carte.dessinerFeux(ctxPlan, feux)
     // Les échos des PING : leurs cercles, et les places possibles des monolithes (pas les localisés : ils sont dessinés).
     if (reglages.cercles && jeu.monolithes.echos.length) {
       const revenus = echosRevenus(jeu.monolithes, t)

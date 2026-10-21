@@ -7,6 +7,10 @@ import type { Contrat } from './contrats'
 import type { Jeu } from './jeu'
 import { deLa, estLibre, jauge, zone } from './zones'
 import { XP } from '../donnees/niveaux'
+import { COMPAGNIES } from '../donnees/bourse'
+import { MARCHES } from '../donnees/marche'
+import { ZONES_A_LIBERER } from '../donnees/zones'
+import { zoneDuLieu } from './zones'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -208,4 +212,24 @@ export function assautIci(jeu: Jeu, t: number): string | null {
     if (e?.genre === 'assaut' && e.zone === ici && !jeu.zones.liberees.includes(ici)) return ici
   }
   return null
+}
+
+/** La fenêtre d'une zone libérée (demande d'Adrien du 21/10/2026) : le PNJ de la Résistance qui l'annonce, ce qu'il dit, ce qui s'ouvre. */
+export interface Liberation { zone: string; pnj: Pnj; texte: string[]; ouvre: string[] }
+
+export function liberation(nom: string): Liberation {
+  const z = ZONES_A_LIBERER.find((x) => x.nom === nom)!
+  const q = QUETES.find((x) => x.libere === nom)
+  const retour = q?.etapes.find((e) => e.genre === 'parler')
+  const p = pnj(retour && retour.genre === 'parler' ? retour.pnj : q?.donneur ?? PNJS[0].id)
+  const la = ['Lune', 'Terre'].includes(nom) ? `La ${nom}` : nom
+  const texte = [`Le vaisseau amiral ${z.amiral} est en miettes, {joueur} ! ${la} est libre.`,
+    `Viens me voir à ${p.lieu} : la Résistance te doit une récompense.`]
+  const ouvre: string[] = []
+  if (MARCHES.some((m) => m.lieu === nom)) ouvre.push(`Le comptoir ${deLa(nom)}`)
+  for (const c of COMPAGNIES.filter((x) => x.siege === nom)) ouvre.push(`La cotation de la ${c.nom}`)
+  const secondaires = [...new Set(QUETES.filter((x) => x.type === 'secondaire' && zoneDuLieu(pnj(x.donneur).lieu) === nom).map((x) => pnj(x.donneur).nom))]
+  if (secondaires.length) ouvre.push(`Les quêtes de ${secondaires.join(', ')}`)
+  if (z.planete) ouvre.push(`Plus de chasseurs autour ${deLa(nom)}`)
+  return { zone: nom, pnj: p, texte, ouvre }
 }

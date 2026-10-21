@@ -7,7 +7,7 @@ import { chef, nouveauCombat } from '../src/moteur/combat'
 import { corps, position } from '../src/moteur/corps'
 import { alienLa } from '../src/moteur/espace'
 import { Jeu } from '../src/moteur/jeu'
-import { accepter, avancerQuetes, disponibles, objectif, quete } from '../src/moteur/quetes'
+import { accepter, avancerQuetes, disponibles, liberation, objectif, quete } from '../src/moteur/quetes'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 import { ajouterPoints, estLibre, jauge, zoneDuLieu, zoneProche } from '../src/moteur/zones'
 
@@ -106,5 +106,23 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
     const planete = chef(nouveauCombat(1, 12, { planete: true }))!.pvMax
     expect(lune).toBeGreaterThan(2 * chasseur)
     expect(planete).toBeGreaterThan(lune)
+  })
+
+  it('une zone libérée : sa fenêtre (le PNJ de la Résistance, ce qui s’ouvre) et 2 minutes de feu d’artifice', () => {
+    const jeu = new Jeu()
+    jeu.gagnerAssaut('Lune', t0)
+    expect(jeu.liberationsAAnnoncer).toEqual(['Lune'])
+    expect(jeu.feuxEnCours(t0 + 60_000)).toEqual([{ zone: 'Lune', age: 60_000 }])
+    expect(jeu.feuxEnCours(t0 + 121_000)).toEqual([])
+    expect(jeu.feux).toEqual([])
+    jeu.gagnerAssaut('Lune', t0 + 1000) // déjà libre : ni fenêtre ni feu de plus
+    expect(jeu.liberationsAAnnoncer).toHaveLength(1)
+    const l = liberation('Lune')
+    expect(l.texte.join(' ')).toContain('le Séléné')
+    expect(l.ouvre).toContain('La cotation de la Compagnie Lunaire de Tycho')
+    const mars = liberation('Mars')
+    expect(mars.ouvre).toContain('Le comptoir de Mars')
+    expect(mars.ouvre).toContain('Plus de chasseurs autour de Mars')
+    for (const z of ZONES_A_LIBERER) expect(liberation(z.nom).pnj, z.nom).toBeDefined()
   })
 })

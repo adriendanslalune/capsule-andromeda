@@ -49,8 +49,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   libérée retirés ; quêtes secondaires d'un PNJ seulement dans une zone libre ; jauges dans le Profil.
   Sur la carte (décision d'Adrien du 21/10/2026) : les zones pas encore visitées sont grisées (`jeu.visites`, une zone
   est visitée dès qu'on se met en orbite autour d'elle ou de ce qui tourne autour ; sauvegardé) ; un drapeau pirate
-  au-dessus de chaque zone occupée, qui disparaît à sa libération (`carte.etatZone`, `drapeau`). Pas encore : la fête
-  des bots dans le chat.
+  au-dessus de chaque zone occupée, qui disparaît à sa libération (`carte.etatZone`, `drapeau`).
+  Zone libérée (demandes d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : la fenêtre de
+  libération (`liberation` dans `src/moteur/quetes.ts`, `feliciter` dans `src/commun/confirmation.ts` : portrait ou
+  médaillon du PNJ de la Résistance, ses mots, ce qui s'ouvre), une fois le combat refermé ; le feu d'artifice
+  au-dessus de la zone pendant 2 minutes (`jeu.feux`, `feuxEnCours`, `carte.dessinerFeux`). La fête des bots dans le
+  chat a été essayée puis retirée (Adrien : « ça n'apporte pas grand chose »). Le cadran de vitesse affiche deux
+  décimales. Les quêtes se terminent toutes dans le dialogue du PNJ, qui montre déjà son portrait (médaillon en
+  attendant les images d'Adrien : champ `portrait` des PNJ, image carrée dans `public/`).
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

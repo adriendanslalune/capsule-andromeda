@@ -10,7 +10,7 @@ import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/ca
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { ARMEMENT, BONUS_SANS_DEGAT, CANON_TROIS_BALLES, ENERGIE_DEPART, LIGNE_DE_MAISON, NIVEAU_ARMEMENT_MAX, PRIX_ARMEMENT, type Energie, type LigneArmement } from '../donnees/combat'
 import type { Equipement } from './combat'
-import { CAPACITE_SOUTE, MARCHANDISES, MARCHES, type FicheMarche } from '../donnees/marche'
+import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
 import { avancerRadar, radarEteint, type EtatRadar } from './radar'
 import { radioNeuve, type EtatRadio } from './radio'
@@ -36,10 +36,13 @@ import { astreDominant, corps, position } from './corps'
 import { niveauDe, palierDe } from './niveau'
 import { XP } from '../donnees/niveaux'
 import { niveauDeZone } from './combat'
-import { deLa, estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
+import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
+
+/** Le feu d'artifice d'une zone libérée dure 2 minutes (demande d'Adrien du 21/10/2026). */
+export const DUREE_FEUX = 120_000
 
 /**
  * La mission acceptée : où on en est (numéro de l'étape) et, si une action est en cours, son début (ms UTC) et sa
@@ -114,6 +117,10 @@ export class Jeu {
   visites: string[] = ['Terre']
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
+  /** Les zones libérées pas encore annoncées par leur fenêtre (demande d'Adrien du 21/10/2026). */
+  liberationsAAnnoncer: string[] = []
+  /** Les feux d'artifice sur la carte : la zone libérée et quand (2 minutes, demande d'Adrien du 21/10/2026). */
+  feux: { zone: string; t: number }[] = []
   /** La Bourse : actions, ordres en route, derniers ordres confirmés ; et les confirmations à annoncer. */
   bourse: Portefeuille = portefeuilleVide()
   /** Le radar de la carte (sa jauge ; pas sauvegardé : il repart éteint). */
@@ -828,10 +835,16 @@ export class Jeu {
     if (!this.zones.liberees.includes(nom)) {
       this.libererZone(nom)
       this.gagnerXp(ZONES_A_LIBERER.find((z) => z.nom === nom)?.planete ? XP.amiralPlanete : XP.amiralLune)
-      const comptoir = MARCHES.some((m) => m.lieu === nom)
-      this.annoncesQuetes.push(`${nom} est libérée !${comptoir ? ` Le comptoir ${deLa(nom)} ouvre.` : ''}`)
+      this.liberationsAAnnoncer.push(nom)
+      this.feux.push({ zone: nom, t })
     }
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'assaut', zone: nom }, t))
+  }
+
+  /** Les feux d'artifice en cours : chaque zone libérée il y a moins de 2 minutes, et depuis combien de temps (ms). */
+  feuxEnCours(t: number): { zone: string; age: number }[] {
+    this.feux = this.feux.filter((f) => t - f.t < DUREE_FEUX)
+    return this.feux.filter((f) => t >= f.t).map((f) => ({ zone: f.zone, age: t - f.t }))
   }
 
   /** Une zone libérée (l'assaut final gagné) ; les chasseurs de son système, si c'est une planète, ne reviennent plus. */

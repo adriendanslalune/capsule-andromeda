@@ -1587,6 +1587,14 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 .confirmation-jeu button.principal, .confirmation-jeu button.grave { flex: 1.4; color: #fff; }
 .confirmation-jeu button.principal { background: #d9694f; }
 .confirmation-jeu button.grave { background: #b4442f; }
+/* La fenêtre d'une zone libérée : le portrait du PNJ de la Résistance, ses mots, ce qui s'ouvre. */
+.felicitation .pnj-felicitation { display: flex; align-items: center; gap: 12px; padding: 14px 18px 0; }
+.felicitation .pnj-felicitation b { display: block; font-size: 16px; }
+.felicitation .pnj-felicitation small { font-size: 11px; opacity: 0.75; }
+.felicitation .portrait { flex: none; width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--encre); object-fit: cover;
+  display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: bold; color: #1f1b18; box-shadow: 2px 2px 0 var(--ombre); }
+.felicitation .ouvre { margin: 10px 16px 0; padding: 8px 12px; font-size: 12.5px; background: #bfe0c8; color: #1f1b18; border: 2px solid var(--encre); border-radius: 8px; }
+.felicitation .ouvre ul { margin: 4px 0 0; padding-left: 18px; }
 @keyframes fondu { from { opacity: 0; } }
 /* Panneau ↔ Manuel d'un glissement (demande d'Adrien du 21/10/2026) : la page arrive du côté où l'on a poussé. */
 .page.vers-gauche { animation: arriver-droite 0.22s ease-out; }
