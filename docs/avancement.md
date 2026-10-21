@@ -137,8 +137,16 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   - Tailles des formes de 1 à 1,25 (`TAILLE` dans `src/carte/vaisseaux.ts`), 1 à 1,04 à l'intérieur d'un palier.
   - Le Soleil refait en globe (`soleil` dans `src/carte/planispheres.ts`, `couronne` et `protuberances` dans
     `src/carte/globes.ts`), rotation de 25,38 jours.
-  - À décider avec Adrien : un intérêt aux chasseurs vus au radar hors contrat ; la collection « Les Disparus » (le
-    radar retrouve de vraies sondes perdues ; classeur pré-rempli, cases grises).
+- Retours d'Adrien du 21/10/2026 (suite) — **faits, en attente de ses essais** :
+  - Le Soleil s'anime (`couronne`, `protuberances`, `soleilAnime` dans `src/carte/globes.ts` ; la carte se redessine à
+    chaque image quand il est grand).
+  - Les capsules des autres : un point (rayon 2) au-delà de 40 km par pixel (`LOIN_CAPSULES`), silhouette et nom en
+    deçà (`NOMS_CAPITAINES` 30) ; les points se superposent sans pousser notre capsule.
+  - Les chasseurs et le radar : `reperer` et `EtatEspace.reperes` (sauvegardé) ; un chasseur pas vu depuis
+    `REPERAGE` (30 min) tire un missile deux fois plus rapide ; ATTAQUER hors contrat sur la fiche d'un chasseur
+    rejoint (XP et résistance par `vaincreChasseur`) ; testé.
+  - À faire, idée validée : la collection « Les Disparus » (le radar retrouve de vraies sondes perdues ; classeur
+    pré-rempli, cases grises ; écho faible à moins de 20 000 km, beaucoup perdues dans le vide).
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

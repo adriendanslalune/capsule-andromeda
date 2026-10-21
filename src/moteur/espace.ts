@@ -4,7 +4,7 @@
 // tirs pendant que l'application était fermée (pas de mauvaise surprise au retour).
 
 import {
-  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RECYCLAGE_EPAVE, RETOUR_ALIEN,
+  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RECYCLAGE_EPAVE, REPERAGE, RETOUR_ALIEN,
   tirsParHeure, VOL_MISSILE,
 } from '../donnees/espace'
 import { corps, astreDominant, GENERATIONS_ALIENS, GENERATIONS_EPAVES, rayonInfluence } from './corps'
@@ -32,6 +32,8 @@ export interface EtatEspace {
   aQuai?: Record<string, { station: string; depuis: number }>
   /** Combien de fois chaque épave a été recyclée (la génération de celle qui la remplace). */
   generationsEpaves?: Record<string, number>
+  /** Les chasseurs repérés au radar, et quand (un chasseur repéré ne surprend pas : voir REPERAGE). */
+  reperes?: Record<string, number>
 }
 
 export function nouvelEspace(): EtatEspace {
@@ -144,7 +146,9 @@ export function avancerEspace(e: EtatEspace, t: number): { lances: Missile[]; im
       for (let k = Math.floor(depuis / HEURE); k <= Math.floor(t / HEURE); k++) {
         const quand = tirDeLHeure(nom, k)
         if (quand === null || quand <= depuis || quand > t || e.missiles.some((m) => m.alien === nom) || e.missiles.length >= MISSILES_MAX) continue
-        const m = { id: quand, alien: nom, lance: quand, impact: quand + VOL_MISSILE }
+        // Repéré au radar depuis peu : le temps de voir venir ; sinon, son missile arrive deux fois plus vite.
+        const vu = e.reperes?.[nom] !== undefined && quand - e.reperes[nom] < REPERAGE
+        const m = { id: quand, alien: nom, lance: quand, impact: quand + (vu ? VOL_MISSILE : VOL_MISSILE / 2) }
         e.missiles.push(m)
         lances.push(m)
       }
@@ -176,4 +180,12 @@ export function vaincre(e: EtatEspace, nom: string, t: number): void {
   e.generations[nom] = (e.generations[nom] ?? 0) + 1
   GENERATIONS_ALIENS.set(nom, e.generations[nom])
   e.missiles = e.missiles.filter((m) => m.alien !== nom)
+}
+
+/** Le radar balaie : les chasseurs à portée sont repérés (ils ne surprendront pas pendant REPERAGE). */
+export function reperer(e: EtatEspace, t: number, portee: number): void {
+  for (const a of ALIENS) {
+    if (!alienLa(e, a.nom, t) || distanceDepuisCapsule(a.nom, t) > portee) continue
+    e.reperes = { ...(e.reperes ?? {}), [a.nom]: t }
+  }
 }

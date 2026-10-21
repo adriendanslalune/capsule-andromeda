@@ -252,22 +252,34 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   return true
 }
 
-/** La couronne du Soleil : une lueur dorée, et de fins rayons ondulés à l'encre, comme sur une gravure. */
+/**
+ * Le Soleil s'anime (demande d'Adrien du 21/10/2026) : les rayons de la couronne ondulent et s'étirent doucement, les
+ * protubérances gonflent et se tordent. C'est purement décoratif : l'animation suit l'horloge de l'écran, pas le jeu.
+ */
+export let soleilAnime = false
+export function oublierSoleilAnime(): void { soleilAnime = false }
+const secondes = () => performance.now() / 1000
+
+/** La couronne du Soleil : une lueur dorée qui respire, et de fins rayons ondulés à l'encre, comme sur une gravure. */
 function couronne(ctx: CanvasRenderingContext2D, r: number, rotation: number): void {
-  const g = ctx.createRadialGradient(0, 0, r, 0, 0, 1.9 * r)
+  soleilAnime = true
+  const s = secondes(), souffle = 1 + 0.04 * Math.sin(s * 0.9)
+  const g = ctx.createRadialGradient(0, 0, r, 0, 0, 1.9 * r * souffle)
   g.addColorStop(0, 'rgba(247, 201, 85, 0.55)')
   g.addColorStop(1, 'rgba(247, 201, 85, 0)')
   ctx.fillStyle = g
   ctx.beginPath()
-  ctx.arc(0, 0, 1.9 * r, 0, 2 * Math.PI)
+  ctx.arc(0, 0, 1.9 * r * souffle, 0, 2 * Math.PI)
   ctx.fill()
   ctx.strokeStyle = 'rgba(201, 122, 42, 0.55)'
   ctx.lineWidth = epaisseurContour(r) * 0.8
   for (let k = 0; k < 36; k++) {
-    const a = (k / 36) * 2 * Math.PI + rotation * RAD * 0.1, l = r * (1.25 + 0.35 * ((k * 7) % 5) / 4)
+    // Chaque rayon s'étire et se rétracte à son rythme, et ondule comme une flamme.
+    const a = (k / 36) * 2 * Math.PI + rotation * RAD * 0.1 + 0.02 * Math.sin(s * 0.4 + k)
+    const l = r * (1.25 + 0.35 * ((k * 7) % 5) / 4) * (1 + 0.08 * Math.sin(s * (0.6 + (k % 5) * 0.13) + k * 1.7))
     ctx.beginPath()
     for (let i = 0; i <= 10; i++) {
-      const d = r * 1.06 + ((l - r * 1.06) * i) / 10, o = Math.sin(i * 1.3 + k) * r * 0.015
+      const d = r * 1.06 + ((l - r * 1.06) * i) / 10, o = Math.sin(i * 1.3 + k - s * 2.2) * r * 0.018 * (i / 10)
       const px = Math.cos(a) * d - Math.sin(a) * o, py = Math.sin(a) * d + Math.cos(a) * o
       if (i) ctx.lineTo(px, py)
       else ctx.moveTo(px, py)
@@ -276,15 +288,17 @@ function couronne(ctx: CanvasRenderingContext2D, r: number, rotation: number): v
   }
 }
 
-/** Les protubérances : des boucles de plasma au bord du Soleil, qui tournent avec lui. */
+/** Les protubérances : des boucles de plasma au bord du Soleil, qui tournent avec lui, gonflent et se tordent. */
 function protuberances(ctx: CanvasRenderingContext2D, r: number, rotation: number): void {
+  const s = secondes()
   ctx.lineJoin = 'round'
   for (const [base, taille] of [[0.4, 0.22], [1.7, 0.15], [2.6, 0.28], [3.9, 0.12], [5.1, 0.2]]) {
     const a = base + rotation * RAD
-    const a0 = a - 0.09, a1 = a + 0.09, h = r * (1 + taille)
+    const gonfle = taille * (1 + 0.3 * Math.sin(s * 0.7 + base * 3)), torsion = 0.05 * Math.sin(s * 0.5 + base * 5)
+    const a0 = a - 0.09, a1 = a + 0.09, h = r * (1 + gonfle)
     ctx.beginPath()
     ctx.moveTo(Math.cos(a0) * r, Math.sin(a0) * r)
-    ctx.bezierCurveTo(Math.cos(a0) * h, Math.sin(a0) * h, Math.cos(a1) * h, Math.sin(a1) * h, Math.cos(a1) * r, Math.sin(a1) * r)
+    ctx.bezierCurveTo(Math.cos(a0 + torsion) * h, Math.sin(a0 + torsion) * h, Math.cos(a1 + torsion) * h, Math.sin(a1 + torsion) * h, Math.cos(a1) * r, Math.sin(a1) * r)
     ctx.lineWidth = Math.max(1.5, r * 0.04)
     ctx.strokeStyle = '#e8673c'
     ctx.stroke()

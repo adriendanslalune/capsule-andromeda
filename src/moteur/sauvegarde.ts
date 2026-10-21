@@ -196,6 +196,7 @@ export function restaurer(s: unknown): Jeu | null {
       jeu.espace.aQuai = Object.fromEntries(Object.entries(es.aQuai).filter(([nom, q]) => !!corps(nom) && !!q && typeof q.station === 'string' && !!corps(q.station) && nombre(q.depuis)).map(([nom, q]) => [nom, { station: q.station, depuis: q.depuis }]))
     }
     if (dates(es.generationsEpaves)) jeu.espace.generationsEpaves = { ...es.generationsEpaves }
+    if (dates(es.reperes)) jeu.espace.reperes = { ...es.reperes }
     appliquerGenerations(jeu.espace)
   }
   const mo = v.monolithes

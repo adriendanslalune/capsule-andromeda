@@ -48,10 +48,10 @@ function enGris(couleur: string): string {
 }
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
 const illustre = (r: number) => r >= RAYON_ILLUSTRATION
-/** Au-delà de tant de km par pixel, les capsules des autres ne sont que des points ; leur nom ne s'affiche qu'en deçà de
- *  NOMS_CAPITAINES (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis). */
-const LOIN_CAPSULES = 20_000
-const NOMS_CAPITAINES = 2_000
+/** Au-delà de tant de km par pixel, les capsules des autres ne sont que des points ; leur silhouette et leur nom ne se
+ *  voient que de très près (demandes d'Adrien du 21/10/2026 : tout se voit, sans gâcher l'image en dézoomant). */
+const LOIN_CAPSULES = 40
+const NOMS_CAPITAINES = 30
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
@@ -422,10 +422,10 @@ export class Carte2D {
     // De loin, un petit point à la couleur de sa Maison (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis).
     if (this.kmParPx > LOIN_CAPSULES) {
       ctx.beginPath()
-      ctx.arc(q.x, q.y, 2.6, 0, 2 * Math.PI)
+      ctx.arc(q.x, q.y, 2, 0, 2 * Math.PI)
       ctx.fillStyle = teinte
       ctx.fill()
-      ctx.lineWidth = 0.8
+      ctx.lineWidth = 0.6
       ctx.strokeStyle = couleurs.encre
       ctx.stroke()
       return
@@ -434,7 +434,7 @@ export class Carte2D {
     // Les capsules des autres ont aussi la forme de leur niveau, un peu plus petites que la nôtre, et encore un peu
     // plus en s'éloignant.
     const p = palierDe(niveauDuBot(nom))
-    const recul = Math.max(0.6, Math.min(1, 1 - 0.2 * Math.log10(Math.max(1, this.kmParPx / 300))))
+    const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
     dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul, teinte, couleurs.encre)
   }
 
@@ -589,7 +589,9 @@ export class Carte2D {
       if (alpha <= 0) continue
       // Plusieurs capsules à la même escale : elles s'écartent en éventail plutôt que de se cacher (demande d'Adrien
       // du 21/10/2026) ; les autres engins serrés restent cachés.
-      if (!libre(q.x, q.y, RAYON_ENGIN)) {
+      // De loin, les capsules des autres ne sont que des points : ils peuvent se superposer.
+      const point = c.type === 'joueur' && this.kmParPx > LOIN_CAPSULES
+      if (!point && !libre(q.x, q.y, RAYON_ENGIN)) {
         if (c.type !== 'joueur') continue
         let place: { x: number; y: number } | null = null
         for (let k = 1; k <= 3 && !place; k++) {
@@ -602,7 +604,7 @@ export class Carte2D {
         q.x = place.x
         q.y = place.y
       }
-      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN, alpha })
+      this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: point ? 3 : RAYON_ENGIN, alpha })
       ctx.globalAlpha = alpha
       if (c.type === 'alien') {
         ctx.beginPath()
@@ -624,7 +626,7 @@ export class Carte2D {
     // Vue de loin, la capsule tomberait sur le disque de son astre : on la pose juste à côté, sans le cacher.
     for (const d of this.dessines) {
       const ecart = Math.hypot(x - d.x, y - d.y)
-      if (ecart >= d.r + 7) continue
+      if (ecart >= d.r + 7 || corps(d.nom)?.type === 'joueur') continue
       const ux = ecart > 0.5 ? (x - d.x) / ecart : 0.7, uy = ecart > 0.5 ? (y - d.y) / ecart : -0.7
       x = d.x + ux * (d.r + 8)
       y = d.y + uy * (d.r + 8)

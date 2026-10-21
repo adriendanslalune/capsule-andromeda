@@ -97,6 +97,36 @@ describe('les chasseurs : très nombreux, partout, imprévisibles', () => {
   })
 })
 
+describe('les chasseurs furtifs (décision d’Adrien du 21/10/2026)', () => {
+  it('un chasseur repéré au radar laisse le temps de voir venir ; pas vu, son missile arrive deux fois plus vite', () => {
+    // Un chasseur à portée de la capsule, et l'heure où il tire.
+    let nom = '', quand = 0
+    for (let k = Math.floor(t0 / 3_600_000); !nom && k < Math.floor(t0 / 3_600_000) + 2000; k++) {
+      for (const a of aliensReperes(nouvelEspace(), k * 3_600_000 + 1_800_000)) {
+        const q = tirDeLHeure(a, k)
+        if (q !== null && aliensReperes(nouvelEspace(), q).includes(a)) { nom = a; quand = q; break }
+      }
+    }
+    expect(nom).not.toBe('')
+    const tir = (repere: boolean) => {
+      const e = nouvelEspace()
+      if (repere) e.reperes = { [nom]: quand - 60_000 }
+      e.tirsJusqua = quand - 1000
+      const m = avancerEspace(e, quand).lances.find((x) => x.alien === nom)!
+      return m.impact - m.lance
+    }
+    expect(tir(true)).toBe(VOL_MISSILE)
+    expect(tir(false)).toBe(VOL_MISSILE / 2)
+  })
+
+  it('le radar repère les chasseurs à sa portée ; c’est sauvegardé', () => {
+    const jeu = new Jeu()
+    jeu.espace.reperes = { [ALIENS[0].nom]: t0 }
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.espace.reperes).toEqual({ [ALIENS[0].nom]: t0 })
+  })
+})
+
 describe('un missile qui frappe la capsule', () => {
   it('le Moteur tombe en panne (vitesse divisée par 2) ; avec la Coque en panne, un bloc de plus', () => {
     const jeu = new Jeu()

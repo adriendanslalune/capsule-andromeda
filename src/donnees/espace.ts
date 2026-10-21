@@ -161,6 +161,12 @@ export const PART_RADAR = 0.6
 export const RADAR_ESPACE = 50_000_000
 /** Durée de vol d'un missile (ms) : le décompte. */
 export const VOL_MISSILE = 90_000
+/**
+ * Un chasseur repéré au radar depuis moins de REPERAGE ne surprend pas : son missile met VOL_MISSILE à arriver ; un
+ * chasseur qu'on n'a pas vu tire sans prévenir, son missile arrive deux fois plus vite (décision d'Adrien du
+ * 21/10/2026 : allumer le radar avant de partir devient un réflexe de prudence).
+ */
+export const REPERAGE = 30 * 60_000
 /** Un chasseur abattu est remplacé par un renfort d'Andromède (ailleurs dans sa région) au bout de ce temps. */
 export const RETOUR_ALIEN = 2 * 3_600_000
 /**

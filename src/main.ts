@@ -63,6 +63,7 @@ import { ZONES } from './donnees/tableaux'
 import { estLibre, jauge, zone } from './moteur/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
 import { dessinerVaisseau, rayonVaisseau } from './carte/vaisseaux'
+import { oublierSoleilAnime, soleilAnime } from './carte/globes'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
@@ -711,11 +712,19 @@ function mettreAJourFiche(t: number): void {
     depart = true
     libelle = 'PARLER'
     actionFiche = 'parler'
+  } else if (selection && corps(selection)?.type === 'alien' && dejaLa(t) && alienLa(jeu.espace, selection, t) && !apercu) {
+    // Un chasseur rejoint hors contrat (décision d'Adrien du 21/10/2026) : on peut l'attaquer ; pas de crédits, mais
+    // de l'XP et de la résistance pour la zone.
+    texte = `<b>${selection.toUpperCase()}</b> · chasseur d'Andromède<br>hors contrat : pas de crédits, mais de l'XP et de la résistance pour la zone`
+    depart = true
+    libelle = 'ATTAQUER'
+    actionFiche = 'combat'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && !proposee) {
     // Fiche de l'astre touché : rien ne change tant qu'on n'appuie pas sur Y ALLER.
     const genre = corps(selection)?.type
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
+      : genre === 'alien' ? ' · chasseur d\'Andromède : rejoins-le pour l\'attaquer'
       : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}${bot.bavard ? '' : ' · ne répond pas aux messages'}` : ''
     texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}${occupation(selection)}`
     depart = true
@@ -1836,7 +1845,8 @@ function image(maintenant: number): void {
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
   const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0
-  const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
+  // Le Soleil dessiné en grand s'anime (demande d'Adrien du 21/10/2026) : on redessine alors à chaque image.
+  const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && !soleilAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
     dernierDessinCarte = maintenant
     carteSale = false
@@ -1856,6 +1866,7 @@ function image(maintenant: number): void {
     // En vol, l'épave remorquée ou le convoi escorté suivent la capsule (demande d'Adrien du 21/10/2026).
     const enVol = mission.phase(t) === 'trajet', etapeEnCours = jeu.etapeActuelle()?.action
     carte.sillage = enVol && etapeEnCours === 'larguer' ? 'epave' : enVol && etapeEnCours === 'escorter' ? 'convoi' : null
+    oublierSoleilAnime()
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
     // Décalage de la capsule dessinée par rapport à sa vraie place sur la carte (voir decalageCapsule).
     const dessinee = carte.place(CAPSULE)

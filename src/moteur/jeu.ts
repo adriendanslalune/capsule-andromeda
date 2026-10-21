@@ -12,7 +12,7 @@ import { ARMEMENT, BONUS_SANS_DEGAT, CANON_TROIS_BALLES, ENERGIE_DEPART, LIGNE_D
 import type { Equipement } from './combat'
 import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
-import { avancerRadar, radarEteint, type EtatRadar } from './radar'
+import { PORTEE_RADAR, avancerRadar, radarEteint, type EtatRadar } from './radar'
 import { radioNeuve, type EtatRadio } from './radio'
 import { avancerOrdres, compagnie, passerOrdre, portefeuilleVide, type OrdreBourse, type Portefeuille } from './bourse'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
@@ -22,7 +22,7 @@ import { BONUS_PREMIER_COUP as BONUS_LARGAGE } from '../donnees/largage'
 import { BONUS_SANS_COUP } from '../donnees/escorte'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
-import { avancerEspace, mettreAQuai, nouvelEspace, recycler, vaincre, type EtatEspace } from './espace'
+import { avancerEspace, mettreAQuai, nouvelEspace, recycler, reperer, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, type Portee } from '../donnees/tableaux'
 import { EPAVES } from '../donnees/espace'
@@ -583,6 +583,8 @@ export class Jeu {
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
     this.avancerBourse(t)
     avancerRadar(this.radar, t)
+    // Radar allumé : les chasseurs à portée sont repérés (une fois par seconde, il y en a des centaines).
+    if (this.radar.actif && t - this.dernierReperage >= 1000) { this.dernierReperage = t; reperer(this.espace, t, PORTEE_RADAR) }
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
     const fin = ec.debutAction + (ec.dureeAction ?? DUREE_ACTION)
@@ -772,6 +774,7 @@ export class Jeu {
     })
   }
   private cleEpaves = ''
+  private dernierReperage = 0
 
   /** L'étape actuelle est-elle un largage (l'épave en remorque, à lâcher pour qu'elle s'arrête à la station) ? */
   etapeDeLargage(): boolean {
