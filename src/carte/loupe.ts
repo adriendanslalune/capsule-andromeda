@@ -6,6 +6,8 @@
 // Distances dessinées d'après la vraie distance dans l'espace : rien ne passe jamais dans le disque d'un astre.
 // Orbites couchées dans le plan de la carte (à leur vraie vitesse) : un satellite qui passe au-dessus d'un pôle ne
 // saute pas d'un bord à l'autre. Ce n'est que du dessin : le moteur garde les vraies positions.
+// Échelle réelle (option des calques, essai demandé par Adrien le 21/10/2026) : les astres à leur vraie taille, sans
+// loupe, toutes les distances vraies ; la carte se charge de dessiner une pastille quand un astre devient trop petit.
 
 import { corps, enfants, position, rayonInfluence } from '../moteur/corps'
 import { gmAstre, positionDuPoint, type Plan } from '../moteur/mission'
@@ -27,9 +29,19 @@ export const CENTRES = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturn
 
 export interface Point2 { x: number; y: number }
 
+let reelle = false
+/** Passe la carte à l'échelle réelle (ou la remet grossie, avec ses loupes). */
+export function echelleReelle(oui: boolean): void {
+  if (oui === reelle) return
+  reelle = oui
+  LOUPES.clear()
+}
+/** La carte est-elle à l'échelle réelle ? */
+export const aEchelleReelle = (): boolean => reelle
+
 /** Rayon dessiné d'un astre (km de carte). */
 export function rayonDessine(nom: string): number {
-  return (corps(nom)?.rayon ?? 0) * (nom === 'Soleil' ? GROSSISSEMENT_SOLEIL : GROSSISSEMENT)
+  return (corps(nom)?.rayon ?? 0) * (reelle ? 1 : nom === 'Soleil' ? GROSSISSEMENT_SOLEIL : GROSSISSEMENT)
 }
 
 /** Une loupe : rayon réel et rayon dessiné de l'astre, zone réelle et zone dessinée (km). */
@@ -43,7 +55,7 @@ function loupe(nom: string): Loupe {
     const Rd = rayonDessine(nom)
     if (nom === 'Soleil') l = { R, Rd, zone: ZONE_SOLEIL, zoneDessinee: ZONE_SOLEIL }
     else if ((CENTRES as readonly string[]).includes(nom)) l = { R, Rd, zone: rayonInfluence(nom), zoneDessinee: rayonInfluence(nom) }
-    else l = { R, Rd, zone: R * ZONE_LUNE_REELLE, zoneDessinee: Rd * ZONE_LUNE_DESSINEE }
+    else l = { R, Rd, zone: R * ZONE_LUNE_REELLE, zoneDessinee: reelle ? R * ZONE_LUNE_REELLE : Rd * ZONE_LUNE_DESSINEE }
     LOUPES.set(nom, l)
   }
   return l
@@ -60,6 +72,7 @@ export function zoneDessinee(nom: string): number {
 
 /** Distance dessinée pour une distance réelle d au centre (d ≥ R) : logarithmique, de Rd à la zone dessinée. */
 function etirer(l: Loupe, d: number): number {
+  if (reelle) return d
   const d0 = 0.05 * l.R
   const g = Math.log(1 + Math.max(0, d - l.R) / d0) / Math.log(1 + (l.zone - l.R) / d0)
   return l.Rd + (l.zoneDessinee - l.Rd) * g
@@ -72,6 +85,8 @@ function etirer(l: Loupe, d: number): number {
  */
 export function anneauxGradues(nom: string): { rayon: number; distance: number }[] {
   const l = loupe(nom), r: { rayon: number; distance: number }[] = []
+  // À l'échelle réelle, la carte n'écrase plus rien : pas besoin d'anneaux.
+  if (reelle) return r
   for (let d = 1_000; d < l.zone; d *= 10) if (d > 1.5 * l.R) r.push({ rayon: etirer(l, d), distance: d })
   return r
 }

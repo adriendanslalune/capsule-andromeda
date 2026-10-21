@@ -19,6 +19,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Échelle réelle (essai demandé par Adrien le 21/10/2026), **à comparer par Adrien** : bouton « Échelle réelle » dans
+  les calques (désactivé par défaut, mémorisé). Astres à leur vraie taille, plus de loupe autour des planètes, toutes
+  les distances vraies (`echelleReelle` dans `src/carte/loupe.ts`) ; un astre trop petit devient une pastille, deux
+  fois plus petite que les minimums habituels mais dans le même ordre (`PASTILLE_REELLE` dans `carte.ts`) ; plus
+  d'anneaux gradués. Toucher un tas d'objets serrés ouvre une petite liste pour choisir (`#tas`, `carte.touches`).
+  Si Adrien valide, retirer l'ancienne carte (grossissement ×50 et loupes).
 - Profil de vol revu (décision d'Adrien du 21/10/2026) : 2 minutes pour atteindre la vitesse max, quel que soit le
   moteur, 2 minutes pour freiner (`DUREE_ACCELERATION`, `acceleration(v)` dans `src/donnees/capsule.ts`) ; un meilleur
   moteur raccourcit aussi les trajets courts (Terre → Lune : 29 min au niveau 4). Plus de mention de l'accélération

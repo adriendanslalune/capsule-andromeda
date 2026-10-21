@@ -8,7 +8,7 @@
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
-import { anneauxGradues, CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
+import { aEchelleReelle, anneauxGradues, CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { BOTS } from '../donnees/messages'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
@@ -33,6 +33,9 @@ const MINIMUMS: Record<string, number> = {
   Soleil: 18, Jupiter: 16, Saturne: 15, Uranus: 13, Neptune: 13, Terre: 12, Vénus: 12, Mars: 11.5, Mercure: 11,
   Pluton: 11, Lune: 11,
 }
+/** À l'échelle réelle, un astre trop petit devient une pastille, plus petite que les minimums ci-dessus (mais dans le
+ *  même ordre : on reconnaît Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien, 21/10/2026). */
+const PASTILLE_REELLE = 0.5
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
@@ -165,9 +168,10 @@ export class Carte2D {
       ? Math.max(Math.abs(this.newHorizons.x) / (this.largeur / 2), Math.abs(this.newHorizons.y) / (this.hauteur / 2))
         / this.kmParPx
       : VUE_GENERALE / (this.largeur / 2) / this.kmParPx
+    const k = aEchelleReelle() ? PASTILLE_REELLE : 1
     const minimum = MINIMUMS[c.nom] !== undefined && c.type !== 'lune'
-      ? Math.max(RAYON_POINT, MINIMUMS[c.nom] * Math.min(1, facteur))
-      : MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)
+      ? Math.max(RAYON_POINT, k * MINIMUMS[c.nom] * Math.min(1, facteur))
+      : Math.max(RAYON_POINT, k * (MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)))
     return Math.max(minimum, rayonDessine(c.nom) / this.kmParPx)
   }
 
@@ -981,13 +985,13 @@ export class Carte2D {
 
   /** Astre touché (le plus proche du doigt, à moins de 24 pixels), ou null. */
   toucher(x: number, y: number): string | null {
-    let meilleur: string | null = null
-    let dMin = 24
-    for (const d of this.dessines) {
-      const ecart = Math.hypot(d.x - x, d.y - y) - d.r
-      if (ecart < dMin) { dMin = ecart; meilleur = d.nom }
-    }
-    return meilleur
+    return this.touches(x, y)[0] ?? null
+  }
+
+  /** Tout ce qui est sous le doigt (à moins de 24 pixels), du plus proche au plus loin : pour choisir dans un tas. */
+  touches(x: number, y: number): string[] {
+    const l = this.dessines.map((d) => ({ nom: d.nom, ecart: Math.hypot(d.x - x, d.y - y) - d.r })).filter((d) => d.ecart < 24)
+    return [...new Set(l.sort((a, b) => a.ecart - b.ecart).map((d) => d.nom))]
   }
 
   glisser(dx: number, dy: number): void {

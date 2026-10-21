@@ -80,7 +80,7 @@ import { VoletMissions } from './commun/volet-missions'
 import { texteArrivee, texteDateComplete, texteDuree } from './commun/textes'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
+import { couperTrace, echelleReelle, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
@@ -220,6 +220,8 @@ const reglages = {
   cercles: true,
   /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
   nuit: false,
+  /** Essai (demande d'Adrien du 21/10/2026) : la carte à l'échelle réelle, sans astres grossis ni loupes. */
+  reelle: false,
   crochet: true, etiquette: true, fleche: true,
   /** Essai : forcer la vitesse de croisière (km/s) au lieu de celle du moteur de la capsule. */
   forcerVitesse: false,
@@ -345,17 +347,19 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
     boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
   } else if (b.dataset.afficher) {
     // Les calques, et le mode nuit en accès rapide (demande d'Adrien du 20/10/2026).
-    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'
+    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit' | 'reelle'
     reglages[cle] = !reglages[cle]
     memoriser()
     if (cle === 'nuit') appliquerTheme()
+    if (cle === 'reelle') echelleReelle(reglages.reelle)
     afficherChoixAffichage()
   }
 })
 function afficherChoixAffichage(): void {
-  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])
+  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit' | 'reelle'])
 }
 afficherChoixAffichage()
+echelleReelle(reglages.reelle)
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
@@ -730,6 +734,7 @@ const gestesCarte = new Gestes(toilePlan, {
   // La caméra suit ce qui est choisi : le pincement zoome autour de lui, et seul un vrai glissement d'un doigt (plus de
   // 15 px : pas le petit glissement du premier doigt d'un pincement) la fait lâcher prise.
   glisser: (dx, dy, pince) => {
+    fermerTas()
     const accroche = selection !== null && suivre
     if (pince) { if (!accroche) carte.glisser(dx, dy); return }
     if (accroche) {
@@ -739,15 +744,39 @@ const gestesCarte = new Gestes(toilePlan, {
     }
     carte.glisser(dx, dy)
   },
-  zoomer: (f, sx, sy) => carte.zoomer(f, sx, sy),
+  zoomer: (f, sx, sy) => { fermerTas(); carte.zoomer(f, sx, sy) },
   toucher: (x, y) => {
-    const nom = carte.toucher(x, y)
+    // À l'échelle réelle, les engins s'entassent près de leur planète : toucher le tas propose de choisir.
+    const noms = carte.touches(x, y)
+    if (reglages.reelle && noms.length > 1) { montrerTas(noms, x, y); return }
+    fermerTas()
     // Toucher un endroit vide retire le choix (et ferme l'aperçu d'une mission).
-    choisir(nom)
+    choisir(noms[0] ?? null)
   },
 })
 
 document.addEventListener('gesturestart', (e) => e.preventDefault())
+
+// Le tas sous le doigt (échelle réelle) : une petite liste près du doigt, pour choisir ce qu'on voulait toucher.
+const tas = document.createElement('div')
+tas.id = 'tas'
+tas.hidden = true
+document.body.append(tas)
+function montrerTas(noms: string[], x: number, y: number): void {
+  const nom = (n: string) => (n === CAPSULE ? `Ta capsule ${jeu.numeroSerie}` : n)
+  tas.innerHTML = noms.slice(0, 8).map((n) => `<button type="button" data-tas="${n.replace(/"/g, '&quot;')}">${nom(n)}</button>`).join('')
+  tas.hidden = false
+  const r = tas.getBoundingClientRect()
+  tas.style.left = `${Math.min(window.innerWidth - r.width - 8, Math.max(8, x - r.width / 2))}px`
+  tas.style.top = `${Math.min(window.innerHeight - r.height - 90, Math.max(60, y + 16))}px`
+}
+function fermerTas(): void { tas.hidden = true }
+tas.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tas]')
+  if (!b) return
+  fermerTas()
+  choisir(b.dataset.tas!)
+})
 
 // --- Missions (« contrats » dans le moteur) : volet, action sur place, messages.
 const message = document.querySelector<HTMLDivElement>('#message')!
