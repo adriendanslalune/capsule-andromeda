@@ -48,6 +48,10 @@ function enGris(couleur: string): string {
 }
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
 const illustre = (r: number) => r >= RAYON_ILLUSTRATION
+/** Au-delà de tant de km par pixel, les capsules des autres ne sont que des points ; leur nom ne s'affiche qu'en deçà de
+ *  NOMS_CAPITAINES (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis). */
+const LOIN_CAPSULES = 20_000
+const NOMS_CAPITAINES = 2_000
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
@@ -413,11 +417,25 @@ export class Carte2D {
 
   /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
-    const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))
     const maison = BOTS.find((b) => b.pseudo === nom)?.maison
-    // Les capsules des autres ont aussi la forme de leur niveau (un peu plus petites que la nôtre à niveau égal).
+    const teinte = maison ? TEINTES_MAISONS[maison] : '#d7cdee'
+    // De loin, un petit point à la couleur de sa Maison (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis).
+    if (this.kmParPx > LOIN_CAPSULES) {
+      ctx.beginPath()
+      ctx.arc(q.x, q.y, 2.6, 0, 2 * Math.PI)
+      ctx.fillStyle = teinte
+      ctx.fill()
+      ctx.lineWidth = 0.8
+      ctx.strokeStyle = couleurs.encre
+      ctx.stroke()
+      return
+    }
+    const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))
+    // Les capsules des autres ont aussi la forme de leur niveau, un peu plus petites que la nôtre, et encore un peu
+    // plus en s'éloignant.
     const p = palierDe(niveauDuBot(nom))
-    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85, maison ? TEINTES_MAISONS[maison] : '#d7cdee', couleurs.encre)
+    const recul = Math.max(0.6, Math.min(1, 1 - 0.2 * Math.log10(Math.max(1, this.kmParPx / 300))))
+    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul, teinte, couleurs.encre)
   }
 
   /**
@@ -568,7 +586,22 @@ export class Carte2D {
       const q = this.ecranDe(projeterCorps(c.nom, t))
       if (!dedans(q.x, q.y)) continue
       const alpha = this.visibilite(c.nom, t, Math.atan2(q.y - cap.y, q.x - cap.x))
-      if (alpha <= 0 || !libre(q.x, q.y, RAYON_ENGIN)) continue
+      if (alpha <= 0) continue
+      // Plusieurs capsules à la même escale : elles s'écartent en éventail plutôt que de se cacher (demande d'Adrien
+      // du 21/10/2026) ; les autres engins serrés restent cachés.
+      if (!libre(q.x, q.y, RAYON_ENGIN)) {
+        if (c.type !== 'joueur') continue
+        let place: { x: number; y: number } | null = null
+        for (let k = 1; k <= 3 && !place; k++) {
+          for (let i = 0; i < 8 && !place; i++) {
+            const a = (i * Math.PI) / 4 + k * 0.4, p = { x: q.x + 14 * k * Math.cos(a), y: q.y + 14 * k * Math.sin(a) }
+            if (libre(p.x, p.y, RAYON_ENGIN)) place = p
+          }
+        }
+        if (!place) continue
+        q.x = place.x
+        q.y = place.y
+      }
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN, alpha })
       ctx.globalAlpha = alpha
       if (c.type === 'alien') {
@@ -949,6 +982,8 @@ export class Carte2D {
     ctx.fillStyle = c.encre
     for (const d of [...this.dessines].sort((a, b) => priorite(a) - priorite(b))) {
       if (d.nom === selection || d.nom === CAPSULE) continue
+      // Le nom des capitaines seulement de près (de loin, ce ne sont que des points).
+      if (this.kmParPx > NOMS_CAPITAINES && corps(d.nom)?.type === 'joueur') continue
       // Petites lunes (des dizaines autour des géantes) : pas de nom.
       const k = corps(d.nom)
       if (k?.type === 'lune' && k.rayon < 100) continue

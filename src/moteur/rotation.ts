@@ -31,6 +31,7 @@ export function pointSubsolaire(t: number): { lat: number; lon: number } {
  * 4 jours (la planète elle-même met 117 jours).
  */
 export const ROTATIONS: Readonly<Record<string, { jour: number; obliquite: number; printemps: number }>> = {
+  Soleil: { jour: 609.12, obliquite: 0, printemps: 0 }, // 25,38 jours à l'équateur
   Mercure: { jour: 4222.6, obliquite: 0, printemps: 0 },
   Vénus: { jour: -96, obliquite: 0, printemps: 0 },
   Mars: { jour: 24.6597, obliquite: 25.19, printemps: 85 },

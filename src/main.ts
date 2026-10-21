@@ -175,10 +175,10 @@ function montrerGainsXp(): void {
   plaque()
 }
 plaque()
-// Ce que montre la carte (décisions d'Adrien du 20/10/2026) : d'office, les astres et les monolithes localisés ou
-// ramassés (ramassé, il reste sur la carte : demande du 18/10/2026) ; ce que vise une mission ou la quête suivie, la
-// destination choisie, et un chasseur qui tire ; tout le reste (engins, capsules des autres, aliens) seulement au
-// passage du radar, dans sa portée, puis l'écho s'efface. Les épaves ne se montrent qu'en mission (décision du 18/10).
+// Ce que montre la carte : les astres, les engins, les stations et les capsules des autres, tout le temps (demande
+// d'Adrien du 21/10/2026, qui remplace « tout au radar » du 20/10) ; les monolithes localisés ou ramassés ; les
+// chasseurs d'Andromède, furtifs, seulement au passage du radar (ou s'ils nous tirent dessus, ou s'ils sont visés) ;
+// les épaves seulement en mission (décision du 18/10).
 let ramasses = new Set<number>()
 carte.visibilite = (nom, t, angle) => {
   const m = monolitheNomme(nom)
@@ -189,10 +189,12 @@ carte.visibilite = (nom, t, angle) => {
   const type = corps(nom)?.type
   // L'épave en remorque se dessine au bout du câble, derrière la capsule (carte.sillage).
   if (carte.sillage === 'epave' && nom === jeu.remorque()?.epave) return 0
-  if (type === 'alien' || type === 'epave') {
-    if (surLaCarte(jeu.espace, nom, t, cibles())) return 1
-    if (type === 'epave' || !alienLa(jeu.espace, nom, t)) return 0
-  } else if (lieuxConnus().includes(nom)) return 1
+  // Tout le reste se voit tout le temps (demande d'Adrien du 21/10/2026 : le radar enlevait la vie) : engins, stations,
+  // capsules des autres ; seuls les chasseurs d'Andromède sont furtifs (le radar les révèle), et les épaves ne se
+  // montrent qu'en mission.
+  if (type !== 'alien' && type !== 'epave') return 1
+  if (surLaCarte(jeu.espace, nom, t, cibles())) return 1
+  if (type === 'epave' || !alienLa(jeu.espace, nom, t)) return 0
   if (distanceDepuisCapsule(nom, t) > PORTEE_RADAR) return 0
   return echoRadar(jeu.radar, angle, t)
 }

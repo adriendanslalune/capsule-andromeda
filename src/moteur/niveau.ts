@@ -17,12 +17,12 @@ export function niveauDe(xp: number): { niveau: number; dans: number; besoin: nu
   return { niveau: n, dans: n < NIVEAU_MAX ? reste : 0, besoin: n < NIVEAU_MAX ? xpPourPasser(n) : 0 }
 }
 
-/** Le palier d'un niveau : sa forme, son nom, et une taille de 1 à 1,3 à l'intérieur du palier. */
+/** Le palier d'un niveau : sa forme, son nom, et une taille de 1 à 1,04 à l'intérieur du palier (à peine plus gros). */
 export function palierDe(niveau: number): { forme: Forme; nom: string; taille: number } {
   let i = 0
   while (i + 1 < PALIERS.length && niveau >= PALIERS[i + 1].des) i++
   const p = PALIERS[i], fin = PALIERS[i + 1]?.des ?? p.des + 1
-  return { forme: p.forme, nom: p.nom, taille: 1 + (0.3 * (niveau - p.des)) / Math.max(1, fin - 1 - p.des) }
+  return { forme: p.forme, nom: p.nom, taille: 1 + (0.04 * (niveau - p.des)) / Math.max(1, fin - 1 - p.des) }
 }
 
 /** Le niveau d'un PNJ (un bot), tiré une fois pour toutes de son pseudo : il grandit, lui aussi. */

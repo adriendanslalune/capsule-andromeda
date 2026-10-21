@@ -4,8 +4,9 @@
 
 import type { Forme } from '../donnees/niveaux'
 
-/** Taille de chaque forme par rapport à la capsule (un croiseur se voit de loin). */
-const TAILLE: Record<Forme, number> = { capsule: 1, navette: 1.25, corvette: 1.5, fregate: 1.75, croiseur: 2.05, legende: 2.3 }
+/** Taille de chaque forme par rapport à la capsule : au plus 1,25 fois (demande d'Adrien du 21/10/2026 : plus gros, c'était
+ *  fantaisiste et moche ; c'est la silhouette qui montre le niveau). */
+const TAILLE: Record<Forme, number> = { capsule: 1, navette: 1.05, corvette: 1.1, fregate: 1.15, croiseur: 1.2, legende: 1.25 }
 
 type Pt = [number, number]
 const symetrique = (moitie: Pt[]): Pt[] => [...moitie, ...moitie.slice(1, -1).reverse().map(([x, y]): Pt => [x, -y])]

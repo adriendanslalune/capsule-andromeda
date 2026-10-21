@@ -418,7 +418,37 @@ function h2(lon: number, lat: number): boolean {
   return Math.sin(lon * 12.9898 + lat * 78.233) * 43758.5453 % 1 > -0.5
 }
 
+/**
+ * Le Soleil (demande d'Adrien du 21/10/2026 : un nouveau dessin) : la granulation, des groupes de taches (ombre et
+ * pénombre) dans les deux bandes où elles naissent, des facules claires autour.
+ */
+function soleil(c: Contexte): void {
+  c.fillStyle = '#f7c955'
+  c.fillRect(0, 0, L, H)
+  // La granulation : de petites cellules, un peu plus sombres sur leur bord.
+  const h = hasard(5)
+  for (let k = 0; k < 2600; k++) {
+    const cx = h() * L, cy = h() * H, r = 2 + 3 * h()
+    c.beginPath()
+    c.arc(cx, cy, r, 0, 2 * Math.PI)
+    c.lineWidth = 0.8
+    c.strokeStyle = '#e9ad3f'
+    c.stroke()
+  }
+  // Des facules (plages claires), puis les groupes de taches, entre 8° et 32° de latitude, au nord et au sud.
+  for (let k = 0; k < 14; k++) tache(c, -180 + 360 * h(), (h() < 0.5 ? 1 : -1) * (8 + 26 * h()), 10 + 10 * h(), 4 + 4 * h(), '#fde49c')
+  for (let g = 0; g < 9; g++) {
+    const lon = -180 + 360 * h(), lat = (h() < 0.5 ? 1 : -1) * (8 + 24 * h())
+    const n = 2 + Math.floor(h() * 4)
+    for (let k = 0; k < n; k++) {
+      const lo = lon + (k - n / 2) * (3 + 3 * h()), la = lat + (h() - 0.5) * 4, r = 0.8 + 2.2 * h()
+      tache(c, lo, la, r * 2.2, r * 1.8, '#c97a2a', 0.8)
+      tache(c, lo, la, r, r * 0.9, '#5a2e1c')
+    }
+  }
+}
+
 /** Les astres qui tournent, et leur planisphère. */
 export const PLANISPHERES: Readonly<Record<string, (c: Contexte) => void>> = {
-  Terre: terre, Lune: lune, Mercure: mercure, Vénus: venus, Mars: mars, Jupiter: jupiter, Saturne: saturne, Uranus: uranus, Neptune: neptune, Pluton: pluton,
+  Soleil: soleil, Terre: terre, Lune: lune, Mercure: mercure, Vénus: venus, Mars: mars, Jupiter: jupiter, Saturne: saturne, Uranus: uranus, Neptune: neptune, Pluton: pluton,
 }

@@ -130,6 +130,15 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   (une vingtaine de grandes lunes dessinées d'après leurs grands traits, les autres tirées de leur nom, `aspectLune`
   dans `src/carte/couleurs.ts`). Les planisphères se préparent un par un quand le téléphone ne fait rien (le simple
   disque en attendant) ; une douzaine gardés au plus.
+- Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** :
+  - Tout se voit sans radar (engins, stations, capsules des autres) ; seuls les chasseurs restent furtifs (`visibilite`
+    dans `src/main.ts`). Les capsules des autres : un point de loin (`LOIN_CAPSULES`), leur nom de près
+    (`NOMS_CAPITAINES`), en éventail à une même escale.
+  - Tailles des formes de 1 à 1,25 (`TAILLE` dans `src/carte/vaisseaux.ts`), 1 à 1,04 à l'intérieur d'un palier.
+  - Le Soleil refait en globe (`soleil` dans `src/carte/planispheres.ts`, `couronne` et `protuberances` dans
+    `src/carte/globes.ts`), rotation de 25,38 jours.
+  - À décider avec Adrien : un intérêt aux chasseurs vus au radar hors contrat ; la collection « Les Disparus » (le
+    radar retrouve de vraies sondes perdues ; classeur pré-rempli, cases grises).
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

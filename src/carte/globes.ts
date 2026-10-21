@@ -80,7 +80,7 @@ function planispherePret(nom: string, gris: boolean): boolean {
 }
 
 /** La géométrie d'un globe de D pixels de côté : pour chaque pixel du disque, sa place sur le planisphère et sa lumière. */
-interface Geometrie { D: number; u: Float32Array; ligne: Int32Array; lumiere: Float32Array }
+interface Geometrie { D: number; u: Float32Array; ligne: Int32Array; lumiere: Float32Array; profondeur: Float32Array }
 const geometries = new Map<string, Geometrie>()
 
 function geometrie(D: number, declinaison: number, cote: 1 | -1): Geometrie {
@@ -90,7 +90,7 @@ function geometrie(D: number, declinaison: number, cote: 1 | -1): Geometrie {
   const R = D / 2, phi0 = LATITUDE_VUE * RAD, d = declinaison * RAD
   // Le Soleil, vu d'ici : à 90° du centre de la vue (à l'est, côté 1 ; à l'ouest, côté −1), à la latitude de sa déclinaison.
   const sx = cote * Math.cos(d), sy = Math.cos(phi0) * Math.sin(d), sz = Math.sin(phi0) * Math.sin(d)
-  const u = new Float32Array(D * D).fill(-1), ligne = new Int32Array(D * D), lumiere = new Float32Array(D * D)
+  const u = new Float32Array(D * D).fill(-1), ligne = new Int32Array(D * D), lumiere = new Float32Array(D * D), profondeur = new Float32Array(D * D)
   for (let j = 0; j < D; j++) {
     const yv = -(j + 0.5 - R) / R
     for (let i = 0; i < D; i++) {
@@ -103,9 +103,10 @@ function geometrie(D: number, declinaison: number, cote: 1 | -1): Geometrie {
       u[k] = ((dlon / RAD + 180) / 360) * L
       ligne[k] = Math.min(H - 1, Math.floor(((90 - lat / RAD) / 180) * H)) * L
       lumiere[k] = xv * sx + yv * sy + zv * sz
+      profondeur[k] = zv
     }
   }
-  const g = { D, u, ligne, lumiere }
+  const g = { D, u, ligne, lumiere, profondeur }
   geometries.set(cle, g)
   // Au plus 2,5 millions de pixels de géométrie (environ 30 Mo) : au-delà, on oublie les plus anciennes.
   let pixels = 0
@@ -123,7 +124,7 @@ const peints = new Map<string, HTMLCanvasElement>()
 
 /** Peint le globe de D pixels, vu depuis la longitude lon0 : le planisphère décalé, la nuit et ses hachures. */
 function peindre(nom: string, gris: boolean, D: number, lon0: number, declinaison: number, cote: 1 | -1): HTMLCanvasElement {
-  const p = planisphere(nom, gris), g = geometrie(D, declinaison, cote)
+  const p = planisphere(nom, gris), g = geometrie(D, declinaison, cote), lumineux = nom === 'Soleil'
   const toile = document.createElement('canvas')
   toile.width = toile.height = D
   const c = toile.getContext('2d')!
@@ -138,7 +139,11 @@ function peindre(nom: string, gris: boolean, D: number, lon0: number, declinaiso
     const s = (g.ligne[k] + u) * 4, o = k * 4
     let r = p[s], v = p[s + 1], b = p[s + 2]
     const lum = g.lumiere[k]
-    if (lum < 0.08) {
+    if (lumineux) {
+      // Le Soleil n'a pas de nuit : son bord s'assombrit et rougit (l'assombrissement centre-bord).
+      const f = Math.sqrt(g.profondeur[k])
+      r *= 0.88 + 0.12 * f; v *= 0.62 + 0.38 * f; b *= 0.45 + 0.55 * f
+    } else if (lum < 0.08) {
       // Hachures le long du terminateur, puis la nuit en aplat violet (comme « multiplier » à 55 %).
       const i = k % D, j = (k - i) / D
       if (lum > -0.32 && (i - j + 10_000 * pas) % pas < 1.1) { r = ENCRE_RVB[0]; v = ENCRE_RVB[1]; b = ENCRE_RVB[2] } else if (lum < 0) {
@@ -232,8 +237,9 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(cote === 1 ? versSoleil : versSoleil - Math.PI)
-  // Les anneaux, tout autour (vus de dessus), sous le globe.
+  // Les anneaux, tout autour (vus de dessus), sous le globe ; la couronne du Soleil.
   dessinerAnneaux(ctx, nom, r, cote)
+  if (nom === 'Soleil') couronne(ctx, r, s.lon)
   ctx.drawImage(toile, -r, -r, 2 * r, 2 * r)
   // Le contour : un trait fin, comme le reste (demande d'Adrien du 21/10/2026).
   ctx.beginPath()
@@ -241,8 +247,51 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.lineWidth = epaisseurContour(r)
   ctx.strokeStyle = ENCRE
   ctx.stroke()
+  if (nom === 'Soleil') protuberances(ctx, r, s.lon)
   ctx.restore()
   return true
+}
+
+/** La couronne du Soleil : une lueur dorée, et de fins rayons ondulés à l'encre, comme sur une gravure. */
+function couronne(ctx: CanvasRenderingContext2D, r: number, rotation: number): void {
+  const g = ctx.createRadialGradient(0, 0, r, 0, 0, 1.9 * r)
+  g.addColorStop(0, 'rgba(247, 201, 85, 0.55)')
+  g.addColorStop(1, 'rgba(247, 201, 85, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(0, 0, 1.9 * r, 0, 2 * Math.PI)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(201, 122, 42, 0.55)'
+  ctx.lineWidth = epaisseurContour(r) * 0.8
+  for (let k = 0; k < 36; k++) {
+    const a = (k / 36) * 2 * Math.PI + rotation * RAD * 0.1, l = r * (1.25 + 0.35 * ((k * 7) % 5) / 4)
+    ctx.beginPath()
+    for (let i = 0; i <= 10; i++) {
+      const d = r * 1.06 + ((l - r * 1.06) * i) / 10, o = Math.sin(i * 1.3 + k) * r * 0.015
+      const px = Math.cos(a) * d - Math.sin(a) * o, py = Math.sin(a) * d + Math.cos(a) * o
+      if (i) ctx.lineTo(px, py)
+      else ctx.moveTo(px, py)
+    }
+    ctx.stroke()
+  }
+}
+
+/** Les protubérances : des boucles de plasma au bord du Soleil, qui tournent avec lui. */
+function protuberances(ctx: CanvasRenderingContext2D, r: number, rotation: number): void {
+  ctx.lineJoin = 'round'
+  for (const [base, taille] of [[0.4, 0.22], [1.7, 0.15], [2.6, 0.28], [3.9, 0.12], [5.1, 0.2]]) {
+    const a = base + rotation * RAD
+    const a0 = a - 0.09, a1 = a + 0.09, h = r * (1 + taille)
+    ctx.beginPath()
+    ctx.moveTo(Math.cos(a0) * r, Math.sin(a0) * r)
+    ctx.bezierCurveTo(Math.cos(a0) * h, Math.sin(a0) * h, Math.cos(a1) * h, Math.sin(a1) * h, Math.cos(a1) * r, Math.sin(a1) * r)
+    ctx.lineWidth = Math.max(1.5, r * 0.04)
+    ctx.strokeStyle = '#e8673c'
+    ctx.stroke()
+    ctx.lineWidth = epaisseurContour(r) * 0.7
+    ctx.strokeStyle = ENCRE
+    ctx.stroke()
+  }
 }
 
 /** L'épaisseur du contour d'un astre : un trait fin (demande d'Adrien du 21/10/2026 : plus de gros contour noir). */
