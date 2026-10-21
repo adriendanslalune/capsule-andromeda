@@ -199,8 +199,10 @@ let glisseCumul = 0
 const THEMES = { jour: { encre: '#1f1b18', halo: '#f4f1ea' }, nuit: { encre: '#efe6d2', halo: '#141826' } }
 let th = THEMES.jour
 
+/** Densité de la carte au plus (essai de fluidité : 2 au lieu de 3). */
+let densiteMax = 3
 function redimensionner(): void {
-  const dpr = Math.min(window.devicePixelRatio || 1, 3)
+  const dpr = Math.min(window.devicePixelRatio || 1, densiteMax)
   largeur = window.innerWidth
   hauteur = window.innerHeight
   toilePlan.width = Math.round(largeur * dpr)
@@ -224,6 +226,8 @@ const reglages = {
   nuit: false,
   /** Essai (demande d'Adrien du 21/10/2026) : la carte à l'échelle réelle, sans astres grossis ni loupes. */
   reelle: false,
+  /** Essais de fluidité (Adrien, 21/10/2026 : la carte rame sur son Galaxy Z Fold 7) : on garde ce qui marche. */
+  fluDensite2: false, fluPlafond60: false, fluPlafond30: false, fluSansIllustrations: false, fluSansPoussiere: false, fluSansTrames: false,
   crochet: true, etiquette: true, fleche: true,
   /** Essai : forcer la vitesse de croisière (km/s) au lieu de celle du moteur de la capsule. */
   forcerVitesse: false,
@@ -243,8 +247,15 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
     memoriser()
     if (cle === 'forcerVitesse') voletMissions.oublierDurees()
     if (cle === 'nuit') appliquerTheme()
+    appliquerEssais()
   })
 }
+/** Les essais de fluidité qui touchent la carte. */
+function appliquerEssais(): void {
+  carte.essais = { illustrations: !reglages.fluSansIllustrations, poussiere: !reglages.fluSansPoussiere, trames: !reglages.fluSansTrames }
+  if (densiteMax !== (reglages.fluDensite2 ? 2 : 3)) { densiteMax = reglages.fluDensite2 ? 2 : 3; redimensionner() }
+}
+appliquerEssais()
 
 /** Jour ou nuit : couleurs de la page (style.css), de la carte et de la barre du téléphone. */
 function appliquerTheme(): void {
@@ -1586,12 +1597,16 @@ function infosSelection(t: number): { nom: string; distance: string } | null {
 }
 
 let precedent = performance.now()
-let images = 0, debutCompte = precedent
+let images = 0, debutCompte = precedent, tempsCalcul = 0
 let dernierDessinCarte = 0
 /** Vrai quand la carte doit être redessinée tout de suite (sélection, niveau, réglage changés). */
 let carteSale = true
 for (const evenement of ['pointerup', 'click', 'change']) document.addEventListener(evenement, () => { carteSale = true })
 function image(maintenant: number): void {
+  // Essai de fluidité : un plafond d'images par seconde (l'écran du Z Fold 7 en demande jusqu'à 120).
+  const plafond = reglages.fluPlafond30 ? 30 : reglages.fluPlafond60 ? 60 : 0
+  if (plafond && maintenant - precedent < 1000 / plafond - 3) { requestAnimationFrame(image); return }
+  const debutCalcul = performance.now()
   const dt = Math.min(0.1, (maintenant - precedent) / 1000)
   precedent = maintenant
   avancerHorloge(maintenant)
@@ -1719,14 +1734,17 @@ function image(maintenant: number): void {
     }
   }
   images++
+  tempsCalcul += performance.now() - debutCalcul
   if (maintenant - debutCompte > 500) {
     const ips = Math.round((images * 1000) / (maintenant - debutCompte))
+    const ms = Math.round(tempsCalcul / images)
     images = 0
+    tempsCalcul = 0
     debutCompte = maintenant
     const avance = t - Date.now()
     // Heure du lieu du joueur (fuseau du téléphone) ; le moteur, lui, compte en temps universel.
     const heure = new Date(t).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })
-    infos.textContent = `${heure} · ${ips} i/s · v${__VERSION__}`
+    infos.textContent = `${heure} · ${ips} i/s · ${ms} ms · v${__VERSION__}`
       + (acceleration > 1 || avance > 60_000 ? ` · temps ×${acceleration.toLocaleString('fr')} (+${texteDuree(avance)})` : '')
   }
   requestAnimationFrame(image)

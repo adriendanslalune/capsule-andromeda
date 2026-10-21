@@ -100,6 +100,14 @@
           Vitesse forcée : <span id="texte-budget"></span>
           <input id="budget" type="range" min="0" max="100" step="1" />
         </div>
+        <div class="groupe essais">Essais de fluidité (Adrien, 21/10/2026) : zoome autour de la Terre et regarde « i/s » en haut de l'écran (images par seconde) et « ms » (temps de calcul d'une image).
+          <label><input type="checkbox" data-reglage="fluDensite2" /> Carte moins fine (densité 2 au lieu de 3)</label>
+          <label><input type="checkbox" data-reglage="fluPlafond60" /> Au plus 60 images par seconde</label>
+          <label><input type="checkbox" data-reglage="fluPlafond30" /> Au plus 30 images par seconde</label>
+          <label><input type="checkbox" data-reglage="fluSansIllustrations" /> Astres en simples disques (sans illustration)</label>
+          <label><input type="checkbox" data-reglage="fluSansPoussiere" /> Sans la poussière de satellites</label>
+          <label><input type="checkbox" data-reglage="fluSansTrames" /> Sans les ceintures tramées</label>
+        </div>
         <button type="button" id="provoquer-panne">Provoquer une panne au hasard (essai)</button>
         <button type="button" id="recommencer">Recommencer à zéro…</button>
       </div>
