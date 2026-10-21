@@ -180,11 +180,15 @@ export function enRoute(jeu: Jeu, canal: Canal, t: number): MessageAffiche[] {
   return tous(jeu, t).filter((m) => m.canal === canal && !m.deMoi && m.id.startsWith('r') && m.envoye <= t && m.recu > t)
 }
 
-/** Les conversations privées (avec qui), de la plus récente à la plus ancienne. */
-export function conversations(jeu: Jeu, t: number): { canal: Canal; bot: Bot; dernier: MessageAffiche }[] {
-  const par = new Map<Canal, MessageAffiche>()
-  for (const m of tous(jeu, t)) if (m.canal.startsWith('prive:') && m.recu <= t && (!par.get(m.canal) || par.get(m.canal)!.recu < m.recu)) par.set(m.canal, m)
-  return [...par.entries()].map(([canal, dernier]) => ({ canal, bot: BOTS.find((b) => `prive:${b.pseudo}` === canal)!, dernier }))
+/** Les conversations privées (avec qui, et combien de messages pas encore lus), de la plus récente à la plus ancienne. */
+export function conversations(jeu: Jeu, t: number): { canal: Canal; bot: Bot; dernier: MessageAffiche; nonLus: number }[] {
+  const par = new Map<Canal, MessageAffiche>(), nonLus = new Map<Canal, number>()
+  for (const m of tous(jeu, t)) {
+    if (!m.canal.startsWith('prive:') || m.recu > t) continue
+    if (!par.get(m.canal) || par.get(m.canal)!.recu < m.recu) par.set(m.canal, m)
+    if (!m.deMoi && m.recu > (jeu.lus[m.canal] ?? jeu.lus.debut ?? 0)) nonLus.set(m.canal, (nonLus.get(m.canal) ?? 0) + 1)
+  }
+  return [...par.entries()].map(([canal, dernier]) => ({ canal, bot: BOTS.find((b) => `prive:${b.pseudo}` === canal)!, dernier, nonLus: nonLus.get(canal) ?? 0 }))
     .sort((a, b) => b.dernier.recu - a.dernier.recu)
 }
 

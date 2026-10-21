@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Messages (demandes d'Adrien du 20/10/2026) — **faits** : le fil en console (une ligne par message), menu ÉCRIRE / VOIR
+  sur un pseudo (VOIR ferme le volet et montre sa capsule sur la carte), conversations privées non lues en gras avec
+  leur pastille (`conversations` donne le nombre de non-lus).
 - Fiche d'un capitaine : COMMUNIQUER (conversation privée) à côté de Y ALLER ; cadran de vitesse agrandi, un peu
   transparent, vitesse sur une plaque sous le cadran, posé au-dessus de la fiche quelle que soit sa hauteur (20/10/2026).
 - Cadran de vitesse (demande d'Adrien du 20/10/2026) — **fait** : `vitesseEnVol` dans `src/moteur/mission.ts` (testé),

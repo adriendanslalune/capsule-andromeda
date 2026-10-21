@@ -1,7 +1,8 @@
 // Le volet Messages (dans « Plus », et le bouton des Messages sur la carte ; décision d'Adrien du 18/10/2026 : « tout le fun est
 // là », accessible et fun). Trois canaux : GÉNÉRAL (tout le système), MAISON (ses membres), PRIVÉS (une conversation
-// par interlocuteur ; toucher un nom ouvre la conversation). Chaque message dit d'où il vient et combien de temps la
-// lumière a mis à l'apporter ; les siens disent s'ils sont encore en route ; une réponse partie mais pas encore
+// par interlocuteur, en gras celles qui ont du nouveau). Le fil se lit comme une console de communication spatiale (une
+// ligne par message, demande d'Adrien du 20/10/2026) ; toucher un pseudo propose ÉCRIRE (en privé) et VOIR (sa capsule
+// sur la carte). Chaque message dit d'où il vient et combien de temps la lumière a mis à l'apporter ; les siens disent s'ils sont encore en route ; une réponse partie mais pas encore
 // arrivée s'annonce. Des phrases rapides s'envoient d'un toucher. Le volet ne décide rien : il montre ce que dit le
 // moteur (moteur/messages.ts).
 
@@ -13,6 +14,7 @@ import {
 } from '../moteur/messages'
 import { delaiLumiere } from '../moteur/marche'
 import { statut } from '../moteur/monolithes'
+import { picto } from './symboles'
 
 /** Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
 const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
@@ -36,8 +38,10 @@ export class VoletMessages {
   private elFil: HTMLElement
   private elSaisie: HTMLElement
   private champ: HTMLInputElement
+  /** Le message dont on a touché le pseudo (son menu ÉCRIRE / VOIR est ouvert), ou null. */
+  private menu: string | null = null
 
-  constructor(private element: HTMLElement, private jeu: () => Jeu, private apresEnvoi: () => void) {
+  constructor(private element: HTMLElement, private jeu: () => Jeu, private apresEnvoi: () => void, private voir: (pseudo: string) => void) {
     element.innerHTML = `
       <button type="button" class="retour" data-page="plus">‹ Plus</button>
       <div class="canaux"></div>
@@ -55,9 +59,12 @@ export class VoletMessages {
       this.envoyer(this.champ.value)
     })
     element.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-canal], [data-rapide], [data-ecrire-a]')
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-canal], [data-rapide], [data-ecrire-a], [data-menu], [data-voir]')
       if (!b) return
-      if (b.dataset.rapide) this.envoyer(b.dataset.rapide)
+      if (b.dataset.menu) { this.menu = this.menu === b.dataset.menu ? null : b.dataset.menu; this.dernier = ''; this.afficher(Date.now()); return }
+      this.menu = null
+      if (b.dataset.voir) this.voir(b.dataset.voir)
+      else if (b.dataset.rapide) this.envoyer(b.dataset.rapide)
       else if (b.dataset.ecrireA) this.ouvrirCanal(`prive:${b.dataset.ecrireA}`)
       else if (b.dataset.canal) this.ouvrirCanal(b.dataset.canal)
     })
@@ -95,13 +102,14 @@ export class VoletMessages {
     if (c === 'prives') {
       // La liste des conversations privées, et à qui écrire.
       const conv = conversations(jeu, t)
-      html += conv.length ? conv.map(({ canal, bot, dernier }) => `<button type="button" class="conversation" data-canal="${canal}">`
+      html += conv.length ? conv.map(({ canal, bot, dernier, nonLus: k }) => `<button type="button" class="conversation${k ? ' non-lue' : ''}" data-canal="${canal}">`
         + `<span class="avatar" style="background:${TEINTES[bot.maison]}">${bot.pseudo[0]}</span>`
-        + `<span class="texte"><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${echapper(dernier.texte)}</small></span>`
-        + `<span class="quand">${ilYa(t - dernier.recu)}</span></button>`).join('')
+        + `<span class="texte"><b>${bot.pseudo}${badge(statut(bot.monolithes))}</b><small>${dernier.deMoi ? 'toi : ' : ''}${echapper(dernier.texte)}</small></span>`
+        + `<span class="quand">${ilYa(t - dernier.recu)}${k ? `<span class="pastille">${k}</span>` : ''}</span></button>`).join('')
         : '<p class="vide">Pas encore de conversation privée. Touche le nom d\'un capitaine dans le canal général, ou choisis ci-dessous.</p>'
       html += '<h3>Écrire à…</h3><p class="vide">Les capitaines du jeu (PNJ) en attendant les vrais joueurs.</p><div class="annuaire">' + BOTS_BAVARDS.map((b) => `<button type="button" data-ecrire-a="${b.pseudo}">`
-        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span>${b.pseudo}<em class="pnj">PNJ</em>${badge(statut(b.monolithes))}<small>${lieuDuBot(b.pseudo, t)} · ${texteDelaiCourt(delaiLumiere(b.pseudo, t))}</small></button>`).join('') + '</div>'
+        + `<span class="avatar" style="background:${TEINTES[b.maison]}">${b.pseudo[0]}</span><span class="texte"><b>${b.pseudo}</b><em class="pnj">PNJ</em>${badge(statut(b.monolithes))}`
+        + `<small>${lieuDuBot(b.pseudo, t)} · ${texteDelaiCourt(delaiLumiere(b.pseudo, t))}</small></span></button>`).join('') + '</div>'
     } else if (c === 'maison' && !jeu.maison) {
       html += '<p class="vide">Le canal de Maison est réservé à ses membres. Rejoins une Maison (depuis ton Profil, quand ton affinité le permet) pour parler avec les tiens.</p>'
     } else {
@@ -112,9 +120,9 @@ export class VoletMessages {
       } else if (c === 'maison') html += `<p class="info-canal">Canal des ${titreMaison(jeu.maison!).toLowerCase()}</p>`
       const messages = fil(jeu, c, t)
       if (!messages.length) html += '<p class="vide">Aucun message pour l\'instant. Lance la conversation !</p>'
-      html += messages.map((m) => this.bulle(m, t)).join('')
-      html += enRoute(jeu, c, t).map((m) => `<div class="bulle en-route"><span class="auteur">${m.auteur}</span>`
-        + `✍ a répondu depuis ${m.lieu} · arrive dans ${texteDelaiCourt(m.recu - t)}</div>`).join('')
+      html += '<div class="console">' + messages.map((m) => this.ligne(m, t)).join('')
+        + enRoute(jeu, c, t).map((m) => `<div class="ligne en-route"><span class="heure">··:··</span><span class="corps-ligne"><b>${m.auteur}</b> a répondu depuis ${m.lieu} · arrive dans ${texteDelaiCourt(m.recu - t)}</span></div>`).join('')
+        + '</div>'
       marquerLu(jeu, c, t)
     }
     this.elSaisie.hidden = c === 'prives' || (c === 'maison' && !jeu.maison)
@@ -127,11 +135,18 @@ export class VoletMessages {
     if (enBas || etaitEnBas) page.scrollTop = page.scrollHeight
   }
 
-  private bulle(m: MessageAffiche, t: number): string {
-    if (m.deMoi) return `<div class="bulle moi"><span class="auteur">${echapper(m.auteur)}${badge(m.statut)}</span>${echapper(m.texte)}<small>${etatEnvoi(m, t)}</small></div>`
+  /** Une ligne de la console : l'heure d'arrivée, le pseudo (aux couleurs de sa Maison), le texte, d'où il vient. */
+  private ligne(m: MessageAffiche, t: number): string {
+    const heure = new Date(m.recu).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    if (m.deMoi) {
+      return `<div class="ligne moi"><span class="heure">${heure}</span><span class="corps-ligne"><b class="pseudo">${echapper(m.auteur)}</b>${echapper(m.texte)}`
+        + `<small>${etatEnvoi(m, t)}</small></span></div>`
+    }
     const prive = this.canal.startsWith('prive:')
-    return `<div class="bulle"><span class="auteur">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}" title="Écrire en privé">`}`
-      + `<i style="background:${m.maison ? TEINTES[m.maison] : '#d7cdee'}"></i>${m.auteur}${prive ? '' : '</button>'}<em class="pnj" title="Personnage du jeu (bot)">PNJ</em>${badge(m.statut)}</span>${echapper(m.texte)}`
-      + `<small>de ${m.lieu} · ${ilYa(t - m.recu)} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small></div>`
+    const ouvert = this.menu === m.id
+    const pseudo = `<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? TEINTES[m.maison] : '#d7cdee'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
+    const menu = ouvert ? `<span class="menu-pseudo">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}">ÉCRIRE</button>`}<button type="button" data-voir="${m.auteur}" aria-label="Voir sur la carte">${picto('voir')}VOIR</button></span>` : ''
+    return `<div class="ligne"><span class="heure">${heure}</span><span class="corps-ligne">${pseudo}${badge(m.statut)} ${echapper(m.texte)}`
+      + `<small>de ${m.lieu} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small>${menu}</span></div>`
   }
 }

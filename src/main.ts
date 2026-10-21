@@ -1233,7 +1233,9 @@ function afficherSoute(): void {
 }
 // --- Messages (décision d'Adrien du 18/10/2026 : « tout le fun est là », accessible et fun) ---
 // Les messages vivent en temps réel (Date.now()), pas au temps accéléré des essais.
-const voletMessages = new VoletMessages(document.querySelector<HTMLDivElement>('#messages')!, () => jeu, () => enregistrerPartie())
+const voletMessages = new VoletMessages(document.querySelector<HTMLDivElement>('#messages')!, () => jeu, () => enregistrerPartie(),
+  // VOIR : la capsule du capitaine sur la carte (demande d'Adrien du 20/10/2026).
+  (pseudo) => { cockpit.fermer(); choisir(pseudo, true) })
 // Avant la première ouverture : les 20 dernières minutes de bavardage sont « nouvelles » (le système est vivant).
 if (jeu.lus.debut === undefined) jeu.lus.debut = Date.now() - 20 * 60_000
 const boutonMessages = document.querySelector<HTMLButtonElement>('#bouton-messages')!
