@@ -76,6 +76,15 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
     (c'est le trajet en cours qui continue) ; testé. Décision d'Adrien du 21/10/2026 : jeu fermé, seuls les tirs
     des 5 dernières minutes avant la réouverture comptent (indulgent) jusqu'au serveur ; avec ses notifications
     « Missile en approche », les missiles frapperont aussi jeu fermé.
+- Les deux dernières attentes des contrats remplacées (idées validées par Adrien le 21/10/2026) — **faites, en attente
+  de ses essais** :
+  - Le largage (fin de REMORQUER) : `src/donnees/largage.ts`, `src/moteur/largage.ts`, `src/commun/vue-largage.ts`,
+    `Jeu.larguer` ; approche de 80 m à 9-14 m/s, FREINER tenu (jusqu'à 3 m/s), LÂCHER ; le faisceau freine l'épave
+    (1,2 m/s²), zone de dépôt de 4 à 12 m ; trop court, trop long ou trop près : on recommence ; +10 % du premier coup.
+  - La formation du convoi (début d'ESCORTER) : `src/donnees/convoi.ts`, `src/moteur/convoi.ts`,
+    `src/commun/vue-convoi.ts`, `Jeu.formerConvoi` ; trois cargos qui sortent du hangar toutes les 3 s et dérivent,
+    à placer du doigt sur les trois places en flèche ; égaré, un cargo ressort 2 s plus tard ; sans prime.
+  - Testés (`tests/largage-convoi.test.ts`) et vérifiés sur le jeu construit.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

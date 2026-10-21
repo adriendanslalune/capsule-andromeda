@@ -30,6 +30,8 @@ import { VueAmarrage } from './commun/vue-amarrage'
 import { VueDepannage } from './commun/vue-depannage'
 import { VueRemorquage } from './commun/vue-remorquage'
 import { VueEscorte } from './commun/vue-escorte'
+import { VueLargage } from './commun/vue-largage'
+import { VueConvoi } from './commun/vue-convoi'
 import { VueInvitation } from './commun/vue-invitation'
 import { VueDialogue, medaillon } from './commun/vue-dialogue'
 import { htmlJournal } from './commun/volet-journal'
@@ -917,6 +919,43 @@ function agirMission(): void {
     })
     return
   }
+  // Larguer l'épave à la station (idée validée par Adrien le 21/10/2026) : la lâcher pour qu'elle s'arrête dans la zone.
+  if (jeu.etapeDeLargage() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueLargage.ouvrir({
+      titre: lieu.toUpperCase(),
+      surFin: (rates) => {
+        const ev = jeu.larguer(rates, horloge(), vitesse())
+        if (!ev) return 'La capsule n\'est plus sur place : l\'épave n\'est pas déposée.'
+        traiterEvenements(ev)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        return `L'épave est à quai, ${lieu === 'ISS' ? "à l'ISS" : `à ${lieu}`}.`
+      },
+    })
+    return
+  }
+  // Former le convoi à la station (idée validée par Adrien le 21/10/2026), avant de l'escorter.
+  if (jeu.etapeDeConvoi() && jeu.peutAgir(t)) {
+    const lieu = jeu.etapeActuelle()!.lieu
+    cockpit.fermer()
+    vueConvoi.ouvrir({
+      titre: lieu.toUpperCase(),
+      surFin: () => {
+        const ev = jeu.formerConvoi(horloge(), vitesse())
+        if (!ev) return 'La capsule n\'est plus sur place : le convoi ne part pas.'
+        traiterEvenements(ev)
+        enregistrerPartie()
+        carteSale = true
+        dernierVolet = 0
+        const suite = jeu.etapeActuelle()
+        return suite ? `En route ${suite.lieu === 'ISS' ? "vers l'ISS" : `vers ${suite.lieu}`}. Gare aux embuscades sur la dernière ligne droite.` : 'Le convoi est en route.'
+      },
+    })
+    return
+  }
   // Réparer un engin, c'est sur son boîtier technique, avec le Manuel (décision d'Adrien du 18/10/2026 : RÉPARER).
   if (jeu.etapeDeDepannage() && jeu.peutAgir(t)) {
     const lieu = jeu.etapeActuelle()!.lieu
@@ -1468,6 +1507,8 @@ const vueAmarrage = new VueAmarrage(document.querySelector<HTMLDivElement>('#ama
 const vueDepannage = new VueDepannage(document.querySelector<HTMLDivElement>('#depannage')!)
 const vueRemorquage = new VueRemorquage(document.querySelector<HTMLDivElement>('#remorquage')!)
 const vueEscorte = new VueEscorte(document.querySelector<HTMLDivElement>('#escorte')!)
+const vueLargage = new VueLargage(document.querySelector<HTMLDivElement>('#largage')!)
+const vueConvoi = new VueConvoi(document.querySelector<HTMLDivElement>('#convoi')!)
 pageSoute.addEventListener('click', (e) => {
   if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir()
 })
@@ -1889,5 +1930,8 @@ Object.assign(window, {
     remorquage: () => vueRemorquage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est remorqué.' }),
     invitation: (m: Maison = 'nettoyeurs') => vueInvitation.ouvrir([m]),
     escorte: (zone = 1) => vueEscorte.ouvrir({ titre: 'ESSAI', zone, surFin: () => 'Essai : aucun convoi réel.' }),
+    largage: () => vueLargage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est déposé.' }),
+    convoi: () => vueConvoi.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : aucun convoi réel.' }),
+    etatConvoi: () => (vueConvoi as unknown as { etat: unknown }).etat,
   },
 })

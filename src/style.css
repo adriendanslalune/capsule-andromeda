@@ -1062,24 +1062,43 @@ body.nuit #marche .baisse { color: #f08a72; }
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
 
 /* Le remorquage (REMORQUER) : l'épave qui tourne, le grappin, les propulseurs de rotation. */
-#remorquage .vue { position: relative; flex: 1; min-height: 0; }
-#remorquage canvas { display: block; width: 100%; height: 100%; }
-#remorquage .message-remorquage { position: absolute; left: 12px; right: 12px; top: 10px; padding: 8px 12px; font-size: 13px; text-align: center;
+:is(#remorquage, #largage, #convoi) .vue { position: relative; flex: 1; min-height: 0; }
+:is(#remorquage, #largage, #convoi) canvas { display: block; width: 100%; height: 100%; }
+:is(#remorquage, #largage, #convoi) .message-remorquage { position: absolute; left: 12px; right: 12px; top: 10px; padding: 8px 12px; font-size: 13px; text-align: center;
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
-#remorquage .message-remorquage[hidden] { display: none; }
-#remorquage .commandes-remorquage { padding: 8px 14px calc(16px + env(safe-area-inset-bottom)); touch-action: none; user-select: none; -webkit-user-select: none; }
-#remorquage .lancer { display: block; width: 100%; min-height: 64px; font: inherit; font-size: 16px; font-weight: bold; letter-spacing: 0.08em; color: var(--encre);
+:is(#remorquage, #largage, #convoi) .message-remorquage[hidden] { display: none; }
+:is(#remorquage, #largage, #convoi) .commandes-remorquage { padding: 8px 14px calc(16px + env(safe-area-inset-bottom)); touch-action: none; user-select: none; -webkit-user-select: none; }
+:is(#remorquage, #largage, #convoi) .lancer { display: block; width: 100%; min-height: 64px; font: inherit; font-size: 16px; font-weight: bold; letter-spacing: 0.08em; color: var(--encre);
   background: #f2b53a; border: 2px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); }
-#remorquage .lancer:disabled { background: #d9d1bd; opacity: 0.7; }
-#remorquage .lancer:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
-#remorquage .stabiliser { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-#remorquage .stabiliser button { width: 76px; height: 64px; font-size: 26px; color: var(--encre); background: var(--creme); border: 2px solid var(--encre);
+:is(#remorquage, #largage, #convoi) .lancer:disabled { background: #d9d1bd; opacity: 0.7; }
+:is(#remorquage, #largage, #convoi) .lancer:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
+:is(#remorquage, #largage, #convoi) .stabiliser { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+:is(#remorquage, #largage, #convoi) .stabiliser button { width: 76px; height: 64px; font-size: 26px; color: var(--encre); background: var(--creme); border: 2px solid var(--encre);
   border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: none; -webkit-touch-callout: none; }
-#remorquage .stabiliser button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
-#remorquage .jauge-rotation { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px; background: #f6d2c6; border: 2px solid var(--encre); border-radius: 10px; }
-#remorquage .jauge-rotation.ok { background: #cfe9cf; }
-#remorquage .jauge-rotation small { font-size: 10px; letter-spacing: 0.1em; opacity: 0.7; }
-#remorquage .jauge-rotation b { font-size: 22px; }
+:is(#remorquage, #largage, #convoi) .stabiliser button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
+:is(#remorquage, #largage, #convoi) .jauge-rotation { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px; background: #f6d2c6; border: 2px solid var(--encre); border-radius: 10px; }
+:is(#remorquage, #largage, #convoi) .jauge-rotation.ok { background: #cfe9cf; }
+:is(#remorquage, #largage, #convoi) .jauge-rotation small { font-size: 10px; letter-spacing: 0.1em; opacity: 0.7; }
+:is(#remorquage, #largage, #convoi) .jauge-rotation b { font-size: 22px; }
+/* Le largage (fin de REMORQUER) : FREINER (tenu), les cadrans, LÂCHER. */
+#largage .largage { display: flex; align-items: stretch; gap: 10px; }
+#largage .largage button { width: 96px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: inherit; font-size: 14px; font-weight: bold; letter-spacing: 0.06em; color: var(--encre); background: var(--creme);
+  border: 2px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: none; }
+#largage .largage button small { font-size: 10px; font-weight: normal; opacity: 0.7; }
+#largage .largage button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
+#largage .largage button.lacher { color: #fff; background: #d9694f; }
+#largage .largage button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
+#largage .cadrans-largage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 6px 10px;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; }
+#largage .cadrans-largage.seul { flex-direction: row; justify-content: space-around; min-height: 64px; }
+#largage .cadrans-largage div { display: flex; flex-direction: column; align-items: center; }
+#largage .cadrans-largage small { font-size: 9.5px; letter-spacing: 0.1em; opacity: 0.7; }
+#largage .cadrans-largage b { font-size: 17px; }
+/* La formation du convoi : le compte des cargos en place. */
+#convoi canvas { touch-action: none; }
+#convoi .compte-convoi { min-height: 52px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; letter-spacing: 0.1em;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 12px; }
 
 /* L'escorte (ESCORTER) : l'embuscade, on touche les missiles. */
 #escorte .infos-escorte { display: flex; justify-content: space-around; padding: 6px 10px; font-size: 11px; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--encre); }

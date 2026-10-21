@@ -18,6 +18,7 @@ import { avancerOrdres, compagnie, passerOrdre, portefeuilleVide, type OrdreBour
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
+import { BONUS_PREMIER_COUP as BONUS_LARGAGE } from '../donnees/largage'
 import { BONUS_SANS_COUP } from '../donnees/escorte'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
@@ -733,6 +734,36 @@ export class Jeu {
   harponner(rates: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeHarponnage() || !this.peutAgir(t)) return null
     if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_PREMIER_COUP) / 10) * 10
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** L'étape actuelle est-elle un largage (l'épave en remorque, à lâcher pour qu'elle s'arrête à la station) ? */
+  etapeDeLargage(): boolean {
+    return this.etapeActuelle()?.action === 'larguer'
+  }
+
+  /**
+   * L'épave s'est arrêtée dans la zone de dépôt de la station : l'étape est faite (idée validée par Adrien le
+   * 21/10/2026). Larguée du premier coup, la récompense augmente de 10 %. null si ce n'est pas possible ici.
+   */
+  larguer(rates: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDeLargage() || !this.peutAgir(t)) return null
+    if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_LARGAGE) / 10) * 10
+    const evenements: Evenement[] = []
+    this.finirEtape(t, evenements, vitesseEnchainement)
+    return evenements
+  }
+
+  /** L'étape actuelle est-elle la formation d'un convoi (début d'une escorte) ? */
+  etapeDeConvoi(): boolean {
+    return this.etapeActuelle()?.action === 'rejoindre'
+  }
+
+  /** Les trois cargos sont en formation : l'étape est faite, le convoi part (sans prime : c'est l'embuscade qui compte). */
+  formerConvoi(t: number, vitesseEnchainement?: number): Evenement[] | null {
+    if (!this.etapeDeConvoi() || !this.peutAgir(t)) return null
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements
