@@ -36,10 +36,8 @@ const MINIMUMS: Record<string, number> = {
 /** À l'échelle réelle, un astre trop petit devient une pastille, plus petite que les minimums ci-dessus (mais dans le
  *  même ordre : on reconnaît Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien, 21/10/2026). */
 const PASTILLE_REELLE = 0.5
-/** Au-delà de ce rayon à l'écran (px), un astre redevient un simple disque (Adrien, 21/10/2026). */
-const RAYON_ILLUSTRATION_MAX = 100
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
-const illustre = (r: number) => r >= RAYON_ILLUSTRATION && r <= RAYON_ILLUSTRATION_MAX
+const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
@@ -510,8 +508,6 @@ export class Carte2D {
       if (!dedans(q.x, q.y, r * 2.6 + 20)) return
       const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
-      // Très grand aussi : le simple disque (décision d'Adrien du 21/10/2026, la Terre et la Lune illustrées en gros
-      // plan faisaient ramer son téléphone).
       if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleurDe(c), couleurs)
       else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)

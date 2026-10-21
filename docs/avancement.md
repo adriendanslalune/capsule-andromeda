@@ -19,6 +19,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Adrien confirme (21/10/2026) : plus aucun lag. Le vrai coupable était les pointillés dessinés hors de l'écran ;
+  les astres redeviennent illustrés à toutes les tailles (plus de simple disque au-delà de 100 px).
 - Plantage en zoom serré (Adrien, 21/10/2026) : les traits (pointillé vers la destination, cercles des PING, trajet,
   missiles, orbites) ne sont plus dessinés qu'à l'écran (`ligneCoupee` dans `carte.ts`), et le cercle du radar
   seulement s'il passe à l'écran. Pas reproduit sur ordinateur : à confirmer par Adrien.
