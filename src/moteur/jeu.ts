@@ -131,6 +131,8 @@ export class Jeu {
   invitations: Maison[] = []
   /** Les messages privés que des bots ont écrits au joueur à la suite d'un événement (invitation, bienvenue…). */
   lettres: LettreDeBot[] = []
+  /** Les zones libérées par le joueur et quand (la fête des bots dans le canal général, moteur/messages.ts). */
+  fetes: { zone: string; t: number }[] = []
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
   /**
@@ -827,6 +829,8 @@ export class Jeu {
   gagnerAssaut(nom: string, t: number): void {
     if (!this.zones.liberees.includes(nom)) {
       this.libererZone(nom)
+      this.fetes.push({ zone: nom, t })
+      if (this.fetes.length > 30) this.fetes.splice(0, this.fetes.length - 30)
       this.gagnerXp(ZONES_A_LIBERER.find((z) => z.nom === nom)?.planete ? XP.amiralPlanete : XP.amiralLune)
       const comptoir = MARCHES.some((m) => m.lieu === nom)
       this.annoncesQuetes.push(`${nom} est libérée !${comptoir ? ` Le comptoir ${deLa(nom)} ouvre.` : ''}`)

@@ -49,8 +49,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   libérée retirés ; quêtes secondaires d'un PNJ seulement dans une zone libre ; jauges dans le Profil.
   Sur la carte (décision d'Adrien du 21/10/2026) : les zones pas encore visitées sont grisées (`jeu.visites`, une zone
   est visitée dès qu'on se met en orbite autour d'elle ou de ce qui tourne autour ; sauvegardé) ; un drapeau pirate
-  au-dessus de chaque zone occupée, qui disparaît à sa libération (`carte.etatZone`, `drapeau`). Pas encore : la fête
-  des bots dans le chat.
+  au-dessus de chaque zone occupée, qui disparaît à sa libération (`carte.etatZone`, `drapeau`).
+  La fête des bots (accord d'Adrien du 21/10/2026) — **faite, en attente des essais d'Adrien** : une zone libérée,
+  trois bavards différents la fêtent dans le canal général (`FETES`, `FETES_TRITON` dans `src/donnees/messages.ts`,
+  `fete` dans `src/moteur/messages.ts`, `jeu.fetes` sauvegardé, testé) ; la nouvelle part de la zone à la vitesse de
+  la lumière, chacun écrit 20 s à 5 min après l'avoir reçue (les bots lointains fêtent des heures plus tard) ; Triton
+  a ses propres messages ; ceux qui nomment le joueur sont annoncés sur la carte.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

@@ -7,12 +7,13 @@
 import { ouEstLeBot } from './corps'
 import { niveauDe, niveauDuBot } from './niveau'
 import { statut } from './monolithes'
-import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, BOTS_BAVARDS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
+import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, BOTS_BAVARDS, FETES, FETES_TRITON, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
 import { MARCHANDISES, MARCHES } from '../donnees/marche'
 import type { Maison } from '../donnees/maisons'
 import type { Jeu } from './jeu'
 import { cours, delaiLumiere } from './marche'
 import { rumeursEntre } from './bourse'
+import { deLa } from './zones'
 
 /** Un canal : 'general', 'maison', ou une conversation privée avec un bot ('prive:VEGA'). */
 /** Ce qui s'affiche à côté du pseudo d'un bot : son niveau (décisions d'Adrien du 21/10/2026) et son statut (monolithes). */
@@ -108,6 +109,39 @@ function bavardage(k: number, joueur: string): MessageAffiche | null {
   return m
 }
 
+/** Combien de bavards fêtent une libération, et quand (après l'arrivée de la nouvelle chez eux). */
+const FETARDS = 3
+const RETARDS_FETE = [20_000, 90_000, 300_000]
+
+/**
+ * La fête des bots (accord d'Adrien du 21/10/2026) : une zone libérée par le joueur, trois bavards la fêtent dans le
+ * canal général. La nouvelle part de la zone à la vitesse de la lumière ; chacun écrit un peu après l'avoir reçue.
+ */
+const memoireFetes = new Map<string, MessageAffiche[]>()
+function fete(f: { zone: string; t: number }, joueur: string): MessageAffiche[] {
+  const graine = `f${f.zone}/${f.t}`, cle = `${graine}/${joueur}`
+  if (!memoireFetes.has(cle)) {
+    if (memoireFetes.size > 200) memoireFetes.clear()
+    memoireFetes.set(cle, calculerFete(f, graine, joueur))
+  }
+  return memoireFetes.get(cle)!
+}
+function calculerFete(f: { zone: string; t: number }, graine: string, joueur: string): MessageAffiche[] {
+  const restants = [...BOTS_BAVARDS], modeles = f.zone === 'Triton' ? FETES_TRITON : FETES, pris = new Set<string>()
+  const l: MessageAffiche[] = []
+  for (let n = 0; n < FETARDS && restants.length; n++) {
+    const bot = restants.splice(Math.floor(h(`${graine}/b${n}`) * restants.length), 1)[0]
+    const libres = modeles.filter((m) => !pris.has(m))
+    const modele = choisir(libres.length ? libres : modeles, h(`${graine}/x${n}`))
+    pris.add(modele)
+    const envoye = f.t + delaiLumiere(bot.pseudo, f.t) + RETARDS_FETE[n] + Math.floor(h(`${graine}/t${n}`) * 30_000)
+    const article = ['Lune', 'Terre'].includes(f.zone) ? `la ${f.zone}` : f.zone
+    const texte = remplir(modele.replaceAll('{de_zone}', deLa(f.zone)).replaceAll('{zone}', article), bot, joueur, envoye, graine)
+    l.push({ id: `${graine}/${bot.pseudo}`, canal: 'general', auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statutBot(bot) })
+  }
+  return l
+}
+
 /** Ce que veut dire le joueur (pour que les bots répondent à propos). */
 export function intention(texte: string): Intention {
   // Les pseudos ne comptent pas (« Bonjour Mme_Ferraille » est un bonjour, pas une affaire de ferraille).
@@ -168,6 +202,7 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
     if (!bot) continue
     l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, x.envoye), texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.pseudo, x.envoye), deMoi: false, statut: statutBot(bot) })
   }
+  for (const f of jeu.fetes) if (f.t >= t - MEMOIRE) l.push(...fete(f, jeu.pseudo))
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
     l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: [`niv. ${niveauDe(jeu.xp).niveau}`, statut(jeu.monolithes.trouves.length), jeu.icare !== null ? 'Icare' : null].filter(Boolean).join(' · ') })
