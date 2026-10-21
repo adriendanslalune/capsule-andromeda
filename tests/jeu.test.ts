@@ -136,3 +136,39 @@ describe('abattre le chasseur autour duquel on tourne (bug vu par Adrien le 21/1
     expect(jeu.mission.centre(t0)).toBe('Terre')
   })
 })
+
+describe('le rêve du Soleil (décision d’Adrien du 21/10/2026)', () => {
+  it('foncer dans le Soleil : le rêve, la capsule revient là d’où elle est partie, sans panne, et le titre Icare', async () => {
+    const { sauvegarder, restaurer } = await import('../src/moteur/sauvegarde')
+    const jeu = new Jeu()
+    jeu.niveauMoteur = 10
+    const avant = jeu.mission.etat(t0).position
+    const p = planifier(jeu.mission.etatHeliocentrique(t0), 'Soleil', t0, jeu.vitesse())
+    if (!p.possible) throw new Error('impossible')
+    jeu.mission.partir(p.plan)
+    const T = p.plan.arrivee - p.plan.depart
+    // Sur la fin du trajet, les boucliers fondent dans le bandeau.
+    expect(lignesDuBandeau(jeu, p.plan.depart + 0.3 * T).some((l) => l.genre === 'chaleur')).toBe(false)
+    const chaleur = lignesDuBandeau(jeu, p.plan.depart + 0.9 * T).find((l) => l.genre === 'chaleur')
+    expect(chaleur?.genre === 'chaleur' && chaleur.boucliers).toBeGreaterThan(20)
+    expect(chaleur?.genre === 'chaleur' && chaleur.boucliers).toBeLessThan(50)
+    const ev = jeu.avancer(p.plan.arrivee + 1000)
+    expect(ev).toContainEqual({ genre: 'reve-soleil', premier: true })
+    expect(jeu.icare).toBe(p.plan.arrivee)
+    expect(jeu.pannes).toEqual([])
+    expect(jeu.mission.plan).toBeNull()
+    expect(jeu.mission.centre(p.plan.arrivee + 1000)).toBe('Terre')
+    // Sur son orbite de départ (l'ISS : 400 km d'altitude), là où elle aurait été sans partir.
+    const { position } = await import('../src/moteur/corps')
+    const ecart = (q: { x: number; y: number; z: number }, t: number) => { const c = position('Terre', t); return Math.hypot(q.x - c.x, q.y - c.y, q.z - c.z) }
+    expect(ecart(jeu.mission.etat(p.plan.arrivee + 1000).position, p.plan.arrivee + 1000)).toBeCloseTo(ecart(avant, t0), 0)
+    // Le titre se garde avec la partie ; la deuxième fois, ce n'est plus la première.
+    const relu = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, p.plan.arrivee + 1000))))!
+    expect(relu.icare).toBe(p.plan.arrivee)
+    const t1 = p.plan.arrivee + 2000
+    const p2 = planifier(relu.mission.etatHeliocentrique(t1), 'Soleil', t1, 15_360)
+    if (!p2.possible) throw new Error('impossible')
+    relu.mission.partir(p2.plan)
+    expect(relu.avancer(p2.plan.arrivee + 1)).toContainEqual({ genre: 'reve-soleil', premier: false })
+  })
+})

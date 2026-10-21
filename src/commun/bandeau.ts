@@ -37,6 +37,9 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
       detail: l.localise ? 'touche ici pour le voir sur la carte' : `à ${texteDistance(l.distance)} · touche ici pour voir le cercle`,
     }
   }
+  if (l.genre === 'chaleur') {
+    return { titre: `TEMPÉRATURE COQUE · BOUCLIERS ${l.boucliers} %`, detail: l.boucliers > 50 ? 'la capsule fonce vers le Soleil' : 'ça chauffe… ça chauffe beaucoup trop…' }
+  }
   if (l.genre === 'trajet') {
     return { titre: l.cible.toUpperCase(), detail: '', symbole: 'route', valeurs: [['arrivee', texteArrivee(l.arrivee, t)], ['duree', texteRestant(l.reste)]] }
   }

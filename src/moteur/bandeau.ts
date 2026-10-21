@@ -7,6 +7,7 @@ import { periode } from './capsule'
 import type { Contrat, Etape } from './contrats'
 import { corps } from './corps'
 import { echoEnRoute, echosNonVus, localise } from './monolithes'
+import { avancement } from './mission'
 import type { Jeu } from './jeu'
 import type { NomModule } from '../donnees/modules'
 
@@ -19,6 +20,8 @@ export type LigneBandeau =
   | { genre: 'echo' }
   /** Un écho revenu, pas encore vu : quel monolithe, à quelle distance, localisé ou pas. */
   | { genre: 'echo-recu'; monolithe: number; distance: number; localise: boolean }
+  /** En route vers le Soleil, sur la fin : les boucliers thermiques qui fondent (en %). Le rêve suit. */
+  | { genre: 'chaleur'; boucliers: number }
   /** En route : destination, instant d'arrivée (ms UTC) et temps restant (ms). */
   | { genre: 'trajet'; cible: string; arrivee: number; reste: number }
   /**
@@ -44,6 +47,11 @@ export function lignesDuBandeau(jeu: Jeu, t: number): LigneBandeau[] {
   const recu = echosNonVus(jeu.monolithes, t)[0]
   if (recu) lignes.push({ genre: 'echo-recu', monolithe: recu.monolithe, distance: recu.rayon, localise: localise(jeu.monolithes, recu.monolithe, t) })
   const enRoute = m.phase(t) === 'trajet' && m.plan
+  // Vers le Soleil, les derniers 40 % du trajet : les boucliers fondent, de 100 à 12 % (le rêve, à l'arrivée).
+  if (enRoute && m.plan!.cible === 'Soleil') {
+    const f = avancement(m.plan!, t)
+    if (f >= 0.6) lignes.push({ genre: 'chaleur', boucliers: Math.round(100 - (88 * (f - 0.6)) / 0.4) })
+  }
   if (enRoute) lignes.push({ genre: 'trajet', cible: m.plan!.cible, arrivee: m.plan!.arrivee, reste: m.plan!.arrivee - t })
   const etape = jeu.etapeActuelle()
   if (jeu.enCours && etape) {

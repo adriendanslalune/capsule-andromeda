@@ -18,6 +18,7 @@ import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { SIMULATEUR, VueCombat } from './commun/vue-combat'
+import { VueReve } from './commun/vue-reve'
 import { VueTri } from './commun/vue-tri'
 import { VueClasseur } from './commun/vue-classeur'
 import { VueRadio } from './commun/vue-radio'
@@ -1069,6 +1070,12 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
     } else if (e.genre === 'panne') {
       annoncer(`PANNE : ${MODULES.find((f) => f.nom === e.module)!.titre} !`)
       apresChangementDePanne()
+    } else if (e.genre === 'reve-soleil') {
+      // La capsule est déjà revenue là d'où elle était partie (moteur) : le rêve, puis la caméra sur elle.
+      cockpit.fermer()
+      choisir(null)
+      carteSale = true
+      vueReve.ouvrir(e.premier, () => allerALaCapsule())
     }
   }
   // Assez d'affinité avec une Maison : elle propose au joueur de la rejoindre (une seule fois).
@@ -1289,6 +1296,8 @@ pageArmement.addEventListener('click', (e) => {
 })
 // La vue de combat (au tour par tour) : missions ABATTRE, riposte contre un chasseur qui tire, simulateur.
 const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!)
+// Le rêve du Soleil (décision d'Adrien du 21/10/2026) : un secret, sans effet sur le jeu.
+const vueReve = new VueReve(document.querySelector<HTMLDivElement>('#reve')!)
 /** L'onglet SOUTE du volet Capsule. */
 const pageSoute = document.querySelector<HTMLDivElement>('#soute')!
 let derniereSoute = ''

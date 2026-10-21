@@ -38,6 +38,7 @@ function htmlCollection(jeu: Jeu): string {
   const n = jeu.monolithes.trouves.length, s = statut(n), suivant = palierSuivant(n)
   return `<h3>Monolithes</h3><div class="bloc"><div class="rang"><span>Trouvés</span><b>${n} / ${NOMBRE_MONOLITHES}</b></div>`
     + `<div class="rang"><span>Statut dans les Messages</span><b>${s ?? 'aucun'}</b></div>`
+    + (jeu.icare !== null ? '<div class="rang"><span>Titre secret</span><b>Icare</b></div>' : '')
     + `<div class="paliers">${PALIERS.map((p) => `<span class="${n >= p.seuil ? 'atteint' : ''}"><b>${p.titre}</b><small>${p.seuil}</small></span>`).join('')}</div>`
     + `<p class="petit">${suivant ? `Encore ${suivant.seuil - n} monolithe${suivant.seuil - n > 1 ? 's' : ''} pour devenir <b>${suivant.titre}</b>. Le bouton PING de la carte les cherche à la radio.` : 'Tu as tout trouvé : Oracle !'}</p></div>`
 }

@@ -402,4 +402,10 @@ export class Mission {
     this.orbiteArrivee = null
   }
 
+  /** Annule le dernier trajet : la capsule se retrouve sur l'orbite d'où elle était partie (le rêve du Soleil). */
+  revenir(): void {
+    this.plan = null
+    this.orbiteArrivee = null
+  }
+
 }

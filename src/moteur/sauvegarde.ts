@@ -68,6 +68,8 @@ export interface Sauvegarde {
   carnet?: Jeu['carnet']
   /** Le pseudo (absent : celui du départ). */
   pseudo?: string
+  /** Le titre secret Icare : date du premier rêve du Soleil (absent : pas encore). */
+  icare?: number | null
   /** Les messages envoyés, et ce qui a été lu (absents : rien). */
   envoyes?: MessageEnvoye[]
   lus?: Record<string, number>
@@ -88,7 +90,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -157,6 +159,7 @@ export function restaurer(s: unknown): Jeu | null {
     if (!v.soute || typeof v.soute !== 'object' || !Object.entries(v.soute).every(([m, q]) => MARCHANDISES.some((f) => f.nom === m) && nombre(q) && q >= 0)) return null
     jeu.soute = { ...v.soute }
   }
+  if (nombre(v.icare)) jeu.icare = v.icare
   if (v.pseudo !== undefined) {
     if (typeof v.pseudo !== 'string' || !pseudoValide(v.pseudo)) return null
     jeu.pseudo = v.pseudo

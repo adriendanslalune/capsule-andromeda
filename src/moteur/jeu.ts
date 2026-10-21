@@ -53,6 +53,8 @@ export type Evenement =
   /** Un chasseur alien a tiré un missile ; un missile a frappé la capsule (modules en panne). */
   | { genre: 'missile'; alien: string; impact: number }
   | { genre: 'impact'; modules: NomModule[] }
+  /** Arrivée au Soleil : le rêve (premier : la première fois, le titre Icare gagné). */
+  | { genre: 'reve-soleil'; premier: boolean }
 
 /** Un message privé qu'un bot a écrit au joueur après un événement du jeu. */
 export interface LettreDeBot { id: number; bot: string; texte: string; envoye: number }
@@ -114,6 +116,11 @@ export class Jeu {
   lettres: LettreDeBot[] = []
   /** Arrivée (ms UTC) du dernier trajet dont l'usure a été tirée (chaque trajet n'est tiré qu'une fois). */
   usureJusqua = 0
+  /**
+   * Le titre secret « Icare » (décision d'Adrien du 21/10/2026) : la date du premier rêve du Soleil, null avant. Foncer
+   * dans le Soleil n'a aucun effet sur le jeu : un rêve (animation), et la capsule se réveille là d'où elle était partie.
+   */
+  icare: number | null = null
 
   /** Le module est-il en panne ? */
   enPanne(m: NomModule): boolean {
@@ -446,6 +453,7 @@ export class Jeu {
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
     oublierFutur(this.monolithes, t)
+    this.soleil(t, evenements)
     this.user(t, evenements)
     this.menaces(t, evenements)
     this.proposer(t)
@@ -698,6 +706,17 @@ export class Jeu {
    * Usure : à l'arrivée de chaque trajet (une seule fois par trajet), un module peut tomber en panne
    * (CHANCE_PANNE_PAR_TRAJET), tiré au hasard reproductible de la partie.
    */
+  /** Arrivée au Soleil : le rêve, et la capsule revient là d'où elle était partie, sans panne ni rien de perdu. */
+  private soleil(t: number, evenements: Evenement[]): void {
+    const p = this.mission.plan
+    if (!p || p.cible !== 'Soleil' || t < p.arrivee) return
+    this.usureJusqua = Math.max(this.usureJusqua, p.arrivee)
+    this.mission.revenir()
+    const premier = this.icare === null
+    if (premier) this.icare = p.arrivee
+    evenements.push({ genre: 'reve-soleil', premier })
+  }
+
   private user(t: number, evenements: Evenement[]): void {
     const p = this.mission.plan
     if (!p || t < p.arrivee || p.arrivee <= this.usureJusqua) return
