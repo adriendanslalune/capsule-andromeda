@@ -573,10 +573,11 @@ export function aUneIllustration(nom: string): boolean {
 const ETENDUE: Record<string, number> = { Soleil: 2.7, Saturne: 2.45, Uranus: 1.8 }
 /** Les dessins déjà faits (clé : astre, rayon du palier, direction du Soleil arrondie), les plus récents en dernier. */
 const DEJA_DESSINES = new Map<string, HTMLCanvasElement>()
-/** Pixels gardés au plus (tous dessins confondus) : au-delà, on oublie les plus anciens. */
-const PIXELS_MAX = 24_000_000
-/** Côté maximal (pixels du téléphone) d'un dessin gardé. */
-const COTE_MAX = 2400
+/** Pixels gardés au plus (tous dessins confondus, environ 16 Mo) : au-delà, on oublie les plus anciens. Plus, la
+ *  mémoire saturait et faisait ramer tout le téléphone d'Adrien (21/10/2026). */
+const PIXELS_MAX = 4_000_000
+/** Côté maximal (pixels du téléphone) d'un dessin gardé : au-delà, le dernier palier est agrandi (un peu flou). */
+const COTE_MAX = 1100
 
 /** Un dessin de l'astre au rayon rp (palier), sur une toile à part. */
 function preparer(nom: string, rp: number, angle: number | null, echelle: number): HTMLCanvasElement {
@@ -601,21 +602,21 @@ function garder(cle: string, toile: HTMLCanvasElement): void {
   }
 }
 
-/** Palier du rayon r : la puissance de 2 juste au-dessus (on réduit le dessin, jamais on ne l'agrandit). */
-const palier = (r: number) => 2 ** Math.ceil(Math.log2(Math.max(16, r)))
-/** Finesse du dessin d'un palier (pixels du téléphone par pixel de l'écran), ou 0 s'il serait trop grand. */
-function finesse(nom: string, rp: number, echelleEcran: number): number {
-  const e = Math.min(2, echelleEcran, COTE_MAX / (2 * rp * (ETENDUE[nom] ?? 1.08)))
-  return e >= 0.9 ? e : 0
+/** Finesse du dessin (pixels du téléphone par pixel de l'écran). */
+const finesse = (echelleEcran: number) => Math.min(1.5, echelleEcran)
+/** Palier du rayon r : la puissance de 2 juste au-dessus (le dessin est réduit), sans dépasser COTE_MAX (au-delà, il
+ *  est agrandi). */
+function palier(nom: string, r: number, e: number): number {
+  const plafond = 2 ** Math.floor(Math.log2(COTE_MAX / (2 * (ETENDUE[nom] ?? 1.08) * e)))
+  return Math.min(plafond, 2 ** Math.ceil(Math.log2(Math.max(16, r))))
 }
 
 /** Prépare, quand le téléphone n'a rien à faire, les paliers voisins (le zoom y passera sans à-coup). */
 const enAttente = new Set<string>()
-function preparerVoisins(nom: string, rp: number, angle: number | null, echelleEcran: number): void {
-  for (const v of [rp * 2, rp / 2]) {
-    const e = finesse(nom, v, echelleEcran)
+function preparerVoisins(nom: string, rp: number, angle: number | null, e: number): void {
+  for (const v of [palier(nom, rp * 2, e), rp / 2]) {
     const cle = `${nom}|${v}|${angle}`
-    if (!e || v < 16 || DEJA_DESSINES.has(cle) || enAttente.has(cle)) continue
+    if (v === rp || v < 16 || DEJA_DESSINES.has(cle) || enAttente.has(cle)) continue
     enAttente.add(cle)
     const faire = () => { enAttente.delete(cle); if (!DEJA_DESSINES.has(cle)) garder(cle, preparer(nom, v, angle, e)) }
     if ('requestIdleCallback' in window) requestIdleCallback(faire, { timeout: 1500 })
@@ -633,17 +634,15 @@ function preparerVoisins(nom: string, rp: number, angle: number | null, echelleE
 export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,
   versSoleil: number | null): void {
   if (!FICHES[nom]) return
-  const echelleEcran = ctx.getTransform().a || 1
-  const rp = palier(r)
-  const e = finesse(nom, rp, echelleEcran)
-  if (!e) { dessinerDirect(ctx, nom, x, y, r, versSoleil); return }
+  const e = finesse(ctx.getTransform().a || 1)
+  const rp = palier(nom, r, e)
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
   const cle = `${nom}|${rp}|${angle}`
   let toile = DEJA_DESSINES.get(cle)
   if (toile) DEJA_DESSINES.delete(cle)
   else toile = preparer(nom, rp, angle, e)
   garder(cle, toile)
-  preparerVoisins(nom, rp, angle, echelleEcran)
+  preparerVoisins(nom, rp, angle, e)
   const ext = ETENDUE[nom] ?? 1.08
   ctx.drawImage(toile, x - r * ext, y - r * ext, 2 * r * ext, 2 * r * ext)
 }

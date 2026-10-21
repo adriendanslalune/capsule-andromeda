@@ -19,6 +19,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Encore du lag, et tout le téléphone d'Adrien ramait (Terre et Lune) : la mémoire saturait (jusqu'à 24 millions de
+  pixels de dessins gardés, des toiles de plus de 2 000 px). Maintenant 4 millions de pixels au plus (environ 16 Mo),
+  toiles de 1 100 px au plus, finesse 1,5 ; au-delà, le dernier palier est agrandi (un peu flou en très gros plan).
 - Résultat des essais d'Adrien (21/10/2026) : seule la case « sans illustration » réglait le lag, et seulement autour
   de la Terre (la seule planète qu'on voit en très gros plan). Cause : la Terre illustrée était redessinée à chaque
   cran de 12 % du zoom. Maintenant, un dessin par palier ×2 (réduit, jamais agrandi), les paliers voisins préparés
