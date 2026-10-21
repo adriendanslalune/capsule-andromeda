@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Console des Messages sur fond clair (demande d'Adrien du 21/10/2026) ; bouton ATTAQUER grisé sur la fiche d'un
+  capitaine (règles de l'attaque dans `CLAUDE.md`, pour le serveur).
 - Messages (demandes d'Adrien du 20/10/2026) — **faits** : le fil en console (une ligne par message), menu ÉCRIRE / VOIR
   sur un pseudo (VOIR ferme le volet et montre sa capsule sur la carte), conversations privées non lues en gras avec
   leur pastille (`conversations` donne le nombre de non-lus).

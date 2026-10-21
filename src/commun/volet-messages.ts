@@ -20,6 +20,8 @@ import { picto } from './symboles'
 const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
+/** Les mêmes couleurs, assez foncées pour un pseudo écrit sur le papier clair de la console. */
+const ENCRES: Record<string, string> = { nettoyeurs: '#3f7a4c', ingenieurs: '#9a6a12', mercenaires: '#b4442f' }
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 
 /** « il y a 3 min », « à l'instant ». */
@@ -144,9 +146,9 @@ export class VoletMessages {
     }
     const prive = this.canal.startsWith('prive:')
     const ouvert = this.menu === m.id
-    const pseudo = `<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? TEINTES[m.maison] : '#d7cdee'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
+    const pseudo = `<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? ENCRES[m.maison] : '#6a4f9a'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
     const menu = ouvert ? `<span class="menu-pseudo">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}">ÉCRIRE</button>`}<button type="button" data-voir="${m.auteur}" aria-label="Voir sur la carte">${picto('voir')}VOIR</button></span>` : ''
     return `<div class="ligne"><span class="heure">${heure}</span><span class="corps-ligne">${pseudo}${badge(m.statut)} ${echapper(m.texte)}`
-      + `<small>de ${m.lieu} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small>${menu}</span></div>`
+      + `<small>${m.lieu.startsWith('en route') ? m.lieu : `de ${m.lieu}`} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small>${menu}</span></div>`
   }
 }

@@ -526,6 +526,7 @@ const fiche = document.querySelector<HTMLDivElement>('#trajet')!
 const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 const boutonCommuniquer = document.querySelector<HTMLButtonElement>('#bouton-communiquer')!
+const boutonAttaquer = document.querySelector<HTMLButtonElement>('#bouton-attaquer')!
 boutonCommuniquer.addEventListener('click', () => { if (selection) ouvrirMessages(`prive:${selection}`) })
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
@@ -656,6 +657,8 @@ function mettreAJourFiche(t: number): void {
   // muets ne répondent pas, pas de bouton pour eux).
   const capitaine = selection && corps(selection)?.type === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
   boutonCommuniquer.hidden = !texte || !capitaine?.bavard
+  // ATTAQUER (décision d'Adrien du 21/10/2026) : grisé tant qu'il n'y a que des PNJ (on n'attaque que les vrais joueurs).
+  boutonAttaquer.hidden = !texte || !capitaine
   const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
   if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
