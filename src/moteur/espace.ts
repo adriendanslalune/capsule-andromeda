@@ -4,12 +4,12 @@
 // tirs pendant que l'application était fermée (pas de mauvaise surprise au retour).
 
 import {
-  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RECYCLAGE_EPAVE, REPERAGE, RETOUR_ALIEN,
+  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, RECHARGE_INTERCEPTEUR, RECYCLAGE_EPAVE, REPERAGE, RETOUR_ALIEN,
   tirsParHeure, VOL_MISSILE,
 } from '../donnees/espace'
-import { corps, astreDominant, GENERATIONS_ALIENS, GENERATIONS_EPAVES, rayonInfluence } from './corps'
-import { etatCapsule } from './capsule'
+import { corps, GENERATIONS_ALIENS, GENERATIONS_EPAVES } from './corps'
 import { distanceDepuisCapsule } from './navigation'
+import { PORTEE_RADAR } from './radar'
 
 const HEURE = 3_600_000
 
@@ -40,10 +40,12 @@ export function nouvelEspace(): EtatEspace {
   return { aliensVaincus: {}, generations: {}, missiles: [], intercepteurs: INTERCEPTEURS_MAX, rechargeDepuis: 0, tirsJusqua: 0 }
 }
 
-/** Portée du radar à l'instant t (km) : une part de la sphère d'influence du système où est la capsule. */
-export function porteeRadar(t: number): number {
-  const systeme = astreDominant(etatCapsule(t).position, t)
-  return systeme === 'Soleil' ? RADAR_ESPACE : PART_RADAR * rayonInfluence(systeme)
+/**
+ * Distance d'où un chasseur peut tirer sur la capsule (km) : la portée du radar (décision d'Adrien du 21/10/2026 : on ne
+ * se fait pas tirer dessus par un chasseur que le radar ne pourrait pas voir).
+ */
+export function porteeRadar(_t?: number): number {
+  return PORTEE_RADAR
 }
 
 export function alienLa(e: EtatEspace, nom: string, t: number): boolean {

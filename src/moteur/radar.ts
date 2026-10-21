@@ -8,8 +8,11 @@
 export const PERIODE_RADAR = 4000
 /** Jauge pleine (ou vide) en… (ms). */
 export const DUREE_RADAR = 30_000
-/** Portée du radar (km) : 500 000 km (décision d'Adrien du 21/10/2026, au lieu de 5 millions : trop grand à l'échelle réelle). */
-export const PORTEE_RADAR = 500_000
+/**
+ * Portée du radar (km) : 100 000 km (décision d'Adrien du 21/10/2026, au lieu de 500 000, encore trop grand : autour de
+ * la Terre, il couvrait jusqu'à la Lune). C'est aussi la distance d'où un chasseur peut tirer sur la capsule.
+ */
+export const PORTEE_RADAR = 100_000
 /** Un écho s'efface en… (ms) après le passage du balayage. */
 export const EFFACEMENT_RADAR = 1.25 * PERIODE_RADAR
 

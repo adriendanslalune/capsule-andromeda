@@ -12,7 +12,7 @@ import { LISTE_SATELLITES, positionSatellitePlanetocentrique, type Satellite } f
 import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
-import { ALIENS, EPAVES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
+import { ALIENS, EPAVES, GRANDES_LUNES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
 import { acceleration } from '../donnees/capsule'
 import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
@@ -360,6 +360,8 @@ function calculerPosition(nom: string, t: number): Vecteur3 {
 
 /** Rayon de la sphère d'influence (rayon de Hill, km) d'une planète ou de Pluton : a × (m / 3M)^(1/3). */
 export function rayonInfluence(nom: string): number {
+  const lune = GRANDES_LUNES[nom]
+  if (lune) return lune.hill
   return DEMI_GRANDS_AXES_UA[nom] * UA_KM * (1 / (3 * MASSES[nom])) ** (1 / 3)
 }
 

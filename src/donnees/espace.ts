@@ -10,6 +10,37 @@
 export const GM: Readonly<Record<string, number>> = {
   Soleil: 132_712_440_018, Mercure: 22_032, Vénus: 324_859, Terre: 398_600, Mars: 42_828, Jupiter: 126_686_534,
   Saturne: 37_931_187, Uranus: 5_793_939, Neptune: 6_836_529, Pluton: 869.6,
+  // Les grandes lunes (les zones à libérer) : des épaves, des stations et des chasseurs tournent aussi autour d'elles.
+  Lune: 4902.8, Io: 5959.9, Europe: 3202.7, Ganymède: 9887.8, Callisto: 7179.3, Encelade: 7.21, Téthys: 41.2, Dione: 73.1,
+  Rhéa: 153.9, Titan: 8978.1, Japet: 120.5, Ariel: 83.5, Umbriel: 85.1, Titania: 228.2, Obéron: 192.4, Miranda: 4.4,
+  Protée: 2.94, Triton: 1427.6, Charon: 106.1,
+}
+
+/**
+ * Les grandes lunes (demande d'Adrien du 21/10/2026 : « hors de question de faire un long voyage pour n'avoir rien à
+ * faire ») : leur planète, leur rayon (km) et leur sphère d'influence (rayon de Hill, km) ; chacune a ses épaves, ses
+ * stations, ses chasseurs et ses contrats.
+ */
+export const GRANDES_LUNES: Readonly<Record<string, { planete: string; rayon: number; hill: number }>> = {
+  Lune: { planete: 'Terre', rayon: 1737, hill: 61_500 },
+  Io: { planete: 'Jupiter', rayon: 1822, hill: 10_560 },
+  Europe: { planete: 'Jupiter', rayon: 1561, hill: 13_650 },
+  Ganymède: { planete: 'Jupiter', rayon: 2634, hill: 31_700 },
+  Callisto: { planete: 'Jupiter', rayon: 2410, hill: 50_150 },
+  Encelade: { planete: 'Saturne', rayon: 252, hill: 949 },
+  Téthys: { planete: 'Saturne', rayon: 531, hill: 2101 },
+  Dione: { planete: 'Saturne', rayon: 561, hill: 3257 },
+  Rhéa: { planete: 'Saturne', rayon: 764, hill: 5830 },
+  Titan: { planete: 'Saturne', rayon: 2575, hill: 52_400 },
+  Japet: { planete: 'Saturne', rayon: 735, hill: 36_300 },
+  Ariel: { planete: 'Uranus', rayon: 579, hill: 3222 },
+  Umbriel: { planete: 'Uranus', rayon: 585, hill: 4516 },
+  Titania: { planete: 'Uranus', rayon: 789, hill: 10_280 },
+  Obéron: { planete: 'Uranus', rayon: 761, hill: 13_000 },
+  Miranda: { planete: 'Uranus', rayon: 236, hill: 821 },
+  Protée: { planete: 'Neptune', rayon: 210, hill: 615 },
+  Triton: { planete: 'Neptune', rayon: 1353, hill: 14_600 },
+  Charon: { planete: 'Pluton', rayon: 606, hill: 6740 },
 }
 const UA = 149_597_870.7
 
@@ -44,10 +75,12 @@ function hasardFixe(graine: number): () => number {
 const HILL: Readonly<Record<string, number>> = {
   Mercure: 175_000, Vénus: 1_000_000, Terre: 1_470_000, Mars: 980_000, Jupiter: 51_000_000, Saturne: 62_000_000,
   Uranus: 67_000_000, Neptune: 115_000_000, Pluton: 6_000_000,
+  ...Object.fromEntries(Object.entries(GRANDES_LUNES).map(([nom, l]) => [nom, l.hill])),
 }
 /** Rayon des planètes (km) : les objets restent bien au-dessus de la surface. */
 const RAYON: Readonly<Record<string, number>> = {
   Mercure: 2440, Vénus: 6052, Terre: 6371, Mars: 3390, Jupiter: 69_911, Saturne: 58_232, Uranus: 25_362, Neptune: 24_622, Pluton: 1188,
+  ...Object.fromEntries(Object.entries(GRANDES_LUNES).map(([nom, l]) => [nom, l.rayon])),
 }
 
 /** Une région de l'espace : autour d'une planète (de min à max fois son rayon… au plus 80 % de sa sphère), ou entre deux distances du Soleil (UA). */
@@ -73,6 +106,9 @@ const REGIONS: readonly Region[] = [
   { parent: 'Soleil', min: 10, max: 18, epaves: 8, aliens: 30, lettre: 'Θ' },
   { parent: 'Soleil', min: 20, max: 29, epaves: 8, aliens: 30, lettre: 'Ι' },
   { parent: 'Soleil', min: 31, max: 48, epaves: 14, aliens: 40, lettre: 'Ζ' },
+  // Autour de chaque grande lune (demande d'Adrien du 21/10/2026) : 3 épaves et 2 chasseurs, de 1,3 à 25 fois son rayon
+  // (au plus 80 % de sa sphère d'influence). Ajoutées à la fin : le reste du monde ne change pas.
+  ...Object.keys(GRANDES_LUNES).map((nom): Region => ({ parent: nom, min: 1.3, max: 25, epaves: 3, aliens: 2, lettre: nom })),
 ]
 
 const SORTES_EPAVES = [
@@ -143,22 +179,41 @@ export const STATIONS_SYSTEMES: readonly ObjetEnOrbite[] = (() => {
     Uranus: [['Station Herschel', 3], ['Relais Miranda', 6], ['Dock Voyager', 11], ['Station Puck', 18], ['Phare Cordélia', 28]],
     Neptune: [['Station Le Verrier', 3], ['Phare Galle', 7], ['Dock Adams', 13], ['Station Néréide', 22], ['Relais Protée', 35]],
     Pluton: [['Station Tombaugh', 4], ['Avant-poste Kuiper', 8], ['Dock Charon', 14], ['Relais New Horizons', 24], ['Station Styx', 40]],
+    // Deux stations autour de chaque grande lune (demande d'Adrien du 21/10/2026), au plus à 70 % de sa sphère d'influence.
+    Lune: [['Station Tycho', 1.6], ['Relais Apollo', 6]],
+    Io: [['Station Loki', 1.6], ['Relais Pelé', 3]],
+    Europe: [['Station Minos', 1.6], ['Relais Clipper', 4]],
+    Ganymède: [['Station Osiris', 1.6], ['Dock Marius', 5]],
+    Callisto: [['Station Valhalla', 1.6], ['Relais Asgard', 6]],
+    Encelade: [['Station Damas', 1.6], ['Relais Bagdad', 2.5]],
+    Téthys: [['Station Odyssée', 1.6], ['Relais Pénélope', 2.5]],
+    Dione: [['Station Évandre', 1.6], ['Relais Didon', 3]],
+    Rhéa: [['Station Inktomi', 1.6], ['Relais Tirawa', 3]],
+    Titan: [['Station Kraken', 1.6], ['Aérostat Shangri-La', 6]],
+    Japet: [['Station Roncevaux', 1.6], ['Relais Turgis', 6]],
+    Ariel: [['Station Kachina', 1.6], ['Relais Prospero', 3]],
+    Umbriel: [['Station Wunda', 1.6], ['Relais Vuver', 3]],
+    Titania: [['Station Messina', 1.6], ['Relais Gertrude', 4]],
+    Obéron: [['Station Hamlet', 1.6], ['Relais Othello', 5]],
+    Miranda: [['Station Vérone', 1.6], ['Relais Inverness', 2.4]],
+    Protée: [['Station Pharos', 1.6], ['Relais Vidar', 2]],
+    Triton: [['Avant-poste Sippar', 1.6], ['Relais Tuonela', 4]],
+    Charon: [['Station Mordor', 1.6], ['Relais Vulcain', 4]],
   }
   const x = hasardFixe(1930)
-  return Object.entries(noms).flatMap(([parent, liste]) => liste.map(([nom, k]) => o(nom, parent, k * RAYON[parent], x(), 0.2 * (x() - 0.5))))
+  return Object.entries(noms).flatMap(([parent, liste]) => liste.map(([nom, k]) => o(nom, parent, Math.min(k * RAYON[parent], 0.7 * HILL[parent]), x(), 0.2 * (x() - 0.5))))
 })()
 
 /** Chance qu'un chasseur repéré tire un missile, par heure, selon sa région (rare près de la Terre). */
 export function tirsParHeure(o: ObjetEnOrbite): number {
+  const lune = GRANDES_LUNES[o.parent]
+  if (lune) return tirsParHeure({ ...o, parent: lune.planete })
   if (o.parent === 'Soleil') return o.rayon < 2 * UA ? 0.05 : o.rayon < 4 * UA ? 0.08 : o.rayon < 19 * UA ? 0.1 : 0.15
   return ({ Mercure: 0.04, Vénus: 0.04, Terre: 0.02, Mars: 0.06, Jupiter: 0.08, Saturne: 0.1, Uranus: 0.12, Neptune: 0.15, Pluton: 0.15 } as Record<string, number>)[o.parent]
 }
 /** Au plus tant de missiles en vol à la fois. */
 export const MISSILES_MAX = 2
 
-/** Portée du radar : une part de la sphère d'influence du système où est la capsule ; en plein espace, plus loin. */
-export const PART_RADAR = 0.6
-export const RADAR_ESPACE = 50_000_000
 /** Durée de vol d'un missile (ms) : le décompte. */
 export const VOL_MISSILE = 90_000
 /**

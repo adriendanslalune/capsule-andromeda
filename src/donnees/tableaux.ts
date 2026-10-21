@@ -1,3 +1,5 @@
+import { GRANDES_LUNES } from './espace'
+
 // Les missions sont classées par système (décision d'Adrien du 18/10/2026, qui remplace les tableaux par planète et
 // par grande lune) : 6 missions par système, Pluton compris ; elles se consultent de partout (volet Missions, filtre de
 // système). Leurs lieux sont répartis dans tout le système (stations, satellites, épaves, lunes, chasseurs), au plus
@@ -5,15 +7,37 @@
 // la zone du système (ZONES) et l'éloignement du lieu (ELOIGNEMENT).
 
 export interface Tableau {
-  /** Le système (sa planète) : ses missions se passent chez lui. */
+  /** Le nom du tableau : sa planète, ou sa grande lune. */
   lieu: string
+  /** Son système (la planète) : sa zone fixe le prix ; le volet Journal le range là. */
   systeme: string
+  /** L'astre autour duquel se passent ses missions (la planète, ou la grande lune). */
+  centre: string
   nombre: number
 }
 
-const S = (lieu: string): Tableau => ({ lieu, systeme: lieu, nombre: 6 })
+/** Contrats autour de chaque grande lune. */
+export const CONTRATS_PAR_LUNE = 4
 
-export const TABLEAUX: readonly Tableau[] = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'].map(S)
+const S = (lieu: string): Tableau => ({ lieu, systeme: lieu, centre: lieu, nombre: 6 })
+
+/** Les neuf systèmes. */
+export const SYSTEMES: readonly string[] = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton']
+
+/**
+ * Les tableaux : un par système, et un par grande lune (demande d'Adrien du 21/10/2026 : « hors de question de faire
+ * un long voyage pour n'avoir rien à faire ») : 4 contrats autour de chaque grande lune (ses épaves, ses stations, ses
+ * chasseurs), rangés avec ceux de son système.
+ */
+export const TABLEAUX: readonly Tableau[] = [
+  ...SYSTEMES.map(S),
+  ...Object.entries(GRANDES_LUNES).map(([lieu, l]): Tableau => ({ lieu, systeme: l.planete, centre: lieu, nombre: CONTRATS_PAR_LUNE })),
+]
+
+/** Le système d'un tableau (le tableau d'une grande lune est rangé avec sa planète). */
+export function systemeDuTableau(lieu: string | undefined): string {
+  return TABLEAUX.find((x) => x.lieu === lieu)?.systeme ?? lieu ?? 'Terre'
+}
 
 /**
  * Facteur de zone de chaque système (validé par Adrien le 18/10/2026, à ajuster plus tard) : l'éloignement depuis la

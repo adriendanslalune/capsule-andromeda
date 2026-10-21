@@ -5,6 +5,7 @@ import {
   aliensReperes, avancerEspace, intercepterMissile, nouvelEspace, porteeRadar, surLaCarte, tirDeLHeure, vaincre,
 } from '../src/moteur/espace'
 import { Jeu } from '../src/moteur/jeu'
+import { etatSurOrbite, ORBITE_DEPART, suivreMission } from '../src/moteur/capsule'
 import { planifier, vitesseEnVol } from '../src/moteur/mission'
 import { maisonDuContrat } from '../src/donnees/maisons'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
@@ -64,7 +65,7 @@ describe('les chasseurs : très nombreux, partout, imprévisibles', () => {
 
   it('au départ (orbite basse terrestre), le radar ne voit aucun chasseur', () => {
     const e = nouvelEspace()
-    expect(porteeRadar(t0)).toBeGreaterThan(500_000)
+    expect(porteeRadar(t0)).toBe(100_000)
     expect(aliensReperes(e, t0)).toEqual([])
     expect(surLaCarte(e, ALIENS[0].nom, t0)).toBe(false)
   })
@@ -99,7 +100,8 @@ describe('les chasseurs : très nombreux, partout, imprévisibles', () => {
 
 describe('les chasseurs furtifs (décision d’Adrien du 21/10/2026)', () => {
   it('un chasseur repéré au radar laisse le temps de voir venir ; pas vu, son missile arrive deux fois plus vite', () => {
-    // Un chasseur à portée de la capsule, et l'heure où il tire.
+    // La capsule près de la Lune, au milieu de ses chasseurs ; un chasseur à portée, et l'heure où il tire.
+    suivreMission({ etat: (t) => ({ ...etatSurOrbite(ORBITE_DEPART, t), position: position('Lune', t) }) })
     let nom = '', quand = 0
     for (let k = Math.floor(t0 / 3_600_000); !nom && k < Math.floor(t0 / 3_600_000) + 2000; k++) {
       for (const a of aliensReperes(nouvelEspace(), k * 3_600_000 + 1_800_000)) {
@@ -117,6 +119,7 @@ describe('les chasseurs furtifs (décision d’Adrien du 21/10/2026)', () => {
     }
     expect(tir(true)).toBe(VOL_MISSILE)
     expect(tir(false)).toBe(VOL_MISSILE / 2)
+    suivreMission({ etat: (t) => etatSurOrbite(ORBITE_DEPART, t) })
   })
 
   it('le radar repère les chasseurs à sa portée ; c’est sauvegardé', () => {

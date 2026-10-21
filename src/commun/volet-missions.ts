@@ -8,7 +8,7 @@ import { distanceDepuisCapsule, texteDistance } from '../moteur/navigation'
 import type { Contrat } from '../moteur/contrats'
 import { texteDuree, texteRestant } from './textes'
 import { MAISONS, maisonDuContrat, titreMaison, type Maison } from '../donnees/maisons'
-import { TABLEAUX } from '../donnees/tableaux'
+import { TABLEAUX, systemeDuTableau } from '../donnees/tableaux'
 import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes, titreContrat, POSTES } from './textes-missions'
 import { avec, picto, SYMBOLE_GENRE } from './symboles'
 
@@ -127,13 +127,13 @@ export class VoletMissions {
     }
     // Missions proposées : de la plus proche à la plus lointaine en temps de trajet (demande d'Adrien, 17/10/2026).
     // Le système : une rangée des neuf systèmes, celui de la capsule marqué « ici ».
-    html += '<h3>Contrats proposés</h3><div class="filtre-lieux">' + TABLEAUX.map((x) => {
+    html += '<h3>Contrats proposés</h3><div class="filtre-lieux">' + TABLEAUX.filter((x) => x.centre === x.systeme).map((x) => {
       return `<button type="button" data-lieu-filtre="${x.lieu === ici ? '' : x.lieu}" class="${x.lieu === lieu ? 'actif' : ''}">${x.lieu}${x.lieu === ici ? '<small>ici</small>' : ''}</button>`
     }).join('') + '</div><div class="filtre-maisons">'
       + `<button type="button" data-filtre=""${this.filtre === null ? ' class="actif"' : ''}>TOUTES</button>`
       + MAISONS.map((m) => `<button type="button" data-filtre="${m.maison}" class="maison-${m.maison}${this.filtre === m.maison ? ' actif' : ''}">${m.titre}</button>`).join('')
       + '</div>'
-    const choisies = jeu.proposes.filter((c) => c.tableau === lieu && (this.filtre === null || maisonDuContrat(c) === this.filtre))
+    const choisies = jeu.proposes.filter((c) => systemeDuTableau(c.tableau) === lieu && (this.filtre === null || maisonDuContrat(c) === this.filtre))
     if (!choisies.length) html += `<p class="note">Aucun contrat${this.filtre ? ` des ${titreMaison(this.filtre).toLowerCase()}` : ''} ici en ce moment.</p>`
     const triees = choisies.map((c) => ({ c, d: this.duree(jeu, c, t, vitesse, maintenant) }))
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))

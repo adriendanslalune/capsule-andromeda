@@ -418,7 +418,7 @@ export class Carte2D {
 
   /**
    * La zone de recherche d'une sonde disparue (les Disparus) : un grand cercle en pointillé violet, à sa vraie taille
-   * (1,5 million de km de rayon), et une croix au centre.
+   * (300 000 km de rayon), et une croix au centre.
    */
   private zoneDeRecherche(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, couleurs: Couleurs2D): void {
     const r = Math.max(14, ZONE_RECHERCHE / this.kmParPx)

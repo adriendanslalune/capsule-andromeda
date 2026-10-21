@@ -125,8 +125,11 @@ export const NOMBRE_DISPARUS = DISPARUS.length
 export const ECHO_PROCHE = 20_000
 /** Une sonde posée ne répond que si on passe au-dessus d'elle : à moins de tant de degrés de la verticale. */
 export const ANGLE_AU_DESSUS = 70
-/** Rayon de la zone de recherche (km) d'une sonde perdue autour du Soleil ou aux confins (son indice sur la carte). */
-export const ZONE_RECHERCHE = 1_500_000
+/**
+ * Rayon de la zone de recherche (km) d'une sonde perdue autour du Soleil ou aux confins (son indice sur la carte) : trois
+ * fois la portée du radar, il faut la fouiller en s'y déplaçant.
+ */
+export const ZONE_RECHERCHE = 300_000
 
 /** Le Disparu de ce nom, s'il en est un. */
 export function disparu(nom: string): Disparu | undefined {

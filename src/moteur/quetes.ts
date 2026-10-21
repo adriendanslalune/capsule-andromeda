@@ -11,6 +11,7 @@ import { COMPAGNIES } from '../donnees/bourse'
 import { MARCHES } from '../donnees/marche'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 import { zoneDuLieu } from './zones'
+import { systemeDuTableau } from '../donnees/tableaux'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -170,7 +171,7 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
       const e = etapeCourante(jeu, q), etat = jeu.quetes[q.id]
       if (!e) break
       let atteint = false
-      if (e.genre === 'mission' && fait.genre === 'contrat' && garde === 0 && fait.contrat.genre === e.mission && (!e.systeme || fait.contrat.tableau === e.systeme)) {
+      if (e.genre === 'mission' && fait.genre === 'contrat' && garde === 0 && fait.contrat.genre === e.mission && (!e.systeme || systemeDuTableau(fait.contrat.tableau) === e.systeme)) {
         etat.compte++
         atteint = etat.compte >= e.nombre
         if (!atteint) annonces.push(`${q.titre} : ${etat.compte}/${e.nombre}`)

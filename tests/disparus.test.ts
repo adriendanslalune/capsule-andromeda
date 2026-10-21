@@ -4,6 +4,7 @@ import { corps, position, zoneDuDisparu } from '../src/moteur/corps'
 import { detecter, identifier, nouveauxDisparus, ouChercher } from '../src/moteur/disparus'
 import { Jeu } from '../src/moteur/jeu'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
+import { PORTEE_RADAR } from '../src/moteur/radar'
 
 const t0 = Date.UTC(2026, 9, 21, 12)
 const ecart = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -38,11 +39,11 @@ describe('les Disparus (idée validée par Adrien le 21/10/2026)', () => {
   it('perdue autour du Soleil : la zone de recherche est près d’elle, sans être dessus ; le radar la capte à sa portée', () => {
     const d = disparu('Mars Observer')!
     const p = position(d.nom, t0), z = position(zoneDuDisparu(d.nom), t0)
-    expect(ecart(p, z)).toBeGreaterThan(500_000) // au centre de la zone, il faut encore chercher
+    expect(ecart(p, z)).toBeGreaterThan(PORTEE_RADAR) // au centre de la zone, il faut encore chercher
     expect(ecart(p, z)).toBeLessThan(ZONE_RECHERCHE)
     expect(ouChercher(d)).toEqual({ lieu: zoneDuDisparu(d.nom), zone: true })
     expect(ouChercher(disparu('Beagle 2')!)).toEqual({ lieu: 'Mars', zone: false })
-    expect(detecter(nouveauxDisparus(), { x: p.x + 300_000, y: p.y, z: p.z }, t0).some((x) => x.nom === d.nom)).toBe(true)
+    expect(detecter(nouveauxDisparus(), { x: p.x + 0.8 * PORTEE_RADAR, y: p.y, z: p.z }, t0).some((x) => x.nom === d.nom)).toBe(true)
   })
 
   it('rejointe, la sonde est identifiée (une fois), rapporte de l’XP ; c’est sauvegardé', () => {

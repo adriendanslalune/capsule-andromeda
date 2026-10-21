@@ -24,7 +24,7 @@ import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, mettreAQuai, nouvelEspace, recycler, reperer, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
-import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, type Portee } from '../donnees/tableaux'
+import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, systemeDuTableau, type Portee } from '../donnees/tableaux'
 import { EPAVES } from '../donnees/espace'
 import { contexte } from './tableaux'
 import { maisonsOuvertes } from './profil'
@@ -452,7 +452,7 @@ export class Jeu {
       let ctx: ContexteTableau | null = null
       for (const { maison } of MAISONS) {
         while (this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison).length < voulues[maison]) {
-          ctx ??= contexte(tableau, this.espace, t, tableau.systeme === 'Terre' ? porteeTerre : Infinity)
+          ctx ??= contexte(tableau, this.espace, t, tableau.centre === 'Terre' ? porteeTerre : Infinity)
           const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
           // La portée voulue : tirée parmi celles qui manquent au tableau (3 proches, 2 moyennes, 1 lointaine), au
           // prorata de ce qui manque ; puis les autres, au cas où la Maison n'a pas de lieu à cette portée.
@@ -465,7 +465,11 @@ export class Jeu {
           let r = h.x * total
           const voulue = toutes.find((p) => (r -= manque(p)) < 0) ?? 'proche'
           const portees = [voulue, ...toutes.filter((p) => p !== voulue).sort((a, b) => manque(b) - manque(a))]
-          const { contrat, graine } = tirerContrat(this.prochainId++, this.graine, ctx, maison, exclus, portees)
+          // Jamais deux fois le même contrat (mêmes lieux, même genre) : on retire, quelques fois au plus.
+          const meme = (x: Contrat, y: Contrat) => x.genre === y.genre && x.etapes.map((e) => e.lieu).join('>') === y.etapes.map((e) => e.lieu).join('>')
+          let { contrat, graine } = tirerContrat(this.prochainId, this.graine, ctx, maison, exclus, portees)
+          for (let essai = 0; essai < 6 && this.proposes.some((c) => meme(c, contrat)); essai++) ({ contrat, graine } = tirerContrat(this.prochainId, graine, ctx, maison, exclus, portees))
+          this.prochainId++
           this.graine = graine
           if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
           this.proposes.push(contrat)
@@ -842,7 +846,7 @@ export class Jeu {
 
   /** Facteur de zone de la mission en cours (son système : 1 pour la Terre … 60 pour Pluton). */
   zoneEnCours(): number {
-    return ZONES[this.enCours?.contrat.tableau ?? 'Terre'] ?? 1
+    return ZONES[systemeDuTableau(this.enCours?.contrat.tableau)] ?? 1
   }
 
   /**

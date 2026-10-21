@@ -66,6 +66,8 @@ export interface ContexteTableau {
   aliens: readonly string[]
   /** Éloignement de chaque lieu dans son système (part de la sphère d'influence). */
   parts: ReadonlyMap<string, number>
+  /** Autour d'une grande lune : l'éloignement de la lune dans son système, qui fixe le prix et la portée du contrat. */
+  partFixe?: number
 }
 
 /**
@@ -115,7 +117,7 @@ export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, m
       ? [{ lieu: depart, action: 'rejoindre' }, { lieu: arrivee, action: 'escorter' }]
       : [{ lieu: depart, action: 'charger' }, { lieu: arrivee, action: 'livrer' }]
   }
-  const loin = Math.max(...etapes.map((e) => part(e.lieu)))
+  const loin = ctx.partFixe ?? Math.max(...etapes.map((e) => part(e.lieu)))
   const contrat: Contrat = {
     id, genre, etapes, recompense: recompense(genre, ZONES[ctx.tableau.systeme], x(), facteurEloignement(loin)), tableau: ctx.tableau.lieu,
     portee: loin < LIMITE_PROCHE ? 'proche' : loin < LIMITE_MOYENNE ? 'moyenne' : 'lointaine',

@@ -17,11 +17,17 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Contrats autour des grandes lunes (demande d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** :
+  `GRANDES_LUNES` dans `src/donnees/espace.ts` (les 19 lunes des zones : rayon, sphère d'influence) ; autour de chacune
+  2 stations, 3 épaves, 2 chasseurs (ajoutés à la fin du tirage : le reste du monde ne bouge pas) ; un tableau de
+  4 contrats par lune (`TABLEAUX`, `systemeDuTableau`), rangé avec son système dans le Journal, payé comme la lune dans
+  son système (`partFixe`) ; jamais deux fois le même contrat. Radar à 100 000 km (au lieu de 500 000), et c'est aussi
+  la distance d'où un chasseur tire ; zone de recherche des Disparus ramenée à 300 000 km.
 - Les Disparus (idée d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : 40 vraies sondes perdues
   (`src/donnees/disparus.ts` : Luna 2, Ranger 7, Mars Observer, Beagle 2, Pioneer 10 et 11…), moteur
   `src/moteur/disparus.ts` (testé, `tests/disparus.test.ts`). Une sonde posée ne répond au radar que si la capsule passe
   au-dessus d'elle, à moins de 20 000 km ; une sonde en orbite, à moins de 20 000 km ; une sonde perdue dans le vide
-  se cherche dans sa zone de recherche (1,5 million de km) au radar. Écho capté : elle reste sur la carte ; y aller en
+  se cherche dans sa zone de recherche (300 000 km) au radar. Écho capté : elle reste sur la carte ; y aller en
   orbite l'identifie (fenêtre « Retrouvée ! », 50 XP). Classeur pré-rempli dans Plus › Collections
   (`src/commun/vue-disparus.ts`) : les cases grises donnent l'indice et CHERCHER (montre le lieu ou la zone sur la
   carte), les retrouvées racontent leur histoire et la date. Pas de paliers de statut pour l'instant.

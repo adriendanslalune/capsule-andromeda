@@ -26,7 +26,8 @@ export function porteeDe(part: number): Portee {
  * lieux à moins de cette distance de la planète (le début de partie, voir VOL_MAX_DEBUT).
  */
 export function contexte(tableau: Tableau, espace: EtatEspace, t: number, porteeKm = Infinity): ContexteTableau {
-  const s = tableau.systeme
+  const s = tableau.centre
+  const autourDUneLune = s !== tableau.systeme
   const terre = s === 'Terre'
   const c = position(s, t)
   const pres = (l: readonly string[]) => (porteeKm === Infinity ? [...l]
@@ -38,18 +39,22 @@ export function contexte(tableau: Tableau, espace: EtatEspace, t: number, portee
   const remorquables = pres(EPAVES.filter((e) => e.parent === s && !espace.aQuai?.[e.nom]).map((e) => e.nom))
   const epaves = [...remorquables, ...pres(terre ? LIEUX_NETTOYAGE : [])]
   const depannages = pres(terre ? [...SATELLITES, ...STATIONS] : stations)
-  const arrivees = pres([...stations, ...lunes, ...(terre ? SATELLITES : [])])
+  // Autour d'une grande lune : ses stations, et la lune elle-même (ses bases au sol).
+  const arrivees = pres([...stations, ...lunes, ...(terre ? SATELLITES : []), ...(autourDUneLune ? [s] : [])])
   const aliens = pres(aliensDe(espace, s, t))
   const parts = new Map<string, number>()
   for (const nom of new Set([...epaves, ...stations, ...arrivees, ...depannages, ...aliens])) parts.set(nom, partDuSysteme(nom, s, t))
-  return { tableau, epaves, remorquables, departs: stations, arrivees, depannages, aliens, parts }
+  // Le prix et la portée d'un contrat autour d'une grande lune : ceux de la lune dans son système (la Lune paie environ
+  // 1,5 fois l'ISS, comme une livraison vers la Lune).
+  const partFixe = autourDUneLune ? partDuSysteme(s, tableau.systeme, t) : undefined
+  return { tableau, epaves, remorquables, departs: stations, arrivees, depannages, aliens, parts, partFixe }
 }
 
 /** Le tableau du système où est la capsule ; en plein espace, celui de la planète la plus proche. */
 export function tableauDeLaCapsule(_centre: string | null, t: number): Tableau {
   const p = etatCapsule(t).position
   const systeme = astreDominant(p, t)
-  const duSysteme = TABLEAUX.find((x) => x.systeme === systeme)
+  const duSysteme = TABLEAUX.find((x) => x.lieu === systeme)
   if (duSysteme) return duSysteme
   const d = (nom: string) => { const q = position(nom, t); return Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z) }
   return TABLEAUX.reduce((a, b) => (d(b.systeme) < d(a.systeme) ? b : a))
