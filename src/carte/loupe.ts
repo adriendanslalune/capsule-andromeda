@@ -1,94 +1,54 @@
-// Projection de la carte (décisions d'Adrien du 17/10/2026) : carte à plat, vue du dessus ; vraies distances entre
-// les planètes ; astres dessinés plus gros que nature mais proportionnés entre eux (50 fois leur taille, le Soleil
-// 20 fois). Autour de chaque astre, une « loupe » écarte ce qui tourne près de lui : satellites et engins orbitent à
-// des distances agrandies mais dans le bon ordre (l'ISS tout près de la Terre, la Lune plus loin, James Webb au bord
-// du système). Au bord de la zone d'un astre (sa sphère d'influence), la loupe rejoint les vraies distances, sans saut.
-// Distances dessinées d'après la vraie distance dans l'espace : rien ne passe jamais dans le disque d'un astre.
-// Orbites couchées dans le plan de la carte (à leur vraie vitesse) : un satellite qui passe au-dessus d'un pôle ne
-// saute pas d'un bord à l'autre. Ce n'est que du dessin : le moteur garde les vraies positions.
-// Échelle réelle (option des calques, essai demandé par Adrien le 21/10/2026) : les astres à leur vraie taille, sans
-// loupe, toutes les distances vraies ; la carte se charge de dessiner une pastille quand un astre devient trop petit.
+// Projection de la carte : carte à plat, vue du dessus, à l'échelle réelle (décision d'Adrien du 21/10/2026, qui
+// remplace les astres grossis 50 fois et les « loupes » qui étiraient les distances autour des planètes) : les astres à
+// leur vraie taille, toutes les distances vraies ; la carte dessine une pastille quand un astre devient trop petit.
+// Autour de chaque astre, sa zone (sa sphère d'influence) : les orbites y sont couchées dans le plan de la carte (à
+// leur vraie vitesse et à leur vraie distance), pour qu'un satellite qui passe au-dessus d'un pôle ne saute pas d'un
+// bord à l'autre. Ce n'est que du dessin : le moteur garde les vraies positions.
 
 import { corps, enfants, position, rayonInfluence } from '../moteur/corps'
 import { gmAstre, positionDuPoint, type Plan } from '../moteur/mission'
 import { UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 
-/** Grossissement des astres sur la carte. */
-export const GROSSISSEMENT = 50
-export const GROSSISSEMENT_SOLEIL = 20
-/** Zone de la loupe du Soleil (km) : Mercure (0,31 UA au plus près) reste à sa vraie place. */
+/** Zone du Soleil (km) : Mercure (0,31 UA au plus près) est hors de la zone. */
 const ZONE_SOLEIL = 0.25 * UA_KM
-/** Zone réelle et zone dessinée d'une grande lune, en rayons (réels, puis dessinés). */
-const ZONE_LUNE_REELLE = 20
-const ZONE_LUNE_DESSINEE = 2.5
-/** Lunes qui ont leur propre loupe (les autres sont trop petites pour qu'on s'en approche à l'écran). */
+/** Zone d'une grande lune, en rayons. */
+const ZONE_LUNE = 20
+/** Lunes qui ont leur propre zone (les autres sont trop petites pour qu'on s'en approche à l'écran). */
 const RAYON_GRANDE_LUNE = 200
-/** Astres qui ont un système (une loupe à leur taille : leur sphère d'influence). */
+/** Astres qui ont un système (une zone à leur taille : leur sphère d'influence). */
 export const CENTRES = ['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'] as const
 
 export interface Point2 { x: number; y: number }
 
-let reelle = false
-/** Passe la carte à l'échelle réelle (ou la remet grossie, avec ses loupes). */
-export function echelleReelle(oui: boolean): void {
-  if (oui === reelle) return
-  reelle = oui
-  LOUPES.clear()
-}
-/** La carte est-elle à l'échelle réelle ? */
-export const aEchelleReelle = (): boolean => reelle
-
-/** Rayon dessiné d'un astre (km de carte). */
+/** Rayon dessiné d'un astre (km de carte) : sa vraie taille. */
 export function rayonDessine(nom: string): number {
-  return (corps(nom)?.rayon ?? 0) * (reelle ? 1 : nom === 'Soleil' ? GROSSISSEMENT_SOLEIL : GROSSISSEMENT)
+  return corps(nom)?.rayon ?? 0
 }
 
-/** Une loupe : rayon réel et rayon dessiné de l'astre, zone réelle et zone dessinée (km). */
-interface Loupe { R: number; Rd: number; zone: number; zoneDessinee: number }
+/** La zone d'un astre : son rayon et la distance jusqu'où ses orbites sont couchées dans le plan (km). */
+interface Loupe { R: number; zone: number }
 
 const LOUPES = new Map<string, Loupe>()
 function loupe(nom: string): Loupe {
   let l = LOUPES.get(nom)
   if (!l) {
     const R = corps(nom)?.rayon ?? 0
-    const Rd = rayonDessine(nom)
-    if (nom === 'Soleil') l = { R, Rd, zone: ZONE_SOLEIL, zoneDessinee: ZONE_SOLEIL }
-    else if ((CENTRES as readonly string[]).includes(nom)) l = { R, Rd, zone: rayonInfluence(nom), zoneDessinee: rayonInfluence(nom) }
-    else l = { R, Rd, zone: R * ZONE_LUNE_REELLE, zoneDessinee: reelle ? R * ZONE_LUNE_REELLE : Rd * ZONE_LUNE_DESSINEE }
+    if (nom === 'Soleil') l = { R, zone: ZONE_SOLEIL }
+    else if ((CENTRES as readonly string[]).includes(nom)) l = { R, zone: rayonInfluence(nom) }
+    else l = { R, zone: R * ZONE_LUNE }
     LOUPES.set(nom, l)
   }
   return l
 }
 
-/** Grandes lunes de chaque astre (celles qui ont leur loupe). */
+/** Grandes lunes de chaque astre (celles qui ont leur zone). */
 const GRANDES_LUNES = new Map<string, string[]>(CENTRES.map((c) => [c,
   enfants(c).filter((e) => e.type === 'lune' && e.rayon >= RAYON_GRANDE_LUNE).map((e) => e.nom)]))
 
-/** Zone dessinée d'un astre (km de carte) : pour cadrer son système. */
+/** Zone d'un astre (km de carte) : pour cadrer son système. */
 export function zoneDessinee(nom: string): number {
-  return loupe(nom).zoneDessinee
-}
-
-/** Distance dessinée pour une distance réelle d au centre (d ≥ R) : logarithmique, de Rd à la zone dessinée. */
-function etirer(l: Loupe, d: number): number {
-  if (reelle) return d
-  const d0 = 0.05 * l.R
-  const g = Math.log(1 + Math.max(0, d - l.R) / d0) / Math.log(1 + (l.zone - l.R) / d0)
-  return l.Rd + (l.zoneDessinee - l.Rd) * g
-}
-
-/**
- * Les anneaux gradués d'un système (décision d'Adrien du 19/10/2026) : des cercles à 1 000, 10 000, 100 000 km… du
- * centre de l'astre, dessinés à travers sa loupe. Ils se resserrent en s'éloignant : on voit que la carte écrase les
- * grandes distances autour des planètes. Renvoie leur rayon dessiné (km de carte) et leur distance réelle (km).
- */
-export function anneauxGradues(nom: string): { rayon: number; distance: number }[] {
-  const l = loupe(nom), r: { rayon: number; distance: number }[] = []
-  // À l'échelle réelle, la carte n'écrase plus rien : pas besoin d'anneaux.
-  if (reelle) return r
-  for (let d = 1_000; d < l.zone; d *= 10) if (d > 1.5 * l.R) r.push({ rayon: etirer(l, d), distance: d })
-  return r
+  return loupe(nom).zone
 }
 
 /**
@@ -138,7 +98,7 @@ function aTravers(l: Loupe, nom: string, cd: Point2, m: PointMobile): Point2 {
     const h = Math.hypot(rel.x, rel.y) || 1
     u = { x: rel.x / h, y: rel.y / h }
   }
-  const r = etirer(l, Math.max(d, l.R))
+  const r = Math.max(d, l.R)
   return { x: cd.x + u.x * r, y: cd.y + u.y * r }
 }
 
@@ -190,7 +150,7 @@ export function projeterPoussiere(nom: string, t: number, nombre: number, positi
   for (let k = 0; k < nombre; k++) {
     const r = { x: positions[3 * k], y: positions[3 * k + 1], z: positions[3 * k + 2] }
     const u = coucher(r, { x: normales[3 * k], y: normales[3 * k + 1], z: normales[3 * k + 2] })
-    const d = etirer(l, Math.max(Math.hypot(r.x, r.y, r.z), l.R))
+    const d = Math.max(Math.hypot(r.x, r.y, r.z), l.R)
     sortie[2 * k] = c.x + u.x * d
     sortie[2 * k + 1] = c.y + u.y * d
   }

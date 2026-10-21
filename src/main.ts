@@ -80,7 +80,7 @@ import { VoletMissions } from './commun/volet-missions'
 import { texteArrivee, texteDateComplete, texteDuree } from './commun/textes'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, echelleReelle, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
+import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
@@ -222,8 +222,6 @@ const reglages = {
   cercles: true,
   /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
   nuit: false,
-  /** Essai (demande d'Adrien du 21/10/2026) : la carte à l'échelle réelle, sans astres grossis ni loupes. */
-  reelle: false,
   crochet: true, etiquette: true, fleche: true,
   /** Essai : forcer la vitesse de croisière (km/s) au lieu de celle du moteur de la capsule. */
   forcerVitesse: false,
@@ -349,19 +347,17 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
     boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
   } else if (b.dataset.afficher) {
     // Les calques, et le mode nuit en accès rapide (demande d'Adrien du 20/10/2026).
-    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit' | 'reelle'
+    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'
     reglages[cle] = !reglages[cle]
     memoriser()
     if (cle === 'nuit') appliquerTheme()
-    if (cle === 'reelle') echelleReelle(reglages.reelle)
     afficherChoixAffichage()
   }
 })
 function afficherChoixAffichage(): void {
-  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit' | 'reelle'])
+  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])
 }
 afficherChoixAffichage()
-echelleReelle(reglages.reelle)
 
 // Le cockpit : barre d'onglets et volets. Choisir un astre dans le volet Navigation referme le volet.
 const cockpit = new Cockpit((page) => {
@@ -750,7 +746,7 @@ const gestesCarte = new Gestes(toilePlan, {
   toucher: (x, y) => {
     // À l'échelle réelle, les engins s'entassent près de leur planète : toucher le tas propose de choisir.
     const noms = carte.touches(x, y)
-    if (reglages.reelle && noms.length > 1) { montrerTas(noms, x, y); return }
+    if (noms.length > 1) { montrerTas(noms, x, y); return }
     fermerTas()
     // Toucher un endroit vide retire le choix (et ferme l'aperçu d'une mission).
     choisir(noms[0] ?? null)

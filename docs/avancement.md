@@ -19,6 +19,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Échelle réelle adoptée (Adrien, 21/10/2026) : l'ancienne carte (astres grossis 50 fois, loupes, anneaux gradués) et
+  le bouton des calques sont supprimés ; `loupe.ts` ne fait plus que coucher les orbites dans le plan ; la liste du tas
+  sous le doigt marche partout. Zoom libre gardé.
 - Adrien confirme (21/10/2026) : plus aucun lag. Le vrai coupable était les pointillés dessinés hors de l'écran ;
   les astres redeviennent illustrés à toutes les tailles (plus de simple disque au-delà de 100 px).
 - Plantage en zoom serré (Adrien, 21/10/2026) : les traits (pointillé vers la destination, cercles des PING, trajet,

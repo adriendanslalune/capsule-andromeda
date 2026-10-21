@@ -8,7 +8,7 @@
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
-import { aEchelleReelle, anneauxGradues, CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
+import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { BOTS } from '../donnees/messages'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
@@ -33,9 +33,9 @@ const MINIMUMS: Record<string, number> = {
   Soleil: 18, Jupiter: 16, Saturne: 15, Uranus: 13, Neptune: 13, Terre: 12, Vénus: 12, Mars: 11.5, Mercure: 11,
   Pluton: 11, Lune: 11,
 }
-/** À l'échelle réelle, un astre trop petit devient une pastille, plus petite que les minimums ci-dessus (mais dans le
- *  même ordre : on reconnaît Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien, 21/10/2026). */
-const PASTILLE_REELLE = 0.5
+/** Un astre trop petit devient une pastille, de la moitié des minimums ci-dessus (dans le même ordre : on reconnaît
+ *  Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien du 21/10/2026, échelle réelle). */
+const PASTILLE = 0.5
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
 const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
@@ -170,7 +170,7 @@ export class Carte2D {
       ? Math.max(Math.abs(this.newHorizons.x) / (this.largeur / 2), Math.abs(this.newHorizons.y) / (this.hauteur / 2))
         / this.kmParPx
       : VUE_GENERALE / (this.largeur / 2) / this.kmParPx
-    const k = aEchelleReelle() ? PASTILLE_REELLE : 1
+    const k = PASTILLE
     const minimum = MINIMUMS[c.nom] !== undefined && c.type !== 'lune'
       ? Math.max(RAYON_POINT, k * MINIMUMS[c.nom] * Math.min(1, facteur))
       : Math.max(RAYON_POINT, k * (MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)))
@@ -445,39 +445,6 @@ export class Carte2D {
       ctx.globalAlpha = 0.35
       ctx.fill()
       ctx.globalAlpha = 1
-    }
-
-    // Anneaux gradués autour des planètes dont le système est assez grand à l'écran (avec les orbites) : 1 000 km,
-    // 10 000 km… Ils se resserrent en s'éloignant, la carte écrasant les grandes distances autour des planètes.
-    if (reglages.orbites) {
-      ctx.save()
-      ctx.font = '9px ui-monospace, Menlo, monospace'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.setLineDash([2, 4])
-      ctx.lineWidth = 0.8
-      for (const nom of CENTRES) {
-        if (zoneDessinee(nom) / this.kmParPx < this.largeur * 0.25) continue
-        const q = this.ecranDe(projeterCorps(nom, t))
-        for (const a of anneauxGradues(nom)) {
-          const r = a.rayon / this.kmParPx
-          if (r < 12) continue
-          ctx.beginPath()
-          ctx.arc(q.x, q.y, r, 0, 2 * Math.PI)
-          ctx.strokeStyle = couleurs.encre
-          ctx.globalAlpha = 0.22
-          ctx.stroke()
-          // L'étiquette, en haut de l'anneau, sur un petit fond pour rester lisible parmi les satellites.
-          const texte = `${a.distance.toLocaleString('fr-FR')} km`, w = ctx.measureText(texte).width + 6
-          ctx.globalAlpha = 0.85
-          ctx.fillStyle = couleurs.fond
-          ctx.fillRect(q.x - w / 2, q.y - r - 6, w, 12)
-          ctx.globalAlpha = 0.55
-          ctx.fillStyle = couleurs.encre
-          ctx.fillText(texte, q.x, q.y - r)
-        }
-      }
-      ctx.restore()
     }
 
     // Orbites des planètes et de Pluton : les vraies trajectoires, vues du dessus.
