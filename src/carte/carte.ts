@@ -151,6 +151,11 @@ export class Carte2D {
   plaqueCapsule = ''
   /** La forme de la capsule du joueur (son niveau, décisions d'Adrien du 21/10/2026). */
   formeCapsule: { forme: Forme; taille: number } = { forme: 'capsule', taille: 1 }
+  /**
+   * Ce que la capsule emmène en vol (demande d'Adrien du 21/10/2026 : remorquer et escorter déplacent vraiment les
+   * engins) : l'épave au bout du câble, ou les trois cargos du convoi en flèche derrière elle.
+   */
+  sillage: 'epave' | 'convoi' | null = null
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -611,6 +616,7 @@ export class Carte2D {
     this.instantAngle = maintenant
     const forme = this.formeCapsule, rc = rayonVaisseau(forme.forme, forme.taille)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
+    if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre)
     // Sa plaque : numéro et capitaine, en petit sous le chevron (sauf quand son étiquette est affichée).
     if (this.plaqueCapsule && selection !== CAPSULE) {
@@ -1040,6 +1046,50 @@ export class Carte2D {
         if (k < 0.2) { ctx.globalAlpha = 1 - k / 0.2; ctx.fillStyle = '#fffbe8'; ctx.beginPath(); ctx.arc(cx, cy, 10 * (1 - k / 0.2) + 3, 0, 2 * Math.PI); ctx.fill() }
         ctx.globalAlpha = 1
       }
+    }
+    ctx.restore()
+  }
+
+  /** Derrière la capsule (à l'opposé de sa marche) : l'épave remorquée au bout de son câble, ou le convoi en flèche. */
+  private dessinerSillage(ctx: CanvasRenderingContext2D, x: number, y: number, a: number, rc: number, couleurs: Couleurs2D): void {
+    const ux = -Math.cos(a), uy = -Math.sin(a), vx = -uy, vy = ux
+    const point = (recul: number, cote: number) => ({ x: x + ux * (rc + recul) + vx * cote, y: y + uy * (rc + recul) + vy * cote })
+    ctx.save()
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = couleurs.encre
+    if (this.sillage === 'epave') {
+      // Le câble, un peu détendu, puis l'épave cabossée qui tourne lentement sur elle-même.
+      const e = point(26, 0), m = point(13, 4)
+      ctx.lineWidth = 1.2
+      ctx.beginPath(); ctx.moveTo(x + ux * rc * 0.6, y + uy * rc * 0.6); ctx.quadraticCurveTo(m.x, m.y, e.x, e.y); ctx.stroke()
+      const tour = performance.now() / 2500
+      ctx.beginPath()
+      for (let k = 0; k < 7; k++) {
+        const b = tour + (k * 2 * Math.PI) / 7, r = 7 * (k % 2 ? 0.75 : 1)
+        if (k) ctx.lineTo(e.x + r * Math.cos(b), e.y + r * Math.sin(b))
+        else ctx.moveTo(e.x + r * Math.cos(b), e.y + r * Math.sin(b))
+      }
+      ctx.closePath()
+      ctx.fillStyle = '#c9c2b0'
+      ctx.fill()
+      ctx.lineWidth = 1.4
+      ctx.stroke()
+    } else {
+      // Les trois cargos, aux couleurs de la formation (les places du convoi).
+      const places = [point(10, -11), point(10, 11), point(24, 0)]
+      const teintes = ['#f2b53a', '#4f9ad6', '#9b6fd6']
+      places.forEach((p, k) => {
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(a)
+        ctx.beginPath()
+        ctx.moveTo(6, 0); ctx.lineTo(3, 3.5); ctx.lineTo(-5, 3.5); ctx.lineTo(-5, -3.5); ctx.lineTo(3, -3.5); ctx.closePath()
+        ctx.fillStyle = teintes[k]
+        ctx.fill()
+        ctx.lineWidth = 1.2
+        ctx.stroke()
+        ctx.restore()
+      })
     }
     ctx.restore()
   }

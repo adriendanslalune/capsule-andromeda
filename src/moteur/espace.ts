@@ -4,10 +4,10 @@
 // tirs pendant que l'application était fermée (pas de mauvaise surprise au retour).
 
 import {
-  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RETOUR_ALIEN,
+  ALIENS, EPAVES, INTERCEPTEURS_MAX, MISSILES_MAX, PART_RADAR, RADAR_ESPACE, RECHARGE_INTERCEPTEUR, RECYCLAGE_EPAVE, RETOUR_ALIEN,
   tirsParHeure, VOL_MISSILE,
 } from '../donnees/espace'
-import { corps, astreDominant, GENERATIONS_ALIENS, rayonInfluence } from './corps'
+import { corps, astreDominant, GENERATIONS_ALIENS, GENERATIONS_EPAVES, rayonInfluence } from './corps'
 import { etatCapsule } from './capsule'
 import { distanceDepuisCapsule } from './navigation'
 
@@ -28,6 +28,10 @@ export interface EtatEspace {
   tirsJusqua: number
   /** Les zones libérées (tenu à jour par le jeu) : les chasseurs d'un système libéré ne reviennent plus. */
   liberes?: string[]
+  /** Les épaves remorquées, à quai à leur station depuis quand (recyclées au bout de RECYCLAGE_EPAVE). */
+  aQuai?: Record<string, { station: string; depuis: number }>
+  /** Combien de fois chaque épave a été recyclée (la génération de celle qui la remplace). */
+  generationsEpaves?: Record<string, number>
 }
 
 export function nouvelEspace(): EtatEspace {
@@ -81,6 +85,23 @@ export function aliensDe(e: EtatEspace, parent: string, t: number): string[] {
 export function appliquerGenerations(e: EtatEspace): void {
   GENERATIONS_ALIENS.clear()
   for (const [nom, g] of Object.entries(e.generations)) GENERATIONS_ALIENS.set(nom, g)
+  GENERATIONS_EPAVES.clear()
+  for (const [nom, g] of Object.entries(e.generationsEpaves ?? {})) GENERATIONS_EPAVES.set(nom, g)
+}
+
+/** Une épave remorquée vient d'être larguée à une station : elle y reste à quai le temps d'être recyclée. */
+export function mettreAQuai(e: EtatEspace, epave: string, station: string, t: number): void {
+  e.aQuai = { ...(e.aQuai ?? {}), [epave]: { station, depuis: t } }
+}
+
+/** Les épaves recyclées (à quai depuis RECYCLAGE_EPAVE) : remplacées par une autre, ailleurs autour du même astre. */
+export function recycler(e: EtatEspace, t: number): void {
+  for (const [nom, q] of Object.entries(e.aQuai ?? {})) {
+    if (t - q.depuis < RECYCLAGE_EPAVE) continue
+    delete e.aQuai![nom]
+    e.generationsEpaves = { ...(e.generationsEpaves ?? {}), [nom]: (e.generationsEpaves?.[nom] ?? 0) + 1 }
+    GENERATIONS_EPAVES.set(nom, e.generationsEpaves[nom])
+  }
 }
 
 /** Toutes les épaves (elles ne disparaissent jamais ; on les vide en mission). */

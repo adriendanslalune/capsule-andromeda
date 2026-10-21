@@ -61,7 +61,8 @@ import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { estLibre, zone } from './moteur/zones'
-import { niveauDe, palierDe } from './moteur/niveau'
+import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
+import { dessinerVaisseau, rayonVaisseau } from './carte/vaisseaux'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
@@ -186,6 +187,8 @@ carte.visibilite = (nom, t, angle) => {
     return ramasses.has(m.numero) || localise(jeu.monolithes, m.numero, t) ? 1 : 0
   }
   const type = corps(nom)?.type
+  // L'épave en remorque se dessine au bout du câble, derrière la capsule (carte.sillage).
+  if (carte.sillage === 'epave' && nom === jeu.remorque()?.epave) return 0
   if (type === 'alien' || type === 'epave') {
     if (surLaCarte(jeu.espace, nom, t, cibles())) return 1
     if (type === 'epave' || !alienLa(jeu.espace, nom, t)) return 0
@@ -1762,6 +1765,26 @@ function image(maintenant: number): void {
   // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
   afficherSuivi()
   if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
+  // Un niveau gagné : sa fenêtre (demande d'Adrien du 21/10/2026), avec la capsule dessinée dans sa forme.
+  if (jeu.niveauAAnnoncer && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
+    const { niveau, avant } = jeu.niveauAAnnoncer
+    jeu.niveauAAnnoncer = null
+    const g = niveauGagne(niveau, avant)
+    const toile = document.createElement('canvas')
+    toile.width = toile.height = 240
+    const c = toile.getContext('2d')!
+    c.fillStyle = g.forme === 'legende' ? '#f6e3b0' : '#e8dfcb'
+    c.fillRect(0, 0, 240, 240)
+    dessinerVaisseau(c, 120, 120, -Math.PI / 2, g.forme, 70 / rayonVaisseau(g.forme, 1), '#e04b37', '#2b2138')
+    navigator.vibrate?.([80, 60, 160])
+    void feliciter({
+      titre: `Niveau ${niveau} !`, portrait: `<img class="portrait" src="${toile.toDataURL()}" alt="${g.nomForme}">`,
+      nom: jeu.pseudo, role: `capitaine niv. ${niveau} · ${g.nomForme.toLowerCase()}`,
+      texte: [g.nouvelleForme ? `Ta capsule devient une ${g.nomForme.toLowerCase()} ! Tout le système la verra passer sur la carte.` : `Bravo, capitaine. Ta ${g.nomForme.toLowerCase()} prend un peu d'envergure sur la carte.`,
+        g.prochain ? `Prochaine forme au niveau ${g.prochain.niveau} : ${g.prochain.nom.toLowerCase()}.` : 'Tu as atteint le sommet : la Légende, dorée.'],
+      ouvre: [], bouton: 'EN AVANT !',
+    })
+  }
   // Une zone libérée : sa fenêtre, une fois le combat refermé (demande d'Adrien du 21/10/2026).
   if (jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
     const l = liberation(jeu.liberationsAAnnoncer.shift()!)
@@ -1821,6 +1844,9 @@ function image(maintenant: number): void {
         if (Math.hypot(q.x - q0.x, q.y - q0.y) > 6) { direction = { x: q.x - q0.x, y: q.y - q0.y }; break }
       }
     }
+    // En vol, l'épave remorquée ou le convoi escorté suivent la capsule (demande d'Adrien du 21/10/2026).
+    const enVol = mission.phase(t) === 'trajet', etapeEnCours = jeu.etapeActuelle()?.action
+    carte.sillage = enVol && etapeEnCours === 'larguer' ? 'epave' : enVol && etapeEnCours === 'escorter' ? 'convoi' : null
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
     // Décalage de la capsule dessinée par rapport à sa vraie place sur la carte (voir decalageCapsule).
     const dessinee = carte.place(CAPSULE)

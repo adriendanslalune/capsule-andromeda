@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Jeu } from '../src/moteur/jeu'
-import { niveauDe, niveauDuBot, palierDe, xpPourNiveau } from '../src/moteur/niveau'
+import { niveauDe, niveauDuBot, niveauGagne, palierDe, xpPourNiveau } from '../src/moteur/niveau'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
 describe('le niveau du capitaine (décisions d’Adrien du 21/10/2026)', () => {
@@ -25,9 +25,11 @@ describe('le niveau du capitaine (décisions d’Adrien du 21/10/2026)', () => {
   it('gagner de l’XP annonce les niveaux et les paliers ; le commerce rapporte au plus 100 XP par jour ; sauvegardé', () => {
     const jeu = new Jeu()
     jeu.gagnerXp(60)
-    expect(jeu.annoncesQuetes).toContain('Niveau 2 !')
+    expect(jeu.niveauAAnnoncer).toEqual({ niveau: 2, avant: 1 })
     jeu.gagnerXp(xpPourNiveau(20) - jeu.xp)
-    expect(jeu.annoncesQuetes.at(-1)).toBe('Niveau 20 ! Ta capsule devient une navette !')
+    expect(jeu.niveauAAnnoncer?.niveau).toBe(20)
+    expect(niveauGagne(20, 19)).toMatchObject({ forme: 'navette', nouvelleForme: true, prochain: { niveau: 40, nom: 'Corvette' } })
+    expect(niveauGagne(21, 20).nouvelleForme).toBe(false)
     const avant = jeu.xp, t = Date.UTC(2026, 9, 21, 12)
     jeu.xpCommerce(250, t)
     expect(jeu.xp - avant).toBe(2)

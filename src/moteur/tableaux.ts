@@ -35,7 +35,7 @@ export function contexte(tableau: Tableau, espace: EtatEspace, t: number, portee
   // Les grandes lunes du système (les six plus grosses).
   const lunes = enfants(s).filter((c) => c.type === 'lune').sort((a, b) => b.rayon - a.rayon).slice(0, 6).map((c) => c.nom)
   // Les vraies épaves (qu'on peut remorquer), et les lieux où l'on nettoie des débris (autour d'un satellite, d'une station).
-  const remorquables = pres(EPAVES.filter((e) => e.parent === s).map((e) => e.nom))
+  const remorquables = pres(EPAVES.filter((e) => e.parent === s && !espace.aQuai?.[e.nom]).map((e) => e.nom))
   const epaves = [...remorquables, ...pres(terre ? LIEUX_NETTOYAGE : [])]
   const depannages = pres(terre ? [...SATELLITES, ...STATIONS] : stations)
   const arrivees = pres([...stations, ...lunes, ...(terre ? SATELLITES : [])])

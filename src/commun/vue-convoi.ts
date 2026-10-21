@@ -3,14 +3,13 @@
 // un par un et dérivent ; on les attrape du doigt et on les lâche sur les places en pointillé, en flèche derrière la
 // capsule. La vue ne décide rien : elle montre l'état que tient le moteur (moteur/convoi.ts).
 
-import { CAPSULE, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../donnees/convoi'
+import { CAPSULE, COULEURS_CARGOS, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../donnees/convoi'
 import { avancerConvoi, deplacer, lacherCargo, nouveauConvoi, prendre, type EtatConvoi } from '../moteur/convoi'
 
 /** Un convoi : à quelle station, et ce qu'on fait quand il est formé (renvoie le texte du bilan). */
 export interface OptionsConvoi { titre: string; surFin: (egares: number) => string }
 
 const ENCRE = '#2b2138'
-const TEINTES = ['#f2c66a', '#8fc3e0', '#d7cdee']
 
 export class VueConvoi {
   private etat: EtatConvoi | null = null
@@ -58,6 +57,7 @@ export class VueConvoi {
         const r = lacherCargo(this.etat, this.tenu)
         this.tenu = null
         if (r === 'place') navigator.vibrate?.([30, 20, 30])
+        if (r === 'mauvaise') { this.dire('Pas sa place ! Chaque cargo va à la place de sa couleur.', 2500); navigator.vibrate?.(120) }
         if (this.etat.forme) this.terminer()
       })
     }
@@ -82,7 +82,7 @@ export class VueConvoi {
     this.element.querySelector('.titre-convoi')!.textContent = `CONVOI · ${options.titre}`
     this.elFin.hidden = true
     this.element.hidden = false
-    this.dire('Les cargos sortent du hangar. Attrape-les du doigt et place-les en formation derrière toi, avant qu\'ils ne s\'égarent.', 6000)
+    this.dire('Les cargos sortent du hangar. Attrape-les du doigt et place chacun à la place de sa couleur, avant qu\'ils ne s\'égarent.', 6000)
     cancelAnimationFrame(this.boucle)
     this.avant = performance.now()
     const image = (maintenant: number) => {
@@ -119,7 +119,7 @@ export class VueConvoi {
     navigator.vibrate?.([60, 40, 60])
     const suite = this.options!.surFin(e.egares)
     this.elFin.innerHTML = '<div class="carte-fin"><b>CONVOI FORMÉ !</b>'
-      + `<p>${e.egares ? `${e.egares} cargo${e.egares > 1 ? 's' : ''} égaré${e.egares > 1 ? 's' : ''} en route vers la formation.` : 'Formation parfaite, aucun cargo égaré.'}</p>`
+      + `<p>${e.egares || e.erreurs ? [e.egares ? `${e.egares} cargo${e.egares > 1 ? 's' : ''} égaré${e.egares > 1 ? 's' : ''}` : '', e.erreurs ? `${e.erreurs} erreur${e.erreurs > 1 ? 's' : ''} de place` : ''].filter(Boolean).join(', ') + '.' : 'Formation parfaite : aucun cargo égaré, aucune erreur.'}</p>`
       + `<p class="petit">${suite}</p><div class="boutons-fin"><button type="button" class="principal" data-fermer>EN ROUTE !</button></div></div>`
     this.elFin.hidden = false
   }
@@ -171,8 +171,10 @@ export class VueConvoi {
     ctx.setLineDash([])
     PLACES.forEach((p, i) => {
       if (e.cargos.some((c) => c.place === i)) return
+      // La place, de la couleur de son cargo.
       ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 13 * k, 0, 2 * Math.PI)
-      ctx.fillStyle = 'rgba(143,207,152,0.25)'; ctx.fill()
+      ctx.globalAlpha = 0.3; ctx.fillStyle = COULEURS_CARGOS[i]; ctx.fill(); ctx.globalAlpha = 1
+      ctx.lineWidth = 2.5; ctx.strokeStyle = COULEURS_CARGOS[i]; ctx.stroke()
       this.cargo(X(p.x), Y(p.y), k * 1.1, '', true)
     })
 
@@ -192,7 +194,7 @@ export class VueConvoi {
       if (c.etat === 'hangar') return
       const tenu = c.etat === 'tenu'
       if (tenu) { ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), 15 * k, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(242,181,58,0.3)'; ctx.fill() }
-      this.cargo(X(c.x), Y(c.y), k * (tenu ? 1.3 : 1.1), TEINTES[i], false)
+      this.cargo(X(c.x), Y(c.y), k * (tenu ? 1.3 : 1.1), COULEURS_CARGOS[i], false)
     })
   }
 }

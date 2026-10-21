@@ -85,6 +85,17 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
     `src/commun/vue-convoi.ts`, `Jeu.formerConvoi` ; trois cargos qui sortent du hangar toutes les 3 s et dérivent,
     à placer du doigt sur les trois places en flèche ; égaré, un cargo ressort 2 s plus tard ; sans prime.
   - Testés (`tests/largage-convoi.test.ts`) et vérifiés sur le jeu construit.
+- Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** :
+  - Fenêtre du niveau gagné (`Jeu.niveauAAnnoncer`, `niveauGagne` dans `src/moteur/niveau.ts`, `feliciter`) : la
+    capsule dessinée dans sa forme, la nouvelle forme, le prochain palier.
+  - Convoi plus dur : dérive plus rapide (14 unités/s, ±15 de côté, une sortie toutes les 2 s) ; code couleur
+    (`COULEURS_CARGOS`), chaque cargo à sa place, une autre place le refuse (compté comme erreur).
+  - Les engins bougent vraiment : `deplacerEpaves` dans `src/moteur/corps.ts` (l'épave remorquée suit la capsule ;
+    larguée, elle reste à quai, `EtatEspace.aQuai`) ; recyclage au bout de `RECYCLAGE_EPAVE` (24 h) : une autre
+    apparaît ailleurs autour du même astre (`generationsEpaves`, `GENERATIONS_EPAVES`) ; une épave à quai n'est plus
+    proposée en contrat. Sur la carte (`carte.sillage`) : l'épave au bout du câble, ou les trois cargos en flèche,
+    derrière la capsule en vol. Testé.
+  - À faire plus tard (note d'Adrien) : de vrais dessins plus détaillés, ou produits par ChatGPT.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

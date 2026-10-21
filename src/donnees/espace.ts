@@ -163,6 +163,11 @@ export const RADAR_ESPACE = 50_000_000
 export const VOL_MISSILE = 90_000
 /** Un chasseur abattu est remplacé par un renfort d'Andromède (ailleurs dans sa région) au bout de ce temps. */
 export const RETOUR_ALIEN = 2 * 3_600_000
+/**
+ * Une épave remorquée reste à quai à sa station le temps d'être recyclée ; puis une autre apparaît ailleurs autour du
+ * même astre (demande d'Adrien du 21/10/2026 : que le remorquage déplace vraiment l'épave, sans en manquer un jour).
+ */
+export const RECYCLAGE_EPAVE = 24 * 3_600_000
 /** Intercepteurs : au plus 3 ; un nouveau toutes les 30 minutes. */
 export const INTERCEPTEURS_MAX = 3
 export const RECHARGE_INTERCEPTEUR = 30 * 60_000

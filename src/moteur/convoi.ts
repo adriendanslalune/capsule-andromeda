@@ -1,6 +1,7 @@
 // La formation du convoi (début d'ESCORTER, Mercenaires) : les cargos sortent du hangar un par un et dérivent ; on les
 // attrape du doigt et on les lâche sur une place de la formation. Un cargo qui sort du terrain s'égare : il retourne
-// au hangar et ressort un peu plus tard. Les trois en place : le convoi est formé. Pas de chrono, pas d'échec.
+// au hangar et ressort un peu plus tard ; chacun a sa place, de sa couleur. Les trois en place : le convoi est formé.
+// Pas de chrono, pas d'échec.
 
 import {
   DERIVE_MAX, ECART_SORTIES, HANGAR, HAUTEUR, LARGEUR, PLACES, RAYON_PLACE, RAYON_PRISE, RETOUR_HANGAR, VITESSE_CARGO,
@@ -19,11 +20,12 @@ export interface Cargo {
   place: number | null
 }
 
-export interface EtatConvoi { cargos: Cargo[]; egares: number; graine: number; forme: boolean }
+/** egares : cargos sortis du terrain ; erreurs : cargos lâchés sur une place qui n'est pas de leur couleur. */
+export interface EtatConvoi { cargos: Cargo[]; egares: number; erreurs: number; graine: number; forme: boolean }
 
 export function nouveauConvoi(graine: number): EtatConvoi {
   const cargos: Cargo[] = PLACES.map((_, k) => ({ etat: 'hangar', x: HANGAR.x, y: HANGAR.y, vx: 0, vy: 0, sortie: 0.8 + k * ECART_SORTIES, place: null }))
-  return { cargos, egares: 0, graine, forme: false }
+  return { cargos, egares: 0, erreurs: 0, graine, forme: false }
 }
 
 /** Fait avancer de dt secondes ; renvoie 'egare' (un cargo a quitté le terrain), 'forme' (les trois en place) ou null. */
@@ -70,17 +72,18 @@ export function deplacer(e: EtatConvoi, k: number, x: number, y: number): void {
   c.y = Math.max(0, Math.min(HAUTEUR, y))
 }
 
-/** Lâcher le cargo tenu : près d'une place libre, il s'y range ; sinon il repart à la dérive, d'où on l'a lâché. */
-export function lacherCargo(e: EtatConvoi, k: number): 'place' | 'derive' | null {
+/**
+ * Lâcher le cargo tenu : sur la place de sa couleur (le cargo k va à la place k), il s'y range ; sur une autre place,
+ * il est refusé (une erreur) ; ailleurs, il repart à la dérive, d'où on l'a lâché.
+ */
+export function lacherCargo(e: EtatConvoi, k: number): 'place' | 'mauvaise' | 'derive' | null {
   const c = e.cargos[k]
   if (c?.etat !== 'tenu') return null
-  const libres = PLACES.map((p, i) => ({ p, i })).filter(({ i }) => !e.cargos.some((x) => x.place === i))
-  const proche = libres.map(({ p, i }) => ({ i, p, d: Math.hypot(p.x - c.x, p.y - c.y) })).sort((a, b) => a.d - b.d)[0]
-  if (proche && proche.d <= RAYON_PLACE) {
-    Object.assign(c, { etat: 'place', x: proche.p.x, y: proche.p.y, vx: 0, vy: 0, place: proche.i })
-    if (e.cargos.every((x) => x.etat === 'place')) e.forme = true
-    return 'place'
-  }
+  const proche = PLACES.map((p, i) => ({ i, p, d: Math.hypot(p.x - c.x, p.y - c.y) })).filter((x) => x.d <= RAYON_PLACE).sort((a, b) => a.d - b.d)[0]
   c.etat = 'derive'
-  return 'derive'
+  if (!proche) return 'derive'
+  if (proche.i !== k) { e.erreurs++; return 'mauvaise' }
+  Object.assign(c, { etat: 'place', x: proche.p.x, y: proche.p.y, vx: 0, vy: 0, place: k })
+  if (e.cargos.every((x) => x.etat === 'place')) e.forme = true
+  return 'place'
 }

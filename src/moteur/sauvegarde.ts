@@ -191,6 +191,11 @@ export function restaurer(s: unknown): Jeu | null {
       || ![es.intercepteurs, es.rechargeDepuis, es.tirsJusqua].every(nombre)) return null
     jeu.espace = { aliensVaincus: { ...es.aliensVaincus }, generations: dates(es.generations) ? { ...es.generations } : {},
       missiles: es.missiles.map((m) => ({ ...m })), intercepteurs: es.intercepteurs, rechargeDepuis: es.rechargeDepuis, tirsJusqua: es.tirsJusqua }
+    // Les épaves à quai et recyclées (absentes d'une ancienne sauvegarde : aucune).
+    if (es.aQuai && typeof es.aQuai === 'object') {
+      jeu.espace.aQuai = Object.fromEntries(Object.entries(es.aQuai).filter(([nom, q]) => !!corps(nom) && !!q && typeof q.station === 'string' && !!corps(q.station) && nombre(q.depuis)).map(([nom, q]) => [nom, { station: q.station, depuis: q.depuis }]))
+    }
+    if (dates(es.generationsEpaves)) jeu.espace.generationsEpaves = { ...es.generationsEpaves }
     appliquerGenerations(jeu.espace)
   }
   const mo = v.monolithes

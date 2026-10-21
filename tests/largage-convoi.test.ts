@@ -88,7 +88,7 @@ describe('la formation du convoi (début d’ESCORTER, idée validée par Adrien
     for (const c of e.cargos) if (c.etat === 'derive') expect(c.x >= -6 && c.x <= LARGEUR + 6 && c.y <= HAUTEUR + 6).toBe(true)
   })
 
-  it('attraper chaque cargo et le lâcher sur une place libre : le convoi est formé ; lâché ailleurs, il repart à la dérive', () => {
+  it('attraper chaque cargo et le lâcher sur la place de sa couleur : le convoi est formé ; ailleurs, il repart à la dérive', () => {
     const e = nouveauConvoi(8)
     let places = 0
     for (let k = 0; k < 3000 && !e.forme; k++) {
@@ -103,13 +103,20 @@ describe('la formation du convoi (début d’ESCORTER, idée validée par Adrien
         expect(lacherCargo(e, i)).toBe('derive')
         expect(prendre(e, 50, 120)).toBe(i)
       }
-      const libre = PLACES.findIndex((_, p) => !e.cargos.some((x) => x.place === p))
-      deplacer(e, i, PLACES[libre].x + 4, PLACES[libre].y + 4)
+      // Sur la place d'une autre couleur : refusé, il repart à la dérive.
+      const autre = (i + 1) % 3
+      if (!e.cargos.some((x) => x.place === autre)) {
+        deplacer(e, i, PLACES[autre].x, PLACES[autre].y)
+        expect(lacherCargo(e, i)).toBe('mauvaise')
+        expect(prendre(e, PLACES[autre].x, PLACES[autre].y)).toBe(i)
+      }
+      deplacer(e, i, PLACES[i].x + 4, PLACES[i].y + 4)
       expect(lacherCargo(e, i)).toBe('place')
       places++
     }
     expect(e.forme).toBe(true)
-    expect(new Set(e.cargos.map((c) => c.place)).size).toBe(3)
+    expect(e.cargos.map((c) => c.place)).toEqual([0, 1, 2]) // chacun à la place de sa couleur
+    expect(e.erreurs).toBeGreaterThan(0)
     expect(prendre(e, PLACES[0].x, PLACES[0].y)).toBeNull() // un cargo rangé ne se reprend pas
   })
 
@@ -122,5 +129,46 @@ describe('la formation du convoi (début d’ESCORTER, idée validée par Adrien
     expect(ev?.some((x) => x.genre === 'depart-auto')).toBe(true)
     expect(jeu.etapeDEscorte()).toBe(true)
     expect(jeu.enCours!.contrat.recompense).toBe(100)
+  })
+})
+
+describe('le remorquage déplace vraiment l’épave (demande d’Adrien du 21/10/2026)', () => {
+  it('harponnée, elle suit la capsule ; larguée, elle reste à quai à la station ; recyclée, une autre apparaît ailleurs', async () => {
+    const { position } = await import('../src/moteur/corps')
+    const { RECYCLAGE_EPAVE } = await import('../src/donnees/espace')
+    const { contexte } = await import('../src/moteur/tableaux')
+    const { TABLEAUX } = await import('../src/donnees/tableaux')
+    const { restaurer, sauvegarder } = await import('../src/moteur/sauvegarde')
+    const ecart = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
+    const jeu = new Jeu()
+    const contrat: Contrat = { id: 3, genre: 'remorquer', etapes: [{ lieu: 'Telstar 1', action: 'harponner' }, { lieu: 'ISS', action: 'larguer' }], recompense: 100, tableau: 'Terre' }
+    const t1 = surPlace(jeu, contrat)
+    const origine = position('Telstar 1', t1)
+    // Harponnée : la capsule part vers l'ISS, l'épave avec elle.
+    jeu.harponner(1, t1, jeu.vitesse())
+    const plan = jeu.mission.plan!
+    const milieu = (plan.depart + plan.arrivee) / 2
+    jeu.avancer(milieu)
+    expect(ecart(position('Telstar 1', milieu), jeu.mission.etat(milieu).position)).toBeLessThan(1)
+    // À l'ISS, larguée : elle y reste, même un an d'orbite plus tard… jusqu'à son recyclage.
+    const t2 = plan.arrivee + 1000
+    jeu.avancer(t2)
+    expect(jeu.larguer(0, t2)).not.toBeNull()
+    const plusTard = t2 + 6 * 3_600_000
+    jeu.avancer(plusTard)
+    expect(ecart(position('Telstar 1', plusTard), position('ISS', plusTard))).toBeLessThan(1)
+    expect(contexte(TABLEAUX.find((x) => x.lieu === 'Terre')!, jeu.espace, plusTard).remorquables).not.toContain('Telstar 1')
+    // Sauvegardé.
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, plusTard))))!
+    expect(copie.espace.aQuai).toEqual(jeu.espace.aQuai)
+    // Recyclée : elle a disparu de la station, et une autre est apparue ailleurs autour de la Terre.
+    const fin = t2 + RECYCLAGE_EPAVE + 60_000
+    jeu.avancer(fin)
+    expect(jeu.espace.aQuai).toEqual({})
+    expect(jeu.espace.generationsEpaves).toEqual({ 'Telstar 1': 1 })
+    expect(ecart(position('Telstar 1', fin), position('ISS', fin))).toBeGreaterThan(100)
+    const terre = position('Terre', fin), p = position('Telstar 1', fin)
+    expect(ecart(p, terre)).toBeLessThan(100_000)
+    expect(ecart(p, origine)).toBeGreaterThan(0)
   })
 })

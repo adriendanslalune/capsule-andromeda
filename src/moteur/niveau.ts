@@ -32,3 +32,9 @@ export function niveauDuBot(pseudo: string): number {
   const x = (h >>> 0) / 4294967296
   return 3 + Math.round(x * x * 85)
 }
+
+/** Ce que dit la fenêtre d'un niveau gagné : la forme de la capsule (nouvelle ou non), et le prochain palier. */
+export function niveauGagne(niveau: number, avant: number): { forme: Forme; nomForme: string; nouvelleForme: boolean; prochain: { niveau: number; nom: string } | null } {
+  const p = palierDe(niveau), suivant = PALIERS.find((x) => x.des > niveau)
+  return { forme: p.forme, nomForme: p.nom, nouvelleForme: palierDe(avant).forme !== p.forme, prochain: suivant ? { niveau: suivant.des, nom: suivant.nom } : null }
+}

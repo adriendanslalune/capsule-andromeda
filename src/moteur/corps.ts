@@ -87,12 +87,31 @@ const PLACES_MONOLITHES = new Map(MONOLITHES.map((m) => [m.nom, { x: m.x, y: m.y
  */
 export const GENERATIONS_ALIENS = new Map<string, number>()
 
+/**
+ * Génération de chaque épave (demande d'Adrien du 21/10/2026) : remorquée jusqu'à une station puis recyclée, elle est
+ * remplacée par une autre qui apparaît ailleurs autour du même astre (le jeu la fixe, voir moteur/jeu.ts).
+ */
+export const GENERATIONS_EPAVES = new Map<string, number>()
+
+/**
+ * Les épaves qui ne suivent plus leur orbite (demande d'Adrien du 21/10/2026 : le remorquage déplace vraiment
+ * l'épave) : en remorque derrière la capsule, puis à quai à la station. Le jeu tient ce résolveur à jour ; il rend
+ * null pour une épave sur son orbite.
+ */
+let epaveDeplacee: ((nom: string, t: number) => Vecteur3 | null) | null = null
+export function deplacerEpaves(f: ((nom: string, t: number) => Vecteur3 | null) | null): void {
+  epaveDeplacee = f
+  memoire.clear()
+}
+
 /** Orbites simples (circulaires, un peu inclinées) des épaves et des aliens. */
 const ORBITES_SIMPLES = new Map<string, ObjetEnOrbite>([...EPAVES, ...ALIENS, ...STATIONS_SYSTEMES].map((o) => [o.nom, o]))
 function positionOrbiteSimple(o: ObjetEnOrbite, t: number): Vecteur3 {
-  const g = o.errance ? GENERATIONS_ALIENS.get(o.nom) ?? 0 : 0
+  const g = (o.errance ? GENERATIONS_ALIENS : GENERATIONS_EPAVES).get(o.nom) ?? 0
   const a = 2 * Math.PI * (o.phase + 0.618 * g + t / periodeOrbite(o))
-  const p = { x: o.rayon * Math.cos(a), y: o.rayon * Math.sin(a), z: o.rayon * o.inclinaison * Math.sin(a) }
+  // Une nouvelle épave (génération suivante) : ailleurs sur une orbite un peu plus haute ou plus basse.
+  const r = o.errance || !g ? o.rayon : o.rayon * (1 + 0.25 * Math.sin(2.4 * g + 7 * o.phase))
+  const p = { x: r * Math.cos(a), y: r * Math.sin(a), z: r * o.inclinaison * Math.sin(a) }
   const e = o.errance
   if (!e) return p
   // L'errance d'un chasseur : trois ondulations sans rapport entre elles, sur chaque axe (imprévisible à l'œil).
@@ -269,6 +288,8 @@ function calculerPosition(nom: string, t: number): Vecteur3 {
   if (fixe) return fixe
   const bot = positionBot(nom, t)
   if (bot) return bot
+  const deplacee = epaveDeplacee?.(nom, t)
+  if (deplacee) return deplacee
   // En plein espace (épaves, chasseurs) : leur orbite autour du Soleil.
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple?.parent === 'Soleil') return positionOrbiteSimple(simple, t)

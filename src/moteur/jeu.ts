@@ -22,7 +22,7 @@ import { BONUS_PREMIER_COUP as BONUS_LARGAGE } from '../donnees/largage'
 import { BONUS_SANS_COUP } from '../donnees/escorte'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
-import { avancerEspace, nouvelEspace, vaincre, type EtatEspace } from './espace'
+import { avancerEspace, mettreAQuai, nouvelEspace, recycler, vaincre, type EtatEspace } from './espace'
 import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, type Portee } from '../donnees/tableaux'
 import { EPAVES } from '../donnees/espace'
@@ -34,14 +34,17 @@ import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees
 import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
-import { astreDominant, corps, position } from './corps'
-import { niveauDe, palierDe } from './niveau'
+import { astreDominant, corps, deplacerEpaves, position } from './corps'
+import { niveauDe } from './niveau'
 import { XP } from '../donnees/niveaux'
 import { niveauDeZone } from './combat'
 import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
+
+/** Le jeu dont les épaves déplacées sont en place (il n'y en a qu'un en vrai ; les tests en créent plusieurs). */
+let jeuDesEpaves: unknown = null
 
 /** Le feu d'artifice d'une zone libérée dure 2 minutes (demande d'Adrien du 21/10/2026). */
 export const DUREE_FEUX = 120_000
@@ -119,6 +122,8 @@ export class Jeu {
   visites: string[] = ['Terre']
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
+  /** Le niveau gagné pas encore annoncé par sa fenêtre (et le niveau d'avant, pour dire si la capsule change de forme). */
+  niveauAAnnoncer: { niveau: number; avant: number } | null = null
   /** Les zones libérées pas encore annoncées par leur fenêtre (demande d'Adrien du 21/10/2026). */
   liberationsAAnnoncer: string[] = []
   /** Les feux d'artifice sur la carte : la zone libérée et quand (2 minutes, demande d'Adrien du 21/10/2026). */
@@ -345,8 +350,8 @@ export class Jeu {
     this.gainsXp.push(gain)
     const apres = niveauDe(this.xp).niveau
     if (apres === avant) return
-    const p = palierDe(apres)
-    this.annoncesQuetes.push(palierDe(avant).forme !== p.forme ? `Niveau ${apres} ! Ta capsule devient une ${p.nom.toLowerCase()} !` : `Niveau ${apres} !`)
+    // La fenêtre du niveau gagné (demande d'Adrien du 21/10/2026) ; plusieurs d'un coup : on n'annonce que le dernier.
+    this.niveauAAnnoncer = { niveau: apres, avant: this.niveauAAnnoncer?.avant ?? avant }
   }
 
   /** Du commerce (Comptoir, Bourse) : 1 XP par tranche de 100 crédits, au plus 100 XP par jour. */
@@ -432,7 +437,9 @@ export class Jeu {
       return Math.hypot(p.x - terre.x, p.y - terre.y, p.z - terre.z) > porteeTerre
     })
     // Un remorquage dont « l'épave » n'en est pas une (une station, un satellite en service) : retiré.
-    const aberrant = (c: Contrat) => c.genre === 'remorquer' && !EPAVES.some((e) => e.nom === c.etapes[0].lieu)
+    const aberrant = (c: Contrat) => (c.genre === 'remorquer' && !EPAVES.some((e) => e.nom === c.etapes[0].lieu))
+      // Une épave à quai (remorquée, en recyclage) n'est plus à vider ni à remorquer.
+      || c.etapes.some((e) => !!this.espace.aQuai?.[e.lieu])
     this.proposes = this.proposes.filter((c) => !horsPortee(c) && !aberrant(c))
     for (const tableau of TABLEAUX) {
       const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
@@ -564,6 +571,7 @@ export class Jeu {
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
     oublierFutur(this.monolithes, t)
+    this.deplacerLesEpaves(t)
     // Les missiles d'abord : un impact passé (jeu fermé, téléphone endormi) ralentit le trajet à l'heure de l'impact,
     // ce qui peut repousser une arrivée.
     this.menaces(t, evenements)
@@ -739,6 +747,32 @@ export class Jeu {
     return evenements
   }
 
+  /**
+   * Les épaves que le joueur a déplacées (demande d'Adrien du 21/10/2026) : celle qu'il remorque suit la capsule ; celles
+   * qu'il a larguées restent à quai à leur station, puis sont recyclées et remplacées ailleurs autour du même astre.
+   */
+  private deplacerLesEpaves(t: number): void {
+    recycler(this.espace, t)
+    const remorquee = this.remorque()?.epave ?? null
+    const cle = `${remorquee}|${Object.keys(this.espace.aQuai ?? {}).join('|')}`
+    if (jeuDesEpaves === this && cle === this.cleEpaves) return
+    jeuDesEpaves = this
+    this.cleEpaves = cle
+    let enCalcul = false
+    deplacerEpaves((nom, u) => {
+      if (enCalcul) return null
+      enCalcul = true
+      try {
+        // En remorque : elle suit la capsule (sauf tant que la capsule tourne encore autour d'elle).
+        if (nom === remorquee && this.mission.centre(u) !== nom) return this.mission.etat(u).position
+        const q = this.espace.aQuai?.[nom]
+        if (q) { const p = position(q.station, u); return { x: p.x + 0.4, y: p.y + 0.3, z: p.z } }
+        return null
+      } finally { enCalcul = false }
+    })
+  }
+  private cleEpaves = ''
+
   /** L'étape actuelle est-elle un largage (l'épave en remorque, à lâcher pour qu'elle s'arrête à la station) ? */
   etapeDeLargage(): boolean {
     return this.etapeActuelle()?.action === 'larguer'
@@ -752,6 +786,8 @@ export class Jeu {
     if (!this.etapeDeLargage() || !this.peutAgir(t)) return null
     if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_LARGAGE) / 10) * 10
     const evenements: Evenement[] = []
+    // L'épave reste à quai à la station, le temps d'être recyclée (demande d'Adrien du 21/10/2026).
+    mettreAQuai(this.espace, this.enCours!.contrat.etapes[0].lieu, this.etapeActuelle()!.lieu, t)
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements
   }
