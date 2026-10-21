@@ -92,7 +92,7 @@ const deLa = (nom: string) => (/^[AEIOUÉÈYH]/i.test(nom) ? `d'${nom}` : `de ${
 const LIBERATIONS: Quete[] = ZONES_A_LIBERER.filter((z) => z.nom !== 'Lune').map((z) => {
   const pnj = PNJ_DU_SYSTEME[z.systeme]
   return {
-    id: id(z.nom), titre: `Libérer ${z.nom}`, type: 'principale', donneur: pnj, conditions: [OUVERTURE[z.systeme]], zone: z.nom,
+    id: id(z.nom), titre: `Libérer ${z.nom}`, type: 'principale', donneur: pnj, conditions: [OUVERTURE[z.systeme]],
     intro: [
       AMBIANCE[z.nom],
       `Il faut que la Résistance se lève autour ${deLa(z.nom)} : contrats, chasseurs, monolithes, tout ce que tu fais près d\'elle compte.`,

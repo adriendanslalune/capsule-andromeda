@@ -36,6 +36,13 @@ const MINIMUMS: Record<string, number> = {
 /** Un astre trop petit devient une pastille, de la moitié des minimums ci-dessus (dans le même ordre : on reconnaît
  *  Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien du 21/10/2026, échelle réelle). */
 const PASTILLE = 0.5
+/** La même couleur en gris (même clarté) : un astre pas encore visité. */
+function enGris(couleur: string): string {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(couleur)
+  if (!m) return couleur
+  const l = Math.round(0.3 * parseInt(m[1], 16) + 0.59 * parseInt(m[2], 16) + 0.11 * parseInt(m[3], 16)).toString(16).padStart(2, '0')
+  return `#${l}${l}${l}`
+}
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
 const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
@@ -133,6 +140,8 @@ export class Carte2D {
   visibilite: (nom: string, t: number, angle: number) => number = () => 1
   /** Ce qui se voit toujours (choisi, visé par une mission ou la quête suivie) : une petite lune, par exemple. */
   toujoursVisible: (nom: string) => boolean = () => false
+  /** Une zone à libérer : visitée ou pas (grisée), occupée ou pas (le drapeau pirate) ; null pour les autres astres. */
+  etatZone: (nom: string) => { visitee: boolean; occupee: boolean } | null = () => null
   /** Le radar s'il tourne ou si ses échos s'effacent : l'angle du balayage (radians, à l'écran) et sa portée (km). */
   radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
   /** Ce qui est écrit sous la capsule du joueur : son numéro et le nom de son capitaine (demande d'Adrien du 20/10/2026). */
@@ -484,10 +493,15 @@ export class Carte2D {
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r })
       if (!dedans(q.x, q.y, r * 2.6 + 20)) return
       const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
+      // Les zones (décisions d'Adrien du 21/10/2026) : grisées tant que la capsule n'y est pas allée ; un drapeau pirate
+      // au-dessus tant qu'Andromède les occupe.
+      const z = this.etatZone(c.nom), gris = !!z && !z.visitee
+      const couleur = gris ? enGris(couleurDe(c)) : couleurDe(c)
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
-      if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
-      else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleurDe(c), couleurs)
-      else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)
+      if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris)
+      else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs)
+      else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
+      if (z?.occupee) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
       if (this.nuit && c.type !== 'etoile') {
         ctx.beginPath()
@@ -982,6 +996,25 @@ export class Carte2D {
       ctx.lineTo(a.x + u1 * dx, a.y + u1 * dy)
       ouvert = u1 >= 1
     }
+  }
+
+  /** Le drapeau pirate d'une zone occupée par Andromède : un mât et un fanion noir à tête de mort, planté au-dessus. */
+  private drapeau(ctx: CanvasRenderingContext2D, x: number, y: number, couleurs: Couleurs2D): void {
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.lineWidth = 1.3
+    ctx.strokeStyle = couleurs.encre
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -15); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(12, -14); ctx.lineTo(11, -7); ctx.lineTo(0, -8); ctx.closePath()
+    ctx.fillStyle = '#1f1b18'
+    ctx.fill(); ctx.stroke()
+    // La tête de mort et ses os croisés.
+    ctx.fillStyle = '#faf2dc'
+    ctx.beginPath(); ctx.arc(5.8, -12.2, 1.7, 0, 2 * Math.PI); ctx.fill()
+    ctx.strokeStyle = '#faf2dc'
+    ctx.lineWidth = 0.9
+    ctx.beginPath(); ctx.moveTo(3.4, -10.6); ctx.lineTo(8.2, -8.6); ctx.moveTo(8.2, -10.6); ctx.lineTo(3.4, -8.6); ctx.stroke()
+    ctx.restore()
   }
 
   /** Astre touché (le plus proche du doigt, à moins de 24 pixels), ou null. */

@@ -5,8 +5,7 @@
 import { PNJS, QUETES, type EtapeQuete, type Pnj, type Quete } from '../donnees/quetes'
 import type { Contrat } from './contrats'
 import type { Jeu } from './jeu'
-import { POINTS_RESISTANCE } from '../donnees/zones'
-import { ajouterPoints, deLa, estLibre, jauge, zone } from './zones'
+import { deLa, estLibre, jauge, zone } from './zones'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -122,8 +121,6 @@ function franchir(jeu: Jeu, q: Quete, t: number): void {
   const e = jeu.quetes[q.id]
   e.etape++
   e.compte = 0
-  // Chaque étape d'une quête principale fait monter la résistance de sa zone.
-  if (q.type === 'principale' && q.zone) jeu.annoncesQuetes.push(...ajouterPoints(jeu.zones, q.zone, POINTS_RESISTANCE.etapePrincipale))
   if (e.etape < q.etapes.length) return
   e.fin = t
   jeu.credits += q.recompense

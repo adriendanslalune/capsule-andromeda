@@ -63,6 +63,8 @@ export interface Sauvegarde {
   queteSuivie?: string | null
   /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
   zonesLiberees?: string[]
+  /** Les zones visitées (absent : la Terre seule). */
+  visites?: string[]
   /** La libération des zones : points de résistance et zones libérées. */
   zones?: { points: Record<string, number>; liberees: string[] }
   /** Répartition de l'énergie (absente : celle du départ). */
@@ -94,7 +96,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, visites: jeu.visites, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -237,6 +239,7 @@ export function restaurer(s: unknown): Jeu | null {
     for (const [z, p] of Object.entries(v.zones.points)) if (zone(z) && nombre(p) && p > 0) jeu.zones.points[z] = p
   }
   jeu.synchroniserZones()
+  if (Array.isArray(v.visites)) for (const z of v.visites) if (typeof z === 'string' && zone(z) && !jeu.visites.includes(z)) jeu.visites.push(z)
   if (Array.isArray(v.invitations)) jeu.invitations = MAISONS.map((m) => m.maison).filter((m) => v.invitations!.includes(m))
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur

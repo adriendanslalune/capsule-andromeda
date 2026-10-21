@@ -22,7 +22,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Libération des zones (décisions d'Adrien du 21/10/2026) — **faite, en attente des essais d'Adrien** :
   données `src/donnees/zones.ts` (27 zones, seuils, vaisseaux amiraux, points), moteur `src/moteur/zones.ts` (jauge,
   zone la plus proche, zones libres ; testé, `tests/zones.test.ts`) ; `jeu.zones` sauvegardé (l'ancien
-  `zonesLiberees` est relu) ; points : contrat fini, chasseur abattu, monolithe, Voix perdue, étape de quête principale ;
+  `zonesLiberees` est relu) ; points : contrat fini, chasseur abattu, monolithe, Voix perdue (pas les étapes de quête :
+  correction d'Adrien du 21/10/2026, la libération est elle-même la quête principale) ;
   campagne `src/donnees/campagne.ts` (premier jet, à corriger : 8 PNJ de la Résistance, les quêtes « Les planètes
   intérieures », « L'appel de Ganymède », « Les anneaux de Saturne », « Le monde couché », « Le secret de Triton »,
   « Aux Confins », et une quête de libération par zone) ; la quête « La Lune libérée » refaite (jauge, assaut, Elsa) ;
@@ -30,7 +31,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   vaisseau amiral au combat (`nouveauCombat(…, { planete })`, ×3 ou ×5 points de vie, enrage sous la moitié : tir plus
   rapide et en spirale) ; comptoir et Bourse fermés tant que la zone n'est pas libre ; chasseurs d'une planète
   libérée retirés ; quêtes secondaires d'un PNJ seulement dans une zone libre ; jauges dans le Profil.
-  Pas encore : la fête des bots dans le chat, un repère des zones libérées sur la carte.
+  Sur la carte (décision d'Adrien du 21/10/2026) : les zones pas encore visitées sont grisées (`jeu.visites`, une zone
+  est visitée dès qu'on se met en orbite autour d'elle ou de ce qui tourne autour ; sauvegardé) ; un drapeau pirate
+  au-dessus de chaque zone occupée, qui disparaît à sa libération (`carte.etatZone`, `drapeau`). Pas encore : la fête
+  des bots dans le chat.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

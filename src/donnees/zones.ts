@@ -65,8 +65,6 @@ export const POINTS_RESISTANCE = {
   contrat: 3,
   /** Un chasseur abattu (en plus du contrat qui le visait). */
   chasseur: 6,
-  /** Une étape de quête principale. */
-  etapePrincipale: 10,
   /** Un monolithe trouvé, une Voix perdue enregistrée. */
   monolithe: 2,
   voix: 2,

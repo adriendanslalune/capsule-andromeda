@@ -75,8 +75,6 @@ export interface Quete {
   recompense: number
   /** Zone libérée à la fin (la campagne). */
   libere?: string
-  /** La zone où se joue la quête : chaque étape d'une quête principale y ajoute de la résistance. */
-  zone?: string
 }
 
 export const QUETES: readonly Quete[] = [
@@ -104,7 +102,7 @@ export const QUETES: readonly Quete[] = [
         ],
       },
     ],
-    recompense: 300, zone: 'Lune',
+    recompense: 300,
   },
   {
     id: 'lune-2', titre: 'Les guetteurs d\'Andromède', type: 'principale', donneur: 'elsa', conditions: ['lune-1'],
@@ -116,7 +114,7 @@ export const QUETES: readonly Quete[] = [
       { genre: 'mission', mission: 'chasser', systeme: 'Terre', nombre: 2, texte: 'Abats 2 chasseurs dans le système de la Terre (contrats ABATTRE des Mercenaires)' },
       { genre: 'parler', pnj: 'elsa', texte: ['Deux de moins. Ils vont envoyer des renforts, bien sûr. Mais pour quelques jours, ils sont aveugles. Merci, capitaine.'] },
     ],
-    recompense: 600, zone: 'Lune',
+    recompense: 600,
   },
   {
     id: 'lune-3', titre: 'Ravitailler Tycho', type: 'principale', donneur: 'keita', conditions: ['lune-1'],
@@ -128,7 +126,7 @@ export const QUETES: readonly Quete[] = [
       { genre: 'livrer', lieu: 'Lune', marchandises: { Eau: 5, Titane: 2 } },
       { genre: 'parler', pnj: 'keita', texte: ['Cinq tonnes d\'eau et du titane : tu viens de sauver des vies, capitaine. Le dôme tiendra.'] },
     ],
-    recompense: 800, zone: 'Lune',
+    recompense: 800,
   },
   {
     id: 'lune-4', titre: 'Le relais de la face cachée', type: 'principale', donneur: 'keita', conditions: ['lune-3'],
@@ -140,10 +138,10 @@ export const QUETES: readonly Quete[] = [
       { genre: 'mission', mission: 'depanner', systeme: 'Terre', nombre: 1, texte: 'Répare un engin dans le système de la Terre (contrat RÉPARER des Ingénieurs)' },
       { genre: 'parler', pnj: 'keita', texte: ['J\'entends Tycho ! Clairement ! Ils te saluent, capitaine… et ils ont un plan. Va voir Elsa.'] },
     ],
-    recompense: 700, zone: 'Lune',
+    recompense: 700,
   },
   {
-    id: 'lune-5', titre: 'La Lune libérée', type: 'principale', donneur: 'elsa', conditions: ['lune-2', 'lune-4'], zone: 'Lune',
+    id: 'lune-5', titre: 'La Lune libérée', type: 'principale', donneur: 'elsa', conditions: ['lune-2', 'lune-4'],
     intro: [
       'Tycho a repéré ce qui tient la Lune : un vaisseau amiral d\'Andromède, le Séléné, planqué derrière la face cachée.',
       'Seul, tu n\'as aucune chance. Il faut d\'abord que toute la Résistance se lève autour de la Lune : contrats, chasseurs, tout compte.',

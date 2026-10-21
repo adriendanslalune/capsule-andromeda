@@ -63,6 +63,17 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
     expect(alienLa(copie.espace, martien, t0)).toBe(false)
   })
 
+  it('les zones visitées : la Terre au départ, puis celles où la capsule se met en orbite (elle ou ce qui tourne autour)', () => {
+    const jeu = new Jeu() as Jeu & { ici: string | null }
+    expect(jeu.visites).toEqual(['Terre'])
+    jeu.ici = 'Station Arès'
+    jeu.lieuEnOrbite = () => jeu.ici
+    jeu.avancer(t0)
+    expect(jeu.visites).toEqual(['Terre', 'Mars'])
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(copie.visites).toEqual(['Terre', 'Mars'])
+  })
+
   it('les quêtes secondaires d’un PNJ ne s’ouvrent qu’une fois sa zone libérée', () => {
     const jeu = new Jeu()
     // Le Veilleur (Hubble) et Rosa (Tiangong) sont dans le système de la Terre, libre.

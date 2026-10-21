@@ -32,7 +32,7 @@ import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { corps, position } from './corps'
-import { deLa, estLibre, liberer, resister, type EtatZones } from './zones'
+import { deLa, estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
@@ -98,6 +98,8 @@ export class Jeu {
   queteSuivie: string | null = null
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
+  /** Les zones où la capsule est déjà allée (en orbite autour d'elles ou de ce qui tourne autour) : sur la carte, les autres sont grisées. */
+  visites: string[] = ['Terre']
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
   /** La Bourse : actions, ordres en route, derniers ordres confirmés ; et les confirmations à annoncer. */
@@ -463,6 +465,7 @@ export class Jeu {
     const evenements: Evenement[] = []
     oublierFutur(this.monolithes, t)
     this.soleil(t, evenements)
+    this.visiter(t)
     this.user(t, evenements)
     this.menaces(t, evenements)
     this.proposer(t)
@@ -719,6 +722,13 @@ export class Jeu {
    * Usure : à l'arrivée de chaque trajet (une seule fois par trajet), un module peut tomber en panne
    * (CHANCE_PANNE_PAR_TRAJET), tiré au hasard reproductible de la partie.
    */
+  /** La capsule en orbite dans une zone pas encore visitée : elle l'est désormais (décision d'Adrien du 21/10/2026). */
+  private visiter(t: number): void {
+    const lieu = this.lieuEnOrbite(t)
+    const z = lieu ? zoneDuLieu(lieu) : null
+    if (z && !this.visites.includes(z)) this.visites.push(z)
+  }
+
   /** Une Voix perdue enregistrée : un peu de résistance dans la zone la plus proche. */
   voixEnregistree(t: number): void {
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.voix, t))

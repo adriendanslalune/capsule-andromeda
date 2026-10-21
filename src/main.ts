@@ -166,6 +166,7 @@ carte.visibilite = (nom, t, angle) => {
   if (distanceDepuisCapsule(nom, t) > PORTEE_RADAR) return 0
   return echoRadar(jeu.radar, angle, t)
 }
+carte.etatZone = (nom) => (zone(nom) ? { visitee: jeu.visites.includes(nom), occupee: !jeu.zones.liberees.includes(nom) } : null)
 carte.toujoursVisible = (nom) => nom === selection || lieuxConnus().includes(nom)
 carte.radar = (t) => (jeu.radar.actif ? { angle: angleRadar(jeu.radar, t), portee: PORTEE_RADAR, actif: true } : null)
 /** Ce qui reste sur la carte et dans la liste Navigation hors radar : ce que visent une mission ou la quête suivie, la

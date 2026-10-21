@@ -580,13 +580,19 @@ const PIXELS_MAX = 4_000_000
 const COTE_MAX = 1100
 
 /** Un dessin de l'astre au rayon rp (palier), sur une toile à part. */
-function preparer(nom: string, rp: number, angle: number | null, echelle: number): HTMLCanvasElement {
+function preparer(nom: string, rp: number, angle: number | null, echelle: number, gris = false): HTMLCanvasElement {
   const ext = ETENDUE[nom] ?? 1.08
   const toile = document.createElement('canvas')
   toile.width = toile.height = Math.ceil(2 * rp * ext * echelle)
   const c = toile.getContext('2d')!
   c.scale(echelle, echelle)
   dessinerDirect(c, nom, rp * ext, rp * ext, rp, angle)
+  // Un astre pas encore visité (décision d'Adrien du 21/10/2026) : le même dessin, en gris.
+  if (gris) {
+    const img = c.getImageData(0, 0, toile.width, toile.height), d = img.data
+    for (let i = 0; i < d.length; i += 4) { const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = l }
+    c.putImageData(img, 0, 0)
+  }
   return toile
 }
 
@@ -613,12 +619,12 @@ function palier(nom: string, r: number, e: number): number {
 
 /** Prépare, quand le téléphone n'a rien à faire, les paliers voisins (le zoom y passera sans à-coup). */
 const enAttente = new Set<string>()
-function preparerVoisins(nom: string, rp: number, angle: number | null, e: number): void {
+function preparerVoisins(nom: string, rp: number, angle: number | null, e: number, gris: boolean): void {
   for (const v of [palier(nom, rp * 2, e), rp / 2]) {
-    const cle = `${nom}|${v}|${angle}`
+    const cle = `${nom}|${v}|${angle}|${gris}`
     if (v === rp || v < 16 || DEJA_DESSINES.has(cle) || enAttente.has(cle)) continue
     enAttente.add(cle)
-    const faire = () => { enAttente.delete(cle); if (!DEJA_DESSINES.has(cle)) garder(cle, preparer(nom, v, angle, e)) }
+    const faire = () => { enAttente.delete(cle); if (!DEJA_DESSINES.has(cle)) garder(cle, preparer(nom, v, angle, e, gris)) }
     if ('requestIdleCallback' in window) requestIdleCallback(faire, { timeout: 1500 })
     else setTimeout(faire, 200)
   }
@@ -626,23 +632,23 @@ function preparerVoisins(nom: string, rp: number, angle: number | null, e: numbe
 
 /**
  * Dessine l'astre illustré centré en (x, y), disque de rayon r (pixels). versSoleil : direction du Soleil à l'écran
- * (radians), pour la face de nuit ; null pour le Soleil.
+ * (radians), pour la face de nuit ; null pour le Soleil. gris : un astre pas encore visité.
  * Le dessin est fait une fois par palier de taille (×2), puis seulement réduit : redessiner la Terre à chaque image,
  * puis à chaque cran du zoom, faisait ramer le téléphone d'Adrien (21/10/2026). Les paliers voisins se préparent
  * quand le téléphone n'a rien d'autre à faire.
  */
 export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,
-  versSoleil: number | null): void {
+  versSoleil: number | null, gris = false): void {
   if (!FICHES[nom]) return
   const e = finesse(ctx.getTransform().a || 1)
   const rp = palier(nom, r, e)
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
-  const cle = `${nom}|${rp}|${angle}`
+  const cle = `${nom}|${rp}|${angle}|${gris}`
   let toile = DEJA_DESSINES.get(cle)
   if (toile) DEJA_DESSINES.delete(cle)
-  else toile = preparer(nom, rp, angle, e)
+  else toile = preparer(nom, rp, angle, e, gris)
   garder(cle, toile)
-  preparerVoisins(nom, rp, angle, e)
+  preparerVoisins(nom, rp, angle, e, gris)
   const ext = ETENDUE[nom] ?? 1.08
   ctx.drawImage(toile, x - r * ext, y - r * ext, 2 * r * ext, 2 * r * ext)
 }

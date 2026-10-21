@@ -77,7 +77,7 @@ function htmlZones(jeu: Jeu): string {
     html += `<div class="rang zone${libre ? ' libre' : ''}"><span>${z.nom}${z.planete ? '' : ' <small>lune</small>'}</span>`
       + (libre ? '<small class="libere">✓ libérée</small>' : `<span class="jauge-zone"><i style="width:${j}%"></i><small>${j} %</small></span>`) + '</div>'
   }
-  return html + '<p class="petit">Tout ce que tu fais près d\'une zone occupée fait monter sa résistance : contrats, chasseurs, monolithes, Voix perdues, et surtout les quêtes principales. À 100 %, sa quête de libération mène à l\'assaut contre son vaisseau amiral.</p></div>'
+  return html + '<p class="petit">Tout ce que tu fais près d\'une zone occupée fait monter sa résistance : contrats, chasseurs, monolithes, Voix perdues. À 100 %, sa quête de libération mène à l\'assaut contre son vaisseau amiral.</p></div>'
 }
 
 export function htmlProfil(jeu: Jeu): string {
