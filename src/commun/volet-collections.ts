@@ -13,8 +13,7 @@ const PIERRE = '<svg viewBox="0 0 40 56" aria-hidden="true"><ellipse cx="20" cy=
 
 export function htmlCollections(jeu: Jeu): string {
   const n = jeu.monolithes.trouves.length, rang = statut(n), suivant = palierSuivant(n)
-  return '<button type="button" class="retour" data-page="plus">‹ Plus</button>'
-    + '<div class="couverture monolithes">'
+  return '<div class="couverture monolithes">'
     + `<div class="illustration">${PIERRE}</div>`
     + '<div class="texte-couverture"><h2 class="titre-pulp">Monolithes</h2>'
     + `<b class="compte">${n} <small>/ ${NOMBRE_MONOLITHES}</small></b>`

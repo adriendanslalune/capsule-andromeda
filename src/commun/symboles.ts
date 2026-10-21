@@ -36,6 +36,7 @@ export const SYMBOLES = {
   capsule: ['Capsule', '<path class="or" d="M5 15.5C5 9 9 4 12 3c3 1 7 6 7 12.5z"/><path d="M5 15.5l-1.5 4h17l-1.5-4"/><circle class="bleu" cx="12" cy="10" r="2.2"/>'],
   missions: ['Missions', '<path class="creme" d="M6 3.5h12v17H6z"/><path d="M9 3.5V2h6v1.5M9 9h6M9 12.5h6M9 16h4"/>'],
   marche: ['Marché', '<path d="M3.5 20.5h17M3.5 3.5v17"/><path class="trait-rouge" d="M6 15l4-4 3 2.5 6-7"/><path d="M16 6.5h3v3"/>'],
+  collections: ['Collections', '<path class="bleu" d="M8 3.5h11v14.5H8z" transform="rotate(8 13.5 11)"/><path class="or" d="M5 5.5h11V20H5z"/><path class="mauve" d="M9 9h3v8H9z"/>'],
   plus: ['Plus', '<circle class="plein" cx="5.5" cy="12" r="1.8"/><circle class="plein" cx="12" cy="12" r="1.8"/><circle class="plein" cx="18.5" cy="12" r="1.8"/>'],
   // Les modules de la capsule.
   'module-moteur': ['Module Moteur', '<path class="mauve" d="M9.5 2.5h5v4h-5z"/><path class="mauve" d="M10 6.5h4c0 3 2.5 5 3.5 6.5h-11C7.5 11.5 10 9.5 10 6.5z"/><path class="or" d="M8.5 15c.5 2.7 2 4.7 3.5 6 1.5-1.3 3-3.3 3.5-6z"/>'],

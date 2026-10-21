@@ -17,6 +17,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Carte réorganisée (maquette `maquette-carte.html` validée par Adrien le 21/10/2026) — **faite, en attente de ses
+  essais** : console du haut (`src/commun/bandeau.ts` : ligne d'état, niveau et XP nommés, crédits, alertes avec leur
+  bouton ; plus de soute, moteur, vitesse ni trajet) ; rangée de la vue (système regardé écrit sur son bouton, ligne de
+  pastilles des systèmes, calques en carré, Messages à droite) ; boîtier des instruments (RADAR, PING, RADIO) ; console du
+  bas avec le compteur en vol et la feuille de route en frise (moteur `src/moteur/feuille-de-route.ts`, testé ;
+  `Plan.origine` retient d'où l'on part ; dessin `src/commun/frise.ts`) ; onglets Capsule, Journal, Marché,
+  Collections, Plus (Navigation passe dans Plus) ; la ligne de version passe dans les Réglages.
 - Contrats autour des grandes lunes (demande d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** :
   `GRANDES_LUNES` dans `src/donnees/espace.ts` (les 19 lunes des zones : rayon, sphère d'influence) ; autour de chacune
   2 stations, 3 épaves, 2 chasseurs (ajoutés à la fin du tirage : le reste du monde ne bouge pas) ; un tableau de

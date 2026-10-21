@@ -57,7 +57,7 @@ import { objetsTries } from './moteur/tri'
 import { VoletComptoir } from './commun/volet-comptoir'
 import { texteDelai, VoletBourse } from './commun/volet-bourse'
 import { compagnie } from './moteur/bourse'
-import { CAPACITE_SOUTE, MARCHES } from './donnees/marche'
+import { MARCHES } from './donnees/marche'
 import { COMPAGNIES } from './donnees/bourse'
 import { BOTS } from './donnees/messages'
 import { lieuDuBot } from './moteur/messages'
@@ -89,7 +89,9 @@ import {
 } from './moteur/communications'
 import { solution, tourEnergieVu, type EtatReparation, type Resultat } from './moteur/reparation'
 import { VoletMissions } from './commun/volet-missions'
-import { texteArrivee, texteDateComplete, texteDuree } from './commun/textes'
+import { texteDateComplete, texteDuree, texteRestant } from './commun/textes'
+import { htmlFrise } from './commun/frise'
+import { feuilleDeRoute } from './moteur/feuille-de-route'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
@@ -374,7 +376,7 @@ function vueGenerale(kmParPx: number): void {
   choisir(null)
   carte.voler(kmParPx, performance.now(), { x: 0, y: 0 }, true)
 }
-document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e) => {
+document.querySelector('#commandes-carte .vue')!.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>('[data-vue], [data-afficher]')
   if (!b) return
   const vue = b.dataset.vue
@@ -450,11 +452,11 @@ const chargePing = boutonPing.querySelector<HTMLElement>('.charge')!
 let etatPingAffiche = ''
 function afficherPing(t: number): void {
   const p = etatBoutonPing(jeu, t)
-  const largeurCharge = p.etat === 'recharge' ? `${Math.round(p.charge * 34)}px` : '0px'
+  const largeurCharge = p.etat === 'recharge' ? `${Math.round(p.charge * 44)}px` : '0px'
   const cle = `${p.etat}|${largeurCharge}`
   if (cle === etatPingAffiche) return
   etatPingAffiche = cle
-  boutonPing.className = `carre ${p.etat}`
+  boutonPing.className = p.etat
   chargePing.style.width = largeurCharge
 }
 boutonPing.addEventListener('click', () => {
@@ -475,11 +477,11 @@ let etatRadarAffiche = ''
 function afficherRadar(t: number): void {
   const j = jaugeRadar(jeu.radar, t)
   const etat = jeu.radar.actif ? 'actif' : j >= 1 ? 'plein' : 'pret'
-  const cle = `${etat}|${Math.round(j * 34)}`
+  const cle = `${etat}|${Math.round(j * 44)}`
   if (cle === etatRadarAffiche) return
   etatRadarAffiche = cle
-  boutonRadar.className = `carre ${etat}`
-  chargeRadar.style.width = `${Math.round(j * 34)}px`
+  boutonRadar.className = etat
+  chargeRadar.style.width = `${Math.round(j * 44)}px`
 }
 boutonRadar.addEventListener('click', () => {
   const t = horloge()
@@ -600,6 +602,7 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 const boutonCommuniquer = document.querySelector<HTMLButtonElement>('#bouton-communiquer')!
 const boutonAttaquer = document.querySelector<HTMLButtonElement>('#bouton-attaquer')!
+const elFrise = document.querySelector<HTMLDivElement>('#frise')!
 boutonCommuniquer.addEventListener('click', () => { if (selection) ouvrirMessages(`prive:${selection}`) })
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
@@ -660,9 +663,16 @@ function occupation(nom: string): string {
   return `<div class="occupation"><span>occupée par Andromède · résistance <b>${j} %</b></span><i><i style="width:${j}%"></i></i></div>`
 }
 function mettreAJourFiche(t: number): void {
-  afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
-    { credits: jeu.credits, soute: `${jeu.chargeSoute().toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse, ...xpBandeau() }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
+  const vol = enRoute ? vitesseEnVol(enRoute, t) : null
+  const ou = astreDominant(mission.etat(t).position, t)
+  afficherBandeau(bandeau, lignesDuBandeau(jeu, t), {
+    credits: jeu.credits, ...xpBandeau(),
+    phase: !vol ? '' : vol.phase === 'accelere' ? 'accélère' : vol.phase === 'freine' ? 'freine' : vol.phase === 'croisiere' ? 'croisière' : 'arrivée',
+    systeme: ou === 'Soleil' ? 'plein espace' : ou,
+  }, t)
+  // Le trajet dont la console du bas montre la feuille de route : celui qu'on prévoit (DÉPART), ou celui en cours.
+  let planFiche: Plan | null = null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
   let texte = '', depart = false, libelle = 'DÉPART'
@@ -744,14 +754,31 @@ function mettreAJourFiche(t: number): void {
       const p = prevision.plan
       // La vitesse de pointe du trajet, face à la vitesse max du moteur : on voit si le moteur limite ce trajet.
       const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse, p.vitesseInitiale)).toLocaleString('fr-FR')
+      // L'heure d'arrivée est sur la frise, juste en dessous.
       texte = `<b class="destination">${selection.toUpperCase()}</b><span class="vals">${avec('duree', texteDuree(p.arrivee - p.depart))}`
-        + `${avec('arrivee', texteArrivee(p.arrivee, t))}${avec('vitesse', `${pointe}/${dv}`)}</span>${occupation(selection)}`
+        + `${avec('vitesse', `${pointe}/${dv}`)}</span>${occupation(selection)}`
+      planFiche = p
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {
       texte = `<b>${selection.toUpperCase()}</b> · hors de portée<br>elle s'éloigne plus vite que la capsule (moteurs ${dv})`
     }
   }
+  // En vol, sans autre chose à montrer : la destination, le temps qui reste, et la feuille de route du trajet.
+  let enVol = false
+  if (!texte && enRoute) {
+    const e = jeu.etapeActuelle()
+    texte = `<b class="destination">${enRoute.cible.toUpperCase()}</b><span class="vals">${avec('duree', `reste ${texteRestant(enRoute.arrivee - t)}`)}</span>`
+      + (jeu.enCours && e?.lieu === enRoute.cible ? `<span class="etape-contrat">contrat · étape ${jeu.enCours.etape + 1} sur ${jeu.enCours.contrat.etapes.length}</span>` : '')
+    planFiche = enRoute
+    enVol = true
+  }
+  const ici = mission.phase(t) === 'orbite' ? mission.centre(t) : 'ici'
+  const frise = planFiche ? htmlFrise(feuilleDeRoute(planFiche, enVol, t, jeu.enCours, ici), t) : ''
+  elFrise.hidden = !frise
+  if (frise && elFrise.innerHTML !== frise) elFrise.innerHTML = frise
+  // Le compteur de vitesse n'est là qu'en vol (au repos, la vitesse ne dit rien).
+  cadranVitesse.hidden = !enRoute || !texte
   fiche.hidden = !texte
   if (ficheTexte.innerHTML !== texte) ficheTexte.innerHTML = texte
   boutonDepart.hidden = !depart
@@ -764,7 +791,7 @@ function mettreAJourFiche(t: number): void {
   const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
   if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
-  // Le cadran de vitesse se pose au-dessus de la fiche, quelle que soit sa hauteur.
+  // Les instruments se posent au-dessus de la console du bas, quelle que soit sa hauteur.
   const haut = texte ? `${fiche.offsetHeight}px` : '0px'
   if (document.body.style.getPropertyValue('--fiche') !== haut) document.body.style.setProperty('--fiche', haut)
 }
@@ -1901,8 +1928,9 @@ function image(maintenant: number): void {
       const brut = carte.ecranDe(capsuleDessinee ?? carte.positionCapsule(t))
       decalageCapsule = { x: (dessinee.x - brut.x) * carte.kmParPx, y: -(dessinee.y - brut.y) * carte.kmParPx }
     }
-    // Titre : le système qu'on regarde ; bouton de retour à la vue générale quand on a zoomé sur un système.
-    const titreCarte = carte.titre(t)
+    // Le système qu'on regarde, écrit sur son bouton (« TERRE », « SOLAIRE » pour la vue générale).
+    const regarde = carte.systemeRegarde(t)
+    const titreCarte = regarde === 'Soleil' ? 'SOLAIRE' : regarde.toUpperCase()
     if (titre.textContent !== titreCarte) titre.textContent = titreCarte
     // Pointillé vers la destination (sa position actuelle), une fois le trajet proposé.
     const cibleIci = proposee && place && selection !== CAPSULE && !dejaLa(t) ? place : null

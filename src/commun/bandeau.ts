@@ -8,7 +8,7 @@ import { picto, type NomSymbole } from './symboles'
 import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes } from './textes-missions'
 
 /**
- * Titre et détail d'une ligne : « PANNE : MOTEUR », « vitesse divisée par 2 · à réparer (Capsule) ». Les lignes calmes
+ * Titre et détail d'une ligne : « PANNE · MOTEUR », « vitesse divisée par 2 ». Les lignes calmes
  * (en orbite, en route) ont un symbole devant le titre et leurs valeurs en symboles (décision d'Adrien du 20/10/2026) :
  * « (orbite) TERRE », « (altitude) 400 km (tour) 1 h 32 min ».
  */
@@ -16,15 +16,15 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
   if (l.genre === 'missile') {
     const s = Math.ceil(l.reste / 1000)
     return {
-      titre: `MISSILE EN APPROCHE · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`,
-      detail: l.intercepteurs ? `touche ici pour l'intercepter (${l.intercepteurs} intercepteur${l.intercepteurs > 1 ? 's' : ''})` : 'plus d\'intercepteur : il va frapper !',
+      titre: `MISSILE · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`,
+      detail: l.intercepteurs ? `${l.alien} · ${l.intercepteurs} intercepteur${l.intercepteurs > 1 ? 's' : ''}` : 'plus d\'intercepteur : il va frapper !',
     }
   }
   if (l.genre === 'panne') {
     const fiches = l.modules.map((m) => MODULES.find((f) => f.nom === m)!)
     return {
-      titre: `PANNE : ${fiches.map((f) => f.titre.toUpperCase()).join(', ')}`,
-      detail: fiches.length === 1 ? `${fiches[0].effet} · à réparer (Capsule)` : 'à réparer (Capsule)',
+      titre: `PANNE · ${fiches.map((f) => f.titre.toUpperCase()).join(', ')}`,
+      detail: fiches.length === 1 ? fiches[0].effet : '',
     }
   }
   if (l.genre === 'echo') {
@@ -45,23 +45,27 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
   }
   if (l.genre === 'contrat') {
     const n = l.contrat.etapes.length > 1 ? ` (étape ${l.numero + 1}/${l.contrat.etapes.length})` : ''
-    const detail = l.situation === 'action' ? `${NOMS_ACTIONS[l.etape.action]} en cours · ${texteSecondes(l.finAction! - t)}`
-      : l.situation === 'sur-place' ? `sur place : touche ${VERBES[l.etape.action]}`
-        : consigne(l.etape)
-    // Titre court (une ligne) : le genre et le lieu final ; le détail dit quoi faire.
+    // Titre court (une ligne) : le genre et le lieu final ; le détail dit quoi faire (sauf « aller » au lieu du titre).
     const lieu = l.contrat.etapes[l.contrat.etapes.length - 1].lieu
-    return { titre: `CONTRAT : ${GENRES_COURTS[l.contrat.genre]} · ${lieu.toUpperCase()}`, detail: `${detail}${n}` }
+    const detail = l.situation === 'action' ? `${NOMS_ACTIONS[l.etape.action]} en cours · ${texteSecondes(l.finAction! - t)}`
+      : l.situation === 'sur-place' ? 'sur place'
+        : l.etape.lieu === lieu ? '' : consigne(l.etape)
+    return { titre: `${GENRES_COURTS[l.contrat.genre]} · ${lieu}`, detail: `${detail}${n}`.trim() }
   }
   const valeurs: [NomSymbole, string][] = [[l.engin ? 'distance' : 'altitude', texteDistance(l.altitude)]]
   if (l.tour !== null) valeurs.push(['tour', texteDuree(l.tour * 1000)])
   return { titre: l.centre.toUpperCase(), detail: '', symbole: 'orbite', valeurs }
 }
 
-/** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
+/**
+ * Ce que la console du haut montre en plus des lignes du moteur (maquette validée par Adrien le 21/10/2026) : les
+ * crédits, le niveau du capitaine et sa jauge d'XP (0 à 1), et en vol la phase et le système traversé.
+ */
 export interface EtatCapsuleBandeau {
-  credits: number; soute: string; niveauMoteur: number; vitesse: number; vitesseForcee: boolean
-  /** Le niveau du capitaine et sa jauge d'XP (0 à 1), en fine barre au pied du bandeau (décisions d'Adrien du 21/10/2026). */
+  credits: number
   niveau: number; xp: number
+  /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
+  phase: string; systeme: string
 }
 
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
@@ -70,32 +74,53 @@ let forme = ''
 /** Panne : un petit triangle d'alerte qui palpite. */
 const SYMBOLE_PANNE = '<svg class="symbole alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
 
+/** Le mot du bouton au bout de chaque alerte (toute la ligne se touche). */
+function bouton(l: LigneBandeau): string {
+  if (l.genre === 'missile') return l.intercepteurs ? 'INTERCEPTER' : ''
+  if (l.genre === 'panne') return 'RÉPARER'
+  if (l.genre === 'echo-recu') return 'VOIR'
+  if (l.genre === 'contrat') return l.situation === 'sur-place' ? VERBES[l.etape.action] : l.situation === 'action' ? '' : 'VOIR'
+  return ''
+}
+
+/**
+ * La console du haut : une ligne d'état (en orbite autour de quoi, ou en vol), le niveau et les crédits ; puis les
+ * alertes, de la plus urgente à la plus calme, chacune avec son bouton. Le trajet lui-même est dans la console du bas
+ * (la feuille de route), pas ici : la même chose ne s'affiche jamais deux fois.
+ */
 export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], capsule: EtatCapsuleBandeau, t: number): void {
-  const nombre = (n: number) => n.toLocaleString('fr-FR')
   const textes: string[] = []
-  // Une valeur : son symbole, puis son texte (seul le texte change d'une seconde à l'autre).
   const valeur = (nom: NomSymbole, texte: string) => { textes.push(texte); return `<span class="val">${picto(nom)}<span data-texte></span></span>` }
-  const lignesHtml = lignes.map((l) => {
-    const { titre, detail, symbole: nom, valeurs } = texteLigne(l, t)
-    textes.push(titre)
-    // Mission : son symbole animé (plus vif pendant l'action sur place).
-    const symbole = nom ? picto(nom) + ' ' : l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' ? SYMBOLE_PANNE : ''
-    const classe = l.genre === 'orbite' ? 'calme' : l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
-    const bas = valeurs ? `<span class="vals">${valeurs.map(([n, v]) => valeur(n, v)).join('')}</span>` : (textes.push(detail), '<span data-texte></span>')
-    // Toucher une ligne ouvre le volet qui va avec (demande d'Adrien du 18/10/2026 ; voir main.ts).
-    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><b>${symbole}<span data-texte></span></b>${bas}</div>`
+  // La ligne d'état.
+  const orbite = lignes.find((l) => l.genre === 'orbite')
+  let etat: string
+  if (orbite && orbite.genre === 'orbite') {
+    textes.push(orbite.engin ? `À CÔTÉ DE ${orbite.centre.toUpperCase()}` : `EN ORBITE · ${orbite.centre.toUpperCase()}`)
+    const vals = valeur(orbite.engin ? 'distance' : 'altitude', texteDistance(orbite.altitude)) + (orbite.tour !== null ? valeur('tour', texteDuree(orbite.tour * 1000)) : '')
+    etat = `<span class="phase">${picto('orbite')}</span><span class="ou"><b data-texte></b><small class="vals">${vals}</small></span>`
+  } else {
+    textes.push('EN VOL', [capsule.phase, capsule.systeme].filter(Boolean).join(' · '))
+    etat = `<span class="phase">${picto('route')}</span><span class="ou"><b data-texte></b><small data-texte></small></span>`
+  }
+  textes.push(capsule.credits.toLocaleString('fr-FR'))
+  const statut = `<div class="statut" data-ligne="orbite">${etat}`
+    + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
+    + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
+  // Les alertes.
+  const alertes = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet').map((l) => {
+    const { titre, detail } = texteLigne(l, t)
+    textes.push(titre, detail)
+    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' || l.genre === 'chaleur' ? SYMBOLE_PANNE : picto('monolithe')
+    const classe = l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
+    const b = bouton(l)
+    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="symbole-ligne">${symbole}</span><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
   })
-  // Le pied : crédits, soute, moteur et sa vitesse.
-  const etat = valeur('credits', nombre(capsule.credits)) + valeur('soute', `${capsule.soute} t`)
-    + (capsule.vitesseForcee ? valeur('vitesse', `${nombre(capsule.vitesse)} km/s (essai)`)
-      : valeur('moteur', `niv. ${capsule.niveauMoteur}`) + valeur('vitesse', `${nombre(capsule.vitesse)} km/s`))
-  const html = lignesHtml.join('') + `<div class="etat" data-ligne="etat">${etat}</div><div class="jauge-xp" data-ligne="profil"><i></i><small></small></div>`
+  const html = statut + alertes.join('')
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html
   element.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
-  const barre = element.querySelector<HTMLElement>('.jauge-xp i'), texte = element.querySelector<HTMLElement>('.jauge-xp small')
-  const largeur = `${Math.round(capsule.xp * 1000) / 10}%`, niveau = `capitaine niv. ${capsule.niveau}`
+  const barre = element.querySelector<HTMLElement>('.jauge-xp i')
+  const largeur = `${Math.round(capsule.xp * 1000) / 10}%`
   if (barre && barre.style.width !== largeur) barre.style.width = largeur
-  if (texte && texte.textContent !== niveau) texte.textContent = niveau
 }

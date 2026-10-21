@@ -50,6 +50,8 @@ export interface Plan {
    * réparation) repart de la vitesse du moment, au plus la vitesse max du moteur.
    */
   vitesseInitiale?: number
+  /** D'où la capsule est partie (l'astre ou l'engin autour duquel elle tournait ; absent : en plein vol). */
+  origine?: string
   /** Points clés (départ, sortie du système de départ, entrée dans celui d'arrivée, arrivée) : pour le dessin. */
   cles: PointDePassage[]
   /** Tous les points du trajet, avec les arcs de contournement. */
@@ -398,6 +400,12 @@ export class Mission {
 
   /** Part pour le trajet prévu (depuis l'orbite actuelle, ou en cours de route). */
   partir(plan: Plan): void {
+    // D'où l'on part (pour la feuille de route) : l'astre autour duquel on tourne, sinon on garde celui du trajet
+    // précédent (un nouveau cap en plein vol).
+    if (!plan.origine) {
+      const origine = this.phase(plan.depart) === 'orbite' ? this.centre(plan.depart) : this.plan?.origine
+      if (origine) plan.origine = origine
+    }
     // L'orbite d'où l'on part devient celle d'arrivée du trajet précédent, s'il y en avait un (calculée au besoin :
     // après une sauvegarde, elle ne l'a peut-être jamais été).
     if (this.plan && plan.depart >= this.plan.arrivee) {

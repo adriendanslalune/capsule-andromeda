@@ -1,6 +1,6 @@
 // Le cadre du cockpit (étape 2 de la feuille de route) : la carte en plein écran, et par-dessus une barre de cinq
-// onglets en bas (Navigation, Capsule, Missions, Marché, Plus ; barre validée par Adrien le 18/10/2026 : le Manuel
-// est passé dans « Plus », l'Armement dans le volet Capsule). Un onglet ouvre un volet qui monte du bas ; on le
+// onglets en bas (Capsule, Journal, Marché, Collections, Plus, par ordre d'importance ; décision d'Adrien du
+// 21/10/2026, qui retire Navigation : tout passe par la carte, la liste des lieux reste dans « Plus »). Un onglet ouvre un volet qui monte du bas ; on le
 // referme en touchant de nouveau l'onglet, avec le bouton Fermer, en le glissant vers le bas (de n'importe où) ou en
 // touchant la carte.
 // Les onglets pas encore développés sont visibles mais grisés (désactivés dans la page).
@@ -14,7 +14,7 @@ const TITRES: Record<Page, string> = {
 }
 /** Onglet allumé pour chaque page (le Manuel et les Réglages s'ouvrent depuis « Plus »). */
 const ONGLET: Record<Page, string> = {
-  navigation: 'navigation', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'plus',
+  navigation: 'plus', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'collections',
 }
 
 export class Cockpit {

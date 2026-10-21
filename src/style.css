@@ -1758,3 +1758,123 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #disparus .carte-disparu .date { color: #3f8a4f; font-weight: bold; }
 .felicitation .portrait.sonde { background: #f6e9c8; }
 .felicitation .portrait.sonde svg { width: 70%; }
+
+/* ===== La carte réorganisée (maquette validée par Adrien le 21/10/2026, maquette-carte.html) =====
+   En haut, la console (où est la capsule, niveau, crédits, puis les alertes) et la rangée de la vue (système regardé,
+   capsule, calques ; les Messages à droite). Au bord droit, le boîtier des instruments. En bas, la console du trajet
+   (compteur de vitesse en vol, destination, feuille de route en frise), seulement quand il y a un trajet. */
+#haut { left: 10px; right: 10px; top: calc(8px + env(safe-area-inset-top)); gap: 8px; }
+#console { pointer-events: auto; overflow: hidden; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+#bandeau { background: none; border: none; border-radius: 0; box-shadow: none; }
+#bandeau .statut { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 8px; }
+#bandeau .statut > .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
+#bandeau .statut > .phase svg { width: 19px; height: 19px; }
+#bandeau .ou { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+#bandeau .ou b { font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#bandeau .ou small { font-size: 11px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#bandeau .ou .vals { display: flex; gap: 10px; }
+/* Le niveau du capitaine et son XP : la jauge dans la pastille, avec son nom ; la toucher ouvre le Profil. */
+#bandeau .niveau { flex: none; display: flex; flex-direction: column; gap: 2px; width: 60px; padding: 3px 6px 4px; white-space: nowrap;
+  border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); }
+#bandeau .niveau b { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0; }
+#bandeau .niveau b span { color: #7a5aa8; }
+#bandeau .niveau .jauge-xp { display: block; height: 5px; border: 1px solid var(--encre); border-radius: 3px; overflow: hidden; background: color-mix(in srgb, #7a5aa8 12%, var(--fond)); }
+#bandeau .niveau .jauge-xp i { display: block; height: 100%; background: #7a5aa8; }
+#bandeau .credits { flex: none; display: flex; align-items: center; gap: 4px; padding: 4px 7px; font-size: 12px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 14px; background: var(--fond); }
+#bandeau .credits svg { width: 16px; height: 16px; }
+/* Les alertes : une ligne chacune, son symbole, son texte, son bouton (toute la ligne se touche). */
+#bandeau .ligne { flex-direction: row; align-items: center; gap: 8px; min-height: 40px; padding: 4px 8px 4px 10px; font-size: 12px; line-height: 1.25;
+  border-top: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 0; }
+#bandeau .ligne .symbole-ligne { flex: none; display: grid; place-items: center; width: 18px; }
+#bandeau .ligne .symbole { margin: 0; }
+#bandeau .ligne .texte { flex: 1; min-width: 0; }
+#bandeau .ligne em { flex: none; font-style: normal; font-weight: bold; font-size: 11px; letter-spacing: 0.03em; padding: 6px 8px;
+  border: 1.5px solid var(--encre); border-radius: 6px; background: var(--fond); }
+#bandeau .ligne.panne, #bandeau .ligne.missile { border-radius: 0; }
+#bandeau .ligne.panne { background: color-mix(in srgb, var(--moutarde) 28%, var(--creme)); }
+#bandeau .ligne.panne b { color: #8a5a00; }
+body.nuit #bandeau .ligne.panne b { color: #f5d38a; }
+#suivi { width: 100%; min-height: 40px; padding: 4px 10px; font-size: 12px; text-align: left; color: var(--encre); background: none; border: none; border-radius: 0;
+  box-shadow: none; border-top: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); }
+#suivi.secondaire { background: color-mix(in srgb, #8fb4e6 18%, var(--creme)); }
+
+/* La rangée de la vue : un bloc de trois boutons (le système regardé, la capsule, les calques). */
+#commandes-carte { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+#commandes-carte .vue { position: relative; pointer-events: auto; }
+.groupe-vue { display: flex; height: 46px; background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); overflow: hidden; }
+.groupe-vue > button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; padding: 0 9px; font: inherit; color: var(--encre);
+  background: none; border: none; border-right: 1.5px solid var(--encre); }
+.groupe-vue > button:last-child { border-right: none; }
+.groupe-vue > button:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
+.groupe-vue > button[aria-expanded="true"] { background: var(--moutarde); color: #1f1b18; }
+.groupe-vue svg { width: 24px; height: 24px; overflow: visible; }
+.groupe-vue svg *, #instruments svg * { stroke: var(--encre); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; fill: none; }
+.groupe-vue .soleil { fill: #f2c66a; }
+.groupe-vue .planete { fill: #8fd0dc; }
+.groupe-vue .planete.rouge { fill: #f3a08b; }
+.groupe-vue .chevron { fill: #e04b37; }
+.groupe-vue .calque.c1 { fill: #f2c66a; }
+.groupe-vue .calque.c2 { fill: #bfe0e8; }
+.groupe-vue .calque.c3 { fill: #d7cdee; }
+.groupe-vue #titre { font-size: 12px; letter-spacing: 0.08em; text-shadow: none; }
+.groupe-vue .fleche { font-size: 9px; opacity: 0.7; }
+/* Les systèmes : une ligne de pastilles sous la rangée, pas une colonne qui mange la carte. */
+#choix-systeme { left: 0; top: 54px; width: calc(100vw - 20px); flex-direction: row; gap: 2px; padding: 6px 4px; overflow-x: auto; scrollbar-width: none;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+#choix-systeme button { flex: none; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; width: 56px; height: 58px; padding: 2px 0;
+  font-size: 9.5px; border: none; border-radius: 8px; box-shadow: none; background: none; }
+#choix-systeme button i { width: 24px; height: 24px; }
+#choix-systeme button small { margin: -2px 0 0; font-size: 8px; font-weight: bold; }
+/* Les calques : quatre interrupteurs, en carré, sous la rangée. */
+#choix-affichage { left: 0; top: 54px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 236px; padding: 8px;
+  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+#choix-affichage button { width: auto; height: 44px; flex-direction: row; gap: 7px; padding: 0 8px; font: bold 11.5px var(--police);
+  border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); opacity: 1; }
+#choix-affichage button.actif { background: color-mix(in srgb, var(--moutarde) 55%, var(--fond)); box-shadow: none; }
+#choix-affichage button svg { width: 20px; height: 20px; }
+/* Les Messages, à droite de la rangée ; la bulle d'un message qui arrive, juste en dessous. */
+#rangee-messages { flex-direction: column; align-items: flex-end; gap: 8px; }
+#bouton-messages { order: -1; width: 48px; height: 46px; }
+#bulle-message { flex: none; max-width: 250px; }
+
+/* Le boîtier des instruments, au bord droit, sous le pouce, posé au-dessus de la console du bas. */
+#instruments { position: fixed; right: 10px; bottom: calc(86px + var(--fiche, 0px) + env(safe-area-inset-bottom)); z-index: 2; display: flex; flex-direction: column;
+  width: 56px; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); overflow: hidden; }
+#instruments button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 58px; padding: 0;
+  font: bold 8.5px var(--police); letter-spacing: 0.05em; color: var(--encre); background: none; border: none; border-bottom: 1.5px solid var(--encre); }
+#instruments button:last-child { border-bottom: none; }
+#instruments button:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
+#instruments svg { width: 26px; height: 26px; overflow: visible; }
+#instruments .charge { left: 6px; bottom: 4px; }
+#instruments .ping-point { fill: #7a5aa8; }
+#bouton-ping.attente, #bouton-ping.recharge { background: color-mix(in srgb, var(--creme) 70%, #b8b2a8); }
+
+/* La console du bas : le compteur de vitesse (en vol), la destination, ses boutons, et la feuille de route. */
+#trajet { left: 10px; right: 10px; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 8px 6px 10px; background: var(--creme); border-radius: 10px; }
+#trajet .tete { display: flex; align-items: center; gap: 10px; }
+#trajet-texte .etape-contrat { display: block; font-size: 11px; opacity: 0.75; }
+#cadran-vitesse { position: relative; right: auto; bottom: auto; flex: none; width: 62px; height: auto; z-index: auto; border: none; border-radius: 0; background: none; box-shadow: none; }
+body.avec-trajet #cadran-vitesse { bottom: auto; }
+#cadran-vitesse[hidden] { display: none; }
+#cadran-vitesse svg { position: relative; inset: auto; width: 56px; height: 56px; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
+#cadran-vitesse .phase-vitesse { top: 36px; bottom: auto; font-size: 6.5px; }
+#cadran-vitesse .valeur-vitesse { position: static; margin-top: 2px; padding: 0; font-size: 10px; border: none; background: none; }
+#frise { position: relative; height: 64px; margin: 6px 16px 0; }
+#frise[hidden] { display: none; }
+#frise .rail { position: absolute; left: 0; right: 0; top: 22px; border-top: 2px dashed color-mix(in srgb, var(--encre) 55%, transparent); }
+#frise .fait { position: absolute; left: 0; top: 21px; border-top: 3px solid var(--encre); }
+#frise .point { position: absolute; top: 0; display: flex; flex-direction: column; align-items: center; width: 96px; text-align: center; transform: translateX(-50%); }
+#frise .point b { max-width: 96px; height: 13px; font-size: 10.5px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#frise .point i { width: 14px; height: 14px; margin-top: 3px; border: 2px solid var(--encre); border-radius: 50%; background: var(--fond); }
+#frise .point.passe i { background: var(--encre); }
+#frise .point.but i { width: 15px; height: 15px; margin-top: 2.5px; border-radius: 3px; transform: rotate(45deg); background: var(--moutarde); }
+#frise .point small { margin-top: 3px; font-size: 9.5px; line-height: 1.2; opacity: 0.85; }
+#frise .point small em { font-style: normal; font-weight: bold; }
+#frise .point:first-child { align-items: flex-start; text-align: left; transform: translateX(-7px); }
+#frise .point.fin { align-items: flex-end; text-align: right; transform: translateX(calc(-100% + 7px)); }
+#frise .capsule { position: absolute; top: 12px; width: 22px; height: 22px; margin-left: -11px; }
+#frise .capsule svg { width: 22px; height: 22px; overflow: visible; }
+#frise .capsule path { fill: #e04b37; stroke: var(--encre); stroke-width: 1.6; stroke-linejoin: round; }
+#message { bottom: calc(96px + var(--fiche, 0px) + env(safe-area-inset-bottom)); }
+/* La ligne de date, d'images par seconde et de version : dans les Réglages, plus sur la carte. */
+#reglages #infos { position: static; padding: 4px 0 8px; font-size: 11px; opacity: 0.7; text-shadow: none; }
