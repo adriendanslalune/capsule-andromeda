@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&display=swap" rel="stylesheet" />
+    <title>Maquette de la carte</title>
+    <!--
+      Proposition pour la carte (demande d'Adrien du 21/10/2026 : « plus claire, mieux organisée, plus lisible »).
+      Données fictives, rien n'est branché au moteur. Le pastille « MAQUETTE » en haut fait défiler les situations ;
+      les boutons de la carte s'ouvrent pour de vrai (systèmes, calques).
+    -->
+    <style>
+      :root {
+        --fond: #f4f1ea; --encre: #1f1b18; --moutarde: #f2b53a; --creme: #faf2dc; --ombre: #1f1b18;
+        --cerise: #d9694f; --rouge: #e04b37; --vert: #5fb36a; --violet: #7a5fa8;
+        --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        --g: 10px;
+        --haut: env(safe-area-inset-top); --bas: env(safe-area-inset-bottom);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; overflow: hidden; background: var(--fond); color: var(--encre); font-family: var(--police); -webkit-user-select: none; user-select: none; }
+      button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+      svg { display: block; }
+      .carte { position: fixed; inset: 0; width: 100vw; height: 100dvh; object-fit: cover; object-position: center 46%; }
+      .cadre { border: 2px solid var(--encre); border-radius: 10px; background: var(--creme); box-shadow: 3px 3px 0 var(--ombre); }
+
+      /* La pastille qui fait défiler les situations (seulement dans la maquette). */
+      #scene { position: fixed; z-index: 50; top: calc(4px + var(--haut)); left: 50%; transform: translateX(-50%); padding: 2px 10px; font-size: 10px; font-weight: bold;
+        letter-spacing: 0.06em; border: 1.5px dashed var(--encre); border-radius: 10px; background: var(--fond); white-space: nowrap; }
+
+      /* 1. La console du haut : où l'on est, ce qu'on a, ce qui presse. */
+      #console { position: fixed; top: calc(26px + var(--haut)); left: var(--g); right: var(--g); z-index: 5; overflow: hidden; }
+      #console .statut { display: flex; align-items: center; gap: 10px; padding: 8px 10px 9px; }
+      #console .ou { flex: 1; min-width: 0; }
+      #console .ou b { display: block; font-size: 13px; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #console .ou small { display: block; font-size: 11px; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
+      .phase svg { width: 18px; height: 18px; }
+      .credits { flex: none; display: flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: 13px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 14px; background: var(--fond); }
+      .credits svg { width: 15px; height: 15px; }
+      .xp { position: relative; height: 4px; background: color-mix(in srgb, var(--encre) 12%, transparent); }
+      .xp i { position: absolute; inset: 0 auto 0 0; width: 38%; background: var(--violet); }
+      .niveau { flex: none; font-size: 10px; font-weight: bold; padding: 1px 5px; border-radius: 4px; color: var(--creme); background: var(--violet); }
+      .alerte { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 10px; font-size: 12px; border-top: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); }
+      .alerte svg { flex: none; width: 18px; height: 18px; }
+      .alerte span { flex: 1; min-width: 0; line-height: 1.25; }
+      .alerte b { letter-spacing: 0.05em; }
+      .alerte em { flex: none; font-style: normal; font-weight: bold; font-size: 11px; padding: 5px 8px; border: 1.5px solid var(--encre); border-radius: 6px; background: var(--fond); }
+      .alerte.missile { background: color-mix(in srgb, var(--rouge) 18%, var(--creme)); }
+      .alerte.missile b, .alerte.missile .compte { color: #a8321f; }
+      .alerte.panne { background: color-mix(in srgb, var(--moutarde) 28%, var(--creme)); }
+      .alerte.objectif { font-size: 11.5px; }
+      .compte { font-weight: bold; font-variant-numeric: tabular-nums; }
+
+      /* 2. La rangée de la vue, sous la console : quel système on regarde, la capsule, les calques ; à droite, les Messages. */
+      #vue { position: fixed; left: var(--g); right: var(--g); z-index: 4; display: flex; align-items: flex-start; gap: 8px; }
+      .groupe { display: flex; height: 44px; }
+      .groupe > button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; padding: 0 9px; border-right: 1.5px solid var(--encre); }
+      .groupe > button:last-child { border-right: none; }
+      .groupe > button.ouvert { background: var(--moutarde); }
+      .groupe > button:first-child { border-radius: 8px 0 0 8px; } .groupe > button:last-child { border-radius: 0 8px 8px 0; }
+      .groupe svg { width: 22px; height: 22px; }
+      .systeme b { font-size: 12px; letter-spacing: 0.08em; }
+      .systeme .v { font-size: 9px; opacity: 0.7; }
+      #messages { position: relative; margin-left: auto; width: 48px; height: 44px; display: grid; place-items: center; }
+      #messages svg { width: 30px; height: 30px; }
+      .pastille { position: absolute; top: -7px; right: -7px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 10px; font-weight: bold; line-height: 15px; text-align: center;
+        color: #fff; background: var(--rouge); border: 1.5px solid var(--encre); border-radius: 9px; }
+
+      /* La bande des systèmes : une ligne de pastilles, pas une colonne qui mange la carte. */
+      #systemes { position: fixed; left: var(--g); right: var(--g); z-index: 4; display: flex; gap: 2px; padding: 6px 4px; overflow-x: auto; scrollbar-width: none; }
+      #systemes button { flex: none; width: 54px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0; font-size: 9.5px; border-radius: 8px; }
+      #systemes button.ici { background: color-mix(in srgb, var(--moutarde) 45%, transparent); }
+      #systemes i { width: 26px; height: 26px; border: 1.5px solid var(--encre); border-radius: 50%; }
+      #systemes small { font-size: 8px; font-weight: bold; margin-top: -2px; }
+      /* Les calques : quatre interrupteurs, en carré. */
+      #calques { position: fixed; left: var(--g); z-index: 4; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; width: 230px; }
+      #calques button { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 8px; font-size: 11.5px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); }
+      #calques button.on { background: color-mix(in srgb, var(--moutarde) 55%, var(--fond)); }
+      #calques svg { width: 18px; height: 18px; }
+
+      /* 3. Les instruments, regroupés en un boîtier au bord droit, sous le pouce : RADAR, PING, RADIO. */
+      #instruments { position: fixed; right: var(--g); z-index: 4; display: flex; flex-direction: column; width: 54px; overflow: hidden; }
+      #instruments button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 58px;
+        font-size: 8.5px; font-weight: bold; letter-spacing: 0.05em; border-bottom: 1.5px solid var(--encre); }
+      #instruments button:last-child { border-bottom: none; }
+      #instruments button.actif { background: color-mix(in srgb, var(--vert) 35%, var(--creme)); }
+      #instruments svg { width: 26px; height: 26px; }
+      #instruments .charge { position: absolute; left: 6px; right: 6px; bottom: 4px; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--encre) 15%, transparent); overflow: hidden; }
+      #instruments .charge i { display: block; height: 100%; background: var(--encre); }
+
+      /* 4. La console du bas : la vitesse et le trajet ensemble, posés sur la barre d'onglets. */
+      #bord { position: fixed; left: var(--g); right: var(--g); bottom: calc(70px + var(--bas)); z-index: 5; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 8px; }
+      .compteur { position: relative; flex: none; width: 70px; height: 62px; }
+      .compteur svg { width: 64px; height: 45px; margin: 0 auto; overflow: visible; }
+      .compteur b { position: absolute; left: -4px; right: -4px; bottom: 0; font-size: 10.5px; text-align: center; font-variant-numeric: tabular-nums; }
+      .compteur .arc { fill: none; stroke: color-mix(in srgb, var(--encre) 15%, transparent); stroke-width: 6; stroke-linecap: round; }
+      .compteur .phase-arc { fill: none; stroke-width: 6; stroke-linecap: round; }
+      .compteur .aiguille { stroke: var(--rouge); stroke-width: 2.5; stroke-linecap: round; }
+      .infos { flex: 1; min-width: 0; font-size: 11.5px; line-height: 1.35; }
+      .infos .nom { font-size: 14px; font-weight: bold; letter-spacing: 0.06em; }
+      .infos .nom small { font-size: 10.5px; font-weight: normal; letter-spacing: 0; opacity: 0.7; }
+      .infos .vals { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+      .infos .indice { opacity: 0.65; }
+      .infos .occupee { color: #a8321f; }
+      .barre { height: 6px; margin-top: 4px; border: 1.5px solid var(--encre); border-radius: 4px; overflow: hidden; background: var(--fond); }
+      .barre i { display: block; height: 100%; background: repeating-linear-gradient(45deg, var(--cerise) 0 4px, #e98a6f 4px 8px); }
+      .barre.trajet i { background: var(--moutarde); }
+      .action { flex: none; display: flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px; font-size: 13px; font-weight: bold; letter-spacing: 0.05em; color: #fff;
+        background: var(--cerise); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+      .action.calme { color: var(--encre); background: var(--fond); }
+
+      /* La barre d'onglets, inchangée (validée le 18/10/2026), un peu moins haute. */
+      #onglets { position: fixed; left: var(--g); right: var(--g); bottom: calc(8px + var(--bas)); z-index: 5; display: flex; height: 56px; overflow: hidden; }
+      #onglets button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10.5px; font-weight: bold; border-left: 1px solid color-mix(in srgb, var(--encre) 35%, transparent); }
+      #onglets button:first-child { border-left: none; }
+      #onglets svg { width: 22px; height: 22px; }
+
+      /* Une bulle de message qui arrive : elle sort des Messages, et s'efface. */
+      #bulle { position: fixed; right: var(--g); z-index: 4; max-width: 250px; padding: 7px 10px; font-size: 11.5px; line-height: 1.35; }
+      #bulle b { color: #2f7a4a; }
+
+      [hidden] { display: none !important; }
+      .trait path, .trait circle, .trait ellipse, .trait rect { fill: none; stroke: var(--encre); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </head>
+  <body>
+    <img class="carte" id="fond" src="./maquette/carte-repos.png" alt="" />
+    <button type="button" id="scene">MAQUETTE · 1/4 · AU REPOS ›</button>
+
+    <!-- 1. Console du haut -->
+    <div id="console" class="cadre">
+      <div class="statut">
+        <span class="phase" id="phase"></span>
+        <div class="ou"><b id="ou"></b><small id="detail"></small></div>
+        <span class="niveau">niv. 3</span>
+        <span class="credits"><svg viewBox="0 0 16 16" class="trait"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v7M6 6.2c0-1 4-1 4 .3 0 1.4-4 1.3-4 2.8 0 1.3 4 1.3 4 .2"/></svg>1 240</span>
+      </div>
+      <div id="alertes"></div>
+      <div class="xp"><i></i></div>
+    </div>
+
+    <!-- 2. Rangée de la vue -->
+    <div id="vue">
+      <div class="groupe cadre">
+        <button type="button" class="systeme" id="bouton-systemes" aria-label="Choisir le système">
+          <svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6" style="fill:var(--moutarde)"/><circle cx="20.5" cy="12" r="1.8" style="fill:#7fa6d9"/></svg>
+          <b id="nom-systeme">TERRE</b><span class="v">▾</span>
+        </button>
+        <button type="button" aria-label="Revenir à la capsule">
+          <svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="9" stroke-dasharray="2 2.4"/><path d="M17 12 8.5 16.5 10.5 12 8.5 7.5z" style="fill:var(--rouge)"/></svg>
+        </button>
+        <button type="button" id="bouton-calques" aria-label="Ce que montre la carte">
+          <svg viewBox="0 0 24 24" class="trait"><path d="M12 15.5 20.5 19 12 22.5 3.5 19z"/><path d="M12 9.5 20.5 13 12 16.5 3.5 13z" style="fill:var(--creme)"/><path d="M12 3.5 20.5 7 12 10.5 3.5 7z" style="fill:var(--moutarde)"/></svg>
+        </button>
+      </div>
+      <button type="button" id="messages" class="cadre" aria-label="Messages">
+        <svg viewBox="0 0 40 40" class="trait"><path d="M16 17h17a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3l1 5-6-5h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z" style="fill:#bfe0c8"/><path d="M6 8h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5 1-5h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z" style="fill:var(--moutarde)"/><path d="M9 13h11M9 17h7"/></svg>
+        <span class="pastille">2</span>
+      </button>
+    </div>
+    <div id="bulle" class="cadre" hidden><b>Ilsa Brandt</b> · ISS — Quelqu'un a vu le Phare de Mercure grimper ?</div>
+    <div id="systemes" class="cadre" hidden></div>
+    <div id="calques" class="cadre" hidden>
+      <button type="button" class="on"><svg viewBox="0 0 24 24" class="trait"><ellipse cx="12" cy="12" rx="9.5" ry="6"/><circle cx="12" cy="12" r="2"/></svg>Orbites</button>
+      <button type="button" class="on"><svg viewBox="0 0 24 24"><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="bold" font-family="monospace">Aa</text></svg>Noms</button>
+      <button type="button" class="on"><svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="9" stroke-dasharray="1.5 2.5"/><circle cx="12" cy="12" r="2"/></svg>Pings</button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z" style="fill:#3b4466"/></svg>Sombre</button>
+    </div>
+
+    <!-- 3. Instruments -->
+    <div id="instruments" class="cadre">
+      <button type="button" id="radar"><svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="9.5" style="fill:#d9ecd9"/><circle cx="12" cy="12" r="5.5"/><path d="M12 12 19.8 6.6A9.5 9.5 0 0 0 12 2.5z" style="fill:var(--vert)"/><circle cx="8" cy="15" r="1.2" style="fill:var(--rouge)"/></svg>RADAR<span class="charge"><i style="width:100%"></i></span></button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/><path d="M8.1 8.1a5.5 5.5 0 0 0 0 7.8M15.9 8.1a5.5 5.5 0 0 1 0 7.8"/><circle cx="12" cy="12" r="2.4" style="fill:var(--violet)"/></svg>PING<span class="charge"><i style="width:60%"></i></span></button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M7 9 16 3.5"/><rect x="2.5" y="8.5" width="19" height="12.5" rx="2.5" style="fill:#e7c39a"/><circle cx="8" cy="15" r="3.3"/><rect x="13.5" y="11.5" width="5.5" height="2.5" rx="0.6"/><circle cx="16.2" cy="17.6" r="1.4"/></svg>RADIO</button>
+    </div>
+
+    <!-- 4. Console du bas -->
+    <div id="bord" class="cadre">
+      <div class="compteur">
+        <svg viewBox="0 0 100 70"><path class="arc" d="M14 62a40 40 0 1 1 72 0"/><path class="phase-arc" id="arc" d=""/><line class="aiguille" id="aiguille" x1="50" y1="56" x2="50" y2="22"/><circle cx="50" cy="56" r="4.5" style="fill:var(--encre)"/></svg>
+        <b id="vitesse">0,00 km/s</b>
+      </div>
+      <div class="infos" id="infos"></div>
+      <button type="button" class="action" id="action" hidden></button>
+    </div>
+
+    <nav id="onglets" class="cadre">
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="9.5"/><path d="M12 4 14.5 12 12 20 9.5 12z" style="fill:var(--rouge)"/></svg>Navig.</button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M12 3c4 2.5 6 7 6 14H6c0-7 2-11.5 6-14z" style="fill:var(--moutarde)"/><circle cx="12" cy="11" r="2.3"/><path d="M6 17l-2 4h16l-2-4"/></svg>Capsule</button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M9 3h6v3H9zM8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg>Journal</button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M3.5 20.5h17M3.5 20.5v-16"/><path d="M6 16l4-5 3 3 6-7" style="stroke:var(--rouge)"/></svg>Marché</button>
+      <button type="button"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>Plus</button>
+    </nav>
+
+    <script>
+      const $ = (s) => document.querySelector(s)
+      const ICONES = {
+        orbite: '<svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="8" stroke-dasharray="2 2.4"/><circle cx="12" cy="12" r="3" style="fill:#7fa6d9"/></svg>',
+        vol: '<svg viewBox="0 0 24 24" class="trait"><path d="M4 12h12M12 7l5 5-5 5" style="stroke:var(--encre)"/><path d="M3 8h4M3 16h4" style="stroke:var(--moutarde)"/></svg>',
+        missile: '<svg viewBox="0 0 24 24" class="trait"><path d="M4 20l9-9M13 11l4-7 3 3-7 4z" style="fill:var(--rouge)"/><path d="M6 14l-2 2M10 18l-2 2"/></svg>',
+        panne: '<svg viewBox="0 0 24 24" class="trait"><path d="M12 3 22 20H2z" style="fill:var(--moutarde)"/><path d="M12 9v5M12 16.5v.5"/></svg>',
+        contrat: '<svg viewBox="0 0 24 24" class="trait"><path d="M5 6h14v12H5z" style="fill:var(--creme)"/><path d="M8 10h8M8 13.5h5"/></svg>',
+        quete: '<svg viewBox="0 0 24 24" class="trait"><path d="M12 3 20 12 12 21 4 12z" style="fill:var(--moutarde)"/></svg>',
+      }
+      const SYSTEMES = [['Tout', '#fff'], ['Soleil', '#f2b53a'], ['Mercure', '#a49c92'], ['Vénus', '#e8cf8f'], ['Terre', '#5a8bd6'], ['Mars', '#d9694f'],
+        ['Jupiter', '#d6a46b'], ['Saturne', '#e2c58a'], ['Uranus', '#9fd3dc'], ['Neptune', '#4f6fd0'], ['Pluton', '#c9a48a']]
+      $('#systemes').innerHTML = SYSTEMES.map(([n, c]) => `<button type="button" class="${n === 'Terre' ? 'ici' : ''}"><i style="background:${c}"></i>${n}${n === 'Terre' ? '<small>ici</small>' : ''}</button>`).join('')
+
+      const alerte = (classe, icone, texte, bouton) => `<div class="alerte ${classe}">${ICONES[icone]}<span>${texte}</span>${bouton ? `<em>${bouton}</em>` : ''}</div>`
+      const SCENES = [
+        { titre: 'AU REPOS', fond: 'carte-repos', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
+          alertes: alerte('objectif', 'quete', '<b>Quête</b> · Parler à Elsa Varga, à l\'ISS', 'Y ALLER'),
+          vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s',
+          infos: '<div class="nom">EN ORBITE <small>· Terre</small></div><div class="indice">Touche un astre pour choisir où aller.</div>', bulle: true },
+        { titre: 'DESTINATION', fond: 'carte-lune', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
+          alertes: alerte('objectif', 'contrat', '<b>Contrat</b> · Remorquer Conteneur K-12 → ISS (1/2)', 'Y ALLER'),
+          vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s',
+          infos: '<div class="nom">LUNE <small>· 387 000 km</small></div><div class="vals"><span>⧗ 3 h 35</span><span>⚑ demain 02:36</span></div><div class="occupee">occupée · résistance 12 %</div><div class="barre"><i style="width:12%"></i></div>',
+          action: '➤ DÉPART' },
+        { titre: 'EN VOL, ÇA CHAUFFE', fond: 'carte-lune', phase: 'vol', ou: 'EN ROUTE · LUNE', detail: 'arrivée demain 02:36 · reste 3 h 12',
+          alertes: alerte('missile', 'missile', '<b>MISSILE</b> · Chasseur Ξ-2 · impact dans <span class="compte">00:47</span>', 'INTERCEPTER')
+            + alerte('panne', 'panne', '<b>PANNE</b> · Moteur · vitesse ÷ 2', 'RÉPARER')
+            + alerte('objectif', 'contrat', '<b>Contrat</b> · Remorquer Conteneur K-12 → ISS (1/2)'),
+          vitesse: 0.5, couleur: 'var(--moutarde)', vtexte: '15,00 km/s', radar: true,
+          infos: '<div class="nom">→ LUNE <small>· croisière</small></div><div class="vals"><span>⚑ 02:36</span><span>reste 3 h 12</span></div><div class="barre trajet"><i style="width:18%"></i></div>' },
+        { titre: 'SYSTÈMES ET CALQUES', fond: 'carte-repos', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
+          alertes: '', vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s', systemes: true,
+          infos: '<div class="nom">EN ORBITE <small>· Terre</small></div><div class="indice">Touche un astre pour choisir où aller.</div>' },
+      ]
+      let n = 0
+      const arc = (f) => { const a0 = Math.PI * 1.25, a = a0 - f * Math.PI * 1.5, p = (x) => [50 + 40 * Math.cos(x), 56 - 40 * Math.sin(x)]
+        const [x0, y0] = p(a0), [x1, y1] = p(a); return `M${x0.toFixed(1)} ${y0.toFixed(1)}A40 40 0 ${f > 2 / 3 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}` }
+      // Les éléments posés sous la console du haut suivent sa hauteur (qui change avec les alertes).
+      function placer() {
+        const bas = $('#console').getBoundingClientRect().bottom
+        $('#vue').style.top = `${bas + 8}px`
+        $('#bulle').style.top = `${bas + 60}px`
+        $('#systemes').style.top = `${bas + 58}px`
+        $('#calques').style.top = `${bas + 58}px`
+        const bord = $('#bord').getBoundingClientRect().top
+        $('#instruments').style.top = `${bord - 12 - $('#instruments').offsetHeight}px`
+      }
+      function afficher() {
+        const s = SCENES[n]
+        $('#scene').textContent = `MAQUETTE · ${n + 1}/${SCENES.length} · ${s.titre} ›`
+        $('#fond').src = `./maquette/${s.fond}.png`
+        $('#phase').innerHTML = ICONES[s.phase]
+        $('#ou').textContent = s.ou
+        $('#detail').textContent = s.detail
+        $('#alertes').innerHTML = s.alertes
+        $('#infos').innerHTML = s.infos
+        $('#vitesse').textContent = s.vtexte
+        $('#arc').setAttribute('d', s.vitesse ? arc(s.vitesse) : '')
+        $('#arc').style.stroke = s.couleur
+        $('#aiguille').setAttribute('transform', `rotate(${-135 + 270 * s.vitesse} 50 56)`)
+        $('#action').hidden = !s.action
+        $('#action').textContent = s.action ?? ''
+        $('#radar').classList.toggle('actif', !!s.radar)
+        $('#bulle').hidden = !s.bulle
+        $('#systemes').hidden = !s.systemes
+        $('#bouton-systemes').classList.toggle('ouvert', !!s.systemes)
+        $('#calques').hidden = true
+        $('#bouton-calques').classList.remove('ouvert')
+        placer()
+      }
+      $('#scene').onclick = () => { n = (n + 1) % SCENES.length; afficher() }
+      $('#bouton-systemes').onclick = () => { const o = $('#systemes').hidden; $('#bulle').hidden = true; $('#systemes').hidden = !o; $('#calques').hidden = true; $('#bouton-calques').classList.remove('ouvert'); $('#bouton-systemes').classList.toggle('ouvert', o) }
+      $('#bouton-calques').onclick = () => { const o = $('#calques').hidden; $('#bulle').hidden = true; $('#calques').hidden = !o; $('#systemes').hidden = true; $('#bouton-systemes').classList.remove('ouvert'); $('#bouton-calques').classList.toggle('ouvert', o) }
+      for (const b of document.querySelectorAll('#calques button')) b.onclick = () => b.classList.toggle('on')
+      addEventListener('resize', placer)
+      const params = new URLSearchParams(location.search)
+      if (params.has('scene')) n = Math.max(0, Math.min(SCENES.length - 1, Number(params.get('scene')) - 1))
+      if (params.has('calques')) { afficher(); $('#bouton-calques').onclick() } else afficher()
+    </script>
+  </body>
