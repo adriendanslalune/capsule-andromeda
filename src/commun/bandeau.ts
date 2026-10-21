@@ -103,7 +103,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     etat = `<span class="phase">${picto('route')}</span><span class="ou"><b data-texte></b><small data-texte></small></span>`
   }
   textes.push(capsule.credits.toLocaleString('fr-FR'))
-  const statut = `<div class="statut" data-ligne="orbite">${etat}`
+  const statut = `<div class="etat-capsule" data-ligne="orbite">${etat}`
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
   // Les alertes.

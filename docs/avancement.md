@@ -17,6 +17,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** : étiquettes de la carte sans chevauchement
+  (`dessinerNoms` dans `src/carte/carte.ts` : la plaque de la capsule et les noms en dernier, en évitant astres,
+  médaillons, étiquette de la destination et commandes) ; actions sur place sans manœuvre à 30 s au lieu de 2 min
+  (`DUREE_ACTION`) ; frise et compteur qui ne débordent plus ; instrument de chaque collection sur sa couverture
+  (`src/commun/instruments.ts`) ; cadre en trop dans la console du haut (la classe `.statut` des monolithes s'y appliquait).
 - Carte réorganisée (maquette `maquette-carte.html` validée par Adrien le 21/10/2026) — **faite, en attente de ses
   essais** : console du haut (`src/commun/bandeau.ts` : ligne d'état, niveau et XP nommés, crédits, alertes avec leur
   bouton ; plus de soute, moteur, vitesse ni trajet) ; rangée de la vue (système regardé écrit sur son bouton, ligne de

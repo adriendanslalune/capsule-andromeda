@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { lignesDuBandeau } from '../src/moteur/bandeau'
 import { Jeu } from '../src/moteur/jeu'
 import { planifier } from '../src/moteur/mission'
+import { DUREE_ACTION } from '../src/donnees/contrats'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
 
@@ -50,6 +51,6 @@ describe('bandeau d’alertes', () => {
     const t = p.plan.arrivee + 1000
     expect(lignesDuBandeau(jeu, t)[0]).toMatchObject({ genre: 'contrat', situation: 'sur-place' })
     jeu.agir(t)
-    expect(lignesDuBandeau(jeu, t + 1000)[0]).toMatchObject({ genre: 'contrat', situation: 'action', finAction: t + 120_000 })
+    expect(lignesDuBandeau(jeu, t + 1000)[0]).toMatchObject({ genre: 'contrat', situation: 'action', finAction: t + DUREE_ACTION })
   })
 })

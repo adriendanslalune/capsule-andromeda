@@ -5,6 +5,7 @@
 // Style Moebius : aplats pastel cernés d'encre, face de nuit en aplat violet, hachures le long du terminateur.
 // La carte ne calcule aucune position réelle : elle les demande au moteur, puis les projette.
 
+import type { Boite } from '../commun/reperes'
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
@@ -167,6 +168,17 @@ export class Carte2D {
   /** Position de New Horizons par rapport au Soleil (km), mise à jour à chaque image. */
   private newHorizons = { x: 66 * UA_KM, y: 0 }
   private dessines: Dessine[] = []
+  /**
+   * Les étiquettes (demande d'Adrien du 21/10/2026 : elles se marchaient dessus) : ce qui est déjà posé à l'écran
+   * (médaillons des PNJ, étiquette de la destination, commandes par-dessus la carte) ; la plaque de la capsule et les
+   * noms se posent en dernier, là où c'est libre (dessinerNoms).
+   */
+  private reserves: Boite[] = []
+  /** La capsule dessinée (pour sa plaque), et si les noms sont à afficher. */
+  private capsuleIci: { x: number; y: number; r: number; selectionnee: boolean } | null = null
+  private nomsAffiches = true
+  /** Ce que cachent les commandes en haut et en bas de l'écran (pixels) : les noms ne s'y posent pas. */
+  marges = { haut: 144, bas: 120 }
   /** Angle du chevron de la capsule à l'écran (pour le faire pivoter en douceur) et instant du dernier dessin. */
   private angleCapsule: number | null = null
   private instantAngle = 0
@@ -337,6 +349,7 @@ export class Carte2D {
       parLieu.set(n.lieu, k + 1)
       const x = p.x + p.r * 0.75 + 12 + k * 22, y = p.y - p.r * 0.75 - 12
       if (x < -20 || x > this.largeur + 20 || y < -20 || y > this.hauteur + 20) continue
+      this.reserves.push({ x0: x - 10, y0: y - (n.signe ? 19 : 10), x1: x + (n.signe ? 17 : 10), y1: y + 10 })
       ctx.beginPath()
       ctx.arc(x, y, 9, 0, 2 * Math.PI)
       ctx.fillStyle = n.teinte
@@ -542,6 +555,9 @@ export class Carte2D {
     // Astres : Soleil, planètes, Pluton toujours ; ce qui tourne autour d'eux quand leur système est assez grand à
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
     this.dessines = []
+    this.reserves = []
+    this.capsuleIci = null
+    this.nomsAffiches = reglages.noms
     const libre = (x: number, y: number, r: number) => this.dessines.every((d) => Math.hypot(d.x - x, d.y - y) > d.r + r + 3)
     const astre = (c: Corps, q: { x: number; y: number }) => {
       const r = this.rayon(c)
@@ -679,22 +695,8 @@ export class Carte2D {
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre)
-    // Sa plaque : numéro et capitaine, en petit sous le chevron (sauf quand son étiquette est affichée).
-    if (this.plaqueCapsule && selection !== CAPSULE) {
-      ctx.save()
-      ctx.font = 'bold 9.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'top'
-      ctx.lineJoin = 'round'
-      ctx.lineWidth = 3
-      ctx.strokeStyle = couleurs.fond
-      ctx.fillStyle = '#b4442f'
-      ctx.strokeText(this.plaqueCapsule, x, y + rc + 4)
-      ctx.fillText(this.plaqueCapsule, x, y + rc + 4)
-      ctx.restore()
-    }
-
-    if (reglages.noms) this.noms(ctx, couleurs, selection)
+    // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
+    this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }
 
     if (!selection) return null
     const cible = this.dessines.find((d) => d.nom === selection)
@@ -991,6 +993,62 @@ export class Carte2D {
     ctx.stroke()
   }
 
+  /**
+   * La plaque de la capsule puis les noms, posés en dernier (demande d'Adrien du 21/10/2026 : les étiquettes se
+   * marchaient dessus) : rien ne se pose sur ce qui est déjà là (astres, médaillons, étiquette de la destination,
+   * commandes par-dessus la carte, autres noms). autres : des places à laisser libres en plus.
+   */
+  dessinerNoms(ctx: CanvasRenderingContext2D, c: Couleurs2D, selection: string | null, autres: Boite[] = []): void {
+    this.reserves.push(...autres)
+    ctx.save()
+    this.plaque(ctx, c)
+    if (this.nomsAffiches) this.noms(ctx, c, selection)
+    ctx.restore()
+  }
+
+  /** Une place réservée à l'écran (pixels) : les noms ne s'y posent pas. */
+  reserver(b: Boite): void {
+    this.reserves.push(b)
+  }
+
+  /** Vrai si la boîte b est dans l'écran utile (hors des commandes) et ne touche rien de ce qui est réservé. */
+  private placeLibre(b: Boite, occupes: Boite[]): boolean {
+    if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < this.marges.haut || b.y1 > this.hauteur - this.marges.bas) return false
+    return !occupes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0)
+  }
+
+  /**
+   * La plaque de la capsule : numéro, capitaine et niveau, sous le chevron, sinon au-dessus, à droite, à gauche ;
+   * s'il n'y a pas la place, le numéro seul ; elle ne se pose jamais sur un autre astre ou une autre étiquette.
+   */
+  private plaque(ctx: CanvasRenderingContext2D, c: Couleurs2D): void {
+    const ici = this.capsuleIci
+    if (!ici || !this.plaqueCapsule || ici.selectionnee) return
+    ctx.font = 'bold 9.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+    // Les grands globes ne gênent pas (le texte liseré se lit dessus) ; les petits astres et engins, si.
+    const occupes = [...this.reserves, ...this.dessines.filter((d) => d.nom !== CAPSULE && d.r < 30)
+      .map((d) => ({ x0: d.x - d.r - 2, y0: d.y - d.r - 2, x1: d.x + d.r + 2, y1: d.y + d.r + 2 }))]
+    const courte = this.plaqueCapsule.split(' · ')[0]
+    for (const texte of [this.plaqueCapsule, courte]) {
+      const l = ctx.measureText(texte).width, e = ici.r + 5
+      const essais = [{ x: ici.x - l / 2, y: ici.y + e + 5 }, { x: ici.x - l / 2, y: ici.y - e - 5 }, { x: ici.x + e, y: ici.y }, { x: ici.x - e - l, y: ici.y }]
+      for (const p of essais) {
+        const b = { x0: p.x - 2, y0: p.y - 7, x1: p.x + l + 2, y1: p.y + 7 }
+        if (!this.placeLibre(b, occupes)) continue
+        this.reserves.push(b)
+        ctx.lineJoin = 'round'
+        ctx.lineWidth = 3
+        ctx.strokeStyle = c.fond
+        ctx.fillStyle = '#b4442f'
+        ctx.strokeText(texte, p.x, p.y)
+        ctx.fillText(texte, p.x, p.y)
+        return
+      }
+    }
+  }
+
   /** Noms : par ordre d'importance, sans chevauchement ; la sélection a son étiquette, on ne la nomme pas ici. */
   private noms(ctx: CanvasRenderingContext2D, c: Couleurs2D, selection: string | null): void {
     const priorite = (d: Dessine) => {
@@ -1000,7 +1058,7 @@ export class Carte2D {
         : k.type === 'lune' && k.rayon >= 100 ? 4 : k.type === 'satellite' || k.type === 'sonde' ? 5 : 6
     }
     // Le chevron de la capsule n'empêche pas un nom de se poser (vue de loin, il est collé à son astre).
-    const occupes = this.dessines.filter((d) => d.nom !== CAPSULE).map((d) => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r }))
+    const occupes = [...this.reserves, ...this.dessines.filter((d) => d.nom !== CAPSULE).map((d) => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r }))]
     ctx.font = '11px ui-monospace, "SF Mono", Menlo, Consolas, monospace'
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -1026,8 +1084,7 @@ export class Carte2D {
         { x: d.x - l / 2, y: d.y - d.r - 10 }]
       for (const p of essais) {
         const b = { x0: p.x - 2, y0: p.y - 7, x1: p.x + l + 2, y1: p.y + 7 }
-        if (b.x0 < 4 || b.x1 > this.largeur - 4 || b.y0 < 144 || b.y1 > this.hauteur - 120) continue
-        if (occupes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0)) continue
+        if (!this.placeLibre(b, occupes)) continue
         occupes.push(b)
         ctx.globalAlpha = d.alpha ?? 1
         ctx.strokeText(texte, p.x, p.y)

@@ -11,8 +11,11 @@ export const PAR_MAISON_CHOISIE = 4
 export const PAR_AUTRE_MAISON = 1
 /** Les missions de la Maison du joueur sont mieux payées : +25 % (décision d'Adrien du 18/10/2026). */
 export const BONUS_MAISON = 1.25
-/** Durée d'une action sur place (charger, livrer, nettoyer, réparer), en temps réel (ms). */
-export const DUREE_ACTION = 2 * 60_000
+/**
+ * Durée d'une action sur place sans manœuvre (charger une cargaison, rejoindre un convoi…), en temps réel (ms) : 30 s
+ * (décision d'Adrien du 21/10/2026, au lieu de 2 minutes : trop long, et ce temps ne sert à rien).
+ */
+export const DUREE_ACTION = 30_000
 
 /** Épaves à nettoyer : de vieux satellites morts, et des débris autour des engins en orbite basse. */
 export const LIEUX_NETTOYAGE = ['Envisat', 'Vanguard 1', 'Hubble', 'ISS', 'Tiangong', 'Terra', 'Landsat 9', 'Sentinel-2B', 'Fermi', 'Swift']

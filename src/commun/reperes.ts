@@ -8,6 +8,9 @@ export interface ReglagesReperes { crochet: boolean; etiquette: boolean; fleche:
 
 export interface CouleursReperes { encre: string; fond: string; accent: string }
 
+/** Un rectangle de l'écran (pixels) : ce qu'occupe une étiquette, pour que les noms de la carte l'évitent. */
+export interface Boite { x0: number; y0: number; x1: number; y1: number }
+
 const POLICE = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'
 
 /** Marges de l'écran à laisser libres : bandeau d'alertes et titre en haut, onglets et fiche de trajet en bas. */
@@ -20,7 +23,8 @@ export const MARGE_BAS = 190
  */
 export function dessinerReperes(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number, x: number, y: number,
   r: number, visible: boolean, nom: string, distance: string, reglages: ReglagesReperes, c: CouleursReperes,
-  eviter: { x: number; y: number }[] = []): void {
+  eviter: { x: number; y: number }[] = []): Boite | null {
+  let boite: Boite | null = null
   ctx.save()
   if (visible) {
     const a = Math.max(r, 3) + 5 // demi-côté du crochet
@@ -42,11 +46,12 @@ export function dessinerReperes(ctx: CanvasRenderingContext2D, largeur: number, 
       ctx.strokeStyle = c.accent
       ctx.stroke()
     }
-    if (reglages.etiquette) etiquette(ctx, largeur, hauteur, x, y, a + 3, nom, distance, c, eviter)
+    if (reglages.etiquette) boite = etiquette(ctx, largeur, hauteur, x, y, a + 3, nom, distance, c, eviter)
   } else if (reglages.fleche) {
     fleche(ctx, largeur, hauteur, x, y, nom, distance, c)
   }
   ctx.restore()
+  return boite
 }
 
 /**
@@ -55,7 +60,7 @@ export function dessinerReperes(ctx: CanvasRenderingContext2D, largeur: number, 
  * capsule) ni le bord de l'écran ; un trait fin la relie à l'astre.
  */
 function etiquette(ctx: CanvasRenderingContext2D, largeur: number, hauteur: number, x: number, y: number, ecart: number,
-  nom: string, distance: string, c: CouleursReperes, eviter: { x: number; y: number }[]): void {
+  nom: string, distance: string, c: CouleursReperes, eviter: { x: number; y: number }[]): Boite {
   ctx.font = `bold 13px ${POLICE}`
   const l1 = ctx.measureText(nom.toUpperCase()).width
   ctx.font = `12px ${POLICE}`
@@ -98,6 +103,7 @@ function etiquette(ctx: CanvasRenderingContext2D, largeur: number, hauteur: numb
   ctx.fillText(nom.toUpperCase(), bx + 8, by + 13)
   ctx.font = `12px ${POLICE}`
   ctx.fillText(distance, bx + 8, by + 29)
+  return { x0: bx, y0: by, x1: bx + l + 3, y1: by + h + 3 }
 }
 
 /** Flèche au bord de l'écran, vers l'astre hors champ, avec son nom et sa distance. */

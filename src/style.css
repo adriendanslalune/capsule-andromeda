@@ -959,7 +959,7 @@ body.nuit #marche .baisse { color: #f08a72; }
 #choix-affichage button.actif { border-style: solid; opacity: 1; box-shadow: 2px 2px 0 var(--ombre); }
 /* Le PING : grisé pendant que la radio se recharge (la jauge violette se remplit) ; les ondes palpitent tant que
    l'écho n'est pas revenu. */
-#bouton-ping .onde { stroke: #7a5aa8; stroke-width: 1.7; }
+.picto-ping .onde { stroke: #7a5aa8; stroke-width: 1.7; }
 #bouton-ping .charge { position: absolute; left: 4px; bottom: 3px; height: 3px; width: 0; border-radius: 2px; background: #7a5aa8; }
 /* Indisponible (écho attendu, ou radio qui se recharge) : grisé dès qu'on appuie, en couleurs dès qu'il est prêt. */
 #bouton-ping.attente svg, #bouton-ping.recharge svg { filter: grayscale(1); opacity: 0.4; }
@@ -1370,11 +1370,11 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 .bulle .pnj, .annuaire .pnj { margin-left: 5px; padding: 0 4px; font-size: 8.5px; font-style: normal; font-weight: bold; letter-spacing: 0.06em;
   border: 1px solid currentColor; border-radius: 3px; opacity: 0.6; vertical-align: 1px; }
 /* Le RADAR (décisions d'Adrien du 20/10/2026) : vert quand il tourne, sa jauge monte ; grisé jauge pleine. */
-#bouton-radar .ecran { fill: #e6f2e2; }
-#bouton-radar .anneau-radar { stroke-width: 1; stroke-dasharray: 1.5 2; }
-#bouton-radar .faisceau { fill: rgba(95, 179, 106, 0.45); stroke: none; }
-#bouton-radar .trait-radar { stroke: #3f8a4f; stroke-width: 1.7; }
-#bouton-radar .blip { fill: #3f8a4f; stroke: none; }
+.picto-radar .ecran { fill: #e6f2e2; }
+.picto-radar .anneau-radar { stroke-width: 1; stroke-dasharray: 1.5 2; }
+.picto-radar .faisceau { fill: rgba(95, 179, 106, 0.45); stroke: none; }
+.picto-radar .trait-radar { stroke: #3f8a4f; stroke-width: 1.7; }
+.picto-radar .blip { fill: #3f8a4f; stroke: none; }
 #bouton-radar .charge { position: absolute; left: 4px; bottom: 3px; height: 3px; width: 0; border-radius: 2px; background: #5fb36a; }
 #bouton-radar.actif { background: #cfe8c8; }
 #bouton-radar.actif svg { animation: tourner-radar 4s linear infinite; }
@@ -1503,8 +1503,8 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
   background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 
 /* Le bouton RADIO de la carte (sous le RADAR). */
-#bouton-radio .coffret { fill: #c98a5a; } #bouton-radio .haut-parleur { fill: #f3e2c2; } #bouton-radio .cadran-radio { fill: #f2c66a; }
-#bouton-radio .bouton-radio { fill: #2b2138; } #bouton-radio .grille-hp { stroke-width: 1; }
+.picto-radio .coffret { fill: #c98a5a; } .picto-radio .haut-parleur { fill: #f3e2c2; } .picto-radio .cadran-radio { fill: #f2c66a; }
+.picto-radio .bouton-radio { fill: #2b2138; } .picto-radio .grille-hp { stroke-width: 1; }
 
 /* Le poste radio (décisions d'Adrien du 20/10/2026) : un poste TSF des années 50, bois verni et cadran de verre. */
 #radio .corps { display: flex; flex-direction: column; }
@@ -1766,9 +1766,9 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #haut { left: 10px; right: 10px; top: calc(8px + env(safe-area-inset-top)); gap: 8px; }
 #console { pointer-events: auto; overflow: hidden; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
 #bandeau { background: none; border: none; border-radius: 0; box-shadow: none; }
-#bandeau .statut { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 8px; }
-#bandeau .statut > .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
-#bandeau .statut > .phase svg { width: 19px; height: 19px; }
+#bandeau .etat-capsule { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 8px; }
+#bandeau .etat-capsule > .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
+#bandeau .etat-capsule > .phase svg { width: 19px; height: 19px; }
 #bandeau .ou { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
 #bandeau .ou b { font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #bandeau .ou small { font-size: 11px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1808,7 +1808,7 @@ body.nuit #bandeau .ligne.panne b { color: #f5d38a; }
 .groupe-vue > button:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
 .groupe-vue > button[aria-expanded="true"] { background: var(--moutarde); color: #1f1b18; }
 .groupe-vue svg { width: 24px; height: 24px; overflow: visible; }
-.groupe-vue svg *, #instruments svg * { stroke: var(--encre); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; fill: none; }
+.groupe-vue svg *, .picto-instrument * { stroke: var(--encre); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; fill: none; }
 .groupe-vue .soleil { fill: #f2c66a; }
 .groupe-vue .planete { fill: #8fd0dc; }
 .groupe-vue .planete.rouge { fill: #f3a08b; }
@@ -1846,7 +1846,7 @@ body.nuit #bandeau .ligne.panne b { color: #f5d38a; }
 #instruments button:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
 #instruments svg { width: 26px; height: 26px; overflow: visible; }
 #instruments .charge { left: 6px; bottom: 4px; }
-#instruments .ping-point { fill: #7a5aa8; }
+.picto-instrument .ping-point { fill: #7a5aa8; }
 #bouton-ping.attente, #bouton-ping.recharge { background: color-mix(in srgb, var(--creme) 70%, #b8b2a8); }
 
 /* La console du bas : le compteur de vitesse (en vol), la destination, ses boutons, et la feuille de route. */
@@ -1857,9 +1857,10 @@ body.nuit #bandeau .ligne.panne b { color: #f5d38a; }
 body.avec-trajet #cadran-vitesse { bottom: auto; }
 #cadran-vitesse[hidden] { display: none; }
 #cadran-vitesse svg { position: relative; inset: auto; width: 56px; height: 56px; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
-#cadran-vitesse .phase-vitesse { top: 36px; bottom: auto; font-size: 6.5px; }
+/* La phase du vol est dans la console du haut ; dans ce petit cadran, elle débordait (Adrien, 21/10/2026). */
+#cadran-vitesse .phase-vitesse { display: none; }
 #cadran-vitesse .valeur-vitesse { position: static; margin-top: 2px; padding: 0; font-size: 10px; border: none; background: none; }
-#frise { position: relative; height: 64px; margin: 6px 16px 0; }
+#frise { position: relative; height: 64px; margin: 6px 22px 0; }
 #frise[hidden] { display: none; }
 #frise .rail { position: absolute; left: 0; right: 0; top: 22px; border-top: 2px dashed color-mix(in srgb, var(--encre) 55%, transparent); }
 #frise .fait { position: absolute; left: 0; top: 21px; border-top: 3px solid var(--encre); }
@@ -1870,7 +1871,7 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #frise .point.but i { width: 15px; height: 15px; margin-top: 2.5px; border-radius: 3px; transform: rotate(45deg); background: var(--moutarde); }
 #frise .point small { margin-top: 3px; font-size: 9.5px; line-height: 1.2; opacity: 0.85; }
 #frise .point small em { font-style: normal; font-weight: bold; }
-#frise .point:first-child { align-items: flex-start; text-align: left; transform: translateX(-7px); }
+#frise .point.debut { align-items: flex-start; text-align: left; transform: translateX(-7px); }
 #frise .point.fin { align-items: flex-end; text-align: right; transform: translateX(calc(-100% + 7px)); }
 #frise .capsule { position: absolute; top: 12px; width: 22px; height: 22px; margin-left: -11px; }
 #frise .capsule svg { width: 22px; height: 22px; overflow: visible; }
@@ -1878,3 +1879,7 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #message { bottom: calc(96px + var(--fiche, 0px) + env(safe-area-inset-bottom)); }
 /* La ligne de date, d'images par seconde et de version : dans les Réglages, plus sur la carte. */
 #reglages #infos { position: static; padding: 4px 0 8px; font-size: 11px; opacity: 0.7; text-shadow: none; }
+/* Dans les Collections, l'instrument qui sert à chercher chaque collection (demande d'Adrien du 21/10/2026). */
+.instrument-requis { display: inline-flex; align-self: flex-start; flex: none; width: max-content; height: 26px; align-items: center; gap: 5px; margin: 2px 0 4px; padding: 2px 8px 2px 4px; font-size: 10px; letter-spacing: 0.06em;
+  border: 1.5px solid var(--encre); border-radius: 12px; background: var(--creme); }
+.instrument-requis svg { width: 20px; height: 20px; overflow: visible; }

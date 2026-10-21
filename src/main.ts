@@ -91,12 +91,13 @@ import { solution, tourEnergieVu, type EtatReparation, type Resultat } from './m
 import { VoletMissions } from './commun/volet-missions'
 import { texteDateComplete, texteDuree, texteRestant } from './commun/textes'
 import { htmlFrise } from './commun/frise'
+import { INSTRUMENTS } from './commun/instruments'
 import { feuilleDeRoute } from './moteur/feuille-de-route'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
-import { dessinerReperes } from './commun/reperes'
+import { dessinerReperes, type Boite } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
 import { astreDominant, corps } from './moteur/corps'
 import { couleurAstre } from './carte/couleurs'
@@ -447,6 +448,8 @@ const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (n
 
 // Le PING des monolithes, sur la carte sous les Messages : un PING, l'écho revient à la vitesse de la lumière (on ne
 // sait pas quand).
+// Les dessins des instruments (partagés avec les Collections).
+for (const nom of ['radar', 'ping', 'radio'] as const) document.querySelector(`#bouton-${nom}`)!.insertAdjacentHTML('afterbegin', INSTRUMENTS[nom])
 const boutonPing = document.querySelector<HTMLButtonElement>('#bouton-ping')!
 const chargePing = boutonPing.querySelector<HTMLElement>('.charge')!
 let etatPingAffiche = ''
@@ -603,6 +606,11 @@ const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')
 const boutonCommuniquer = document.querySelector<HTMLButtonElement>('#bouton-communiquer')!
 const boutonAttaquer = document.querySelector<HTMLButtonElement>('#bouton-attaquer')!
 const elFrise = document.querySelector<HTMLDivElement>('#frise')!
+const onglets = document.querySelector<HTMLElement>('#onglets')!
+const instruments = document.querySelector<HTMLElement>('#instruments')!
+const hauteurEcran = () => window.innerHeight
+/** Ce que les commandes posées sur la carte cachent (pixels de l'écran) : les noms et la plaque l'évitent. */
+let zonesCommandes: Boite[] = []
 boutonCommuniquer.addEventListener('click', () => { if (selection) ouvrirMessages(`prive:${selection}`) })
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
@@ -791,6 +799,11 @@ function mettreAJourFiche(t: number): void {
   const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
   if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
+  // Ce que les commandes cachent de la carte (les noms ne s'y posent pas) : le haut, le bas, le boîtier des instruments.
+  const rHaut = document.querySelector('#haut')!.getBoundingClientRect(), rBas = (texte ? fiche : onglets).getBoundingClientRect()
+  carte.marges = { haut: rHaut.bottom + 4, bas: hauteurEcran() - rBas.top + 4 }
+  const r = instruments.getBoundingClientRect()
+  zonesCommandes = [{ x0: r.left - 4, y0: r.top - 4, x1: r.right + 4, y1: r.bottom + 4 }]
   // Les instruments se posent au-dessus de la console du bas, quelle que soit sa hauteur.
   const haut = texte ? `${fiche.offsetHeight}px` : '0px'
   if (document.body.style.getPropertyValue('--fiche') !== haut) document.body.style.setProperty('--fiche', haut)
@@ -1963,6 +1976,7 @@ function image(maintenant: number): void {
         return { alien: m.alien, fraction: Math.min(1, (t - m.lance) / (m.impact - m.lance)), decompte: `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
       }), { encre: th.encre, fond: th.halo })
     }
+    let boiteEtiquette: Boite | null = null
     // Points que l'étiquette de la destination ne doit pas cacher : le rendez-vous, la capsule.
     const eviter: { x: number; y: number }[] = []
     if (rendezVous) eviter.push(carte.ecranDe(rendezVous))
@@ -1972,9 +1986,11 @@ function image(maintenant: number): void {
       // Destination qui tourne autour d'un autre astre que celui qu'on regarde : on le précise (« Titan (Saturne) »).
       const parent = corps(selection!)?.parent
       const nom = parent && parent !== carte.systemeRegarde(t) ? `${sel.nom} (${parent})` : sel.nom
-      dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
+      boiteEtiquette = dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
         { encre: th.encre, fond: th.halo, accent }, eviter)
     }
+    // La plaque de la capsule et les noms, en dernier : là où rien d'autre n'est posé (demande d'Adrien du 21/10/2026).
+    carte.dessinerNoms(ctxPlan, { encre: th.encre, fond: th.halo }, selection, [...(boiteEtiquette ? [boiteEtiquette] : []), ...zonesCommandes])
   }
   images++
   tempsCalcul += performance.now() - debutCalcul
