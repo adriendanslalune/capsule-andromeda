@@ -265,6 +265,21 @@ export class Carte2D {
   echelleSysteme(planete: string): number {
     return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
   }
+  /**
+   * Cadre un lieu de mission (demande d'Adrien du 21/10/2026 : « VOIR » était trop loin, on ne comprenait pas où
+   * c'était) : le lieu au centre et l'astre autour duquel il tourne au bord de l'écran ; une planète en gros plan.
+   */
+  echelleLieu(nom: string, t: number): number {
+    const c = corps(nom)
+    if (!c || c.type === 'planete' || c.type === 'naine') return this.echellePlanete(nom)
+    let demi = 2e6
+    if (c.parent && c.parent !== 'Soleil') {
+      const a = projeterCorps(nom, t), b = projeterCorps(c.parent, t)
+      demi = Math.max(1.5 * Math.hypot(a.x - b.x, a.y - b.y), 4 * rayonDessine(nom))
+    }
+    return Math.max(KM_PAR_PX_MIN, demi / (this.largeur / 2))
+  }
+
   /** Gros plan sur une planète (demande d'Adrien du 21/10/2026 : en voir les détails, les anneaux de Saturne) : elle et
    *  ses anneaux occupent les quatre cinquièmes de la largeur de l'écran. */
   echellePlanete(nom: string): number {

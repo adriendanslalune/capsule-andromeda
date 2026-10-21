@@ -986,7 +986,8 @@ const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('
     const c = jeu.proposes.find((p) => p.id === id)
     if (!c) return
     cockpit.fermer()
-    choisir(c.etapes[0].lieu, true)
+    // Le lieu de près, avec l'astre autour duquel il tourne (demande d'Adrien du 21/10/2026 : on voyait trop loin).
+    choisir(c.etapes[0].lieu, false, carte.echelleLieu(c.etapes[0].lieu, horloge()))
     apercu = c
     apercuAJour = 0
   },
