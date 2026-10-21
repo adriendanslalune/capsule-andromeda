@@ -711,7 +711,7 @@ function mettreAJourFiche(t: number): void {
     if (prevision.possible) {
       const p = prevision.plan
       // La vitesse de pointe du trajet, face à la vitesse max du moteur : on voit si le moteur limite ce trajet.
-      const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse)).toLocaleString('fr-FR')
+      const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse, p.vitesseInitiale)).toLocaleString('fr-FR')
       texte = `<b class="destination">${selection.toUpperCase()}</b><span class="vals">${avec('duree', texteDuree(p.arrivee - p.depart))}`
         + `${avec('arrivee', texteArrivee(p.arrivee, t))}${avec('vitesse', `${pointe}/${dv}`)}</span>`
       depart = true
@@ -1136,11 +1136,8 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
   // La belle fenêtre « Nouveau moteur » (demande d'Adrien du 18/10/2026) : elle confirme, puis montre l'installation.
   ouvrirFenetreMoteur(jeu.moteur(), m, () => {
     if (!jeu.acheterMoteur()) return false
-    enregistrerPartie()
-    voletMissions.oublierDurees()
-    planAJour = 0
-    apercuAJour = 0
-    voletCapsule.afficher(jeu)
+    // En route, le trajet se recalcule aussitôt à la nouvelle vitesse (demande d'Adrien du 21/10/2026).
+    apresChangementDePanne()
     return true
   })
 }, (m) => {
@@ -1605,14 +1602,16 @@ function combattre(alien: string): void {
     },
   })
 }
-/** Après une panne ou une réparation : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */
+/** Après une panne, une réparation ou un nouveau moteur : sauvegarde, et les trajets prévus se recalculent (vitesse, navigation). */
 function apresChangementDePanne(): void {
-  // En route, le trajet suit la vitesse du moteur : ralenti de moitié tant qu'il est en panne, et de nouveau à pleine
-  // vitesse une fois réparé (décision d'Adrien : un impact ralentit le trajet de 50 % jusqu'à réparation).
+  // En route, le trajet suit la vitesse du moteur : ralenti de moitié tant qu'il est en panne, de nouveau à pleine
+  // vitesse une fois réparé (décision d'Adrien : un impact ralentit le trajet de 50 % jusqu'à réparation), et plus vite
+  // avec un nouveau moteur (demande d'Adrien du 21/10/2026).
   const t = horloge()
   const plan = mission.phase(t) === 'trajet' ? mission.plan : null
   if (plan && plan.vitesse !== vitesse() && jeu.peutNaviguer()) {
-    const p = planifier(mission.etatHeliocentrique(t), plan.cible, t, vitesse())
+    // Le nouveau trajet repart de la vitesse du moment (pas d'arrêt net en plein vol).
+    const p = planifier(mission.etatHeliocentrique(t), plan.cible, t, vitesse(), vitesseEnVol(plan, t).vitesse)
     if (p.possible) partir(p.plan, t)
   }
   enregistrerPartie()

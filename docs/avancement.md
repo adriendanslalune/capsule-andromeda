@@ -65,6 +65,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
     (`VOL_MAX_DEBUT`, `contexte(..., porteeKm)`) ; les contrats proposés plus loin sont remplacés ; testé.
   - Fenêtre du nouveau moteur : l'essai du cadran à l'installation, piloté image par image (il se joue même si le
     téléphone réduit les animations), puis EN ROUTE !
+  - Nouveau moteur en plein vol : le trajet se recalcule aussitôt (`apresChangementDePanne` après l'achat) et repart
+    de la vitesse du moment (`vitesseInitiale` du plan, `planifier(..., lance)`, profils `dureeTrajet`, `avancement`,
+    `vitesseEnVol` avec v0) ; vaut aussi pour la panne et la réparation du Moteur ; testé.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

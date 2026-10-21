@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { corps, position } from '../src/moteur/corps'
-import { avancement, contourner, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, type Plan } from '../src/moteur/mission'
+import { avancement, contourner, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, vitesseEnVol, type Plan } from '../src/moteur/mission'
 import { acceleration, DUREE_ACCELERATION } from '../src/donnees/capsule'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
@@ -197,4 +197,32 @@ describe('durées selon la puissance (pour choisir le réglage)', () => {
     }
     console.log(`vitesse  ${vitesses.map((b) => `${b} km/s`.padStart(9)).join('')}\n${lignes.join('\n')}`)
   }, 60_000)
+
+  it('un trajet recalculé en route (nouveau moteur) repart de la vitesse du moment, sans arrêt net (demande d’Adrien du 21/10/2026)', () => {
+    // Sans vitesse initiale : la formule d'avant.
+    expect(dureeTrajet(1e6, 30, 0)).toBeCloseTo(dureeTrajet(1e6, 30), 6)
+    // Lancé à 30 km/s avec un moteur à 60 km/s : plus court qu'à l'arrêt, plus court qu'à 30 km/s.
+    expect(dureeTrajet(1e6, 60, 30)).toBeLessThan(dureeTrajet(1e6, 60))
+    expect(dureeTrajet(1e6, 60, 30)).toBeLessThan(dureeTrajet(1e6, 30))
+    const t0 = Date.UTC(2026, 9, 21, 12)
+    const jeu = new Mission()
+    const p = planifier(jeu.etatHeliocentrique(t0), 'Lune', t0, 60, 30)
+    expect(p.possible).toBe(true)
+    if (!p.possible) return
+    expect(p.plan.vitesseInitiale).toBe(30)
+    expect(vitesseEnVol(p.plan, t0).vitesse).toBeCloseTo(30, 6)
+    expect(vitesseEnVol(p.plan, t0 + 30_000).vitesse).toBeCloseTo(45, 4) // de 0 à 60 en 2 minutes : +0,5 km/s par seconde
+    // L'avancement va de 0 à 1 sans à-coup, et la vitesse affichée colle à la distance parcourue.
+    const T = p.plan.arrivee - p.plan.depart
+    let avant = 0
+    for (let k = 1; k <= 200; k++) {
+      const f = avancement(p.plan, t0 + (k / 200) * T)
+      expect(f).toBeGreaterThanOrEqual(avant - 1e-12)
+      avant = f
+    }
+    expect(avancement(p.plan, p.plan.arrivee)).toBeCloseTo(1, 9)
+    // Un moteur plus lent (panne) : on ne repart jamais plus vite que lui.
+    const lent = planifier(jeu.etatHeliocentrique(t0), 'Lune', t0, 15, 30)
+    expect(lent.possible && lent.plan.vitesseInitiale).toBe(15)
+  })
 })

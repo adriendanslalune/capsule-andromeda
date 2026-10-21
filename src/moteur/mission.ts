@@ -45,6 +45,11 @@ export interface Plan {
   arrivee: number
   /** Vitesse maximale du moteur (km/s) ; la capsule ne l'atteint que si le trajet est assez long. */
   vitesse: number
+  /**
+   * Vitesse de la capsule au départ (km/s ; absente : à l'arrêt). Un trajet recalculé en route (nouveau moteur, panne,
+   * réparation) repart de la vitesse du moment, au plus la vitesse max du moteur.
+   */
+  vitesseInitiale?: number
   /** Points clés (départ, sortie du système de départ, entrée dans celui d'arrivée, arrivée) : pour le dessin. */
   cles: PointDePassage[]
   /** Tous les points du trajet, avec les arcs de contournement. */
@@ -192,15 +197,21 @@ export function positionsDesPoints(points: PointDePassage[], t: number): Vecteur
   return points.map((p) => positionDuPoint(p, t))
 }
 
-/** Durée (s) d'un trajet de longueur L (km) avec un moteur de vitesse maximale v (km/s), à l'arrêt au départ et à l'arrivée. */
-export function dureeTrajet(L: number, v: number): number {
+/**
+ * Durée (s) d'un trajet de longueur L (km) avec un moteur de vitesse maximale v (km/s), à l'arrêt à l'arrivée ; au
+ * départ, à l'arrêt ou lancé à la vitesse v0 (au plus v).
+ */
+export function dureeTrajet(L: number, v: number, v0 = 0): number {
   const a = acceleration(v)
-  return L >= (v * v) / a ? L / v + v / a : 2 * Math.sqrt(L / a)
+  const pleine = (2 * v * v - v0 * v0) / (2 * a)
+  if (L >= pleine) return (v - v0) / a + v / a + (L - pleine) / v
+  const vp = Math.max(v0, Math.sqrt((2 * a * L + v0 * v0) / 2))
+  return (vp - v0) / a + vp / a
 }
 
 /** Vitesse de pointe (km/s) d'un trajet de durée T (s) : la vitesse maximale du moteur, ou moins si le trajet est court. */
-export function vitesseDePointe(T: number, v: number): number {
-  return Math.min(v, (acceleration(v) * T) / 2)
+export function vitesseDePointe(T: number, v: number, v0 = 0): number {
+  return Math.min(v, Math.max(v0, (acceleration(v) * T + v0) / 2))
 }
 
 /** Part du trajet parcourue à l'instant t (0 au départ, 1 à l'arrivée) : accélération, croisière, freinage. */
@@ -208,11 +219,15 @@ export function avancement(p: Plan, t: number): number {
   const T = (p.arrivee - p.depart) / 1000
   const s = Math.min(T, Math.max(0, (t - p.depart) / 1000))
   if (T <= 0) return 1
-  // Le profil des vitesses : un trapèze (ou un triangle) de pente ±a et de hauteur la vitesse de pointe.
-  const a = acceleration(p.vitesse), v = vitesseDePointe(T, p.vitesse), ta = v / a, L = v * (T - ta)
-  if (s < ta) return (a * s * s) / 2 / L
-  if (s > T - ta) return 1 - (a * (T - s) * (T - s)) / 2 / L
-  return (v * ta / 2 + v * (s - ta)) / L
+  // Le profil des vitesses : un trapèze (ou un triangle) de pente ±a et de hauteur la vitesse de pointe, qui part de
+  // la vitesse initiale.
+  const v0 = p.vitesseInitiale ?? 0
+  const a = acceleration(p.vitesse), v = vitesseDePointe(T, p.vitesse, v0), ta = (v - v0) / a, tf = v / a
+  const montee = (v * v - v0 * v0) / (2 * a), L = montee + (v * v) / (2 * a) + v * Math.max(0, T - ta - tf)
+  if (L <= 0) return s / T
+  if (s < ta) return (v0 * s + (a * s * s) / 2) / L
+  if (s > T - tf) return Math.min(1, 1 - (a * (T - s) * (T - s)) / 2 / L)
+  return (montee + v * (s - ta)) / L
 }
 
 /**
@@ -221,11 +236,12 @@ export function avancement(p: Plan, t: number): number {
  */
 export function vitesseEnVol(p: Plan, t: number): { vitesse: number; pointe: number; phase: 'accelere' | 'croisiere' | 'freine' | 'arrivee' } {
   const T = (p.arrivee - p.depart) / 1000, s = (t - p.depart) / 1000
-  const a = acceleration(p.vitesse), v = vitesseDePointe(Math.max(0, T), p.vitesse), ta = v / a
+  const v0 = p.vitesseInitiale ?? 0
+  const a = acceleration(p.vitesse), v = vitesseDePointe(Math.max(0, T), p.vitesse, v0), ta = (v - v0) / a, tf = v / a
   if (T <= 0 || s >= T) return { vitesse: 0, pointe: v, phase: 'arrivee' }
   const x = Math.max(0, s)
-  if (x < ta) return { vitesse: a * x, pointe: v, phase: 'accelere' }
-  if (x > T - ta) return { vitesse: a * (T - x), pointe: v, phase: 'freine' }
+  if (x < ta) return { vitesse: v0 + a * x, pointe: v, phase: 'accelere' }
+  if (x > T - tf) return { vitesse: a * (T - x), pointe: v, phase: 'freine' }
   return { vitesse: v, pointe: v, phase: 'croisiere' }
 }
 
@@ -253,7 +269,9 @@ export function etatSurTrajet(p: Plan, t: number): { r: Vecteur3; v: Vecteur3 } 
  * Trajet de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, avec un moteur de vitesse
  * maximale donnée (km/s). Impossible si la destination s'enfuit plus vite que la capsule.
  */
-export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, vitesse: number): Planification {
+export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, vitesse: number, lance = 0): Planification {
+  // Déjà lancé (un trajet recalculé en route) : on repart de cette vitesse, au plus la vitesse max du moteur.
+  const v0 = Math.min(lance, vitesse)
   const D = astreDominant(depart.r, t0)
   const premier: PointDePassage = { ancre: D, rel: moins(depart.r, positionAncre(D, t0)) }
   /** Durée nécessaire (s) pour un trajet qui arrive après une durée T (s) : la longueur dépend du rendez-vous. */
@@ -261,7 +279,7 @@ export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t
     const t1 = t0 + T * 1000
     const c = construire(premier, t0, cible, t1)
     const L = (longueur(positionsDesPoints(c.points, t0)) + longueur(positionsDesPoints(c.points, t1))) / 2
-    return { t1, c, besoin: dureeTrajet(L, vitesse) }
+    return { t1, c, besoin: dureeTrajet(L, vitesse, v0) }
   }
   // Durées essayées : de 1 seconde à 300 ans, en progression géométrique ; la première assez longue, puis on affine.
   const N = 200, dMin = 1, dMax = 300 * 365.25 * 86_400
@@ -278,7 +296,7 @@ export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t
     const { t1, c } = essai(long)
     return {
       possible: true,
-      plan: { cible, depart: t0, arrivee: t1, vitesse, cles: c.cles, points: c.points,
+      plan: { cible, depart: t0, arrivee: t1, vitesse, ...(v0 > 0 ? { vitesseInitiale: v0 } : {}), cles: c.cles, points: c.points,
         vitesseDepart: moins(depart.v, vitesseAncre(D, t0)), rendezVous: c.rendezVous },
     }
   }
