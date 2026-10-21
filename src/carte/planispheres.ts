@@ -7,26 +7,26 @@
 import { TERRES } from '../donnees/terres'
 
 export const L = 1024, H = 512
-const ENCRE = '#2b2138'
-const RAD = Math.PI / 180
+export const ENCRE = '#2b2138'
+export const RAD = Math.PI / 180
 
-type Contexte = CanvasRenderingContext2D
-const x = (lon: number) => ((lon + 180) / 360) * L
-const y = (lat: number) => ((90 - lat) / 180) * H
+export type Contexte = CanvasRenderingContext2D
+export const x = (lon: number) => ((lon + 180) / 360) * L
+export const y = (lat: number) => ((90 - lat) / 180) * H
 
 /** Hasard reproductible (un planisphère est toujours dessiné pareil). */
-function hasard(graine: number): () => number {
+export function hasard(graine: number): () => number {
   let a = graine
   return () => { a = (a * 1103515245 + 12345) & 0x7fffffff; return a / 0x7fffffff }
 }
 
 /** Dessine trois fois (décalé d'un tour à gauche et à droite) : une forme à cheval sur le bord du planisphère. */
-function partout(c: Contexte, f: () => void): void {
+export function partout(c: Contexte, f: () => void): void {
   for (const d of [-L, 0, L]) { c.save(); c.translate(d, 0); f(); c.restore() }
 }
 
 /** Une ellipse « vraie » sur l'astre (centre lon/lat, rayons en degrés), étirée en longitude comme sur un planisphère. */
-function tache(c: Contexte, lon: number, lat: number, rLon: number, rLat: number, remplissage: string | null, encre = 0, couleurEncre = ENCRE): void {
+export function tache(c: Contexte, lon: number, lat: number, rLon: number, rLat: number, remplissage: string | null, encre = 0, couleurEncre = ENCRE): void {
   partout(c, () => {
     c.beginPath()
     c.ellipse(x(lon), y(lat), Math.min(L / 2, (rLon / 360) * L / Math.max(0.15, Math.cos(lat * RAD))), (rLat / 180) * H, 0, 0, 2 * Math.PI)
@@ -36,7 +36,7 @@ function tache(c: Contexte, lon: number, lat: number, rLon: number, rLat: number
 }
 
 /** Un contour (liste de [lon, lat]) en aplat, cerné d'encre. */
-function contour(c: Contexte, points: [number, number][], remplissage: string, encre = 1.2): void {
+export function contour(c: Contexte, points: [number, number][], remplissage: string, encre = 1.2): void {
   partout(c, () => {
     c.beginPath()
     points.forEach(([lo, la], k) => (k ? c.lineTo(x(lo), y(la)) : c.moveTo(x(lo), y(la))))
@@ -48,7 +48,7 @@ function contour(c: Contexte, points: [number, number][], remplissage: string, e
 }
 
 /** Une bande de latitude (lat0 > lat1), aux bords ondulés (amplitude en degrés). */
-function bande(c: Contexte, lat0: number, lat1: number, couleur: string, amplitude: number, phase: number, encre = 1): void {
+export function bande(c: Contexte, lat0: number, lat1: number, couleur: string, amplitude: number, phase: number, encre = 1): void {
   const bord = (lat: number, p: number) => (lon: number) => y(lat + amplitude * Math.sin(lon * 3 * RAD + p) + 0.4 * amplitude * Math.sin(lon * 11 * RAD + 2 * p))
   const haut = bord(lat0, phase), bas = bord(lat1, phase + 1.7)
   c.beginPath()
@@ -65,7 +65,7 @@ function bande(c: Contexte, lat0: number, lat1: number, couleur: string, amplitu
 }
 
 /** Une ligne ondulée sur toute la longueur (houle, voile de nuages). */
-function ondulation(c: Contexte, lat: number, amplitude: number, periode: number, couleur: string, largeur: number, phase = 0): void {
+export function ondulation(c: Contexte, lat: number, amplitude: number, periode: number, couleur: string, largeur: number, phase = 0): void {
   c.beginPath()
   for (let u = 0; u <= L; u += 6) { const v = y(lat) + amplitude * Math.sin(u / periode + phase); if (u) c.lineTo(u, v); else c.moveTo(u, v) }
   c.lineWidth = largeur
@@ -74,7 +74,7 @@ function ondulation(c: Contexte, lat: number, amplitude: number, periode: number
 }
 
 /** Des cratères (cercles à l'encre, parfois un piton central), répartis au hasard. */
-function crateres(c: Contexte, n: number, graine: number, rMin: number, rMax: number, fond: string | null, sauf?: (lon: number, lat: number) => boolean): void {
+export function crateres(c: Contexte, n: number, graine: number, rMin: number, rMax: number, fond: string | null, sauf?: (lon: number, lat: number) => boolean): void {
   const h = hasard(graine)
   for (let k = 0; k < n; k++) {
     const lon = -180 + 360 * h(), lat = Math.asin(2 * h() - 1) / RAD, r = rMin + (rMax - rMin) * h() ** 2
@@ -85,7 +85,7 @@ function crateres(c: Contexte, n: number, graine: number, rMin: number, rMax: nu
 }
 
 /** Des écharpes de nuages blancs, cernées de gris. */
-function nuages(c: Contexte, n: number, graine: number, latMin: number, latMax: number, blanc = '#f7f4ee', gris = '#9aa7b8'): void {
+export function nuages(c: Contexte, n: number, graine: number, latMin: number, latMax: number, blanc = '#f7f4ee', gris = '#9aa7b8'): void {
   const h = hasard(graine)
   c.lineCap = 'round'
   for (let k = 0; k < n; k++) {

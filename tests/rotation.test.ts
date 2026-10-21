@@ -27,7 +27,7 @@ describe('les autres astres qui tournent (demande d’Adrien du 21/10/2026)', ()
     expect(((a - b) % 360 + 360) % 360).toBeCloseTo(36.27, 1)
     const v1 = orientation('Vénus', t)!.lon, v2 = orientation('Vénus', t + 3_600_000)!.lon
     expect(((v2 - v1) % 360 + 360) % 360).toBeCloseTo(3.75, 1)
-    expect(orientation('Io', t)).toBeNull()
+    expect(orientation('ISS', t)).toBeNull()
     expect(orientation('Terre', t)).toEqual(pointSubsolaire(t))
   })
 
@@ -46,5 +46,16 @@ describe('la Lune qui tourne (demande d’Adrien du 21/10/2026)', () => {
     // Pleine lune du 26 octobre 2026 (4 h 12 UTC), nouvelle lune du 10 octobre 2026 (15 h 50 UTC).
     expect(Math.abs(orientation('Lune', Date.UTC(2026, 9, 26, 4, 12))!.lon)).toBeLessThan(10)
     expect(Math.abs(orientation('Lune', Date.UTC(2026, 9, 10, 15, 50))!.lon)).toBeGreaterThan(170)
+  })
+})
+
+describe('toutes les lunes tournent (demande d’Adrien du 21/10/2026)', () => {
+  it('chaque lune a son orientation ; celles d’Uranus ont la saison d’Uranus', async () => {
+    const { orientation } = await import('../src/moteur/rotation')
+    const { CORPS } = await import('../src/moteur/corps')
+    const t = Date.UTC(2026, 9, 21, 12)
+    for (const c of CORPS.filter((x) => x.type === 'lune')) expect(orientation(c.nom, t), c.nom).not.toBeNull()
+    expect(orientation('Titania', t)!.lat).toBeCloseTo(orientation('Uranus', t)!.lat, 6)
+    expect(orientation('Io', t)!.lat).toBeCloseTo(orientation('Jupiter', t)!.lat, 6)
   })
 })

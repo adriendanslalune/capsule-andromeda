@@ -26,7 +26,7 @@ const ASPECTS_LUNES: Record<string, { fond: string; taches: string; crateres: nu
   Triton: { fond: '#e2c6b8', taches: '#b08f84', crateres: 0.2 },
   Mimas: { fond: '#c2bdb4', taches: '#857f78', crateres: 1.4 },
   Rhéa: { fond: '#cfcac1', taches: '#938e87', crateres: 1.2 },
-  Dioné: { fond: '#d5d1ca', taches: '#9d9891', crateres: 1 },
+  Dione: { fond: '#d5d1ca', taches: '#9d9891', crateres: 1 },
   Téthys: { fond: '#dcdad4', taches: '#a19e98', crateres: 1 },
   Phobos: { fond: '#7a6a5a', taches: '#4a3e34', crateres: 1.4 },
   Deimos: { fond: '#9a8670', taches: '#655748', crateres: 0.8 },
@@ -49,6 +49,14 @@ function hsl(h: number, s: number, l: number): string {
     return Math.round(c * 255).toString(16).padStart(2, '0')
   }
   return `#${f(0)}${f(8)}${f(4)}`
+}
+
+/** L'aspect d'une lune (pour son planisphère) : connu, ou tiré de son nom (une couleur, des taches plus sombres). */
+export function aspectLune(nom: string): { fond: string; taches: string; crateres: number } {
+  const connu = ASPECTS_LUNES[nom]
+  if (connu) return connu
+  const g = hachage(nom), fond = couleurLune(nom)
+  return { fond, taches: hsl(0.05 + 0.07 * g, 0.18 + 0.25 * ((g * 3) % 1), 0.3 + 0.2 * ((g * 7) % 1)), crateres: 0.6 + ((g * 13) % 1) }
 }
 
 /** Couleur d'une lune : connue, ou tirée de son nom (ocres, beiges, gris chauds, quelques roux). */

@@ -125,6 +125,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
     `src/carte/globes.ts`), avec l'ombre de la planète dessus.
   - La Lune tourne : `orientation('Lune')` (ses phases, testé : pleine lune le 26/10/2026, nouvelle lune le 10/10) et
     son planisphère (mers de la face visible, face cachée criblée, Pôle Sud-Aitken, Tycho et Copernic).
+- Toutes les lunes tournent (demande d'Adrien du 21/10/2026) — **fait, en attente de ses essais** : `orientation`
+  pour toute lune (même face vers sa planète, phases, saison de la planète ; testé) ; `src/carte/planispheres-lunes.ts`
+  (une vingtaine de grandes lunes dessinées d'après leurs grands traits, les autres tirées de leur nom, `aspectLune`
+  dans `src/carte/couleurs.ts`). Les planisphères se préparent un par un quand le téléphone ne fait rien (le simple
+  disque en attendant) ; une douzaine gardés au plus.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

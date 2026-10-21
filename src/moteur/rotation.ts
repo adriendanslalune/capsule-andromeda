@@ -2,7 +2,7 @@
 // subsolaire). La carte enroule le planisphère sur le globe pour que la face éclairée soit la vraie : à minuit à Paris,
 // l'Europe est dans la nuit. Formules simplifiées de l'almanach (précises à quelques dixièmes de degré).
 
-import { position } from './corps'
+import { corps, position } from './corps'
 
 const RAD = Math.PI / 180
 
@@ -43,17 +43,21 @@ export const ROTATIONS: Readonly<Record<string, { jour: number; obliquite: numbe
 
 /**
  * Le point subsolaire d'un astre qui tourne à l'instant t (latitude, longitude en degrés), ou null s'il ne tourne pas
- * dans le jeu. La Terre : le vrai (pointSubsolaire) ; la Lune : d'après ses phases ; les autres : sa longitude tourne avec leur jour solaire (depuis
+ * dans le jeu. La Terre : le vrai (pointSubsolaire) ; les lunes : d'après leurs phases ; les autres : sa longitude tourne avec leur jour solaire (depuis
  * le 1er janvier 2000), sa latitude suit leur saison.
  */
 export function orientation(nom: string, t: number): { lat: number; lon: number } | null {
   if (nom === 'Terre') return pointSubsolaire(t)
-  // La Lune montre toujours la même face à la Terre (sa longitude 0 regarde la Terre) : le Soleil fait ses phases.
-  // Pleine lune : le Soleil est derrière la Terre, la face visible est éclairée (longitude 0) ; nouvelle lune : 180°.
-  if (nom === 'Lune') {
-    const m = position('Lune', t), e = position('Terre', t)
-    const versTerre = Math.atan2(e.y - m.y, e.x - m.x), versSoleil = Math.atan2(-m.y, -m.x)
-    return { lat: 0, lon: ((((versSoleil - versTerre) / RAD) % 360) + 540) % 360 - 180 }
+  // Les lunes (demandes d'Adrien du 21/10/2026) montrent toujours la même face à leur planète (leur longitude 0 la
+  // regarde) : le Soleil fait leurs phases. Pleine lune : le Soleil est derrière la planète, la face tournée vers elle
+  // est éclairée (longitude 0) ; nouvelle lune : 180°. Leur saison : celle de leur planète (elles tournent dans le plan
+  // de son équateur).
+  const c = corps(nom)
+  if (c?.type === 'lune' && c.parent) {
+    const m = position(nom, t), e = position(c.parent, t)
+    const versPlanete = Math.atan2(e.y - m.y, e.x - m.x), versSoleil = Math.atan2(-m.y, -m.x)
+    const lat = ROTATIONS[c.parent] ? orientation(c.parent, t)!.lat : 0
+    return { lat, lon: ((((versSoleil - versPlanete) / RAD) % 360) + 540) % 360 - 180 }
   }
   const r = ROTATIONS[nom]
   if (!r) return null

@@ -568,6 +568,7 @@ const FICHES: Record<string, Fiche> = {
 
 /** Un astre a-t-il son illustration ? */
 export function aUneIllustration(nom: string): boolean {
+  if (tourne(nom)) return true
   return nom in FICHES
 }
 
@@ -634,23 +635,25 @@ function preparerVoisins(nom: string, rp: number, angle: number | null, e: numbe
 
 /**
  * Dessine l'astre illustré centré en (x, y), disque de rayon r (pixels). versSoleil : direction du Soleil à l'écran
- * (radians), pour la face de nuit ; null pour le Soleil. gris : un astre pas encore visité.
+ * (radians), pour la face de nuit ; null pour le Soleil. gris : un astre pas encore visité. Renvoie faux s'il n'a pas
+ * pu être dessiné (un globe pas encore prêt) : la carte dessine alors le simple disque.
  * Le dessin est fait une fois par palier de taille (×2), puis seulement réduit : redessiner la Terre à chaque image,
  * puis à chaque cran du zoom, faisait ramer le téléphone d'Adrien (21/10/2026). Les paliers voisins se préparent
  * quand le téléphone n'a rien d'autre à faire.
  */
 export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,
-  versSoleil: number | null, gris = false, t?: number): void {
-  if (!FICHES[nom]) return
+  versSoleil: number | null, gris = false, t?: number): boolean {
+  if (!FICHES[nom] && !tourne(nom)) return false
   const e = finesse(ctx.getTransform().a || 1)
   const rp = palier(nom, r, e)
   // Les astres qui tournent, en temps réel (demandes d'Adrien du 21/10/2026) : leur globe, avec la vraie face éclairée.
   if (tourne(nom) && t !== undefined && versSoleil !== null) {
-    dessinerGlobe(ctx, nom, x, y, r, versSoleil, t, Math.round(2 * rp * e), gris)
+    if (!dessinerGlobe(ctx, nom, x, y, r, versSoleil, t, Math.round(2 * rp * e), gris)) return false
     preparerGlobe(nom, Math.round(2 * palier(nom, rp * 2, e) * e), t)
     preparerGlobe(nom, Math.round(rp * e), t)
-    return
+    return true
   }
+  if (!FICHES[nom]) return false
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
   const cle = `${nom}|${rp}|${angle}|${gris}`
   let toile = DEJA_DESSINES.get(cle)
@@ -660,6 +663,7 @@ export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string
   preparerVoisins(nom, rp, angle, e, gris)
   const ext = ETENDUE[nom] ?? 1.08
   ctx.drawImage(toile, x - r * ext, y - r * ext, 2 * r * ext, 2 * r * ext)
+  return true
 }
 
 function dessinerDirect(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,

@@ -9,7 +9,9 @@
 // planisphère, au demi-degré.
 
 import { orientation } from '../moteur/rotation'
-import { H, L, PLANISPHERES } from './planispheres'
+import { corps } from '../moteur/corps'
+import { H, L, PLANISPHERES, type Contexte } from './planispheres'
+import { planisphereLune } from './planispheres-lunes'
 
 /** L'encre de la carte (la même que celle des astres illustrés). */
 const ENCRE = '#2b2138'
@@ -19,8 +21,13 @@ const RAD = Math.PI / 180
 const OMBRE = [0x54, 0x43, 0x7a]
 const ENCRE_RVB = [0x2b, 0x21, 0x38]
 
+/** Le planisphère d'un astre qui tourne (les planètes et Pluton, toutes les lunes), ou null. */
+function planispherePour(nom: string): ((c: Contexte) => void) | null {
+  return PLANISPHERES[nom] ?? (corps(nom)?.type === 'lune' ? planisphereLune(nom) : null)
+}
+
 /** Un astre tourne-t-il (a-t-il son planisphère) ? */
-export const tourne = (nom: string) => !!PLANISPHERES[nom]
+export const tourne = (nom: string) => !!PLANISPHERES[nom] || corps(nom)?.type === 'lune'
 
 /** Les planisphères déjà dessinés (en couleurs, et en gris pour un astre pas encore visité). */
 const planispheres = new Map<string, Uint8ClampedArray>()
@@ -36,11 +43,40 @@ function planisphere(nom: string, gris: boolean): Uint8ClampedArray {
     toile.width = L
     toile.height = H
     const c = toile.getContext('2d')!
-    PLANISPHERES[nom](c)
+    planispherePour(nom)!(c)
     p = c.getImageData(0, 0, L, H).data
   }
+  // Au plus une douzaine de planisphères gardés (2 Mo chacun) ; la Terre reste.
+  for (const k of planispheres.keys()) { if (planispheres.size < 12) break; if (!k.startsWith('Terre|')) planispheres.delete(k) }
   planispheres.set(cle, p)
   return p
+}
+
+/**
+ * Le planisphère d'un astre est-il prêt ? Sinon, on le prépare quand le téléphone n'a rien à faire, un à la fois (en
+ * zoomant sur Saturne, sept lunes apparaissent d'un coup : les dessiner toutes à la fois ferait un à-coup) ; en
+ * attendant, la carte dessine le simple disque.
+ */
+const aPreparer: string[] = []
+let preparationEnCours = false
+function planispherePret(nom: string, gris: boolean): boolean {
+  if (planispheres.has(`${nom}|${gris}`)) return true
+  const cle = `${nom}|${gris}`
+  if (!aPreparer.includes(cle)) aPreparer.push(cle)
+  if (!preparationEnCours) {
+    preparationEnCours = true
+    const suivant = () => {
+      const k = aPreparer.shift()
+      if (!k) { preparationEnCours = false; return }
+      const [n, g] = k.split('|')
+      planisphere(n, g === 'true')
+      if ('requestIdleCallback' in window) requestIdleCallback(suivant, { timeout: 500 })
+      else setTimeout(suivant, 50)
+    }
+    if ('requestIdleCallback' in window) requestIdleCallback(suivant, { timeout: 500 })
+    else setTimeout(suivant, 50)
+  }
+  return false
 }
 
 /** La géométrie d'un globe de D pixels de côté : pour chaque pixel du disque, sa place sur le planisphère et sa lumière. */
@@ -174,10 +210,12 @@ function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, 
 
 /**
  * Dessine l'astre qui tourne, centré en (x, y), de rayon r (pixels). versSoleil : direction du Soleil à l'écran.
- * D : la taille du dessin (un palier, pour ne pas le refaire à chaque zoom). gris : pas encore visité.
+ * D : la taille du dessin (un palier, pour ne pas le refaire à chaque zoom). gris : pas encore visité. Renvoie faux si
+ * son planisphère n'est pas encore prêt (rien n'est dessiné : la carte dessine le simple disque en attendant).
  */
 export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number, versSoleil: number,
-  t: number, D: number, gris: boolean): void {
+  t: number, D: number, gris: boolean): boolean {
+  if (!planispherePret(nom, gris)) return false
   const s = orientation(nom, t)!
   // Le Nord toujours à peu près en haut : le Soleil à droite de l'écran, on regarde l'astre avec le Soleil sur son
   // bord droit (le centre de la vue 90° à l'ouest du point subsolaire) ; à gauche, sur son bord gauche.
@@ -204,6 +242,7 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.strokeStyle = ENCRE
   ctx.stroke()
   ctx.restore()
+  return true
 }
 
 /** L'épaisseur du contour d'un astre : un trait fin (demande d'Adrien du 21/10/2026 : plus de gros contour noir). */
