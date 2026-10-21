@@ -333,7 +333,7 @@ function sectionSymboles(): string {
 /** Le texte du manuel (HTML), avec un bouton pour revenir au panneau de réparation. */
 export function htmlManuel(): string {
   return `
-  <button type="button" class="vers-panneau" data-choix="panneau">⚙ PANNEAU DE RÉPARATION</button>
+  <button type="button" class="vers-panneau" data-choix="panneau">‹ ⚙ PANNEAU DE RÉPARATION</button>
   ${feuille('CA-MM', 'SOMMAIRE', '0-1', `
     <h3>Sommaire</h3>
     <table class="sommaire">

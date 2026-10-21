@@ -32,13 +32,14 @@ import { VueInvitation } from './commun/vue-invitation'
 import { VueDialogue } from './commun/vue-dialogue'
 import { htmlJournal } from './commun/volet-journal'
 import { htmlBoutique } from './commun/volet-boutique'
+import { confirmer } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
 import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
-import { alienLa, intercepterMissile, surLaCarte, vaincre } from './moteur/espace'
+import { alienLa, intercepterMissile, surLaCarte } from './moteur/espace'
 import { angleRadar, basculerRadar, echoRadar, EFFACEMENT_RADAR, jaugeRadar, PORTEE_RADAR } from './moteur/radar'
 import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
@@ -897,10 +898,12 @@ const voletMissions = new VoletMissions(document.querySelector<HTMLDivElement>('
   allerA: (lieu) => { cockpit.fermer(); choisir(lieu, true); proposee = true; planAJour = 0 },
   agir: agirMission,
   abandonner: () => {
-    if (!confirm('Abandonner le contrat en cours ?')) return
-    jeu.abandonner()
-    enregistrerPartie()
-    dernierVolet = 0
+    void confirmer({ titre: 'Abandonner ?', texte: 'Tu abandonnes le contrat en cours. Il ne te rapportera rien.', oui: 'ABANDONNER', grave: true }).then((oui) => {
+      if (!oui) return
+      jeu.abandonner()
+      enregistrerPartie()
+      dernierVolet = 0
+    })
   },
 })
 /** Fait avancer les missions (actions finies, récompenses) et prévient le joueur. */
@@ -1043,10 +1046,16 @@ const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#c
 }, (m) => montrerReparation(m), (m) => {
   // Le dépanneur (décision d'Adrien du 20/10/2026) : la moitié des crédits, après confirmation.
   const titre = MODULES.find((f) => f.nom === m)!.titre, prix = jeu.prixDepanneur()
-  if (!confirm(`Le dépanneur répare le bloc ${titre} tout de suite, pour ${prix ? `${prix.toLocaleString('fr-FR')} crédits (la moitié de tes crédits)` : 'rien (tu n\'as pas de crédits)'}. D'accord ?`)) return
-  jeu.appelerDepanneur(m)
-  apresChangementDePanne()
-  annoncer(`Le dépanneur a réparé le bloc ${titre}`)
+  void confirmer({
+    titre: 'Le dépanneur',
+    texte: [`Un dépanneur des Ingénieurs répare le bloc ${titre} tout de suite.`, prix ? `Il prend la moitié de tes crédits : ${prix.toLocaleString('fr-FR')} crédits.` : 'Tu n\'as pas de crédits : il le fait gratuitement.'],
+    oui: prix ? `PAYER ${prix.toLocaleString('fr-FR')} CR.` : 'RÉPARER', non: 'PLUS TARD', grave: prix > 0,
+  }).then((oui) => {
+    if (!oui) return
+    jeu.appelerDepanneur(m)
+    apresChangementDePanne()
+    annoncer(`Le dépanneur a réparé le bloc ${titre}`)
+  })
 })
 
 // --- Réparation (volet Capsule › RÉPARATION) et Manuel (étape 4) ---
@@ -1321,8 +1330,7 @@ pageProfil.addEventListener('click', (e) => {
   if (!b) return
   const maison = (b.dataset.rejoindre || null) as Maison | null
   const question = maison ? `Rejoindre les ${titreMaison(maison).toLowerCase()} ? Tu pourras toujours changer d'avis.` : 'Redevenir neutre ? Tu pourras rejoindre une Maison plus tard.'
-  if (!confirm(question)) return
-  entrerDansLaMaison(maison)
+  void confirmer({ titre: maison ? `Les ${titreMaison(maison).toLowerCase()}` : 'Redevenir neutre', texte: question, oui: maison ? 'REJOINDRE' : 'REDEVENIR NEUTRE' }).then((oui) => { if (oui) entrerDansLaMaison(maison) })
 })
 /** Rejoint une Maison (ou redevient neutre) : les tableaux de missions se réorganisent, le parrain écrit. */
 function entrerDansLaMaison(maison: Maison | null): boolean {
@@ -1414,10 +1422,43 @@ function montrerReparation(bloc?: NomModule): void {
     })
   }
 }
-zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => cockpit.ouvrir('manuel'))
 const pageManuel = document.querySelector<HTMLDivElement>('#manuel')!
 pageManuel.innerHTML = '<button type="button" class="retour" data-page="plus">‹ Plus</button>' + htmlManuel()
-pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => montrerReparation())
+const pagePanneau = zoneReparation.closest<HTMLElement>('.page')!
+// Passer du panneau au Manuel et revenir (demande d'Adrien du 21/10/2026) : d'un glissement à gauche ou à droite, ou
+// par leurs boutons ; chacun retrouve l'endroit où on l'avait laissé, sans avoir à rechercher le module ou la page.
+const positions = { panneau: null as number | null, manuel: 0 }
+function basculer(vers: 'panneau' | 'manuel'): void {
+  if (cockpit.pageOuverte === 'manuel') positions.manuel = pageManuel.scrollTop
+  else if (cockpit.pageOuverte === 'capsule' && sousOnglet === 'reparation') positions.panneau = pagePanneau.scrollTop
+  if (vers === 'manuel') cockpit.ouvrir('manuel')
+  else if (positions.panneau === null) montrerReparation()
+  else { cockpit.ouvrir('capsule'); choisirSousOnglet('reparation') }
+  const page = vers === 'manuel' ? pageManuel : pagePanneau
+  const haut = vers === 'manuel' ? positions.manuel : positions.panneau
+  if (haut !== null) page.scrollTop = haut
+  page.classList.remove('vers-gauche', 'vers-droite')
+  void page.offsetWidth
+  page.classList.add(vers === 'manuel' ? 'vers-gauche' : 'vers-droite')
+}
+// Le Manuel ouvert depuis Plus (sans réparation en cours) garde le geste : il mène au panneau.
+function glisserEntre(page: HTMLElement, vers: 'panneau' | 'manuel', sens: -1 | 1, actif: () => boolean): void {
+  let debut: { x: number; y: number } | null = null
+  page.addEventListener('touchstart', (e) => {
+    debut = e.touches.length === 1 && actif() && !(e.target as HTMLElement).closest('input[type="range"], .commandes')
+      ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null
+  }, { passive: true })
+  page.addEventListener('touchend', (e) => {
+    if (!debut) return
+    const dx = e.changedTouches[0].clientX - debut.x, dy = e.changedTouches[0].clientY - debut.y
+    debut = null
+    if (dx * sens > 70 && Math.abs(dx) > 2 * Math.abs(dy)) basculer(vers)
+  }, { passive: true })
+}
+glisserEntre(pagePanneau, 'manuel', -1, () => sousOnglet === 'reparation')
+glisserEntre(pageManuel, 'panneau', 1, () => true)
+zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => basculer('manuel'))
+pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => basculer('panneau'))
 
 /** Attaquer un chasseur repéré (la vue de combat) : vaincu, il disparaît ; la retraite abîme la Coque. */
 function combattre(alien: string): void {
@@ -1427,7 +1468,7 @@ function combattre(alien: string): void {
     zone: ZONES[lieuIci(horloge())] ?? 1,
     surFin: (fin) => {
       const t = horloge()
-      if (fin === 'victoire') { vaincre(jeu.espace, alien, t); choisir(null); enregistrerPartie(); return 'Il ne reviendra pas de sitôt. Ses missiles en vol sont tombés avec lui.' }
+      if (fin === 'victoire') { jeu.vaincreChasseur(alien, t); choisir(null); enregistrerPartie(); return 'Il ne reviendra pas de sitôt. Ses missiles en vol sont tombés avec lui.' }
       if (fin === 'retraite') { jeu.casser('coque'); apresChangementDePanne(); return 'La Coque est en panne : à réparer (un impact touchera deux blocs).' }
       return 'Il est toujours là : il peut encore tirer.'
     },
@@ -1499,8 +1540,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) enreg
 window.addEventListener('pagehide', enregistrerPartie)
 
 // Recommencer à zéro (dans Réglages) : la partie sauvegardée est effacée, après confirmation.
-document.querySelector('#recommencer')!.addEventListener('click', () => {
-  if (!confirm('Recommencer à zéro ? Crédits, moteur et position de la capsule seront perdus.')) return
+document.querySelector('#recommencer')!.addEventListener('click', async () => {
+  if (!await confirmer({ titre: 'Tout effacer ?', texte: 'Crédits, moteur, soute, collections et position de la capsule seront perdus.', oui: 'RECOMMENCER', grave: true })) return
   partieEffacee = true
   try { localStorage.removeItem(CLE_SAUVEGARDE) } catch { /* rien */ }
   location.reload()

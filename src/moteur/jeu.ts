@@ -31,7 +31,7 @@ import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees
 import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
-import { position } from './corps'
+import { corps, position } from './corps'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
@@ -524,12 +524,21 @@ export class Jeu {
     return this.etapeActuelle()?.action === 'abattre'
   }
 
+  /**
+   * Un chasseur abattu : il disparaît (un renfort le remplace ailleurs). Si la capsule tournait autour de lui, elle reste
+   * où elle est, en orbite autour de sa planète (bug vu par Adrien le 21/10/2026 : elle sautait avec le renfort).
+   */
+  vaincreChasseur(nom: string, t: number): void {
+    if (this.mission.centre(t) === nom) this.mission.decrocher(t, corps(nom)?.parent ?? 'Soleil')
+    vaincre(this.espace, nom, t)
+  }
+
   /** Le chasseur de l'étape de chasse est abattu (victoire au combat) : il disparaît, l'étape est faite. */
   abattre(t: number, vitesseEnchainement?: number, degatsRecus?: number): Evenement[] | null {
     if (!this.etapeDeCombat() || !this.peutAgir(t)) return null
     // Abattu sans perdre un point de coque : la récompense augmente de 10 % (comme les autres missions).
     if (degatsRecus === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_DEGAT) / 10) * 10
-    vaincre(this.espace, this.etapeActuelle()!.lieu, t)
+    this.vaincreChasseur(this.etapeActuelle()!.lieu, t)
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements

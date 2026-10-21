@@ -17,6 +17,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Corrections du 21/10/2026 (retours d'Adrien) : la capsule ne saute plus à l'autre bout de la planète quand on abat
+  le chasseur autour duquel elle tourne (elle restait accrochée à lui, et le renfort réapparaît ailleurs : elle se
+  décroche maintenant sur place en orbite autour de la planète, `Mission.decrocher` et `orbiteParLa`, testé) ;
+  fenêtre de confirmation du jeu (`src/commun/confirmation.ts`, titre pulp, deux gros boutons) à la place de celle du
+  navigateur (dépanneur, abandon d'un contrat, Maison, retraite du combat, qui fige le combat le temps de répondre,
+  recommencer à zéro) ; panneau de réparation ↔ Manuel d'un glissement à gauche ou à droite (ou par leurs boutons),
+  chacun retrouvant l'endroit où on l'avait laissé ; le bouton du panneau reste en haut du Manuel.
 - Console des Messages sur fond clair (demande d'Adrien du 21/10/2026) ; bouton ATTAQUER grisé sur la fiche d'un
   capitaine (règles de l'attaque dans `CLAUDE.md`, pour le serveur).
 - Messages (demandes d'Adrien du 20/10/2026) — **faits** : le fil en console (une ligne par message), menu ÉCRIRE / VOIR

@@ -120,3 +120,19 @@ describe('la vitesse en vol (cadran de vitesse, demande d’Adrien du 20/10/2026
     expect(vitesseEnVol(plan, plan.arrivee + 1)).toMatchObject({ vitesse: 0, phase: 'arrivee' })
   })
 })
+
+describe('abattre le chasseur autour duquel on tourne (bug vu par Adrien le 21/10/2026)', () => {
+  it('la capsule reste où elle est (en orbite autour de la planète), au lieu de sauter avec le renfort', async () => {
+    const { ALIENS } = await import('../src/donnees/espace')
+    const { orbiteAutour } = await import('../src/moteur/mission')
+    const { position } = await import('../src/moteur/corps')
+    const jeu = new Jeu()
+    const alien = ALIENS.find((a) => a.parent === 'Terre')!.nom
+    jeu.mission.orbite = orbiteAutour(alien, t0, position(alien, t0))
+    const avant = jeu.mission.etat(t0).position
+    jeu.vaincreChasseur(alien, t0)
+    const apres = jeu.mission.etat(t0).position
+    expect(Math.hypot(apres.x - avant.x, apres.y - avant.y, apres.z - avant.z)).toBeLessThan(2000)
+    expect(jeu.mission.centre(t0)).toBe('Terre')
+  })
+})

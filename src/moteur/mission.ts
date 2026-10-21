@@ -313,6 +313,18 @@ export function orbiteAutour(nom: string, t: number, arrivee: Vecteur3): OrbiteC
   return o
 }
 
+/** Orbite autour d'un astre qui passe par une position (héliocentrique, km) : à cette distance, de ce côté-là. */
+export function orbiteParLa(nom: string, t: number, ici: Vecteur3): OrbiteCirculaire {
+  const rel = moins(ici, position(nom, t))
+  // Dans le repère des orbites (équatorial, voir capsule.ts) ; l'orbite est choisie pour passer exactement par là :
+  // son nœud dans la direction de la capsule, inclinée à 90° si elle est hors du plan de l'équateur.
+  const ob = 23.4392911 * (Math.PI / 180)
+  const x = rel.x, y = Math.cos(ob) * rel.y - Math.sin(ob) * rel.z, z = Math.sin(ob) * rel.y + Math.cos(ob) * rel.z
+  const h = Math.hypot(x, y), rayon = Math.max(rayonArrivee(nom), norme(rel))
+  const plat = Math.abs(z) < 1e-6 * (h + 1)
+  return { centre: nom, mu: gmAstre(nom), rayon, inclinaison: plat ? 0 : Math.PI / 2, noeud: plat ? 0 : Math.atan2(y, x), epoque: t, phase: plat ? Math.atan2(y, x) : Math.atan2(z, h) }
+}
+
 export type Phase = 'orbite' | 'trajet'
 
 export class Mission {
@@ -374,6 +386,18 @@ export class Mission {
       if (this.orbiteArrivee) this.orbite = this.orbiteArrivee
     }
     this.plan = plan
+    this.orbiteArrivee = null
+  }
+
+  /**
+   * Décroche la capsule de l'objet autour duquel elle tourne (un chasseur abattu, que son renfort remplace ailleurs) :
+   * elle reste où elle est, en orbite autour de `centre` (sa planète). Sans quoi elle sauterait avec lui.
+   */
+  decrocher(t: number, centre: string): void {
+    if (this.phase(t) !== 'orbite') return
+    const ici = this.etat(t).position
+    this.orbite = orbiteParLa(centre, t, ici)
+    this.plan = null
     this.orbiteArrivee = null
   }
 

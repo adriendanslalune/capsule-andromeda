@@ -4,6 +4,7 @@
 // aliens ; le bouton BOMBE efface toutes les balles. La vue ne décide rien : elle montre l'état que tient le moteur
 // (moteur/combat.ts).
 
+import { confirmer } from './confirmation'
 import { BOMBES, COQUE_MAX, HAUTEUR, LARGEUR } from '../donnees/combat'
 import { avancerCombat, bombe, chef, nouveauCombat, retraite, type EtatCombat } from '../moteur/combat'
 
@@ -18,6 +19,8 @@ export class VueCombat {
   private options: OptionsCombat = SIMULATEUR
   private doigt: { x: number; y: number } | null = null
   private boucle = 0
+  /** Le combat est figé pendant que la question de la retraite est posée. */
+  private enPause = false
   private avant = 0
   private toile: HTMLCanvasElement
   private ctx: CanvasRenderingContext2D
@@ -52,9 +55,9 @@ export class VueCombat {
       if (b.dataset.rejouer !== undefined) { this.ouvrir(this.options); return }
       if (!e || e.fin) return
       if (b.dataset.retraite !== undefined) {
-        if (!confirm('Battre en retraite ? Le chasseur reste là, et la Coque de la capsule tombe en panne.')) return
-        retraite(e)
-        this.terminer()
+        this.enPause = true
+        void confirmer({ titre: 'Retraite ?', texte: 'Le chasseur reste là, et la Coque de la capsule tombe en panne.', oui: 'BATTRE EN RETRAITE', non: 'CONTINUER', grave: true })
+          .then((oui) => { this.enPause = false; if (oui && !e.fin) { retraite(e); this.terminer() } })
       } else if (b.dataset.bombe !== undefined && bombe(e)) navigator.vibrate?.(80)
     })
     // Le doigt sur le terrain : la capsule le suit.
@@ -76,6 +79,7 @@ export class VueCombat {
     this.options = options
     this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone)
     this.doigt = null
+    this.enPause = false
     this.element.querySelector('.titre-combat')!.textContent = options.titre
     this.elAide.hidden = false
     this.elFin.hidden = true
@@ -86,7 +90,7 @@ export class VueCombat {
       if (this.element.hidden) return
       const dt = Math.min(0.05, (maintenant - this.avant) / 1000)
       this.avant = maintenant
-      this.avancer(dt)
+      if (!this.enPause) this.avancer(dt)
       this.dessiner()
       this.boucle = requestAnimationFrame(image)
     }
