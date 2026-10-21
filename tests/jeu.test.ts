@@ -107,14 +107,14 @@ describe('le dépanneur (décision d’Adrien du 20/10/2026)', () => {
 })
 
 describe('la vitesse en vol (cadran de vitesse, demande d’Adrien du 20/10/2026)', () => {
-  it('accélère à 10 g, croise à la vitesse max, freine à 10 g, nulle à l’arrivée', async () => {
+  it('accélère à 20 g, croise à la vitesse max, freine à 20 g, nulle à l’arrivée', async () => {
     const { vitesseEnVol } = await import('../src/moteur/mission')
     const jeu = new Jeu()
     const p = planifier(jeu.mission.etatHeliocentrique(t0), 'Mars', t0, 30)
     if (!p.possible) throw new Error('impossible')
     const plan = p.plan
     expect(vitesseEnVol(plan, plan.depart + 1000)).toMatchObject({ phase: 'accelere' })
-    expect(vitesseEnVol(plan, plan.depart + 1000).vitesse).toBeCloseTo(0.0980665, 6)
+    expect(vitesseEnVol(plan, plan.depart + 1000).vitesse).toBeCloseTo(0.196133, 6)
     expect(vitesseEnVol(plan, (plan.depart + plan.arrivee) / 2)).toEqual({ vitesse: 30, pointe: 30, phase: 'croisiere' })
     expect(vitesseEnVol(plan, plan.arrivee - 1000)).toMatchObject({ phase: 'freine' })
     expect(vitesseEnVol(plan, plan.arrivee + 1)).toMatchObject({ vitesse: 0, phase: 'arrivee' })

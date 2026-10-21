@@ -140,7 +140,7 @@ export const RAYON_SYSTEME: ReadonlyMap<string, number> = (() => {
 
 // --- Les capsules des autres joueurs (les bots, en attendant le serveur) ---
 // Décision d'Adrien du 19/10/2026 : elles voyagent. Chaque bot va d'escale en escale (donnees/messages.ts) : il reste
-// quelques heures en orbite, puis vole vers la suivante comme la capsule du joueur (10 g, puis la vitesse max de son
+// quelques heures en orbite, puis vole vers la suivante comme la capsule du joueur (20 g, puis la vitesse max de son
 // moteur, puis freinage). Tout se déduit de l'heure : le même ciel pour tous.
 
 /** Début des itinéraires (avant, chacun est à son port d'attache). */
@@ -157,7 +157,7 @@ function hasardBot(k: number, n: number): number {
   return x - Math.floor(x)
 }
 
-/** Durée (ms) d'un vol de L km à la vitesse max v (km/s), à 10 g, à l'arrêt au départ et à l'arrivée. */
+/** Durée (ms) d'un vol de L km à la vitesse max v (km/s), à 20 g, à l'arrêt au départ et à l'arrivée. */
 function dureeVol(L: number, v: number): number {
   return 1000 * (L >= (v * v) / ACCELERATION ? L / v + v / ACCELERATION : 2 * Math.sqrt(L / ACCELERATION))
 }
@@ -207,7 +207,7 @@ function positionBot(pseudo: string, t: number): Vecteur3 | null {
   if (!it) return null
   const ou = ouEstLeBot(pseudo, t)
   if (!ou.enRoute) return ajouter(position(ou.lieu, t), orbiteBot(it.k, ou.lieu, t))
-  // En route : en ligne droite, de son orbite de départ au rendez-vous avec l'escale suivante (profil 10 g).
+  // En route : en ligne droite, de son orbite de départ au rendez-vous avec l'escale suivante (profil 20 g).
   const l = escalesJusqua(pseudo, t)
   let i = l.length - 2
   while (i > 0 && l[i].depart > t) i--

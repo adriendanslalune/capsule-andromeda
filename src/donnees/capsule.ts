@@ -1,6 +1,6 @@
 // La capsule du joueur au début du jeu, et les niveaux de son moteur.
-// Décision d'Adrien du 19/10/2026 : la capsule accélère à 10 g jusqu'à sa vitesse maximale, la garde, puis freine à
-// 10 g pour s'arrêter à l'arrivée ; sur un trajet court, elle n'a pas le temps d'atteindre sa vitesse maximale.
+// Décision d'Adrien du 19/10/2026 : la capsule accélère à 20 g (10 g jusqu'au 21/10/2026 : trop lent autour de la
+// Terre) jusqu'à sa vitesse maximale, la garde, puis freine à 20 g pour s'arrêter à l'arrivée ; sur un trajet court, elle n'a pas le temps d'atteindre sa vitesse maximale.
 // Améliorer le moteur, c'est doubler sa vitesse maximale (30 km/s au niveau 1), jusqu'au niveau 10 ; prix ×2,5 par
 // niveau (200, 600, 1 500 validés le 17/10/2026, puis la même progression).
 
@@ -32,8 +32,10 @@ export const NIVEAUX_MOTEUR: readonly NiveauMoteur[] = [
   { niveau: 10, vitesse: 15_360, prix: 366_000, materiaux: { 'Hélium 3': 12, 'Circuits anciens': 6 } },
 ]
 
-/** Accélération (et freinage) de la capsule : 10 g, en km/s². */
-export const ACCELERATION = (10 * 9.80665) / 1000
+/** Accélération (et freinage) de la capsule, en g (décision d'Adrien du 21/10/2026 : 20 g au lieu de 10). */
+export const ACCELERATION_G = 20
+/** La même, en km/s². */
+export const ACCELERATION = (ACCELERATION_G * 9.80665) / 1000
 
 /** Crédits au début du jeu. */
 export const CREDITS_DEPART = 0

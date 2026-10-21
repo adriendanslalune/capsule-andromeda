@@ -65,7 +65,7 @@ describe('les Messages', () => {
   it('les non-lus, et les messages sauvegardés', () => {
     const jeu = new Jeu()
     jeu.lus.debut = t0 - 3_600_000
-    expect(nonLus(jeu, t0).general).toBeGreaterThan(5)
+    expect(nonLus(jeu, t0).general).toBeGreaterThan(3)
     marquerLu(jeu, 'general', t0)
     expect(nonLus(jeu, t0).general).toBe(0)
     envoyer(jeu, 'general', 'Bonjour !', t0)

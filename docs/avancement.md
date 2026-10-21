@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Accélération de la capsule (et des bots) à 20 g au lieu de 10 (décision d'Adrien du 21/10/2026 : trop lent autour
+  de la Terre) : `ACCELERATION_G` dans `src/donnees/capsule.ts`. Terre → Lune au mieux 47 min (au lieu de 1 h 06), un
+  engin à 300 000 km environ 44 min (au lieu de 1 h 02) ; rien ne change sur les longs trajets (vitesse max).
 - Corrections du 21/10/2026 (retours d'Adrien) : la capsule ne saute plus à l'autre bout de la planète quand on abat
   le chasseur autour duquel elle tourne (elle restait accrochée à lui, et le renfort réapparaît ailleurs : elle se
   décroche maintenant sur place en orbite autour de la planète, `Mission.decrocher` et `orbiteParLa`, testé) ;

@@ -36,14 +36,14 @@ describe('le contournement d’un astre, par le plus court (demande d’Adrien d
   })
 })
 
-describe('la durée d’un trajet (10 g, vitesse maximale du moteur)', () => {
+describe('la durée d’un trajet (20 g, vitesse maximale du moteur)', () => {
   it('trajet long : accélération, croisière, freinage ; trajet court : on freine avant d’atteindre la vitesse maximale', () => {
     const a = ACCELERATION
-    expect(a).toBeCloseTo(0.0980665)
-    // Terre → Lune avec le moteur de départ (30 km/s) : 3 h 38 environ.
-    expect(dureeTrajet(384_400, 30) / 3600).toBeCloseTo(3.64, 1)
-    // Avec un moteur très puissant, la Lune ne descend jamais sous 1 h 06 (2 √(L/a)).
-    expect(dureeTrajet(384_400, 15_360) / 60).toBeCloseTo(66, 0)
+    expect(a).toBeCloseTo(0.196133)
+    // Terre → Lune avec le moteur de départ (30 km/s) : 3 h 36 environ.
+    expect(dureeTrajet(384_400, 30) / 3600).toBeCloseTo(3.60, 1)
+    // Avec un moteur très puissant, la Lune ne descend jamais sous 47 min (2 √(L/a)).
+    expect(dureeTrajet(384_400, 15_360) / 60).toBeCloseTo(46.7, 0)
     expect(dureeTrajet(384_400, 15_360)).toBe(dureeTrajet(384_400, 1e9))
     expect(vitesseDePointe(dureeTrajet(384_400, 15_360), 15_360)).toBeCloseTo(Math.sqrt(a * 384_400), 3)
     // Le profil reste continu à la limite entre les deux cas.
@@ -80,7 +80,7 @@ describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
     }
   })
 
-  it('accélération à 10 g, vitesse maximale en croisière, freinage à 10 g (décision d’Adrien du 19/10/2026)', () => {
+  it('accélération à 20 g, vitesse maximale en croisière, freinage à 20 g (décisions d’Adrien du 19 et du 21/10/2026)', () => {
     const p = planifier(new Mission().etatHeliocentrique(t0), 'Lune', t0, 50)
     if (!p.possible) throw new Error('impossible')
     const relative = (t: number) => {
@@ -89,7 +89,7 @@ describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
     }
     const T = p.plan.arrivee - p.plan.depart
     for (const f of [0.2, 0.4, 0.6, 0.8]) expect(relative(p.plan.depart + f * T) / 50).toBeCloseTo(1, 1)
-    // Une minute après le départ : environ 6 km/s gagnés (10 g), plus la vitesse sur l'orbite de départ.
+    // Une minute après le départ : environ 12 km/s gagnés (20 g), plus la vitesse sur l'orbite de départ.
     expect(relative(p.plan.depart + 60_000)).toBeLessThan(15)
     expect(relative(p.plan.arrivee - 60_000)).toBeLessThan(15)
     expect(avancement(p.plan, p.plan.depart)).toBe(0)

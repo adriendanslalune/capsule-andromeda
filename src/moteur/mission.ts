@@ -3,8 +3,8 @@
 //
 // Le trajet (choix d'Adrien du 17/10/2026, qui remplace les vraies trajectoires orbitales, illisibles) : la capsule
 // vise le point de rendez-vous — là où sera la destination à l'arrivée — et y va en ligne droite. Profil de vol
-// (décision d'Adrien du 19/10/2026) : elle accélère à 10 g jusqu'à la vitesse maximale de son moteur, la garde, puis
-// freine à 10 g pour s'arrêter à l'arrivée ; sur un trajet court, elle commence à freiner avant de l'avoir atteinte.
+// (décision d'Adrien du 19/10/2026) : elle accélère à 20 g jusqu'à la vitesse maximale de son moteur, la garde, puis
+// freine à 20 g pour s'arrêter à l'arrivée ; sur un trajet court, elle commence à freiner avant de l'avoir atteinte.
 // Règle d'or (17/10/2026) : rien ne traverse un astre. Si la ligne droite passe trop près de l'astre autour duquel
 // elle part ou arrive (ou du Soleil), la capsule le contourne par petits arcs.
 //
@@ -216,7 +216,7 @@ export function avancement(p: Plan, t: number): number {
 
 /**
  * Vitesse de la capsule à l'instant t sur son trajet (km/s) et la phase du vol (demande d'Adrien du 20/10/2026 : un
- * cadran de vitesse sur la carte) : elle accélère à 10 g, garde sa vitesse de pointe, puis freine à 10 g.
+ * cadran de vitesse sur la carte) : elle accélère à 20 g, garde sa vitesse de pointe, puis freine à 20 g.
  */
 export function vitesseEnVol(p: Plan, t: number): { vitesse: number; pointe: number; phase: 'accelere' | 'croisiere' | 'freine' | 'arrivee' } {
   const T = (p.arrivee - p.depart) / 1000, s = (t - p.depart) / 1000
