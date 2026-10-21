@@ -337,13 +337,18 @@ export class Carte2D {
   private balayage(ctx: CanvasRenderingContext2D, c: { x: number; y: number }, angle: number, r: number): void {
     const VERT = '95, 179, 106'
     ctx.save()
-    ctx.beginPath()
-    ctx.arc(c.x, c.y, r, 0, 2 * Math.PI)
-    ctx.setLineDash([2, 5])
-    ctx.lineWidth = 1
-    ctx.strokeStyle = `rgba(${VERT}, 0.55)`
-    ctx.stroke()
-    ctx.setLineDash([])
+    // Le cercle de portée, seulement s'il passe à l'écran ; le faisceau s'arrête au bord de l'écran.
+    const loin = Math.max(...[[0, 0], [this.largeur, 0], [0, this.hauteur], [this.largeur, this.hauteur]].map(([x, y]) => Math.hypot(x - c.x, y - c.y)))
+    if (r <= loin) {
+      ctx.beginPath()
+      ctx.arc(c.x, c.y, r, 0, 2 * Math.PI)
+      ctx.setLineDash([2, 5])
+      ctx.lineWidth = 1
+      ctx.strokeStyle = `rgba(${VERT}, 0.55)`
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
+    r = Math.min(r, loin + 10)
     // La traîne : un quart de tour qui s'estompe derrière le faisceau.
     const traine = Math.PI / 2, pas = 24
     for (let k = 0; k < pas; k++) {
@@ -485,11 +490,7 @@ export class Carte2D {
         const points = this.orbite(c, t)
         if (!points) continue
         ctx.beginPath()
-        for (const [i, p] of points.entries()) {
-          const q = this.ecranDe(p)
-          if (i === 0) ctx.moveTo(q.x, q.y)
-          else ctx.lineTo(q.x, q.y)
-        }
+        this.ligneCoupee(ctx, points.map((p) => this.ecranDe(p)))
         ctx.strokeStyle = couleurDe(c)
         ctx.globalAlpha = 0.75
         ctx.stroke()
@@ -710,7 +711,7 @@ export class Carte2D {
         pts.push(this.projeterPoint({ x: e.centre.x + e.rayon * Math.cos(a), y: e.centre.y + e.rayon * Math.sin(a), z: 0 }, t))
       }
       ctx.beginPath()
-      pts.forEach((q, k) => (k ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)))
+      this.ligneCoupee(ctx, pts)
       ctx.stroke()
       // Le numéro, sur le premier point du cercle qui est à l'écran.
       const q = pts.find((p) => p.x > 10 && p.x < this.largeur - 60 && p.y > 150 && p.y < this.hauteur - 130)
@@ -752,8 +753,7 @@ export class Carte2D {
       const x = a.x + (capsule.x - a.x) * m.fraction, y = a.y + (capsule.y - a.y) * m.fraction
       ctx.save()
       ctx.beginPath()
-      ctx.moveTo(a.x, a.y)
-      ctx.lineTo(capsule.x, capsule.y)
+      this.ligneCoupee(ctx, [a, capsule])
       ctx.setLineDash([4, 4])
       ctx.lineDashOffset = -(performance.now() / 40) % 8
       ctx.lineWidth = 1.6
@@ -811,10 +811,7 @@ export class Carte2D {
     // L'orbite de la capsule autour de son astre : un trait fin de couleur vive.
     if (orbiteCapsule && orbiteCapsule.length > 1) {
       ctx.beginPath()
-      for (const [i, q] of ecrans(orbiteCapsule, t).entries()) {
-        if (i === 0) ctx.moveTo(q.x, q.y)
-        else ctx.lineTo(q.x, q.y)
-      }
+      this.ligneCoupee(ctx, ecrans(orbiteCapsule, t))
       ctx.lineWidth = 1.4
       ctx.strokeStyle = accent
       ctx.stroke()
@@ -824,17 +821,13 @@ export class Carte2D {
       ctx.lineWidth = 1.6
       ctx.strokeStyle = c.encre
       ctx.beginPath()
-      ctx.moveTo(capsule.x, capsule.y)
-      ctx.lineTo(cible.x, cible.y)
+      this.ligneCoupee(ctx, [capsule, cible])
       ctx.stroke()
       ctx.setLineDash([])
     }
     if (trajet && trajet.length > 1) {
       ctx.beginPath()
-      for (const [i, q] of trajet.map((p) => this.ecranDe(p)).entries()) {
-        if (i === 0) ctx.moveTo(q.x, q.y)
-        else ctx.lineTo(q.x, q.y)
-      }
+      this.ligneCoupee(ctx, trajet.map((p) => this.ecranDe(p)))
       ctx.lineJoin = 'round'
       ctx.lineCap = 'round'
       // Un trait fin (demande d'Adrien du 19/10/2026), cerné d'encre pour rester lisible.
@@ -987,6 +980,32 @@ export class Carte2D {
     const points = traceOrbite(c.nom, t, 256)
     this.orbites.set(c.nom, { t, points })
     return points
+  }
+
+  /**
+   * Ajoute au chemin la ligne brisée pts, seulement là où elle passe à l'écran (avec une marge). Un pointillé de
+   * plusieurs millions de pixels (un cercle de PING en gros plan, le trait vers une planète lointaine) gelait puis
+   * faisait planter le téléphone d'Adrien (21/10/2026) : chaque tiret hors de l'écran était quand même dessiné.
+   */
+  private ligneCoupee(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[]): void {
+    const m = 40, x0 = -m, y0 = -m, x1 = this.largeur + m, y1 = this.hauteur + m
+    let ouvert = false
+    for (let k = 1; k < pts.length; k++) {
+      const a = pts[k - 1], b = pts[k]
+      // Liang-Barsky : la part [u0, u1] du segment qui tombe dans le cadre.
+      const dx = b.x - a.x, dy = b.y - a.y
+      let u0 = 0, u1 = 1, dehors = false
+      for (const [p, q] of [[-dx, a.x - x0], [dx, x1 - a.x], [-dy, a.y - y0], [dy, y1 - a.y]]) {
+        if (p === 0) { if (q < 0) { dehors = true; break } continue }
+        const u = q / p
+        if (p < 0) { if (u > u1) { dehors = true; break } if (u > u0) u0 = u }
+        else { if (u < u0) { dehors = true; break } if (u < u1) u1 = u }
+      }
+      if (dehors) { ouvert = false; continue }
+      if (!ouvert || u0 > 0) ctx.moveTo(a.x + u0 * dx, a.y + u0 * dy)
+      ctx.lineTo(a.x + u1 * dx, a.y + u1 * dy)
+      ouvert = u1 >= 1
+    }
   }
 
   /** Astre touché (le plus proche du doigt, à moins de 24 pixels), ou null. */
