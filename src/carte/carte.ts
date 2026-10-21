@@ -36,6 +36,10 @@ const MINIMUMS: Record<string, number> = {
 /** À l'échelle réelle, un astre trop petit devient une pastille, plus petite que les minimums ci-dessus (mais dans le
  *  même ordre : on reconnaît Jupiter de loin) ; son illustration n'apparaît qu'en zoomant (choix d'Adrien, 21/10/2026). */
 const PASTILLE_REELLE = 0.5
+/** Au-delà de ce rayon à l'écran (px), un astre redevient un simple disque (Adrien, 21/10/2026). */
+const RAYON_ILLUSTRATION_MAX = 100
+/** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
+const illustre = (r: number) => r >= RAYON_ILLUSTRATION && r <= RAYON_ILLUSTRATION_MAX
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
@@ -118,8 +122,6 @@ export class Carte2D {
   largeur = 390
   hauteur = 844
   pixelRatio = 2
-  /** Essais de fluidité (Réglages) : ce qu'on dessine ou non. */
-  essais = { illustrations: true, poussiere: true, trames: true }
   /** Mode nuit : encre claire sur fond bleu nuit, astres un peu assombris. */
   nuit = false
   /**
@@ -430,7 +432,7 @@ export class Carte2D {
     const dedans = (x: number, y: number, marge = 30) => x > -marge && x < this.largeur + marge && y > -marge && y < this.hauteur + marge
 
     // Ceintures : astéroïdes de 2,2 à 3,3 UA, Kuiper de 30 à 50 UA, en trame légère.
-    for (const [a, b] of this.essais.trames ? [[2.2, 3.3], [30, 50]] : []) {
+    for (const [a, b] of [[2.2, 3.3], [30, 50]]) {
       const ra = (a * UA_KM) / this.kmParPx, rb = (b * UA_KM) / this.kmParPx
       if (rb < 4 || ra > 20 * Math.max(this.largeur, this.hauteur)) continue
       ctx.beginPath()
@@ -495,7 +497,7 @@ export class Carte2D {
       }
     }
 
-    if (this.essais.poussiere) this.poussiere(ctx, t, couleurs)
+    this.poussiere(ctx, t, couleurs)
 
     // Astres : Soleil, planètes, Pluton toujours ; ce qui tourne autour d'eux quand leur système est assez grand à
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
@@ -507,7 +509,9 @@ export class Carte2D {
       if (!dedans(q.x, q.y, r * 2.6 + 20)) return
       const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
-      if (this.essais.illustrations && r >= RAYON_ILLUSTRATION && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
+      // Très grand aussi : le simple disque (décision d'Adrien du 21/10/2026, la Terre et la Lune illustrées en gros
+      // plan faisaient ramer son téléphone).
+      if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil)
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleurDe(c), couleurs)
       else this.disque(ctx, q.x, q.y, r, couleurDe(c), versSoleil, couleurs)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
@@ -959,7 +963,7 @@ export class Carte2D {
       const texte = d.nom
       const l = ctx.measureText(texte).width
       // Astres illustrés : le nom se pose au-delà des rayons du Soleil et des anneaux.
-      const etendue = d.r >= RAYON_ILLUSTRATION ? ETENDUES[d.nom] ?? 1 : 1
+      const etendue = illustre(d.r) ? ETENDUES[d.nom] ?? 1 : 1
       const ecart = d.r * etendue + (d.nom === 'Soleil' && etendue === 1 ? 12 : k?.type === 'satellite' || k?.type === 'sonde' ? 4 : 5)
       const essais = [{ x: d.x + ecart, y: d.y }, { x: d.x - ecart - l, y: d.y }, { x: d.x - l / 2, y: d.y + d.r + 10 },
         { x: d.x - l / 2, y: d.y - d.r - 10 }]

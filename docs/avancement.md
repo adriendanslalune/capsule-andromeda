@@ -19,6 +19,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Décision d'Adrien du 21/10/2026, le lag persistant : au-delà de 100 px de rayon à l'écran, un astre redevient un
+  simple disque (aplat, face de nuit hachurée), comme avec l'essai « sans illustration », le seul qui marchait
+  (`RAYON_ILLUSTRATION_MAX` dans `carte.ts`). Les cases d'essais de fluidité sont retirées des Réglages ; le compteur
+  du haut garde le temps de calcul d'une image (ms).
 - Encore du lag, et tout le téléphone d'Adrien ramait (Terre et Lune) : la mémoire saturait (jusqu'à 24 millions de
   pixels de dessins gardés, des toiles de plus de 2 000 px). Maintenant 4 millions de pixels au plus (environ 16 Mo),
   toiles de 1 100 px au plus, finesse 1,5 ; au-delà, le dernier palier est agrandi (un peu flou en très gros plan).
