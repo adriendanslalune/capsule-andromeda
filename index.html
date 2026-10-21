@@ -23,8 +23,10 @@
       <div id="titre-carte"><div id="titre"></div></div>
       <div id="commandes-carte">
         <div class="colonne gauche">
-          <button type="button" class="carre" data-vue="interieur" aria-label="Système solaire intérieur (jusqu'à Mars)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="8.5"/><circle class="soleil" cx="12" cy="12" r="4.2"/><circle class="planete" cx="20.5" cy="12" r="1.8"/><circle class="planete rouge" cx="6" cy="18" r="1.6"/></svg></button>
-          <button type="button" class="carre" data-vue="exterieur" aria-label="Système solaire extérieur (jusqu'à Pluton)"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="orbite fine" d="M2.5 13.5a8 8 0 0 1 8 8"/><path class="orbite fine" d="M2.5 7.5a14 14 0 0 1 14 14"/><path class="orbite fine" d="M2.5 1.5a20 20 0 0 1 20 20"/><circle class="soleil" cx="2.5" cy="21.5" r="2"/><ellipse class="anneau" cx="16.6" cy="7.5" rx="3.6" ry="1.1" transform="rotate(-25 16.6 7.5)"/><circle class="planete or" cx="16.6" cy="7.5" r="1.8"/></svg></button>
+          <div class="systemes">
+            <button type="button" class="carre" data-vue="systemes" aria-label="Aller à un système" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="8.5"/><circle class="soleil" cx="12" cy="12" r="4.2"/><circle class="planete" cx="20.5" cy="12" r="1.8"/><circle class="planete rouge" cx="6" cy="18" r="1.6"/></svg></button>
+            <div id="choix-systeme" hidden></div>
+          </div>
           <button type="button" class="carre" data-vue="capsule" aria-label="Aller à la capsule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="orbite" cx="12" cy="12" r="9" stroke-dasharray="2 2.4"/><path class="chevron" d="M17 12 8.5 16.5 10.5 12 8.5 7.5z"/></svg></button>
           <span class="ecart"></span>
           <button type="button" class="carre" data-vue="plus" aria-label="Zoomer"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="trait" d="M12 5.5v13M5.5 12h13"/></svg></button>

@@ -80,11 +80,12 @@ import { VoletMissions } from './commun/volet-missions'
 import { texteArrivee, texteDateComplete, texteDuree } from './commun/textes'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
-import { couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
+import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
 import { astreDominant, corps } from './moteur/corps'
+import { couleurAstre } from './carte/couleurs'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import type { Contrat } from './moteur/contrats'
@@ -337,12 +338,12 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
   const b = (e.target as HTMLElement).closest<HTMLElement>('[data-vue], [data-afficher]')
   if (!b) return
   const vue = b.dataset.vue
-  if (vue === 'interieur') vueGenerale(carte.echelleGenerale())
-  else if (vue === 'exterieur') vueGenerale(carte.echelleExterieure())
+  if (vue === 'systemes') ouvrirSystemes(choixSysteme.hidden !== false)
   else if (vue === 'capsule') allerALaCapsule()
   else if (vue === 'plus') zoomer(1 / 2.5)
   else if (vue === 'moins') zoomer(2.5)
   else if (vue === 'affichage') {
+    ouvrirSystemes(false)
     choixAffichage.hidden = !choixAffichage.hidden
     boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
   } else if (b.dataset.afficher) {
@@ -353,6 +354,30 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
     if (cle === 'nuit') appliquerTheme()
     afficherChoixAffichage()
   }
+})
+// Les systèmes (décision d'Adrien du 21/10/2026, qui remplace les boutons « système intérieur » et « extérieur ») :
+// une bande à côté du bouton, le Soleil (tout le système solaire) et les 9 systèmes ; celui de la capsule est marqué.
+const choixSysteme = document.querySelector<HTMLDivElement>('#choix-systeme')!
+const boutonSystemes = document.querySelector<HTMLButtonElement>('[data-vue="systemes"]')!
+function ouvrirSystemes(ouvrir: boolean): void {
+  if (ouvrir) {
+    const t = horloge(), ici = astreDominant(mission.etat(t).position, t)
+    choixSysteme.innerHTML = ['Soleil', ...CENTRES].map((nom) => `<button type="button" data-systeme="${nom}"${nom === ici ? ' class="ici"' : ''}>`
+      + `<i style="background:${couleurAstre(corps(nom)!)}"></i>${nom === 'Soleil' ? 'Tout' : nom}${nom === ici ? '<small>ici</small>' : ''}</button>`).join('')
+    choixAffichage.hidden = true
+    boutonAffichage.setAttribute('aria-expanded', 'false')
+  }
+  choixSysteme.hidden = !ouvrir
+  boutonSystemes.setAttribute('aria-expanded', String(ouvrir))
+}
+choixSysteme.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>('[data-systeme]')
+  if (!b) return
+  ouvrirSystemes(false)
+  const nom = b.dataset.systeme!
+  // Le Soleil : tout le système solaire ; une planète : son système, la planète choisie (sa fiche, Y ALLER).
+  if (nom === 'Soleil') vueGenerale(carte.echelleExterieure())
+  else choisir(nom, false, carte.echelleSysteme(nom))
 })
 function afficherChoixAffichage(): void {
   for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])
@@ -744,6 +769,7 @@ const gestesCarte = new Gestes(toilePlan, {
   },
   zoomer: (f, sx, sy) => { fermerTas(); carte.zoomer(f, sx, sy) },
   toucher: (x, y) => {
+    ouvrirSystemes(false)
     // À l'échelle réelle, les engins s'entassent près de leur planète : toucher le tas propose de choisir.
     const noms = carte.touches(x, y)
     if (noms.length > 1) { montrerTas(noms, x, y); return }

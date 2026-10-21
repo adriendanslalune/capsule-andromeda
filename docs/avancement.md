@@ -19,6 +19,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Bouton « systèmes » (décision d'Adrien du 21/10/2026) à la place des boutons « système intérieur » et « extérieur » :
+  une bande à côté (`#choix-systeme`, `ouvrirSystemes` dans `main.ts`), « Tout » (le système solaire) et les 9
+  systèmes en pastilles, celui de la capsule marqué « ici » ; une planète : son système cadré, la planète choisie.
 - Échelle réelle adoptée (Adrien, 21/10/2026) : l'ancienne carte (astres grossis 50 fois, loupes, anneaux gradués) et
   le bouton des calques sont supprimés ; `loupe.ts` ne fait plus que coucher les orbites dans le plan ; la liste du tas
   sous le doigt marche partout. Zoom libre gardé.
