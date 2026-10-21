@@ -5,6 +5,7 @@
 // Reproductible : les bavardages dépendent seulement de l'heure (les mêmes pour tous) ; les réponses, du message.
 
 import { ouEstLeBot } from './corps'
+import { niveauDe, niveauDuBot } from './niveau'
 import { statut } from './monolithes'
 import { BAVARDAGES, BAVARDAGES_MAISON, BOTS, BOTS_BAVARDS, MOTS_INTENTION, PRIVES_SPONTANES, REPONSES, type Bot, type Intention } from '../donnees/messages'
 import { MARCHANDISES, MARCHES } from '../donnees/marche'
@@ -14,6 +15,11 @@ import { cours, delaiLumiere } from './marche'
 import { rumeursEntre } from './bourse'
 
 /** Un canal : 'general', 'maison', ou une conversation privée avec un bot ('prive:VEGA'). */
+/** Ce qui s'affiche à côté du pseudo d'un bot : son niveau (décisions d'Adrien du 21/10/2026) et son statut (monolithes). */
+export function statutBot(b: { pseudo: string; monolithes: number }): string {
+  return [`niv. ${niveauDuBot(b.pseudo)}`, statut(b.monolithes)].filter(Boolean).join(' · ')
+}
+
 export type Canal = string
 
 /** Un message envoyé par le joueur (enregistré avec la partie). */
@@ -95,7 +101,7 @@ function bavardage(k: number, joueur: string): MessageAffiche | null {
     const canal = x < 0.02 ? `prive:${bot.pseudo}` : x < 0.3 ? 'maison' : 'general'
     const modeles = canal === 'general' ? BAVARDAGES : canal === 'maison' ? BAVARDAGES_MAISON[bot.maison] : PRIVES_SPONTANES
     const texte = remplir(choisir(modeles, h(`c${k}/4`)), bot, joueur, envoye, `c${k}`)
-    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statut(bot.monolithes) }
+    m = { id: `c${k}`, canal, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statutBot(bot) }
   }
   if (memoire.size > 5000) memoire.clear()
   memoire.set(cle, m)
@@ -140,7 +146,7 @@ function calculerReponses(m: MessageEnvoye, joueur: string, maisonJoueur: Maison
     const arrivee = m.envoye + delaiLumiere(b.pseudo, m.envoye)
     const envoye = arrivee + 8000 + Math.floor(h(`r${m.id}/${b.pseudo}/t`) * 30_000) + n * 6000
     const texte = remplir(choisir(REPONSES[i], h(`r${m.id}/${b.pseudo}/x`)), b, joueur, envoye, `r${m.id}`, marchandise)
-    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: lieuDuBot(b.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(b.pseudo, envoye), deMoi: false, statut: statut(b.monolithes) }
+    return { id: `r${m.id}/${b.pseudo}`, canal: m.canal, auteur: b.pseudo, maison: b.maison, lieu: lieuDuBot(b.pseudo, envoye), texte, envoye, recu: envoye + delaiLumiere(b.pseudo, envoye), deMoi: false, statut: statutBot(b) }
   })
 }
 
@@ -154,17 +160,17 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
   // Les rumeurs de la Bourse : un bot les fait courir dans le canal général, quelques heures avant un gros mouvement.
   for (const e of rumeursEntre(t - MEMOIRE, t)) {
     const bot = BOTS.find((b) => b.pseudo === e.rumeur.bot)!, envoye = e.rumeur.envoye
-    l.push({ id: `b${e.compagnie.id}/${envoye}`, canal: 'general', auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte: e.rumeur.texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statut(bot.monolithes) })
+    l.push({ id: `b${e.compagnie.id}/${envoye}`, canal: 'general', auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, envoye), texte: e.rumeur.texte, envoye, recu: envoye + delaiLumiere(bot.pseudo, envoye), deMoi: false, statut: statutBot(bot) })
   }
   // Les messages que des bots ont écrits au joueur à la suite d'un événement (invitation d'une Maison…) : gardés.
   for (const x of jeu.lettres) {
     const bot = BOTS.find((b) => b.pseudo === x.bot)
     if (!bot) continue
-    l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, x.envoye), texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.pseudo, x.envoye), deMoi: false, statut: statut(bot.monolithes) })
+    l.push({ id: `l${x.id}`, canal: `prive:${bot.pseudo}`, auteur: bot.pseudo, maison: bot.maison, lieu: lieuDuBot(bot.pseudo, x.envoye), texte: x.texte, envoye: x.envoye, recu: x.envoye + delaiLumiere(bot.pseudo, x.envoye), deMoi: false, statut: statutBot(bot) })
   }
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
-    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: [statut(jeu.monolithes.trouves.length), jeu.icare !== null ? 'Icare' : null].filter(Boolean).join(' · ') || null })
+    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: [`niv. ${niveauDe(jeu.xp).niveau}`, statut(jeu.monolithes.trouves.length), jeu.icare !== null ? 'Icare' : null].filter(Boolean).join(' · ') })
     l.push(...reponses(m, jeu.pseudo, jeu.maison))
   }
   return l

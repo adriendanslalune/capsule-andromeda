@@ -10,6 +10,9 @@ import { dessinerEngin } from './engins'
 import { aUneIllustration, dessinerAstreIllustre, RAYON_ILLUSTRATION } from './illustrations'
 import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zoneDessinee, type Point2 } from './loupe'
 import { BOTS } from '../donnees/messages'
+import type { Forme } from '../donnees/niveaux'
+import { niveauDuBot, palierDe } from '../moteur/niveau'
+import { dessinerVaisseau, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { traceOrbite } from '../moteur/orbite'
@@ -146,6 +149,8 @@ export class Carte2D {
   radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
   /** Ce qui est écrit sous la capsule du joueur : son numéro et le nom de son capitaine (demande d'Adrien du 20/10/2026). */
   plaqueCapsule = ''
+  /** La forme de la capsule du joueur (son niveau, décisions d'Adrien du 21/10/2026). */
+  formeCapsule: { forme: Forme; taille: number } = { forme: 'capsule', taille: 1 }
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -390,22 +395,9 @@ export class Carte2D {
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const q2 = this.ecranDe(projeterCorps(nom, t + 60_000))
     const maison = BOTS.find((b) => b.pseudo === nom)?.maison
-    ctx.save()
-    ctx.translate(q.x, q.y)
-    ctx.rotate(Math.atan2(q2.y - q.y, q2.x - q.x))
-    ctx.beginPath()
-    ctx.moveTo(6.5, 0)
-    ctx.lineTo(-4, 4.5)
-    ctx.lineTo(-2, 0)
-    ctx.lineTo(-4, -4.5)
-    ctx.closePath()
-    ctx.fillStyle = maison ? TEINTES_MAISONS[maison] : '#d7cdee'
-    ctx.fill()
-    ctx.lineWidth = 1.3
-    ctx.lineJoin = 'round'
-    ctx.strokeStyle = couleurs.encre
-    ctx.stroke()
-    ctx.restore()
+    // Les capsules des autres ont aussi la forme de leur niveau (un peu plus petites que la nôtre à niveau égal).
+    const p = palierDe(niveauDuBot(nom))
+    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85, maison ? TEINTES_MAISONS[maison] : '#d7cdee', couleurs.encre)
   }
 
   /**
@@ -602,23 +594,9 @@ export class Carte2D {
     }
     this.angleCapsule = a
     this.instantAngle = maintenant
-    this.dessines.push({ nom: CAPSULE, x, y, r: 6 })
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.rotate(a)
-    ctx.beginPath()
-    ctx.moveTo(8, 0)
-    ctx.lineTo(-5, 5.5)
-    ctx.lineTo(-2.5, 0)
-    ctx.lineTo(-5, -5.5)
-    ctx.closePath()
-    ctx.fillStyle = '#e04b37'
-    ctx.fill()
-    ctx.lineWidth = 1.5
-    ctx.lineJoin = 'round'
-    ctx.strokeStyle = couleurs.encre
-    ctx.stroke()
-    ctx.restore()
+    const forme = this.formeCapsule, rc = rayonVaisseau(forme.forme, forme.taille)
+    this.dessines.push({ nom: CAPSULE, x, y, r: rc })
+    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre)
     // Sa plaque : numéro et capitaine, en petit sous le chevron (sauf quand son étiquette est affichée).
     if (this.plaqueCapsule && selection !== CAPSULE) {
       ctx.save()
@@ -629,8 +607,8 @@ export class Carte2D {
       ctx.lineWidth = 3
       ctx.strokeStyle = couleurs.fond
       ctx.fillStyle = '#b4442f'
-      ctx.strokeText(this.plaqueCapsule, x, y + 10)
-      ctx.fillText(this.plaqueCapsule, x, y + 10)
+      ctx.strokeText(this.plaqueCapsule, x, y + rc + 4)
+      ctx.fillText(this.plaqueCapsule, x, y + rc + 4)
       ctx.restore()
     }
 

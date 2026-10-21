@@ -63,7 +63,7 @@ export class VueCombat {
         this.enPause = true
         void confirmer({ titre: 'Retraite ?', texte: 'Le chasseur reste là, et la Coque de la capsule tombe en panne.', oui: 'BATTRE EN RETRAITE', non: 'CONTINUER', grave: true })
           .then((oui) => { this.enPause = false; if (oui && !e.fin) { retraite(e); this.terminer() } })
-      } else if (b.dataset.bombe !== undefined && bombe(e)) navigator.vibrate?.(80)
+      } else if (b.dataset.bombe !== undefined && bombe(e)) navigator.vibrate?.([80, 40, 200])
     })
     // Le doigt sur le terrain : la capsule le suit.
     const suivre = (ev: PointerEvent) => {
@@ -150,6 +150,12 @@ export class VueCombat {
     this.ox = (l - LARGEUR * this.k) / 2
     this.oy = (h - HAUTEUR * this.k) / 2
     const k = this.k, X = (x: number) => this.ox + x * k, Y = (y: number) => this.oy + y * k
+    // Une bombe vient d'exploser : tout l'écran tremble un instant (demande d'Adrien du 21/10/2026 : plus voyant).
+    const ageBombe = e.derniereBombe ? e.temps - e.derniereBombe.t : Infinity
+    if (ageBombe < 0.4) {
+      const a = 7 * (1 - ageBombe / 0.4)
+      ctx.translate(Math.sin(ageBombe * 90) * a, Math.cos(ageBombe * 70) * a)
+    }
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
 
@@ -227,6 +233,41 @@ export class VueCombat {
       ctx.strokeStyle = x.gros ? CERISE : '#f2b53a'
       ctx.stroke()
       ctx.globalAlpha = 1
+    }
+
+    // La bombe : un éclair blanc, deux ondes de choc qui balaient tout l'écran, et « BOUM ! » en lettres de BD.
+    if (ageBombe < 1) {
+      const b = e.derniereBombe!, cx = X(b.x), cy = Y(b.y), loin = Math.hypot(l, h)
+      if (ageBombe < 0.3) {
+        ctx.fillStyle = `rgba(255, 250, 235, ${0.75 * (1 - ageBombe / 0.3)})`
+        ctx.fillRect(-20, -20, l + 40, h + 40)
+      }
+      for (const [retard, couleur, epaisseur] of [[0, '#f2b53a', 14], [0.12, CERISE, 6]] as const) {
+        const f = (ageBombe - retard) / 0.6
+        if (f <= 0 || f >= 1) continue
+        ctx.beginPath()
+        ctx.arc(cx, cy, f * loin, 0, 2 * Math.PI)
+        ctx.lineWidth = epaisseur * (1 - f) + 1
+        ctx.strokeStyle = couleur
+        ctx.globalAlpha = 1 - f
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      }
+      const g = ageBombe / 1
+      ctx.save()
+      ctx.translate(l / 2, h * 0.42)
+      ctx.rotate(-0.12)
+      ctx.scale(0.6 + 0.8 * Math.min(1, g * 4), 0.6 + 0.8 * Math.min(1, g * 4))
+      ctx.globalAlpha = 1 - Math.max(0, (g - 0.6) / 0.4)
+      ctx.font = "44px 'Bowlby One SC', 'Arial Black', sans-serif"
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.lineWidth = 6
+      ctx.strokeStyle = ENCRE
+      ctx.strokeText('BOUM !', 0, 0)
+      ctx.fillStyle = '#f2b53a'
+      ctx.fillText('BOUM !', 0, 0)
+      ctx.restore()
     }
   }
 

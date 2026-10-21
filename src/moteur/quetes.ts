@@ -6,6 +6,7 @@ import { PNJS, QUETES, type EtapeQuete, type Pnj, type Quete } from '../donnees/
 import type { Contrat } from './contrats'
 import type { Jeu } from './jeu'
 import { deLa, estLibre, jauge, zone } from './zones'
+import { XP } from '../donnees/niveaux'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -124,6 +125,7 @@ function franchir(jeu: Jeu, q: Quete, t: number): void {
   if (e.etape < q.etapes.length) return
   e.fin = t
   jeu.credits += q.recompense
+  jeu.gagnerXp(Math.min(XP.quete[1], Math.max(XP.quete[0], q.recompense / 10)))
   if (q.libere && !jeu.zones.liberees.includes(q.libere)) jeu.gagnerAssaut(q.libere, t)
   if (jeu.queteSuivie === q.id) jeu.queteSuivie = enCours(jeu)[0]?.id ?? null
 }

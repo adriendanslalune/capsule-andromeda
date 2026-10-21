@@ -8,6 +8,8 @@ import { affinites, maisonPreferee, maisonsOuvertes } from '../moteur/profil'
 import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
 import { palierSuivant, statut } from '../moteur/monolithes'
 import { jauge } from '../moteur/zones'
+import { niveauDe, palierDe } from '../moteur/niveau'
+import { PALIERS as PALIERS_NIVEAU } from '../donnees/niveaux'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
@@ -80,6 +82,16 @@ function htmlZones(jeu: Jeu): string {
   return html + '<p class="petit">Tout ce que tu fais près d\'une zone occupée fait monter sa résistance : contrats, chasseurs, monolithes, Voix perdues. À 100 %, sa quête de libération mène à l\'assaut contre son vaisseau amiral.</p></div>'
 }
 
+/** Le niveau du capitaine (décisions d'Adrien du 21/10/2026) : sa jauge, son engin, les paliers. Pour se montrer. */
+function htmlNiveau(jeu: Jeu): string {
+  const n = niveauDe(jeu.xp), p = palierDe(n.niveau), part = n.besoin ? Math.round((100 * n.dans) / n.besoin) : 100
+  return `<h3>Niveau</h3><div class="bloc niveau-capitaine"><div class="rang"><span>Capitaine niv. <b>${n.niveau}</b></span><b>${p.nom}</b></div>`
+    + `<div class="jauge-niveau"><i style="width:${part}%"></i></div>`
+    + `<div class="rang"><small>${n.besoin ? `${n.dans.toLocaleString('fr-FR')} / ${n.besoin.toLocaleString('fr-FR')} XP vers le niveau ${n.niveau + 1}` : 'Niveau maximum !'}</small><small>${jeu.xp.toLocaleString('fr-FR')} XP en tout</small></div>`
+    + `<div class="paliers">${PALIERS_NIVEAU.map((x) => `<span class="${n.niveau >= x.des ? 'atteint' : ''}"><b>${x.nom}</b><small>${x.des}</small></span>`).join('')}</div>`
+    + '<p class="petit">Tout rapporte de l\'XP : contrats, chasseurs, zones libérées, quêtes, réparations, commerce (au plus 100 XP par jour), monolithes, Voix perdues. Ton niveau s\'affiche à côté de ton nom ; tous les 20 niveaux, ta capsule change de forme sur la carte.</p></div>'
+}
+
 export function htmlProfil(jeu: Jeu): string {
   const pref = maisonPreferee(jeu), c = jeu.carnet
   const total = MAISONS.reduce((s, m) => s + c.missions[m.maison], 0)
@@ -87,6 +99,7 @@ export function htmlProfil(jeu: Jeu): string {
     + `<h3>Capitaine</h3><div class="bloc pseudo"><label for="pseudo">Ton nom dans les Messages</label>`
     + `<div class="ligne-pseudo"><input id="pseudo" type="text" maxlength="16" autocomplete="off" spellcheck="false" value="${jeu.pseudo}"/>`
     + `<button type="button" data-pseudo>OK</button></div><small>Capsule n° ${jeu.numeroSerie} · 3 à 16 lettres ou chiffres</small></div>`
+    + htmlNiveau(jeu)
     + htmlCollection(jeu)
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`
     + `<p>Maison : <b>${jeu.maison ? titreMaison(jeu.maison) : 'aucune (neutre)'}</b></p>`

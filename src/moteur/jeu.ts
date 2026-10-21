@@ -32,9 +32,12 @@ import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees
 import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
-import { corps, position } from './corps'
+import { astreDominant, corps, position } from './corps'
+import { niveauDe, palierDe } from './niveau'
+import { XP } from '../donnees/niveaux'
+import { niveauDeZone } from './combat'
 import { deLa, estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
-import { POINTS_RESISTANCE } from '../donnees/zones'
+import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
@@ -99,6 +102,12 @@ export class Jeu {
   queteSuivie: string | null = null
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
+  /** L'expérience du capitaine (décisions d'Adrien du 21/10/2026) : le niveau s'en déduit (moteur/niveau.ts). */
+  xp = 0
+  /** Le commerce du jour (crédits échangés pas encore comptés, XP déjà gagnée ce jour-là) : au plus 100 XP par jour. */
+  commerce = { jour: 0, credits: 0, xp: 0 }
+  /** Les gains d'XP pas encore montrés (le « +35 XP » qui flotte). */
+  gainsXp: number[] = []
   /** L'armement acheté (décisions d'Adrien du 21/10/2026) : le niveau de chaque ligne, de 1 à 6. */
   armement: Record<LigneArmement, number> = { coque: 1, canon: 1, bombes: 1, bouclier: 1 }
   /** Les zones où la capsule est déjà allée (en orbite autour d'elles ou de ce qui tourne autour) : sur la carte, les autres sont grisées. */
@@ -219,6 +228,7 @@ export class Jeu {
       delete this.reparations[a]
       this.defauts[bloc] = this.defauts[bloc]!.filter((d) => d !== a)
       if (!this.defauts[bloc]!.length) this.reparer(bloc)
+      this.gagnerXp(XP.reparation)
     }
     return res
   }
@@ -247,6 +257,7 @@ export class Jeu {
     if (n === null || !ramasser(this.monolithes, n, t)) return null
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'monolithe' }, t))
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.monolithe, t))
+    this.gagnerXp(XP.monolithe)
     return n
   }
 
@@ -298,8 +309,10 @@ export class Jeu {
   avancerBourse(t: number): void {
     if (!this.bourse.ordres.length) return
     const credits = { valeur: this.credits }
-    this.annoncesBourse.push(...avancerOrdres(this.bourse, credits, t, delaiLumiere))
+    const arrivees = avancerOrdres(this.bourse, credits, t, delaiLumiere)
+    this.annoncesBourse.push(...arrivees)
     this.credits = credits.valeur
+    for (const o of arrivees) this.xpCommerce((o.actions ?? 0) * (o.prix ?? 0), t)
   }
 
   /** Ce qui manque pour le moteur suivant : crédits, et tonnes de chaque matériau (vide si rien ne manque). */
@@ -312,6 +325,31 @@ export class Jeu {
       if (manque > 0) materiaux[nom] = manque
     }
     return { credits: Math.max(0, m.prix - this.credits), materiaux }
+  }
+
+  /** Gagne de l'XP ; annonce un niveau gagné, et la nouvelle forme de la capsule à chaque palier. */
+  gagnerXp(n: number): void {
+    const gain = Math.round(n)
+    if (gain <= 0) return
+    const avant = niveauDe(this.xp).niveau
+    this.xp += gain
+    this.gainsXp.push(gain)
+    const apres = niveauDe(this.xp).niveau
+    if (apres === avant) return
+    const p = palierDe(apres)
+    this.annoncesQuetes.push(palierDe(avant).forme !== p.forme ? `Niveau ${apres} ! Ta capsule devient une ${p.nom.toLowerCase()} !` : `Niveau ${apres} !`)
+  }
+
+  /** Du commerce (Comptoir, Bourse) : 1 XP par tranche de 100 crédits, au plus 100 XP par jour. */
+  xpCommerce(credits: number, t: number): void {
+    const jour = Math.floor(t / 86_400_000)
+    if (this.commerce.jour !== jour) this.commerce = { jour, credits: 0, xp: 0 }
+    this.commerce.credits += credits
+    const gain = Math.min(Math.floor(this.commerce.credits / 100) * XP.commerceParCent, XP.commerceParJour - this.commerce.xp)
+    this.commerce.credits %= 100
+    if (gain <= 0) return
+    this.commerce.xp += gain
+    this.gagnerXp(gain)
   }
 
   /** Le niveau d'une ligne d'armement au combat : acheté, plus 1 sur la ligne de sa Maison (jusqu'au 7e niveau). */
@@ -546,6 +584,7 @@ export class Jeu {
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
       this.annoncesQuetes.push(...resister(this.zones, position(etape.lieu, fin), POINTS_RESISTANCE.contrat, fin))
+      this.gagnerXp(ec.contrat.recompense * XP.partContrat)
       this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'contrat', contrat: ec.contrat }, fin))
       this.proposer(fin)
     } else if (vitesseEnchainement !== undefined && this.peutNaviguer()) {
@@ -593,6 +632,8 @@ export class Jeu {
    */
   vaincreChasseur(nom: string, t: number): void {
     this.annoncesQuetes.push(...resister(this.zones, position(nom, t), POINTS_RESISTANCE.chasseur, t))
+    const zone = niveauDeZone(ZONES[astreDominant(position(nom, t), t)] ?? 1)
+    this.gagnerXp(XP.chasseur[0] + (XP.chasseur[1] - XP.chasseur[0]) * zone)
     if (this.mission.centre(t) === nom) this.mission.decrocher(t, corps(nom)?.parent ?? 'Soleil')
     vaincre(this.espace, nom, t)
   }
@@ -707,6 +748,7 @@ export class Jeu {
     if (devis) return { tonnes: q, prix }
     this.credits -= prix
     this.soute[nom] = Math.round(((this.soute[nom] ?? 0) + q) * 100) / 100
+    this.xpCommerce(prix, t)
     return { tonnes: q, prix }
   }
 
@@ -722,6 +764,7 @@ export class Jeu {
     const reste = Math.round((stock - q) * 100) / 100
     if (reste > 0) this.soute[nom] = reste
     else delete this.soute[nom]
+    this.xpCommerce(prix, t)
     return { tonnes: q, prix }
   }
 
@@ -774,6 +817,7 @@ export class Jeu {
   /** Une Voix perdue enregistrée : un peu de résistance dans la zone la plus proche. */
   voixEnregistree(t: number): void {
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.voix, t))
+    this.gagnerXp(XP.voix)
   }
 
   /**
@@ -783,6 +827,7 @@ export class Jeu {
   gagnerAssaut(nom: string, t: number): void {
     if (!this.zones.liberees.includes(nom)) {
       this.libererZone(nom)
+      this.gagnerXp(ZONES_A_LIBERER.find((z) => z.nom === nom)?.planete ? XP.amiralPlanete : XP.amiralLune)
       const comptoir = MARCHES.some((m) => m.lieu === nom)
       this.annoncesQuetes.push(`${nom} est libérée !${comptoir ? ` Le comptoir ${deLa(nom)} ouvre.` : ''}`)
     }

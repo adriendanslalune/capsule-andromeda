@@ -1656,3 +1656,14 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #armement .achat-armement button { margin-left: auto; min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
   border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #armement .achat-armement button:disabled { color: var(--encre); background: var(--fond); opacity: 0.45; box-shadow: none; }
+/* Le niveau du capitaine (décisions d'Adrien du 21/10/2026) : la fine jauge d'XP au pied du bandeau, les gains qui
+   flottent, et le bloc du Profil. */
+#bandeau .jauge-xp { position: relative; height: 13px; margin: 2px -1px -1px; border-top: 1px solid color-mix(in srgb, var(--encre) 35%, transparent); background: color-mix(in srgb, var(--encre) 6%, transparent); overflow: hidden; border-radius: 0 0 6px 6px; }
+#bandeau .jauge-xp i { position: absolute; inset: 0 auto 0 0; width: 0; background: color-mix(in srgb, #f2b53a 70%, transparent); transition: width 0.6s ease-out; }
+#bandeau .jauge-xp small { position: relative; display: block; padding-left: 8px; font-size: 9px; font-weight: bold; line-height: 13px; letter-spacing: 0.06em; }
+#gain-xp { position: fixed; top: calc(150px + env(safe-area-inset-top)); left: 50%; z-index: 22; pointer-events: none; transform: translateX(-50%); }
+#gain-xp span { display: block; padding: 2px 8px; font: bold 13px var(--police); color: #9a6a12; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--ombre); animation: flotter-xp 1.6s ease-out forwards; }
+@keyframes flotter-xp { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-22px); } }
+#profil .niveau-capitaine .jauge-niveau { height: 12px; margin: 6px 0; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
+#profil .niveau-capitaine .jauge-niveau i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, #f2b53a 0 4px, #f5d38a 4px 8px); }

@@ -59,6 +59,7 @@ import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { estLibre, zone } from './moteur/zones'
+import { niveauDe, palierDe } from './moteur/niveau'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
@@ -146,7 +147,30 @@ const mission = jeu.mission
 suivreMission(mission)
 
 const carte = new Carte2D()
-const plaque = () => { carte.plaqueCapsule = `${jeu.numeroSerie} · ${jeu.pseudo}` }
+const plaque = () => {
+  const n = niveauDe(jeu.xp).niveau
+  carte.plaqueCapsule = `${jeu.numeroSerie} · ${jeu.pseudo} · niv. ${n}`
+  carte.formeCapsule = palierDe(n)
+}
+/** Le niveau du capitaine et sa jauge, pour le bandeau. */
+function xpBandeau(): { niveau: number; xp: number } {
+  const n = niveauDe(jeu.xp)
+  return { niveau: n.niveau, xp: n.besoin ? n.dans / n.besoin : 1 }
+}
+/** Les gains d'XP : un « +35 XP » qui flotte sous le bandeau, et la plaque de la capsule à jour. */
+const elXp = document.createElement('div')
+elXp.id = 'gain-xp'
+document.body.append(elXp)
+function montrerGainsXp(): void {
+  if (!jeu.gainsXp.length) return
+  const total = jeu.gainsXp.reduce((a, b) => a + b, 0)
+  jeu.gainsXp = []
+  const s = document.createElement('span')
+  s.textContent = `+${total.toLocaleString('fr-FR')} XP`
+  elXp.append(s)
+  setTimeout(() => s.remove(), 1600)
+  plaque()
+}
 plaque()
 // Ce que montre la carte (décisions d'Adrien du 20/10/2026) : d'office, les astres et les monolithes localisés ou
 // ramassés (ramassé, il reste sur la carte : demande du 18/10/2026) ; ce que vise une mission ou la quête suivie, la
@@ -609,11 +633,12 @@ bandeau.addEventListener('click', (e) => {
   else if (ligne === 'echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
   else if (ligne === 'echo-recu') montrerEcho(horloge())
   else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
+  else if (ligne === 'profil') cockpit.ouvrir('profil')
 })
 
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
-    { credits: jeu.credits, soute: `${jeu.chargeSoute().toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse }, t)
+    { credits: jeu.credits, soute: `${jeu.chargeSoute().toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse, ...xpBandeau() }, t)
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
   // destination choisie.
@@ -1675,6 +1700,7 @@ function image(maintenant: number): void {
   avancerMissions(t)
   suivreEchos(t)
   mettreAJourFiche(t)
+  montrerGainsXp()
   afficherPing(t)
   afficherRadar(t)
   vueRadio.afficher()

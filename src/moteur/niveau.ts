@@ -1,0 +1,34 @@
+// Le niveau du capitaine (décisions d'Adrien du 21/10/2026) : de l'XP au niveau (jusqu'à 100), la jauge du niveau en
+// cours, et la forme de la capsule sur la carte (par paliers, un peu plus grosse à l'intérieur de chaque palier).
+
+import { NIVEAU_MAX, PALIERS, xpPourPasser, type Forme } from '../donnees/niveaux'
+
+/** XP totale pour atteindre le niveau n (0 pour le niveau 1). */
+export function xpPourNiveau(n: number): number {
+  let total = 0
+  for (let k = 1; k < Math.min(n, NIVEAU_MAX); k++) total += xpPourPasser(k)
+  return total
+}
+
+/** Le niveau atteint avec cette XP, et la jauge du niveau en cours (XP gagnée dans ce niveau, XP qu'il demande). */
+export function niveauDe(xp: number): { niveau: number; dans: number; besoin: number } {
+  let n = 1, reste = Math.max(0, xp)
+  while (n < NIVEAU_MAX && reste >= xpPourPasser(n)) { reste -= xpPourPasser(n); n++ }
+  return { niveau: n, dans: n < NIVEAU_MAX ? reste : 0, besoin: n < NIVEAU_MAX ? xpPourPasser(n) : 0 }
+}
+
+/** Le palier d'un niveau : sa forme, son nom, et une taille de 1 à 1,3 à l'intérieur du palier. */
+export function palierDe(niveau: number): { forme: Forme; nom: string; taille: number } {
+  let i = 0
+  while (i + 1 < PALIERS.length && niveau >= PALIERS[i + 1].des) i++
+  const p = PALIERS[i], fin = PALIERS[i + 1]?.des ?? p.des + 1
+  return { forme: p.forme, nom: p.nom, taille: 1 + (0.3 * (niveau - p.des)) / Math.max(1, fin - 1 - p.des) }
+}
+
+/** Le niveau d'un PNJ (un bot), tiré une fois pour toutes de son pseudo : il grandit, lui aussi. */
+export function niveauDuBot(pseudo: string): number {
+  let h = 2166136261
+  for (const c of pseudo) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
+  const x = (h >>> 0) / 4294967296
+  return 3 + Math.round(x * x * 85)
+}

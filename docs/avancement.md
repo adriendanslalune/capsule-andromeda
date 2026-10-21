@@ -19,6 +19,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Niveau du capitaine (décisions d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : barème
+  `src/donnees/niveaux.ts`, moteur `src/moteur/niveau.ts` (courbe, paliers, niveau des bots ; testé,
+  `tests/niveau.test.ts`) ; `jeu.xp`, `jeu.commerce` (plafond de 100 XP par jour) sauvegardés, `gagnerXp` branché sur
+  les contrats, chasseurs, assauts, quêtes, réparations du panneau, Comptoir, Bourse, monolithes, Voix perdues ;
+  formes des capsules `src/carte/vaisseaux.ts` (joueur et bots) ; plaque « niv. » sous la capsule, niveau dans les
+  Messages (`statutBot`), jauge d'XP au pied du bandeau (la toucher ouvre le Profil), « +XP » qui flotte, bloc Niveau
+  du Profil. Bombe plus voyante au combat (éclair, deux ondes de choc, écran qui tremble, « BOUM ! »).
 - Combat plus dur et armement (décisions d'Adrien du 21/10/2026) — **faits, en attente des essais d'Adrien** :
   nouvelle grille dans `src/donnees/combat.ts` (chasseurs, escorteurs, éventails, amiraux en rage puis en frénésie) ;
   `ARMEMENT` (4 lignes × 6 niveaux, prix, matériaux, `LIGNE_DE_MAISON`) ; `Equipement` du combat (coque, dégâts,

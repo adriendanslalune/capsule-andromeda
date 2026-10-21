@@ -66,6 +66,8 @@ export interface EtatCombat {
   fin: null | 'victoire' | 'retraite'
   /** Un vaisseau amiral (l'assaut final d'une zone) plutôt qu'un chasseur. */
   amiral?: boolean
+  /** La dernière bombe lâchée : quand et d'où (pour l'onde de choc à l'écran). */
+  derniereBombe?: { t: number; x: number; y: number }
 }
 
 export type EvenementCombat = 'touche' | 'bouclier' | 'escorteur-abattu' | 'victoire' | 'retraite'
@@ -149,6 +151,9 @@ function vague(e: EtatCombat): void {
 export function bombe(e: EtatCombat): boolean {
   if (e.fin || e.bombes === 0) return false
   e.bombes--
+  e.derniereBombe = { t: e.temps, x: e.capsule.x, y: e.capsule.y }
+  // Chaque balle effacée laisse une étincelle.
+  for (const b of e.balles.slice(0, 60)) e.eclats.push({ x: b.x, y: b.y, t: e.temps, gros: false })
   e.balles = []
   for (const a of e.aliens) { a.pv -= DEGATS_BOMBE; e.eclats.push({ x: a.x, y: a.y, t: e.temps, gros: true }) }
   return true

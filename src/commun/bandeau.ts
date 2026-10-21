@@ -58,7 +58,11 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
 }
 
 /** L'état de la capsule, toujours visible au pied du bandeau (demande d'Adrien du 17/10/2026). */
-export interface EtatCapsuleBandeau { credits: number; soute: string; niveauMoteur: number; vitesse: number; vitesseForcee: boolean }
+export interface EtatCapsuleBandeau {
+  credits: number; soute: string; niveauMoteur: number; vitesse: number; vitesseForcee: boolean
+  /** Le niveau du capitaine et sa jauge d'XP (0 à 1), en fine barre au pied du bandeau (décisions d'Adrien du 21/10/2026). */
+  niveau: number; xp: number
+}
 
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
 let forme = ''
@@ -85,9 +89,13 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   const etat = valeur('credits', nombre(capsule.credits)) + valeur('soute', `${capsule.soute} t`)
     + (capsule.vitesseForcee ? valeur('vitesse', `${nombre(capsule.vitesse)} km/s (essai)`)
       : valeur('moteur', `niv. ${capsule.niveauMoteur}`) + valeur('vitesse', `${nombre(capsule.vitesse)} km/s`))
-  const html = lignesHtml.join('') + `<div class="etat" data-ligne="etat">${etat}</div>`
+  const html = lignesHtml.join('') + `<div class="etat" data-ligne="etat">${etat}</div><div class="jauge-xp" data-ligne="profil"><i></i><small></small></div>`
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html
   element.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
+  const barre = element.querySelector<HTMLElement>('.jauge-xp i'), texte = element.querySelector<HTMLElement>('.jauge-xp small')
+  const largeur = `${Math.round(capsule.xp * 1000) / 10}%`, niveau = `capitaine niv. ${capsule.niveau}`
+  if (barre && barre.style.width !== largeur) barre.style.width = largeur
+  if (texte && texte.textContent !== niveau) texte.textContent = niveau
 }
