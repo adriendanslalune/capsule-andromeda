@@ -34,17 +34,20 @@
 
       /* 1. La console du haut : où l'on est, ce qu'on a, ce qui presse. */
       #console { position: fixed; top: calc(26px + var(--haut)); left: var(--g); right: var(--g); z-index: 5; overflow: hidden; }
-      #console .statut { display: flex; align-items: center; gap: 10px; padding: 8px 10px 9px; }
+      #console .statut { display: flex; align-items: center; gap: 7px; padding: 8px 10px 9px; }
       #console .ou { flex: 1; min-width: 0; }
-      #console .ou b { display: block; font-size: 13px; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #console .ou b { display: block; font-size: 12px; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       #console .ou small { display: block; font-size: 11px; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
       .phase svg { width: 18px; height: 18px; }
-      .credits { flex: none; display: flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: 13px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 14px; background: var(--fond); }
+      .credits { flex: none; display: flex; align-items: center; gap: 4px; padding: 4px 7px; font-size: 12px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 14px; background: var(--fond); }
       .credits svg { width: 15px; height: 15px; }
-      .xp { position: relative; height: 4px; background: color-mix(in srgb, var(--encre) 12%, transparent); }
-      .xp i { position: absolute; inset: 0 auto 0 0; width: 38%; background: var(--violet); }
-      .niveau { flex: none; font-size: 10px; font-weight: bold; padding: 1px 5px; border-radius: 4px; color: var(--creme); background: var(--violet); }
+      /* Le niveau du capitaine et son XP : la jauge dans la pastille, avec son nom ; la toucher ouvre le Profil. */
+      .niveau { flex: none; display: flex; flex-direction: column; gap: 2px; width: 62px; white-space: nowrap; padding: 3px 6px 4px; border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); }
+      .niveau b { display: flex; justify-content: space-between; font-size: 10px; }
+      .niveau b span { color: var(--violet); }
+      .niveau .jauge-xp { height: 5px; border: 1px solid var(--encre); border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--violet) 12%, var(--fond)); }
+      .niveau .jauge-xp i { display: block; width: 38%; height: 100%; background: var(--violet); }
       .alerte { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 10px; font-size: 12px; border-top: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); }
       .alerte svg { flex: none; width: 18px; height: 18px; }
       .alerte span { flex: 1; min-width: 0; line-height: 1.25; }
@@ -94,9 +97,26 @@
       #instruments .charge i { display: block; height: 100%; background: var(--encre); }
 
       /* 4. La console du bas : la vitesse et le trajet ensemble, posés sur la barre d'onglets. */
-      #bord { position: fixed; left: var(--g); right: var(--g); bottom: calc(70px + var(--bas)); z-index: 5; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 8px; }
-      .compteur { position: relative; flex: none; width: 70px; height: 62px; }
-      .compteur svg { width: 64px; height: 45px; margin: 0 auto; overflow: visible; }
+      #bord { position: fixed; left: var(--g); right: var(--g); bottom: calc(70px + var(--bas)); z-index: 5; padding: 8px 10px 6px; }
+      #bord .tete { display: flex; align-items: center; gap: 10px; }
+      /* La feuille de route : une frise du départ à l'arrivée, avec les étapes, et la capsule dessus en temps réel. */
+      .frise { position: relative; height: 62px; margin: 4px 14px 0; }
+      .frise .rail, .frise .fait { position: absolute; top: 22px; height: 0; border-top: 2px dashed color-mix(in srgb, var(--encre) 55%, transparent); }
+      .frise .fait { border-top: 3px solid var(--encre); top: 21.5px; }
+      .frise .etape { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 92px; text-align: center; }
+      .frise .etape b { font-size: 10.5px; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 92px; height: 13px; }
+      .frise .etape i { width: 16px; height: 16px; margin-top: 2px; border: 2px solid var(--encre); border-radius: 50%; background: var(--fond); }
+      .frise .etape.passee i { background: var(--encre); }
+      .frise .etape.but i { width: 18px; height: 18px; margin-top: 1px; border-radius: 3px; transform: rotate(45deg); background: var(--moutarde); }
+      .frise .etape small { margin-top: 3px; font-size: 9.5px; line-height: 1.2; opacity: 0.8; }
+      .frise .etape small em { font-style: normal; font-weight: bold; opacity: 1; }
+      .frise .etape:first-child { align-items: flex-start; text-align: left; transform: none; margin-left: -8px; }
+      .frise .etape:first-child i { margin-left: 0; }
+      .frise .etape.fin { align-items: flex-end; text-align: right; transform: translateX(-100%); margin-left: 8px; }
+      .frise .capsule { position: absolute; top: 12px; width: 22px; height: 22px; transform: translateX(-50%); }
+      .frise .capsule svg { width: 22px; height: 22px; filter: drop-shadow(1px 1px 0 var(--fond)); }
+      .compteur { position: relative; flex: none; width: 64px; height: 56px; }
+      .compteur svg { width: 58px; height: 41px; margin: 0 auto; overflow: visible; }
       .compteur b { position: absolute; left: -4px; right: -4px; bottom: 0; font-size: 10.5px; text-align: center; font-variant-numeric: tabular-nums; }
       .compteur .arc { fill: none; stroke: color-mix(in srgb, var(--encre) 15%, transparent); stroke-width: 6; stroke-linecap: round; }
       .compteur .phase-arc { fill: none; stroke-width: 6; stroke-linecap: round; }
@@ -137,11 +157,10 @@
       <div class="statut">
         <span class="phase" id="phase"></span>
         <div class="ou"><b id="ou"></b><small id="detail"></small></div>
-        <span class="niveau">niv. 3</span>
+        <span class="niveau"><b>NIV 3<span>XP</span></b><span class="jauge-xp"><i></i></span></span>
         <span class="credits"><svg viewBox="0 0 16 16" class="trait"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v7M6 6.2c0-1 4-1 4 .3 0 1.4-4 1.3-4 2.8 0 1.3 4 1.3 4 .2"/></svg>1 240</span>
       </div>
       <div id="alertes"></div>
-      <div class="xp"><i></i></div>
     </div>
 
     <!-- 2. Rangée de la vue -->
@@ -181,16 +200,19 @@
 
     <!-- 4. Console du bas -->
     <div id="bord" class="cadre">
-      <div class="compteur">
+      <div class="tete">
+      <div class="compteur" id="compteur">
         <svg viewBox="0 0 100 70"><path class="arc" d="M14 62a40 40 0 1 1 72 0"/><path class="phase-arc" id="arc" d=""/><line class="aiguille" id="aiguille" x1="50" y1="56" x2="50" y2="22"/><circle cx="50" cy="56" r="4.5" style="fill:var(--encre)"/></svg>
         <b id="vitesse">0,00 km/s</b>
       </div>
       <div class="infos" id="infos"></div>
       <button type="button" class="action" id="action" hidden></button>
+      </div>
+      <div class="frise" id="frise"></div>
     </div>
 
     <nav id="onglets" class="cadre">
-      <button type="button"><svg viewBox="0 0 24 24" class="trait"><circle cx="12" cy="12" r="9.5"/><path d="M12 4 14.5 12 12 20 9.5 12z" style="fill:var(--rouge)"/></svg>Navig.</button>
+      <button type="button"><svg viewBox="0 0 24 24" class="trait"><rect x="7" y="3" width="12" height="16" rx="1.5" transform="rotate(10 13 11)" style="fill:var(--creme)"/><rect x="4" y="5" width="12" height="16" rx="1.5" style="fill:var(--moutarde)"/><path d="M10 9.5v7"/><rect x="8.3" y="9" width="3.4" height="8" rx="0.5" style="fill:var(--encre)"/></svg>Collect.</button>
       <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M12 3c4 2.5 6 7 6 14H6c0-7 2-11.5 6-14z" style="fill:var(--moutarde)"/><circle cx="12" cy="11" r="2.3"/><path d="M6 17l-2 4h16l-2-4"/></svg>Capsule</button>
       <button type="button"><svg viewBox="0 0 24 24" class="trait"><rect x="5" y="4" width="14" height="17" rx="1.5"/><path d="M9 3h6v3H9zM8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg>Journal</button>
       <button type="button"><svg viewBox="0 0 24 24" class="trait"><path d="M3.5 20.5h17M3.5 20.5v-16"/><path d="M6 16l4-5 3 3 6-7" style="stroke:var(--rouge)"/></svg>Marché</button>
@@ -212,25 +234,33 @@
       $('#systemes').innerHTML = SYSTEMES.map(([n, c]) => `<button type="button" class="${n === 'Terre' ? 'ici' : ''}"><i style="background:${c}"></i>${n}${n === 'Terre' ? '<small>ici</small>' : ''}</button>`).join('')
 
       const alerte = (classe, icone, texte, bouton) => `<div class="alerte ${classe}">${ICONES[icone]}<span>${texte}</span>${bouton ? `<em>${bouton}</em>` : ''}</div>`
+      // La frise : des étapes (nom, sous-titre) le long du rail ; position de la capsule (0 à 1) ; jusqu'où c'est fait.
+      const CAPSULE = '<svg viewBox="0 0 24 24"><path d="M21 12 6 19.5 9 12 6 4.5z" style="fill:var(--rouge);stroke:var(--encre);stroke-width:1.6;stroke-linejoin:round"/></svg>'
+      function frise(etapes, capsule) {
+        const x = (k) => (100 * k) / (etapes.length - 1)
+        return `<div class="rail" style="left:0;right:0"></div><div class="fait" style="left:0;width:${(100 * capsule).toFixed(1)}%"></div>`
+          + etapes.map((e, k) => `<div class="etape${k === etapes.length - 1 ? ' fin' : ''}${e.passee ? ' passee' : ''}${e.but ? ' but' : ''}" style="left:${x(k)}%"><b>${e.nom}</b><i></i><small>${e.sous}</small></div>`).join('')
+          + `<span class="capsule" style="left:${(100 * capsule).toFixed(1)}%">${CAPSULE}</span>`
+      }
       const SCENES = [
         { titre: 'AU REPOS', fond: 'carte-repos', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
-          alertes: alerte('objectif', 'quete', '<b>Quête</b> · Parler à Elsa Varga, à l\'ISS', 'Y ALLER'),
-          vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s',
-          infos: '<div class="nom">EN ORBITE <small>· Terre</small></div><div class="indice">Touche un astre pour choisir où aller.</div>', bulle: true },
+          alertes: alerte('objectif', 'quete', '<b>Quête</b> · Parler à Elsa Varga, à l\'ISS', 'Y ALLER'), bulle: true },
         { titre: 'DESTINATION', fond: 'carte-lune', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
-          alertes: alerte('objectif', 'contrat', '<b>Contrat</b> · Remorquer Conteneur K-12 → ISS (1/2)', 'Y ALLER'),
-          vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s',
-          infos: '<div class="nom">LUNE <small>· 387 000 km</small></div><div class="vals"><span>⧗ 3 h 35</span><span>⚑ demain 02:36</span></div><div class="occupee">occupée · résistance 12 %</div><div class="barre"><i style="width:12%"></i></div>',
-          action: '➤ DÉPART' },
-        { titre: 'EN VOL, ÇA CHAUFFE', fond: 'carte-lune', phase: 'vol', ou: 'EN ROUTE · LUNE', detail: 'arrivée demain 02:36 · reste 3 h 12',
+          alertes: '',
+          bord: { infos: '<div class="nom">LUNE <small>· 387 000 km · 3 h 35</small></div><div class="occupee">occupée · résistance 12 %</div>', action: '➤ DÉPART',
+            frise: frise([{ nom: 'Terre', sous: 'maintenant' }, { nom: 'Lune', sous: 'arrivée<br><em>demain 02:36</em>', but: true }], 0) } },
+        { titre: 'CONTRAT EN DEUX ÉTAPES', fond: 'carte-lune', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
+          alertes: alerte('objectif', 'contrat', '<b>Contrat</b> · Remorquer Conteneur K-12 jusqu\'à l\'ISS', ''),
+          bord: { infos: '<div class="nom">CONTENEUR K-12 <small>· 41 000 km</small></div><div class="indice">étape 1 sur 2 · harponner</div>', action: '➤ DÉPART',
+            frise: frise([{ nom: 'Terre', sous: 'maintenant' }, { nom: 'Conteneur K-12', sous: 'harponner<br><em>22:31</em>', but: true }, { nom: 'ISS', sous: 'larguer<br><em>vers 23:40</em>' }], 0) } },
+        { titre: 'EN VOL, ÇA CHAUFFE', fond: 'carte-lune', phase: 'vol', ou: 'EN VOL', detail: 'système de la Terre',
           alertes: alerte('missile', 'missile', '<b>MISSILE</b> · Chasseur Ξ-2 · impact dans <span class="compte">00:47</span>', 'INTERCEPTER')
-            + alerte('panne', 'panne', '<b>PANNE</b> · Moteur · vitesse ÷ 2', 'RÉPARER')
-            + alerte('objectif', 'contrat', '<b>Contrat</b> · Remorquer Conteneur K-12 → ISS (1/2)'),
-          vitesse: 0.5, couleur: 'var(--moutarde)', vtexte: '15,00 km/s', radar: true,
-          infos: '<div class="nom">→ LUNE <small>· croisière</small></div><div class="vals"><span>⚑ 02:36</span><span>reste 3 h 12</span></div><div class="barre trajet"><i style="width:18%"></i></div>' },
-        { titre: 'SYSTÈMES ET CALQUES', fond: 'carte-repos', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
-          alertes: '', vitesse: 0, couleur: 'var(--moutarde)', vtexte: '0,00 km/s', systemes: true,
-          infos: '<div class="nom">EN ORBITE <small>· Terre</small></div><div class="indice">Touche un astre pour choisir où aller.</div>' },
+            + alerte('panne', 'panne', '<b>PANNE</b> · Moteur · vitesse ÷ 2', 'RÉPARER'),
+          radar: true,
+          bord: { vitesse: 0.5, couleur: 'var(--moutarde)', vtexte: '15,00 km/s', infos: '<div class="nom">CONTENEUR K-12</div><div class="vals"><span>reste 38 min</span><span>arrivée 22:31</span></div><div class="indice">contrat · étape 1 sur 2</div>',
+            frise: frise([{ nom: 'Terre', sous: 'parti 21:44', passee: true }, { nom: 'Conteneur K-12', sous: 'harponner<br><em>22:31</em>', but: true }, { nom: 'ISS', sous: 'larguer<br><em>vers 23:40</em>' }], 0.27) } },
+        { titre: 'SYSTÈMES', fond: 'carte-repos', phase: 'orbite', ou: 'EN ORBITE · TERRE', detail: '400 km · un tour en 1 h 32',
+          alertes: '', systemes: true },
       ]
       let n = 0
       const arc = (f) => { const a0 = Math.PI * 1.25, a = a0 - f * Math.PI * 1.5, p = (x) => [50 + 40 * Math.cos(x), 56 - 40 * Math.sin(x)]
@@ -242,7 +272,7 @@
         $('#bulle').style.top = `${bas + 60}px`
         $('#systemes').style.top = `${bas + 58}px`
         $('#calques').style.top = `${bas + 58}px`
-        const bord = $('#bord').getBoundingClientRect().top
+        const bord = ($('#bord').hidden ? $('#onglets') : $('#bord')).getBoundingClientRect().top
         $('#instruments').style.top = `${bord - 12 - $('#instruments').offsetHeight}px`
       }
       function afficher() {
@@ -253,13 +283,20 @@
         $('#ou').textContent = s.ou
         $('#detail').textContent = s.detail
         $('#alertes').innerHTML = s.alertes
-        $('#infos').innerHTML = s.infos
-        $('#vitesse').textContent = s.vtexte
-        $('#arc').setAttribute('d', s.vitesse ? arc(s.vitesse) : '')
-        $('#arc').style.stroke = s.couleur
-        $('#aiguille').setAttribute('transform', `rotate(${-135 + 270 * s.vitesse} 50 56)`)
-        $('#action').hidden = !s.action
-        $('#action').textContent = s.action ?? ''
+        const d = s.bord
+        $('#bord').hidden = !d
+        if (d) {
+          $('#infos').innerHTML = d.infos
+          $('#frise').innerHTML = d.frise
+          // Le compteur de vitesse n'est là qu'en vol (au repos, la vitesse ne dit rien).
+          $('#compteur').hidden = d.vitesse === undefined
+          $('#vitesse').textContent = d.vtexte ?? ''
+          $('#arc').setAttribute('d', d.vitesse ? arc(d.vitesse) : '')
+          $('#arc').style.stroke = d.couleur ?? ''
+          $('#aiguille').setAttribute('transform', `rotate(${-135 + 270 * (d.vitesse ?? 0)} 50 56)`)
+          $('#action').hidden = !d.action
+          $('#action').textContent = d.action ?? ''
+        }
         $('#radar').classList.toggle('actif', !!s.radar)
         $('#bulle').hidden = !s.bulle
         $('#systemes').hidden = !s.systemes
