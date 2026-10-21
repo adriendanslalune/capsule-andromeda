@@ -68,6 +68,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   - Nouveau moteur en plein vol : le trajet se recalcule aussitôt (`apresChangementDePanne` après l'achat) et repart
     de la vitesse du moment (`vitesseInitiale` du plan, `planifier(..., lance)`, profils `dureeTrajet`, `avancement`,
     `vitesseEnVol` avec v0) ; vaut aussi pour la panne et la réparation du Moteur ; testé.
+  - Comptoir plus lisible : en-tête de colonnes ; blocs ACHETER / VENDRE dont chaque bouton montre les tonnes
+    réellement échangées et la somme (−54 cr / +30 cr, d'après le devis du moteur) ; lots plafonnés fondus dans TOUT.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

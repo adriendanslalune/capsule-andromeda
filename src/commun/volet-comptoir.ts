@@ -82,7 +82,7 @@ export class VoletComptoir {
     }
 
     // Les matériaux : prix d'achat et de vente, spécialité du système, ce qu'on en a à bord, ce qu'il manque au moteur.
-    html += '<div class="liste-comptoir">' + vue.marchandises.map((x) => {
+    html += '<div class="liste-comptoir"><div class="entete-liste"><span>matériau</span><span>crédits la tonne</span><span>à bord</span></div>' + vue.marchandises.map((x) => {
       const nom = x.fiche.nom, stock = etat.soute[nom] ?? 0, specialite = SPECIALITES[m.nom]?.[nom] ?? 1
       const marque = specialite < 1 ? '<span class="specialite bon-marche">▼ produit ici</span>' : specialite > 1 ? '<span class="specialite recherche">▲ recherché ici</span>' : ''
       const besoin = besoins[nom] ? `<span class="besoin">${picto('moteur')}il t'en manque ${t1(besoins[nom])} t</span>` : ''
@@ -91,27 +91,43 @@ export class VoletComptoir {
         + `<span class="prix-comptoir"><span>achat <b>${x.achat}</b></span><span>vente <b>${x.vente}</b></span></span>`
         + `<span class="a-bord">${stock ? `${t1(stock)} t` : '—'}</span></button>`
       if (this.ouverte === nom) {
-        const off = !possible || charge >= CAPACITE_SOUTE - 0.05 || etat.credits < x.achat, rien = !possible || stock <= 0
-        const lot = (sens: 'acheter' | 'vendre', n: number, texte: string, desactive: boolean) =>
-          `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${desactive ? ' disabled' : ''}${sens === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
         const d = this.aConfirmer?.marchandise === nom && possible ? this.devis(this.aConfirmer) : null
         if (d && d.tonnes > 0) {
           const achat = this.aConfirmer!.sens === 'acheter'
           ligne += `<div class="commerce"><div class="confirmation"><b>${achat ? 'Acheter' : 'Vendre'} ${t1(d.tonnes)} t de ${nom.toLowerCase()} ?</b>`
-            + `<div><span>${achat ? 'Pour' : 'Tu reçois'}</span><b>${d.prix.toLocaleString('fr-FR')} cr.</b></div>`
+            + `<div><span>${achat ? 'Tu paies' : 'Tu reçois'}</span><b>${d.prix.toLocaleString('fr-FR')} crédits</b></div>`
             + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
           return ligne + '</div>'
         }
+        // Chaque bouton dit ce qu'il fait vraiment (demande d'Adrien du 21/10/2026) : les tonnes échangées (dans la limite
+        // des crédits, de la place en soute ou du stock) et les crédits payés ou reçus. Un lot qui ferait la même chose
+        // qu'un plus petit, ou plafonné, n'est pas montré ; TOUT dit combien de tonnes.
+        const lots = (sens: 'acheter' | 'vendre') => {
+          let avant = 0, html = ''
+          for (const n of [...LOTS, Infinity]) {
+            const v = possible ? this.devis({ sens, marchandise: nom, tonnes: n }) : { tonnes: 0, prix: 0 }
+            const tout = n === Infinity
+            // Un lot plafonné (crédits, place, stock) revient à TOUT : seul TOUT est montré.
+            if (!tout && v.tonnes > 0 && v.tonnes < n - 1e-9) continue
+            if (tout && v.tonnes > 0 && v.tonnes <= avant + 1e-9 && html) continue
+            const titre = tout ? (v.tonnes > 0 ? `TOUT · ${t1(v.tonnes)} t` : 'TOUT') : `${t1(v.tonnes > 0 ? v.tonnes : n)} t`
+            const somme = v.tonnes > 0 ? `${sens === 'acheter' ? '−' : '+'}${v.prix.toLocaleString('fr-FR')} cr` : '—'
+            html += `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${v.tonnes > 0 ? '' : ' disabled'}>`
+              + `<b>${titre}</b><small>${somme}</small></button>`
+            avant = Math.max(avant, v.tonnes)
+          }
+          return html
+        }
         ligne += '<div class="commerce">'
-          + `<div class="ligne-commerce"><span>ACHETER</span>${LOTS.map((n) => lot('acheter', n, `${n} t`, off)).join('')}${lot('acheter', Infinity, 'TOUT', off)}</div>`
-          + `<div class="ligne-commerce"><span>VENDRE</span>${LOTS.map((n) => lot('vendre', n, `${n} t`, rien)).join('')}${lot('vendre', Infinity, 'TOUT', rien)}</div>`
+          + `<div class="bloc-commerce achat"><span class="titre-bloc">ACHETER <small>tu paies ${x.achat} cr la tonne</small></span><div class="lots">${lots('acheter')}</div></div>`
+          + `<div class="bloc-commerce vente"><span class="titre-bloc">VENDRE <small>${stock > 0 ? `tu reçois ${x.vente} cr la tonne · ${t1(stock)} t à bord` : 'tu n\'en as pas à bord'}</small></span><div class="lots">${lots('vendre')}</div></div>`
         if (possible && charge >= CAPACITE_SOUTE - 0.05) ligne += '<p class="raison">Soute pleine : vends quelque chose pour faire de la place.</p>'
         else if (possible && etat.credits < x.achat) ligne += `<p class="raison">Pas assez de crédits : une tonne coûte ${x.achat} crédits.</p>`
         ligne += '</div>'
       }
       return ligne + '</div>'
     }).join('') + '</div>'
-    html += '<p class="note">Prix en crédits la tonne. Touche un matériau pour l\'acheter ou le vendre. Chaque système a ses spécialités : moins chères là où elles se produisent, plus chères là où elles manquent.</p>'
+    html += '<p class="note">Achat : ce que tu paies une tonne ; vente : ce qu\'on t\'en donne. Chaque système a ses spécialités : moins chères là où elles se produisent, plus chères là où elles manquent.</p>'
 
     if (html === this.dernier) return
     const rangee = this.element.querySelector('.places')?.scrollLeft ?? 0
