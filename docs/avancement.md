@@ -19,6 +19,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
+- Retours d'Adrien du 21/10/2026 sur l'échelle réelle (« c'est mieux comme ça ») : portée du radar ramenée à
+  500 000 km (`PORTEE_RADAR`) ; la carte ramait en zoomant autour de la Terre : la poussière ne garde qu'un satellite
+  sur huit (environ 1 900, `chargerPoussiere(…, 8)`), et les astres illustrés sont dessinés une fois puis agrandis
+  tant que leur taille change peu (`dessinerAstreIllustre`, pas de 12 %, huit dessins gardés). Mesuré sur ordinateur
+  ralenti 6 fois : la grande Terre redessinée à chaque image coûtait le plus ; à confirmer sur le téléphone d'Adrien.
 - Échelle réelle (essai demandé par Adrien le 21/10/2026), **à comparer par Adrien** : bouton « Échelle réelle » dans
   les calques (désactivé par défaut, mémorisé). Astres à leur vraie taille, plus de loupe autour des planètes, toutes
   les distances vraies (`echelleReelle` dans `src/carte/loupe.ts`) ; un astre trop petit devient une pastille, deux

@@ -1,6 +1,6 @@
-// La « poussière » de satellites : tous les satellites actifs autour de la Terre (environ 15 000, d'après CelesTrak),
-// dessinés comme de fins points décoratifs (choix d'Adrien du 17/10/2026 : une sélection d'engins touchables, et tous
-// les autres en poussière). Ils ne sont pas des destinations.
+// La « poussière » de satellites : tous les satellites actifs autour de la Terre (environ 15 000, d'après CelesTrak ;
+// la carte n'en garde qu'un sur huit), dessinés comme de fins points décoratifs (choix d'Adrien du 17/10/2026 : une
+// sélection d'engins touchables, et tous les autres en poussière). Ils ne sont pas des destinations.
 // Calcul volontairement simple (des milliers de points à chaque image, sur un téléphone) : orbite de Kepler autour de
 // la Terre, plus la lente rotation du plan et de l'ellipse due à l'aplatissement de la Terre (J2). Les orbites ne sont
 // pas remises à jour (décision d'Adrien) : la poussière reste vraisemblable, pas exacte.
@@ -50,9 +50,14 @@ interface Poussiere {
 
 let poussiere: Poussiere | null = null
 
-/** Charge les données de la poussière (texte de nombres séparés par des espaces, voir src/donnees/poussiere.ts). */
-export function chargerPoussiere(texte: string, reference: number): void {
-  const v = texte.trim().split(/\s+/).map(Number)
+/**
+ * Charge les données de la poussière (texte de nombres séparés par des espaces, voir src/donnees/poussiere.ts), en ne
+ * gardant qu'un satellite sur unSur.
+ */
+export function chargerPoussiere(texte: string, reference: number, unSur = 1): void {
+  const tous = texte.trim().split(/\s+/).map(Number)
+  const v: number[] = []
+  for (let k = 0; (k + 1) * VALEURS_PAR_SATELLITE <= tous.length; k += unSur) v.push(...tous.slice(k * VALEURS_PAR_SATELLITE, (k + 1) * VALEURS_PAR_SATELLITE))
   const nombre = Math.floor(v.length / VALEURS_PAR_SATELLITE)
   const elements = new Float64Array(nombre * 9)
   for (let k = 0; k < nombre; k++) {

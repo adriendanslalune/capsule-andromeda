@@ -112,7 +112,9 @@ function avancerHorloge(maintenant: number): void {
 }
 
 // La poussière de satellites (environ 15 000 points autour de la Terre) : chargée à part, sans retarder l'ouverture.
-import('./donnees/poussiere').then((d) => { chargerPoussiere(d.POUSSIERE, d.REFERENCE_POUSSIERE); carteSale = true })
+// Un satellite sur huit (environ 1 900) : les 15 000 faisaient ramer le téléphone en zoomant autour de la Terre
+// (Adrien, 21/10/2026).
+import('./donnees/poussiere').then((d) => { chargerPoussiere(d.POUSSIERE, d.REFERENCE_POUSSIERE, 8); carteSale = true })
   .catch(() => { /* pas de poussière : la carte s'en passe */ })
 
 // L'état du jeu (crédits, moteur) et la mission de la capsule (orbite, trajet, arrivée) : le moteur les suit.

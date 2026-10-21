@@ -8,8 +8,8 @@
 export const PERIODE_RADAR = 4000
 /** Jauge pleine (ou vide) en… (ms). */
 export const DUREE_RADAR = 30_000
-/** Portée du radar (km) : 5 millions de km (décision d'Adrien du 20/10/2026). */
-export const PORTEE_RADAR = 5_000_000
+/** Portée du radar (km) : 500 000 km (décision d'Adrien du 21/10/2026, au lieu de 5 millions : trop grand à l'échelle réelle). */
+export const PORTEE_RADAR = 500_000
 /** Un écho s'efface en… (ms) après le passage du balayage. */
 export const EFFACEMENT_RADAR = 1.25 * PERIODE_RADAR
 
