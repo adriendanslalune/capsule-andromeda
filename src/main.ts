@@ -541,7 +541,8 @@ function afficherCadranVitesse(t: number): void {
   if (cle === cadranAffiche) return
   cadranAffiche = cle
   cadranVitesse.querySelector('.aiguille-vitesse')!.setAttribute('transform', `rotate(${(a + 90).toFixed(1)} 50 54)`)
-  cadranVitesse.querySelector('.valeur-vitesse')!.textContent = `${texte} km/s`
+  // Le nombre sur une ligne, l'unité dessous : jusqu'à « 15 360,00 » (niveau 10), il tient dans la console.
+  cadranVitesse.querySelector('.valeur-vitesse')!.innerHTML = `${texte}<small>km/s</small>`
   cadranVitesse.querySelector('.phase-vitesse')!.textContent = phase
   cadranVitesse.dataset.phase = v?.phase ?? 'orbite'
   // L'arc de la phase : de 0 à la vitesse actuelle, vert à l'accélération, moutarde en croisière, cerise au freinage.
