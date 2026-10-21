@@ -1273,6 +1273,7 @@ body.nuit #marche .baisse { color: #f08a72; }
 #comptoir .tete-comptoir { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 14px 6px; }
 #comptoir .tete-comptoir > b { font-size: 15px; }
 #comptoir > .raison { margin: 0 14px 6px; font-size: 12px; line-height: 1.4; }
+#comptoir > .consigne-comptoir { margin: 0 14px 8px; padding: 6px 10px; font-size: 12px; font-weight: bold; text-align: center; background: color-mix(in srgb, var(--moutarde) 35%, transparent); border: 1.5px dashed var(--encre); border-radius: 8px; }
 #comptoir > .vers-ici { margin: 0 14px 8px; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold;
   color: var(--encre); background: var(--moutarde); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
 #comptoir .liste-comptoir { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }

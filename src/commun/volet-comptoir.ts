@@ -66,6 +66,8 @@ export class VoletComptoir {
       `<button type="button" data-comptoir="${i}"${i === k ? ' class="actif"' : ''}><span class="pastille" style="background:${x.teinte}"></span>`
       + `${x.nom}${etat.ici === x.nom ? '<small>ici</small>' : ''}</button>`).join('') + '</div>'
     html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('credits', etat.credits.toLocaleString('fr-FR'))}${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
+    // Les boutons n'apparaissent qu'en touchant un matériau : on le dit en haut (Adrien ne les avait pas trouvés).
+    if (possible && !this.ouverte) html += '<p class="consigne-comptoir">Touche un matériau pour l\'acheter ou le vendre.</p>'
     if (!possible) {
       const raison = etat.enVol ? 'En plein vol : on achète et on vend une fois en orbite.'
         : !etat.ici ? 'Pas de comptoir ici : mets-toi en orbite dans le système d\'une planète (ou de Pluton).'

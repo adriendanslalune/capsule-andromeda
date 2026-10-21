@@ -26,8 +26,8 @@ describe('état du jeu au départ (décision d’Adrien du 17/10/2026)', () => {
   })
 })
 
-describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
-  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 600) et 4 (240 km/s, 1 500)', () => {
+describe('acheter un meilleur moteur (barème revu par Adrien le 21/10/2026)', () => {
+  it('niveau 2 à 60 km/s pour 200 crédits, puis 3 (120 km/s, 400) et 4 (240 km/s, 800)', () => {
     const jeu = new Jeu()
     expect(jeu.moteurSuivant()).toMatchObject({ niveau: 2, vitesse: 60, prix: 200 })
     jeu.credits = 199
@@ -41,7 +41,7 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     jeu.credits = 10_000
     expect(jeu.acheterMoteur() && jeu.acheterMoteur()).toBe(true)
     expect(jeu.vitesse()).toBe(240)
-    expect(jeu.credits).toBe(10_000 - 600 - 1500)
+    expect(jeu.credits).toBe(10_000 - 400 - 800)
     expect(jeu.soute).toEqual({})
   })
 
@@ -60,10 +60,10 @@ describe('acheter un meilleur moteur (barème validé le 17/10/2026)', () => {
     for (const n of NIVEAUX_MOTEUR) expect(Object.values(n.materiaux).reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(CAPACITE_SOUTE)
   })
 
-  it('dix niveaux (décision d’Adrien du 19/10/2026) : vitesse ×2, prix ×2,5 environ (après 200 et 600) ; rien après le niveau 10', () => {
+  it('dix niveaux (décision d’Adrien du 19/10/2026) : vitesse ×2, prix ×2 (décision du 21/10/2026) ; rien après le niveau 10', () => {
     for (let k = 1; k < NIVEAUX_MOTEUR.length; k++) {
       expect(NIVEAUX_MOTEUR[k].vitesse).toBe(2 * NIVEAUX_MOTEUR[k - 1].vitesse)
-      if (k > 2) expect(NIVEAUX_MOTEUR[k].prix / NIVEAUX_MOTEUR[k - 1].prix).toBeCloseTo(2.5, 1)
+      if (k > 1) expect(NIVEAUX_MOTEUR[k].prix).toBe(2 * NIVEAUX_MOTEUR[k - 1].prix)
     }
     expect(NIVEAUX_MOTEUR).toHaveLength(10)
     const jeu = new Jeu()

@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
+  6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
 - Accélération de la capsule (et des bots) à 20 g au lieu de 10 (décision d'Adrien du 21/10/2026 : trop lent autour
   de la Terre) : `ACCELERATION_G` dans `src/donnees/capsule.ts`. Terre → Lune au mieux 47 min (au lieu de 1 h 06), un
   engin à 300 000 km environ 44 min (au lieu de 1 h 02) ; rien ne change sur les longs trajets (vitesse max).
