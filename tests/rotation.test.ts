@@ -18,3 +18,24 @@ describe('la Terre qui tourne : le point subsolaire (demande d’Adrien du 21/10
     expect(Math.abs(pointSubsolaire(Date.UTC(2026, 10, 3, 11, 44)).lon)).toBeLessThan(0.3)
   })
 })
+
+describe('les autres astres qui tournent (demande d’Adrien du 21/10/2026)', () => {
+  it('Jupiter fait un tour en moins de 10 h ; Vénus (ses nuages) tourne à l’envers ; un astre sans rotation : null', async () => {
+    const { orientation } = await import('../src/moteur/rotation')
+    const t = Date.UTC(2026, 9, 21, 12)
+    const a = orientation('Jupiter', t)!.lon, b = orientation('Jupiter', t + 3_600_000)!.lon
+    expect(((a - b) % 360 + 360) % 360).toBeCloseTo(36.27, 1)
+    const v1 = orientation('Vénus', t)!.lon, v2 = orientation('Vénus', t + 3_600_000)!.lon
+    expect(((v2 - v1) % 360 + 360) % 360).toBeCloseTo(3.75, 1)
+    expect(orientation('Io', t)).toBeNull()
+    expect(orientation('Terre', t)).toEqual(pointSubsolaire(t))
+  })
+
+  it('les saisons : en 2026, le pôle nord d’Uranus et celui de Pluton sont au soleil ; Mercure, jamais incliné', async () => {
+    const { orientation } = await import('../src/moteur/rotation')
+    const t = Date.UTC(2026, 9, 21, 12)
+    expect(orientation('Uranus', t)!.lat).toBeGreaterThan(50)
+    expect(orientation('Pluton', t)!.lat).toBeGreaterThan(40)
+    expect(orientation('Mercure', t)!.lat).toBeCloseTo(0, 9)
+  })
+})

@@ -886,7 +886,7 @@ export class Carte2D {
     }
     ctx.beginPath()
     ctx.arc(x, y, r, 0, 2 * Math.PI)
-    ctx.lineWidth = r > 15 ? 2.5 : 1.5
+    ctx.lineWidth = 1 // un trait fin (demande d'Adrien du 21/10/2026 : plus de gros contour noir)
     ctx.strokeStyle = c.encre
     ctx.stroke()
     if (versSoleil === null && r < 30) {

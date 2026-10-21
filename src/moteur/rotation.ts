@@ -2,6 +2,8 @@
 // subsolaire). La carte enroule le planisphère sur le globe pour que la face éclairée soit la vraie : à minuit à Paris,
 // l'Europe est dans la nuit. Formules simplifiées de l'almanach (précises à quelques dixièmes de degré).
 
+import { position } from './corps'
+
 const RAD = Math.PI / 180
 
 /** Le point subsolaire à l'instant t (ms UTC) : latitude (la déclinaison du Soleil) et longitude, en degrés. */
@@ -20,4 +22,36 @@ export function pointSubsolaire(t: number): { lat: number; lon: number } {
   let lon = -15 * (heures - 12 + (4 * ecart) / 60)
   lon = ((lon % 360) + 540) % 360 - 180
   return { lat: declinaison / RAD, lon }
+}
+
+/**
+ * Les autres astres qui tournent (demande d'Adrien du 21/10/2026) : leur jour solaire (heures ; négatif : ils tournent à
+ * l'envers), l'inclinaison de leur axe (degrés) et la longitude héliocentrique où commence leur printemps nord (degrés),
+ * qui disent quel pôle est au soleil. Valeurs arrondies ; Vénus : ce sont ses nuages qu'on voit, qui font le tour en
+ * 4 jours (la planète elle-même met 117 jours).
+ */
+export const ROTATIONS: Readonly<Record<string, { jour: number; obliquite: number; printemps: number }>> = {
+  Mercure: { jour: 4222.6, obliquite: 0, printemps: 0 },
+  Vénus: { jour: -96, obliquite: 0, printemps: 0 },
+  Mars: { jour: 24.6597, obliquite: 25.19, printemps: 85 },
+  Jupiter: { jour: 9.9259, obliquite: 3.13, printemps: 0 },
+  Saturne: { jour: 10.6562, obliquite: 26.73, printemps: 173 },
+  Uranus: { jour: -17.24, obliquite: 82.23, printemps: 347 },
+  Neptune: { jour: 16.11, obliquite: 28.32, printemps: 45 },
+  Pluton: { jour: -153.29, obliquite: 57.5, printemps: 220 },
+}
+
+/**
+ * Le point subsolaire d'un astre qui tourne à l'instant t (latitude, longitude en degrés), ou null s'il ne tourne pas
+ * dans le jeu. La Terre : le vrai (pointSubsolaire) ; les autres : sa longitude tourne avec leur jour solaire (depuis
+ * le 1er janvier 2000), sa latitude suit leur saison.
+ */
+export function orientation(nom: string, t: number): { lat: number; lon: number } | null {
+  if (nom === 'Terre') return pointSubsolaire(t)
+  const r = ROTATIONS[nom]
+  if (!r) return null
+  const heures = (t - Date.UTC(2000, 0, 1, 12)) / 3_600_000
+  const lon = (((-360 * heures) / r.jour) % 360 + 540) % 360 - 180
+  const p = position(nom, t), saison = Math.atan2(p.y, p.x) / RAD - r.printemps
+  return { lat: Math.asin(Math.sin(r.obliquite * RAD) * Math.sin(saison * RAD)) / RAD, lon }
 }

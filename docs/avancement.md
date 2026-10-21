@@ -112,7 +112,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   Soleil sur le bord du côté où il est à l'écran pour garder le Nord en haut ; nuit en aplat violet et hachures le
   long du terminateur). Rapide : la géométrie de chaque taille est calculée une fois (préparée quand le téléphone ne
   fait rien), puis le globe est repeint au demi-degré, toutes les 2 minutes (environ 50 ms en gros plan, processeur
-  ralenti ×4). Les autres astres gardent leur illustration fixe.
+  ralenti ×4).
+- Toutes les planètes tournent (demande d'Adrien du 21/10/2026) — **fait, en attente de ses essais** : `ROTATIONS` et
+  `orientation` dans `src/moteur/rotation.ts` (jour solaire, inclinaison, début du printemps nord ; testé) ;
+  `src/carte/planispheres.ts` (les neuf planisphères, Terre comprise) ; `src/carte/globes.ts` (le globe générique, les
+  anneaux de Saturne et d'Uranus derrière et devant, gris pour un astre pas encore visité, au plus 2,5 millions de pixels
+  de géométrie gardés). Les lunes gardent leur illustration fixe. Contours des astres : un trait fin (`epaisseurContour`,
+  1 px pour les disques simples).
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

@@ -5,7 +5,7 @@
 // Dessiné en coordonnées locales : centre (0, 0), rayon du disque r (pixels). Sous une certaine taille, la carte garde
 // le simple disque.
 
-import { dessinerTerreQuiTourne, preparerGlobe } from './globe-terre'
+import { dessinerGlobe, epaisseurContour, preparerGlobe, tourne } from './globes'
 
 export const ENCRE = '#2b2138'
 const OMBRE = '#54437a'
@@ -644,12 +644,12 @@ export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string
   if (!FICHES[nom]) return
   const e = finesse(ctx.getTransform().a || 1)
   const rp = palier(nom, r, e)
-  // La Terre tourne, en temps réel (demande d'Adrien du 21/10/2026) : son globe, avec la vraie face éclairée.
-  if (nom === 'Terre' && t !== undefined && versSoleil !== null && !gris) {
-    const D = Math.round(2 * rp * e)
-    dessinerTerreQuiTourne(ctx, x, y, r, versSoleil, t, D)
-    preparerGlobe(Math.round(2 * palier(nom, rp * 2, e) * e), t)
-    preparerGlobe(Math.round(rp * e), t)
+  // Les astres qui tournent, en temps réel (demandes d'Adrien du 21/10/2026) : leur globe, avec la vraie face éclairée.
+  if (tourne(nom) && t !== undefined && versSoleil !== null) {
+    const f = FICHES[nom]
+    dessinerGlobe(ctx, nom, x, y, r, versSoleil, t, Math.round(2 * rp * e), gris, { arriere: f.arriere && ((c, rr) => f.arriere!(c, rr, hasard(graineDe(nom)))), avant: f.avant && ((c, rr) => f.avant!(c, rr, hasard(graineDe(nom)))) })
+    preparerGlobe(nom, Math.round(2 * palier(nom, rp * 2, e) * e), t)
+    preparerGlobe(nom, Math.round(rp * e), t)
     return
   }
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
@@ -713,10 +713,10 @@ function dessinerDirect(ctx: CanvasRenderingContext2D, nom: string, x: number, y
     }
   }
   ctx.restore()
-  // Contour d'encre, un peu plus épais.
+  // Le contour : un trait fin, comme le reste (demande d'Adrien du 21/10/2026 : plus de gros contour noir).
   ctx.beginPath()
   ctx.arc(0, 0, r, 0, 2 * Math.PI)
-  trait(ctx, Math.max(0.8, r * 0.035))
+  trait(ctx, epaisseurContour(r))
   f.avant?.(ctx, r, h)
   ctx.restore()
 }
