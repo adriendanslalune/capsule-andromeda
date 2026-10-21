@@ -1,6 +1,8 @@
 // La capsule du joueur au début du jeu, et les niveaux de son moteur.
-// Décision d'Adrien du 19/10/2026 : la capsule accélère à 20 g (10 g jusqu'au 21/10/2026 : trop lent autour de la
-// Terre) jusqu'à sa vitesse maximale, la garde, puis freine à 20 g pour s'arrêter à l'arrivée ; sur un trajet court, elle n'a pas le temps d'atteindre sa vitesse maximale.
+// Profil de vol (décisions d'Adrien du 19 et du 21/10/2026) : la capsule met 2 minutes à atteindre la vitesse maximale
+// de son moteur, quel qu'il soit, la garde, puis met 2 minutes à freiner pour s'arrêter à l'arrivée ; sur un trajet
+// court, elle commence à freiner avant de l'avoir atteinte. (D'abord 10 g, puis 20 g : trop lent autour de la Terre, et
+// un meilleur moteur n'y changeait rien.)
 // Améliorer le moteur, c'est doubler sa vitesse maximale (30 km/s au niveau 1), jusqu'au niveau 10 ; prix ×2 par niveau
 // depuis 200 (décision d'Adrien du 21/10/2026, au lieu de ×2,5 : on restait trop longtemps autour de la Terre).
 
@@ -32,10 +34,10 @@ export const NIVEAUX_MOTEUR: readonly NiveauMoteur[] = [
   { niveau: 10, vitesse: 15_360, prix: 51_200, materiaux: { 'Hélium 3': 12, 'Circuits anciens': 6 } },
 ]
 
-/** Accélération (et freinage) de la capsule, en g (décision d'Adrien du 21/10/2026 : 20 g au lieu de 10). */
-export const ACCELERATION_G = 20
-/** La même, en km/s². */
-export const ACCELERATION = (ACCELERATION_G * 9.80665) / 1000
+/** Temps (s) pour atteindre la vitesse maximale du moteur, et pour freiner jusqu'à l'arrêt. */
+export const DUREE_ACCELERATION = 120
+/** Accélération (et freinage), en km/s², d'un moteur de vitesse maximale v (km/s). */
+export const acceleration = (v: number): number => v / DUREE_ACCELERATION
 
 /** Crédits au début du jeu. */
 export const CREDITS_DEPART = 0

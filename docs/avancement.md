@@ -19,7 +19,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
-- Accélération de la capsule (et des bots) à 20 g au lieu de 10 (décision d'Adrien du 21/10/2026 : trop lent autour
+- Profil de vol revu (décision d'Adrien du 21/10/2026) : 2 minutes pour atteindre la vitesse max, quel que soit le
+  moteur, 2 minutes pour freiner (`DUREE_ACCELERATION`, `acceleration(v)` dans `src/donnees/capsule.ts`) ; un meilleur
+  moteur raccourcit aussi les trajets courts (Terre → Lune : 29 min au niveau 4). Plus de mention de l'accélération
+  dans la fiche du moteur.
+- (Remplacé par la ligne ci-dessus) Accélération de la capsule (et des bots) à 20 g au lieu de 10 (décision d'Adrien du 21/10/2026 : trop lent autour
   de la Terre) : `ACCELERATION_G` dans `src/donnees/capsule.ts`. Terre → Lune au mieux 47 min (au lieu de 1 h 06), un
   engin à 300 000 km environ 44 min (au lieu de 1 h 02) ; rien ne change sur les longs trajets (vitesse max).
 - Corrections du 21/10/2026 (retours d'Adrien) : la capsule ne saute plus à l'autre bout de la planète quand on abat

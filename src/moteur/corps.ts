@@ -13,7 +13,7 @@ import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
 import { ALIENS, EPAVES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
-import { ACCELERATION } from '../donnees/capsule'
+import { acceleration } from '../donnees/capsule'
 import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
@@ -140,8 +140,8 @@ export const RAYON_SYSTEME: ReadonlyMap<string, number> = (() => {
 
 // --- Les capsules des autres joueurs (les bots, en attendant le serveur) ---
 // Décision d'Adrien du 19/10/2026 : elles voyagent. Chaque bot va d'escale en escale (donnees/messages.ts) : il reste
-// quelques heures en orbite, puis vole vers la suivante comme la capsule du joueur (20 g, puis la vitesse max de son
-// moteur, puis freinage). Tout se déduit de l'heure : le même ciel pour tous.
+// quelques heures en orbite, puis vole vers la suivante comme la capsule du joueur (2 minutes pour
+// atteindre la vitesse max de son moteur, puis freinage). Tout se déduit de l'heure : le même ciel pour tous.
 
 /** Début des itinéraires (avant, chacun est à son port d'attache). */
 const DEBUT_ITINERAIRES = Date.UTC(2026, 9, 1)
@@ -157,9 +157,10 @@ function hasardBot(k: number, n: number): number {
   return x - Math.floor(x)
 }
 
-/** Durée (ms) d'un vol de L km à la vitesse max v (km/s), à 20 g, à l'arrêt au départ et à l'arrivée. */
+/** Durée (ms) d'un vol de L km à la vitesse max v (km/s), à l'arrêt au départ et à l'arrivée (comme la capsule). */
 function dureeVol(L: number, v: number): number {
-  return 1000 * (L >= (v * v) / ACCELERATION ? L / v + v / ACCELERATION : 2 * Math.sqrt(L / ACCELERATION))
+  const a = acceleration(v)
+  return 1000 * (L >= (v * v) / a ? L / v + v / a : 2 * Math.sqrt(L / a))
 }
 
 /** Écart de la capsule d'un bot autour de l'astre où il fait escale (km), sur une orbite à lui. */
@@ -207,7 +208,7 @@ function positionBot(pseudo: string, t: number): Vecteur3 | null {
   if (!it) return null
   const ou = ouEstLeBot(pseudo, t)
   if (!ou.enRoute) return ajouter(position(ou.lieu, t), orbiteBot(it.k, ou.lieu, t))
-  // En route : en ligne droite, de son orbite de départ au rendez-vous avec l'escale suivante (profil 20 g).
+  // En route : en ligne droite, de son orbite de départ au rendez-vous avec l'escale suivante (même profil que la capsule).
   const l = escalesJusqua(pseudo, t)
   let i = l.length - 2
   while (i > 0 && l[i].depart > t) i--
@@ -215,8 +216,8 @@ function positionBot(pseudo: string, t: number): Vecteur3 | null {
   const a = ajouter(position(de.lieu, de.depart), orbiteBot(it.k, de.lieu, de.depart))
   const b = ajouter(position(vers.lieu, vers.arrivee), orbiteBot(it.k, vers.lieu, vers.arrivee))
   const T = (vers.arrivee - de.depart) / 1000, s = (t - de.depart) / 1000
-  const v = Math.min(it.bot.vitesse, (ACCELERATION * T) / 2), ta = v / ACCELERATION, L = v * (T - ta)
-  const f = s < ta ? (ACCELERATION * s * s) / 2 / L : s > T - ta ? 1 - (ACCELERATION * (T - s) * (T - s)) / 2 / L : (v * ta / 2 + v * (s - ta)) / L
+  const acc = acceleration(it.bot.vitesse), v = Math.min(it.bot.vitesse, (acc * T) / 2), ta = v / acc, L = v * (T - ta)
+  const f = s < ta ? (acc * s * s) / 2 / L : s > T - ta ? 1 - (acc * (T - s) * (T - s)) / 2 / L : (v * ta / 2 + v * (s - ta)) / L
   return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, z: a.z + (b.z - a.z) * f }
 }
 

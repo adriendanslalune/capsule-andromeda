@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { corps, position } from '../src/moteur/corps'
 import { avancement, contourner, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, type Plan } from '../src/moteur/mission'
-import { ACCELERATION } from '../src/donnees/capsule'
+import { acceleration, DUREE_ACCELERATION } from '../src/donnees/capsule'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
 const JOUR = 86_400_000
@@ -36,18 +36,24 @@ describe('le contournement d’un astre, par le plus court (demande d’Adrien d
   })
 })
 
-describe('la durée d’un trajet (20 g, vitesse maximale du moteur)', () => {
+describe('la durée d’un trajet (2 minutes pour atteindre la vitesse maximale du moteur)', () => {
   it('trajet long : accélération, croisière, freinage ; trajet court : on freine avant d’atteindre la vitesse maximale', () => {
-    const a = ACCELERATION
-    expect(a).toBeCloseTo(0.196133)
-    // Terre → Lune avec le moteur de départ (30 km/s) : 3 h 36 environ.
-    expect(dureeTrajet(384_400, 30) / 3600).toBeCloseTo(3.60, 1)
-    // Avec un moteur très puissant, la Lune ne descend jamais sous 47 min (2 √(L/a)).
-    expect(dureeTrajet(384_400, 15_360) / 60).toBeCloseTo(46.7, 0)
-    expect(dureeTrajet(384_400, 15_360)).toBe(dureeTrajet(384_400, 1e9))
-    expect(vitesseDePointe(dureeTrajet(384_400, 15_360), 15_360)).toBeCloseTo(Math.sqrt(a * 384_400), 3)
+    expect(DUREE_ACCELERATION).toBe(120)
+    expect(acceleration(30)).toBeCloseTo(0.25)
+    // Trajet long : la distance à la vitesse max, plus 2 minutes (une pour accélérer, une pour freiner, en moyenne).
+    // Terre → Lune : 3 h 35 au niveau 1, 29 min au niveau 4 ; au niveau 10, 1 min 50 (trop court pour la vitesse max).
+    expect(dureeTrajet(384_400, 30)).toBeCloseTo(384_400 / 30 + 120, 6)
+    expect(dureeTrajet(384_400, 240) / 60).toBeCloseTo(28.7, 1)
+    expect(dureeTrajet(384_400, 15_360)).toBeCloseTo(2 * Math.sqrt(384_400 / acceleration(15_360)), 6)
+    expect(dureeTrajet(1e9, 15_360)).toBeCloseTo(1e9 / 15_360 + 120, 6)
+    // Trajet court : on freine avant d'atteindre la vitesse max (2 √(L/a)), et la vitesse de pointe vaut √(a L).
+    const a = acceleration(15_360)
+    expect(dureeTrajet(10_000, 15_360)).toBeCloseTo(2 * Math.sqrt(10_000 / a), 6)
+    expect(vitesseDePointe(dureeTrajet(10_000, 15_360), 15_360)).toBeCloseTo(Math.sqrt(a * 10_000), 3)
+    // Un meilleur moteur raccourcit toujours le trajet, même court.
+    expect(dureeTrajet(10_000, 15_360)).toBeLessThan(dureeTrajet(10_000, 240))
     // Le profil reste continu à la limite entre les deux cas.
-    const v = 100, L = (v * v) / a
+    const v = 100, L = (v * v) / acceleration(v)
     expect(dureeTrajet(L * 0.999999, v)).toBeCloseTo(dureeTrajet(L, v), 1)
   })
 
@@ -80,7 +86,7 @@ describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
     }
   })
 
-  it('accélération à 20 g, vitesse maximale en croisière, freinage à 20 g (décisions d’Adrien du 19 et du 21/10/2026)', () => {
+  it('2 minutes d’accélération, vitesse maximale en croisière, 2 minutes de freinage (décisions d’Adrien du 19 et du 21/10/2026)', () => {
     const p = planifier(new Mission().etatHeliocentrique(t0), 'Lune', t0, 50)
     if (!p.possible) throw new Error('impossible')
     const relative = (t: number) => {
@@ -89,9 +95,9 @@ describe('le trajet en ligne droite (choix d’Adrien, 17/10/2026)', () => {
     }
     const T = p.plan.arrivee - p.plan.depart
     for (const f of [0.2, 0.4, 0.6, 0.8]) expect(relative(p.plan.depart + f * T) / 50).toBeCloseTo(1, 1)
-    // Une minute après le départ : environ 12 km/s gagnés (20 g), plus la vitesse sur l'orbite de départ.
-    expect(relative(p.plan.depart + 60_000)).toBeLessThan(15)
-    expect(relative(p.plan.arrivee - 60_000)).toBeLessThan(15)
+    // 20 s après le départ (et avant l'arrivée) : 8 km/s gagnés, plus la vitesse sur l'orbite de départ.
+    expect(relative(p.plan.depart + 20_000)).toBeLessThan(18)
+    expect(relative(p.plan.arrivee - 20_000)).toBeLessThan(18)
     expect(avancement(p.plan, p.plan.depart)).toBe(0)
     expect(avancement(p.plan, p.plan.arrivee)).toBe(1)
   })

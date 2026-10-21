@@ -3,8 +3,8 @@
 //
 // Le trajet (choix d'Adrien du 17/10/2026, qui remplace les vraies trajectoires orbitales, illisibles) : la capsule
 // vise le point de rendez-vous — là où sera la destination à l'arrivée — et y va en ligne droite. Profil de vol
-// (décision d'Adrien du 19/10/2026) : elle accélère à 20 g jusqu'à la vitesse maximale de son moteur, la garde, puis
-// freine à 20 g pour s'arrêter à l'arrivée ; sur un trajet court, elle commence à freiner avant de l'avoir atteinte.
+// (décisions d'Adrien du 19 et du 21/10/2026) : elle met 2 minutes à atteindre la vitesse maximale de son moteur, la garde, puis
+// freine en 2 minutes pour s'arrêter à l'arrivée ; sur un trajet court, elle commence à freiner avant de l'avoir atteinte.
 // Règle d'or (17/10/2026) : rien ne traverse un astre. Si la ligne droite passe trop près de l'astre autour duquel
 // elle part ou arrive (ou du Soleil), la capsule le contourne par petits arcs.
 //
@@ -12,7 +12,7 @@
 // l'arrivée la planète de la destination ; entre les systèmes, les points sont fixes par rapport au Soleil. Le point
 // d'arrivée d'une planète est fixe par rapport au Soleil : c'est là où elle sera à l'arrivée.
 
-import { ACCELERATION } from '../donnees/capsule'
+import { acceleration } from '../donnees/capsule'
 import { etatSurOrbite, GM_TERRE, ORBITE_DEPART, type EtatCapsule, type OrbiteCirculaire } from './capsule'
 import { astreDominant, corps, position, rayonInfluence, RAPPORT_MASSE_SOLEIL_ASTRES } from './corps'
 import { GM_SOLEIL } from './orbite'
@@ -194,12 +194,13 @@ export function positionsDesPoints(points: PointDePassage[], t: number): Vecteur
 
 /** Durée (s) d'un trajet de longueur L (km) avec un moteur de vitesse maximale v (km/s), à l'arrêt au départ et à l'arrivée. */
 export function dureeTrajet(L: number, v: number): number {
-  return L >= (v * v) / ACCELERATION ? L / v + v / ACCELERATION : 2 * Math.sqrt(L / ACCELERATION)
+  const a = acceleration(v)
+  return L >= (v * v) / a ? L / v + v / a : 2 * Math.sqrt(L / a)
 }
 
 /** Vitesse de pointe (km/s) d'un trajet de durée T (s) : la vitesse maximale du moteur, ou moins si le trajet est court. */
 export function vitesseDePointe(T: number, v: number): number {
-  return Math.min(v, (ACCELERATION * T) / 2)
+  return Math.min(v, (acceleration(v) * T) / 2)
 }
 
 /** Part du trajet parcourue à l'instant t (0 au départ, 1 à l'arrivée) : accélération, croisière, freinage. */
@@ -207,24 +208,24 @@ export function avancement(p: Plan, t: number): number {
   const T = (p.arrivee - p.depart) / 1000
   const s = Math.min(T, Math.max(0, (t - p.depart) / 1000))
   if (T <= 0) return 1
-  // Le profil des vitesses : un trapèze (ou un triangle) de pente ±ACCELERATION et de hauteur la vitesse de pointe.
-  const v = vitesseDePointe(T, p.vitesse), ta = v / ACCELERATION, L = v * (T - ta)
-  if (s < ta) return (ACCELERATION * s * s) / 2 / L
-  if (s > T - ta) return 1 - (ACCELERATION * (T - s) * (T - s)) / 2 / L
+  // Le profil des vitesses : un trapèze (ou un triangle) de pente ±a et de hauteur la vitesse de pointe.
+  const a = acceleration(p.vitesse), v = vitesseDePointe(T, p.vitesse), ta = v / a, L = v * (T - ta)
+  if (s < ta) return (a * s * s) / 2 / L
+  if (s > T - ta) return 1 - (a * (T - s) * (T - s)) / 2 / L
   return (v * ta / 2 + v * (s - ta)) / L
 }
 
 /**
  * Vitesse de la capsule à l'instant t sur son trajet (km/s) et la phase du vol (demande d'Adrien du 20/10/2026 : un
- * cadran de vitesse sur la carte) : elle accélère à 20 g, garde sa vitesse de pointe, puis freine à 20 g.
+ * cadran de vitesse sur la carte) : elle accélère (2 minutes jusqu'à la vitesse max), garde sa vitesse de pointe, puis freine.
  */
 export function vitesseEnVol(p: Plan, t: number): { vitesse: number; pointe: number; phase: 'accelere' | 'croisiere' | 'freine' | 'arrivee' } {
   const T = (p.arrivee - p.depart) / 1000, s = (t - p.depart) / 1000
-  const v = vitesseDePointe(Math.max(0, T), p.vitesse), ta = v / ACCELERATION
+  const a = acceleration(p.vitesse), v = vitesseDePointe(Math.max(0, T), p.vitesse), ta = v / a
   if (T <= 0 || s >= T) return { vitesse: 0, pointe: v, phase: 'arrivee' }
   const x = Math.max(0, s)
-  if (x < ta) return { vitesse: ACCELERATION * x, pointe: v, phase: 'accelere' }
-  if (x > T - ta) return { vitesse: ACCELERATION * (T - x), pointe: v, phase: 'freine' }
+  if (x < ta) return { vitesse: a * x, pointe: v, phase: 'accelere' }
+  if (x > T - ta) return { vitesse: a * (T - x), pointe: v, phase: 'freine' }
   return { vitesse: v, pointe: v, phase: 'croisiere' }
 }
 

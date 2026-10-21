@@ -17,8 +17,8 @@ describe('les capsules des bots voyagent (décision d’Adrien du 19/10/2026)', 
 
   it('sur une semaine, chaque bot fait escale et voyage ; les mêmes trajets pour tous (déduits de l’heure)', () => {
     for (const b of BOTS) {
-      // Tous les cinq minutes : un saut de puce de l'ISS à la Terre ne dure que quelques minutes.
-      const etats = Array.from({ length: 7 * 24 * 12 }, (_, k) => ouEstLeBot(b.pseudo, t0 + k * H / 12))
+      // Toutes les 20 secondes : avec un bon moteur, un saut de puce de l'ISS à la Terre ne dure qu'une minute.
+      const etats = Array.from({ length: 7 * 24 * 180 }, (_, k) => ouEstLeBot(b.pseudo, t0 + k * H / 180))
       expect(etats.some((e) => e.enRoute), b.pseudo).toBe(true)
       expect(etats.some((e) => !e.enRoute), b.pseudo).toBe(true)
       for (const e of etats) if (e.enRoute) { expect(e.part).toBeGreaterThanOrEqual(0); expect(e.part).toBeLessThan(1); expect(e.vers).not.toBe(e.de) }
