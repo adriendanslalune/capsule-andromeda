@@ -40,7 +40,7 @@ import { niveauDeZone } from './combat'
 import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
-import { Mission, planifier, vitesseAstre, type Plan } from './mission'
+import { Mission, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
 
 /** Le feu d'artifice d'une zone libérée dure 2 minutes (demande d'Adrien du 21/10/2026). */
 export const DUREE_FEUX = 120_000
@@ -563,10 +563,12 @@ export class Jeu {
   avancer(t: number, vitesseEnchainement?: number): Evenement[] {
     const evenements: Evenement[] = []
     oublierFutur(this.monolithes, t)
+    // Les missiles d'abord : un impact passé (jeu fermé, téléphone endormi) ralentit le trajet à l'heure de l'impact,
+    // ce qui peut repousser une arrivée.
+    this.menaces(t, evenements)
     this.soleil(t, evenements)
     this.visiter(t)
     this.user(t, evenements)
-    this.menaces(t, evenements)
     this.proposer(t)
     // Les quêtes : un lieu atteint, des marchandises à livrer.
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
@@ -636,8 +638,25 @@ export class Jeu {
       const premier = !this.enPanne('moteur') ? 'moteur' : autre(m.id)
       if (premier) { this.casser(premier); touches.push(premier) }
       if (coqueEnPanne) { const second = autre(m.id + 1); if (second) { this.casser(second); touches.push(second) } }
+      // Le Moteur en panne : le trajet ralentit dès l'impact, même s'il a eu lieu jeu fermé.
+      if (touches.includes('moteur')) this.suivreLeMoteur(m.impact)
       evenements.push({ genre: 'impact', modules: touches })
     }
+  }
+
+  /**
+   * Le trajet en cours suit la vitesse du moteur (panne, réparation, nouveau moteur ; demande d'Adrien du 21/10/2026) :
+   * recalculé à l'instant t, depuis là où était la capsule et à la vitesse qu'elle avait, jusqu'à la même destination.
+   * C'est le trajet en cours qui continue : une Navigation en panne ne l'empêche pas. Renvoie le nouveau plan (déjà
+   * pris), ou null si rien ne change (pas en route à t, ou déjà à cette vitesse).
+   */
+  suivreLeMoteur(t: number, vitesse = this.vitesse()): Plan | null {
+    const plan = this.mission.plan
+    if (!plan || this.mission.phase(t) !== 'trajet' || t < plan.depart || plan.vitesse === vitesse) return null
+    const p = planifier(this.mission.etatHeliocentrique(t), plan.cible, t, vitesse, vitesseEnVol(plan, t).vitesse)
+    if (!p.possible) return null
+    this.mission.partir(p.plan)
+    return p.plan
   }
 
   /** L'étape actuelle est-elle une chasse (qui se fait par un combat, en vue tactique) ? */

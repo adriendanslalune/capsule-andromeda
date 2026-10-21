@@ -5,6 +5,7 @@ import {
   aliensReperes, avancerEspace, intercepterMissile, nouvelEspace, porteeRadar, surLaCarte, tirDeLHeure, vaincre,
 } from '../src/moteur/espace'
 import { Jeu } from '../src/moteur/jeu'
+import { planifier, vitesseEnVol } from '../src/moteur/mission'
 import { maisonDuContrat } from '../src/donnees/maisons'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
@@ -109,6 +110,30 @@ describe('un missile qui frappe la capsule', () => {
     autre.espace.tirsJusqua = t0 + VOL_MISSILE
     const impact = autre.avancer(t0 + VOL_MISSILE).find((x) => x.genre === 'impact')!
     expect(impact.genre === 'impact' && impact.modules.length).toBe(2)
+  })
+
+  it('jeu fermé : le trajet ralentit à l’heure exacte de l’impact, pas à la réouverture ; même Navigation en panne', () => {
+    for (const navigationEnPanne of [false, true]) {
+      const jeu = new Jeu()
+      const p = planifier(jeu.mission.etatHeliocentrique(t0), 'Lune', t0, jeu.vitesse())
+      expect(p.possible).toBe(true)
+      if (!p.possible) return
+      jeu.mission.partir(p.plan)
+      if (navigationEnPanne) jeu.casser('navigation')
+      const arrivee = p.plan.arrivee
+      const impact = t0 + 30 * 60_000
+      jeu.espace.missiles.push({ id: 9, alien: 'Chasseur Ψ-1', lance: impact - VOL_MISSILE, impact })
+      jeu.espace.tirsJusqua = impact + 3 * 3_600_000
+      // Le jeu se rouvre 3 heures après l'impact.
+      const evenements = jeu.avancer(impact + 3 * 3_600_000)
+      expect(evenements.some((x) => x.genre === 'impact')).toBe(true)
+      const plan = jeu.mission.plan!
+      expect(plan.depart).toBe(impact)
+      expect(plan.vitesse).toBe(15)
+      // Il repart de la vitesse qu'il avait à l'impact (au plus 15 km/s), et arrive plus tard qu'avant.
+      expect(plan.vitesseInitiale).toBeCloseTo(Math.min(15, vitesseEnVol(p.plan, impact).vitesse), 6)
+      expect(plan.arrivee).toBeGreaterThan(arrivee)
+    }
   })
 
   it('l’espace est sauvegardé (et une ancienne sauvegarde avec des épaves vidées est encore lue)', () => {

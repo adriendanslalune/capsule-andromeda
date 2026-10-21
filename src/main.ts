@@ -744,12 +744,16 @@ function mettreAJourFiche(t: number): void {
 let departEnVol: { plan: Plan; ancre: string; rel: Point2 } | null = null
 let derniereCapsuleDessinee: Point2 | null = null
 function partir(plan: Plan, t: number): void {
-  const d = mission.phase(t) === 'trajet' ? derniereCapsuleDessinee : null
+  dessinerDepart(plan, mission.phase(t) === 'trajet', t)
+  mission.partir(plan)
+}
+/** Un trajet parti en plein vol se dessine depuis là où la capsule était dessinée (sinon : le départ normal). */
+function dessinerDepart(plan: Plan, enVol: boolean, t: number): void {
+  const d = enVol ? derniereCapsuleDessinee : null
   if (d) {
     const ancre = plan.cles[0].ancre, c = projeterCorps(ancre, t)
     departEnVol = { plan, ancre, rel: { x: d.x - c.x, y: d.y - c.y } }
   } else departEnVol = null
-  mission.partir(plan)
 }
 /** Où commence le tracé d'un trajet parti en plein vol (sinon undefined : le départ normal). */
 function departDessine(plan: Plan, t: number): Point2 | undefined {
@@ -1106,6 +1110,10 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
     } else if (e.genre === 'impact') {
       annoncer(e.modules.length ? `IMPACT ! En panne : ${e.modules.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}` : 'IMPACT !')
       navigator.vibrate?.(400)
+      // Le moteur a déjà ralenti le trajet à l'heure de l'impact ; s'il vient d'avoir lieu, on le redessine depuis la
+      // capsule dessinée (sans saut).
+      const p = mission.plan, t = horloge()
+      if (p && p !== departEnVol?.plan && mission.phase(t) === 'trajet' && t - p.depart < 5000) dessinerDepart(p, true, t)
       apresChangementDePanne()
     } else if (e.genre === 'panne') {
       annoncer(`PANNE : ${MODULES.find((f) => f.nom === e.module)!.titre} !`)
@@ -1608,12 +1616,9 @@ function apresChangementDePanne(): void {
   // vitesse une fois réparé (décision d'Adrien : un impact ralentit le trajet de 50 % jusqu'à réparation), et plus vite
   // avec un nouveau moteur (demande d'Adrien du 21/10/2026).
   const t = horloge()
-  const plan = mission.phase(t) === 'trajet' ? mission.plan : null
-  if (plan && plan.vitesse !== vitesse() && jeu.peutNaviguer()) {
-    // Le nouveau trajet repart de la vitesse du moment (pas d'arrêt net en plein vol).
-    const p = planifier(mission.etatHeliocentrique(t), plan.cible, t, vitesse(), vitesseEnVol(plan, t).vitesse)
-    if (p.possible) partir(p.plan, t)
-  }
+  // Le moteur recalcule le trajet ; ici, on le redessine depuis là où la capsule est dessinée.
+  const nouveau = jeu.suivreLeMoteur(t, vitesse())
+  if (nouveau) dessinerDepart(nouveau, true, t)
   enregistrerPartie()
   voletMissions.oublierDurees()
   planAJour = 0
