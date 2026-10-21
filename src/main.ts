@@ -163,6 +163,7 @@ carte.visibilite = (nom, t, angle) => {
   if (distanceDepuisCapsule(nom, t) > PORTEE_RADAR) return 0
   return echoRadar(jeu.radar, angle, t)
 }
+carte.toujoursVisible = (nom) => nom === selection || lieuxConnus().includes(nom)
 carte.radar = (t) => (jeu.radar.actif ? { angle: angleRadar(jeu.radar, t), portee: PORTEE_RADAR, actif: true } : null)
 /** Ce qui reste sur la carte et dans la liste Navigation hors radar : ce que visent une mission ou la quête suivie, la
  *  destination choisie, et le lieu d'un PNJ qui a quelque chose à dire (« ! » ou « ? »). */
@@ -375,9 +376,10 @@ choixSysteme.addEventListener('click', (e) => {
   if (!b) return
   ouvrirSystemes(false)
   const nom = b.dataset.systeme!
-  // Le Soleil : tout le système solaire ; une planète : son système, la planète choisie (sa fiche, Y ALLER).
+  // Le Soleil : tout le système solaire ; une planète : un gros plan sur elle (dézoomer montre son système), choisie
+  // (sa fiche, Y ALLER).
   if (nom === 'Soleil') vueGenerale(carte.echelleExterieure())
-  else choisir(nom, false, carte.echelleSysteme(nom))
+  else choisir(nom, false, carte.echellePlanete(nom))
 })
 function afficherChoixAffichage(): void {
   for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])

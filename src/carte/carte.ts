@@ -41,6 +41,9 @@ const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
 const RAYON_POINT = 1.8
 
+/** Rayon (km) sous lequel une lune ne se dessine que de près (sous ZOOM_PETITES_LUNES km par pixel) ou si on la vise. */
+const PETITE_LUNE = 100
+const ZOOM_PETITES_LUNES = 2000
 /** Lunes : minimum selon leur vraie taille, toujours plus grandes à l'écran qu'un engin (demande d'Adrien, 17/10/2026). */
 const minimumLune = (rayonKm: number) => (rayonKm >= 1000 ? 10 : rayonKm >= 200 ? 8 : 4.5)
 /** Taille d'une silhouette d'engin (rayon, px) et son échelle de dessin. */
@@ -128,6 +131,8 @@ export class Carte2D {
    * (radians), pour le balayage du radar.
    */
   visibilite: (nom: string, t: number, angle: number) => number = () => 1
+  /** Ce qui se voit toujours (choisi, visé par une mission ou la quête suivie) : une petite lune, par exemple. */
+  toujoursVisible: (nom: string) => boolean = () => false
   /** Le radar s'il tourne ou si ses échos s'effacent : l'angle du balayage (radians, à l'écran) et sa portée (km). */
   radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
   /** Ce qui est écrit sous la capsule du joueur : son numéro et le nom de son capitaine (demande d'Adrien du 20/10/2026). */
@@ -245,6 +250,11 @@ export class Carte2D {
   }
   echelleSysteme(planete: string): number {
     return (zoneDessinee(planete) * 1.05) / (this.largeur / 2)
+  }
+  /** Gros plan sur une planète (demande d'Adrien du 21/10/2026 : en voir les détails, les anneaux de Saturne) : elle et
+   *  ses anneaux occupent les quatre cinquièmes de la largeur de l'écran. */
+  echellePlanete(nom: string): number {
+    return ((corps(nom)?.rayon ?? 1) * (ETENDUES[nom] ?? 1.6)) / (0.42 * this.largeur)
   }
 
   /**
@@ -494,7 +504,10 @@ export class Carte2D {
       const e = this.ecranDe(projeterCorps(nom, t))
       const zone = zoneDessinee(nom) / this.kmParPx
       if (zone < 30 || !dedans(e.x, e.y, zone)) continue
-      const lunes = enfants(nom).filter((c) => c.type === 'lune').sort((a, b) => b.rayon - a.rayon)
+      // Les petites lunes (moins de 100 km : une centaine autour de Saturne) seulement de près, ou si on les vise
+      // (décision d'Adrien du 21/10/2026 : à l'échelle réelle, elles couvraient le système de pastilles).
+      const lunes = enfants(nom).filter((c) => c.type === 'lune'
+        && (c.rayon >= PETITE_LUNE || this.kmParPx <= ZOOM_PETITES_LUNES || this.toujoursVisible(c.nom))).sort((a, b) => b.rayon - a.rayon)
       for (const c of lunes) {
         const q = this.ecranDe(projeterCorps(c.nom, t))
         const r = this.rayon(c)
