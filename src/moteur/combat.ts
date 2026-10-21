@@ -4,12 +4,12 @@
 // gagner ; coque à 0, c'est la retraite. Tout dépend du temps passé en paramètre et d'un hasard à graine.
 
 import {
-  BOMBES, CADENCE, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, DEGATS_TIR, ESCORTEURS_MAX, HAUTEUR, INVULNERABLE, LARGEUR,
+  BOMBES, CADENCE, PV_AMIRAL, RAGE_AMIRAL, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, DEGATS_TIR, ESCORTEURS_MAX, HAUTEUR, INVULNERABLE, LARGEUR,
   PV_CHASSEUR, PV_ESCORTEUR, RAYON_CAPSULE, TIR_CHASSEUR, TIR_ESCORTEUR, VAGUE, VITESSE_BALLES, VITESSE_CAPSULE, VITESSE_TIR,
 } from '../donnees/combat'
 import { hasard } from './contrats'
 
-export type Motif = 'vise' | 'eventail' | 'pluie'
+export type Motif = 'vise' | 'eventail' | 'pluie' | 'spirale'
 
 export interface Alien {
   id: number
@@ -45,6 +45,8 @@ export interface EtatCombat {
   abattus: number
   prochainId: number
   fin: null | 'victoire' | 'retraite'
+  /** Un vaisseau amiral (l'assaut final d'une zone) plutôt qu'un chasseur. */
+  amiral?: boolean
 }
 
 export type EvenementCombat = 'touche' | 'escorteur-abattu' | 'victoire' | 'retraite'
@@ -66,10 +68,11 @@ function x01(e: EtatCombat): number {
   return h.x
 }
 
-export function nouveauCombat(graine: number, zone = 1): EtatCombat {
+export function nouveauCombat(graine: number, zone = 1, amiral?: { planete: boolean }): EtatCombat {
   const niveau = niveauDeZone(zone)
-  const pv = Math.round(entre(PV_CHASSEUR, niveau))
+  const pv = Math.round(entre(PV_CHASSEUR, niveau) * (amiral ? (amiral.planete ? PV_AMIRAL.planete : PV_AMIRAL.lune) : 1))
   return {
+    amiral: !!amiral,
     graine, niveau, temps: 0, capsule: { x: LARGEUR / 2, y: HAUTEUR - 24 }, coque: COQUE_MAX, invulnerableJusqua: 0,
     bombes: BOMBES, prochainTir: 0, prochaineVague: 3,
     aliens: [{ id: 1, chef: true, x: LARGEUR / 2, y: -10, pv, pvMax: pv, prochainTir: 2.5, age: 0, couloir: LARGEUR / 2, sens: 1 }],
@@ -87,8 +90,14 @@ function tirerBalles(e: EtatCombat, a: Alien): void {
   const vers = (dx: number, dy: number, vitesse = v) => { const n = Math.hypot(dx, dy) || 1; e.balles.push({ x: a.x, y: a.y + 4, vx: (dx / n) * vitesse, vy: (dy / n) * vitesse }) }
   const dx = e.capsule.x - a.x, dy = e.capsule.y - a.y
   if (!a.chef) { vers(dx, dy); return }
-  // Le chasseur alterne ses motifs : visé, en éventail, en pluie.
-  const motif: Motif = (['vise', 'eventail', 'pluie'] as Motif[])[Math.floor(x01(e) * 3)]
+  // Le chasseur alterne ses motifs : visé, en éventail, en pluie ; un amiral en rage tire aussi en spirale.
+  const rage = e.amiral && a.pv < a.pvMax / 2
+  const motif: Motif = (['vise', 'eventail', 'pluie', 'spirale'] as Motif[])[Math.floor(x01(e) * (rage ? 4 : 3))]
+  if (motif === 'spirale') {
+    const debut = e.temps * 2.3
+    for (let k = 0; k < 10; k++) { const ang = debut + (k / 10) * 2 * Math.PI; vers(Math.cos(ang), Math.abs(Math.sin(ang)) + 0.2, v * 0.8) }
+    return
+  }
   if (motif === 'vise') { vers(dx, dy); vers(dx - 12, dy); vers(dx + 12, dy) } else if (motif === 'eventail') {
     const n = 5 + Math.round(2 * e.niveau)
     for (let k = 0; k < n; k++) { const ang = Math.PI / 2 + (k - (n - 1) / 2) * 0.22; vers(Math.cos(ang), Math.sin(ang)) }
@@ -153,12 +162,13 @@ export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: 
     }
     if (a.y > 0 && e.temps >= a.prochainTir) {
       tirerBalles(e, a)
-      a.prochainTir = e.temps + (a.chef ? entre(TIR_CHASSEUR, e.niveau) : TIR_ESCORTEUR) * (0.8 + 0.4 * x01(e))
+      const rage = a.chef && e.amiral && a.pv < a.pvMax / 2 ? RAGE_AMIRAL : 1
+      a.prochainTir = e.temps + (a.chef ? entre(TIR_CHASSEUR, e.niveau) * rage : TIR_ESCORTEUR) * (0.8 + 0.4 * x01(e))
     }
   }
   // Nos tirs touchent les aliens.
   for (const t of [...e.tirs]) {
-    const a = e.aliens.find((x) => Math.abs(x.x - t.x) < (x.chef ? 9 : 5) && Math.abs(x.y - t.y) < (x.chef ? 6 : 4))
+    const a = e.aliens.find((x) => Math.abs(x.x - t.x) < (x.chef ? (e.amiral ? 14 : 9) : 5) && Math.abs(x.y - t.y) < (x.chef ? (e.amiral ? 8 : 6) : 4))
     if (!a) continue
     a.pv -= DEGATS_TIR
     e.tirs = e.tirs.filter((x) => x !== t)

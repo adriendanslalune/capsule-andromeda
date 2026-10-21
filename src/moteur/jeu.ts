@@ -9,7 +9,7 @@
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
 import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/combat'
-import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/marche'
+import { CAPACITE_SOUTE, MARCHANDISES, MARCHES, type FicheMarche } from '../donnees/marche'
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
 import { avancerRadar, radarEteint, type EtatRadar } from './radar'
 import { radioNeuve, type EtatRadio } from './radio'
@@ -32,6 +32,8 @@ import { commencer, jouer, type Geste } from './appareils'
 import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { corps, position } from './corps'
+import { deLa, estLibre, liberer, resister, type EtatZones } from './zones'
+import { POINTS_RESISTANCE } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
 import { Mission, planifier, vitesseAstre, type Plan } from './mission'
 
@@ -94,7 +96,8 @@ export class Jeu {
   /** Les quêtes commencées (décisions d'Adrien du 20/10/2026), celle qu'on suit sur la carte, les zones libérées. */
   quetes: Record<string, EtatQuete> = {}
   queteSuivie: string | null = null
-  zonesLiberees: string[] = []
+  /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
+  zones: EtatZones = { points: {}, liberees: [] }
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
   /** La Bourse : actions, ordres en route, derniers ordres confirmés ; et les confirmations à annoncer. */
@@ -121,6 +124,10 @@ export class Jeu {
    * dans le Soleil n'a aucun effet sur le jeu : un rêve (animation), et la capsule se réveille là d'où elle était partie.
    */
   icare: number | null = null
+
+  constructor() {
+    this.synchroniserZones()
+  }
 
   /** Le module est-il en panne ? */
   enPanne(m: NomModule): boolean {
@@ -234,6 +241,7 @@ export class Jeu {
     const n = this.monolitheIci(t)
     if (n === null || !ramasser(this.monolithes, n, t)) return null
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'monolithe' }, t))
+    this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.monolithe, t))
     return n
   }
 
@@ -273,7 +281,8 @@ export class Jeu {
    */
   ordreBourse(id: string, sens: 'acheter' | 'vendre', quantite: number, t: number): OrdreBourse | null {
     const c = compagnie(id)
-    if (!c) return null
+    // Une compagnie n'est cotée qu'une fois la zone de son siège libérée (décision d'Adrien du 21/10/2026).
+    if (!c || !estLibre(this.zones, c.siege)) return null
     const credits = { valeur: this.credits }
     const o = passerOrdre(this.bourse, credits, id, sens, quantite, t, delaiLumiere(c.siege, t))
     this.credits = credits.valeur
@@ -491,6 +500,7 @@ export class Jeu {
       this.carnet.missions[maisonDuContrat(ec.contrat)]++
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
+      this.annoncesQuetes.push(...resister(this.zones, position(etape.lieu, fin), POINTS_RESISTANCE.contrat, fin))
       this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'contrat', contrat: ec.contrat }, fin))
       this.proposer(fin)
     } else if (vitesseEnchainement !== undefined && this.peutNaviguer()) {
@@ -537,6 +547,7 @@ export class Jeu {
    * où elle est, en orbite autour de sa planète (bug vu par Adrien le 21/10/2026 : elle sautait avec le renfort).
    */
   vaincreChasseur(nom: string, t: number): void {
+    this.annoncesQuetes.push(...resister(this.zones, position(nom, t), POINTS_RESISTANCE.chasseur, t))
     if (this.mission.centre(t) === nom) this.mission.decrocher(t, corps(nom)?.parent ?? 'Soleil')
     vaincre(this.espace, nom, t)
   }
@@ -630,7 +641,9 @@ export class Jeu {
    * ou null. On y achète et vend au cours en direct.
    */
   marcheIci(t: number): FicheMarche | null {
-    return this.mission.phase(t) === 'orbite' ? marcheDeLaCapsule(t) : null
+    // Le comptoir n'existe pas tant que la planète de son système n'est pas libérée (décision d'Adrien du 21/10/2026).
+    const m = this.mission.phase(t) === 'orbite' ? marcheDeLaCapsule(t) : null
+    return m && estLibre(this.zones, m.lieu) ? m : null
   }
 
   /**
@@ -706,6 +719,35 @@ export class Jeu {
    * Usure : à l'arrivée de chaque trajet (une seule fois par trajet), un module peut tomber en panne
    * (CHANCE_PANNE_PAR_TRAJET), tiré au hasard reproductible de la partie.
    */
+  /** Une Voix perdue enregistrée : un peu de résistance dans la zone la plus proche. */
+  voixEnregistree(t: number): void {
+    this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.voix, t))
+  }
+
+  /**
+   * L'assaut final gagné : la zone est libérée tout de suite (son comptoir ouvre si c'est une planète), et l'étape
+   * ASSAUT de sa quête est faite.
+   */
+  gagnerAssaut(nom: string, t: number): void {
+    if (!this.zones.liberees.includes(nom)) {
+      this.libererZone(nom)
+      const comptoir = MARCHES.some((m) => m.lieu === nom)
+      this.annoncesQuetes.push(`${nom} est libérée !${comptoir ? ` Le comptoir ${deLa(nom)} ouvre.` : ''}`)
+    }
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'assaut', zone: nom }, t))
+  }
+
+  /** Une zone libérée (l'assaut final gagné) ; les chasseurs de son système, si c'est une planète, ne reviennent plus. */
+  libererZone(nom: string): void {
+    liberer(this.zones, nom)
+    this.synchroniserZones()
+  }
+
+  /** Après une sauvegarde lue : l'espace connaît les zones libérées. */
+  synchroniserZones(): void {
+    this.espace.liberes = this.zones.liberees
+  }
+
   /** Arrivée au Soleil : le rêve, et la capsule revient là d'où elle était partie, sans panne ni rien de perdu. */
   private soleil(t: number, evenements: Evenement[]): void {
     const p = this.mission.plan

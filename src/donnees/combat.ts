@@ -37,6 +37,13 @@ export const VAGUE = 7
 
 /** Victoire sans être touché : la récompense augmente de 10 % (comme les autres missions). */
 export const BONUS_SANS_DEGAT = 1.1
+/**
+ * Le vaisseau amiral d'une zone (l'assaut final, décisions d'Adrien du 21/10/2026) : ses points de vie valent ceux
+ * d'un chasseur de la zone multipliés par… (une planète est plus dure qu'une lune) ; sous la moitié de ses points de
+ * vie, il enrage (il tire plus vite, et en spirale). PROVISOIRE.
+ */
+export const PV_AMIRAL = { lune: 3, planete: 5 } as const
+export const RAGE_AMIRAL = 0.65
 
 // Ancienne répartition de l'énergie (premier prototype) : gardée pour lire les parties enregistrées.
 export interface Energie { boucliers: number; armes: number; moteurs: number }

@@ -5,6 +5,8 @@
 import { PNJS, QUETES, type EtapeQuete, type Pnj, type Quete } from '../donnees/quetes'
 import type { Contrat } from './contrats'
 import type { Jeu } from './jeu'
+import { POINTS_RESISTANCE } from '../donnees/zones'
+import { ajouterPoints, deLa, estLibre, jauge, zone } from './zones'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -18,7 +20,7 @@ export interface EtatQuete {
 }
 
 /** Ce qui fait avancer les quêtes. */
-export type FaitDeJeu = { genre: 'contrat'; contrat: Contrat } | { genre: 'monolithe' } | { genre: 'instant' }
+export type FaitDeJeu = { genre: 'contrat'; contrat: Contrat } | { genre: 'monolithe' } | { genre: 'instant' } | { genre: 'assaut'; zone: string }
 
 /** Ce que dit un PNJ quand on lui parle. */
 export interface Dialogue {
@@ -42,7 +44,9 @@ const finie = (jeu: Jeu, id: string) => jeu.quetes[id]?.fin != null
 
 /** Les quêtes qu'on peut se voir proposer (conditions remplies, pas encore acceptées). */
 export function disponibles(jeu: Jeu): Quete[] {
-  return QUETES.filter((q) => !jeu.quetes[q.id] && q.conditions.every((c) => finie(jeu, c)))
+  // Les quêtes secondaires d'un PNJ ne s'ouvrent qu'une fois sa zone libérée (décision d'Adrien du 21/10/2026).
+  return QUETES.filter((q) => !jeu.quetes[q.id] && q.conditions.every((c) => finie(jeu, c))
+    && (q.type === 'principale' || estLibre(jeu.zones, pnj(q.donneur).lieu)))
 }
 
 /** Les quêtes en cours, les principales d'abord. */
@@ -66,6 +70,7 @@ export function etapeCourante(jeu: Jeu, q: Quete): EtapeQuete | null {
 export function lieuEtape(e: EtapeQuete): string | null {
   if (e.genre === 'parler') return pnj(e.pnj).lieu
   if (e.genre === 'aller' || e.genre === 'livrer') return e.lieu
+  if (e.genre === 'jauge' || e.genre === 'assaut') return e.zone
   return null
 }
 
@@ -79,6 +84,9 @@ export function texteEtape(e: EtapeQuete): string {
     case 'mission': return e.texte
     case 'livrer': return `Apporte ${tonnes(e.marchandises)} en orbite à : ${e.lieu}`
     case 'monolithes': return `Trouve ${e.nombre > 1 ? `${e.nombre} monolithes` : 'un monolithe'} (bouton PING de la carte)`
+    case 'jauge': return `Porte la résistance ${deLa(e.zone)} à 100 % : contrats, chasseurs, monolithes près d'elle`
+    case 'assaut': return `Attaque ${zone(e.zone)?.amiral ?? 'le vaisseau amiral'} : en orbite autour ${deLa(e.zone)}, touche ASSAUT`
+    case 'liberer': return e.texte
   }
 }
 
@@ -87,7 +95,10 @@ export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | 
   const e = etapeCourante(jeu, q)
   if (!e) return null
   const n = e.genre === 'mission' || e.genre === 'monolithes' ? e.nombre : 0
-  return { texte: texteEtape(e), compte: n > 1 ? `${jeu.quetes[q.id].compte}/${n}` : null, lieu: lieuEtape(e) }
+  const compte = e.genre === 'jauge' ? `${jauge(jeu.zones, e.zone)} %`
+    : e.genre === 'liberer' ? `${e.zones.filter((z) => jeu.zones.liberees.includes(z)).length}/${e.zones.length}`
+      : n > 1 ? `${jeu.quetes[q.id].compte}/${n}` : null
+  return { texte: texteEtape(e), compte, lieu: lieuEtape(e) }
 }
 
 /** Le signe d'un PNJ sur la carte : « ? » s'il attend qu'on revienne lui parler, « ! » s'il a une quête à proposer. */
@@ -111,10 +122,12 @@ function franchir(jeu: Jeu, q: Quete, t: number): void {
   const e = jeu.quetes[q.id]
   e.etape++
   e.compte = 0
+  // Chaque étape d'une quête principale fait monter la résistance de sa zone.
+  if (q.type === 'principale' && q.zone) jeu.annoncesQuetes.push(...ajouterPoints(jeu.zones, q.zone, POINTS_RESISTANCE.etapePrincipale))
   if (e.etape < q.etapes.length) return
   e.fin = t
   jeu.credits += q.recompense
-  if (q.libere && !jeu.zonesLiberees.includes(q.libere)) jeu.zonesLiberees.push(q.libere)
+  if (q.libere && !jeu.zones.liberees.includes(q.libere)) jeu.gagnerAssaut(q.libere, t)
   if (jeu.queteSuivie === q.id) jeu.queteSuivie = enCours(jeu)[0]?.id ?? null
 }
 
@@ -161,6 +174,12 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
       } else if (e.genre === 'monolithes' && fait.genre === 'monolithe' && garde === 0) {
         etat.compte++
         atteint = etat.compte >= e.nombre
+      } else if (e.genre === 'jauge') {
+        atteint = jauge(jeu.zones, e.zone) >= 100
+      } else if (e.genre === 'assaut') {
+        atteint = (fait.genre === 'assaut' && fait.zone === e.zone && garde === 0) || jeu.zones.liberees.includes(e.zone)
+      } else if (e.genre === 'liberer') {
+        atteint = e.zones.every((z) => jeu.zones.liberees.includes(z))
       } else if (e.genre === 'aller') {
         atteint = jeu.lieuEnOrbite(t) === e.lieu
       } else if (e.genre === 'livrer' && jeu.lieuEnOrbite(t) === e.lieu
@@ -179,4 +198,15 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
     }
   }
   return annonces
+}
+
+/** La zone dont on peut lancer l'assaut final ici (une quête en est à l'étape ASSAUT, la capsule en orbite autour). */
+export function assautIci(jeu: Jeu, t: number): string | null {
+  const ici = jeu.lieuEnOrbite(t)
+  if (!ici) return null
+  for (const q of enCours(jeu)) {
+    const e = etapeCourante(jeu, q)
+    if (e?.genre === 'assaut' && e.zone === ici && !jeu.zones.liberees.includes(ici)) return ici
+  }
+  return null
 }

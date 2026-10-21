@@ -97,18 +97,33 @@ describe('la Lune, de bout en bout', () => {
     expect(jeu.soute).toEqual({ Eau: 1 })
   })
 
-  it('la dernière quête libère la Lune ; tout est sauvegardé', () => {
+  it('la dernière quête de la Lune : la résistance à 100 %, l\'assaut gagné libère la Lune ; tout est sauvegardé', async () => {
+    const { ajouterPoints } = await import('../src/moteur/zones')
+    const { assautIci } = await import('../src/moteur/quetes')
     const jeu = partie()
     for (const id of ['lune-1', 'lune-2', 'lune-3', 'lune-4']) jeu.quetes[id] = { etape: 9, compte: 0, debut: t0, fin: t0 }
     accepter(jeu, 'lune-5', t0)
-    for (let k = 0; k < 3; k++) avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('chasser', 'Terre') }, t0)
+    expect(objectif(jeu, quete('lune-5'))).toMatchObject({ compte: '0 %', lieu: 'Lune' })
+    ajouterPoints(jeu.zones, 'Lune', 99)
+    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    expect(jeu.quetes['lune-5'].etape).toBe(0)
+    ajouterPoints(jeu.zones, 'Lune', 5)
+    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    expect(jeu.quetes['lune-5'].etape).toBe(1)
+    // L'assaut se lance en orbite autour de la Lune.
+    expect(assautIci(jeu, t0)).toBeNull()
+    jeu.ici = 'Lune'
+    expect(assautIci(jeu, t0)).toBe('Lune')
+    jeu.gagnerAssaut('Lune', t0)
+    expect(jeu.zones.liberees).toEqual(['Lune'])
+    expect(jeu.quetes['lune-5'].etape).toBe(2)
+    jeu.ici = 'ISS'
     parler(jeu, 'elsa', t0 + 1)
-    expect(jeu.zonesLiberees).toEqual(['Lune'])
     expect(enCours(jeu)).toEqual([])
     accepter(jeu, 'veilleur', t0 + 2)
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.quetes).toEqual(jeu.quetes)
-    expect(copie.zonesLiberees).toEqual(['Lune'])
+    expect(copie.zones.liberees).toEqual(['Lune'])
     expect(copie.queteSuivie).toBe('veilleur')
   })
 })

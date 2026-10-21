@@ -9,7 +9,11 @@ import { BOMBES, COQUE_MAX, HAUTEUR, LARGEUR } from '../donnees/combat'
 import { avancerCombat, bombe, chef, nouveauCombat, retraite, type EtatCombat } from '../moteur/combat'
 
 /** Un combat : son titre, la zone (plus loin, plus d'aliens), et ce qui arrive à la fin (le texte du bilan). */
-export interface OptionsCombat { titre: string; zone: number; surFin?: (fin: 'victoire' | 'retraite', degatsRecus: number) => string }
+export interface OptionsCombat {
+  titre: string; zone: number; surFin?: (fin: 'victoire' | 'retraite', degatsRecus: number) => string
+  /** L'assaut final d'une zone : son vaisseau amiral (décisions d'Adrien du 21/10/2026). */
+  amiral?: { nom: string; planete: boolean }
+}
 export const SIMULATEUR: OptionsCombat = { titre: 'SIMULATEUR · CHASSEUR ALIEN', zone: 1 }
 
 const ENCRE = '#2b2138', CERISE = '#e04b37', VIOLET = '#9d7cc8'
@@ -77,7 +81,7 @@ export class VueCombat {
 
   ouvrir(options: OptionsCombat = SIMULATEUR): void {
     this.options = options
-    this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone)
+    this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone, options.amiral)
     this.doigt = null
     this.enPause = false
     this.element.querySelector('.titre-combat')!.textContent = options.titre
@@ -111,7 +115,7 @@ export class VueCombat {
     if (e.fin) { this.terminer(); return }
     const c = chef(e)
     const html = `<span>COQUE <span class="points">${Array.from({ length: COQUE_MAX }, (_, i) => `<i class="${i < e.coque ? 'rempli' : ''}"></i>`).join('')}</span></span>`
-      + `<span class="jauge-chasseur"><small>CHASSEUR</small><span class="jauge"><i style="width:${c ? Math.round((100 * Math.max(0, c.pv)) / c.pvMax) : 0}%"></i></span></span>`
+      + `<span class="jauge-chasseur"><small>${this.options.amiral ? this.options.amiral.nom.toUpperCase() : 'CHASSEUR'}</small><span class="jauge"><i style="width:${c ? Math.round((100 * Math.max(0, c.pv)) / c.pvMax) : 0}%"></i></span></span>`
     if (html !== this.elInfos.dataset.html) { this.elInfos.innerHTML = html; this.elInfos.dataset.html = html }
     const bombes = `${e.bombes}/${BOMBES}`
     if (this.elBombe.dataset.n !== bombes) { this.elBombe.dataset.n = bombes; this.elBombe.querySelector('small')!.textContent = bombes; this.elBombe.disabled = e.bombes === 0 }
@@ -122,7 +126,7 @@ export class VueCombat {
     const fin = e.fin as 'victoire' | 'retraite'
     navigator.vibrate?.(fin === 'victoire' ? [60, 40, 60] : 300)
     const suite = this.options.surFin ? this.options.surFin(fin, e.degatsRecus) : 'Simulateur : rien n\'arrive à ta capsule.'
-    this.elFin.innerHTML = `<div class="carte-fin"><b>${fin === 'victoire' ? 'CHASSEUR ABATTU !' : 'RETRAITE'}</b>`
+    this.elFin.innerHTML = `<div class="carte-fin"><b>${fin === 'victoire' ? (this.options.amiral ? 'VAISSEAU AMIRAL DÉTRUIT !' : 'CHASSEUR ABATTU !') : 'RETRAITE'}</b>`
       + `<p>${fin === 'victoire'
         ? `${e.abattus ? `${e.abattus} escorteur${e.abattus > 1 ? 's' : ''} abattu${e.abattus > 1 ? 's' : ''} en chemin. ` : ''}${e.degatsRecus ? `${e.degatsRecus} coup${e.degatsRecus > 1 ? 's' : ''} reçu${e.degatsRecus > 1 ? 's' : ''}.` : 'Sans une égratignure : prime de 10 %.'}`
         : 'La capsule décroche, coque abîmée.'}</p><p class="petit">${suite}</p>`
@@ -161,6 +165,7 @@ export class VueCombat {
 
     // Les aliens : le chasseur (gros, cœur vert) et ses escorteurs (petits dards), pointe vers le bas.
     for (const a of e.aliens) {
+      if (a.chef && e.amiral) { this.amiral(ctx, X(a.x), Y(a.y), k, a.pv < a.pvMax / 2, e.temps); continue }
       const s = a.chef ? 1.6 : 0.85
       ctx.save()
       ctx.translate(X(a.x), Y(a.y))
@@ -212,5 +217,32 @@ export class VueCombat {
       ctx.stroke()
       ctx.globalAlpha = 1
     }
+  }
+
+  /** Le vaisseau amiral : une grosse coque en losange, des tourelles, un cœur qui vire au rouge quand il enrage. */
+  private amiral(ctx: CanvasRenderingContext2D, x: number, y: number, k: number, rage: boolean, temps: number): void {
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.scale(k * 2.4, k * 2.4)
+    ctx.lineWidth = 1.6 / (k * 2.4)
+    ctx.strokeStyle = ENCRE
+    // Les ailes.
+    ctx.beginPath()
+    ctx.moveTo(-7, -2); ctx.lineTo(-10, 3); ctx.lineTo(-4, 2); ctx.lineTo(0, 6); ctx.lineTo(4, 2); ctx.lineTo(10, 3); ctx.lineTo(7, -2); ctx.lineTo(0, -5)
+    ctx.closePath()
+    ctx.fillStyle = '#6d4fa0'
+    ctx.fill(); ctx.stroke()
+    // La coque.
+    ctx.beginPath()
+    ctx.moveTo(0, -6); ctx.lineTo(4, -1); ctx.lineTo(0, 5); ctx.lineTo(-4, -1); ctx.closePath()
+    ctx.fillStyle = VIOLET
+    ctx.fill(); ctx.stroke()
+    // Les tourelles.
+    for (const tx of [-7, 7]) { ctx.beginPath(); ctx.arc(tx, 1.5, 1.2, 0, 2 * Math.PI); ctx.fillStyle = '#d7cdee'; ctx.fill(); ctx.stroke() }
+    // Le cœur : vert, puis rouge qui palpite quand il enrage.
+    ctx.beginPath(); ctx.arc(0, 0, 1.6 + (rage ? 0.4 * Math.sin(temps * 12) : 0), 0, 2 * Math.PI)
+    ctx.fillStyle = rage ? CERISE : '#b9f08c'
+    ctx.fill(); ctx.stroke()
+    ctx.restore()
   }
 }

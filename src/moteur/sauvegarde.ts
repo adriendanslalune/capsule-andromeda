@@ -20,6 +20,7 @@ import type { OrdreBourse, Portefeuille } from './bourse'
 import { MAISONS, type Maison } from '../donnees/maisons'
 import { MARCHANDISES } from '../donnees/marche'
 import { pseudoValide } from './profil'
+import { zone } from './zones'
 import type { MessageEnvoye } from './messages'
 import { appliquerGenerations, type EtatEspace } from './espace'
 import { monolithe, type EtatMonolithes } from './monolithes'
@@ -60,7 +61,10 @@ export interface Sauvegarde {
   lettres?: Jeu['lettres']
   quetes?: Jeu['quetes']
   queteSuivie?: string | null
+  /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
   zonesLiberees?: string[]
+  /** La libération des zones : points de résistance et zones libérées. */
+  zones?: { points: Record<string, number>; liberees: string[] }
   /** Répartition de l'énergie (absente : celle du départ). */
   energie?: Energie
   /** La soute (absente : vide) et le carnet de bord (absent : vierge). */
@@ -90,7 +94,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zonesLiberees: jeu.zonesLiberees, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -226,7 +230,13 @@ export function restaurer(s: unknown): Jeu | null {
     for (const n of jeu.radio.captees) if (nombre(v.radio.captureesLe?.[n])) jeu.radio.captureesLe[n] = v.radio.captureesLe[n]
   }
   if (typeof v.queteSuivie === 'string' && jeu.quetes[v.queteSuivie]) jeu.queteSuivie = v.queteSuivie
-  if (Array.isArray(v.zonesLiberees)) jeu.zonesLiberees = v.zonesLiberees.filter((z) => typeof z === 'string')
+  // Les zones : seulement des zones qui existent, des points positifs.
+  const liberees = Array.isArray(v.zones?.liberees) ? v.zones.liberees : Array.isArray(v.zonesLiberees) ? v.zonesLiberees : []
+  jeu.zones.liberees = liberees.filter((z): z is string => typeof z === 'string' && !!zone(z))
+  if (v.zones?.points && typeof v.zones.points === 'object') {
+    for (const [z, p] of Object.entries(v.zones.points)) if (zone(z) && nombre(p) && p > 0) jeu.zones.points[z] = p
+  }
+  jeu.synchroniserZones()
   if (Array.isArray(v.invitations)) jeu.invitations = MAISONS.map((m) => m.maison).filter((m) => v.invitations!.includes(m))
   jeu.credits = v.credits
   jeu.niveauMoteur = v.niveauMoteur

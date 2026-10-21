@@ -4,6 +4,8 @@
 // PREMIER JET pour la Lune (à corriger par Adrien) : textes, PNJ et récompenses sont provisoires. Les portraits
 // viendront d'Adrien (images générées) ; en attendant, un médaillon à l'initiale.
 
+import { PNJS_CAMPAGNE, QUETES_CAMPAGNE } from './campagne'
+
 export interface Pnj {
   id: string
   nom: string
@@ -36,6 +38,7 @@ export const PNJS: readonly Pnj[] = [
     id: 'rosa', nom: 'Rosa Mendès', role: 'Contrebandière', lieu: 'Tiangong', teinte: '#f5d38a', portrait: null,
     repos: 'Pas de questions, pas de mensonges. Tu veux faire affaire ou tu admires la vue ?',
   },
+  ...PNJS_CAMPAGNE,
 ]
 
 /** Une étape de quête : ce qu'il faut faire (elle se coche toute seule). */
@@ -50,6 +53,12 @@ export type EtapeQuete =
   | { genre: 'livrer'; lieu: string; marchandises: Record<string, number> }
   /** Trouver des monolithes. */
   | { genre: 'monolithes'; nombre: number }
+  /** Porter la jauge de résistance d'une zone à 100 % (décisions d'Adrien du 21/10/2026). */
+  | { genre: 'jauge'; zone: string }
+  /** L'assaut final contre le vaisseau amiral d'une zone (un combat de boss, en orbite autour d'elle). */
+  | { genre: 'assaut'; zone: string }
+  /** Libérer des zones, dans l'ordre qu'on veut. */
+  | { genre: 'liberer'; zones: string[]; texte: string }
 
 export interface Quete {
   id: string
@@ -66,6 +75,8 @@ export interface Quete {
   recompense: number
   /** Zone libérée à la fin (la campagne). */
   libere?: string
+  /** La zone où se joue la quête : chaque étape d'une quête principale y ajoute de la résistance. */
+  zone?: string
 }
 
 export const QUETES: readonly Quete[] = [
@@ -93,7 +104,7 @@ export const QUETES: readonly Quete[] = [
         ],
       },
     ],
-    recompense: 300,
+    recompense: 300, zone: 'Lune',
   },
   {
     id: 'lune-2', titre: 'Les guetteurs d\'Andromède', type: 'principale', donneur: 'elsa', conditions: ['lune-1'],
@@ -105,7 +116,7 @@ export const QUETES: readonly Quete[] = [
       { genre: 'mission', mission: 'chasser', systeme: 'Terre', nombre: 2, texte: 'Abats 2 chasseurs dans le système de la Terre (contrats ABATTRE des Mercenaires)' },
       { genre: 'parler', pnj: 'elsa', texte: ['Deux de moins. Ils vont envoyer des renforts, bien sûr. Mais pour quelques jours, ils sont aveugles. Merci, capitaine.'] },
     ],
-    recompense: 600,
+    recompense: 600, zone: 'Lune',
   },
   {
     id: 'lune-3', titre: 'Ravitailler Tycho', type: 'principale', donneur: 'keita', conditions: ['lune-1'],
@@ -117,7 +128,7 @@ export const QUETES: readonly Quete[] = [
       { genre: 'livrer', lieu: 'Lune', marchandises: { Eau: 5, Titane: 2 } },
       { genre: 'parler', pnj: 'keita', texte: ['Cinq tonnes d\'eau et du titane : tu viens de sauver des vies, capitaine. Le dôme tiendra.'] },
     ],
-    recompense: 800,
+    recompense: 800, zone: 'Lune',
   },
   {
     id: 'lune-4', titre: 'Le relais de la face cachée', type: 'principale', donneur: 'keita', conditions: ['lune-3'],
@@ -129,20 +140,22 @@ export const QUETES: readonly Quete[] = [
       { genre: 'mission', mission: 'depanner', systeme: 'Terre', nombre: 1, texte: 'Répare un engin dans le système de la Terre (contrat RÉPARER des Ingénieurs)' },
       { genre: 'parler', pnj: 'keita', texte: ['J\'entends Tycho ! Clairement ! Ils te saluent, capitaine… et ils ont un plan. Va voir Elsa.'] },
     ],
-    recompense: 700,
+    recompense: 700, zone: 'Lune',
   },
   {
-    id: 'lune-5', titre: 'La Lune libérée', type: 'principale', donneur: 'elsa', conditions: ['lune-2', 'lune-4'],
+    id: 'lune-5', titre: 'La Lune libérée', type: 'principale', donneur: 'elsa', conditions: ['lune-2', 'lune-4'], zone: 'Lune',
     intro: [
-      'Tycho a repéré la flottille qui garde la Lune. Trois chasseurs, à tour de rôle. Si on les abat d\'un coup, Andromède perd la Lune.',
-      'C\'est le moment, capitaine. Pour Tycho. Pour nous tous.',
+      'Tycho a repéré ce qui tient la Lune : un vaisseau amiral d\'Andromède, le Séléné, planqué derrière la face cachée.',
+      'Seul, tu n\'as aucune chance. Il faut d\'abord que toute la Résistance se lève autour de la Lune : contrats, chasseurs, tout compte.',
+      'Quand la jauge de résistance sera pleine, on lance l\'assaut. Pour Tycho. Pour nous tous.',
     ],
     etapes: [
-      { genre: 'mission', mission: 'chasser', systeme: 'Terre', nombre: 3, texte: 'Abats 3 chasseurs dans le système de la Terre' },
+      { genre: 'jauge', zone: 'Lune' },
+      { genre: 'assaut', zone: 'Lune' },
       {
         genre: 'parler', pnj: 'elsa', texte: [
-          'Ils sont partis. La Lune est à nous, capitaine.',
-          'Ce soir, Tycho rallume ses lumières. Mais Andromède ne s\'arrêtera pas là… et nous non plus. Prochaine étape : Mars.',
+          'Le Séléné est tombé. La Lune est à nous, capitaine.',
+          'Ce soir, Tycho rallume ses lumières. Mais Andromède ne s\'arrêtera pas là… et nous non plus. Reviens me voir.',
         ],
       },
     ],
@@ -173,4 +186,6 @@ export const QUETES: readonly Quete[] = [
     ],
     recompense: 500,
   },
+  // --- La campagne après la Lune (src/donnees/campagne.ts) ---
+  ...QUETES_CAMPAGNE,
 ]

@@ -35,7 +35,8 @@ const sens = (v: number) => (v >= 0 ? 'hausse' : 'baisse')
 export type OrdreAction = { compagnie: string; sens: 'acheter' | 'vendre'; quantite: number }
 
 /** Ce que le volet doit savoir du joueur. */
-export interface EtatBourse { portefeuille: Portefeuille; credits: number }
+/** cotees : les compagnies cotées (la zone de leur siège libérée, décision d'Adrien du 21/10/2026). */
+export interface EtatBourse { portefeuille: Portefeuille; credits: number; cotees: string[] }
 
 export class VoletBourse {
   private dernier = ''
@@ -74,7 +75,11 @@ export class VoletBourse {
 
   afficher(t: number, etat: EtatBourse): void {
     const p = etat.portefeuille
-    const id = this.choisie ?? Object.keys(p.positions)[0] ?? 'vanguard'
+    // Les compagnies qu'on voit : les cotées, et celles dont on a encore des actions (cotation suspendue).
+    const visibles = COMPAGNIES.filter((x) => etat.cotees.includes(x.id) || p.positions[x.id])
+    let id = this.choisie ?? Object.keys(p.positions)[0] ?? 'vanguard'
+    if (!visibles.some((x) => x.id === id)) id = visibles[0]?.id ?? 'vanguard'
+    const cotee = etat.cotees.includes(id)
     const c = compagnie(id)!, vue = vueAction(c, t)
     const pos = p.positions[id]
 
@@ -116,7 +121,8 @@ export class VoletBourse {
         + `<div><span>Au cours connu (${prix(devis.cours)})</span><b>≈ ${achat ? `${actions(devis.estime)} action${devis.estime >= 2 ? 's' : ''}` : `${entier(devis.estime)} cr.`}</b></div>`
         + `<p>L'ordre arrivera au siège (${c.siege}) dans <b>${texteDelai(devis.delai)}</b> et s'exécutera au cours de ce moment-là : il peut avoir bougé.</p>`
         + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
-    } else html += '<div class="commerce">'
+    } else if (!cotee) html += `<p class="raison">Cotation suspendue : ${c.siege} est occupé par Andromède. Libère la zone pour acheter ou vendre.</p></div>`
+    else html += '<div class="commerce">'
       + `<div class="ligne-commerce"><span>ACHETER</span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'TOUT', etat.credits <= FRAIS_MINIMUM)}</div>`
       + `<div class="ligne-commerce"><span>VENDRE</span>${PARTS_VENTE.map((f) => bouton('vendre', pos ? pos.actions * f : 0, f === 1 ? 'TOUT' : f === 0.5 ? '½' : '¼', !pos)).join('')}</div>`
       + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver au siège (${c.siege}) ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre, au moins ${FRAIS_MINIMUM} cr.</p></div></div>`
@@ -129,7 +135,7 @@ export class VoletBourse {
     }
 
     // Toutes les compagnies : courbe des dernières 24 h, cours connu, variation, ce qu'on en a.
-    html += '<h3>Compagnies</h3><div class="liste-cours">' + COMPAGNIES.map((x) => {
+    html += '<h3>Compagnies</h3><div class="liste-cours">' + visibles.map((x) => {
       const v = vueAction(x, t)
       const h = historiqueAction(x, v.connuA - 24 * HEURE, v.connuA, 40)
       const lo = Math.min(...h.map((q) => q.cours)), hi = Math.max(...h.map((q) => q.cours))
@@ -140,7 +146,7 @@ export class VoletBourse {
         + `<svg class="mini" viewBox="0 0 70 22"><polyline points="${pts}"/></svg>`
         + `<span class="valeur">${prix(v.cours)}<small class="${sens(v.variation)}">${pourcent(v.variation)}</small></span></button>`
     }).join('') + '</div>'
-    html += '<p class="note">Les cours sont les mêmes pour tous les capitaines. Les rumeurs du canal général annoncent parfois un gros mouvement… trois fois sur quatre, elles disent vrai.</p>'
+    html += '<p class="note">Seules les compagnies des zones libres sont cotées : libère une zone, et la compagnie qui y a son siège entre en Bourse. Les cours sont les mêmes pour tous les capitaines. Les rumeurs du canal général annoncent parfois un gros mouvement… trois fois sur quatre, elles disent vrai.</p>'
 
     if (html === this.dernier) return
     this.element.innerHTML = this.dernier = html

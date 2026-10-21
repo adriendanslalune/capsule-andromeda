@@ -36,7 +36,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -51,11 +51,13 @@ import { objetsTries } from './moteur/tri'
 import { VoletComptoir } from './commun/volet-comptoir'
 import { texteDelai, VoletBourse } from './commun/volet-bourse'
 import { compagnie } from './moteur/bourse'
-import { CAPACITE_SOUTE } from './donnees/marche'
+import { CAPACITE_SOUTE, MARCHES } from './donnees/marche'
+import { COMPAGNIES } from './donnees/bourse'
 import { BOTS } from './donnees/messages'
 import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
+import { estLibre, zone } from './moteur/zones'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
 import { calibreAttendu, ordreCouplage, tourAccumulateurs, tourFusibles } from './moteur/energie'
@@ -462,7 +464,7 @@ const vueRadio = new VueRadio(document.querySelector<HTMLDivElement>('#radio')!,
     const t = horloge(), systeme = systemeDeLaCapsule(t)
     const r = ecouterRadio(jeu.radio, systeme, t)
     const voix = r.capte?.voix ?? null
-    if (r.nouvelle) { enregistrerPartie(); annoncer(`Voix perdue n° ${r.nouvelle} enregistrée : elle est dans tes Collections`); navigator.vibrate?.([40, 60, 40]) }
+    if (r.nouvelle) { jeu.voixEnregistree(t); enregistrerPartie(); annoncer(`Voix perdue n° ${r.nouvelle} enregistrée : elle est dans tes Collections`); navigator.vibrate?.([40, 60, 40]) }
     return { voix, texte: voix ? texteVoix(voix) : null, nettete: r.capte?.nettete ?? 0, enregistrement: r.enregistrement,
       dejaEnregistree: !!voix && jeu.radio.captees.includes(voix.numero) && !r.nouvelle, nouvelle: !!r.nouvelle, systeme }
   },
@@ -562,7 +564,7 @@ const boutonAttaquer = document.querySelector<HTMLButtonElement>('#bouton-attaqu
 boutonCommuniquer.addEventListener('click', () => { if (selection) ouvrirMessages(`prive:${selection}`) })
 let prevision: Planification | null = null
 /** Ce que fait le bouton de la fiche : partir (Y ALLER, DÉPART) ou l'action de la mission (RÉPARER…). */
-let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' | 'parler' = 'depart'
+let actionFiche: 'depart' | 'agir' | 'accepter' | 'combat' | 'ramasser' | 'parler' | 'assaut' = 'depart'
 let previsionPour: string | null = null
 let planAJour = 0
 
@@ -617,6 +619,7 @@ function mettreAJourFiche(t: number): void {
   actionFiche = 'depart'
   const etape = jeu.etapeActuelle(), fin = jeu.finAction()
   const pnjs = pnjIci(jeu, t)
+  const assaut = assautIci(jeu, t)
   const monolithe = jeu.monolitheIci(t)
   if (monolithe !== null && !apercu && (!selection || dejaLa(t))) {
     // À côté d'un monolithe localisé : on le ramasse.
@@ -652,6 +655,13 @@ function mettreAJourFiche(t: number): void {
     texte = `<b>${etape.lieu.toUpperCase()}</b> · contrat<br>${titreContrat(jeu.enCours!.contrat)}`
     if (fin !== null) texte += `<br>${NOMS_ACTIONS[etape.action]} en cours · ${texteSecondes(fin - t)}`
     else { depart = true; libelle = VERBES[etape.action]; actionFiche = 'agir' }
+  } else if (assaut && !apercu && (!selection || selection === assaut || dejaLa(t))) {
+    // L'assaut final d'une zone (décisions d'Adrien du 21/10/2026) : la résistance est à 100 %, on attaque l'amiral.
+    const z = zone(assaut)!
+    texte = `<b>${assaut.toUpperCase()}</b> · assaut final<br>${z.amiral[0].toUpperCase()}${z.amiral.slice(1)}, le vaisseau amiral, tient encore la zone`
+    depart = true
+    libelle = 'ASSAUT'
+    actionFiche = 'assaut'
   } else if (pnjs.length && !apercu && (!selection || selection === pnjs[0].lieu || dejaLa(t)) && (signePnj(jeu, pnjs[0].id) || selection === pnjs[0].lieu)) {
     // Un PNJ ici (décisions d'Adrien du 20/10/2026) : on peut lui parler.
     const p = pnjs[0], s = signePnj(jeu, p.id)
@@ -725,6 +735,7 @@ boutonDepart.addEventListener('click', () => {
   if (actionFiche === 'agir') { agirMission(); return }
   if (actionFiche === 'accepter') { accepterMission(apercu!.id); return }
   if (actionFiche === 'combat') { combattre(selection!); return }
+  if (actionFiche === 'assaut') { const z = assautIci(jeu, t); if (z) lancerAssaut(z); return }
   if (actionFiche === 'parler') {
     const p = pnjIci(jeu, t)[0]
     if (!p) return
@@ -1427,7 +1438,7 @@ const vueClasseur = new VueClasseur(document.querySelector<HTMLDivElement>('#cla
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
 const etatCommerce = () => {
   const t = horloge()
-  return { soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(t)?.nom ?? null, enVol: mission.phase(t) === 'trajet' }
+  return { soute: jeu.soute, credits: jeu.credits, ici: jeu.marcheIci(t)?.nom ?? null, enVol: mission.phase(t) === 'trajet', ouverts: MARCHES.filter((m) => estLibre(jeu.zones, m.lieu)).map((m) => m.nom) }
 }
 // Le Comptoir (onglet du Marché) : acheter et vendre les matériaux au comptoir d'ici (décision d'Adrien du 20/10/2026).
 const afficherComptoir = (t: number) => voletComptoir.afficher(t, etatCommerce(), jeu.manquePourMoteur().materiaux)
@@ -1461,7 +1472,7 @@ function afficherMarche(t: number): void {
   document.querySelector<HTMLElement>('#bourse')!.hidden = ongletMarche !== 'bourse'
   document.querySelector<HTMLElement>('#comptoir')!.hidden = ongletMarche !== 'comptoir'
   for (const b of document.querySelectorAll<HTMLElement>('[data-marche-onglet]')) b.classList.toggle('actif', b.dataset.marcheOnglet === ongletMarche)
-  if (ongletMarche === 'bourse') voletBourse.afficher(t, { portefeuille: jeu.bourse, credits: jeu.credits })
+  if (ongletMarche === 'bourse') voletBourse.afficher(t, { portefeuille: jeu.bourse, credits: jeu.credits, cotees: COMPAGNIES.filter((c) => estLibre(jeu.zones, c.siege)).map((c) => c.id) })
   else afficherComptoir(t)
 }
 for (const b of document.querySelectorAll<HTMLElement>('[data-marche-onglet]')) {
@@ -1524,6 +1535,23 @@ glisserEntre(pagePanneau, 'manuel', -1, () => sousOnglet === 'reparation')
 glisserEntre(pageManuel, 'panneau', 1, () => true)
 zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => basculer('manuel'))
 pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => basculer('panneau'))
+
+/** L'assaut final d'une zone : le combat contre son vaisseau amiral ; gagné, la zone est libérée. */
+function lancerAssaut(nom: string): void {
+  const z = zone(nom)!
+  cockpit.fermer()
+  vueCombat.ouvrir({
+    titre: `ASSAUT · ${z.amiral.toUpperCase()}`,
+    zone: ZONES[z.systeme] ?? 1,
+    amiral: { nom: z.amiral, planete: z.planete || nom === 'Triton' },
+    surFin: (fin) => {
+      const t = horloge()
+      if (fin === 'victoire') { jeu.gagnerAssaut(nom, t); enregistrerPartie(); carteSale = true; return `${nom} est libérée ! Va le dire à la Résistance.` }
+      jeu.casser('coque'); apresChangementDePanne()
+      return 'La Coque est en panne. Répare, et retente l\'assaut quand tu veux : la résistance reste à 100 %.'
+    },
+  })
+}
 
 /** Attaquer un chasseur repéré (la vue de combat) : vaincu, il disparaît ; la retraite abîme la Coque. */
 function combattre(alien: string): void {
@@ -1800,6 +1828,8 @@ Object.assign(window, {
     },
     carte, mission, jeu, choisir: (n: string) => choisir(n, true), allerA: (n: string) => { choisir(n, true); proposee = true },
     accelerer: (k: number) => { acceleration = k },
+    // Essais : l'assaut final d'une zone (son vaisseau amiral).
+    assaut: (z: string) => lancerAssaut(z),
     // Essais : la manœuvre d'amarrage, sans mission.
     amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
     depannage: () => vueDepannage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est validé.' }),

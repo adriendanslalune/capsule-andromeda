@@ -16,6 +16,8 @@ export interface EtatCommerce {
   ici: string | null
   /** La capsule est-elle en plein vol ? */
   enVol: boolean
+  /** Les comptoirs qui existent : ceux des systèmes dont la planète est libérée (décision d'Adrien du 21/10/2026). */
+  ouverts: string[]
 }
 
 /** Un ordre du joueur : acheter ou vendre tant de tonnes (Infinity : tout ce qu'on peut). */
@@ -56,13 +58,15 @@ export class VoletComptoir {
   /** besoins : les tonnes qui manquent pour le moteur suivant, par matériau (marquées dans la liste). */
   afficher(t: number, etat: EtatCommerce, besoins: Record<string, number>): void {
     const ici = marcheDeLaCapsule(t)
-    const k = this.choisi ?? (ici ? MARCHES.indexOf(ici) : 2)
+    const ouvert = (i: number) => etat.ouverts.includes(MARCHES[i].nom)
+    let k = this.choisi ?? (ici ? MARCHES.indexOf(ici) : 2)
+    if (!ouvert(k)) k = MARCHES.findIndex((x) => etat.ouverts.includes(x.nom))
     const vue = vueMarche(MARCHES[k], t), m = vue.marche
     const possible = etat.ici === m.nom
     const charge = Object.values(etat.soute).reduce((a, b) => a + b, 0)
     const t1 = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
 
-    let html = '<div class="places">' + MARCHES.map((x, i) =>
+    let html = '<div class="places">' + MARCHES.map((x, i) => !ouvert(i) ? '' :
       `<button type="button" data-comptoir="${i}"${i === k ? ' class="actif"' : ''}><span class="pastille" style="background:${x.teinte}"></span>`
       + `${x.nom}${etat.ici === x.nom ? '<small>ici</small>' : ''}</button>`).join('') + '</div>'
     html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('credits', etat.credits.toLocaleString('fr-FR'))}${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
@@ -70,7 +74,8 @@ export class VoletComptoir {
     if (possible && !this.ouverte) html += '<p class="consigne-comptoir">Touche un matériau pour l\'acheter ou le vendre.</p>'
     if (!possible) {
       const raison = etat.enVol ? 'En plein vol : on achète et on vend une fois en orbite.'
-        : !etat.ici ? 'Pas de comptoir ici : mets-toi en orbite dans le système d\'une planète (ou de Pluton).'
+        : !etat.ici ? (ici && !etat.ouverts.includes(ici.nom) ? `Pas de comptoir ici : le système ${du(ici.nom)} est occupé par Andromède. Libère la planète pour qu'il ouvre.`
+          : 'Pas de comptoir ici : mets-toi en orbite dans le système d\'une planète libre.')
           : `On n'achète et ne vend qu'au comptoir ${du(etat.ici)}, où est ta capsule. Ici, on regarde les prix.`
       const iciK = etat.ici ? MARCHES.findIndex((x) => x.nom === etat.ici) : -1
       html += `<p class="raison">${raison}</p>` + (iciK >= 0 && iciK !== k ? `<button type="button" class="vers-ici" data-comptoir="${iciK}">COMPTOIR ${du(etat.ici!).toUpperCase()} ›</button>` : '')

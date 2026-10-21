@@ -116,6 +116,10 @@ describe('la Bourse dans la partie', () => {
     const { Jeu } = await import('../src/moteur/jeu')
     const jeu = new Jeu()
     jeu.credits = 1000
+    // Une compagnie n'est cotée qu'une fois la zone de son siège libérée (décision d'Adrien du 21/10/2026).
+    expect(jeu.ordreBourse('tycho', 'acheter', 300, t0)).toBeNull()
+    jeu.libererZone('Lune')
+    jeu.libererZone('Jupiter')
     const lune = jeu.ordreBourse('tycho', 'acheter', 300, t0)!
     const jup = jeu.ordreBourse('jovienne', 'acheter', 300, t0)!
     expect(jeu.credits).toBe(400)
@@ -134,6 +138,7 @@ describe('la Bourse dans la partie', () => {
     const jeu = new Jeu()
     jeu.credits = 1000
     jeu.bourse.positions.ares = { actions: 3.5, investi: 520 }
+    jeu.libererZone('Pluton')
     jeu.ordreBourse('confins', 'acheter', 200, t0)
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.bourse.positions).toEqual(jeu.bourse.positions)

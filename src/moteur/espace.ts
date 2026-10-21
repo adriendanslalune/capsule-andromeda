@@ -26,6 +26,8 @@ export interface EtatEspace {
   /** Dernière recharge d'intercepteur, et dernier instant où les tirs ont été regardés. */
   rechargeDepuis: number
   tirsJusqua: number
+  /** Les zones libérées (tenu à jour par le jeu) : les chasseurs d'un système libéré ne reviennent plus. */
+  liberes?: string[]
 }
 
 export function nouvelEspace(): EtatEspace {
@@ -39,6 +41,7 @@ export function porteeRadar(t: number): number {
 }
 
 export function alienLa(e: EtatEspace, nom: string, t: number): boolean {
+  if (e.liberes?.length) { const parent = corps(nom)?.parent; if (parent && e.liberes.includes(parent)) return false }
   const v = e.aliensVaincus[nom]
   return v === undefined || t - v >= RETOUR_ALIEN
 }
@@ -49,7 +52,7 @@ export function alienLa(e: EtatEspace, nom: string, t: number): boolean {
  */
 let memoireRadar: { seconde: number; vaincus: string; noms: string[] } | null = null
 export function aliensReperes(e: EtatEspace, t: number): string[] {
-  const seconde = Math.floor(t / 1000), vaincus = Object.keys(e.aliensVaincus).join('|')
+  const seconde = Math.floor(t / 1000), vaincus = Object.keys(e.aliensVaincus).join('|') + '/' + (e.liberes?.length ?? 0)
   if (memoireRadar?.seconde === seconde && memoireRadar.vaincus === vaincus) return memoireRadar.noms
   const portee = porteeRadar(t)
   const noms = ALIENS.filter((a) => alienLa(e, a.nom, t) && distanceDepuisCapsule(a.nom, t) <= portee).map((a) => a.nom)

@@ -7,10 +7,11 @@ import type { Jeu } from '../moteur/jeu'
 import { affinites, maisonPreferee, maisonsOuvertes } from '../moteur/profil'
 import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
 import { palierSuivant, statut } from '../moteur/monolithes'
+import { jauge } from '../moteur/zones'
+import { ZONES_A_LIBERER } from '../donnees/zones'
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
 /** Les zones de la campagne (acte 1). */
-const ZONES = ['Lune', 'Mars', 'Lunes de Jupiter', 'Saturne', 'Uranus', 'Triton']
 
 /** La toile d'araignée : un axe par Maison ; la forme dit où penche le joueur. */
 function toile(jeu: Jeu): string {
@@ -61,6 +62,24 @@ function htmlAppartenance(jeu: Jeu): string {
     + `<p class="petit">Membre d'une Maison : dans chaque système, 4 de ses missions sur 6 (et 1 de chacune des autres), payées 25 % de plus, et son canal dans les Messages. Pour la rejoindre : ${SEUIL_MISSIONS} missions pour elle, et au moins ${Math.round(SEUIL_PART * 100)} % de tes missions. Jamais définitif.</p></div>`
 }
 
+/**
+ * La libération (décisions d'Adrien du 21/10/2026) : chaque zone, système par système, avec sa jauge de résistance ;
+ * la Terre, QG de la Résistance, libre dès le départ.
+ */
+function htmlZones(jeu: Jeu): string {
+  const libres = jeu.zones.liberees.length
+  let html = `<h3>Libération</h3><div class="bloc zones"><div class="rang"><span>Zones libérées</span><b>${libres} / ${ZONES_A_LIBERER.length}</b></div>`
+    + '<div class="rang"><span>Terre</span><small>QG de la Résistance</small></div>'
+  let systeme = ''
+  for (const z of ZONES_A_LIBERER) {
+    if (z.systeme !== systeme) { systeme = z.systeme; html += `<div class="systeme-zones">${z.systeme === 'Terre' ? 'Système de la Terre' : `Système ${/^[AEIOUÉ]/.test(z.systeme) ? 'd\'' : 'de '}${z.systeme}`}</div>` }
+    const libre = jeu.zones.liberees.includes(z.nom), j = jauge(jeu.zones, z.nom)
+    html += `<div class="rang zone${libre ? ' libre' : ''}"><span>${z.nom}${z.planete ? '' : ' <small>lune</small>'}</span>`
+      + (libre ? '<small class="libere">✓ libérée</small>' : `<span class="jauge-zone"><i style="width:${j}%"></i><small>${j} %</small></span>`) + '</div>'
+  }
+  return html + '<p class="petit">Tout ce que tu fais près d\'une zone occupée fait monter sa résistance : contrats, chasseurs, monolithes, Voix perdues, et surtout les quêtes principales. À 100 %, sa quête de libération mène à l\'assaut contre son vaisseau amiral.</p></div>'
+}
+
 export function htmlProfil(jeu: Jeu): string {
   const pref = maisonPreferee(jeu), c = jeu.carnet
   const total = MAISONS.reduce((s, m) => s + c.missions[m.maison], 0)
@@ -78,7 +97,5 @@ export function htmlProfil(jeu: Jeu): string {
     + MAISONS.map((m) => `<div class="rang"><span><span class="maison maison-${m.maison}">${m.titre}</span> missions</span><b>${c.missions[m.maison]}</b></div>`).join('')
     + `<div class="rang"><span>Crédits gagnés</span><b>${c.credits.toLocaleString('fr-FR')}</b></div>`
     + `<div class="rang"><span>Objets triés dans les épaves</span><b>${c.objetsTries}</b></div></div>`
-    + '<h3>Zones à libérer</h3><div class="bloc">'
-    + ZONES.map((z) => `<div class="rang"><span>${z}</span><small>${jeu.zonesLiberees.includes(z) ? '✓ libérée' : 'occupée'}</small></div>`).join('')
-    + '<p class="petit">La campagne viendra plus tard : chaque activité dans une zone aidera à la libérer.</p></div>'
+    + htmlZones(jeu)
 }
