@@ -18,6 +18,7 @@ import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { SIMULATEUR, VueCombat } from './commun/vue-combat'
+import { ARMEMENT, type LigneArmement } from './donnees/combat'
 import { VueReve } from './commun/vue-reve'
 import { VueTri } from './commun/vue-tri'
 import { VueClasseur } from './commun/vue-classeur'
@@ -1305,9 +1306,18 @@ pageArmement.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
   if (!b || b.disabled) return
   if (b.dataset.combat !== undefined) vueCombat.ouvrir({ ...SIMULATEUR, zone: Number(b.dataset.combat) })
+  const ligne = b.dataset.ameliorer as LigneArmement | undefined
+  if (ligne) {
+    // Améliorer l'armement (décisions d'Adrien du 21/10/2026) : crédits et matériaux, après confirmation.
+    const f = ARMEMENT.find((x) => x.ligne === ligne)!, m = jeu.manquePourArmement(ligne)
+    if (!m) return
+    const mats = Object.entries(f.materiaux[jeu.armement[ligne]]).map(([nom, q]) => `${q} t de ${nom.toLowerCase()}`).join(' et ')
+    void confirmer({ titre: `${f.titre} niv. ${jeu.armement[ligne] + 1}`, texte: [`${f.titre} : ${f.texte(f.valeurs[jeu.niveauArmement(ligne) - 1])} → ${f.texte(f.valeurs[jeu.niveauArmement(ligne)])}.`, `Pour ${m.prix.toLocaleString('fr-FR')} crédits et ${mats}.`], oui: 'AMÉLIORER' })
+      .then((oui) => { if (oui && jeu.acheterArmement(ligne)) { enregistrerPartie(); annoncer(`${f.titre} amélioré : niveau ${jeu.armement[ligne]}`); afficherArmement() } })
+  }
 })
 // La vue de combat (au tour par tour) : missions ABATTRE, riposte contre un chasseur qui tire, simulateur.
-const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!)
+const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.equipement())
 // Le rêve du Soleil (décision d'Adrien du 21/10/2026) : un secret, sans effet sur le jeu.
 const vueReve = new VueReve(document.querySelector<HTMLDivElement>('#reve')!)
 /** L'onglet SOUTE du volet Capsule. */

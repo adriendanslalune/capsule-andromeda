@@ -4,7 +4,7 @@
 
 import { MODULES, type NomModule } from '../donnees/modules'
 import { CAPACITE_SOUTE } from '../donnees/marche'
-import { BOMBES, COQUE_MAX } from '../donnees/combat'
+import { ARMEMENT } from '../donnees/combat'
 import type { Jeu } from '../moteur/jeu'
 import { avec, picto, SYMBOLE_MODULE } from './symboles'
 
@@ -92,16 +92,34 @@ export function htmlSoute(jeu: Jeu): string {
  * L'onglet ARMEMENT du volet Capsule : comment se bat la capsule (en temps réel, décision d'Adrien du 19/10/2026), son
  * équipement (les améliorations s'achèteront plus tard), et le simulateur de combat.
  */
-export function htmlArmement(_jeu: Jeu): string {
-  return '<h3>Le combat</h3><div class="bloc"><p class="note">Vu du dessus, en temps réel. Glisse le doigt : la capsule le '
-    + 'suit et tire toute seule. Esquive les balles des aliens ; abats le chasseur. Plus il y a d\'aliens (loin de la Terre), '
-    + 'plus c\'est dur.</p></div>'
-    + '<h3>Équipement</h3><div class="bloc">'
-    + '<div class="module"><span><b>Canons</b><br><small>tir automatique, double</small></span><span class="ok">niv. 1</span></div>'
-    + `<div class="module"><span><b>Bombes</b><br><small>effacent toutes les balles, abîment tous les aliens</small></span><span class="ok">${BOMBES}</span></div>`
-    + `<div class="module"><span><b>Coque</b><br><small>à 0 : retraite, la Coque tombe en panne</small></span><span class="ok">${COQUE_MAX}</span></div>`
-    + '<div class="module grise"><span><b>Améliorations</b><br><small>canons, bombes, coque : plus tard, avec les crédits</small></span><span class="ok">—</span></div>'
-    + '</div><div class="vers-combat"><button type="button" data-combat="1">SIMULATEUR · PRÈS DE LA TERRE</button>'
-    + '<button type="button" data-combat="60">SIMULATEUR · VERS PLUTON</button></div>'
-    + '<p class="note">Un combat d\'entraînement, sans conséquence pour ta capsule.</p>'
+/**
+ * L'onglet ARMEMENT (décisions d'Adrien du 21/10/2026) : quatre lignes (coque, canon, bombes, bouclier), six niveaux
+ * chacune, payés en crédits et en matériaux de la soute ; +1 niveau sur la ligne de sa Maison. Puis les simulateurs.
+ */
+export function htmlArmement(jeu: Jeu): string {
+  const tonnes = (q: number) => q.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+  let html = '<h3>Armement</h3>'
+  for (const f of ARMEMENT) {
+    const n = jeu.armement[f.ligne], effectif = jeu.niveauArmement(f.ligne), manque = jeu.manquePourArmement(f.ligne)
+    const bonus = effectif > n ? ` <small class="bonus-maison">+1 Maison</small>` : ''
+    html += `<div class="bloc ligne-armement"><div class="tete-armement"><b>${f.titre}</b><span class="niveau">niv. ${n}${bonus}</span></div>`
+      + `<div class="effet"><small>${f.effet}</small><b>${f.texte(f.valeurs[effectif - 1])}</b>`
+      + (manque ? `<span class="suivant">→ ${f.texte(f.valeurs[effectif])}</span>` : '') + '</div>'
+    if (manque) {
+      const besoin = f.materiaux[n]
+      const materiaux = Object.entries(besoin).map(([nom, q]) => {
+        const assez = !manque.materiaux[nom]
+        return `<span class="materiau${assez ? ' assez' : ''}">${assez ? '✓' : '·'} ${nom} ${tonnes(Math.min(q, jeu.soute[nom] ?? 0))}/${q} t</span>`
+      }).join('')
+      const bloque = manque.credits > 0 || Object.keys(manque.materiaux).length > 0
+      html += `<div class="achat-armement"><span class="prix">${avec('credits', manque.prix.toLocaleString('fr-FR'))}</span>${materiaux}`
+        + `<button type="button" data-ameliorer="${f.ligne}"${bloque ? ' disabled' : ''}>AMÉLIORER</button></div>`
+    } else html += '<div class="achat-armement"><small>Au plus haut.</small></div>'
+    html += '</div>'
+  }
+  return html
+    + '<p class="note">Membre d\'une Maison : +1 niveau gratuit sur sa ligne (Mercenaires : le canon ; Ingénieurs : le bouclier ; Nettoyeurs : les bombes). Plus on s\'éloigne du Soleil, plus les aliens sont coriaces : améliore ton armement pour suivre.</p>'
+    + '<h3>Simulateur</h3><div class="vers-combat"><button type="button" data-combat="1">PRÈS DE LA TERRE</button>'
+    + '<button type="button" data-combat="12">VERS JUPITER</button><button type="button" data-combat="60">VERS PLUTON</button></div>'
+    + '<p class="note">Un combat d\'entraînement avec ton armement, sans conséquence pour ta capsule.</p>'
 }

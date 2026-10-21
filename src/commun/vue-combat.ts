@@ -5,8 +5,8 @@
 // (moteur/combat.ts).
 
 import { confirmer } from './confirmation'
-import { BOMBES, COQUE_MAX, HAUTEUR, LARGEUR } from '../donnees/combat'
-import { avancerCombat, bombe, chef, nouveauCombat, retraite, type EtatCombat } from '../moteur/combat'
+import { HAUTEUR, LARGEUR } from '../donnees/combat'
+import { avancerCombat, bombe, chef, EQUIPEMENT_DEPART, nouveauCombat, retraite, type Equipement, type EtatCombat } from '../moteur/combat'
 
 /** Un combat : son titre, la zone (plus loin, plus d'aliens), et ce qui arrive à la fin (le texte du bilan). */
 export interface OptionsCombat {
@@ -37,7 +37,8 @@ export class VueCombat {
   private ox = 0
   private oy = 0
 
-  constructor(private element: HTMLElement) {
+  /** equipement : l'armement de la capsule (décisions d'Adrien du 21/10/2026), lu à chaque combat. */
+  constructor(private element: HTMLElement, private equipement: () => Equipement = () => EQUIPEMENT_DEPART) {
     element.innerHTML = `
       <div class="entete-plein"><span class="titre-combat"></span><button type="button" data-retraite>RETRAITE</button></div>
       <div class="infos-combat"></div>
@@ -81,7 +82,7 @@ export class VueCombat {
 
   ouvrir(options: OptionsCombat = SIMULATEUR): void {
     this.options = options
-    this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone, options.amiral)
+    this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone, options.amiral, this.equipement())
     this.doigt = null
     this.enPause = false
     this.element.querySelector('.titre-combat')!.textContent = options.titre
@@ -112,12 +113,14 @@ export class VueCombat {
     if (!e || e.fin) return
     const ev = avancerCombat(e, dt, this.doigt)
     if (ev.includes('touche')) navigator.vibrate?.(90)
+    if (ev.includes('bouclier')) navigator.vibrate?.(30)
     if (e.fin) { this.terminer(); return }
     const c = chef(e)
-    const html = `<span>COQUE <span class="points">${Array.from({ length: COQUE_MAX }, (_, i) => `<i class="${i < e.coque ? 'rempli' : ''}"></i>`).join('')}</span></span>`
+    const bouclier = e.equipement.bouclier ? `<span class="bouclier-combat${e.temps >= e.bouclierPret ? ' pret' : ''}">BOUCLIER</span>` : ''
+    const html = `<span>COQUE <span class="points${e.equipement.coque > 15 ? ' serres' : ''}">${Array.from({ length: e.equipement.coque }, (_, i) => `<i class="${i < e.coque ? 'rempli' : ''}"></i>`).join('')}</span>${bouclier}</span>`
       + `<span class="jauge-chasseur"><small>${this.options.amiral ? this.options.amiral.nom.toUpperCase() : 'CHASSEUR'}</small><span class="jauge"><i style="width:${c ? Math.round((100 * Math.max(0, c.pv)) / c.pvMax) : 0}%"></i></span></span>`
     if (html !== this.elInfos.dataset.html) { this.elInfos.innerHTML = html; this.elInfos.dataset.html = html }
-    const bombes = `${e.bombes}/${BOMBES}`
+    const bombes = `${e.bombes}/${e.equipement.bombes}`
     if (this.elBombe.dataset.n !== bombes) { this.elBombe.dataset.n = bombes; this.elBombe.querySelector('small')!.textContent = bombes; this.elBombe.disabled = e.bombes === 0 }
   }
 
@@ -188,6 +191,14 @@ export class VueCombat {
       ctx.fillStyle = CERISE; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
     }
 
+    // Le bouclier chargé : un anneau bleu autour de la capsule.
+    if (e.temps >= e.bouclierPret) {
+      ctx.beginPath()
+      ctx.arc(X(e.capsule.x), Y(e.capsule.y), 7.5 * k, 0, 2 * Math.PI)
+      ctx.strokeStyle = 'rgba(120, 190, 230, 0.85)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
     // La capsule (elle clignote quand elle vient d'être touchée).
     if (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0) {
       ctx.save()

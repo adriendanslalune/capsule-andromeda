@@ -4,8 +4,9 @@
 // gagner ; coque à 0, c'est la retraite. Tout dépend du temps passé en paramètre et d'un hasard à graine.
 
 import {
-  BOMBES, CADENCE, PV_AMIRAL, RAGE_AMIRAL, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, DEGATS_TIR, ESCORTEURS_MAX, HAUTEUR, INVULNERABLE, LARGEUR,
-  PV_CHASSEUR, PV_ESCORTEUR, RAYON_CAPSULE, TIR_CHASSEUR, TIR_ESCORTEUR, VAGUE, VITESSE_BALLES, VITESSE_CAPSULE, VITESSE_TIR,
+  BALLES_EVENTAIL, BOMBES, CADENCE, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, DEGATS_TIR, ESCORTEURS, FRENESIE_AMIRAL, HAUTEUR, INVULNERABLE,
+  LARGEUR, PV_AMIRAL, PV_CHASSEUR, PV_ESCORTEUR, RAGE_AMIRAL, RAYON_CAPSULE, TIR_CHASSEUR, TIR_ESCORTEUR, VAGUE, VAGUE_FRENESIE,
+  VITESSE_BALLES, VITESSE_CAPSULE, VITESSE_TIR,
 } from '../donnees/combat'
 import { hasard } from './contrats'
 
@@ -26,8 +27,26 @@ export interface Alien {
   sens: 1 | -1
 }
 
+/** L'équipement de la capsule au combat (son armement, décisions d'Adrien du 21/10/2026). */
+export interface Equipement {
+  coque: number
+  /** Dégâts de chaque tir (multiplicateur). */
+  degats: number
+  bombes: number
+  /** Recharge du bouclier (s), 0 : pas de bouclier. */
+  bouclier: number
+  /** Une troisième balle, en éventail. */
+  troisBalles: boolean
+}
+export const EQUIPEMENT_DEPART: Equipement = { coque: COQUE_MAX, degats: DEGATS_TIR, bombes: BOMBES, bouclier: 0, troisBalles: false }
+
 export interface EtatCombat {
   graine: number
+  equipement: Equipement
+  /** Le bouclier est prêt à partir de cet instant (s) ; Infinity : pas de bouclier. */
+  bouclierPret: number
+  /** Volées tirées (la troisième balle part d'un côté, puis de l'autre). */
+  volees: number
   niveau: number
   temps: number
   capsule: { x: number; y: number }
@@ -37,7 +56,7 @@ export interface EtatCombat {
   prochainTir: number
   prochaineVague: number
   aliens: Alien[]
-  tirs: { x: number; y: number }[]
+  tirs: { x: number; y: number; vx?: number }[]
   balles: { x: number; y: number; vx: number; vy: number }[]
   /** Éclats à montrer (où, quand, gros ou petit). */
   eclats: { x: number; y: number; t: number; gros: boolean }[]
@@ -49,7 +68,7 @@ export interface EtatCombat {
   amiral?: boolean
 }
 
-export type EvenementCombat = 'touche' | 'escorteur-abattu' | 'victoire' | 'retraite'
+export type EvenementCombat = 'touche' | 'bouclier' | 'escorteur-abattu' | 'victoire' | 'retraite'
 
 /** Niveau d'un combat selon la zone du système (1 pour la Terre … 60 pour Pluton) : de 0 à 1. */
 export function niveauDeZone(zone: number): number {
@@ -57,9 +76,19 @@ export function niveauDeZone(zone: number): number {
 }
 const entre = (ab: readonly [number, number], n: number) => ab[0] + (ab[1] - ab[0]) * n
 
-/** Combien d'escorteurs à la fois, à ce niveau. */
-export function escorteursMax(niveau: number): number {
-  return Math.round(ESCORTEURS_MAX * niveau)
+/** Combien d'escorteurs à la fois, à ce niveau (trois de plus quand un amiral est en frénésie). */
+export function escorteursMax(niveau: number, frenesie = false): number {
+  return Math.round(entre(ESCORTEURS, niveau)) + (frenesie ? 3 : 0)
+}
+
+/** L'humeur du chef : calme, enragé (sous la moitié de ses points de vie, un amiral), en frénésie (sous le quart). */
+function humeur(e: EtatCombat, a: Alien): 'calme' | 'rage' | 'frenesie' {
+  if (!e.amiral || !a.chef || a.pv >= a.pvMax / 2) return 'calme'
+  return a.pv < a.pvMax / 4 ? 'frenesie' : 'rage'
+}
+function frenesie(e: EtatCombat): boolean {
+  const c = chef(e)
+  return !!c && humeur(e, c) === 'frenesie'
 }
 
 function x01(e: EtatCombat): number {
@@ -68,13 +97,13 @@ function x01(e: EtatCombat): number {
   return h.x
 }
 
-export function nouveauCombat(graine: number, zone = 1, amiral?: { planete: boolean }): EtatCombat {
+export function nouveauCombat(graine: number, zone = 1, amiral?: { planete: boolean }, equipement: Equipement = EQUIPEMENT_DEPART): EtatCombat {
   const niveau = niveauDeZone(zone)
   const pv = Math.round(entre(PV_CHASSEUR, niveau) * (amiral ? (amiral.planete ? PV_AMIRAL.planete : PV_AMIRAL.lune) : 1))
   return {
-    amiral: !!amiral,
-    graine, niveau, temps: 0, capsule: { x: LARGEUR / 2, y: HAUTEUR - 24 }, coque: COQUE_MAX, invulnerableJusqua: 0,
-    bombes: BOMBES, prochainTir: 0, prochaineVague: 3,
+    amiral: !!amiral, equipement, bouclierPret: equipement.bouclier > 0 ? 0 : Infinity, volees: 0,
+    graine, niveau, temps: 0, capsule: { x: LARGEUR / 2, y: HAUTEUR - 24 }, coque: equipement.coque, invulnerableJusqua: 0,
+    bombes: equipement.bombes, prochainTir: 0, prochaineVague: 3,
     aliens: [{ id: 1, chef: true, x: LARGEUR / 2, y: -10, pv, pvMax: pv, prochainTir: 2.5, age: 0, couloir: LARGEUR / 2, sens: 1 }],
     tirs: [], balles: [], eclats: [], degatsRecus: 0, abattus: 0, prochainId: 2, fin: null,
   }
@@ -90,27 +119,29 @@ function tirerBalles(e: EtatCombat, a: Alien): void {
   const vers = (dx: number, dy: number, vitesse = v) => { const n = Math.hypot(dx, dy) || 1; e.balles.push({ x: a.x, y: a.y + 4, vx: (dx / n) * vitesse, vy: (dy / n) * vitesse }) }
   const dx = e.capsule.x - a.x, dy = e.capsule.y - a.y
   if (!a.chef) { vers(dx, dy); return }
-  // Le chasseur alterne ses motifs : visé, en éventail, en pluie ; un amiral en rage tire aussi en spirale.
-  const rage = e.amiral && a.pv < a.pvMax / 2
-  const motif: Motif = (['vise', 'eventail', 'pluie', 'spirale'] as Motif[])[Math.floor(x01(e) * (rage ? 4 : 3))]
+  // Le chasseur alterne ses motifs : visé, en éventail, en pluie ; un amiral en rage tire aussi en spirale, et en
+  // frénésie, ses tirs visés partent en rafale.
+  const h = humeur(e, a)
+  const motif: Motif = (['vise', 'eventail', 'pluie', 'spirale'] as Motif[])[Math.floor(x01(e) * (h !== 'calme' ? 4 : 3))]
+  if (motif === 'vise' && h === 'frenesie') { for (const d of [-24, -12, 0, 12, 24]) vers(dx + d, dy); return }
   if (motif === 'spirale') {
     const debut = e.temps * 2.3
     for (let k = 0; k < 10; k++) { const ang = debut + (k / 10) * 2 * Math.PI; vers(Math.cos(ang), Math.abs(Math.sin(ang)) + 0.2, v * 0.8) }
     return
   }
   if (motif === 'vise') { vers(dx, dy); vers(dx - 12, dy); vers(dx + 12, dy) } else if (motif === 'eventail') {
-    const n = 5 + Math.round(2 * e.niveau)
+    const n = Math.round(entre(BALLES_EVENTAIL, e.niveau))
     for (let k = 0; k < n; k++) { const ang = Math.PI / 2 + (k - (n - 1) / 2) * 0.22; vers(Math.cos(ang), Math.sin(ang)) }
   } else for (let k = 0; k < 4; k++) e.balles.push({ x: a.x + (k - 1.5) * 9, y: a.y + 4, vx: 0, vy: v * 0.85 })
 }
 
 /** Une vague d'escorteurs, jusqu'au nombre permis à ce niveau. */
 function vague(e: EtatCombat): void {
-  const max = escorteursMax(e.niveau)
+  const max = escorteursMax(e.niveau, frenesie(e))
   const presents = e.aliens.filter((a) => !a.chef).length
   for (let k = presents; k < max; k++) {
     const couloir = 12 + 76 * x01(e)
-    e.aliens.push({ id: e.prochainId++, chef: false, x: couloir, y: -8 - 10 * k, pv: PV_ESCORTEUR, pvMax: PV_ESCORTEUR, prochainTir: 1 + 2 * x01(e), age: 0, couloir, sens: x01(e) < 0.5 ? -1 : 1 })
+    e.aliens.push({ id: e.prochainId++, chef: false, x: couloir, y: -8 - 10 * k, pv: Math.round(entre(PV_ESCORTEUR, e.niveau)), pvMax: Math.round(entre(PV_ESCORTEUR, e.niveau)), prochainTir: 1 + 2 * x01(e), age: 0, couloir, sens: x01(e) < 0.5 ? -1 : 1 })
   }
 }
 
@@ -144,11 +175,17 @@ export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: 
     else e.capsule = { x: e.capsule.x + (dx / d) * pas, y: e.capsule.y + (dy / d) * pas }
   }
   // Le tir automatique.
-  if (e.temps >= e.prochainTir) { e.tirs.push({ x: e.capsule.x - 1.5, y: e.capsule.y - 5 }, { x: e.capsule.x + 1.5, y: e.capsule.y - 5 }); e.prochainTir = e.temps + CADENCE }
-  for (const t of e.tirs) t.y -= VITESSE_TIR * dt
-  e.tirs = e.tirs.filter((t) => t.y > -5)
+  if (e.temps >= e.prochainTir) {
+    e.tirs.push({ x: e.capsule.x - 1.5, y: e.capsule.y - 5 }, { x: e.capsule.x + 1.5, y: e.capsule.y - 5 })
+    // Le canon amélioré : une troisième balle, d'un côté puis de l'autre (un éventail).
+    if (e.equipement.troisBalles) e.tirs.push({ x: e.capsule.x, y: e.capsule.y - 6, vx: (e.volees % 2 ? 1 : -1) * VITESSE_TIR * 0.22 })
+    e.volees++
+    e.prochainTir = e.temps + CADENCE
+  }
+  for (const t of e.tirs) { t.y -= VITESSE_TIR * dt; t.x += (t.vx ?? 0) * dt }
+  e.tirs = e.tirs.filter((t) => t.y > -5 && t.x > -5 && t.x < LARGEUR + 5)
   // Les vagues d'escorteurs.
-  if (e.temps >= e.prochaineVague) { vague(e); e.prochaineVague = e.temps + VAGUE }
+  if (e.temps >= e.prochaineVague) { vague(e); e.prochaineVague = e.temps + (frenesie(e) ? VAGUE_FRENESIE : VAGUE) }
   // Les aliens bougent et tirent.
   for (const a of e.aliens) {
     a.age += dt
@@ -162,15 +199,15 @@ export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: 
     }
     if (a.y > 0 && e.temps >= a.prochainTir) {
       tirerBalles(e, a)
-      const rage = a.chef && e.amiral && a.pv < a.pvMax / 2 ? RAGE_AMIRAL : 1
-      a.prochainTir = e.temps + (a.chef ? entre(TIR_CHASSEUR, e.niveau) * rage : TIR_ESCORTEUR) * (0.8 + 0.4 * x01(e))
+      const h = humeur(e, a), rythme = h === 'frenesie' ? FRENESIE_AMIRAL : h === 'rage' ? RAGE_AMIRAL : 1
+      a.prochainTir = e.temps + (a.chef ? entre(TIR_CHASSEUR, e.niveau) * rythme : entre(TIR_ESCORTEUR, e.niveau)) * (0.8 + 0.4 * x01(e))
     }
   }
   // Nos tirs touchent les aliens.
   for (const t of [...e.tirs]) {
     const a = e.aliens.find((x) => Math.abs(x.x - t.x) < (x.chef ? (e.amiral ? 14 : 9) : 5) && Math.abs(x.y - t.y) < (x.chef ? (e.amiral ? 8 : 6) : 4))
     if (!a) continue
-    a.pv -= DEGATS_TIR
+    a.pv -= e.equipement.degats
     e.tirs = e.tirs.filter((x) => x !== t)
     e.eclats.push({ x: t.x, y: t.y, t: e.temps, gros: false })
   }
@@ -190,6 +227,13 @@ export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: 
   const percute = e.aliens.find((a) => Math.hypot(a.x - e.capsule.x, a.y - e.capsule.y) < (a.chef ? 8 : 5))
   if ((touche || percute) && e.temps >= e.invulnerableJusqua) {
     if (touche) e.balles = e.balles.filter((b) => b !== touche)
+    // Le bouclier, s'il est chargé, encaisse le coup à la place de la coque, puis se recharge.
+    if (e.temps >= e.bouclierPret) {
+      e.bouclierPret = e.temps + e.equipement.bouclier
+      e.invulnerableJusqua = e.temps + INVULNERABLE
+      ev.push('bouclier')
+      return ev
+    }
     e.coque--
     e.degatsRecus++
     e.invulnerableJusqua = e.temps + INVULNERABLE

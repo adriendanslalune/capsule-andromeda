@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { BOMBES, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, ESCORTEURS_MAX } from '../src/donnees/combat'
+import { BOMBES, COQUE_MAX, DECALAGE_DOIGT, DEGATS_BOMBE, ESCORTEURS } from '../src/donnees/combat'
 import { avancerCombat, bombe, chef, escorteursMax, niveauDeZone, nouveauCombat, retraite } from '../src/moteur/combat'
 
 const PAS = 1 / 60
 
 describe('le combat en temps réel (décision d’Adrien du 19/10/2026)', () => {
   it('plus loin de la Terre, plus d’aliens : aucun escorteur près de la Terre, six vers Pluton', () => {
-    expect(escorteursMax(niveauDeZone(1))).toBe(0)
-    expect(escorteursMax(niveauDeZone(12))).toBeGreaterThan(2)
-    expect(escorteursMax(niveauDeZone(60))).toBe(ESCORTEURS_MAX)
+    expect(escorteursMax(niveauDeZone(1))).toBe(ESCORTEURS[0])
+    expect(escorteursMax(niveauDeZone(12))).toBeGreaterThan(3)
+    expect(escorteursMax(niveauDeZone(60))).toBe(ESCORTEURS[1])
     expect(chef(nouveauCombat(1, 60))!.pvMax).toBeGreaterThan(chef(nouveauCombat(1, 1))!.pvMax)
   })
 
@@ -71,5 +71,43 @@ describe('le combat en temps réel (décision d’Adrien du 19/10/2026)', () => 
     expect(e.aliens.filter((a) => !a.chef).length).toBeGreaterThan(0)
     retraite(e)
     expect(e.fin).not.toBeNull()
+  })
+})
+
+describe('l’armement de la capsule (décisions d’Adrien du 21/10/2026)', () => {
+  it('au départ : coque 10, canon ×1, 3 bombes, pas de bouclier ; acheter un niveau coûte des crédits et des matériaux', async () => {
+    const { Jeu } = await import('../src/moteur/jeu')
+    const { restaurer, sauvegarder } = await import('../src/moteur/sauvegarde')
+    const jeu = new Jeu()
+    expect(jeu.equipement()).toEqual({ coque: 10, degats: 1, bombes: 3, bouclier: 0, troisBalles: false })
+    expect(jeu.manquePourArmement('coque')).toEqual({ prix: 300, credits: 300 - jeu.credits, materiaux: { Ferraille: 2 } })
+    expect(jeu.acheterArmement('coque')).toBe(false)
+    jeu.credits = 10_000
+    jeu.soute = { Ferraille: 2.5, 'Circuits anciens': 2 }
+    expect(jeu.acheterArmement('coque')).toBe(true)
+    expect(jeu.acheterArmement('bouclier')).toBe(true)
+    expect(jeu.credits).toBe(10_000 - 600)
+    expect(jeu.soute).toEqual({ Ferraille: 0.5 })
+    expect(jeu.equipement()).toMatchObject({ coque: 12, bouclier: 20 })
+    // La Maison : +1 niveau sur sa ligne (les Mercenaires, le canon).
+    jeu.maison = 'mercenaires'
+    expect(jeu.equipement().degats).toBe(1.4)
+    jeu.armement.canon = 6
+    expect(jeu.equipement()).toMatchObject({ degats: 5, troisBalles: true })
+    expect(jeu.manquePourArmement('canon')).toBeNull()
+    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, 0))))!
+    expect(copie.armement).toEqual(jeu.armement)
+  })
+
+  it('le bouclier encaisse un coup puis se recharge ; plus dur loin du Soleil', () => {
+    const e = nouveauCombat(7, 1, undefined, { coque: 10, degats: 1, bombes: 3, bouclier: 20, troisBalles: false })
+    e.balles.push({ x: e.capsule.x, y: e.capsule.y, vx: 0, vy: 0 })
+    expect(avancerCombat(e, 0.01, null)).toContain('bouclier')
+    expect(e.coque).toBe(10)
+    e.invulnerableJusqua = 0
+    e.balles.push({ x: e.capsule.x, y: e.capsule.y, vx: 0, vy: 0 })
+    expect(avancerCombat(e, 0.01, null)).toContain('touche')
+    expect(e.coque).toBe(9)
+    expect(chef(nouveauCombat(1, 60))!.pvMax).toBeGreaterThan(4 * chef(nouveauCombat(1, 1))!.pvMax)
   })
 })

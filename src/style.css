@@ -1094,6 +1094,10 @@ body.nuit #marche .baisse { color: #f08a72; }
 #combat .points { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 4px; }
 #combat .points i { width: 8px; height: 10px; border: 1.5px solid var(--encre); border-radius: 2px; }
 #combat .points i.rempli { background: #e04b37; }
+#combat .points.serres { gap: 1px; }
+#combat .points.serres i { width: 4px; border-width: 1px; }
+#combat .bouclier-combat { margin-left: 8px; padding: 1px 5px; font-size: 9px; border: 1.5px solid var(--encre); border-radius: 4px; opacity: 0.35; }
+#combat .bouclier-combat.pret { opacity: 1; background: #bfe0e8; }
 #combat .jauge-chasseur { flex: 1; display: flex; align-items: center; gap: 6px; }
 #combat .jauge { flex: 1; height: 12px; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
 #combat .jauge i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #9d7cc8 0 4px, #b9a0dc 4px 8px); transition: width 0.2s; }
@@ -1638,3 +1642,17 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #profil .zones .jauge-zone i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(-45deg, #d9694f 0 4px, #e98a6f 4px 8px); }
 #profil .zones .jauge-zone small { position: relative; display: block; text-align: center; font-size: 9.5px; font-weight: bold; line-height: 11px; }
 #profil .zones .libere { color: #3f7a4c; font-weight: bold; }
+/* L'armement (décisions d'Adrien du 21/10/2026) : une ligne par équipement, son niveau, son effet, le prix du suivant. */
+#armement .ligne-armement { display: flex; flex-direction: column; gap: 4px; }
+#armement .tete-armement { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+#armement .tete-armement .niveau { font-weight: bold; }
+#armement .bonus-maison { margin-left: 4px; padding: 0 4px; font-size: 9px; border: 1px solid currentColor; border-radius: 3px; color: #3f7a4c; }
+#armement .effet { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+#armement .effet small { flex: 1 1 100%; opacity: 0.7; }
+#armement .effet .suivant { opacity: 0.6; }
+#armement .achat-armement { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding-top: 4px; border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); font-size: 12px; }
+#armement .achat-armement .materiau { opacity: 0.75; }
+#armement .achat-armement .materiau.assez { color: #3f7a4c; opacity: 1; }
+#armement .achat-armement button { margin-left: auto; min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
+  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#armement .achat-armement button:disabled { color: var(--encre); background: var(--fond); opacity: 0.45; box-shadow: none; }

@@ -8,7 +8,8 @@
 
 import { CREDITS_DEPART, NIVEAUX_MOTEUR, type NiveauMoteur } from '../donnees/capsule'
 import { BONUS_MAISON, DUREE_ACTION } from '../donnees/contrats'
-import { BONUS_SANS_DEGAT, ENERGIE_DEPART, type Energie } from '../donnees/combat'
+import { ARMEMENT, BONUS_SANS_DEGAT, CANON_TROIS_BALLES, ENERGIE_DEPART, LIGNE_DE_MAISON, NIVEAU_ARMEMENT_MAX, PRIX_ARMEMENT, type Energie, type LigneArmement } from '../donnees/combat'
+import type { Equipement } from './combat'
 import { CAPACITE_SOUTE, MARCHANDISES, MARCHES, type FicheMarche } from '../donnees/marche'
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
 import { avancerRadar, radarEteint, type EtatRadar } from './radar'
@@ -98,6 +99,8 @@ export class Jeu {
   queteSuivie: string | null = null
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
+  /** L'armement acheté (décisions d'Adrien du 21/10/2026) : le niveau de chaque ligne, de 1 à 6. */
+  armement: Record<LigneArmement, number> = { coque: 1, canon: 1, bombes: 1, bouclier: 1 }
   /** Les zones où la capsule est déjà allée (en orbite autour d'elles ou de ce qui tourne autour) : sur la carte, les autres sont grisées. */
   visites: string[] = ['Terre']
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
@@ -309,6 +312,45 @@ export class Jeu {
       if (manque > 0) materiaux[nom] = manque
     }
     return { credits: Math.max(0, m.prix - this.credits), materiaux }
+  }
+
+  /** Le niveau d'une ligne d'armement au combat : acheté, plus 1 sur la ligne de sa Maison (jusqu'au 7e niveau). */
+  niveauArmement(ligne: LigneArmement): number {
+    return this.armement[ligne] + (this.maison && LIGNE_DE_MAISON[this.maison] === ligne ? 1 : 0)
+  }
+
+  /** L'équipement de la capsule au combat, d'après son armement. */
+  equipement(): Equipement {
+    const v = (ligne: LigneArmement) => ARMEMENT.find((f) => f.ligne === ligne)!.valeurs[this.niveauArmement(ligne) - 1]
+    return { coque: v('coque'), degats: v('canon'), bombes: v('bombes'), bouclier: v('bouclier'), troisBalles: this.niveauArmement('canon') >= CANON_TROIS_BALLES }
+  }
+
+  /** Ce qui manque pour le niveau suivant d'une ligne d'armement (null : déjà au plus haut). */
+  manquePourArmement(ligne: LigneArmement): { prix: number; credits: number; materiaux: Record<string, number> } | null {
+    const n = this.armement[ligne]
+    if (n >= NIVEAU_ARMEMENT_MAX) return null
+    const prix = PRIX_ARMEMENT[n], besoin = ARMEMENT.find((f) => f.ligne === ligne)!.materiaux[n]
+    const materiaux: Record<string, number> = {}
+    for (const [nom, q] of Object.entries(besoin)) {
+      const manque = Math.round((q - (this.soute[nom] ?? 0)) * 100) / 100
+      if (manque > 0) materiaux[nom] = manque
+    }
+    return { prix, credits: Math.max(0, prix - this.credits), materiaux }
+  }
+
+  /** Achète le niveau suivant d'une ligne d'armement, si les crédits et les matériaux de la soute suffisent. */
+  acheterArmement(ligne: LigneArmement): boolean {
+    const m = this.manquePourArmement(ligne)
+    if (!m || m.credits > 0 || Object.keys(m.materiaux).length) return false
+    const n = this.armement[ligne]
+    this.credits -= m.prix
+    for (const [nom, q] of Object.entries(ARMEMENT.find((f) => f.ligne === ligne)!.materiaux[n])) {
+      const reste = Math.round(((this.soute[nom] ?? 0) - q) * 100) / 100
+      if (reste > 0) this.soute[nom] = reste
+      else delete this.soute[nom]
+    }
+    this.armement[ligne] = n + 1
+    return true
   }
 
   /** Achète le moteur suivant, si les crédits et les matériaux de la soute suffisent. Renvoie vrai si l'achat est fait. */
