@@ -104,6 +104,15 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   - Plus de + et − sur la carte.
   - L'ombre des astres illustrés renforcée (toute la face de nuit, plus le croissant) ; ombre aussi sur les pastilles.
   - Le thème : le bouton des calques propose SOMBRE (lune) en clair, CLAIR (soleil) en sombre.
+- La Terre qui tourne (demande d'Adrien du 21/10/2026, la Terre seule pour commencer) — **faite, en attente de ses
+  essais** : `src/moteur/rotation.ts` (le point subsolaire à l'instant t : déclinaison et équation du temps, testé) ;
+  `src/donnees/terres.ts` (les terres émergées de Natural Earth 1:110 M, domaine public, via world-atlas, 126 contours,
+  47 Ko) ; `src/carte/globe-terre.ts` (planisphère 1024 × 512 en aplats Moebius : houle, continents, déserts, forêts,
+  glaces, nuages, côtes à l'encre ; enroulé sur le globe en projection orthographique, vue à 20° de latitude, le
+  Soleil sur le bord du côté où il est à l'écran pour garder le Nord en haut ; nuit en aplat violet et hachures le
+  long du terminateur). Rapide : la géométrie de chaque taille est calculée une fois (préparée quand le téléphone ne
+  fait rien), puis le globe est repeint au demi-degré, toutes les 2 minutes (environ 50 ms en gros plan, processeur
+  ralenti ×4). Les autres astres gardent leur illustration fixe.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

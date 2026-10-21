@@ -5,6 +5,8 @@
 // Dessiné en coordonnées locales : centre (0, 0), rayon du disque r (pixels). Sous une certaine taille, la carte garde
 // le simple disque.
 
+import { dessinerTerreQuiTourne, preparerGlobe } from './globe-terre'
+
 export const ENCRE = '#2b2138'
 const OMBRE = '#54437a'
 
@@ -638,10 +640,18 @@ function preparerVoisins(nom: string, rp: number, angle: number | null, e: numbe
  * quand le téléphone n'a rien d'autre à faire.
  */
 export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number,
-  versSoleil: number | null, gris = false): void {
+  versSoleil: number | null, gris = false, t?: number): void {
   if (!FICHES[nom]) return
   const e = finesse(ctx.getTransform().a || 1)
   const rp = palier(nom, r, e)
+  // La Terre tourne, en temps réel (demande d'Adrien du 21/10/2026) : son globe, avec la vraie face éclairée.
+  if (nom === 'Terre' && t !== undefined && versSoleil !== null && !gris) {
+    const D = Math.round(2 * rp * e)
+    dessinerTerreQuiTourne(ctx, x, y, r, versSoleil, t, D)
+    preparerGlobe(Math.round(2 * palier(nom, rp * 2, e) * e), t)
+    preparerGlobe(Math.round(rp * e), t)
+    return
+  }
   const angle = versSoleil === null ? null : Math.round(versSoleil * 90 / Math.PI) * Math.PI / 90
   const cle = `${nom}|${rp}|${angle}|${gris}`
   let toile = DEJA_DESSINES.get(cle)

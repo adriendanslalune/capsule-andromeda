@@ -510,7 +510,7 @@ export class Carte2D {
       const z = this.etatZone(c.nom), gris = !!z && !z.visitee
       const couleur = gris ? enGris(couleurDe(c)) : couleurDe(c)
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
-      if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris)
+      if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris, t)
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
       if (z?.occupee) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
