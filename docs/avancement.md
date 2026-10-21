@@ -119,6 +119,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   anneaux de Saturne et d'Uranus derrière et devant, gris pour un astre pas encore visité, au plus 2,5 millions de pixels
   de géométrie gardés). Les lunes gardent leur illustration fixe. Contours des astres : un trait fin (`epaisseurContour`,
   1 px pour les disques simples).
+- Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** :
+  - Harponnage adouci (impossible) : `PARASITE` 14 → 6, `SEUIL` 3 → 4 °/s, `TENUE` 1,8 → 1,3 s.
+  - Anneaux de Saturne et d'Uranus vus de dessus, tout autour, à leurs vraies distances (`ANNEAUX` dans
+    `src/carte/globes.ts`), avec l'ombre de la planète dessus.
+  - La Lune tourne : `orientation('Lune')` (ses phases, testé : pleine lune le 26/10/2026, nouvelle lune le 10/10) et
+    son planisphère (mers de la face visible, face cachée criblée, Pôle Sud-Aitken, Tycho et Copernic).
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

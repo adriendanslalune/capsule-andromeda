@@ -39,3 +39,12 @@ describe('les autres astres qui tournent (demande d’Adrien du 21/10/2026)', ()
     expect(orientation('Mercure', t)!.lat).toBeCloseTo(0, 9)
   })
 })
+
+describe('la Lune qui tourne (demande d’Adrien du 21/10/2026)', () => {
+  it('pleine lune : sa face visible au soleil ; nouvelle lune : sa face cachée', async () => {
+    const { orientation } = await import('../src/moteur/rotation')
+    // Pleine lune du 26 octobre 2026 (4 h 12 UTC), nouvelle lune du 10 octobre 2026 (15 h 50 UTC).
+    expect(Math.abs(orientation('Lune', Date.UTC(2026, 9, 26, 4, 12))!.lon)).toBeLessThan(10)
+    expect(Math.abs(orientation('Lune', Date.UTC(2026, 9, 10, 15, 50))!.lon)).toBeGreaterThan(170)
+  })
+})

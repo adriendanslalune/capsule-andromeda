@@ -115,15 +115,69 @@ function peindre(nom: string, gris: boolean, D: number, lon0: number, declinaiso
   return toile
 }
 
-/** Les anneaux d'un astre : la moitié arrière (dessinée avant le globe) et la moitié avant (après), en coordonnées locales. */
-export interface Anneaux { arriere?: (ctx: CanvasRenderingContext2D, r: number) => void; avant?: (ctx: CanvasRenderingContext2D, r: number) => void }
+/**
+ * Les anneaux, vus de dessus comme toute la carte (demande d'Adrien du 21/10/2026 : tout autour de la planète, à leurs
+ * vraies distances et tailles), en rayons de la planète : des bandes (début, fin, couleur, opacité) et des anneaux
+ * fins (rayon, épaisseur du trait).
+ */
+const ANNEAUX: Readonly<Record<string, { bandes: [number, number, string, number][]; fins: [number, number][] }>> = {
+  // Saturne (rayon 60 268 km) : D, C (sombre, translucide), B (le plus brillant), la division de Cassini, A (avec la
+  // division d'Encke), et le fin anneau F.
+  Saturne: {
+    bandes: [[1.11, 1.235, '#d8c9a8', 0.25], [1.239, 1.527, '#d9c7a0', 0.55], [1.527, 1.951, '#e8d3a2', 0.95], [2.027, 2.269, '#efdfb8', 0.85]],
+    fins: [[1.527, 0.6], [1.951, 0.8], [2.027, 0.8], [2.214, 0.6], [2.269, 0.8], [2.326, 0.7]],
+  },
+  // Uranus (rayon 25 559 km) : treize anneaux sombres et étroits ; ε, le plus large, à 51 149 km ; les deux anneaux
+  // de poussière ν et μ, très pâles, loin dehors.
+  Uranus: {
+    bandes: [[2.59, 2.73, '#a9c9d8', 0.18], [3.37, 4.0, '#a9c9d8', 0.12]],
+    fins: [[1.637, 0.5], [1.652, 0.5], [1.666, 0.5], [1.75, 0.6], [1.787, 0.6], [1.846, 0.6], [1.864, 0.5], [1.89, 0.6], [2.001, 1.4]],
+  },
+}
+
+/** Les anneaux (et l'ombre de la planète sur eux, du côté opposé au Soleil, en local : cote du Soleil sur l'axe x). */
+function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, cote: 1 | -1): void {
+  const a = ANNEAUX[nom]
+  if (!a) return
+  ctx.save()
+  for (const [r0, r1, couleur, opacite] of a.bandes) {
+    ctx.beginPath()
+    ctx.arc(0, 0, r1 * r, 0, 2 * Math.PI)
+    ctx.arc(0, 0, r0 * r, 0, 2 * Math.PI, true)
+    ctx.globalAlpha = opacite
+    ctx.fillStyle = couleur
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+  ctx.strokeStyle = ENCRE
+  for (const [rr, largeur] of a.fins) {
+    ctx.beginPath()
+    ctx.arc(0, 0, rr * r, 0, 2 * Math.PI)
+    ctx.lineWidth = Math.max(0.5, Math.min(2, largeur * epaisseurContour(r)))
+    ctx.stroke()
+  }
+  // L'ombre de la planète sur les anneaux, à l'opposé du Soleil (seulement sur la matière des anneaux, pas dans le vide).
+  ctx.globalCompositeOperation = 'multiply'
+  ctx.fillStyle = '#54437a'
+  for (const [r0, r1, , opacite] of a.bandes) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(0, 0, r1 * r, 0, 2 * Math.PI)
+    ctx.arc(0, 0, r0 * r, 0, 2 * Math.PI, true)
+    ctx.clip()
+    ctx.globalAlpha = 0.5 * opacite
+    ctx.fillRect(cote === 1 ? -r1 * r : 0, -r, r1 * r, 2 * r)
+    ctx.restore()
+  }
+  ctx.restore()
+}
 
 /**
  * Dessine l'astre qui tourne, centré en (x, y), de rayon r (pixels). versSoleil : direction du Soleil à l'écran.
  * D : la taille du dessin (un palier, pour ne pas le refaire à chaque zoom). gris : pas encore visité.
  */
 export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: number, y: number, r: number, versSoleil: number,
-  t: number, D: number, gris: boolean, anneaux: Anneaux = {}): void {
+  t: number, D: number, gris: boolean): void {
   const s = orientation(nom, t)!
   // Le Nord toujours à peu près en haut : le Soleil à droite de l'écran, on regarde l'astre avec le Soleil sur son
   // bord droit (le centre de la vue 90° à l'ouest du point subsolaire) ; à gauche, sur son bord gauche.
@@ -140,8 +194,8 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(cote === 1 ? versSoleil : versSoleil - Math.PI)
-  // Les anneaux sont dans le plan de l'équateur : ils tournent avec le globe.
-  anneaux.arriere?.(ctx, r)
+  // Les anneaux, tout autour (vus de dessus), sous le globe.
+  dessinerAnneaux(ctx, nom, r, cote)
   ctx.drawImage(toile, -r, -r, 2 * r, 2 * r)
   // Le contour : un trait fin, comme le reste (demande d'Adrien du 21/10/2026).
   ctx.beginPath()
@@ -149,7 +203,6 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.lineWidth = epaisseurContour(r)
   ctx.strokeStyle = ENCRE
   ctx.stroke()
-  anneaux.avant?.(ctx, r)
   ctx.restore()
 }
 

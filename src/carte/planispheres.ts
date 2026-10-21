@@ -375,7 +375,50 @@ function pluton(c: Contexte): void {
   ondulation(c, 75, 1, 20, ENCRE, 0.9)
 }
 
+/**
+ * La Lune : sa face visible (centrée sur la longitude 0) et ses mers sombres, Procellarum, Imbrium, Serenitatis,
+ * Tranquillitatis, Crisium… ; sa face cachée, presque sans mers et criblée de cratères, avec l'immense bassin
+ * Pôle Sud-Aitken ; Tycho et Copernic et leurs grands rayons clairs.
+ */
+function lune(c: Contexte): void {
+  c.fillStyle = '#dcd6ca'
+  c.fillRect(0, 0, L, H)
+  // Le bassin Pôle Sud-Aitken, sur la face cachée : un grand aplat un peu plus sombre.
+  tache(c, -170, -53, 45, 25, '#cbc4b6', 1)
+  const mer = '#a9a49b'
+  contour(c, [[-85, 45], [-55, 50], [-35, 30], [-25, 5], [-40, -15], [-60, -10], [-80, 5], [-88, 25]], mer) // Procellarum
+  contour(c, [[-35, 45], [-5, 47], [5, 35], [-5, 22], [-25, 18], [-38, 28]], mer) // Imbrium
+  contour(c, [[8, 37], [28, 36], [30, 22], [15, 17], [6, 25]], mer) // Serenitatis
+  contour(c, [[20, 15], [42, 18], [45, 5], [32, -2], [20, 4]], mer) // Tranquillitatis
+  contour(c, [[52, 22], [68, 22], [70, 12], [55, 10]], mer) // Crisium
+  contour(c, [[42, 2], [58, 0], [58, -15], [45, -18]], mer) // Fecunditatis
+  contour(c, [[28, -10], [40, -12], [38, -22], [28, -20]], mer) // Nectaris
+  contour(c, [[-28, -12], [-8, -14], [-10, -30], [-25, -28]], mer) // Nubium
+  contour(c, [[-45, -18], [-33, -18], [-33, -30], [-45, -28]], mer) // Humorum
+  contour(c, [[-40, 60], [40, 60], [45, 52], [-35, 52]], mer) // Frigoris
+  contour(c, [[140, 32], [154, 30], [152, 22], [142, 22]], mer) // Moscoviense (face cachée)
+  crateres(c, 220, 53, 0.8, 6, null, (lon, lat) => Math.abs(lon) < 75 && Math.abs(lat) < 50 && h2(lon, lat))
+  // Tycho et Copernic, cratères jeunes aux grands rayons clairs.
+  const h = hasard(97)
+  for (const [lon0, lat0, n, l] of [[-11, -43, 18, 35], [-20, 10, 14, 18]]) {
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * 2 * Math.PI + h(), d = l * (0.5 + h())
+      c.beginPath()
+      c.moveTo(x(lon0), y(lat0))
+      c.lineTo(x(lon0 + (d * Math.cos(a)) / Math.cos(lat0 * RAD)), y(lat0 + d * Math.sin(a)))
+      c.lineWidth = 2
+      c.strokeStyle = '#f6f2ea'
+      c.stroke()
+    }
+    tache(c, lon0, lat0, 2.2, 2.2, '#f6f2ea', 1.1)
+  }
+}
+/** Sur la face visible, les mers ont peu de cratères : on en garde un sur quatre. */
+function h2(lon: number, lat: number): boolean {
+  return Math.sin(lon * 12.9898 + lat * 78.233) * 43758.5453 % 1 > -0.5
+}
+
 /** Les astres qui tournent, et leur planisphère. */
 export const PLANISPHERES: Readonly<Record<string, (c: Contexte) => void>> = {
-  Terre: terre, Mercure: mercure, Vénus: venus, Mars: mars, Jupiter: jupiter, Saturne: saturne, Uranus: uranus, Neptune: neptune, Pluton: pluton,
+  Terre: terre, Lune: lune, Mercure: mercure, Vénus: venus, Mars: mars, Jupiter: jupiter, Saturne: saturne, Uranus: uranus, Neptune: neptune, Pluton: pluton,
 }

@@ -43,11 +43,18 @@ export const ROTATIONS: Readonly<Record<string, { jour: number; obliquite: numbe
 
 /**
  * Le point subsolaire d'un astre qui tourne à l'instant t (latitude, longitude en degrés), ou null s'il ne tourne pas
- * dans le jeu. La Terre : le vrai (pointSubsolaire) ; les autres : sa longitude tourne avec leur jour solaire (depuis
+ * dans le jeu. La Terre : le vrai (pointSubsolaire) ; la Lune : d'après ses phases ; les autres : sa longitude tourne avec leur jour solaire (depuis
  * le 1er janvier 2000), sa latitude suit leur saison.
  */
 export function orientation(nom: string, t: number): { lat: number; lon: number } | null {
   if (nom === 'Terre') return pointSubsolaire(t)
+  // La Lune montre toujours la même face à la Terre (sa longitude 0 regarde la Terre) : le Soleil fait ses phases.
+  // Pleine lune : le Soleil est derrière la Terre, la face visible est éclairée (longitude 0) ; nouvelle lune : 180°.
+  if (nom === 'Lune') {
+    const m = position('Lune', t), e = position('Terre', t)
+    const versTerre = Math.atan2(e.y - m.y, e.x - m.x), versSoleil = Math.atan2(-m.y, -m.x)
+    return { lat: 0, lon: ((((versSoleil - versTerre) / RAD) % 360) + 540) % 360 - 180 }
+  }
   const r = ROTATIONS[nom]
   if (!r) return null
   const heures = (t - Date.UTC(2000, 0, 1, 12)) / 3_600_000

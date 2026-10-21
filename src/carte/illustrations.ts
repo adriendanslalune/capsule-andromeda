@@ -646,8 +646,7 @@ export function dessinerAstreIllustre(ctx: CanvasRenderingContext2D, nom: string
   const rp = palier(nom, r, e)
   // Les astres qui tournent, en temps réel (demandes d'Adrien du 21/10/2026) : leur globe, avec la vraie face éclairée.
   if (tourne(nom) && t !== undefined && versSoleil !== null) {
-    const f = FICHES[nom]
-    dessinerGlobe(ctx, nom, x, y, r, versSoleil, t, Math.round(2 * rp * e), gris, { arriere: f.arriere && ((c, rr) => f.arriere!(c, rr, hasard(graineDe(nom)))), avant: f.avant && ((c, rr) => f.avant!(c, rr, hasard(graineDe(nom)))) })
+    dessinerGlobe(ctx, nom, x, y, r, versSoleil, t, Math.round(2 * rp * e), gris)
     preparerGlobe(nom, Math.round(2 * palier(nom, rp * 2, e) * e), t)
     preparerGlobe(nom, Math.round(rp * e), t)
     return
