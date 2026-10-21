@@ -15,6 +15,7 @@ import { niveauDuBot, palierDe } from '../moteur/niveau'
 import { dessinerVaisseau, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
+import { ZONE_RECHERCHE } from '../donnees/disparus'
 import { traceOrbite } from '../moteur/orbite'
 import { positionsPoussiere } from '../moteur/poussiere'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
@@ -415,6 +416,30 @@ export class Carte2D {
     ctx.restore()
   }
 
+  /**
+   * La zone de recherche d'une sonde disparue (les Disparus) : un grand cercle en pointillé violet, à sa vraie taille
+   * (1,5 million de km de rayon), et une croix au centre.
+   */
+  private zoneDeRecherche(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, couleurs: Couleurs2D): void {
+    const r = Math.max(14, ZONE_RECHERCHE / this.kmParPx)
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(q.x, q.y, r, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(122, 90, 168, 0.08)'
+    ctx.fill()
+    ctx.setLineDash([5, 5])
+    ctx.lineWidth = 1.5
+    ctx.strokeStyle = '#7a5aa8'
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.beginPath()
+    ctx.moveTo(q.x - 5, q.y); ctx.lineTo(q.x + 5, q.y); ctx.moveTo(q.x, q.y - 5); ctx.lineTo(q.x, q.y + 5)
+    ctx.strokeStyle = couleurs.encre
+    ctx.lineWidth = 1.2
+    ctx.stroke()
+    ctx.restore()
+  }
+
   /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const maison = BOTS.find((b) => b.pseudo === nom)?.maison
@@ -580,7 +605,7 @@ export class Carte2D {
     if (radar && rayonRadar >= 12) this.balayage(ctx, cap, radar.angle, rayonRadar)
     // Engins (satellites, sondes, stations), capsules des autres, épaves et chasseurs aliens : leur silhouette, s'ils
     // se voient (radar, mission, menace). Les chasseurs d'abord (on ne doit pas les manquer), cerclés d'un pointillé cerise.
-    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur'))
+    const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur' || c.type === 'disparu' || c.type === 'zone'))
       .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
     for (const c of engins) {
       const q = this.ecranDe(projeterCorps(c.nom, t))
@@ -616,6 +641,7 @@ export class Carte2D {
         ctx.setLineDash([])
       }
       if (c.type === 'joueur') this.capsuleJoueur(ctx, c.nom, q, t, couleurs)
+      else if (c.type === 'zone') this.zoneDeRecherche(ctx, q, couleurs)
       else dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
       ctx.globalAlpha = 1
     }

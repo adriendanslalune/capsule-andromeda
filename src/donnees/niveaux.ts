@@ -25,6 +25,8 @@ export const XP = {
   commerceParJour: 100,
   /** Un monolithe trouvé, une Voix perdue enregistrée. */
   monolithe: 50,
+  /** Une sonde disparue retrouvée (les Disparus). */
+  disparu: 50,
   voix: 50,
 } as const
 

@@ -41,6 +41,8 @@ import { niveauDeZone } from './combat'
 import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
 import { avancerQuetes, type EtatQuete } from './quetes'
+import { detecter, identifier, nouveauxDisparus, type EtatDisparus } from './disparus'
+import type { Disparu } from '../donnees/disparus'
 import { Mission, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
 
 /** Le jeu dont les épaves déplacées sont en place (il n'y en a qu'un en vrai ; les tests en créent plusieurs). */
@@ -122,6 +124,10 @@ export class Jeu {
   visites: string[] = ['Terre']
   /** Annonces des quêtes (objectifs atteints…) que l'affichage n'a pas encore faites. */
   annoncesQuetes: string[] = []
+  /** Les Disparus (idée validée par Adrien le 21/10/2026) : les échos captés au radar, les sondes retrouvées. */
+  disparus: EtatDisparus = nouveauxDisparus()
+  /** Les sondes retrouvées pas encore annoncées par leur fenêtre. */
+  disparusAAnnoncer: Disparu[] = []
   /** Le niveau gagné pas encore annoncé par sa fenêtre (et le niveau d'avant, pour dire si la capsule change de forme). */
   niveauAAnnoncer: { niveau: number; avant: number } | null = null
   /** Les zones libérées pas encore annoncées par leur fenêtre (demande d'Adrien du 21/10/2026). */
@@ -584,7 +590,16 @@ export class Jeu {
     this.avancerBourse(t)
     avancerRadar(this.radar, t)
     // Radar allumé : les chasseurs à portée sont repérés (une fois par seconde, il y en a des centaines).
-    if (this.radar.actif && t - this.dernierReperage >= 1000) { this.dernierReperage = t; reperer(this.espace, t, PORTEE_RADAR) }
+    if (this.radar.actif && t - this.dernierReperage >= 1000) {
+      this.dernierReperage = t
+      reperer(this.espace, t, PORTEE_RADAR)
+      // Les Disparus : un écho faible capté (la sonde apparaît sur la carte).
+      for (const d of detecter(this.disparus, this.mission.etat(t).position, t)) this.annoncesQuetes.push(`Le radar capte un écho faible : ${d.nom} ? Va voir de plus près.`)
+    }
+    // Une sonde disparue rejointe : identifiée.
+    const ici = this.lieuEnOrbite(t)
+    const retrouve = ici ? identifier(this.disparus, ici, t) : null
+    if (retrouve) { this.disparusAAnnoncer.push(retrouve); this.gagnerXp(XP.disparu) }
     const ec = this.enCours
     if (!ec || ec.debutAction === null) return evenements
     const fin = ec.debutAction + (ec.dureeAction ?? DUREE_ACTION)

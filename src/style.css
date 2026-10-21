@@ -1732,3 +1732,29 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #trajet-texte .occupation > i > i { display: block; height: 100%; background: #5fb36a; }
 #trajet-texte .occupation b { font-size: 12px; color: var(--encre); }
 #trajet-texte .occupation.libre { color: #3f8a4f; font-weight: bold; }
+
+/* Le classeur des Disparus : des cartes, grises tant qu'on ne les a pas retrouvées. */
+#disparus .corps { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+#disparus .bilan-classeur { margin: 2px 4px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+#disparus .bilan-classeur small { font-size: 11px; line-height: 1.4; opacity: 0.8; }
+#disparus .cartes-disparus { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#disparus .carte-disparu { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 2px dashed color-mix(in srgb, var(--encre) 40%, transparent);
+  border-radius: 10px; background: color-mix(in srgb, var(--encre) 6%, transparent); color: color-mix(in srgb, var(--encre) 70%, transparent); }
+#disparus .carte-disparu.suivi { border-style: solid; border-color: #7a5aa8; }
+#disparus .carte-disparu .numero { font-size: 10px; opacity: 0.7; }
+#disparus .carte-disparu .nom { font-size: 13px; }
+#disparus .carte-disparu small { font-size: 10px; }
+#disparus .carte-disparu p { margin: 2px 0; font-size: 11px; line-height: 1.35; }
+#disparus .carte-disparu .indice { font-style: italic; }
+#disparus .carte-disparu .echo { color: #3f8a4f; font-weight: bold; }
+#disparus .carte-disparu button { margin-top: auto; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #7a5aa8;
+  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#disparus .carte-disparu.trouve { border: 2px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: 2px 2px 0 var(--ombre); }
+#disparus .carte-disparu svg, .couverture.disparus svg, .felicitation .sonde svg { width: 56px; align-self: center; }
+#disparus svg .panneau, .couverture.disparus svg .panneau, .felicitation svg .panneau { fill: #8fc3e0; stroke: var(--encre); stroke-width: 1.2; }
+#disparus svg .corps-sonde, .couverture.disparus svg .corps-sonde, .felicitation svg .corps-sonde { fill: #e8c77a; stroke: var(--encre); stroke-width: 1.2; }
+#disparus svg .parabole, .couverture.disparus svg .parabole, .felicitation svg .parabole { fill: #faf2dc; stroke: var(--encre); stroke-width: 1.2; }
+#disparus svg .bras, #disparus svg .antenne, .couverture.disparus svg .bras, .couverture.disparus svg .antenne, .felicitation svg .bras, .felicitation svg .antenne { stroke: var(--encre); stroke-width: 1.4; fill: none; }
+#disparus .carte-disparu .date { color: #3f8a4f; font-weight: bold; }
+.felicitation .portrait.sonde { background: #f6e9c8; }
+.felicitation .portrait.sonde svg { width: 70%; }

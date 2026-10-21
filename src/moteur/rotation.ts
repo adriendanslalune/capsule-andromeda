@@ -2,7 +2,7 @@
 // subsolaire). La carte enroule le planisphère sur le globe pour que la face éclairée soit la vraie : à minuit à Paris,
 // l'Europe est dans la nuit. Formules simplifiées de l'almanach (précises à quelques dixièmes de degré).
 
-import { corps, position } from './corps'
+import { corps, definirOrientation, position } from './corps'
 
 const RAD = Math.PI / 180
 
@@ -67,3 +67,6 @@ export function orientation(nom: string, t: number): { lat: number; lon: number 
   const p = position(nom, t), saison = Math.atan2(p.y, p.x) / RAD - r.printemps
   return { lat: Math.asin(Math.sin(r.obliquite * RAD) * Math.sin(saison * RAD)) / RAD, lon }
 }
+
+// Les sondes posées sur un astre tournent avec lui (moteur/corps.ts a besoin de son orientation).
+definirOrientation(orientation)

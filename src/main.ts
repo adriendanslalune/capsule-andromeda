@@ -22,6 +22,9 @@ import { ARMEMENT, type LigneArmement } from './donnees/combat'
 import { VueReve } from './commun/vue-reve'
 import { VueTri } from './commun/vue-tri'
 import { VueClasseur } from './commun/vue-classeur'
+import { SONDE, VueDisparus } from './commun/vue-disparus'
+import { disparuVisible, ouChercher } from './moteur/disparus'
+import { DISPARUS, disparu } from './donnees/disparus'
 import { VueRadio } from './commun/vue-radio'
 import { VueCarnet } from './commun/vue-carnet'
 import { ecouter as ecouterRadio, emet, texteVoix, VOIX } from './moteur/radio'
@@ -188,6 +191,10 @@ carte.visibilite = (nom, t, angle) => {
     return ramasses.has(m.numero) || localise(jeu.monolithes, m.numero, t) ? 1 : 0
   }
   const type = corps(nom)?.type
+  // Les Disparus : cachés jusqu'à ce que le radar capte leur écho ; la zone de recherche de celui qu'on cherche.
+  const d = disparu(nom)
+  if (d) return disparuVisible(jeu.disparus, d) || nom === selection ? 1 : 0
+  if (type === 'zone') { const s = jeu.disparus.suivi !== null ? DISPARUS.find((x) => x.numero === jeu.disparus.suivi) : undefined; return s && nom === ouChercher(s).lieu ? 1 : 0 }
   // L'épave en remorque se dessine au bout du câble, derrière la capsule (carte.sillage).
   if (carte.sillage === 'epave' && nom === jeu.remorque()?.epave) return 0
   // Tout le reste se voit tout le temps (demande d'Adrien du 21/10/2026 : le radar enlevait la vie) : engins, stations,
@@ -725,6 +732,8 @@ function mettreAJourFiche(t: number): void {
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
       : genre === 'alien' ? ' · chasseur d\'Andromède : rejoins-le pour l\'attaquer'
+      : disparu(selection) ? (jeu.disparus.trouves[disparu(selection)!.numero] !== undefined ? ' · retrouvée (les Disparus)' : ' · écho faible : rejoins-la pour l\'identifier')
+      : genre === 'zone' ? ' · fouille-la, radar allumé'
       : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}${bot.bavard ? '' : ' · ne répond pas aux messages'}` : ''
     texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}${occupation(selection)}`
     depart = true
@@ -1534,8 +1543,19 @@ pageSoute.addEventListener('click', (e) => {
   if ((e.target as HTMLElement).closest('[data-tri]')) vueTri.ouvrir()
 })
 document.querySelector('#collections')!.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('[data-disparus]')) vueDisparus.ouvrir()
   if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir()
   if ((e.target as HTMLElement).closest('[data-carnet]')) vueCarnet.ouvrir()
+})
+// Le classeur des Disparus : CHERCHER suit une sonde et emmène la carte là où chercher (son astre, ou sa zone).
+const vueDisparus = new VueDisparus(document.querySelector<HTMLDivElement>('#disparus')!, () => jeu.disparus, (numero) => {
+  const d = DISPARUS.find((x) => x.numero === numero)!
+  jeu.disparus.suivi = numero
+  enregistrerPartie()
+  cockpit.fermer()
+  const o = ouChercher(d)
+  choisir(o.lieu, false, o.zone ? undefined : carte.echellePlanete(o.lieu))
+  annoncer(o.zone ? `${d.nom} : sa zone de recherche est marquée sur la carte. Fouille-la au radar.` : `${d.nom} : ${d.indice} Passe au-dessus, de près, radar allumé.`)
 })
 const vueCarnet = new VueCarnet(document.querySelector<HTMLDivElement>('#carnet')!, () => jeu.radio)
 // Le classeur des monolithes (Plus › Collections), en plein écran.
@@ -1802,6 +1822,13 @@ function image(maintenant: number): void {
         g.prochain ? `Prochaine forme au niveau ${g.prochain.niveau} : ${g.prochain.nom.toLowerCase()}.` : 'Tu as atteint le sommet : la Légende, dorée.'],
       ouvre: [], bouton: 'EN AVANT !',
     })
+  }
+  // Une sonde disparue retrouvée : sa fenêtre, avec son histoire vraie.
+  if (jeu.disparusAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
+    const d = jeu.disparusAAnnoncer.shift()!
+    navigator.vibrate?.([80, 60, 160])
+    void feliciter({ titre: 'Retrouvée !', portrait: `<span class="portrait sonde">${SONDE}</span>`, nom: d.nom, role: `${d.qui} · ${d.annee}`,
+      texte: [d.histoire, 'Elle rejoint ton classeur des Disparus (Plus › Collections).'], ouvre: [], bouton: 'AU CLASSEUR' })
   }
   // Une zone libérée : sa fenêtre, une fois le combat refermé (demande d'Adrien du 21/10/2026).
   if (jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {

@@ -17,6 +17,15 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Les Disparus (idée d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : 40 vraies sondes perdues
+  (`src/donnees/disparus.ts` : Luna 2, Ranger 7, Mars Observer, Beagle 2, Pioneer 10 et 11…), moteur
+  `src/moteur/disparus.ts` (testé, `tests/disparus.test.ts`). Une sonde posée ne répond au radar que si la capsule passe
+  au-dessus d'elle, à moins de 20 000 km ; une sonde en orbite, à moins de 20 000 km ; une sonde perdue dans le vide
+  se cherche dans sa zone de recherche (1,5 million de km) au radar. Écho capté : elle reste sur la carte ; y aller en
+  orbite l'identifie (fenêtre « Retrouvée ! », 50 XP). Classeur pré-rempli dans Plus › Collections
+  (`src/commun/vue-disparus.ts`) : les cases grises donnent l'indice et CHERCHER (montre le lieu ou la zone sur la
+  carte), les retrouvées racontent leur histoire et la date. Pas de paliers de statut pour l'instant.
+
 - Prix des moteurs ×2 par niveau au lieu de ×2,5 (décision d'Adrien du 21/10/2026) : 200, 400, 800, 1 600, 3 200,
   6 400, 12 800, 25 600, 51 200. Comptoir : quand on peut commercer, une ligne en haut dit de toucher un matériau.
 - VOIR d'un contrat (demande d'Adrien du 21/10/2026) : le lieu de près, avec l'astre autour duquel il tourne au bord de

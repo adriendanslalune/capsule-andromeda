@@ -17,13 +17,14 @@ import { acceleration } from '../donnees/capsule'
 import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
+import { DISPARUS, ZONE_RECHERCHE, type Disparu } from '../donnees/disparus'
 import { positionPluton } from './pluton'
 import { positionSondeRelative, TRAJECTOIRES } from './sondes'
 import { MS_PAR_JOUR, TT_MOINS_UTC_MS, UA_KM } from './temps'
 import { ajouter, type Vecteur3 } from './vecteur'
 import { positionVSOP } from './vsop87'
 
-export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe' | 'joueur'
+export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe' | 'joueur' | 'disparu' | 'zone'
 
 export interface Corps {
   nom: string
@@ -78,7 +79,59 @@ export const CORPS: readonly Corps[] = [
   // Messages, qui vont d'escale en escale.
   // Elles voyagent : pas d'astre « parent » fixe (voir ouEstLeBot).
   ...BOTS.map((b): Corps => ({ nom: b.pseudo, type: 'joueur', parent: null, rayon: 0, modele: 'capsule', tailleM: 8 })),
+  // Les Disparus (donnees/disparus.ts) : de vraies sondes perdues, cachées jusqu'à ce que le radar les trouve ; et la
+  // zone de recherche de celles perdues dans le vide (un point où aller, au centre de la zone que donne l'indice).
+  ...DISPARUS.filter((d) => d.lieu.genre !== 'engin').map((d): Corps => ({ nom: d.nom, type: 'disparu', parent: d.lieu.genre === 'sol' || d.lieu.genre === 'orbite' ? d.lieu.astre : null, rayon: 0, modele: 'sonde', tailleM: 5 })),
+  ...DISPARUS.filter((d) => d.lieu.genre === 'soleil' || d.lieu.genre === 'engin')
+    .map((d): Corps => ({ nom: zoneDuDisparu(d.nom), type: 'zone', parent: null, rayon: 0, modele: 'sonde', tailleM: 1 })),
 ]
+
+/** Le nom de la zone de recherche d'une sonde disparue (perdue autour du Soleil ou aux confins). */
+export function zoneDuDisparu(nom: string): string {
+  return `Zone de recherche · ${nom}`
+}
+
+/**
+ * L'orientation des astres qui tournent (leur point subsolaire), pour placer une sonde posée sur eux : fournie par
+ * moteur/rotation.ts (qui a besoin de ce fichier-ci ; il la donne en se chargeant).
+ */
+let orienter: ((nom: string, t: number) => { lat: number; lon: number } | null) | null = null
+export function definirOrientation(f: (nom: string, t: number) => { lat: number; lon: number } | null): void {
+  orienter = f
+}
+
+const PAR_DISPARU = new Map(DISPARUS.filter((d) => d.lieu.genre !== 'engin').map((d) => [d.nom, d]))
+const PAR_ZONE = new Map(DISPARUS.map((d) => [zoneDuDisparu(d.nom), d]))
+const RAD = Math.PI / 180
+
+/** Où est une sonde disparue à l'instant t (héliocentrique, km). */
+function positionDisparu(d: Disparu, t: number): Vecteur3 {
+  const l = d.lieu
+  const ans = (t - Date.UTC(2000, 0, 1, 12)) / (365.25 * MS_PAR_JOUR)
+  if (l.genre === 'soleil') {
+    // Une orbite circulaire autour du Soleil (période d'après Kepler : a^1,5 an).
+    const a = (l.longitude + (360 * ans) / l.ua ** 1.5) * RAD, r = l.ua * UA_KM
+    return { x: r * Math.cos(a), y: r * Math.sin(a), z: 0 }
+  }
+  if (l.genre === 'engin') return position(d.nom, t)
+  const centre = position(l.astre, t)
+  if (l.genre === 'orbite') {
+    const gm = l.astre === 'Mars' ? 42_828 : 1e5, periode = 2 * Math.PI * Math.sqrt(l.rayon ** 3 / gm) * 1000
+    const a = 2 * Math.PI * ((t / periode) % 1) + d.numero
+    return { x: centre.x + l.rayon * Math.cos(a), y: centre.y + l.rayon * Math.sin(a), z: centre.z }
+  }
+  // Posée : sur la surface, à sa longitude, qui tourne avec l'astre (comme son globe sur la carte).
+  const o = orienter?.(l.astre, t) ?? { lat: 0, lon: 0 }
+  const versSoleil = Math.atan2(-centre.y, -centre.x)
+  const a = versSoleil + (l.lon - o.lon) * RAD, r = (corps(l.astre)?.rayon ?? 1000) * 1.002
+  return { x: centre.x + r * Math.cos(l.lat * RAD) * Math.cos(a), y: centre.y + r * Math.cos(l.lat * RAD) * Math.sin(a), z: centre.z + r * Math.sin(l.lat * RAD) }
+}
+
+/** Le centre de la zone de recherche d'une sonde perdue dans le vide : pas sur elle, mais pas loin (fixé pour toujours). */
+function positionZone(d: Disparu, t: number): Vecteur3 {
+  const p = positionDisparu(d, t), a = d.numero * 2.399, m = 0.6 * ZONE_RECHERCHE
+  return { x: p.x + m * Math.cos(a), y: p.y + m * Math.sin(a), z: p.z }
+}
 const PLACES_MONOLITHES = new Map(MONOLITHES.map((m) => [m.nom, { x: m.x, y: m.y, z: 0 }]))
 
 /**
@@ -290,6 +343,10 @@ function calculerPosition(nom: string, t: number): Vecteur3 {
   if (bot) return bot
   const deplacee = epaveDeplacee?.(nom, t)
   if (deplacee) return deplacee
+  const disparu = PAR_DISPARU.get(nom)
+  if (disparu) return positionDisparu(disparu, t)
+  const zone = PAR_ZONE.get(nom)
+  if (zone) return positionZone(zone, t)
   // En plein espace (épaves, chasseurs) : leur orbite autour du Soleil.
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple?.parent === 'Soleil') return positionOrbiteSimple(simple, t)
