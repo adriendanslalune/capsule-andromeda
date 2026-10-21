@@ -73,8 +73,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   - Bug du missile corrigé : le ralentissement d'un impact se calcule maintenant dans le moteur (`Jeu.suivreLeMoteur`),
     à l'heure exacte de l'impact, même jeu fermé (avant : à la réouverture, ou jamais si le trajet était fini entre-temps) ;
     les missiles passent avant les arrivées dans `avancer` ; une Navigation en panne n'empêche plus le ralentissement
-    (c'est le trajet en cours qui continue) ; testé. Reste à décider avec Adrien : jeu fermé, seuls les tirs des
-    5 dernières minutes avant la réouverture comptent (les autres sont perdus).
+    (c'est le trajet en cours qui continue) ; testé. Décision d'Adrien du 21/10/2026 : jeu fermé, seuls les tirs
+    des 5 dernières minutes avant la réouverture comptent (indulgent) jusqu'au serveur ; avec ses notifications
+    « Missile en approche », les missiles frapperont aussi jeu fermé.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le
