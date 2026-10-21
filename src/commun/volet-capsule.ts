@@ -27,8 +27,7 @@ export class VoletCapsule {
     const m = jeu.moteur(), suivant = jeu.moteurSuivant()
     const nombre = (n: number) => n.toLocaleString('fr-FR')
     const panne = jeu.enPanne('moteur') ? ` <span class="panne">· EN PANNE : ${nombre(jeu.vitesse())} km/s</span>` : ''
-    let html = `<h3>Moteur</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${m.niveau}`)}</b>${avec('vitesse', `${nombre(m.vitesse)} km/s max`)}</div>${panne}`
-      + '<div class="manque">Accélération et freinage à 20 g : sur les trajets courts, la capsule n\'a pas le temps d\'atteindre sa vitesse max.</div></div>'
+    let html = `<h3>Moteur</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${m.niveau}`)}</b>${avec('vitesse', `${nombre(m.vitesse)} km/s max`)}</div>${panne}</div>`
     if (suivant) {
       const manque = jeu.manquePourMoteur()
       const tonnes = (q: number) => q.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
