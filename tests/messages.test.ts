@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BOTS } from '../src/donnees/messages'
 import { Jeu } from '../src/moteur/jeu'
 import { delaiLumiere } from '../src/moteur/marche'
-import { arrivesDepuis, conversations, enRoute, envoyer, etatEnvoi, fil, intention, marquerLu, nonLus } from '../src/moteur/messages'
+import { conversations, enRoute, envoyer, etatEnvoi, fil, intention, marquerLu, nonLus } from '../src/moteur/messages'
 import { corps } from '../src/moteur/corps'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
@@ -72,39 +72,5 @@ describe('les Messages', () => {
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.envoyes).toEqual(jeu.envoyes)
     expect(copie.lus).toEqual(jeu.lus)
-  })
-
-  it('la fête des bots : une zone libérée, trois bavards la fêtent dans le canal général, une fois la nouvelle reçue', () => {
-    const jeu = new Jeu()
-    jeu.pseudo = 'Adrien'
-    jeu.gagnerAssaut('Lune', t0)
-    expect(jeu.fetes).toEqual([{ zone: 'Lune', t: t0 }])
-    const fetes = (t: number) => fil(jeu, 'general', t).filter((m) => m.id.startsWith('fLune'))
-    expect(fetes(t0 + 10_000)).toEqual([]) // pas encore : la nouvelle voyage
-    const f = fetes(t0 + 11.8 * 3_600_000)
-    expect(f).toHaveLength(3)
-    expect(new Set(f.map((m) => m.auteur)).size).toBe(3)
-    expect(new Set(f.map((m) => m.texte)).size).toBe(3)
-    for (const m of f) {
-      expect(m.envoye).toBeGreaterThan(t0)
-      expect(m.texte).not.toMatch(/\{\w+\}/)
-      expect(m.texte).toMatch(/Adrien|Lune|lune/)
-    }
-    // Annoncées sur la carte quand elles nomment le joueur ; reproductibles et sauvegardées.
-    expect(fetes(t0 + 11.8 * 3_600_000)).toEqual(f)
-    const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
-    expect(copie.fetes).toEqual(jeu.fetes)
-    expect(arrivesDepuis(jeu, t0, t0 + 11.8 * 3_600_000).filter((m) => m.id.startsWith('fLune')).length).toBeGreaterThan(0)
-    // Une fois libérée, une zone ne se refête pas.
-    jeu.gagnerAssaut('Lune', t0 + 1000)
-    expect(jeu.fetes).toHaveLength(1)
-  })
-
-  it('Triton a sa propre fête (la fin de l’acte 1)', () => {
-    const jeu = new Jeu()
-    jeu.gagnerAssaut('Triton', t0)
-    const f = fil(jeu, 'general', t0 + 11.8 * 3_600_000).filter((m) => m.id.startsWith('fTriton'))
-    expect(f).toHaveLength(3)
-    for (const m of f) expect(m.texte).toMatch(/Triton|TRITON/)
   })
 })

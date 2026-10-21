@@ -59,8 +59,6 @@ export interface Sauvegarde {
   invitations?: Maison[]
   /** Les messages des bots après un événement (absent : aucun). */
   lettres?: Jeu['lettres']
-  /** Les zones libérées et quand, pour la fête des bots (absent : aucune). */
-  fetes?: Jeu['fetes']
   quetes?: Jeu['quetes']
   queteSuivie?: string | null
   /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
@@ -103,7 +101,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, fetes: jeu.fetes, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -212,7 +210,6 @@ export function restaurer(s: unknown): Jeu | null {
   }
   jeu.maison = v.maison ?? null
   if (Array.isArray(v.lettres)) jeu.lettres = v.lettres.filter((x) => !!x && nombre(x.id) && typeof x.bot === 'string' && typeof x.texte === 'string' && nombre(x.envoye)).map((x) => ({ ...x }))
-  if (Array.isArray(v.fetes)) jeu.fetes = v.fetes.filter((x) => !!x && typeof x.zone === 'string' && nombre(x.t)).map((x) => ({ zone: x.zone, t: x.t }))
   // Les quêtes : seulement celles qui existent encore (le premier jet de la Lune peut changer).
   if (v.quetes && typeof v.quetes === 'object') {
     for (const [id, e] of Object.entries(v.quetes)) {

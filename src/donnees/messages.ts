@@ -145,31 +145,6 @@ export const BAVARDAGES_MAISON: Readonly<Record<Maison, readonly string[]>> = {
   ],
 }
 
-/**
- * La fête des bots (accord d'Adrien du 21/10/2026) : quand le joueur libère une zone, les bavards en parlent dans le
- * canal général, dès que la nouvelle leur arrive (à la vitesse de la lumière). {zone} : « la Lune », « Mars » ;
- * {de_zone} : « de la Lune », « de Mars », « d'Io ». Une phrase ne commence jamais par {zone} (la majuscule).
- */
-export const FETES: readonly string[] = [
-  'VICTOIRE ! {joueur} a libéré {zone} ! Tournée générale pour tout le monde ! 🎉',
-  'Le vaisseau amiral {de_zone} est en miettes. Bravo {joueur}, on te doit une fière chandelle.',
-  'Nouvelle captée à l\'instant : {zone} est libre ! Merci {joueur} !',
-  'Ha ! Andromède a perdu {zone}. Ils vont moins faire les malins maintenant. Chapeau, {joueur}.',
-  'On a dansé dans la soute en apprenant la libération {de_zone}. {joueur}, tu es une légende.',
-  'Libération {de_zone} confirmée ! Les comptoirs vont respirer. 🥂',
-  'Paraît-il, {joueur} a fait sauter le vaisseau amiral {de_zone} à lui seul. Respect.',
-  'Ici {lieu}, la nouvelle vient d\'arriver : {zone} est à nous ! Vive la Résistance !',
-  'Encore une zone de reprise : {zone}. Continue comme ça, {joueur}, on te suit.',
-  'Les drapeaux pirates {de_zone}, on les brûle ce soir. Merci {joueur} ! 🔥',
-]
-
-/** Triton (la fin de l'acte 1) : ce n'était pas une lune. */
-export const FETES_TRITON: readonly string[] = [
-  'TRITON… c\'était leur vaisseau ?! {joueur}, tu as fait tomber le cœur d\'Andromède !',
-  'Je n\'y crois pas. Triton n\'était pas une lune. Et {joueur} l\'a abattu. On s\'en souviendra pendant mille ans.',
-  'Toutes les radios du système hurlent la même chose : TRITON EST TOMBÉ ! Gloire à {joueur} ! 🎉🎉',
-]
-
 /** Messages privés qu'un bot envoie parfois au joueur. */
 export const PRIVES_SPONTANES: readonly string[] = [
   'Salut {joueur} ! Tu aurais du {marchandise} à vendre ? Je te le prends à {prix} cr. la tonne.',
