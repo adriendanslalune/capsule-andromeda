@@ -84,3 +84,15 @@ describe('le remorquage (REMORQUER, décision d’Adrien du 18/10/2026)', () => 
     expect(jeu.remorque()).toEqual({ epave: 'ISS', pour: 'Tiangong' })
   })
 })
+
+describe('stabiliser l’épave harponnée (plus dur le 21/10/2026)', () => {
+  it('déséquilibrée, elle se remet à tourner toute seule si on ne fait rien', () => {
+    const e = nouveauRemorquage(12)
+    e.phase = 'stabiliser'
+    e.rotation = 0
+    let max = 0
+    for (let k = 0; k < 500; k++) { avancerRemorquage(e, PAS); max = Math.max(max, Math.abs(e.rotation)) }
+    expect(max).toBeGreaterThan(5)
+    expect(e.phase).toBe('stabiliser')
+  })
+})

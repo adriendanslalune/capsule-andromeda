@@ -96,6 +96,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
     proposée en contrat. Sur la carte (`carte.sillage`) : l'épave au bout du câble, ou les trois cargos en flèche,
     derrière la capsule en vol. Testé.
   - À faire plus tard (note d'Adrien) : de vrais dessins plus détaillés, ou produits par ChatGPT.
+- Retours d'Adrien du 21/10/2026 (suite) — **faits, en attente de ses essais** :
+  - Fiche d'une zone occupée : la jauge de résistance (`occupation` dans `src/main.ts`, d'après `jauge`).
+  - Escorte : missiles plus rapides (`VOL_MISSILE` 3,4 → 2,2 s).
+  - Harponnage : stabiliser plus dur (`PARASITE`, l'épave déséquilibrée se remet à tourner ; `SEUIL` 4 → 3 °/s, `TENUE`
+    1,2 → 1,8 s) ; testé.
+  - Plus de + et − sur la carte.
+  - L'ombre des astres illustrés renforcée (toute la face de nuit, plus le croissant) ; ombre aussi sur les pastilles.
+  - Le thème : le bouton des calques propose SOMBRE (lune) en clair, CLAIR (soleil) en sombre.
 - Le rêve du Soleil (décision d'Adrien du 21/10/2026) — **fait, en attente des essais d'Adrien** : moteur
   (`Jeu.soleil`, `Mission.revenir`, événement `reve-soleil`, `jeu.icare` sauvegardé, ligne `chaleur` du bandeau,
   testé) ; animation `src/commun/vue-reve.ts` (25 s : Soleil illustré qui palpite, trou noir, planètes aspirées, le

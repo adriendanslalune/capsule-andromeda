@@ -60,7 +60,7 @@ import { BOTS } from './donnees/messages'
 import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
-import { estLibre, zone } from './moteur/zones'
+import { estLibre, jauge, zone } from './moteur/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
 import { dessinerVaisseau, rayonVaisseau } from './carte/vaisseaux'
 import { htmlManuel } from './commun/manuel'
@@ -357,17 +357,12 @@ function allerALaCapsule(animer = true): void {
 }
 allerALaCapsule(false)
 // Les commandes de la carte (demande d'Adrien du 18/10/2026) : système intérieur (jusqu'à Mars), extérieur (jusqu'à
-// Pluton), capsule, zoom, et ce que montre la carte.
+// Pluton), capsule, et ce que montre la carte (le zoom se fait aux doigts : plus de + et −, demande d'Adrien du 21/10/2026).
 const choixAffichage = document.querySelector<HTMLDivElement>('#choix-affichage')!
 const boutonAffichage = document.querySelector<HTMLButtonElement>('[data-vue="affichage"]')!
 function vueGenerale(kmParPx: number): void {
   choisir(null)
   carte.voler(kmParPx, performance.now(), { x: 0, y: 0 }, true)
-}
-function zoomer(facteur: number): void {
-  const k = carte.kmParPx * facteur
-  if (selection && suivre) carte.voler(k, performance.now(), positionSuivie(horloge()))
-  else carte.voler(k, performance.now(), carte.centre, true)
 }
 document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>('[data-vue], [data-afficher]')
@@ -375,8 +370,6 @@ document.querySelector('#commandes-carte .gauche')!.addEventListener('click', (e
   const vue = b.dataset.vue
   if (vue === 'systemes') ouvrirSystemes(choixSysteme.hidden !== false)
   else if (vue === 'capsule') allerALaCapsule()
-  else if (vue === 'plus') zoomer(1 / 2.5)
-  else if (vue === 'moins') zoomer(2.5)
   else if (vue === 'affichage') {
     ouvrirSystemes(false)
     choixAffichage.hidden = !choixAffichage.hidden
@@ -417,7 +410,11 @@ choixSysteme.addEventListener('click', (e) => {
   else choisir(nom, false, carte.echellePlanete(nom))
 })
 function afficherChoixAffichage(): void {
-  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'])
+  for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) {
+    // Le thème (demande d'Adrien du 21/10/2026) : le bouton propose l'autre, SOMBRE en clair (par défaut), CLAIR en sombre.
+    if (b.dataset.afficher === 'nuit') { b.querySelector('span')!.textContent = reglages.nuit ? 'Clair' : 'Sombre'; b.classList.toggle('vers-clair', reglages.nuit); continue }
+    b.classList.toggle('actif', reglages[b.dataset.afficher as 'orbites' | 'noms' | 'cercles'])
+  }
 }
 afficherChoixAffichage()
 
@@ -642,6 +639,16 @@ bandeau.addEventListener('click', (e) => {
   else if (ligne === 'profil') cockpit.ouvrir('profil')
 })
 
+/**
+ * Sur la fiche d'une zone occupée (demande d'Adrien du 21/10/2026) : où en est sa libération, la jauge de résistance
+ * (ce que le moteur en dit, moteur/zones.ts) ; une zone libérée le dit.
+ */
+function occupation(nom: string): string {
+  if (!zone(nom)) return ''
+  if (jeu.zones.liberees.includes(nom)) return '<div class="occupation libre"><span>libérée par la Résistance</span></div>'
+  const j = jauge(jeu.zones, nom)
+  return `<div class="occupation"><span>occupée par Andromède · résistance <b>${j} %</b></span><i><i style="width:${j}%"></i></i></div>`
+}
 function mettreAJourFiche(t: number): void {
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t),
     { credits: jeu.credits, soute: `${jeu.chargeSoute().toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/${CAPACITE_SOUTE}`, niveauMoteur: jeu.niveauMoteur, vitesse: vitesse(), vitesseForcee: reglages.forcerVitesse, ...xpBandeau() }, t)
@@ -708,7 +715,7 @@ function mettreAJourFiche(t: number): void {
     const bot = genre === 'joueur' ? BOTS.find((b) => b.pseudo === selection) : undefined
     const quoi = genre === 'epave' ? ' · épave (à vider en mission)' : genre === 'monolithe' ? ' · localisé à la radio'
       : bot ? ` · PNJ, capitaine des ${titreMaison(bot.maison).toLowerCase()}${statut(bot.monolithes) ? ` · ${statut(bot.monolithes)}` : ''} · ${lieuDuBot(bot.pseudo, t)}${bot.bavard ? '' : ' · ne répond pas aux messages'}` : ''
-    texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}`
+    texte = `<b>${selection.toUpperCase()}</b>${quoi}<br>${avec('distance', texteDistance(distanceDepuisCapsule(selection, t)))}${occupation(selection)}`
     depart = true
     libelle = 'Y ALLER'
   } else if (selection && !dejaLa(t) && enRoute?.cible !== selection && prevision) {
@@ -718,7 +725,7 @@ function mettreAJourFiche(t: number): void {
       // La vitesse de pointe du trajet, face à la vitesse max du moteur : on voit si le moteur limite ce trajet.
       const pointe = Math.round(vitesseDePointe((p.arrivee - p.depart) / 1000, p.vitesse, p.vitesseInitiale)).toLocaleString('fr-FR')
       texte = `<b class="destination">${selection.toUpperCase()}</b><span class="vals">${avec('duree', texteDuree(p.arrivee - p.depart))}`
-        + `${avec('arrivee', texteArrivee(p.arrivee, t))}${avec('vitesse', `${pointe}/${dv}`)}</span>`
+        + `${avec('arrivee', texteArrivee(p.arrivee, t))}${avec('vitesse', `${pointe}/${dv}`)}</span>${occupation(selection)}`
       depart = true
       libelle = enRoute ? 'NOUVEAU CAP' : 'DÉPART'
     } else {

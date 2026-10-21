@@ -511,7 +511,7 @@ export class Carte2D {
       const couleur = gris ? enGris(couleurDe(c)) : couleurDe(c)
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
       if (illustre(r) && aUneIllustration(c.nom)) dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris)
-      else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs)
+      else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
       if (z?.occupee) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
@@ -908,11 +908,23 @@ export class Carte2D {
   }
 
   /** Astre réduit à un point (serré contre ses voisins) : un rond de sa couleur cerné d'encre. */
-  private point(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, couleur: string, c: Couleurs2D): void {
+  private point(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, couleur: string, c: Couleurs2D,
+    versSoleil: number | null = null): void {
+    const rp = Math.max(r, 1.2)
     ctx.beginPath()
-    ctx.arc(x, y, Math.max(r, 1.2), 0, 2 * Math.PI)
+    ctx.arc(x, y, rp, 0, 2 * Math.PI)
     ctx.fillStyle = couleur
     ctx.fill()
+    // Même en pastille, la face de nuit (demande d'Adrien du 21/10/2026).
+    if (versSoleil !== null && rp >= 3) {
+      ctx.beginPath()
+      ctx.arc(x, y, rp, versSoleil + Math.PI / 2, versSoleil + (3 * Math.PI) / 2)
+      ctx.closePath()
+      ctx.fillStyle = melanger(couleur, '#54437a', 0.6)
+      ctx.fill()
+    }
+    ctx.beginPath()
+    ctx.arc(x, y, rp, 0, 2 * Math.PI)
     ctx.lineWidth = 0.8
     ctx.strokeStyle = c.encre
     ctx.stroke()

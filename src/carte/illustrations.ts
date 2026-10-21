@@ -675,8 +675,14 @@ function dessinerDirect(ctx: CanvasRenderingContext2D, nom: string, x: number, y
     ctx.rotate(versSoleil - (f.inclinaison ?? 0))
     ctx.globalCompositeOperation = 'multiply'
     ctx.fillStyle = OMBRE
+    // Toute la face de nuit assombrie (demande d'Adrien du 21/10/2026 : l'ombre ne se voyait plus sur la Terre), et un
+    // croissant plus sombre au bord : les détails de l'astre restent lisibles.
+    ctx.globalAlpha = 0.5
+    ctx.beginPath()
+    ctx.arc(0, 0, r * 1.01, Math.PI / 2, (3 * Math.PI) / 2)
+    ctx.closePath()
+    ctx.fill()
     ctx.globalAlpha = 0.45
-    // Un croissant d'ombre (et non la moitié du disque) : les détails de l'astre restent lisibles.
     ctx.beginPath()
     ctx.arc(0, 0, r * 1.01, Math.PI / 2, (3 * Math.PI) / 2)
     ctx.ellipse(0, 0, r * 0.45, r * 1.01, 0, (3 * Math.PI) / 2, Math.PI / 2, true)

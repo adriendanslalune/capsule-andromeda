@@ -1471,6 +1471,12 @@ body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color:
 /* Le mode nuit, en accès rapide parmi les calques de la carte (demande d'Adrien du 20/10/2026). */
 #choix-affichage .lune-nuit { fill: #3b4466; }
 #choix-affichage .etoile-nuit { fill: #f2c66a; stroke: none; }
+/* Le bouton du thème montre ce qu'il propose : la lune pour passer en SOMBRE, le soleil pour revenir en CLAIR. */
+#choix-affichage .soleil-clair { fill: #f2c66a; }
+#choix-affichage .rayons-clair { fill: none; stroke: #f2b53a; stroke-width: 1.6; stroke-linecap: round; }
+#choix-affichage [data-afficher="nuit"] .vers-clair { display: none; }
+#choix-affichage [data-afficher="nuit"].vers-clair .vers-clair { display: inline; }
+#choix-affichage [data-afficher="nuit"].vers-clair .vers-sombre { display: none; }
 /* Tous les volets ont la même taille (demande d'Adrien du 20/10/2026) : le titre ne saute plus d'un onglet à l'autre. */
 #volet { height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
 /* Les collections (Plus › Collections) : une couverture par collection. */
@@ -1719,3 +1725,10 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 @keyframes flotter-xp { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-22px); } }
 #profil .niveau-capitaine .jauge-niveau { height: 12px; margin: 6px 0; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
 #profil .niveau-capitaine .jauge-niveau i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, #f2b53a 0 4px, #f5d38a 4px 8px); }
+
+/* La jauge de résistance d'une zone occupée, sur sa fiche (demande d'Adrien du 21/10/2026). */
+#trajet-texte .occupation { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; font-size: 11px; color: #b4442f; }
+#trajet-texte .occupation > i { display: block; height: 7px; border: 1.5px solid var(--encre); border-radius: 4px; background: var(--creme); overflow: hidden; }
+#trajet-texte .occupation > i > i { display: block; height: 100%; background: #5fb36a; }
+#trajet-texte .occupation b { font-size: 12px; color: var(--encre); }
+#trajet-texte .occupation.libre { color: #3f8a4f; font-weight: bold; }

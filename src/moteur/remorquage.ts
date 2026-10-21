@@ -4,7 +4,7 @@
 // ricoche et l'on retire.
 
 import {
-  COUPLE, RECHARGE, ROTATION_MAX, ROTATION_MIN, SEUIL, TENUE, TOLERANCE, VARIATION, VOL_GRAPPIN,
+  COUPLE, PARASITE, RECHARGE, ROTATION_MAX, ROTATION_MIN, SEUIL, TENUE, TOLERANCE, VARIATION, VOL_GRAPPIN,
 } from '../donnees/remorquage'
 import { hasard } from './contrats'
 
@@ -69,8 +69,10 @@ export function avancerRemorquage(e: EtatRemorquage, dt: number, poussee: -1 | 0
     }
     return null
   }
-  // Stabiliser : le propulseur tenu change la rotation ; il faut l'amener (et la garder) près de zéro.
-  e.rotation += COUPLE * poussee * dt
+  // Stabiliser : le propulseur tenu change la rotation ; il faut l'amener (et la garder) près de zéro, alors que
+  // l'épave, déséquilibrée, se remet à tourner toute seule (deux ondulations : on ne la corrige pas au métronome).
+  const parasite = PARASITE * (0.65 * Math.sin(0.9 * e.temps + e.base) + 0.35 * Math.sin(2.3 * e.temps))
+  e.rotation += (COUPLE * poussee + parasite) * dt
   e.angle = (e.angle + e.rotation * dt + 360) % 360
   e.calme = Math.abs(e.rotation) < SEUIL ? e.calme + dt : 0
   if (e.calme >= TENUE) { e.phase = 'fini'; e.rotation = 0; return 'stabilisee' }

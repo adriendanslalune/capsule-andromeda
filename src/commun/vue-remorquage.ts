@@ -108,7 +108,7 @@ export class VueRemorquage {
       reste -= pas
       const r = avancerRemorquage(e, pas, this.poussee)
       if (r === 'rate') { this.dire('Raté ! Le grappin a ricoché sur la coque. On enroule le câble…', 2500); navigator.vibrate?.(120) }
-      if (r === 'accroche') { this.dire('Accrochée ! Freine sa rotation : tiens le propulseur qui tourne dans l\'autre sens.', 5000); navigator.vibrate?.([40, 30, 40]) }
+      if (r === 'accroche') { this.dire('Accrochée ! Freine sa rotation : tiens le propulseur qui tourne dans l\'autre sens. Attention, elle est déséquilibrée : elle repart toute seule.', 6000); navigator.vibrate?.([40, 30, 40]) }
       if (r === 'stabilisee') { this.terminer(); break }
     }
     if (performance.now() > this.finMessage) this.elMessage.hidden = true

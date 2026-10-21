@@ -12,7 +12,7 @@ export const RESISTANCE = 2
 export const MISSILES_BASE = 10
 export const MISSILES_PAR_DOUBLEMENT = 2
 /** Durée de vol d'un missile (s) jusqu'à son cargo, et l'écart entre deux lancers (s) ; plus serrés loin de la Terre. */
-export const VOL_MISSILE = 3.4
+export const VOL_MISSILE = 2.2 // 3,4 avant le 21/10/2026 (Adrien : trop facile)
 export const ECART_LANCERS = 2.4
 /** L'interception : rayon (unités) autour du doigt, et recharge entre deux tirs (s). */
 export const RAYON_INTERCEPTION = 9
