@@ -21,10 +21,10 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Ils ne tirent pas sur le Phare. Ils font le tour de chaque planète, lentement, en rangées bien droites, sans en oublier une. On dirait quelqu'un qui fait le tour de son potager. »
 
 6. **Aurelio Benedetti, chef de quart** · Phare de Mercure · jour 13
-   « Ici, une journée dure cent soixante-seize jours terrestres. Alors on ne compte plus les jours, on compte les quarts. Nous en sommes au trois cent douzième, et nous tenons. »
+   « Ici, une journée dure cent soixante-seize jours terrestres. Alors on ne compte plus les jours, on compte les quarts. Nous en sommes au soixante-dix-huitième, et nous tenons. »
 
 7. ◆ **Dr Ivo Stanek, glaciologue** · cratère Prokofiev, pôle nord de Mercure · jour 18
-   « Au fond des cratères du pôle, il y a de la glace, à l'ombre depuis toujours. Et dans la glace, une balise. Froide, endormie. Personne ne l'a jamais touchée. Je ne la toucherai pas. »
+   « Au fond des cratères du pôle, il y a de la glace, à l'ombre depuis toujours. Et dans la glace, une balise. Personne ne l'a jamais touchée, et pourtant elle bourdonne, d'après nos sismographes, depuis deux ans. Je ne la toucherai pas. »
 
 8. ◆ **Noor Haddad, technicienne** · Phare de Mercure · jour 21
    « La balise de Stanek ne regarde pas le ciel. Elle est tournée vers la Terre, comme un épouvantail au bord d'un champ. Et d'après l'usure de sa coque, elle la regarde depuis bien avant les dinosaures. »
@@ -114,7 +114,7 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Ici F6ABC. Les ondes courtes sont pleines de voix venues d'en haut. Je les écris toutes dans mon cahier. Si vous m'entendez, dites-moi votre nom. »
 
 13. ◆ **Dr Samuel Okafor** · Base Tycho, Lune · jour 12
-   « On a creusé. Sous Tycho, il y a une balise plus vieille que les roches qui l'entourent. Le jour où on l'a dégagée, elle s'est mise à émettre. Sur la même fréquence que la chose de Neptune. »
+   « On a creusé. Sous Tycho, il y a une balise plus vieille que les roches qui l'entourent. On l'a dégagée il y a deux ans, en creusant le premier puits de la base. Ce jour-là, elle s'est mise à émettre. Sur la même fréquence que la chose de Neptune. »
 
 14. **Gaspard « la Pince », nettoyeur** · épave Envisat · jour 20
    « J'ai récupéré un de leurs débris. Ça ne rouille pas, ça ne brûle pas, ça ne se coupe pas. Mais ça chante, quand on colle l'oreille contre. »
@@ -140,20 +140,20 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 5. **Cne Yusuf Demir, garde de la colonie** · colonie Bradbury, Mars · jour 22
    « Ils ont posé un vaisseau au sommet d'Olympus Mons. Vingt-deux kilomètres de haut : de là, ils voient toute la planète. Nous, on voit son feu clignoter toutes les 4,7 secondes. »
 
-6. **Pr Anselme Roux, géologue** · flanc d'Olympus Mons · jour 25
-   « Je connais ce vaisseau. Enfin, je connais ce qu'il garde. Il y a deux ans, j'ai trouvé quelque chose dans la caldeira d'Olympus. Je n'en ai parlé à personne : on m'aurait ri au nez. »
+6. **Pr Anselme Roux, géologue** · colonie Bradbury, Mars · jour 25
+   « Je connais ce vaisseau. Enfin, je connais ce qu'il garde. Il y a trois ans, j'ai trouvé quelque chose dans la caldeira d'Olympus. Je n'en ai parlé à personne : on m'aurait ri au nez. »
 
 7. **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 28
    « Rationnement : une douche par semaine, un œuf par mois, une blague par jour. Ruiz a déjà épuisé son quota de l'année. »
 
-8. ◆ **Pr Anselme Roux, géologue** · caldeira d'Olympus Mons · jour 31
+8. ◆ **Pr Anselme Roux, géologue** · colonie Bradbury, Mars · jour 31
    « Une balise, dans la lave figée, plus vieille que le volcan. Elle était muette. Un matin, il y a deux ans, elle s'est mise à chanter. J'ai vérifié la date : c'est le jour où Tycho a ouvert son premier puits, sur la Lune. »
 
 9. **Mateo Ruiz, mineur** · mine de Bradbury · jour 34
    « Dans la mine, on a trouvé un de leurs éclats. J'ai collé l'oreille dessus, comme dit le nettoyeur de la radio de la Terre. C'est vrai, ça chante. Faux, mais ça chante. »
 
 10. **Sœur Agathe** · observatoire de Phobos · jour 38
-   « D'ici, Mars tourne sous nos pieds en moins de huit heures. Je prie à chaque tour. Ça fait beaucoup de prières. Le Seigneur doit commencer à reconnaître ma voix. »
+   « D'ici, Mars défile sous nos pieds en onze heures à peine. Je prie à chaque tour. Ça fait beaucoup de prières. Le Seigneur doit commencer à reconnaître ma voix. »
 
 11. **Les jumeaux Oyelaran, Radio Poussière** · colonie Bradbury, Mars · jour 41
    « Flash spécial : un chasseur s'est posé près des serres cette nuit. Il est reparti ce matin. Rien de cassé. Maman dit qu'on n'a pas le droit d'aller voir. On y est allés quand même. »
@@ -164,8 +164,8 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 13. **Cne Yusuf Demir, garde de la colonie** · colonie Bradbury, Mars · jour 47
    « Mes gars veulent attaquer le vaisseau d'Olympus. Avec quoi ? Deux foreuses et un camion-citerne. J'ai dit non. Ils ont dit : on peut au moins le klaxonner. J'ai dit d'accord. »
 
-14. ◆ **Pr Anselme Roux, géologue** · bord de la caldeira d'Olympus Mons · jour 55
-   « Je suis monté au bord de la caldeira. Leur vaisseau ne garde pas la balise : il l'écoute. Il reste posé contre elle des heures, comme on relève un pluviomètre, puis il repart. »
+14. ◆ **Pr Anselme Roux, géologue** · flanc d'Olympus Mons · jour 55
+   « Je suis monté en douce jusqu'au bord de la caldeira. Leur vaisseau ne garde pas la balise : il l'écoute. Il reste posé contre elle des heures, comme on relève un pluviomètre, puis il repart. Je suis redescendu avant qu'il me voie. »
 
 15. **Message automatique** · colonie Bradbury, Mars · jour 60
    « TEMPÊTE DE POUSSIÈRE EN APPROCHE. DURÉE ESTIMÉE : TROIS MOIS. LES COLONS SONT PRIÉS DE RENTRER LE LINGE. »
@@ -285,7 +285,7 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Un de nos découpeurs est sorti malgré tout. Il a rapporté un bloc de glace des anneaux, et dedans, figée, une de leurs balises. Je ne l'ai pas mise au congélateur. Elle y était déjà depuis toujours. »
 
 10. **Yann Le Goff, radioamateur** · crête de Japet · jour 177
-   « Les jeunes de Radio Poussière, sur Mars, m'ont demandé une chanson bretonne. Je leur ai chanté « Tri martolod ». À Japet, à un milliard de kilomètres, on chante encore faux. C'est ça, la civilisation. »
+   « Les jeunes de Radio Poussière, sur Mars, m'ont demandé une chanson bretonne. Je leur ai chanté « Tri martolod ». Sur Japet, à plus d'un milliard de kilomètres de la Bretagne, on chante encore faux. C'est ça, la civilisation. »
 
 11. ◆ **Dr Amara Nwosu, planétologue** · base des Geysers, Encelade · jour 182
    « J'ai cherché une balise dans l'océan d'Encelade, comme celle d'Europe. Il n'y en a pas. Rien n'a été semé ici. De l'eau, de la chaleur, du sel, et rien. Une jachère. »
@@ -306,10 +306,10 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Pour ceux qui demandent : Mimas ressemble à une arme gigantesque, avec son cratère. Ce n'en est pas une. Je suis allé vérifier. C'est juste un caillou avec un gros trou. Dommage. »
 
 17. ◆ **Dr Amara Nwosu, planétologue** · base des Geysers, Encelade · jour 212
-   « Europe, oui. La Terre, oui. Encelade, non. Mars, peut-être, il y a longtemps. Ils n'ont pas semé au hasard : ils ont choisi les mondes où l'eau dure. Un jardinier qui connaît son sol. »
+   « Europe, oui. La Terre, oui. Mars et Vénus aussi, du temps où elles avaient de l'eau. Encelade, non. Ils n'ont pas semé au hasard : ils ont choisi les mondes où l'eau dure. Un jardinier qui connaît son sol. »
 
 18. **Tomás Reyes, pêcheur de méthane** · Titan · jour 219
-   « Le Couronné a envoyé un chasseur se poser près de chaque base de Titan, une à une, sans tirer. Ils comptent. Ils comptent combien nous sommes. Moi aussi, je compte mes poissons avant de les vendre. »
+   « Le Couronné a envoyé un chasseur se poser près de chaque base de Titan, une à une, sans tirer. Ils comptent. Ils comptent combien nous sommes. Moi aussi, je compte mes barils avant de les vendre. »
 
 19. **Inès Carvalho, gardienne de phare** · phare de Cassini, anneaux de Saturne · jour 226
    « J'ai perdu le compte des jours. Mais le phare reste allumé. Si un cargo de la Résistance passe un jour par la division de Cassini, il trouvera la lumière. »
@@ -375,7 +375,7 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Je redescends de Verona Rupes. Pas à pied : en sautant. Douze minutes de chute. Si vous m'entendez crier dans la radio, c'est normal. C'est le seul endroit du système où l'on peut encore s'amuser. »
 
 17. **Hana Sato, astronome** · observatoire de fortune, Titania · jour 320
-   « Je pars vers Neptune, la Station Le Verrier. Un vieux savant, là-bas, regarde Triton depuis quarante ans. Il doit savoir à qui il parle. Si quelqu'un trouve mes chaussures, gardez-les-moi. »
+   « Le vieil Aksel, le gardien du phare de la Station Le Verrier, regarde Triton depuis quarante ans. Je lui écris chaque nuit. Il ne répond qu'une fois sur trois, mais il sait des choses. Si quelqu'un trouve mes chaussures, gardez-les-moi. »
 
 
 ## Neptune
@@ -399,7 +399,7 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Les geysers de Triton, que Voyager avait photographiés : je les ai chronométrés. Ils soufflent toutes les 4,7 secondes. Ce ne sont pas des geysers. Ce sont des évents. Triton respire. »
 
 7. **Petit Louis, mécanicien du Sainte-Hélène** · à l'intérieur de Triton · jour 317
-   « Petit Louis, mécanicien. Ici, tout est propre, tiède, silencieux. Il y a des couloirs qui s'allument quand on passe. Le capitaine dit de ne toucher à rien. J'ai touché à un truc. Il ne s'est rien passé. Je préfère le dire. »
+   « Petit Louis, mécanicien. Ici, tout est propre, tiède, silencieux. Il y a des couloirs qui s'allument quand on passe. La capitaine dit de ne toucher à rien. J'ai touché à un truc. Il ne s'est rien passé. Je préfère le dire. »
 
 8. **Bastien Morel, contrebandier** · Protée · jour 321
    « J'ai vendu ma dernière caisse de whisky à un officier de la Résistance. Il l'a payée en promesses. Je les ai acceptées. Si on gagne, elles vaudront plus que le whisky. »
@@ -426,7 +426,7 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « J'ai demandé à Aksel ce qu'on ferait si le Sainte-Hélène ne ressortait jamais. Il a dit : « On écoutera. Tant qu'ils parlent, ils sont des nôtres. Et tant qu'on les écoute, ils ne sont pas seuls. » »
 
 16. **Petit Louis, mécanicien du Sainte-Hélène** · à l'intérieur de Triton · jour 359
-   « Le capitaine dit qu'on doit continuer à émettre, pour ceux qui viendront. Alors j'émets. Je suis Louis Peyrac, de Saint-Nazaire. J'ai trente et un ans. J'aime le cidre et les orages. Voilà. Maintenant, vous savez. »
+   « La capitaine dit qu'on doit continuer à émettre, pour ceux qui viendront. Alors j'émets. Je suis Louis Peyrac, de Saint-Nazaire. J'ai trente et un ans. J'aime le cidre et les orages. Voilà. Maintenant, vous savez. »
 
 17. ◆ **Cne Mireille Dacosta, cargo Sainte-Hélène** · à l'intérieur de Triton · jour 367
    « Triton s'est mis à émettre plus fort, vers l'extérieur, au-delà de Pluton. Les murs vibrent. Je crois qu'il annonce que la récolte est mûre. Je crois que quelque chose, très loin, va venir la chercher. »
