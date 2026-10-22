@@ -106,8 +106,15 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   const statut = `<div class="etat-capsule" data-ligne="orbite">${etat}`
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
-  // Les alertes.
-  const alertes = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet').map((l) => {
+  // Le tableau de bord (demande d'Adrien du 22/10/2026 : toutes les catégories tout le temps, on voit tout d'un coup) :
+  // les alertes, le contrat, l'écho, dans cet ordre ; une catégorie sans rien garde sa ligne, éteinte, qui le dit.
+  const rang = (l: LigneBandeau) => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 0 : l.genre === 'contrat' ? 1 : 2)
+  const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet').sort((a, b) => rang(a) - rang(b))
+  const vide = (cle: string, symbole: string, categorie: string, texte: string) => {
+    textes.push(texte, '')
+    return `<div class="ligne vide ${cle}" data-ligne="${cle}"><span class="symbole-ligne">${symbole}<small>${categorie}</small></span><span class="texte"><b data-texte></b> <span data-texte></span></span></div>`
+  }
+  const ligneHtml = (l: LigneBandeau) => {
     const { titre, detail } = texteLigne(l, t)
     textes.push(titre, detail)
     const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' || l.genre === 'chaleur' ? SYMBOLE_PANNE : picto('monolithe')
@@ -117,8 +124,16 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     // la catégorie écrite sous son symbole, sur la couleur de sa catégorie.
     const categorie = l.genre === 'contrat' ? 'CONTRAT' : l.genre === 'missile' ? 'MISSILE' : l.genre === 'panne' ? 'PANNE' : l.genre === 'chaleur' ? 'CHALEUR' : 'ÉCHO'
     return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="symbole-ligne">${symbole}<small>${categorie}</small></span><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
-  })
-  const html = statut + alertes.join('')
+  }
+  // Groupe par groupe, dans l'ordre de l'écran (les textes se remplissent dans cet ordre).
+  const groupe = (k: number, cle: string, symbole: string, categorie: string, texte: string) => {
+    const ici = actives.filter((l) => rang(l) === k)
+    return ici.length ? ici.map(ligneHtml).join('') : vide(cle, symbole, categorie, texte)
+  }
+  let html = statut
+  html += groupe(0, 'vide-alerte', picto('panne'), 'ALERTE', 'RAS · tous les modules en état')
+  html += groupe(1, 'vide-contrat', picto('missions'), 'CONTRAT', 'aucun contrat en cours')
+  html += groupe(2, 'vide-echo', picto('ping'), 'ÉCHO', 'aucun écho attendu')
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html

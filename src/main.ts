@@ -690,6 +690,10 @@ bandeau.addEventListener('click', (e) => {
   else if (ligne === 'echo-recu') montrerEcho(horloge())
   else if (ligne === 'etat') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   else if (ligne === 'profil') cockpit.ouvrir('profil')
+  // Les lignes éteintes du tableau de bord mènent là où on les allume.
+  else if (ligne === 'vide-alerte') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
+  else if (ligne === 'vide-contrat') ouvrirJournal('contrats')
+  else if (ligne === 'vide-echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
 })
 
 /**
@@ -1221,8 +1225,15 @@ function afficherSuivi(forcer = false): void {
   dernierSuivi = performance.now()
   const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
   const o = q ? objectif(jeu, q) : null
-  ligneSuivi.hidden = !q || !o
-  if (!q || !o) return
+  // Toujours là (le tableau de bord, demande d'Adrien du 22/10/2026) : sans quête suivie, la ligne éteinte le dit.
+  ligneSuivi.hidden = false
+  ligneSuivi.classList.toggle('vide', !q || !o)
+  if (!q || !o) {
+    const vide = '<span class="symbole-ligne"><span class="signe principale">◆</span><small>QUÊTE</small></span><span class="texte"><b>aucune quête suivie</b></span>'
+    if (ligneSuivi.innerHTML !== vide) ligneSuivi.innerHTML = vide
+    ligneSuivi.classList.remove('secondaire')
+    return
+  }
   const html = `<span class="symbole-ligne"><span class="signe ${q.type}">${q.type === 'principale' ? '◆' : '●'}</span><small>QUÊTE</small></span><span class="texte"><b>${q.titre}</b><span>${o.texte}${o.compte ? ` (${o.compte})` : ''}</span></span>`
   if (ligneSuivi.innerHTML !== html) ligneSuivi.innerHTML = html
   ligneSuivi.classList.toggle('secondaire', q.type === 'secondaire')

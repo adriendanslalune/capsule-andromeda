@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Tableau de bord (demande d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : la console du haut montre
+  toujours ses quatre catégories, éteintes quand elles sont vides ; coins des plaques propres (le bandeau coloré
+  des volets et les onglets ne débordent plus sur le cadre).
 - Retours d'Adrien du 22/10/2026 (fin) — **fait, en attente de ses essais** : console du trajet plus basse (de
   210 à 116 px) ; couleurs d'onglet en pastel ; la console du haut séparée en lignes à intercalaire de couleur
   (PANNE / MISSILE, CONTRAT, ÉCHO, QUÊTE), un double filet sous l'état de la capsule.
