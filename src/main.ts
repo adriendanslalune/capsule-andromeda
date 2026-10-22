@@ -2046,10 +2046,16 @@ function image(maintenant: number): void {
     if (titre.textContent !== titreCarte) titre.textContent = titreCarte
     // Pointillé vers la destination (sa position actuelle), une fois le trajet proposé.
     const cibleIci = proposee && place && selection !== CAPSULE && !dejaLa(t) ? place : null
-    // Orbite de la capsule autour de son astre.
+    // Orbite de la capsule autour de son astre, vue depuis l'astre (Adrien, 22/10/2026 : autour de la Lune, qui avance
+    // d'environ 7 000 km pendant un tour, l'orbite tracée en absolu devenait une grande boucle étrange) : chaque point
+    // est ramené à la place de l'astre à l'instant t.
     const o = mission.orbiteActuelle(t)
-    const orbiteCapsule = o && !corps(o.centre)?.tailleM
-      ? Array.from({ length: 97 }, (_, k) => { const tk = t + (k / 96) * periode(o) * 1000; return { t: tk, r: mission.etat(tk).position } })
+    const centreOrbite = o ? position(o.centre, t) : null
+    const orbiteCapsule = o && centreOrbite && !corps(o.centre)?.tailleM
+      ? Array.from({ length: 97 }, (_, k) => {
+        const tk = t + (k / 96) * periode(o) * 1000, r = mission.etat(tk).position, c = position(o.centre, tk)
+        return { t, r: { x: r.x - c.x + centreOrbite.x, y: r.y - c.y + centreOrbite.y, z: r.z - c.z + centreOrbite.z } }
+      })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
     // Les PNJ, leurs signes, et l'objectif de la quête suivie.
