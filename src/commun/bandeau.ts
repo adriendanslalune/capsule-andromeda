@@ -125,15 +125,9 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     etat = `<span class="phase">${picto('route')}</span><span class="ou"><b data-texte></b><small data-texte></small></span>`
   }
   textes.push(capsule.credits.toLocaleString('fr-FR'))
-  // L'histoire, toujours en vue, juste sous l'état de la capsule (Adrien, 22/10/2026 : « la quête principale doit
-  // être surtout visible dans le tableau de bord en haut de l'écran ») : la suite de la campagne et son objectif.
-  const histoire = capsule.quetes.find((q) => q.principale)
-  textes.push(histoire ? histoire.titre : 'La suite de l\'histoire arrive bientôt, capitaine…', histoire ? histoire.objectif : '')
   const statut = `<div class="etat-capsule" data-ligne="orbite">${etat}`
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
-    + `<div class="ligne-histoire" data-ligne="quete"${histoire ? ` data-quete="${histoire.id}"` : ''}><span class="marque">◆ L'HISTOIRE</span>`
-    + `<span class="texte"><b data-texte></b><span data-texte></span></span>${histoire ? '<em>VOIR</em>' : ''}</div>`
   const nEtat = textes.length
   // Le tableau de bord (demandes d'Adrien du 22/10/2026) : quatre voyants sur une rangée, ALERTE, QUÊTE, CONTRAT,
   // ÉCHO, allumés quand il y a quelque chose ; dessous, l'afficheur (un écran e-ink). Il montre d'office l'alerte
@@ -141,9 +135,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   // montre sa catégorie. L'écho reste allumé jusqu'à ce qu'on touche son bouton.
   const categorieDe = (l: LigneBandeau): Voyant => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 'alerte' : l.genre === 'contrat' ? 'contrat' : 'echo')
   const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet')
-  // (L'onglet QUÊTE : les secondaires seulement ; l'histoire a sa ligne à elle, au-dessus.)
-  const secondaires = capsule.quetes.filter((q) => !q.principale)
-  const nombre = (v: Voyant) => (v === 'quete' ? secondaires.length : actives.filter((l) => categorieDe(l) === v).length)
+  const nombre = (v: Voyant) => (v === 'quete' ? capsule.quetes.length : actives.filter((l) => categorieDe(l) === v).length)
   const urgent = actives.some((l) => l.genre === 'missile' || l.genre === 'chaleur')
   const alertes = actives.filter((l) => categorieDe(l) === 'alerte').map((l) => l.genre).sort().join()
   if (alertes && alertes !== alertesVues) voyantOuvert = null
@@ -164,11 +156,17 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   }
   let detail = ''
   if (affiche === 'quete') {
-    for (const q of secondaires) {
+    // La suite de l'histoire d'abord (toujours là), puis les secondaires en cours. Dans la liste, la ligne de l'histoire
+    // se détache au premier coup d'œil (Adrien, 22/10/2026) : un bandeau doré, son losange, « L'HISTOIRE » gravé
+    // au-dessus du titre en capitales ; les secondaires restent de simples lignes, avec leur rond bleu.
+    for (const q of capsule.quetes) {
+      const g = q.principale ? 'principale' : 'secondaire'
       textes.push(q.titre, q.objectif)
-      detail += `<div class="ligne quete secondaire${q.suivie ? ' suivie' : ''}" data-ligne="quete" data-quete="${q.id}"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
+      detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}" data-ligne="quete" data-quete="${q.id}">`
+        + `<span class="marque-quete">${picto(g)}</span>`
+        + `<span class="texte">${q.principale ? '<small>L\'HISTOIRE</small>' : ''}<b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
     }
-    if (!detail) detail = vide('vide-quete', 'aucune quête secondaire : cherche les « ! » sur la carte')
+    if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')
   } else if (affiche) {
     const ici = actives.filter((l) => categorieDe(l) === affiche)
     detail = ici.length ? ici.map(ligneHtml).join('')

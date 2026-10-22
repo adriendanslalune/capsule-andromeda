@@ -376,10 +376,16 @@ function astreLePlusProche(systeme: string, t: number): string {
   const hauteur = (nom: string) => { const q = position(nom, t); return Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z) - (corps(nom)?.rayon ?? 0) }
   return [systeme, ...enfants(systeme).filter((c) => c.type === 'lune' && c.rayon >= 100).map((c) => c.nom)].reduce((a, b) => (hauteur(b) < hauteur(a) ? b : a))
 }
-// Le bas de la console (sa hauteur change avec les alertes) : le volet ouvert commence juste dessous.
-new ResizeObserver(() => {
-  document.documentElement.style.setProperty('--bas-console', `${Math.round(document.querySelector('#console')!.getBoundingClientRect().bottom)}px`)
-}).observe(document.querySelector('#console')!)
+// Le bas de la console (sa hauteur change avec les alertes et les lignes du tableau de bord) : le volet ouvert commence
+// juste dessous. Recalé à chaque mise à jour du tableau de bord, en plus de l'observateur (Adrien, 22/10/2026 : le
+// volet passait sous le tableau de bord quand il avait plusieurs lignes).
+let basConsole = ''
+function calerVolet(): void {
+  const bas = `${Math.round(document.querySelector('#console')!.getBoundingClientRect().bottom)}px`
+  if (bas !== basConsole) { basConsole = bas; document.documentElement.style.setProperty('--bas-console', bas) }
+}
+new ResizeObserver(calerVolet).observe(document.querySelector('#console')!)
+window.addEventListener('resize', calerVolet)
 
 function allerALaCapsule(animer = true): void {
   const t = horloge()
@@ -733,6 +739,7 @@ function mettreAJourFiche(t: number): void {
     phase: !vol ? '' : vol.phase === 'accelere' ? 'accélère' : vol.phase === 'freine' ? 'freine' : vol.phase === 'croisiere' ? 'croisière' : 'arrivée',
     systeme: ou === 'Soleil' ? 'plein espace' : ou,
   }, t)
+  calerVolet()
   // Le trajet dont la console du bas montre la feuille de route : celui qu'on prévoit (DÉPART), ou celui en cours.
   let planFiche: Plan | null = null
   // La situation de la capsule (en route, en orbite) est dans le bandeau d'alertes ; la fiche ne parle que de la
