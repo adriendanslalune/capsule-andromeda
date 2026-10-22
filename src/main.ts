@@ -94,6 +94,7 @@ import { htmlFrise } from './commun/frise'
 import { INSTRUMENTS } from './commun/instruments'
 import { feuilleDeRoute } from './moteur/feuille-de-route'
 import { annonces } from './moteur/annonces'
+import { onomatopee } from './commun/onomatopee'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
@@ -684,7 +685,7 @@ bandeau.addEventListener('click', (e) => {
   if (ligne === 'missile') {
     // Toucher le missile, c'est l'intercepter (s'il reste un intercepteur).
     const t = horloge()
-    if (intercepterMissile(jeu.espace, t)) { annoncer(`Missile intercepté ! (${jeu.espace.intercepteurs} intercepteur${jeu.espace.intercepteurs > 1 ? 's' : ''} restant${jeu.espace.intercepteurs > 1 ? 's' : ''})`); enregistrerPartie() }
+    if (intercepterMissile(jeu.espace, t)) { onomatopee('PAF !', '#f6c4ad'); annoncer(`Missile intercepté ! (${jeu.espace.intercepteurs} intercepteur${jeu.espace.intercepteurs > 1 ? 's' : ''} restant${jeu.espace.intercepteurs > 1 ? 's' : ''})`); enregistrerPartie() }
     else annoncer('Plus d\'intercepteur ! Un nouveau dans moins de 30 minutes…')
   } else if (ligne === 'panne') {
     // Un bloc qui se répare sur le panneau, sinon l'onglet ÉTAT (réparation provisoire).
@@ -900,6 +901,7 @@ boutonDepart.addEventListener('click', () => {
     enregistrerPartie()
     choisir(null)
     annoncer(`Monolithe n° ${n} ramassé ! ${jeu.monolithes.trouves.length} / ${NOMBRE_MONOLITHES} dans la cale`)
+    onomatopee('EURÊKA !', '#cdbfe8')
     navigator.vibrate?.([60, 40, 60, 40, 200])
     return
   }
@@ -910,6 +912,7 @@ boutonDepart.addEventListener('click', () => {
   const p = planifier(mission.etatHeliocentrique(t), selection, t, vitesse())
   if (!p.possible) return
   partir(p.plan, t)
+  onomatopee('VROOOM !', '#f2d58e')
   enregistrerPartie()
   voletMissions.oublierDurees()
   prevision = null
@@ -1229,7 +1232,7 @@ function afficherAnnonces(t: number): void {
   if (performance.now() - annoncesAJour < 60_000 && annoncesAJour) return
   annoncesAJour = performance.now()
   const liste = annonces(t)
-  const texte = (liste.length ? liste : ['Radio Résistance · rien de particulier dans le système solaire']).join('   ◆   ')
+  const texte = liste.join('   ◆   ')
   if (bandeAnnonces.textContent === texte) return
   bandeAnnonces.textContent = texte
   // Une vitesse de lecture constante, quelle que soit la longueur.
@@ -1249,7 +1252,7 @@ const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('
 })
 function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
   for (const e of evenements) {
-    if (e.genre === 'contrat-fini') annoncer(`Mission terminée : +${e.contrat.recompense} crédits`)
+    if (e.genre === 'contrat-fini') { annoncer(`Mission terminée : +${e.contrat.recompense} crédits`); onomatopee('JACKPOT !', '#b9d8a8') }
     else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
     else if (e.genre === 'depart-auto') {
       // Les étapes s'enchaînent : la capsule est partie d'elle-même vers l'étape suivante (voir Jeu.avancer).
@@ -1463,6 +1466,7 @@ function gesteReparation(a: NomAppareil, r: Resultat): void {
   } else if (r === 'bloque') annoncer('Module bloqué : patience…')
   else if (r === 'tour-suivant') annoncer('Bien ! Nouvelle consigne')
   else if (r === 'repare') {
+    onomatopee('CLONK !', '#9fcfca')
     annoncer(jeu.enPanne(bloc.bloc) ? `${repere(a)} · ${TITRES_APPAREILS[a]} réparé ! Reste : ${jeu.defauts[bloc.bloc]!.map(repere).join(', ')}` : `Bloc ${bloc.titre} réparé !`)
     moduleOuvert = null
     panneauReparation.choisir(null)

@@ -76,7 +76,7 @@ const SYMBOLE_PANNE_VOYANT = '<svg class="symbole" viewBox="0 0 16 16" aria-hidd
 export type Voyant = 'alerte' | 'quete' | 'contrat' | 'echo'
 const VOYANTS: { cle: Voyant; nom: string; symbole: string }[] = [
   { cle: 'alerte', nom: 'ALERTE', symbole: SYMBOLE_PANNE_VOYANT },
-  { cle: 'quete', nom: 'QUÊTE', symbole: '<span class="signe">◆</span>' },
+  { cle: 'quete', nom: 'QUÊTE', symbole: picto('principale') },
   { cle: 'contrat', nom: 'CONTRAT', symbole: picto('missions') },
   { cle: 'echo', nom: 'ÉCHO', symbole: picto('ping') },
 ]
@@ -92,6 +92,8 @@ export function basculerVoyant(v: Voyant): void {
 
 /** Formes déjà affichées (l'état, l'écran) : si elles ne changent pas, on ne change que les textes. */
 let formeEtat = '', formeDetail = ''
+/** Les crédits au dernier affichage (pour faire sauter le compteur quand on en gagne). */
+let creditsVus: number | null = null
 
 
 /** Le mot du bouton au bout de chaque alerte (toute la ligne se touche). */
@@ -156,11 +158,11 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   if (affiche === 'quete') {
     const q = capsule.quete
     if (q) { textes.push(q.titre, q.objectif); detail = `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>` }
-    else detail = vide('vide-quete', 'aucune quête suivie')
+    else detail = vide('vide-quete', 'aucune quête suivie : l\'aventure attend au Journal')
   } else if (affiche) {
     const ici = actives.filter((l) => categorieDe(l) === affiche)
     detail = ici.length ? ici.map(ligneHtml).join('')
-      : vide(`vide-${affiche}`, affiche === 'alerte' ? 'RAS · tous les modules en état' : affiche === 'contrat' ? 'aucun contrat en cours' : 'aucun écho attendu')
+      : vide(`vide-${affiche}`, affiche === 'alerte' ? 'RAS · tous les modules ronronnent' : affiche === 'contrat' ? 'aucun contrat : la Résistance a besoin de bras !' : 'aucun écho : le cosmos fait la sourde oreille')
   }
   // Trois zones qui ne sont jamais refaites d'un bloc (Adrien, 22/10/2026 : toucher une touche rechargeait tout le
   // tableau) : l'état, les touches (seules leurs classes changent : une touche enfoncée reste la même touche) et
@@ -187,6 +189,12 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   if (ecran.className !== classeEcran) ecran.className = classeEcran
   if (detail !== formeDetail) ecran.innerHTML = formeDetail = detail
   ecran.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[nEtat + k]) e.textContent = textes[nEtat + k] })
+  // Des crédits gagnés : le compteur saute (Adrien, 22/10/2026 : plus fun).
+  if (creditsVus !== null && capsule.credits > creditsVus) {
+    const c = zone.querySelector<HTMLElement>('.credits')
+    if (c) { c.classList.remove('gagne'); void c.offsetWidth; c.classList.add('gagne') }
+  }
+  creditsVus = capsule.credits
   const barre = element.querySelector<HTMLElement>('.jauge-xp i')
   const largeur = `${Math.round(capsule.xp * 1000) / 10}%`
   if (barre && barre.style.width !== largeur) barre.style.width = largeur

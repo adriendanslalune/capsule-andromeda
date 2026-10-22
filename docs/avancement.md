@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Tableau de bord en onglets de dossier (piste B, choisie par Adrien le 22/10/2026), titres pulp, touches fun
+  (onomatopées, crédits qui sautent, brèves de Radio Résistance, textes vides drôles) — **fait, en attente de ses
+  essais**.
 - Tableau de bord : 4 pistes à choisir par Adrien (`maquette-tableau.html` : A annonciateurs, B onglets de dossier,
   C voyants ronds, D surligneur), rien d'appliqué ; grille plus discrète, échelle dans le coin ; plus de surbrillance
   bleue au toucher.

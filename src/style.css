@@ -2303,3 +2303,68 @@ body.volet-ouvert #annonces { display: none; }
 /* Pas de surbrillance bleue du navigateur au toucher (Adrien, 22/10/2026 : toucher une touche du tableau de bord
    sélectionnait tout le tableau) : chaque bouton a son propre état enfoncé. */
 * { -webkit-tap-highlight-color: transparent; }
+
+/* ===== Le tableau de bord en onglets de dossier (piste B, choisie par Adrien le 22/10/2026) =====
+   Les quatre catégories sont des intercalaires sur le haut d'une fiche, leur symbole devant leur nom. Éteint : un
+   onglet pâle au trait gris ; allumé : l'aplat pastel, au trait d'encre ; l'onglet affiché rejoint la fiche (pas de
+   trait entre eux) et la fiche prend sa teinte. Plus de relief, de reflet ni de halo. */
+#bandeau .voyants { display: flex; gap: 3px; margin: 8px 2px 0; padding: 0 6px; background: none; box-shadow: none; border-radius: 0; }
+#bandeau .voyant, #bandeau .voyant.allume, #bandeau .voyant.ouvert, #bandeau .voyant.ouvert.allume, #bandeau .voyant.ouvert.eteint {
+  flex: 1; position: relative; top: 1.5px; min-height: 34px; flex-direction: row; gap: 4px; padding: 5px 2px 4px; transform: none; filter: none;
+  color: color-mix(in srgb, var(--encre) 40%, transparent); background: var(--fond); box-shadow: none; animation: none;
+  border: 1.5px solid color-mix(in srgb, var(--encre) 40%, transparent); border-bottom: none; border-radius: 0;
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); }
+#bandeau .voyant small { font: 700 11.5px/1 var(--titre); letter-spacing: 0.1em; text-shadow: none; }
+#bandeau .voyant .picto svg, #bandeau .voyant > svg { width: 15px; height: 15px; }
+#bandeau .voyant.eteint > :not(.compte) { opacity: 0.75; }
+#bandeau .voyant.allume, #bandeau .voyant.ouvert.allume { color: var(--encre); background: var(--cat); border-color: var(--encre); }
+#bandeau .voyant.allume.v-alerte small { color: var(--encre); }
+#bandeau .voyant.ouvert { z-index: 2; padding-bottom: 6px; }
+#bandeau .voyant.ouvert.eteint { color: var(--encre); background: color-mix(in srgb, var(--cat) 35%, var(--creme)); border-color: var(--encre); }
+#bandeau .voyant:active { transform: none; filter: brightness(0.96); }
+/* Un missile ou le Soleil : l'onglet ALERTE clignote, du corail au rouge. */
+#bandeau .voyant.urgent { animation: onglet-urgent 0.8s steps(1) infinite; }
+@keyframes onglet-urgent { 50% { background: #ef8a6c; } }
+#bandeau .voyant .compte { position: static; min-width: 14px; height: 14px; padding: 0 3px; font: 700 9.5px/14px var(--titre); color: var(--creme); background: var(--encre); border-radius: 7px; box-shadow: none; }
+/* La fiche, sous les onglets. */
+#bandeau .afficheur, #bandeau .afficheur.v-alerte, #bandeau .afficheur.v-quete, #bandeau .afficheur.v-contrat, #bandeau .afficheur.v-echo {
+  position: relative; z-index: 1; min-height: 36px; margin: 0 2px 3px; padding: 0; border: 1.5px solid var(--encre); border-radius: 0; box-shadow: none; background: var(--creme); }
+#bandeau .afficheur.v-alerte { background: color-mix(in srgb, #f6c4ad 30%, var(--creme)); }
+#bandeau .afficheur.v-quete { background: color-mix(in srgb, #bcd6ee 30%, var(--creme)); }
+#bandeau .afficheur.v-contrat { background: color-mix(in srgb, var(--rub-journal) 30%, var(--creme)); }
+#bandeau .afficheur.v-echo { background: color-mix(in srgb, var(--rub-collections) 30%, var(--creme)); }
+#bandeau .afficheur > *, #bandeau .afficheur:empty::after { background: none; box-shadow: none; }
+#bandeau .afficheur .ligne, #bandeau .afficheur .ligne:first-child, #bandeau .afficheur .ligne:last-child, #bandeau .afficheur .ligne:only-child {
+  min-height: 36px; padding: 2px 6px 2px 2px; color: var(--encre); background: none; box-shadow: none; border-radius: 0; }
+#bandeau .afficheur .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 40%, transparent); }
+#bandeau .afficheur .ligne em { color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
+#bandeau .afficheur.v-alerte .ligne em { color: #fff; background: var(--orange); border-color: var(--orange); }
+#bandeau .afficheur .ligne.panne b, #bandeau .afficheur .ligne.missile b { color: #b4442f; }
+/* Les onomatopées (Adrien, 22/10/2026 : plus fun) : un mot de BD qui jaillit dans une étoile de pulp, et s'en va. */
+.onomatopee { position: fixed; z-index: 40; left: 50%; top: 42%; width: 230px; height: 150px; margin: -75px 0 0 -115px; display: grid; place-items: center;
+  pointer-events: none; animation: jaillir 1.5s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
+.onomatopee svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.onomatopee polygon { fill: var(--couleur); stroke: var(--encre); stroke-width: 2.2; stroke-linejoin: round; }
+.onomatopee b { position: relative; font: 900 33px/1 'Big Shoulders Display', var(--titre); letter-spacing: 0.02em; color: var(--encre);
+  transform: skewX(-10deg); text-shadow: 3px 3px 0 var(--creme), 5px 5px 0 var(--encre); white-space: nowrap; }
+@keyframes jaillir {
+  0% { transform: scale(0.2) rotate(calc(var(--angle) - 20deg)); opacity: 0; }
+  18% { transform: scale(1.12) rotate(var(--angle)); opacity: 1; }
+  30% { transform: scale(1) rotate(var(--angle)); }
+  78% { transform: scale(1) rotate(var(--angle)); opacity: 1; }
+  100% { transform: scale(1.25) rotate(var(--angle)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .onomatopee { animation-duration: 0.01s; } }
+
+/* Les titres des volets façon pulp des années 50 (Adrien, 22/10/2026 : « plus de peps, ça fait trop sérieux ») : le mot
+   en très grasses capitales penchées, une ombre décalée dans la teinte foncée de l'onglet, comme une couverture
+   d'« Astounding Stories » ; dessous, l'accroche en italique ; la référence gravée reste au-dessus. */
+#volet #volet-titre { display: flex; flex-direction: column; align-items: flex-start; }
+#volet #volet-titre .mot-titre { display: inline-block; margin: 2px 0 0 2px; font: 900 34px/0.95 'Big Shoulders Display', var(--titre); letter-spacing: 0.03em;
+  color: var(--encre); transform: skewX(-9deg) rotate(-1.5deg); transform-origin: left bottom;
+  text-shadow: 2px 2px 0 var(--creme), 4px 4px 0 var(--rub-fonce, var(--orange)); }
+#volet #volet-titre .accroche { display: block; margin: 5px 0 0 6px; font: italic 700 13px/1.1 var(--titre); letter-spacing: 0.03em; text-transform: none;
+  color: color-mix(in srgb, var(--encre) 80%, transparent); transform: rotate(-1.5deg); transform-origin: left; }
+/* Des crédits gagnés : le compteur saute, un éclat doré. */
+#bandeau .credits.gagne { animation: credits-gagnes 0.7s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes credits-gagnes { 0% { transform: scale(1); } 35% { transform: scale(1.25) rotate(-4deg); background: #f2d58e; } 100% { transform: scale(1); } }

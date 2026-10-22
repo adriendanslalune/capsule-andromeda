@@ -18,6 +18,13 @@ const SURTITRES: Record<Page, string> = {
   manuel: 'Documentation · DOC-07', profil: 'Dossier du capitaine · CAP-01', messages: 'Transmissions · TRX-05', plus: 'Annexes · ANX-09',
   reglages: 'Réglages · RGL-00', boutique: 'Intendance · INT-08', collections: 'Archives · ARC-06',
 }
+/** L'accroche sous le titre de chaque volet, comme sur la couverture d'un pulp des années 50 (Adrien, 22/10/2026 : plus de peps). */
+const ACCROCHES: Record<Page, string> = {
+  capsule: 'Le cœur battant de votre vaisseau !', missions: 'Périls, primes et aventures !', marche: 'Fortunes faites et défaites !',
+  collections: 'Les trésors perdus de l\'espace !', plus: 'Et ce n\'est pas tout !', navigation: 'Cap sur l\'inconnu !',
+  manuel: 'À lire avant que ça explose !', profil: 'Qui est donc ce capitaine ?', messages: 'Des voix à travers le vide !',
+  reglages: 'Pour les bricoleurs de génie !', boutique: 'Tout doit disparaître !',
+}
 /** Onglet allumé pour chaque page (le Manuel et les Réglages s'ouvrent depuis « Plus »). */
 const ONGLET: Record<Page, string> = {
   navigation: 'plus', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'collections',
@@ -124,7 +131,8 @@ export class Cockpit {
 
   ouvrir(page: Page): void {
     this.page = page
-    this.titre.textContent = TITRES[page]
+    // Le titre façon pulp (Adrien, 22/10/2026) : le mot penché avec son ombre, l'accroche dessous.
+    this.titre.innerHTML = `<span class="mot-titre">${TITRES[page]}</span><span class="accroche">${ACCROCHES[page]}</span>`
     this.titre.dataset.surtitre = SURTITRES[page]
     for (const p of this.volet.querySelectorAll<HTMLElement>('.page')) p.hidden = p.dataset.contenu !== page
     for (const b of document.querySelectorAll<HTMLElement>('#onglets [data-onglet]')) {
