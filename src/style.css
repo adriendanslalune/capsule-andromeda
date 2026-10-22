@@ -751,7 +751,7 @@ html, body {
   font-size: 13px; color: var(--encre); background: transparent; border: none; text-align: left;
   border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
 #marche .liste-cours button:first-child { border-top: none; }
-#marche .liste-cours button.actif { background: color-mix(in srgb, var(--moutarde) 40%, transparent); }
+#marche .liste-cours button.actif { background: var(--creme); box-shadow: inset 4px 0 0 var(--orange); }
 #marche .liste-cours .nom { flex: 1; font-weight: bold; }
 #marche .liste-cours .nom small, #marche .liste-cours .valeur small { display: block; font-size: 10.5px; font-weight: normal; opacity: 0.8; }
 #marche .liste-cours .mini { width: 70px; height: 22px; flex: none; }
@@ -1904,19 +1904,39 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
   border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); }
 .instrument-requis svg { width: 20px; height: 20px; overflow: visible; }
 
-/* ===== Le dossier de mission (choix d'Adrien du 22/10/2026, maquette-fenetres.html) : la finition. =====
-   Boutons, onglets et étiquettes en capitales condensées ; équerres d'imprimerie aux coins des documents posés sur la
-   carte ; hachures d'avertissement discrètes en séparateur, au bord des alertes et sous les titres. */
+/* ===== Le look « dossier de mission » (choix d'Adrien du 22/10/2026), version propre (Adrien, 22/10/2026 : « repense
+   tout l'affichage des fenêtres ») =====
+   1. Les plaques : tout ce qui est posé sur la carte (consoles, volets, fenêtres, boutons de la carte, onglets, fiches
+      des Collections) est une plaque d'interface, d'après le croquis d'Adrien : coins coupés en biseau en haut à gauche
+      et en bas à droite, un filet intérieur aux biseaux, un rivet et deux petites hachures dans les autres coins.
+   2. Les hachures (la languette du croquis) ne servent qu'à séparer les blocs d'une page : chaque intitulé de section
+      est suivi d'une languette hachurée qui court jusqu'au bord. Nulle part ailleurs.
+   3. Les bandes de danger jaune et noir avertissent : autour de ce qui engage (DÉPART, INTERCEPTER, RÉPARER), sur le
+      bord gauche d'une panne ou d'un missile.
+   4. Des étiquettes gravées en tout petit, là où elles ne gênent rien. */
 :root {
-  --equerres: linear-gradient(var(--encre), var(--encre)) 4px 4px / 9px 1.5px no-repeat, linear-gradient(var(--encre), var(--encre)) 4px 4px / 1.5px 9px no-repeat,
-    linear-gradient(var(--encre), var(--encre)) calc(100% - 4px) calc(100% - 4px) / 9px 1.5px no-repeat, linear-gradient(var(--encre), var(--encre)) calc(100% - 4px) calc(100% - 4px) / 1.5px 9px no-repeat;
+  --cadre: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%3E%3Cpath%20d%3D%27M7.5%20.75H47.25V40.5L40.5%2047.25H.75V7.5Z%27%20stroke-width%3D%271.5%27/%3E%3Cpath%20d%3D%27M3.6%2012.5V9.3L9.3%203.6H13%27%20stroke-width%3D%27.7%27/%3E%3Cpath%20d%3D%27M44.4%2035.5v3.2L38.7%2044.4H35%27%20stroke-width%3D%27.7%27/%3E%3Ccircle%20cx%3D%2744%27%20cy%3D%274%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%3Ccircle%20cx%3D%274%27%20cy%3D%2744%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%3Cpath%20d%3D%27M35.5%205.6l2-3M38.5%205.6l2-3%27%20stroke-width%3D%27.8%27/%3E%3Cpath%20d%3D%27M8%2045.4l2-3M11%2045.4l2-3%27%20stroke-width%3D%27.8%27/%3E%3C/svg%3E");
+  --decoupe: polygon(7.5px 0, 100% 0, 100% calc(100% - 7.5px), calc(100% - 7.5px) 100%, 0 100%, 0 7.5px);
+  --languette: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2742%27%20height%3D%2712%27%20viewBox%3D%270%200%2042%2012%27%3E%3Cdefs%3E%3CclipPath%20id%3D%27m%27%3E%3Crect%20x%3D%279%27%20y%3D%271.5%27%20width%3D%2724%27%20height%3D%279%27/%3E%3C/clipPath%3E%3CclipPath%20id%3D%27g%27%3E%3Cpath%20d%3D%27M9%201.5H5L.8%206L5%2010.5H9Z%27/%3E%3C/clipPath%3E%3CclipPath%20id%3D%27d%27%3E%3Cpath%20d%3D%27M33%201.5H37L41.2%206L37%2010.5H33Z%27/%3E%3C/clipPath%3E%3C/defs%3E%3Cpath%20d%3D%27M9%201.5H5L.8%206L5%2010.5H9ZM33%201.5H37L41.2%206L37%2010.5H33Z%27%20fill%3D%27%23fbf8f1%27/%3E%3Crect%20x%3D%279%27%20y%3D%271.5%27%20width%3D%2724%27%20height%3D%279%27%20fill%3D%27%23fbf8f1%27/%3E%3Cg%20stroke%3D%27%231f1b18%27%20stroke-width%3D%272.2%27%3E%3Cpath%20clip-path%3D%27url%28%23m%29%27%20d%3D%27M-15%2010.5L-6%201.5M-9%2010.5L0%201.5M-3%2010.5L6%201.5M3%2010.5L12%201.5M9%2010.5L18%201.5M15%2010.5L24%201.5M21%2010.5L30%201.5M27%2010.5L36%201.5M33%2010.5L42%201.5M39%2010.5L48%201.5%27/%3E%3C/g%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271.1%27%3E%3Cpath%20d%3D%27M9%201.5H5L.8%206L5%2010.5H9%27/%3E%3Cpath%20d%3D%27M33%201.5H37L41.2%206L37%2010.5H33%27/%3E%3Cpath%20d%3D%27M9%201.5H33M9%2010.5H33%27/%3E%3Cpath%20d%3D%27M8.4%201.5V10.5M33.6%201.5V10.5%27%20stroke-width%3D%271.2%27/%3E%3C/g%3E%3C/svg%3E");
 }
-#console, #volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--equerres), var(--fond); }
-#console { background: var(--equerres), var(--creme); }
-/* Boutons et onglets : capitales condensées, espacées. */
+
+/* 1. Les plaques. */
+#console, #trajet, #volet, .carte-fenetre, #instruments, .groupe-vue, #onglets, #choix-systeme, #choix-affichage, #collections .couverture {
+  border: 1.5px solid transparent; border-image: var(--cadre) 14 / 14px / 0 stretch; clip-path: var(--decoupe); box-shadow: none; border-radius: 0;
+}
+#console, .groupe-vue, #instruments, #onglets, #collections .couverture { background: var(--grain), var(--creme); }
+#volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--grain), var(--fond); }
+.plein, #bouton-messages, #tas { background-image: var(--grain); }
+/* Le contenu reste à l'écart des biseaux. */
+#console { padding: 2px 3px 3px; }
+#trajet { padding: 16px 10px 8px 12px; }
+#volet { padding: 0 2px 6px; }
+#volet .entete { margin: 0 4px 14px; }
+
+/* Typographie des commandes : capitales condensées espacées. */
 #onglets button, .sous-onglets button, #volet .entete button, .plein .entete-plein button, #bouton-depart, #bouton-communiquer, #bouton-attaquer,
 .boutons-fenetre button, .confirmation-jeu button, button.principal, #missions .contrat button, #bandeau .ligne em, #instruments button, .rubrique,
-#suivi b, .groupe-vue #titre, #frise .point b, #bandeau .niveau b, #choix-affichage button {
+#suivi b, .groupe-vue #titre, #frise .point b, #bandeau .niveau b, #choix-affichage button, #collections .couverture button {
   font-family: var(--titre); letter-spacing: 0.1em; text-transform: uppercase;
 }
 #onglets button { font-size: 13px; font-weight: 600; }
@@ -1927,110 +1947,65 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #instruments button { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
 .groupe-vue #titre { font-size: 15px; font-weight: 700; }
 #frise .point b { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: none; }
-#bandeau .ligne em { font-size: 13px; font-weight: 700; color: #fff; background: var(--orange); border-color: var(--orange); }
 #bandeau .niveau b { font-size: 12px; letter-spacing: 0.06em; }
 #bandeau .credits { font-family: var(--titre); font-size: 15px; letter-spacing: 0.04em; }
-/* Le bouton principal : orange sécurité, plat. */
-#bouton-depart { background: var(--orange); border-color: var(--orange); }
 
-/* ===== L'effet cockpit (demande d'Adrien du 22/10/2026 : « plus d'effet cockpit, avec des petits traits fins, des
-   détails qui rappellent un cockpit » ; les hachures, seulement là où elles avertissent). =====
-   Règles graduées comme le bord d'un instrument ; étiquettes gravées en tout petit (le nom du panneau, sa référence) ;
-   bandes de danger jaune et noir autour de ce qui engage (DÉPART, INTERCEPTER, RÉPARER) ; une alerte marquée d'une
-   bande de danger sur son bord gauche. */
-.grave { position: absolute; font: 600 7.5px var(--police); letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.55; pointer-events: none; }
-/* La console du haut : graduée à son pied ; une étiquette gravée. */
-#console { position: relative; padding-bottom: 14px; }
-#console::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 1px; height: 12px; background: var(--barre); pointer-events: none; }
-/* L'étiquette gravée, posée sur la règle comme une plaque. */
-#console::before { content: 'STATUT · CAP-01'; position: absolute; left: 22px; bottom: 3px; padding: 0 5px; z-index: 1; padding: 0 5px; font: 600 7px/9px var(--police); letter-spacing: 0.22em;
-  color: color-mix(in srgb, var(--encre) 55%, transparent); background: var(--creme); pointer-events: none; }
-/* Les alertes : un filet pointillé entre elles, la bande de danger sur le bord gauche des urgences. */
-#bandeau .ligne { background: none; padding-top: 4px; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
+/* 2. Les séparateurs de blocs : l'intitulé de section, puis la languette hachurée jusqu'au bord. */
+#volet h3, .plein h3 { display: flex; align-items: center; gap: 10px; margin: 16px 10px 8px; padding: 0; background: none;
+  font-family: var(--titre); font-size: 14px; font-weight: 700; letter-spacing: 0.16em; color: var(--orange); opacity: 1; }
+#volet h3::after, .plein h3::after { content: ''; flex: 1; min-width: 40px; height: 12px; box-sizing: border-box;
+  border-style: solid; border-width: 0 9px; border-color: transparent; border-image: var(--languette) 0 9 fill / 0 9px / 0 round; }
+
+/* 3. Les bandes de danger. */
+#bandeau .ligne { background: none; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
 #bandeau .ligne.panne, #bandeau .ligne.missile, #bandeau .ligne.chaleur {
   animation: none; padding-left: 16px; background: var(--danger) left / 6px 100% no-repeat, color-mix(in srgb, var(--orange) 8%, var(--creme));
 }
-#suivi { background: none; padding-top: 4px; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
-/* Les boutons qui engagent : cernés d'une bande de danger, comme un interrupteur protégé. */
+#bandeau .ligne.missile b, #bandeau .ligne.panne b, #bandeau .ligne.chaleur b { color: var(--orange); }
+#bandeau .ligne em { font-size: 13px; font-weight: 700; color: #fff; background: var(--orange); border: 1.5px solid var(--orange); }
 #bouton-depart, #bandeau .ligne.missile em, #bandeau .ligne.panne em {
   border: 3px solid transparent; background: linear-gradient(var(--orange), var(--orange)) padding-box, var(--danger) border-box;
 }
-/* La console du trajet : une étiquette gravée ; la feuille de route sous une règle graduée, son rail gradué. */
-#frise { padding-top: 12px; margin-top: 8px; height: 76px; }
-#frise::before { content: ''; position: absolute; left: -12px; right: -12px; top: -2px; height: 12px; background: var(--barre); }
-#frise .rail { top: 34px; } #frise .fait { top: 33px; } #frise .point { top: 12px; } #frise .capsule { top: 24px; }
+#suivi { background: none; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
 
-/* Les instruments : un intitulé gravé en tête du boîtier. */
-#instruments { padding-top: 13px; }
-#instruments::before { content: 'CAPTEURS'; position: absolute; left: 0; right: 0; top: 3px; text-align: center; font: 600 7px var(--police); letter-spacing: 0.2em; opacity: 0.55; }
-#instruments button:first-of-type { border-top: 1px solid var(--encre); }
-/* La barre d'onglets : graduée sur son bord haut. */
-#onglets { position: fixed; }
-#onglets::before { content: ''; position: absolute; left: 10px; right: 10px; top: 2px; height: 12px; background: var(--barre); pointer-events: none; border-top: none; }
-#onglets button { padding-top: 16px; }
-/* Les intitulés de section : en orange, suivis d'une règle graduée jusqu'au bord. */
-#volet h3, .plein h3 { display: flex; align-items: center; gap: 8px; background: none; padding-bottom: 0; }
-#volet h3::after, .plein h3::after { content: ''; flex: 1; height: 12px; background: var(--barre); }
-/* Le titre d'un volet : sa référence gravée au-dessus (data-surtitre, voir cockpit.ts). */
+/* 4. Les étiquettes gravées. */
 #volet-titre::before { content: attr(data-surtitre); display: block; font: 600 9px var(--police); letter-spacing: 0.22em; color: var(--orange); }
-/* Les fenêtres au milieu de l'écran : la règle graduée en tête plutôt que des hachures. */
+#trajet::after { content: 'NAVIGATION · NAV-02'; position: absolute; left: 16px; top: 4px; font: 600 7px/8px var(--police); letter-spacing: 0.22em;
+  color: color-mix(in srgb, var(--encre) 55%, transparent); pointer-events: none; }
+#instruments { padding-top: 13px; }
+#instruments::before { content: 'CAPTEURS'; position: absolute; left: 0; right: 0; top: 4px; text-align: center; font: 600 7px var(--police); letter-spacing: 0.2em; opacity: 0.55; }
+#instruments button:first-of-type { border-top: 1px solid var(--encre); }
 
-/* Les Collections au même papier (demande d'Adrien du 22/10/2026) : des fiches d'archives, plus de dégradés. */
-#collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { position: relative; background: var(--equerres), var(--creme); }
-#collections .couverture::after { content: attr(data-ref); position: absolute; right: 12px; top: 6px; font: 600 7px var(--police); letter-spacing: 0.22em; opacity: 0.5; }
-#collections .illustration, #collections .couverture.voix .illustration { background: var(--fond); box-shadow: inset 0 0 0 3px var(--fond), inset 0 0 0 4px color-mix(in srgb, var(--encre) 35%, transparent); }
-#collections .jauge-collection, #collections .couverture.voix .jauge-collection { height: 10px; border-radius: 0; background: repeating-linear-gradient(90deg, transparent 0 9px, color-mix(in srgb, var(--encre) 30%, transparent) 9px 10px), var(--fond); }
-#collections .jauge-collection i, #collections .couverture.voix .jauge-collection i { background: var(--orange); }
-#collections .couverture button, #collections .couverture.voix button, #collections .couverture.disparus button {
-  font-family: var(--titre); font-size: 16px; font-weight: 700; letter-spacing: 0.12em; color: var(--encre); background: var(--fond); border-radius: 0;
-}
+/* La feuille de route : séparée de la tête de la console par un filet pointillé. */
+#frise { margin-top: 10px; padding-top: 0; height: 66px; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
+#frise .rail { top: 30px; } #frise .fait { top: 29px; } #frise .point { top: 8px; } #frise .capsule { top: 20px; }
+
+/* Les Collections : des fiches d'archives, leur référence gravée en haut à droite. */
+#collections .couverture { position: relative; margin: 12px 10px; padding: 16px 14px 14px; }
+#collections .couverture::after { content: attr(data-ref); position: absolute; right: 16px; top: 5px; font: 600 7px var(--police); letter-spacing: 0.22em;
+  color: color-mix(in srgb, var(--encre) 55%, transparent); }
+#collections .illustration { background: var(--fond); box-shadow: inset 0 0 0 3px var(--fond), inset 0 0 0 4px color-mix(in srgb, var(--encre) 35%, transparent); }
+#collections .jauge-collection { height: 10px; border-radius: 0; background: repeating-linear-gradient(90deg, transparent 0 9px, color-mix(in srgb, var(--encre) 30%, transparent) 9px 10px), var(--fond); }
+#collections .jauge-collection i { background: var(--orange); }
+#collections .couverture button { font-size: 16px; font-weight: 700; color: var(--encre); background: var(--fond); border-radius: 0; }
 #collections .couverture button:active { background: var(--encre); color: var(--fond); }
 
-/* Le grain du papier sur tout ce qui est posé sur la carte (demande d'Adrien du 22/10/2026). */
-#console { background: var(--equerres), var(--grain), var(--creme); }
-#volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--equerres), var(--grain), var(--fond); }
-.plein, .groupe-vue, #instruments, #onglets, #bouton-messages, #tas { background-image: var(--grain); }
-#collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { background: var(--equerres), var(--grain), var(--creme); }
-
-/* ===== Les cadres de bord (demande d'Adrien du 22/10/2026, d'après son croquis : « des détails un peu partout, avec
-   des rivets discrets, des mini hachures, des traits fins ») : chaque document posé sur la carte devient une plaque
-   d'interface de vaisseau. Coins coupés en biseau (en haut à gauche, en bas à droite), un filet intérieur aux coins
-   coupés, un rivet dans les deux autres coins, deux petites hachures à côté ; une barre de tête : un trait fin qui
-   descend en biseau aux deux bouts, une languette hachurée au milieu. ===== */
-:root {
-  --cadre: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%3E%0A%3Cpath%20d%3D%27M7.5%20.75H47.25V40.5L40.5%2047.25H.75V7.5Z%27%20stroke-width%3D%271.5%27/%3E%0A%3Cpath%20d%3D%27M3.6%2012.5V9.3L9.3%203.6H13%27%20stroke-width%3D%27.7%27/%3E%0A%3Cpath%20d%3D%27M44.4%2035.5v3.2L38.7%2044.4H35%27%20stroke-width%3D%27.7%27/%3E%0A%3Ccircle%20cx%3D%2744%27%20cy%3D%274%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%0A%3Ccircle%20cx%3D%274%27%20cy%3D%2744%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%0A%3Cpath%20d%3D%27M35.5%205.6l2-3M38.5%205.6l2-3%27%20stroke-width%3D%27.8%27/%3E%0A%3Cpath%20d%3D%27M8%2045.4l2-3M11%2045.4l2-3%27%20stroke-width%3D%27.8%27/%3E%0A%3C/svg%3E");
-  --decoupe: polygon(7.5px 0, 100% 0, 100% calc(100% - 7.5px), calc(100% - 7.5px) 100%, 0 100%, 0 7.5px);
-  --languette: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27120%27%20height%3D%2712%27%20viewBox%3D%270%200%20120%2012%27%3E%0A%3Cdefs%3E%3CclipPath%20id%3D%27c%27%3E%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27/%3E%3C/clipPath%3E%3C/defs%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27%23fbf8f1%27/%3E%0A%3Cg%20clip-path%3D%27url%28%23c%29%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%272.2%27%20opacity%3D%27.85%27%3E%3Cpath%20d%3D%27M-10%2014L2%20-2M-3%2014L9%20-2M4%2014L16%20-2M11%2014L23%20-2M18%2014L30%20-2M25%2014L37%20-2M32%2014L44%20-2M39%2014L51%20-2M46%2014L58%20-2M53%2014L65%20-2M60%2014L72%20-2M67%2014L79%20-2M74%2014L86%20-2M81%2014L93%20-2M88%2014L100%20-2M95%2014L107%20-2M102%2014L114%20-2M109%2014L121%20-2M116%2014L128%20-2M123%2014L135%20-2M130%2014L142%20-2M137%2014L149%20-2%27/%3E%3C/g%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271.1%27/%3E%0A%3C/svg%3E");
-  /* La barre de séparation (croquis d'Adrien du 22/10/2026) : un trait fin qui descend en biseau aux deux bouts, une
-     languette hachurée sur les trois cinquièmes du milieu. 12 px de haut. */
-  --barre: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M.5%2011.5V9L3.5%206H10%27/%3E%3C/svg%3E") left top / 10px 12px no-repeat,
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M9.5%2011.5V9L6.5%206H0%27/%3E%3C/svg%3E") right top / 10px 12px no-repeat,
-    linear-gradient(#1f1b18, #1f1b18) 10px 5.5px / calc(20% - 10px) 1px no-repeat,
-    linear-gradient(#1f1b18, #1f1b18) right 10px top 5.5px / calc(20% - 10px) 1px no-repeat,
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%3E%3Cpath%20d%3D%27M10%201.6H5L.6%206L5%2010.4H10%27%20stroke-width%3D%271.1%27/%3E%3Cpath%20d%3D%27M6%209.4l3.6-6.6%27%20stroke-width%3D%272%27%20opacity%3D%27.85%27/%3E%3C/svg%3E") calc(20% + 2px) 0 / 10px 12px no-repeat,
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%3E%3Cpath%20d%3D%27M0%201.6H5L9.4%206L5%2010.4H0%27%20stroke-width%3D%271.1%27/%3E%3Cpath%20d%3D%27M.6%209.4l3.6-6.6%27%20stroke-width%3D%272%27%20opacity%3D%27.85%27/%3E%3C/svg%3E") calc(80% - 2px) 0 / 10px 12px no-repeat,
-    linear-gradient(#1f1b18, #1f1b18) center 1.6px / calc(60% - 20px) 1.1px no-repeat,
-    linear-gradient(#1f1b18, #1f1b18) center 9.9px / calc(60% - 20px) 1.1px no-repeat,
-    repeating-linear-gradient(-45deg, #1f1b18 0 2.2px, transparent 2.2px 6.4px) center 2.7px / calc(60% - 20px) 7.2px no-repeat;
-}
-#console, #trajet, #volet, .carte-fenetre, #instruments, .groupe-vue, #onglets, #collections .couverture, #choix-systeme, #choix-affichage {
+/* Les fenêtres (niveau, moteur, confirmation, bienvenue) : des plaques comme le reste ; leur titre à l'encre sur le
+   papier, la règle graduée dessous, comme les volets (plus de bandeau moutarde). */
+.carte-fenetre, .confirmation-jeu .carte-confirmation, #bienvenue .carte-bienvenue {
   border: 1.5px solid transparent; border-image: var(--cadre) 14 / 14px / 0 stretch; clip-path: var(--decoupe); box-shadow: none; border-radius: 0;
+  background: var(--grain), var(--fond);
 }
-#console, #collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { background: var(--grain), var(--creme); }
-#volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--grain), var(--fond); }
-.groupe-vue, #instruments, #onglets { background: var(--grain), var(--creme); }
-/* La console du trajet : la barre de tête, son étiquette gravée à gauche (plus sur le bouton PARLER). */
-#trajet { padding-top: 18px; }
-#trajet::before { content: ''; position: absolute; left: 12px; right: 12px; top: 3px; height: 12px; background: var(--barre); pointer-events: none; }
-#trajet::after { content: 'NAVIGATION · NAV-02'; position: absolute; left: 24px; top: 5px; padding: 0 5px; font: 600 7px/8px var(--police); letter-spacing: 0.22em;
-  color: color-mix(in srgb, var(--encre) 60%, transparent); background: var(--fond); pointer-events: none; }
-/* Les fenêtres au milieu de l'écran : la barre de tête. */
-.carte-fenetre::before { height: 12px; top: 6px; left: 14px; right: 14px; background: var(--barre); opacity: 1; }
-/* Les volets : la languette hachurée posée au milieu de la règle graduée, sous le titre. */
-
-/* Les Collections : la barre de tête de chaque fiche, la référence au-dessus. */
-#collections .couverture { padding-top: 22px; }
-#collections .couverture::before { content: ''; position: absolute; left: 12px; right: 12px; top: 6px; height: 12px; background: var(--barre); pointer-events: none; }
-#collections .couverture::after { top: 8px; left: 26px; right: auto; padding: 0 5px; line-height: 8px; background: var(--creme); opacity: 1; color: color-mix(in srgb, var(--encre) 60%, transparent); }
-/* Les instruments : leur intitulé gravé sous le biseau. */
-#instruments::before { top: 4px; }
+.titre-fenetre, .confirmation-jeu .titre-confirmation {
+  position: relative; margin: 14px 14px 18px; padding: 0 0 8px; text-align: left; background: none; border-bottom: 3px double var(--encre);
+  font-family: var(--titre); font-size: 26px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--encre);
+}
+.titre-fenetre::after, .confirmation-jeu .titre-confirmation::after { content: ''; position: absolute; left: 0; right: 0; bottom: -11px; height: 7px; background: var(--regle); }
+.confirmation-jeu .titre-pulp { font-size: 26px; }
+/* Les Collections : chaque fiche au même papier, quelle que soit la collection. */
+#collections .couverture.monolithes, #collections .couverture.voix, #collections .couverture.disparus { background: var(--grain), var(--creme); }
+#collections .couverture.voix .illustration, #collections .couverture.disparus .illustration { background: var(--fond); }
+#collections .couverture.voix .jauge-collection i, #collections .couverture.disparus .jauge-collection i { background: var(--orange); }
+#collections .couverture.monolithes button, #collections .couverture.voix button, #collections .couverture.disparus button { color: var(--encre); background: var(--fond); }
+/* Le classeur des Disparus : CHERCHER comme les autres boutons. */
+#disparus .carte-disparu button { font-family: var(--titre); font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--encre); background: var(--fond); }

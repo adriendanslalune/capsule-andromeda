@@ -17,6 +17,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Fenêtres refaites au propre (demande d'Adrien du 22/10/2026 : « des bugs partout ») — **fait, en attente de ses
+  essais** : un seul bloc de styles en fin de `src/style.css` (plaques à cadre de bord, languette hachurée seulement
+  après les intitulés de section, bandes de danger, étiquettes gravées) ; fenêtres de niveau, de moteur, de
+  confirmation et de bienvenue au même style ; Collections et Disparus sans les anciennes couleurs ; défilement remis en
+  haut en changeant d'onglet (Marché, Journal, Capsule) ; doublon de la liste Navigation retiré. Revue complète des
+  30 écrans du jeu avant publication.
 - Look « dossier de mission » (choix d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : polices Barlow
   Condensed et IBM Plex Mono, cadres fins, ombre de papier posé, équerres aux coins, titres à l'encre sur double filet,
   orange sécurité, hachures d'avertissement en séparateur (`src/style.css`, variables `--titre`, `--orange`,

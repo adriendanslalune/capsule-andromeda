@@ -444,7 +444,7 @@ const cockpit = new Cockpit((page) => {
   if (page === 'boutique') document.querySelector<HTMLElement>('#boutique')!.innerHTML = htmlBoutique()
 })
 const cadran = new Cadran(document.querySelector<HTMLDivElement>('#cadran')!, (nom) => { choisir(nom, true); cockpit.fermer() }, horloge,
-  (t) => ({ aliens: cibles().filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: cibles().filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t),
+  (t) => ({ aliens: [...new Set(cibles())].filter((n) => corps(n)?.type === 'alien' && surLaCarte(jeu.espace, n, t, cibles())), epaves: [...new Set(cibles())].filter((n) => corps(n)?.type === 'epave'), monolithes: monolithesLocalises(t),
     engins: [...new Set(lieuxConnus())].slice().filter((n) => corps(n)?.type === 'satellite' || corps(n)?.type === 'sonde') }))
 
 // Le PING des monolithes, sur la carte sous les Messages : un PING, l'écho revient à la vitesse de la lumière (on ne
@@ -1169,6 +1169,7 @@ document.querySelector<HTMLElement>('#missions')!.addEventListener('click', (ev)
   const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-journal-onglet]')
   if (!b) return
   ongletJournal = b.dataset.journalOnglet as typeof ongletJournal
+  document.querySelector<HTMLElement>('#missions')!.scrollTop = 0
   try { localStorage.setItem(CLE_ONGLET_JOURNAL, ongletJournal) } catch { /* pas de mémoire : tant pis */ }
   afficherOngletJournal()
 })
@@ -1427,6 +1428,7 @@ function gesteReparation(a: NomAppareil, r: Resultat): void {
   afficherReparation()
 }
 function choisirSousOnglet(s: SousOnglet): void {
+  if (s !== sousOnglet) { const page = document.querySelector<HTMLElement>('.page[data-contenu="capsule"]'); if (page) page.scrollTop = 0 }
   sousOnglet = s
   for (const b of document.querySelectorAll<HTMLElement>('[data-sous]')) b.classList.toggle('actif', b.dataset.sous === s)
   document.querySelector<HTMLDivElement>('#capsule')!.hidden = s !== 'etat'
@@ -1645,6 +1647,7 @@ function afficherMarche(t: number): void {
 for (const b of document.querySelectorAll<HTMLElement>('[data-marche-onglet]')) {
   b.addEventListener('click', () => {
     ongletMarche = b.dataset.marcheOnglet as typeof ongletMarche
+    document.querySelector<HTMLElement>('#marche')!.scrollTop = 0
     try { localStorage.setItem(CLE_ONGLET_MARCHE, ongletMarche) } catch { /* pas de mémoire : tant pis */ }
     afficherMarche(horloge())
   })
