@@ -131,12 +131,15 @@ describe('la Lune, de bout en bout', () => {
 describe('le chemin vers l’assaut d’une zone (Adrien, 22/10/2026 : la Lune à 100 % restait occupée sans explication)', () => {
   it('dit, à chaque moment, ce qu’il reste à faire pour lancer l’assaut', () => {
     const jeu = new Jeu(), t = Date.UTC(2026, 9, 22, 12)
-    // Pas encore la quête de libération : ses quêtes préalables.
-    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/La Lune libérée.*termine d'abord/)
-    // Les préalables finis : la quête est à prendre auprès de son donneur.
-    for (const c of quete('lune-5').conditions) jeu.quetes[c] = { etape: 0, compte: 0, debut: t, fin: t }
-    for (const c of ['lune-1', 'lune-3']) jeu.quetes[c] ??= { etape: 0, compte: 0, debut: t, fin: t }
-    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/va chercher la quête « La Lune libérée » auprès d'Elsa Varga \(ISS\)/)
+    // Le cas d'Adrien : lune-1 et lune-2 finies, jamais parlé au Dr Keïta : la quête à prendre est « Ravitailler Tycho ».
+    for (const c of ['lune-1', 'lune-2']) jeu.quetes[c] = { etape: 0, compte: 0, debut: t, fin: t }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/il te manque la quête « Ravitailler Tycho » : Dr Amadou Keïta t'attend \(Lune\)/)
+    // Elle en cours : son étape.
+    jeu.quetes['lune-3'] = { etape: 0, compte: 0, debut: t, fin: null }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/avance d'abord dans la quête « Ravitailler Tycho »/)
+    // Toutes les préalables finies : la quête de libération, auprès d'Elsa Varga.
+    for (const c of ['lune-3', 'lune-4']) jeu.quetes[c] = { etape: 0, compte: 0, debut: t, fin: t }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/il te manque la quête « La Lune libérée » : Elsa Varga t'attend \(ISS\)/)
     // La quête en cours, à son étape d'assaut : en orbite, l'ASSAUT.
     jeu.quetes['lune-5'] = { etape: 1, compte: 0, debut: t, fin: null }
     expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/orbite autour de la Lune et lance l'ASSAUT/)

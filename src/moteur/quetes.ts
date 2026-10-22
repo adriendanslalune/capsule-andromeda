@@ -220,24 +220,31 @@ export function assautIci(jeu: Jeu, t: number): string | null {
  * à 100 % restait occupée sans qu'on sache pourquoi) : l'assaut passe par la quête de libération de la zone, dont
  * l'étape « assaut » se joue en orbite autour d'elle. Null si aucune quête ne mène à son assaut.
  */
-/** « d'Elsa Varga », « du Veilleur », « du Dr Keïta », « de Nadia Orlov ». */
-function aupres(nom: string): string {
-  if (/^Le /.test(nom)) return `du ${nom.slice(3)}`
-  if (/^Dr /.test(nom)) return `du ${nom}`
-  return /^[AEIOUÉÈYH]/i.test(nom) ? `d'${nom}` : `de ${nom}`
-}
-
 export function cheminVersAssaut(jeu: Jeu, nomZone: string): string | null {
   const q = QUETES.find((x) => x.etapes.some((e) => e.genre === 'assaut' && e.zone === nomZone))
   if (!q) return null
   const amiral = zone(nomZone)?.amiral ?? 'le vaisseau amiral'
   const e = etapeCourante(jeu, q)
   if (e && (e.genre === 'assaut' || e.genre === 'jauge')) return `Mets-toi en orbite autour ${deLa(nomZone)} et lance l'ASSAUT contre ${amiral}.`
-  if (e) return `Pour lancer l'assaut, avance d'abord dans la quête « ${q.titre} » : ${texteEtape(e).replace(/^./, (c) => c.toLowerCase())}.`
-  if (jeu.quetes[q.id]) return null
-  if (disponibles(jeu).includes(q)) { const d = pnj(q.donneur); return `Pour lancer l'assaut, va chercher la quête « ${q.titre} » auprès ${aupres(d.nom)} (${d.lieu}).` }
-  const avant = q.conditions.filter((c) => !finie(jeu, c)).map((c) => `« ${quete(c).titre} »`)
-  return `Pour lancer l'assaut, il faut la quête « ${q.titre} » ; termine d'abord ${avant.join(' et ')}.`
+  // Sinon, en remontant la chaîne des quêtes (Adrien, 22/10/2026 : nommer la fin de la chaîne ne l'aidait pas) : la
+  // quête qu'on peut faire maintenant, celle qui est en cours ou celle qui attend qu'on la prenne.
+  const r = prochaineQuete(jeu, q)
+  if (!r) return null
+  if (r.enCours) {
+    const etape = etapeCourante(jeu, r.quete)
+    return etape ? `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${texteEtape(etape).replace(/^./, (c) => c.toLowerCase())}.` : null
+  }
+  const d = pnj(r.quete.donneur)
+  return `Pour lancer l'assaut, il te manque la quête « ${r.quete.titre} » : ${d.nom} t'attend (${d.lieu}). Mets-toi en orbite et parle-lui.`
+}
+
+/** La quête qu'on peut faire maintenant sur le chemin d'une autre : elle-même ou une de ses conditions (en cours, ou à prendre). */
+function prochaineQuete(jeu: Jeu, q: Quete): { quete: Quete; enCours: boolean } | null {
+  if (finie(jeu, q.id)) return null
+  if (jeu.quetes[q.id]) return { quete: q, enCours: true }
+  if (disponibles(jeu).includes(q)) return { quete: q, enCours: false }
+  for (const c of q.conditions) { const r = prochaineQuete(jeu, quete(c)); if (r) return r }
+  return null
 }
 
 /** La fenêtre d'une zone libérée (demande d'Adrien du 21/10/2026) : le PNJ de la Résistance qui l'annonce, ce qu'il dit, ce qui s'ouvre. */

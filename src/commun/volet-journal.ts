@@ -5,7 +5,7 @@
 
 import type { Quete } from '../donnees/quetes'
 import type { Jeu } from '../moteur/jeu'
-import { enCours, objectif, pnj, terminees, texteEtape } from '../moteur/quetes'
+import { disponibles, enCours, objectif, pnj, terminees, texteEtape } from '../moteur/quetes'
 import { medaillon } from './vue-dialogue'
 
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
@@ -41,14 +41,25 @@ function carte(jeu: Jeu, q: Quete, ouverte: boolean): string {
 
 /** Le contenu du journal. ouverte : la quête dépliée (par défaut, la quête suivie). */
 export function htmlJournal(jeu: Jeu, ouverte: string | null): string {
-  const cours = enCours(jeu), finies = terminees(jeu)
+  const cours = enCours(jeu), finies = terminees(jeu), aPrendre = disponibles(jeu)
   const deplie = ouverte ?? jeu.queteSuivie
   let html = ''
-  if (!cours.length && !finies.length) {
+  if (!cours.length && !finies.length && !aPrendre.length) {
     return html + '<p class="vide-journal">Aucune quête pour l\'instant. Sur la carte, un <b>!</b> près d\'un personnage signale qu\'il a quelque chose à te demander : va en orbite à son lieu et parle-lui. Commence par Elsa Varga, sur l\'ISS.</p>'
   }
   for (const [titre, liste] of [['Principales', cours.filter((q) => q.type === 'principale')], ['Secondaires', cours.filter((q) => q.type === 'secondaire')]] as const) {
     if (liste.length) html += `<h3>${titre}</h3>` + liste.map((q) => carte(jeu, q, q.id === deplie)).join('')
+  }
+  // Les quêtes qui attendent qu'on vienne les prendre (Adrien, 22/10/2026 : il croyait avoir tout fini, alors que le
+  // Dr Keïta l'attendait sur la Lune) : qui la donne, où, et Y ALLER. Rien de la quête n'est dévoilé.
+  if (aPrendre.length) {
+    html += '<h3>À prendre</h3>' + aPrendre.sort((a, b) => Number(b.type === 'principale') - Number(a.type === 'principale')).map((q) => {
+      const d = pnj(q.donneur)
+      return `<div class="quete a-prendre ${q.type}"><div class="tete-quete">${medaillon(d, 'medaillon')}`
+        + `<span><small>${q.type === 'principale' ? '◆ PRINCIPALE' : '● SECONDAIRE'} · à prendre</small><b>${echapper(q.titre)}</b>`
+        + `<em>${echapper(d.nom)} t'attend (${echapper(d.lieu)}) : mets-toi en orbite et parle-lui</em></span></div>`
+        + `<div class="boutons-quete"><button type="button" class="principal" data-y-aller="${echapper(d.lieu)}">Y ALLER · ${echapper(d.lieu)}</button></div></div>`
+    }).join('')
   }
   if (finies.length) html += '<h3>Terminées</h3>' + finies.map((q) => carte(jeu, q, q.id === ouverte)).join('')
   return html

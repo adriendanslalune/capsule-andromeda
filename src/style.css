@@ -2457,3 +2457,4 @@ body.volet-ouvert #annonces { display: none; }
 .tampon-capitaine .numero-tampon { font: 700 10px var(--titre); letter-spacing: 0.08em; }
 .bloc.signature .petit { margin: 0; }
 #trajet-texte .occupation .chemin-assaut { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: var(--encre); font-weight: 600; }
+.tampon-quete { top: auto; bottom: 7px; right: 34px; font-size: 13px; padding: 1px 6px; }
