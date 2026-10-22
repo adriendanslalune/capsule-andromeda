@@ -3,6 +3,7 @@
 // Adresses relatives (base './') : le site marche quel que soit le nom du dépôt.
 // planche.html, maquette-reparation.html, maquette-interface.html, maquette-symboles.html, maquette-carte.html, maquette-fenetres.html, maquette-tableau.html : planches et maquettes de présentation, pour validation par Adrien.
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 
 /** Version affichée dans le jeu : le commit construit (pour vérifier sur le téléphone que la mise à jour est arrivée). */
@@ -18,6 +19,8 @@ export default defineConfig({
     name: 'version',
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version }) })
+      // sw.js : le service hors ligne de la version installable, marqué de la version (voir src/sw-modele.js).
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('src/sw-modele.js', 'utf8').replaceAll('__VERSION__', version) })
     },
   }],
   server: { host: true },

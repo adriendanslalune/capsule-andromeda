@@ -13,6 +13,7 @@ import { Cadran } from './carte/cadran'
 import { afficherBandeau, basculerVoyant, type Voyant } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
+import { preparerInstallation } from './commun/installation'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
 import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
@@ -1856,6 +1857,7 @@ document.querySelector('#provoquer-panne')!.addEventListener('click', () => {
 
 // Nouvelle version en ligne : le jeu se recharge tout seul (la partie est sauvegardée juste avant).
 surveillerMisesAJour(enregistrerPartie)
+preparerInstallation(document.querySelector<HTMLElement>('#installer'))
 
 // Appui long sur un symbole : son nom s'affiche un instant, au-dessus (décision d'Adrien du 20/10/2026). Le toucher qui
 // a montré le nom ne déclenche pas le bouton qui contient le symbole.

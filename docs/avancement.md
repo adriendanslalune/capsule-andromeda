@@ -15,8 +15,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 9. Campagne de jeu (quêtes principales, dont la Lune ; décision d'Adrien du 19/10/2026) | **en cours** : PNJ, quêtes, journal et suivi faits (20/10/2026) ; premier jet de la Lune à corriger par Adrien |
 | 10. Serveur, comptes, messages, échanges | à faire |
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
-| 12. Version installable (PWA), puis boutique | à faire |
+| 12. Version installable (PWA), puis boutique | **version installable faite** (22/10/2026), en attente des essais d'Adrien ; boutique à faire |
 
+- Version installable : icône, manifeste, plein écran, jeu jouable hors ligne, rubrique « Installer le jeu » dans
+  Plus (Adrien, 22/10/2026) — **fait, en attente de ses essais**.
 - Voix perdues : piste A (les jardiniers), le temps pour les trouver ; une émission par jour, l'heure des voix qui
   manquent dans le carnet (Adrien, 22/10/2026) ; Terre retouchée, Mercure (10), Vénus (12), Mars (20), Jupiter (22), Saturne (22), Uranus (17), Neptune (18) et Pluton (14) écrits : les 150 voix émettent ; relues, incohérences corrigées, **validées par Adrien le 22/10/2026** ; le carnet donne l'heure de début et de fin
   (`docs/voix-perdues-carnets.md`) — **fait, validé**. Quêtes principales à revoir plus tard (Adrien tourne
