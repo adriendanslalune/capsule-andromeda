@@ -42,7 +42,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, assautIci, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, rattraperSuivi, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -156,6 +156,7 @@ function nouvellePartie(): Jeu {
 }
 const partieChargee = chargerPartie()
 const jeu = partieChargee ?? nouvellePartie()
+rattraperSuivi(jeu)
 const mission = jeu.mission
 suivreMission(mission)
 

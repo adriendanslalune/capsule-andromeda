@@ -249,7 +249,8 @@ export function restaurer(s: unknown): Jeu | null {
     if (Array.isArray(v.radio.captees)) jeu.radio.captees = v.radio.captees.filter((n) => nombre(n) && n >= 1 && n <= NOMBRE_VOIX)
     for (const n of jeu.radio.captees) if (nombre(v.radio.captureesLe?.[n])) jeu.radio.captureesLe[n] = v.radio.captureesLe[n]
   }
-  if (typeof v.queteSuivie === 'string' && jeu.quetes[v.queteSuivie]) jeu.queteSuivie = v.queteSuivie
+  // (Une principale pas encore prise peut être suivie : la quête suivie est revue au chargement, voir rattraperSuivi.)
+  if (typeof v.queteSuivie === 'string') jeu.queteSuivie = v.queteSuivie
   // Les zones : seulement des zones qui existent, des points positifs.
   const liberees = Array.isArray(v.zones?.liberees) ? v.zones.liberees : Array.isArray(v.zonesLiberees) ? v.zonesLiberees : []
   jeu.zones.liberees = liberees.filter((z): z is string => typeof z === 'string' && !!zone(z))

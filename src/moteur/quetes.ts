@@ -54,6 +54,32 @@ export function disponibles(jeu: Jeu): Quete[] {
     && (q.type === 'principale' || estLibre(jeu.zones, pnj(q.donneur).lieu)))
 }
 
+/**
+ * Les quêtes principales qui attendent qu'on vienne les prendre (Adrien, 22/10/2026 : une quête de la campagne doit être
+ * dans les quêtes principales, pas cachée) : le Journal les montre avec les principales en cours, leur objectif est
+ * « parle à leur donneur » ; on peut les suivre. Les secondaires se découvrent sur la carte (« ! »).
+ */
+export function principalesAPrendre(jeu: Jeu): Quete[] {
+  return disponibles(jeu).filter((q) => q.type === 'principale')
+}
+
+/** La quête à suivre quand rien ne l'est plus : une principale en cours, sinon une principale à prendre, sinon une autre en cours. */
+export function queteASuivre(jeu: Jeu): string | null {
+  const cours = enCours(jeu)
+  return (cours.find((q) => q.type === 'principale') ?? principalesAPrendre(jeu)[0] ?? cours[0])?.id ?? null
+}
+
+/**
+ * Au chargement : une quête suivie qui n'est plus en cours (ni à prendre) est remplacée ; une secondaire suivie cède la
+ * place à la campagne quand aucune principale n'est en cours mais qu'une attend d'être prise (Adrien, 22/10/2026).
+ */
+export function rattraperSuivi(jeu: Jeu): void {
+  const s = jeu.queteSuivie ? QUETES.find((q) => q.id === jeu.queteSuivie) : undefined
+  const valide = !!s && (enCours(jeu).includes(s) || principalesAPrendre(jeu).includes(s))
+  const campagneOubliee = s?.type === 'secondaire' && !enCours(jeu).some((q) => q.type === 'principale') && principalesAPrendre(jeu).length > 0
+  if (!valide || campagneOubliee) jeu.queteSuivie = queteASuivre(jeu)
+}
+
 /** Les quêtes en cours, les principales d'abord. */
 export function enCours(jeu: Jeu): Quete[] {
   return QUETES.filter((q) => jeu.quetes[q.id] && jeu.quetes[q.id].fin == null)
@@ -97,6 +123,11 @@ export function texteEtape(e: EtapeQuete): string {
 
 /** L'objectif en cours d'une quête : son énoncé, son compteur (« 1/2 ») et son lieu. */
 export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | null; lieu: string | null } | null {
+  // Une principale pas encore prise : aller parler à celui qui la donne.
+  if (!jeu.quetes[q.id] && q.type === 'principale' && disponibles(jeu).includes(q)) {
+    const premier: EtapeQuete = { genre: 'parler', pnj: q.donneur, texte: [] }
+    return { texte: texteEtape(premier), compte: null, lieu: lieuEtape(premier) }
+  }
   const e = etapeCourante(jeu, q)
   if (!e) return null
   const n = e.genre === 'mission' || e.genre === 'monolithes' ? e.nombre : 0
@@ -132,7 +163,9 @@ function franchir(jeu: Jeu, q: Quete, t: number): void {
   jeu.credits += q.recompense
   jeu.gagnerXp(Math.min(XP.quete[1], Math.max(XP.quete[0], q.recompense / 10)))
   if (q.libere && !jeu.zones.liberees.includes(q.libere)) jeu.gagnerAssaut(q.libere, t)
-  if (jeu.queteSuivie === q.id) jeu.queteSuivie = enCours(jeu)[0]?.id ?? null
+  // La suivante à suivre ; une principale qui s'ouvre passe devant une secondaire suivie.
+  const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
+  if (!suivie || suivie.id === q.id || (suivie.type === 'secondaire' && principalesAPrendre(jeu).length)) jeu.queteSuivie = queteASuivre(jeu)
 }
 
 /** On parle à un PNJ (la capsule en orbite à son lieu). */
@@ -235,7 +268,7 @@ export function cheminVersAssaut(jeu: Jeu, nomZone: string): string | null {
     return etape ? `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${texteEtape(etape).replace(/^./, (c) => c.toLowerCase())}.` : null
   }
   const d = pnj(r.quete.donneur)
-  return `Pour lancer l'assaut, il te manque la quête « ${r.quete.titre} » : ${d.nom} t'attend (${d.lieu}). Mets-toi en orbite et parle-lui.`
+  return `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${d.nom} t'attend (${d.lieu}), mets-toi en orbite et parle-lui.`
 }
 
 /** La quête qu'on peut faire maintenant sur le chemin d'une autre : elle-même ou une de ses conditions (en cours, ou à prendre). */

@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Les principales à prendre sont dans les quêtes principales du Journal, suivies d'office (Adrien, 22/10/2026) ; plus de
+  section « À prendre » — **fait, en attente de ses essais**.
 - Chemin vers l'assaut sur la fiche d'une zone à 100 % ; 445 brèves et 101 réclames (Adrien, 22/10/2026) — **fait,
   en attente de ses essais**.
 - Suite de l'esprit pulp (Adrien, 22/10/2026) — **fait, en attente de ses essais** : kilomètres restants qui défilent ;
