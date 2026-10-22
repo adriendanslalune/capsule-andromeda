@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#e7dcc4" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <title>Maquette du tableau de bord</title>
+    <!--
+      Quatre pistes pour le tableau de bord de la console du haut (Adrien, 22/10/2026 : les touches brillantes et l'écran
+      e-ink font « cheap » ; il veut des propositions). Toutes dans la DA : papier clair, encre, aplats pastel, documents
+      techniques de la NASA des années 60 ; pas de reflets, pas de halo. Chacune dans deux situations : au calme (un
+      contrat en cours, une quête suivie), puis une panne qui passe devant. Données fictives.
+    -->
+    <style>
+      :root {
+        --carte: #e7dcc4; --encre: #1f1b18; --creme: #fffbf2; --fond: #fbf8f1; --orange: #e0571f;
+        --alerte: #f6c4ad; --quete: #bcd6ee; --contrat: #f2d58e; --echo: #cdbfe8;
+        --titre: 'Barlow Condensed', 'Arial Narrow', sans-serif; --police: 'IBM Plex Mono', ui-monospace, monospace;
+        --decoupe: polygon(7.5px 0, 100% 0, 100% calc(100% - 7.5px), calc(100% - 7.5px) 100%, 0 100%, 0 7.5px);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--carte); color: var(--encre); font-family: var(--police); padding: 16px 12px 40px; }
+      h1 { font: 800 26px var(--titre); letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 3px double var(--encre); padding-bottom: 6px; }
+      .intro { margin: 8px 0 18px; font-size: 12px; line-height: 1.5; }
+      h2 { margin: 26px 0 4px; font: 700 20px var(--titre); letter-spacing: 0.06em; text-transform: uppercase; }
+      .idee { margin-bottom: 10px; font-size: 11.5px; line-height: 1.5; opacity: 0.85; }
+      .situation { margin: 10px 0 4px; font: 600 10px var(--police); letter-spacing: 0.16em; opacity: 0.6; }
+
+      /* La plaque de la console (comme dans le jeu). */
+      .plaque { position: relative; background: var(--creme); border: 1.5px solid var(--encre); clip-path: var(--decoupe); padding: 3px 4px 6px 6px; }
+      .etat { display: flex; align-items: center; gap: 7px; padding: 6px 4px 6px; border-bottom: 3px double color-mix(in srgb, var(--encre) 70%, transparent); }
+      .etat .rond { width: 30px; height: 30px; border: 1.5px solid var(--encre); border-radius: 50%; display: grid; place-items: center; font-size: 13px; }
+      .etat .ou { flex: 1; line-height: 1.3; }
+      .etat .ou b { display: block; font-size: 12px; letter-spacing: 0.04em; }
+      .etat .ou small { font-size: 11px; opacity: 0.8; }
+      .etat .niv, .etat .cr { padding: 4px 7px; border: 1.5px solid var(--encre); border-radius: 2px; font: 700 12px var(--titre); letter-spacing: 0.06em; }
+      .etat .niv span { color: #7a5aa8; margin-left: 4px; }
+      .bouton { flex: none; padding: 7px 10px; font: 700 13px var(--titre); letter-spacing: 0.12em; color: var(--encre); border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); }
+      .bouton.urgent { color: #fff; background: var(--orange); border-color: var(--orange); }
+      .ligne-detail { display: flex; align-items: center; gap: 10px; font-size: 12px; line-height: 1.35; }
+      .ligne-detail .texte { flex: 1; min-width: 0; }
+      .ligne-detail b { letter-spacing: 0.04em; }
+      .ligne-detail small { display: block; font-size: 11px; opacity: 0.8; }
+
+      /* A · Le panneau d'annonciateurs : quatre cases plates dans une seule plaque gravée, comme le panneau
+         « caution & warning » d'Apollo ; allumée = l'aplat pastel, éteinte = le libellé gravé en gris ; la case
+         choisie a un cadre intérieur à l'encre. Dessous, un ticket de téléscripteur. */
+      .a .panneau { display: grid; grid-template-columns: repeat(4, 1fr); margin: 7px 2px 0; border: 1.5px solid var(--encre); }
+      .a .case { position: relative; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 700 12px var(--titre);
+        letter-spacing: 0.16em; color: color-mix(in srgb, var(--encre) 35%, transparent); background: var(--fond); }
+      .a .case + .case { border-left: 1.5px solid var(--encre); }
+      .a .case small { font: 500 8.5px var(--police); letter-spacing: 0.08em; opacity: 0.8; }
+      .a .case.on { color: var(--encre); background: var(--c); }
+      .a .case.choisie::after { content: ''; position: absolute; inset: 3px; border: 1.5px solid var(--encre); }
+      .a .ticket { margin: 6px 2px 0; padding: 7px 8px 7px; background: #f4eedf; border-top: 1px dashed color-mix(in srgb, var(--encre) 55%, transparent); }
+      .a .ticket .entete { font: 600 8.5px var(--police); letter-spacing: 0.18em; opacity: 0.55; margin-bottom: 3px; }
+
+      /* B · Les onglets de dossier : les quatre catégories sont des intercalaires sur le haut d'une fiche ; allumé =
+         onglet en couleur ; l'onglet choisi rejoint la fiche (pas de trait entre eux) et la fiche prend sa teinte. */
+      .b .onglets { display: flex; gap: 3px; margin: 8px 2px 0; padding: 0 6px; }
+      .b .onglet { flex: 1; position: relative; top: 1.5px; padding: 5px 0 4px; text-align: center; font: 700 12px var(--titre); letter-spacing: 0.14em;
+        color: color-mix(in srgb, var(--encre) 40%, transparent); background: var(--fond); border: 1.5px solid color-mix(in srgb, var(--encre) 45%, transparent); border-bottom: none;
+        clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 100%, 0 100%); border-radius: 0; }
+      .b .onglet.on { color: var(--encre); background: var(--c); border-color: var(--encre); }
+      .b .onglet.on::before { content: '●'; margin-right: 4px; font-size: 8px; vertical-align: 2px; }
+      .b .onglet.choisi { z-index: 2; padding-bottom: 6px; }
+      .b .fiche { position: relative; z-index: 1; margin: 0 2px; padding: 9px 9px 8px; border: 1.5px solid var(--encre); background: color-mix(in srgb, var(--c) 30%, var(--creme)); }
+
+      /* C · Les voyants ronds : quatre petites lampes à l'encre, comme sur un pupitre dessiné par Moebius ; éteinte =
+         un rond vide ; allumée = l'aplat pastel et de fins rayons à l'encre autour (pas de halo) ; la choisie a son nom
+         souligné et une petite flèche. Dessous, la fiche dactylographiée. */
+      .c .lampes { display: grid; grid-template-columns: repeat(4, 1fr); margin: 8px 2px 2px; }
+      .c .lampe { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 2px 0 4px; font: 700 11.5px var(--titre); letter-spacing: 0.16em;
+        color: color-mix(in srgb, var(--encre) 45%, transparent); }
+      .c .lampe svg { width: 34px; height: 34px; overflow: visible; }
+      .c .lampe .verre { fill: var(--fond); stroke: var(--encre); stroke-width: 1.5; }
+      .c .lampe .rayons { stroke: var(--encre); stroke-width: 1.2; stroke-linecap: round; opacity: 0; }
+      .c .lampe.on { color: var(--encre); }
+      .c .lampe.on .verre { fill: var(--c); }
+      .c .lampe.on .rayons { opacity: 1; }
+      .c .lampe.choisie span { border-bottom: 2px solid var(--encre); }
+      .c .fiche { margin: 4px 2px 0; padding: 8px 6px 2px; border-top: 1px solid var(--encre); }
+      .c .fiche .rubrique { font: 600 8.5px var(--police); letter-spacing: 0.18em; opacity: 0.55; margin-bottom: 3px; }
+
+      /* D · Le surligneur : rien que des mots gravés sur une ligne ; allumé = le mot à l'encre, surligné d'un trait
+         de feutre pastel (comme un dossier annoté) ; le choisi a son trait plein ; un chiffre quand il y en a
+         plusieurs. Dessous, une ligne de texte simple. Le plus sobre. */
+      .d .mots { display: flex; justify-content: space-between; margin: 9px 6px 0; }
+      .d .mot { position: relative; padding: 4px 2px; font: 700 14px var(--titre); letter-spacing: 0.14em; color: color-mix(in srgb, var(--encre) 35%, transparent); }
+      .d .mot.on { color: var(--encre); background: linear-gradient(transparent 52%, var(--c) 52%, var(--c) 88%, transparent 88%); }
+      .d .mot.choisi { background: var(--c); box-shadow: 0 0 0 1.5px var(--encre); border-radius: 1px; padding: 4px 7px; }
+      .d .mot sup { font: 600 9px var(--police); margin-left: 2px; }
+      .d .ligne-detail { margin: 8px 4px 2px; padding-top: 7px; border-top: 1px dotted color-mix(in srgb, var(--encre) 55%, transparent); }
+    </style>
+  </head>
+  <body>
+    <h1>Tableau de bord · 4 pistes</h1>
+    <p class="intro">Demande d'Adrien du 22/10/2026 : revoir entièrement le tableau de bord. Plus de reflets ni de halo : de l'encre, du papier et des aplats pastel, comme le reste du jeu. Chaque piste dans deux situations : au calme, puis une panne qui passe devant.</p>
+
+    <!-- A -->
+    <h2>A · Panneau d'annonciateurs</h2>
+    <p class="idee">Comme le panneau d'alarmes d'Apollo : une seule plaque gravée en quatre cases. Allumée, la case prend son aplat pastel ; la case affichée a un cadre intérieur. Le détail sort dessous comme un ticket de téléscripteur.</p>
+    <p class="situation">AU CALME</p>
+    <div class="plaque a">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="panneau">
+        <div class="case" style="--c: var(--alerte)">ALERTE</div>
+        <div class="case on" style="--c: var(--quete)">QUÊTE</div>
+        <div class="case on choisie" style="--c: var(--contrat)">CONTRAT</div>
+        <div class="case" style="--c: var(--echo)">ÉCHO</div>
+      </div>
+      <div class="ticket"><div class="entete">CONTRAT · 1 SUR 1</div><div class="ligne-detail"><span class="texte"><b>ABATTRE · Chasseur Π-2</b><small>combat · 18 min de vol</small></span><span class="bouton">VOIR</span></div></div>
+    </div>
+    <p class="situation">UNE PANNE</p>
+    <div class="plaque a">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="panneau">
+        <div class="case on choisie" style="--c: var(--alerte)">ALERTE<small>2</small></div>
+        <div class="case on" style="--c: var(--quete)">QUÊTE</div>
+        <div class="case on" style="--c: var(--contrat)">CONTRAT</div>
+        <div class="case" style="--c: var(--echo)">ÉCHO</div>
+      </div>
+      <div class="ticket"><div class="entete">ALERTE · PANNE</div><div class="ligne-detail"><span class="texte"><b>ÉNERGIE</b><small>actions sur place deux fois plus longues</small></span><span class="bouton urgent">RÉPARER</span></div></div>
+    </div>
+
+    <!-- B -->
+    <h2>B · Onglets de dossier</h2>
+    <p class="idee">Les quatre catégories sont des intercalaires posés sur le haut d'une fiche, comme dans un dossier de mission. Allumé, l'onglet prend sa couleur avec un point ; l'onglet affiché rejoint la fiche, qui prend sa teinte.</p>
+    <p class="situation">AU CALME</p>
+    <div class="plaque b">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="onglets">
+        <span class="onglet" style="--c: var(--alerte)">ALERTE</span>
+        <span class="onglet on" style="--c: var(--quete)">QUÊTE</span>
+        <span class="onglet on choisi" style="--c: var(--contrat)">CONTRAT</span>
+        <span class="onglet" style="--c: var(--echo)">ÉCHO</span>
+      </div>
+      <div class="fiche" style="--c: var(--contrat)"><div class="ligne-detail"><span class="texte"><b>ABATTRE · Chasseur Π-2</b><small>combat · 18 min de vol</small></span><span class="bouton">VOIR</span></div></div>
+    </div>
+    <p class="situation">UNE PANNE</p>
+    <div class="plaque b">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="onglets">
+        <span class="onglet on choisi" style="--c: var(--alerte)">ALERTE</span>
+        <span class="onglet on" style="--c: var(--quete)">QUÊTE</span>
+        <span class="onglet on" style="--c: var(--contrat)">CONTRAT</span>
+        <span class="onglet" style="--c: var(--echo)">ÉCHO</span>
+      </div>
+      <div class="fiche" style="--c: var(--alerte)"><div class="ligne-detail"><span class="texte"><b>PANNE · ÉNERGIE</b><small>actions sur place deux fois plus longues</small></span><span class="bouton urgent">RÉPARER</span></div></div>
+    </div>
+
+    <!-- C -->
+    <h2>C · Voyants ronds</h2>
+    <p class="idee">Quatre petites lampes dessinées à l'encre, comme sur un pupitre de Moebius. Éteinte, un rond vide ; allumée, l'aplat pastel et de fins rayons d'encre autour, sans halo. Le nom de la lampe affichée est souligné ; le détail est dessous, comme une fiche dactylographiée.</p>
+    <p class="situation">AU CALME</p>
+    <div class="plaque c">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="lampes">
+        <span class="lampe" style="--c: var(--alerte)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>ALERTE</span></span>
+        <span class="lampe on" style="--c: var(--quete)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>QUÊTE</span></span>
+        <span class="lampe on choisie" style="--c: var(--contrat)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>CONTRAT</span></span>
+        <span class="lampe" style="--c: var(--echo)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>ÉCHO</span></span>
+      </div>
+      <div class="fiche"><div class="rubrique">CONTRAT EN COURS</div><div class="ligne-detail"><span class="texte"><b>ABATTRE · Chasseur Π-2</b><small>combat · 18 min de vol</small></span><span class="bouton">VOIR</span></div></div>
+    </div>
+    <p class="situation">UNE PANNE</p>
+    <div class="plaque c">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="lampes">
+        <span class="lampe on choisie" style="--c: var(--alerte)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>ALERTE</span></span>
+        <span class="lampe on" style="--c: var(--quete)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>QUÊTE</span></span>
+        <span class="lampe on" style="--c: var(--contrat)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>CONTRAT</span></span>
+        <span class="lampe" style="--c: var(--echo)"><svg viewBox="0 0 34 34"><g class="rayons"><path d="M17 1v4M17 29v4M1 17h4M29 17h4M5.7 5.7l2.8 2.8M25.5 25.5l2.8 2.8M5.7 28.3l2.8-2.8M25.5 8.5l2.8-2.8"/></g><circle class="verre" cx="17" cy="17" r="8"/></svg><span>ÉCHO</span></span>
+      </div>
+      <div class="fiche"><div class="rubrique">ALERTE · PANNE</div><div class="ligne-detail"><span class="texte"><b>ÉNERGIE</b><small>actions sur place deux fois plus longues</small></span><span class="bouton urgent">RÉPARER</span></div></div>
+    </div>
+
+    <!-- D -->
+    <h2>D · Surligneur</h2>
+    <p class="idee">Le plus sobre : quatre mots gravés sur une ligne. Allumé, le mot passe à l'encre, souligné d'un trait de feutre pastel, comme un dossier annoté à la main ; le mot affiché est encadré. Le détail tient sur une ligne en dessous.</p>
+    <p class="situation">AU CALME</p>
+    <div class="plaque d">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="mots">
+        <span class="mot" style="--c: var(--alerte)">ALERTE</span>
+        <span class="mot on" style="--c: var(--quete)">QUÊTE</span>
+        <span class="mot on choisi" style="--c: var(--contrat)">CONTRAT</span>
+        <span class="mot" style="--c: var(--echo)">ÉCHO</span>
+      </div>
+      <div class="ligne-detail"><span class="texte"><b>ABATTRE · Chasseur Π-2</b><small>combat · 18 min de vol</small></span><span class="bouton">VOIR</span></div>
+    </div>
+    <p class="situation">UNE PANNE</p>
+    <div class="plaque d">
+      <div class="etat"><span class="rond">◎</span><span class="ou"><b>EN ORBITE · TERRE</b><small>400 km · 1 h 32 min</small></span><span class="niv">NIV 4<span>XP</span></span><span class="cr">705 cr.</span></div>
+      <div class="mots">
+        <span class="mot on choisi" style="--c: var(--alerte)">ALERTE<sup>2</sup></span>
+        <span class="mot on" style="--c: var(--quete)">QUÊTE</span>
+        <span class="mot on" style="--c: var(--contrat)">CONTRAT</span>
+        <span class="mot" style="--c: var(--echo)">ÉCHO</span>
+      </div>
+      <div class="ligne-detail"><span class="texte"><b>PANNE · ÉNERGIE</b><small>actions sur place deux fois plus longues</small></span><span class="bouton urgent">RÉPARER</span></div>
+    </div>
+  </body>
+</html>

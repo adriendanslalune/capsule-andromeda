@@ -543,7 +543,7 @@ export class Carte2D {
     const y0 = this.centre.y - (this.hauteur - m.y) * this.kmParPx, y1 = this.centre.y + m.y * this.kmParPx
     ctx.save()
     ctx.strokeStyle = couleurs.encre
-    ctx.globalAlpha = 0.17
+    ctx.globalAlpha = 0.1
     ctx.lineWidth = 1
     ctx.beginPath()
     for (let x = Math.ceil(x0 / pas) * pas; x <= x1; x += pas) { const e = Math.round(this.ecranDe({ x, y: 0 }).x) + 0.5; ctx.moveTo(e, 0); ctx.lineTo(e, this.hauteur) }
@@ -553,32 +553,23 @@ export class Carte2D {
   }
 
   /**
-   * L'échelle de la grille, au bord gauche de l'écran (demande d'Adrien du 22/10/2026) : un crochet entre deux lignes
-   * de la grille, au milieu de la place libre, et ce qu'il mesure. Dessinée par-dessus le reste.
+   * L'échelle de la grille (demandes d'Adrien du 22/10/2026 : dans un coin, très discrète) : en bas à gauche, juste
+   * au-dessus des commandes du bas, un trait fin de la longueur d'un pas de la grille, et ce qu'il mesure.
    */
   dessinerEchelle(ctx: CanvasRenderingContext2D, couleurs: Couleurs2D, texte: (km: number) => string): void {
-    const pas = pasDeGrille(this.kmParPx), m = this.milieu()
-    const milieu = (this.marges.haut + this.hauteur - this.marges.bas) / 2
-    // La ligne de la grille juste au-dessus du milieu de la place libre, et la suivante dessous.
-    const yMonde = this.centre.y + (m.y - milieu) * this.kmParPx
-    const haut = this.ecranDe({ x: 0, y: Math.floor(yMonde / pas) * pas + pas }).y, bas = haut + pas / this.kmParPx
-    const x = 10.5
+    const pas = pasDeGrille(this.kmParPx), longueur = pas / this.kmParPx
+    const x = 14.5, y = Math.round(this.hauteur - this.marges.bas - 10) + 0.5
     ctx.save()
+    ctx.globalAlpha = 0.55
     ctx.strokeStyle = couleurs.encre
     ctx.fillStyle = couleurs.encre
-    ctx.lineWidth = 1.5
+    ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.moveTo(x + 6, haut); ctx.lineTo(x, haut); ctx.lineTo(x, bas); ctx.lineTo(x + 6, bas)
+    ctx.moveTo(x, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + longueur, y); ctx.lineTo(x + longueur, y - 4)
     ctx.stroke()
-    ctx.font = `600 10px 'IBM Plex Mono', monospace`
-    ctx.textBaseline = 'middle'
-    ctx.lineWidth = 3
-    ctx.strokeStyle = couleurs.fond
-    ctx.lineJoin = 'round'
-    const libelle = texte(pas)
-    ctx.translate(x + 5, (haut + bas) / 2)
-    ctx.strokeText(libelle, 0, 0)
-    ctx.fillText(libelle, 0, 0)
+    ctx.font = `500 9px 'IBM Plex Mono', monospace`
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(texte(pas), x + 4, y - 3)
     ctx.restore()
   }
 

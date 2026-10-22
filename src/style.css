@@ -2300,3 +2300,6 @@ body.volet-ouvert #annonces { display: none; }
 #bandeau .voyant .compte { color: #fff; background: var(--encre); box-shadow: none; }
 #bandeau .afficheur, #bandeau .afficheur.v-alerte, #bandeau .afficheur.v-quete, #bandeau .afficheur.v-contrat, #bandeau .afficheur.v-echo {
   margin: 6px 3px 3px; padding: 3px; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 3px; }
+/* Pas de surbrillance bleue du navigateur au toucher (Adrien, 22/10/2026 : toucher une touche du tableau de bord
+   sélectionnait tout le tableau) : chaque bouton a son propre état enfoncé. */
+* { -webkit-tap-highlight-color: transparent; }
