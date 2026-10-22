@@ -2464,3 +2464,4 @@ body.volet-ouvert #annonces { display: none; }
   transform: rotate(45deg); background: #e0ac2a; border: 1.5px solid var(--encre); }
 #bandeau .afficheur .ligne.quete.secondaire .losange { width: 6px; height: 6px; margin: 0 9px 1px 3px; background: var(--encre); border: none; }
 #bandeau .afficheur .ligne.quete b > span { display: inline; font-size: inherit; opacity: 1; }
+#carnet .bande .heure-voix { font-weight: 600; color: color-mix(in srgb, var(--encre) 75%, transparent); }

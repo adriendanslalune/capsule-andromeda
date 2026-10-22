@@ -1,9 +1,9 @@
 // La radio de la capsule (décisions d'Adrien du 20/10/2026) : un vieux poste TSF, ouvert depuis la carte (sous le
 // RADAR). Bande OC (ondes courtes) : les « Voix perdues », 150 balises laissées par des équipages pendant l'invasion,
-// une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, à heures fixes (les mêmes
+// une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à heure fixe (la même
 // pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure), à corriger par
+// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus), à corriger par
 // Adrien ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
@@ -13,8 +13,10 @@ export const LARGEUR_SIGNAL = 0.06
 export const SIGNAL_NET = 0.006
 /** Rester calé (signal net) pendant… (ms) pour enregistrer une voix. */
 export const DUREE_ENREGISTREMENT = 10_000
-/** Les horaires d'émission : chaque voix émet DUREE_EMISSION toutes les PERIODE_EMISSION, à son heure à elle. */
-export const PERIODE_EMISSION = 6 * 3_600_000
+/** Les horaires d'émission : chaque voix émet DUREE_EMISSION toutes les PERIODE_EMISSION, à son heure à elle. Une fois
+ *  par jour (décision d'Adrien du 22/10/2026, au lieu de toutes les 6 heures) : le temps est ce qui fait chercher, il
+ *  faut revenir à son heure, même en pleine nuit. */
+export const PERIODE_EMISSION = 24 * 3_600_000
 export const DUREE_EMISSION = 30 * 60_000
 
 /** Combien de voix dans chaque système (150 en tout). */
@@ -42,6 +44,20 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Noor Haddad, technicienne', lieu: 'Phare de Mercure', jour: 21, texte: 'La balise de Stanek ne regarde pas le ciel. Elle est tournée vers la Terre, comme un épouvantail au bord d\'un champ. Et d\'après l\'usure de sa coque, elle la regarde depuis bien avant les dinosaures.' },
     { auteur: 'Gabin, cuisinier', lieu: 'Phare de Mercure', jour: 30, texte: 'Le chef dit qu\'on est les gardiens du phare le plus chaud du système. Moi je dis qu\'on est les sardines de la boîte la plus chaude du système. Il ne me laisse plus parler à la radio.' },
     { auteur: 'Aurelio Benedetti, chef de quart', lieu: 'Phare de Mercure', jour: 40, texte: 'Le Phare reste allumé. Si leurs vaisseaux se servent de notre lumière pour se guider, tant pis : un phare, ça éclaire tout le monde. Même ceux qu\'on n\'aime pas.' },
+  ],
+  Vénus: [
+    { auteur: 'Odile Varenne, maire', lieu: 'Cythère, ville flottante', jour: 2, texte: 'Ici Cythère, ville flottante, à cinquante-cinq kilomètres au-dessus de Vénus. Nous sommes trois mille. Nous flottons. Pour l\'instant, c\'est tout ce que je peux vous promettre.' },
+    { auteur: 'Kenji Mori, météorologue', lieu: 'Cythère, ville flottante', jour: 3, texte: 'Leurs vaisseaux sont passés au-dessus de nous sans ralentir. Ils nous ont regardés comme on regarde un caillou au bord du chemin.' },
+    { auteur: 'Tullio Ferraris, chef de chœur', lieu: 'Cythère, ville flottante', jour: 5, texte: 'La chorale de Cythère répète tous les soirs à vingt heures. Nous chantons fort, pour que la ville n\'entende pas grincer ses câbles. Les ténors manquent. Les ténors manquent toujours.' },
+    { auteur: 'Bertrand Lagarde, contremaître', lieu: 'Chantiers Navals de Vénus', jour: 8, texte: 'Les Chantiers tournent à plein. On construit des navettes avec ce qu\'on a : des tôles, de la colle et beaucoup de jurons. Celle-ci s\'appelle Tant-Pis. Elle vole. Presque.' },
+    { auteur: 'Message automatique', lieu: 'Cythère, ville flottante', jour: 10, texte: 'ALTITUDE 54,8 KM. BALLASTS NOMINAUX. PLUIE D\'ACIDE SULFURIQUE PRÉVUE À 14 H. PENSEZ À VOTRE PARAPLUIE. PENSEZ SURTOUT À NE PAS SORTIR.' },
+    { auteur: 'Pia, 7 ans', lieu: 'Cythère, ville flottante', jour: 12, texte: 'Maman dit que les nuages sont jaunes à cause du soufre. Moi je dis qu\'ils sont jaunes parce qu\'ils ont peur. Aujourd\'hui, ils étaient presque blancs.' },
+    { auteur: 'Kenji Mori, météorologue', lieu: 'Cythère, ville flottante', jour: 17, texte: 'Chaque fois qu\'un de leurs vaisseaux passe, les nuages s\'alignent sous lui en longues rangées parallèles. Des sillons, sur des milliers de kilomètres. Puis le vent les efface.' },
+    { auteur: 'Tullio Ferraris, chef de chœur', lieu: 'Cythère, ville flottante', jour: 21, texte: 'Ce soir, nous avons chanté pendant qu\'ils passaient. Je ne sais pas pourquoi. Un vaisseau a ralenti, puis il est reparti. Je préfère croire qu\'il a aimé le deuxième couplet.' },
+    { auteur: 'Kenji Mori, météorologue', lieu: 'Cythère, ville flottante', jour: 26, texte: 'J\'ai compris pourquoi ils nous laissent tranquilles. Ils sondent Vénus de haut en bas, puis passent leur chemin, comme on passe devant une parcelle où rien n\'a poussé. Ce qu\'ils cherchent ne vit pas ici.' },
+    { auteur: 'Odile Varenne, maire', lieu: 'Cythère, ville flottante', jour: 33, texte: 'Le conseil a voté : Cythère ne descendra pas plus bas, ne montera pas plus haut et ne se rendra pas. C\'est la première fois en dix ans que le conseil vote à l\'unanimité.' },
+    { auteur: 'Dr Sofia Ancel, géologue', lieu: 'sonde Ishtar, surface de Vénus', jour: 41, texte: 'Notre dernière sonde a tenu quatre minutes au sol, dans la fournaise. Assez pour voir, sous le basalte, une forme droite, lisse, intacte. Une balise. Même ici, ils avaient posé un œil.' },
+    { auteur: 'Bertrand Lagarde, contremaître', lieu: 'Chantiers Navals de Vénus', jour: 58, texte: 'Tant-Pis a décollé vers la Terre avec douze passagers. Si vous la voyez passer, faites-lui signe. Et si elle tombe en morceaux, ce n\'est pas la faute des Chantiers. Enfin, pas entièrement.' },
   ],
   Terre: [
     { auteur: 'Cdt Ilse Brandt', lieu: 'ISS', jour: 1, texte: 'Ici l\'ISS. Quelque chose a éteint les étoiles du côté de Neptune. Houston ne répond plus. Si quelqu\'un m\'entend : on reste en orbite, on ne lâche rien.' },

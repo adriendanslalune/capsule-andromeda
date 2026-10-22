@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BANDE_OC, DUREE_EMISSION, DUREE_ENREGISTREMENT, LARGEUR_SIGNAL, NOMBRE_VOIX, PERIODE_EMISSION, TEXTES_VOIX } from '../src/donnees/radio'
-import { capter, ecouter, emet, radioNeuve, texteVoix, VOIX } from '../src/moteur/radio'
+import { capter, debutEmission, ecouter, emet, radioNeuve, texteVoix, VOIX } from '../src/moteur/radio'
 
 const t0 = Date.UTC(2026, 9, 20, 12)
 
@@ -16,7 +16,7 @@ describe('la radio : les Voix perdues (décisions d’Adrien du 20/10/2026)', ()
     expect(VOIX.filter((v) => texteVoix(v)).length).toBe(Object.values(TEXTES_VOIX).reduce((n, l) => n + l.length, 0))
   })
 
-  it('une voix émet 30 minutes toutes les 6 heures, à heure fixe ; celles sans texte n’émettent pas', () => {
+  it('une voix émet 30 minutes une fois par jour, à heure fixe ; celles sans texte n’émettent pas', () => {
     const v = VOIX.find((x) => x.systeme === 'Terre')!
     const pas = 60_000
     let n = 0
@@ -66,5 +66,17 @@ describe('la radio dans la partie', () => {
     expect(copie.radio.frequence).toBe(7.315)
     expect(copie.radio.captees).toEqual([3, 7])
     expect(copie.radio.captureesLe).toEqual({ 3: t0, 7: t0 + 1 })
+  })
+
+  it('le début de la fenêtre d’émission : la fenêtre en cours, sinon la prochaine, dans moins d’un jour', () => {
+    const v = VOIX.find((x) => x.systeme === 'Terre')!
+    expect(PERIODE_EMISSION).toBe(24 * 3_600_000)
+    for (let k = 0; k < 48; k++) {
+      const t = t0 + k * 1_800_000, d = debutEmission(v, t)
+      expect(emet(v, d)).toBe(true)
+      expect(emet(v, d - 60_000)).toBe(false)
+      if (emet(v, t)) expect(d).toBeLessThanOrEqual(t)
+      else { expect(d).toBeGreaterThan(t); expect(d - t).toBeLessThan(PERIODE_EMISSION) }
+    }
   })
 })

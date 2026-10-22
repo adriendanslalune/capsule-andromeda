@@ -46,6 +46,12 @@ export function emet(v: Voix, t: number): boolean {
   return !!texteVoix(v) && (((t + v.decalage) % PERIODE_EMISSION) + PERIODE_EMISSION) % PERIODE_EMISSION < DUREE_EMISSION
 }
 
+/** Début de la fenêtre d'émission en cours de la voix, ou de la prochaine (le carnet en donne l'heure). */
+export function debutEmission(v: Voix, t: number): number {
+  const phase = (((t + v.decalage) % PERIODE_EMISSION) + PERIODE_EMISSION) % PERIODE_EMISSION
+  return phase < DUREE_EMISSION ? t - phase : t - phase + PERIODE_EMISSION
+}
+
 /** Netteté d'une voix calée à `ecart` MHz de sa fréquence : 1 (nette) à 0 (perdue dans le bruit). */
 export function nettete(ecart: number): number {
   return Math.max(0, Math.min(1, 1 - (Math.abs(ecart) - SIGNAL_NET) / (LARGEUR_SIGNAL - SIGNAL_NET)))

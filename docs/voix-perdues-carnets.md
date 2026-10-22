@@ -36,6 +36,45 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
    « Le Phare reste allumé. Si leurs vaisseaux se servent de notre lumière pour se guider, tant pis : un phare, ça éclaire tout le monde. Même ceux qu'on n'aime pas. »
 
 
+## Vénus
+
+1. **Odile Varenne, maire** · Cythère, ville flottante · jour 2
+   « Ici Cythère, ville flottante, à cinquante-cinq kilomètres au-dessus de Vénus. Nous sommes trois mille. Nous flottons. Pour l'instant, c'est tout ce que je peux vous promettre. »
+
+2. **Kenji Mori, météorologue** · Cythère, ville flottante · jour 3
+   « Leurs vaisseaux sont passés au-dessus de nous sans ralentir. Ils nous ont regardés comme on regarde un caillou au bord du chemin. »
+
+3. **Tullio Ferraris, chef de chœur** · Cythère, ville flottante · jour 5
+   « La chorale de Cythère répète tous les soirs à vingt heures. Nous chantons fort, pour que la ville n'entende pas grincer ses câbles. Les ténors manquent. Les ténors manquent toujours. »
+
+4. **Bertrand Lagarde, contremaître** · Chantiers Navals de Vénus · jour 8
+   « Les Chantiers tournent à plein. On construit des navettes avec ce qu'on a : des tôles, de la colle et beaucoup de jurons. Celle-ci s'appelle Tant-Pis. Elle vole. Presque. »
+
+5. **Message automatique** · Cythère, ville flottante · jour 10
+   « ALTITUDE 54,8 KM. BALLASTS NOMINAUX. PLUIE D'ACIDE SULFURIQUE PRÉVUE À 14 H. PENSEZ À VOTRE PARAPLUIE. PENSEZ SURTOUT À NE PAS SORTIR. »
+
+6. **Pia, 7 ans** · Cythère, ville flottante · jour 12
+   « Maman dit que les nuages sont jaunes à cause du soufre. Moi je dis qu'ils sont jaunes parce qu'ils ont peur. Aujourd'hui, ils étaient presque blancs. »
+
+7. ◆ **Kenji Mori, météorologue** · Cythère, ville flottante · jour 17
+   « Chaque fois qu'un de leurs vaisseaux passe, les nuages s'alignent sous lui en longues rangées parallèles. Des sillons, sur des milliers de kilomètres. Puis le vent les efface. »
+
+8. **Tullio Ferraris, chef de chœur** · Cythère, ville flottante · jour 21
+   « Ce soir, nous avons chanté pendant qu'ils passaient. Je ne sais pas pourquoi. Un vaisseau a ralenti, puis il est reparti. Je préfère croire qu'il a aimé le deuxième couplet. »
+
+9. ◆ **Kenji Mori, météorologue** · Cythère, ville flottante · jour 26
+   « J'ai compris pourquoi ils nous laissent tranquilles. Ils sondent Vénus de haut en bas, puis passent leur chemin, comme on passe devant une parcelle où rien n'a poussé. Ce qu'ils cherchent ne vit pas ici. »
+
+10. **Odile Varenne, maire** · Cythère, ville flottante · jour 33
+   « Le conseil a voté : Cythère ne descendra pas plus bas, ne montera pas plus haut et ne se rendra pas. C'est la première fois en dix ans que le conseil vote à l'unanimité. »
+
+11. ◆ **Dr Sofia Ancel, géologue** · sonde Ishtar, surface de Vénus · jour 41
+   « Notre dernière sonde a tenu quatre minutes au sol, dans la fournaise. Assez pour voir, sous le basalte, une forme droite, lisse, intacte. Une balise. Même ici, ils avaient posé un œil. »
+
+12. **Bertrand Lagarde, contremaître** · Chantiers Navals de Vénus · jour 58
+   « Tant-Pis a décollé vers la Terre avec douze passagers. Si vous la voyez passer, faites-lui signe. Et si elle tombe en morceaux, ce n'est pas la faute des Chantiers. Enfin, pas entièrement. »
+
+
 ## Terre et la Lune
 
 1. **Cdt Ilse Brandt** · ISS · jour 1

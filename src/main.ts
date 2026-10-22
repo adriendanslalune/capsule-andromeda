@@ -1690,7 +1690,7 @@ const vueDisparus = new VueDisparus(document.querySelector<HTMLDivElement>('#dis
   choisir(o.lieu, false, o.zone ? undefined : carte.echellePlanete(o.lieu))
   annoncer(o.zone ? `${d.nom} : sa zone de recherche est marquée sur la carte. Fouille-la au radar.` : `${d.nom} : ${d.indice} Passe au-dessus, de près, radar allumé.`)
 })
-const vueCarnet = new VueCarnet(document.querySelector<HTMLDivElement>('#carnet')!, () => jeu.radio)
+const vueCarnet = new VueCarnet(document.querySelector<HTMLDivElement>('#carnet')!, () => jeu.radio, horloge)
 // Le classeur des monolithes (Plus › Collections), en plein écran.
 const vueClasseur = new VueClasseur(document.querySelector<HTMLDivElement>('#classeur')!, () => jeu.monolithes)
 // Volet Marché : les cours, rafraîchis chaque seconde tant qu'il est ouvert (le délai de la lumière change).
