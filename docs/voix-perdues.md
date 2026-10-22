@@ -21,10 +21,17 @@ de ceux qui les collectionnent.
 
 ## Le secret : trois pistes, à toi de choisir
 
-**A · Les jardiniers.** Triton est arrivé il y a des milliards d'années (dans la réalité, c'est un objet capturé). Ils
-ont semé des balises sur les mondes (Tycho, sous Europe, dans Olympus Mons…), comme on plante des graines, et sont
-repartis dormir. L'invasion, c'est la récolte : ils reviennent voir ce qui a poussé. Ce qui a poussé, c'est nous. La
-dernière voix laisse le doute : sommes-nous la récolte… ou les jardiniers d'après ?
+**A · Les jardiniers** (précisée le 22/10/2026, après la question d'Adrien). Ce qu'ils ont semé, ce ne sont pas les
+balises : c'est la vie. Il y a quatre milliards d'années, Triton passe dans le système (dans la réalité, c'est un objet
+capturé, venu d'ailleurs) et ensemence la Terre. Avant de s'endormir derrière Neptune, il pose des **balises** sur les
+mondes voisins (sous Tycho, dans Olympus Mons, sous la glace d'Europe…) : ce ne sont pas des graines, ce sont des
+**sentinelles**, des instruments de jardinier qui surveillent la pousse, comme un pluviomètre au bord d'un champ. Elles
+ont une consigne : réveiller Triton le jour où ce qui a poussé sort du jardin et vient les toucher. Ce jour-là, c'est
+nous : on marche sur la Lune, on bâtit Tycho, on creuse… et on réveille la balise (la voix d'Okafor, jour 12).
+L'invasion, c'est le jardinier qui revient voir sa récolte. Il ne vient pas nous exterminer : il met le jardin sous
+cloche (« ce n'est pas une occupation, c'est une attente ») le temps de décider ce qu'il en fait. Ce qu'il en fait,
+les voix ne le disent pas : c'est l'acte 2. La dernière voix laisse le doute : la récolte est-elle à cueillir… ou à
+emporter ailleurs, pour semer un autre jardin ?
 
 **B · Les gardiens d'une prison.** Triton n'est pas un vaisseau de conquête : c'est un geôlier. Quelque chose est
 enfermé au cœur du système (dans le Soleil, d'où le rêve du Soleil et le trou noir). Les balises sont les verrous. Les
