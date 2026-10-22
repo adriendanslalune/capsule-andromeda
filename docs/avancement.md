@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Voix perdues : bible proposée (`docs/voix-perdues.md`, trois pistes pour le secret) — **en attente du choix
+  d'Adrien** ; quêtes principales à revoir plus tard (Adrien tourne en rond), une fois les mécaniques en place.
 - Orbite de la capsule autour de la Lune (et de toute lune) tracée depuis l'astre : plus de grande boucle rouge
   (Adrien, 22/10/2026) — **corrigé, en attente de ses essais**.
 - Onglet QUÊTE : un losange doré devant l'histoire, un plus petit losange noir devant les secondaires ; les volets se
