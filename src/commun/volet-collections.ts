@@ -14,7 +14,7 @@ const PIERRE = '<svg viewBox="0 0 40 56" aria-hidden="true"><ellipse cx="20" cy=
 
 export function htmlCollections(jeu: Jeu): string {
   const n = jeu.monolithes.trouves.length, rang = statut(n), suivant = palierSuivant(n)
-  return '<div class="couverture monolithes">'
+  return '<div class="couverture monolithes" data-ref="ARC-06 · A">'
     + `<div class="illustration">${PIERRE}</div>`
     + '<div class="texte-couverture"><h2 class="titre-pulp">Monolithes</h2>' + pastilleInstrument('ping')
     + `<b class="compte">${n} <small>/ ${NOMBRE_MONOLITHES}</small></b>`
@@ -31,7 +31,7 @@ const POSTE = '<svg viewBox="0 0 40 40" aria-hidden="true"><path class="antenne-
 /** La couverture des Voix perdues (la radio). */
 function couvertureVoix(jeu: Jeu): string {
   const n = jeu.radio.captees.length
-  return '<div class="couverture voix">'
+  return '<div class="couverture voix" data-ref="ARC-06 · B">'
     + `<div class="illustration">${POSTE}</div>`
     + '<div class="texte-couverture"><h2 class="titre-pulp">Voix perdues</h2>' + pastilleInstrument('radio')
     + `<b class="compte">${n} <small>/ ${NOMBRE_VOIX}</small></b>`
@@ -43,7 +43,7 @@ function couvertureVoix(jeu: Jeu): string {
 /** La couverture des Disparus (le radar). */
 function couvertureDisparus(jeu: Jeu): string {
   const n = Object.keys(jeu.disparus.trouves).length
-  return '<div class="couverture disparus">'
+  return '<div class="couverture disparus" data-ref="ARC-06 · C">'
     + `<div class="illustration">${SONDE}</div>`
     + '<div class="texte-couverture"><h2 class="titre-pulp">Les Disparus</h2>' + pastilleInstrument('radar')
     + `<b class="compte">${n} <small>/ ${NOMBRE_DISPARUS}</small></b>`

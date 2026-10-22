@@ -20,7 +20,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Look « dossier de mission » (choix d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : polices Barlow
   Condensed et IBM Plex Mono, cadres fins, ombre de papier posé, équerres aux coins, titres à l'encre sur double filet,
   orange sécurité, hachures d'avertissement en séparateur (`src/style.css`, variables `--titre`, `--orange`,
-  `--ombre-papier`, `--hachures`, `--equerres`).
+  `--ombre-papier`, `--hachures`, `--equerres`). Effet cockpit (22/10/2026) : règles graduées (`--regle`), étiquettes
+  gravées, bandes de danger (`--danger`) seulement autour de ce qui engage ; références des volets (`SURTITRES` dans
+  `src/commun/cockpit.ts`) ; Collections en fiches d'archives.
 - Teintes (choix d'Adrien du 22/10/2026, d'après la planche `docs/essais-teintes.png`) — **fait** : la carte en papier
   kraft (`--carte`), les fenêtres en papier clair par-dessus ; en sombre, la carte de nuit et les fenêtres restent
   claires. La feuille de route d'un contrat garde toute sa route aux étapes suivantes (ce qui est fait en tête).

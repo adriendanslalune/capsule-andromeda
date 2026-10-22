@@ -12,6 +12,12 @@ export type Page = 'navigation' | 'capsule' | 'missions' | 'marche' | 'manuel' |
 const TITRES: Record<Page, string> = {
   navigation: 'NAVIGATION', capsule: 'CAPSULE', missions: 'JOURNAL', marche: 'MARCHÉ', manuel: 'MANUEL DE MAINTENANCE', profil: 'PROFIL', messages: 'MESSAGES', plus: 'PLUS', reglages: 'RÉGLAGES', boutique: 'BOUTIQUE', collections: 'COLLECTIONS',
 }
+/** La référence gravée au-dessus du titre de chaque volet (le look « dossier de mission », 22/10/2026). */
+const SURTITRES: Record<Page, string> = {
+  navigation: 'Navigation · NAV-02', capsule: 'Systèmes de bord · SYS-01', missions: 'Carnet de bord · LOG-03', marche: 'Commerce · COM-04',
+  manuel: 'Documentation · DOC-07', profil: 'Dossier du capitaine · CAP-01', messages: 'Transmissions · TRX-05', plus: 'Annexes · ANX-09',
+  reglages: 'Réglages · RGL-00', boutique: 'Intendance · INT-08', collections: 'Archives · ARC-06',
+}
 /** Onglet allumé pour chaque page (le Manuel et les Réglages s'ouvrent depuis « Plus »). */
 const ONGLET: Record<Page, string> = {
   navigation: 'plus', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'collections',
@@ -91,6 +97,7 @@ export class Cockpit {
   ouvrir(page: Page): void {
     this.page = page
     this.titre.textContent = TITRES[page]
+    this.titre.dataset.surtitre = SURTITRES[page]
     for (const p of this.volet.querySelectorAll<HTMLElement>('.page')) p.hidden = p.dataset.contenu !== page
     for (const b of document.querySelectorAll<HTMLElement>('#onglets [data-onglet]')) {
       b.classList.toggle('actif', b.dataset.onglet === ONGLET[page])
