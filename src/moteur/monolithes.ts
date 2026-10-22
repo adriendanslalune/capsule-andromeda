@@ -112,6 +112,16 @@ export function echoEnRoute(e: EtatMonolithes, t: number): Echo | null {
 }
 
 /**
+ * Le front d'onde d'un PING (demande d'Adrien du 22/10/2026 : les ondes à la vraie vitesse de la lumière, qui
+ * s'arrêtent en touchant le monolithe ; le joueur qui les regarde est dans le suspense) : parti de la place de l'envoi,
+ * il grandit à 299 792 km/s jusqu'à la distance du monolithe, puis s'y arrête en attendant que l'écho revienne.
+ */
+export function frontDuPing(e: Echo, t: number): { centre: Point; rayon: number; arrete: boolean } {
+  const parcouru = Math.max(0, ((t - e.envoye) / 1000) * C_KM_S)
+  return { centre: e.centre, rayon: Math.min(parcouru, e.rayon), arrete: parcouru >= e.rayon }
+}
+
+/**
  * Oublie ce qui a été fait « dans le futur » : un PING envoyé en temps accéléré (essais), puis l'application relancée à
  * l'heure vraie. Sans ça, l'écho resterait en attente (et la radio indisponible) jusqu'à l'heure de son envoi.
  */

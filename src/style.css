@@ -2458,3 +2458,13 @@ body.volet-ouvert #annonces { display: none; }
 .bloc.signature .petit { margin: 0; }
 #trajet-texte .occupation .chemin-assaut { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: var(--encre); font-weight: 600; }
 .tampon-quete { top: auto; bottom: 7px; right: 34px; font-size: 13px; padding: 1px 6px; }
+/* L'onglet QUÊTE : l'histoire bien à part des secondaires (Adrien, 22/10/2026). */
+#bandeau .afficheur .intitule-quetes { padding: 4px 8px 0; font: 700 10px var(--titre); letter-spacing: 0.16em; color: color-mix(in srgb, var(--encre) 60%, transparent); }
+#bandeau .afficheur .intitule-quetes.principale { color: #9a6a00; }
+#bandeau .afficheur .intitule-quetes.secondaire { margin-top: 2px; border-top: 1.5px solid color-mix(in srgb, var(--encre) 45%, transparent); padding-top: 5px; color: #3f63c4; }
+#bandeau .afficheur .ligne.quete.principale b { font-size: 13px; }
+#bandeau .afficheur .ligne.quete.secondaire { min-height: 30px; }
+#bandeau .afficheur .ligne.quete.secondaire .texte { font-size: 11px; }
+#bandeau .afficheur .ligne.quete.secondaire b { font-size: 11.5px; }
+#bandeau .afficheur .ligne.quete.secondaire em { padding: 4px 8px; font-size: 11px; }
+#bandeau .afficheur .intitule-quetes + .ligne { border-top: none; }

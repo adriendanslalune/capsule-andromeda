@@ -42,13 +42,13 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { alienLa, intercepterMissile, surLaCarte } from './moteur/espace'
 import { angleRadar, basculerRadar, echoRadar, EFFACEMENT_RADAR, jaugeRadar, PORTEE_RADAR } from './moteur/radar'
-import { echoEnRoute, echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
+import { echoEnRoute, echosNonVus, frontDuPing, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
 import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
@@ -1249,11 +1249,16 @@ function afficherAnnonces(t: number): void {
   bandeAnnonces.style.animationDuration = `${Math.max(14, texte.length * 0.16)}s`
 }
 /** La quête suivie, pour le voyant QUÊTE du tableau de bord : son titre et son objectif en cours. */
-function queteDuTableau(): { id: string; titre: string; objectif: string; principale: boolean }[] {
-  // Toujours la suite de l'histoire (Adrien, 22/10/2026) ; puis la quête suivie, si c'est une autre (une secondaire).
-  const ligne = (q: ReturnType<typeof quete>) => { const o = objectif(jeu, q); return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale' }] : [] }
-  const suite = suiteDeLHistoire(jeu), suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
-  return [...(suite ? ligne(suite) : []), ...(suivie && suivie !== suite ? ligne(suivie) : [])]
+function queteDuTableau(): { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean }[] {
+  // Toujours la suite de l'histoire, d'abord (Adrien, 22/10/2026) ; puis toutes les quêtes secondaires en cours (on peut
+  // en mener plusieurs à la fois), la suivie en premier.
+  const ligne = (q: ReturnType<typeof quete>) => {
+    const o = objectif(jeu, q)
+    return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale', suivie: jeu.queteSuivie === q.id }] : []
+  }
+  const suite = suiteDeLHistoire(jeu)
+  const secondaires = enCoursQuetes(jeu).filter((q) => q.type === 'secondaire').sort((a, b) => Number(jeu.queteSuivie === b.id) - Number(jeu.queteSuivie === a.id))
+  return [...(suite ? ligne(suite) : []), ...secondaires.flatMap(ligne)]
 }
 
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
@@ -2056,9 +2061,10 @@ function image(maintenant: number): void {
       carte.dessinerEchos(ctxPlan, t, revenus.map((x) => ({ numero: x.monolithe, centre: x.centre, rayon: x.rayon })), places, { encre: th.encre, fond: th.halo })
     }
     for (const tr of autresTraces) carte.dessinerTraits(ctxPlan, t, null, tr, tr[tr.length - 1], accent, { encre: th.encre, fond: th.halo })
-    // Un PING envoyé : des ondes violettes partent de la capsule jusqu'au retour de l'écho (demande d'Adrien du 22/10/2026).
-    const capsuleIci = carte.place(CAPSULE)
-    if (capsuleIci && echoEnRoute(jeu.monolithes, t)) carte.dessinerOndesPing(ctxPlan, capsuleIci.x, capsuleIci.y, performance.now())
+    // Un PING envoyé : son onde grandit à la vitesse de la lumière depuis la place de l'envoi, et s'arrête sur le
+    // monolithe jusqu'au retour de l'écho (demandes d'Adrien du 22/10/2026).
+    const enRoute = echoEnRoute(jeu.monolithes, t)
+    if (enRoute) { const f = frontDuPing(enRoute, t); carte.dessinerOndePing(ctxPlan, f.centre, f.rayon, f.arrete, t, performance.now()) }
     // Les missiles aliens en vol, avec leur décompte.
     if (jeu.espace.missiles.length) {
       carte.dessinerMissiles(ctxPlan, t, jeu.espace.missiles.map((m) => {

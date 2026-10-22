@@ -67,7 +67,7 @@ export interface EtatCapsuleBandeau {
   /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
   phase: string; systeme: string
   /** La quête suivie (son titre, son objectif en cours), ou null. */
-  quetes: { id: string; titre: string; objectif: string; principale: boolean }[]
+  quetes: { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean }[]
 }
 
 /** Le triangle d'alerte du voyant (c'est le voyant qui s'allume). */
@@ -157,9 +157,14 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   let detail = ''
   if (affiche === 'quete') {
     // La suite de l'histoire d'abord (toujours là), puis la quête secondaire suivie s'il y en a une.
+    // La ligne de l'histoire et celles des secondaires se distinguent (Adrien, 22/10/2026) : un intitulé au-dessus de
+    // chaque groupe ; l'histoire en plus grand, les secondaires en plus petit.
+    let groupe = ''
     for (const q of capsule.quetes) {
+      const g = q.principale ? 'principale' : 'secondaire'
+      if (g !== groupe) { detail += `<div class="intitule-quetes ${g}">${q.principale ? '◆ L\'HISTOIRE' : '● SECONDAIRES'}</div>`; groupe = g }
       textes.push(q.titre, q.objectif)
-      detail += `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete" data-quete="${q.id}"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
+      detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}" data-ligne="quete" data-quete="${q.id}"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
     }
     if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')
   } else if (affiche) {

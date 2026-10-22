@@ -553,32 +553,35 @@ export class Carte2D {
   }
 
   /**
-   * Les ondes du PING (demande d'Adrien du 22/10/2026) : tant que l'écho n'est pas revenu, des ondes violettes partent
-   * de la capsule et filent dans toutes les directions, de plus en plus pâles en s'éloignant.
+   * L'onde du PING (demandes d'Adrien du 22/10/2026) : partie de la place de l'envoi, elle grandit à la vraie vitesse de
+   * la lumière (moteur : frontDuPing), un front violet suivi d'une traîne en dégradé et de deux ondes plus pâles ;
+   * arrivée au monolithe, elle s'arrête et respire doucement jusqu'au retour de l'écho.
    */
-  dessinerOndesPing(ctx: CanvasRenderingContext2D, x: number, y: number, maintenant: number): void {
-    // Lentes (un tour toutes les 7 secondes), chaque onde est un dégradé : un front plus vif, une traîne qui s'estompe
-    // vers la capsule ; elles pâlissent doucement en grandissant.
-    const portee = 0.8 * Math.hypot(this.largeur, this.hauteur), periode = 7000, n = 4
+  dessinerOndePing(ctx: CanvasRenderingContext2D, centre: Point2, rayonKm: number, arrete: boolean, t: number, maintenant: number): void {
+    const c = this.projeterPoint({ x: centre.x, y: centre.y, z: 0 }, t)
+    const bord = this.projeterPoint({ x: centre.x + rayonKm, y: centre.y, z: 0 }, t)
+    const r = Math.hypot(bord.x - c.x, bord.y - c.y)
+    if (r > 6 * Math.hypot(this.largeur, this.hauteur)) return
+    const souffle = arrete ? 0.75 + 0.25 * Math.sin(maintenant / 600) : 1
     ctx.save()
-    for (let k = 0; k < n; k++) {
-      const f = (maintenant / periode + k / n) % 1
-      const r = 10 + f * portee, epaisseur = 14 + 46 * f
-      const opacite = 0.55 * (1 - f) ** 2 * Math.min(1, f * 12)
-      if (opacite < 0.01) continue
-      const degrade = ctx.createRadialGradient(x, y, Math.max(0, r - epaisseur), x, y, r + 2)
+    for (const [part, force] of [[1, 1], [0.86, 0.45], [0.72, 0.25]] as const) {
+      const rk = r * part
+      if (rk < 2) continue
+      const epaisseur = Math.min(70, Math.max(6, rk * 0.35)), o = 0.6 * force * souffle
+      const degrade = ctx.createRadialGradient(c.x, c.y, Math.max(0, rk - epaisseur), c.x, c.y, rk + 1.5)
       degrade.addColorStop(0, 'rgba(122, 90, 168, 0)')
-      degrade.addColorStop(0.75, `rgba(122, 90, 168, ${(opacite * 0.45).toFixed(3)})`)
-      degrade.addColorStop(0.95, `rgba(122, 90, 168, ${opacite.toFixed(3)})`)
+      degrade.addColorStop(0.8, `rgba(122, 90, 168, ${(o * 0.4).toFixed(3)})`)
+      degrade.addColorStop(0.96, `rgba(122, 90, 168, ${o.toFixed(3)})`)
       degrade.addColorStop(1, 'rgba(122, 90, 168, 0)')
       ctx.fillStyle = degrade
       ctx.beginPath()
-      ctx.arc(x, y, r + 2, 0, 2 * Math.PI)
-      ctx.arc(x, y, Math.max(0, r - epaisseur), 0, 2 * Math.PI, true)
+      ctx.arc(c.x, c.y, rk + 1.5, 0, 2 * Math.PI)
+      ctx.arc(c.x, c.y, Math.max(0, rk - epaisseur), 0, 2 * Math.PI, true)
       ctx.fill()
     }
     ctx.restore()
   }
+
 
   /**
    * L'échelle de la grille (demandes d'Adrien du 22/10/2026 : dans un coin, très discrète) : en bas à gauche, juste

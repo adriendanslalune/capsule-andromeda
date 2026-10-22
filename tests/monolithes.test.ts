@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENTE_PING, MONOLITHES, NOMBRE_MONOLITHES } from '../src/donnees/monolithes'
 import {
-  croisement, oublierFutur, palierSuivant, statut, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
+  croisement, frontDuPing, oublierFutur, palierSuivant, statut, echoEnRoute, echosNonVus, emplacement, marquerEchosVus, localise, nouveauxMonolithes, peutPinger, pinger, placesPossibles, prochainPing, ramasser,
 } from '../src/moteur/monolithes'
 import { corps, position } from '../src/moteur/corps'
 import { C_KM_S } from '../src/moteur/navigation'
@@ -167,5 +167,17 @@ describe('le classeur des monolithes (demande d’Adrien du 20/10/2026)', () => 
     expect(p1[0]).toEqual({ numero: 1, trouve: false })
     expect(pageClasseur(e, 2)[2]).toMatchObject({ numero: 12, trouve: true })
     expect(pageClasseur(e, 112).map((c) => c.numero)).toEqual([1000])
+  })
+})
+
+describe('les ondes du PING (demande d’Adrien du 22/10/2026)', () => {
+  it('le front avance à la vitesse de la lumière et s’arrête sur le monolithe, jusqu’au retour de l’écho', () => {
+    const e = { monolithe: 1, centre: { x: 0, y: 0 }, rayon: 3e8, envoye: 0, retour: (2 * 3e8 / C_KM_S) * 1000 }
+    expect(frontDuPing(e, 0).rayon).toBe(0)
+    expect(frontDuPing(e, 10_000).rayon).toBeCloseTo(10 * C_KM_S, 3)
+    expect(frontDuPing(e, 10_000).arrete).toBe(false)
+    const touche = (3e8 / C_KM_S) * 1000
+    expect(frontDuPing(e, touche + 1).arrete).toBe(true)
+    expect(frontDuPing(e, e.retour - 1).rayon).toBe(3e8)
   })
 })
