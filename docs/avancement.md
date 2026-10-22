@@ -17,8 +17,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | **version installable faite** (22/10/2026), en attente des essais d'Adrien ; boutique à faire |
 
-- Refonte de la campagne : plan proposé (`docs/campagne.md`), quêtes principales d'abord — **en attente des choix
-  d'Adrien** (jauge, PNJ des planètes intérieures, nouvelles étapes).
+- Refonte de la campagne : plan validé par Adrien le 22/10/2026 (`docs/campagne.md` : les règles, l'option B pour la
+  jauge, Hélène, Odile et Aurelio pour les planètes intérieures) ; le détail du prologue et des planètes intérieures,
+  étape par étape et dialogues compris, est écrit (`docs/campagne-detail.md`) — **à lire et corriger par Adrien avant
+  le code** (question ouverte : compter l'activité libre en pourcentage de la jauge ; renommer l'Aérostat Ishtar en
+  Cythère et l'Observatoire Messenger en Phare de Mercure).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).
 - Comète de Halley sur la carte, à sa vraie place, avec sa traînée animée ; puis 14 petits corps célèbres et ʻOumuamua

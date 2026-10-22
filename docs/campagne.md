@@ -1,5 +1,8 @@
 # La campagne (acte 1) : le plan de la refonte
 
+**Validé par Adrien le 22/10/2026** : les règles, l'option B pour la jauge, les PNJ des Voix perdues pour les
+planètes intérieures (Hélène Castagne, Odile Varenne, Aurelio Benedetti). Le détail : `docs/campagne-detail.md`.
+
 Demande d'Adrien du 22/10/2026 : « je tourne beaucoup en rond, c'est chiant ». On commence par les quêtes
 principales (la colonne vertébrale, celle de la règle d'or) ; les secondaires viendront ensuite, système par système.
 Ce plan est à valider avant d'écrire une ligne de code.
