@@ -5,7 +5,7 @@ import type { LigneBandeau } from '../moteur/bandeau'
 import { texteDistance } from '../moteur/navigation'
 import { texteArrivee, texteDuree, texteRestant } from './textes'
 import { picto, type NomSymbole } from './symboles'
-import { GENRES_COURTS, NOMS_ACTIONS, SYMBOLES, VERBES, consigne, texteSecondes } from './textes-missions'
+import { GENRES_COURTS, NOMS_ACTIONS, VERBES, consigne, texteSecondes } from './textes-missions'
 
 /**
  * Titre et détail d'une ligne : « PANNE · MOTEUR », « vitesse divisée par 2 ». Les lignes calmes
@@ -29,7 +29,7 @@ export function texteLigne(l: LigneBandeau, t: number): { titre: string; detail:
   }
   if (l.genre === 'echo') {
     // On ne sait pas quand l'écho reviendra (décision d'Adrien du 18/10/2026) : pas de décompte.
-    return { titre: 'PING ENVOYÉ · ON ATTEND L\'ÉCHO…', detail: 'il reviendra à la vitesse de la lumière : bientôt, ou pas' }
+    return { titre: 'PING ENVOYÉ · ON ATTEND L\'ÉCHO…', detail: 'il reviendra à la vitesse de la lumière' }
   }
   if (l.genre === 'echo-recu') {
     return {
@@ -66,13 +66,30 @@ export interface EtatCapsuleBandeau {
   niveau: number; xp: number
   /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
   phase: string; systeme: string
+  /** La quête suivie (son titre, son objectif en cours), ou null. */
+  quete: { titre: string; objectif: string; principale: boolean } | null
+}
+
+/** Le triangle d'alerte du voyant (c'est le voyant qui s'allume). */
+const SYMBOLE_PANNE_VOYANT = '<svg class="symbole" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
+/** Les quatre voyants du tableau de bord, dans l'ordre (demande d'Adrien du 22/10/2026). */
+export type Voyant = 'alerte' | 'quete' | 'contrat' | 'echo'
+const VOYANTS: { cle: Voyant; nom: string; symbole: string }[] = [
+  { cle: 'alerte', nom: 'ALERTE', symbole: SYMBOLE_PANNE_VOYANT },
+  { cle: 'quete', nom: 'QUÊTE', symbole: '<span class="signe">◆</span>' },
+  { cle: 'contrat', nom: 'CONTRAT', symbole: picto('missions') },
+  { cle: 'echo', nom: 'ÉCHO', symbole: picto('ping') },
+]
+/** Le voyant dont l'afficheur montre le détail (null : l'afficheur est vide). */
+let voyantOuvert: Voyant | null = null
+/** Toucher un voyant : l'afficheur montre sa catégorie ; le retoucher le vide. */
+export function basculerVoyant(v: Voyant): void {
+  voyantOuvert = voyantOuvert === v ? null : v
 }
 
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
 let forme = ''
 
-/** Panne : un petit triangle d'alerte qui palpite. */
-const SYMBOLE_PANNE = '<svg class="symbole alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6v4M8 11.8v.4"/></svg>'
 
 /** Le mot du bouton au bout de chaque alerte (toute la ligne se touche). */
 function bouton(l: LigneBandeau): string {
@@ -106,34 +123,41 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   const statut = `<div class="etat-capsule" data-ligne="orbite">${etat}`
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
-  // Le tableau de bord (demande d'Adrien du 22/10/2026 : toutes les catégories tout le temps, on voit tout d'un coup) :
-  // les alertes, le contrat, l'écho, dans cet ordre ; une catégorie sans rien garde sa ligne, éteinte, qui le dit.
-  const rang = (l: LigneBandeau) => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 0 : l.genre === 'contrat' ? 1 : 2)
-  const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet').sort((a, b) => rang(a) - rang(b))
-  const vide = (cle: string, symbole: string, categorie: string, texte: string) => {
-    textes.push(texte, '')
-    return `<div class="ligne vide ${cle}" data-ligne="${cle}"><span class="symbole-ligne">${symbole}<small>${categorie}</small></span><span class="texte"><b data-texte></b> <span data-texte></span></span></div>`
-  }
+  // Le tableau de bord (demandes d'Adrien du 22/10/2026) : quatre voyants sur une rangée, ALERTE, QUÊTE, CONTRAT,
+  // ÉCHO, allumés quand il y a quelque chose ; dessous, l'afficheur, toujours là, vide tant qu'on n'a pas touché un
+  // voyant ; touché, il montre le détail de sa catégorie (de nouveau : il se vide).
+  const categorieDe = (l: LigneBandeau): Voyant => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 'alerte' : l.genre === 'contrat' ? 'contrat' : 'echo')
+  const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet')
+  const nombre = (v: Voyant) => (v === 'quete' ? (capsule.quete ? 1 : 0) : actives.filter((l) => categorieDe(l) === v).length)
+  const urgent = actives.some((l) => l.genre === 'missile' || l.genre === 'chaleur')
+  const voyants = VOYANTS.map(({ cle, nom, symbole }) => {
+    const n = nombre(cle)
+    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', voyantOuvert === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
+    return `<button type="button" class="${classe}" data-voyant="${cle}" aria-pressed="${voyantOuvert === cle}">${symbole}<small>${nom}</small>${n > 1 ? `<i class="compte">${n}</i>` : ''}</button>`
+  }).join('')
+  // L'afficheur : les lignes de la catégorie ouverte, ou ce qui dit qu'il n'y a rien ; vide si aucun voyant n'est ouvert.
   const ligneHtml = (l: LigneBandeau) => {
     const { titre, detail } = texteLigne(l, t)
     textes.push(titre, detail)
-    const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' || l.genre === 'chaleur' ? SYMBOLE_PANNE : picto('monolithe')
     const classe = l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
     const b = bouton(l)
-    // Chaque ligne a son intercalaire (demande d'Adrien du 22/10/2026 : alertes, contrat, écho et quête bien séparés) :
-    // la catégorie écrite sous son symbole, sur la couleur de sa catégorie.
-    const categorie = l.genre === 'contrat' ? 'CONTRAT' : l.genre === 'missile' ? 'MISSILE' : l.genre === 'panne' ? 'PANNE' : l.genre === 'chaleur' ? 'CHALEUR' : 'ÉCHO'
-    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="symbole-ligne">${symbole}<small>${categorie}</small></span><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
+    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
   }
-  // Groupe par groupe, dans l'ordre de l'écran (les textes se remplissent dans cet ordre).
-  const groupe = (k: number, cle: string, symbole: string, categorie: string, texte: string) => {
-    const ici = actives.filter((l) => rang(l) === k)
-    return ici.length ? ici.map(ligneHtml).join('') : vide(cle, symbole, categorie, texte)
+  const vide = (cle: string, texte: string) => {
+    textes.push(texte, '')
+    return `<div class="ligne vide" data-ligne="${cle}"><span class="texte"><b data-texte></b> <span data-texte></span></span></div>`
   }
-  let html = statut
-  html += groupe(0, 'vide-alerte', picto('panne'), 'ALERTE', 'RAS · tous les modules en état')
-  html += groupe(1, 'vide-contrat', picto('missions'), 'CONTRAT', 'aucun contrat en cours')
-  html += groupe(2, 'vide-echo', picto('ping'), 'ÉCHO', 'aucun écho attendu')
+  let detail = ''
+  if (voyantOuvert === 'quete') {
+    const q = capsule.quete
+    if (q) { textes.push(q.titre, q.objectif); detail = `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>` }
+    else detail = vide('vide-quete', 'aucune quête suivie')
+  } else if (voyantOuvert) {
+    const ici = actives.filter((l) => categorieDe(l) === voyantOuvert)
+    detail = ici.length ? ici.map(ligneHtml).join('')
+      : vide(`vide-${voyantOuvert}`, voyantOuvert === 'alerte' ? 'RAS · tous les modules en état' : voyantOuvert === 'contrat' ? 'aucun contrat en cours' : 'aucun écho attendu')
+  }
+  const html = statut + `<div class="voyants">${voyants}</div><div class="afficheur${voyantOuvert ? ` v-${voyantOuvert}` : ''}">${detail}</div>`
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html

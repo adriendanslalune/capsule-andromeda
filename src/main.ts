@@ -10,7 +10,7 @@ import './style.css'
 /** Version construite (le commit), remplacée par Vite. */
 declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
-import { afficherBandeau } from './commun/bandeau'
+import { afficherBandeau, basculerVoyant, type Voyant } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { ACTIONS_FINIES, GENRES_COURTS, NOMS_ACTIONS, VERBES, texteSecondes, titreContrat } from './commun/textes-missions'
@@ -93,6 +93,7 @@ import { texteDateComplete, texteDuree, texteRestant } from './commun/textes'
 import { htmlFrise } from './commun/frise'
 import { INSTRUMENTS } from './commun/instruments'
 import { feuilleDeRoute } from './moteur/feuille-de-route'
+import { annonces } from './moteur/annonces'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
@@ -327,7 +328,8 @@ function choisir(nom: string | null, cadrer = false, echelle?: number): void {
   const c = nom ? corps(nom) : undefined
   if (nom && (nom !== avant || cadrer || echelle !== undefined || !suivre)) {
     suivre = true
-    const k = echelle ?? (cadrer && c?.parent ? carte.echelleSysteme(c.parent) : carte.kmParPx)
+    // Cadrer (Y ALLER, VOIR…) : la destination et la capsule ensemble à l'écran (demande d'Adrien du 22/10/2026).
+    const k = echelle ?? (cadrer && c ? carte.echelleTrajet(nom, horloge()) : carte.kmParPx)
     carte.voler(k, performance.now(), positionSuivie(horloge()))
   }
 }
@@ -673,6 +675,9 @@ const bandeau = document.querySelector<HTMLDivElement>('#bandeau')!
 // Toucher une ligne du bandeau ouvre le volet qui va avec (demande d'Adrien du 18/10/2026) : la panne, le panneau de
 // réparation ; la mission, le volet Missions ; le trajet ou l'orbite, la Navigation ; crédits et moteur, la Capsule.
 bandeau.addEventListener('click', (e) => {
+  // Un voyant du tableau de bord : l'afficheur montre sa catégorie (ou se vide).
+  const voyant = (e.target as HTMLElement).closest<HTMLElement>('[data-voyant]')?.dataset.voyant
+  if (voyant) { basculerVoyant(voyant as Voyant); mettreAJourFiche(horloge()); return }
   const ligne = (e.target as HTMLElement).closest<HTMLElement>('[data-ligne]')?.dataset.ligne
   if (ligne === 'missile') {
     // Toucher le missile, c'est l'intercepter (s'il reste un intercepteur).
@@ -693,6 +698,7 @@ bandeau.addEventListener('click', (e) => {
   // Les lignes éteintes du tableau de bord mènent là où on les allume.
   else if (ligne === 'vide-alerte') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   else if (ligne === 'vide-contrat') ouvrirJournal('contrats')
+  else if (ligne === 'quete' || ligne === 'vide-quete') { journalOuvert = jeu.queteSuivie; ouvrirJournal('quetes') }
   else if (ligne === 'vide-echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
 })
 
@@ -710,8 +716,9 @@ function mettreAJourFiche(t: number): void {
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null
   const vol = enRoute ? vitesseEnVol(enRoute, t) : null
   const ou = astreDominant(mission.etat(t).position, t)
+  afficherAnnonces(t)
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t), {
-    credits: jeu.credits, ...xpBandeau(),
+    credits: jeu.credits, ...xpBandeau(), quete: queteDuTableau(),
     phase: !vol ? '' : vol.phase === 'accelere' ? 'accélère' : vol.phase === 'freine' ? 'freine' : vol.phase === 'croisiere' ? 'croisière' : 'arrivée',
     systeme: ou === 'Soleil' ? 'plein espace' : ou,
   }, t)
@@ -1164,7 +1171,7 @@ const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dia
   joueur: () => jeu.pseudo,
   accepter: (id) => {
     const ok = accepterQuete(jeu, id, horloge())
-    if (ok) { enregistrerPartie(); annoncer(`Nouvelle quête : ${quete(id).titre} (voir le Journal)`); afficherSuivi(true) }
+    if (ok) { enregistrerPartie(); annoncer(`Nouvelle quête : ${quete(id).titre} (voir le Journal)`) }
     return ok
   },
 })
@@ -1183,14 +1190,8 @@ function afficherOngletJournal(): void {
   document.querySelector<HTMLElement>('#journal')!.hidden = ongletJournal !== 'quetes'
   document.querySelector<HTMLElement>('#contrats')!.hidden = ongletJournal !== 'contrats'
   for (const b of document.querySelectorAll<HTMLElement>('[data-journal-onglet]')) b.classList.toggle('actif', b.dataset.journalOnglet === ongletJournal)
-  // En cours : la quête suivie et le contrat en cours, chacun mène à son sous-onglet.
-  const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null, o = q ? objectif(jeu, q) : null
-  const ec = jeu.enCours, e = jeu.etapeActuelle()
-  let html = ''
-  if (q && o) html += `<button type="button" data-journal-onglet="quetes" class="ligne-en-cours ${q.type}"><span class="signe">${q.type === 'principale' ? '◆' : '●'}</span><span><b>${q.titre}</b><small>${o.texte}${o.compte ? ` (${o.compte})` : ''}</small></span></button>`
-  if (ec && e) html += `<button type="button" data-journal-onglet="contrats" class="ligne-en-cours">${picto(SYMBOLE_GENRE[ec.contrat.genre])}<span><b>${titreContrat(ec.contrat)}</b><small>${VERBES[e.action].charAt(0)}${VERBES[e.action].slice(1).toLowerCase()} — ${e.lieu}</small></span></button>`
-  if (enCoursJournal.innerHTML !== html) enCoursJournal.innerHTML = html
-  enCoursJournal.hidden = !html
+  // Plus de rappel « en cours » en haut du Journal (demande d'Adrien du 22/10/2026) : le tableau de bord le montre déjà.
+  enCoursJournal.hidden = true
   if (ongletJournal === 'quetes') afficherJournal()
   else voletMissions.afficher(jeu, horloge(), vitesse(), performance.now(), lieuIci(horloge()))
 }
@@ -1212,33 +1213,32 @@ pageJournal.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>('button')
   if (!b) return
   if (b.dataset.ouvrir) journalOuvert = journalOuvert === b.dataset.ouvrir ? '' : b.dataset.ouvrir
-  else if (b.dataset.suivre) { jeu.queteSuivie = b.dataset.suivre; enregistrerPartie(); afficherSuivi(true) }
+  else if (b.dataset.suivre) { jeu.queteSuivie = b.dataset.suivre; enregistrerPartie() }
   else if (b.dataset.yAller) { cockpit.fermer(); choisir(b.dataset.yAller, true); proposee = true; return }
   else return
   afficherJournal()
 })
-const ligneSuivi = document.querySelector<HTMLButtonElement>('#suivi')!
-let dernierSuivi = 0
-/** La quête suivie, en une ligne sous le bandeau : son titre et son objectif en cours. */
-function afficherSuivi(forcer = false): void {
-  if (!forcer && performance.now() - dernierSuivi < 500) return
-  dernierSuivi = performance.now()
+// Le bandeau des annonces générales (demande d'Adrien du 22/10/2026) : un texte qui défile sous le tableau de bord, le
+// même pour tous (planètes au plus près, événements du jeu). Recalculé chaque minute ; le défilement ne repart que si
+// le texte change.
+const bandeAnnonces = document.querySelector<HTMLElement>('#annonces span')!
+let annoncesAJour = 0
+function afficherAnnonces(t: number): void {
+  if (performance.now() - annoncesAJour < 60_000 && annoncesAJour) return
+  annoncesAJour = performance.now()
+  const liste = annonces(t)
+  const texte = (liste.length ? liste : ['Radio Résistance · rien de particulier dans le système solaire']).join('   ◆   ')
+  if (bandeAnnonces.textContent === texte) return
+  bandeAnnonces.textContent = texte
+  // Une vitesse de lecture constante, quelle que soit la longueur.
+  bandeAnnonces.style.animationDuration = `${Math.max(14, texte.length * 0.16)}s`
+}
+/** La quête suivie, pour le voyant QUÊTE du tableau de bord : son titre et son objectif en cours. */
+function queteDuTableau(): { titre: string; objectif: string; principale: boolean } | null {
   const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
   const o = q ? objectif(jeu, q) : null
-  // Toujours là (le tableau de bord, demande d'Adrien du 22/10/2026) : sans quête suivie, la ligne éteinte le dit.
-  ligneSuivi.hidden = false
-  ligneSuivi.classList.toggle('vide', !q || !o)
-  if (!q || !o) {
-    const vide = '<span class="symbole-ligne"><span class="signe principale">◆</span><small>QUÊTE</small></span><span class="texte"><b>aucune quête suivie</b></span>'
-    if (ligneSuivi.innerHTML !== vide) ligneSuivi.innerHTML = vide
-    ligneSuivi.classList.remove('secondaire')
-    return
-  }
-  const html = `<span class="symbole-ligne"><span class="signe ${q.type}">${q.type === 'principale' ? '◆' : '●'}</span><small>QUÊTE</small></span><span class="texte"><b>${q.titre}</b><span>${o.texte}${o.compte ? ` (${o.compte})` : ''}</span></span>`
-  if (ligneSuivi.innerHTML !== html) ligneSuivi.innerHTML = html
-  ligneSuivi.classList.toggle('secondaire', q.type === 'secondaire')
+  return q && o ? { titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale' } : null
 }
-ligneSuivi.addEventListener('click', () => { journalOuvert = jeu.queteSuivie; ouvrirJournal('quetes') })
 
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
 const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('#invitation')!, {
@@ -1890,7 +1890,6 @@ function image(maintenant: number): void {
   if (apercu && maintenant - apercuAJour > 1000) { apercuPlans = jeu.trajetsContrat(apercu, t, vitesse()); apercuAJour = maintenant }
   if (!message.hidden && maintenant > finMessage) message.hidden = true
   // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
-  afficherSuivi()
   if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
   // Un niveau gagné : sa fenêtre (demande d'Adrien du 21/10/2026), avec la capsule dessinée dans sa forme.
   if (jeu.niveauAAnnoncer && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {

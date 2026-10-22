@@ -2164,3 +2164,65 @@ body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: ca
 #onglets button:first-child { clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px); }
 #onglets { padding-top: 6px; }
 #suivi.vide .texte b { text-transform: none; }
+
+/* Le tableau de bord en voyants (demande d'Adrien du 22/10/2026) : sous l'état de la capsule, quatre voyants sur une
+   rangée (ALERTE, QUÊTE, CONTRAT, ÉCHO), allumés quand il y a quelque chose, éteints sinon ; dessous, l'afficheur,
+   toujours là, vide tant qu'on n'a pas touché un voyant. */
+#bandeau .voyant.v-alerte { --cat: #f6c4ad; }
+#bandeau .voyant.v-quete { --cat: #bcd6ee; }
+#bandeau .voyant.v-contrat { --cat: var(--rub-journal); }
+#bandeau .voyant.v-echo { --cat: var(--rub-collections); }
+#bandeau .voyants { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 6px 3px 0; }
+#bandeau .voyant { position: relative; min-height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 3px 2px;
+  color: var(--encre); background: color-mix(in srgb, var(--cat) 22%, var(--creme)); border: 1.5px solid color-mix(in srgb, var(--encre) 55%, transparent); border-radius: 3px; cursor: pointer; }
+#bandeau .voyant small { font: 600 9.5px/1 var(--titre); letter-spacing: 0.12em; }
+#bandeau .voyant .picto svg, #bandeau .voyant > svg { width: 18px; height: 18px; }
+#bandeau .voyant .signe { font-size: 16px; line-height: 18px; color: #b8860b; }
+#bandeau .voyant.eteint > :not(.compte) { opacity: 0.4; }
+/* Allumé : la couleur pleine, un halo comme une ampoule derrière le verre. */
+#bandeau .voyant.allume { background: var(--cat); border-color: var(--encre); box-shadow: inset 0 0 0 2px color-mix(in srgb, #fff 45%, transparent), 0 0 7px color-mix(in srgb, var(--cat) 90%, transparent); }
+#bandeau .voyant.allume.v-alerte small { color: #b4442f; }
+#bandeau .voyant.urgent { animation: voyant-urgent 0.9s ease-in-out infinite; }
+@keyframes voyant-urgent { 50% { background: #ef8a6c; } }
+/* Le voyant ouvert : enfoncé, une encoche qui pointe vers l'afficheur. */
+#bandeau .voyant.ouvert { border: 2.5px solid var(--encre); transform: translateY(1px); }
+#bandeau .voyant.ouvert::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 10px; height: 10px; margin-left: -5px; background: var(--encre);
+  clip-path: polygon(50% 100%, 0 0, 100% 0); }
+#bandeau .voyant .compte { position: absolute; top: -6px; right: -4px; min-width: 16px; height: 16px; padding: 0 3px; box-sizing: border-box; font: 700 10px/16px var(--titre);
+  font-style: normal; color: #fff; background: var(--encre); border-radius: 8px; }
+/* L'afficheur : un petit écran encastré, à la couleur pâle du voyant ouvert. */
+#bandeau .afficheur { min-height: 34px; margin: 8px 3px 2px; border: 1px solid color-mix(in srgb, var(--encre) 45%, transparent); border-radius: 2px;
+  background: color-mix(in srgb, var(--encre) 4%, var(--creme)); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14); }
+#bandeau .afficheur.v-alerte { background: color-mix(in srgb, #f6c4ad 20%, var(--creme)); }
+#bandeau .afficheur.v-quete { background: color-mix(in srgb, #bcd6ee 22%, var(--creme)); }
+#bandeau .afficheur.v-contrat { background: color-mix(in srgb, var(--rub-journal) 22%, var(--creme)); }
+#bandeau .afficheur.v-echo { background: color-mix(in srgb, var(--rub-collections) 22%, var(--creme)); }
+#bandeau .afficheur .ligne { min-height: 34px; padding: 0; background: none; border-top: none; animation: none; }
+#bandeau .afficheur .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
+#bandeau .afficheur .ligne .texte { padding: 3px 8px; }
+#bandeau .afficheur .ligne.vide .texte { opacity: 0.6; }
+#bandeau .afficheur .ligne.vide b { font: 400 11.5px var(--police); letter-spacing: 0.02em; }
+#bandeau .afficheur .ligne.quete b { display: block; letter-spacing: 0.04em; }
+#bandeau .afficheur .ligne.quete span { display: block; font-size: 11px; opacity: 0.85; }
+/* Le détail des placements (demande d'Adrien du 22/10/2026), déplié en touchant le portefeuille. */
+#bourse button.ligne-portefeuille { width: 100%; padding: 0; font: inherit; color: inherit; text-align: left; background: none; border: none; }
+#bourse .placements { margin-top: 8px; border-top: 1px solid color-mix(in srgb, var(--encre) 35%, transparent); }
+#bourse .placements .titres, #bourse .placements button { display: grid; grid-template-columns: 1fr 52px 56px 64px; gap: 4px; align-items: center; }
+#bourse .placements .titres { padding: 5px 0 3px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.65; }
+#bourse .placements .titres span:not(:first-child), #bourse .placements button span:not(.nom) { text-align: right; }
+#bourse .placements button { width: 100%; min-height: 44px; padding: 4px 0; font: inherit; font-size: 11px; color: var(--encre); background: none; border: none;
+  border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); text-align: left; }
+#bourse .placements .nom { display: flex; align-items: center; gap: 6px; font-weight: bold; line-height: 1.2; }
+#bourse .placements .pastille { flex: none; width: 9px; height: 9px; border: 1px solid var(--encre); border-radius: 50%; }
+#bourse .placements button span b, #bourse .placements button span small { display: block; }
+#bourse .placements small { font-size: 9.5px; }
+/* Les annonces générales (demande d'Adrien du 22/10/2026) : un mini bandeau transparent sous le tableau de bord, un
+   texte qui défile de droite à gauche, comme un téléscripteur. */
+#annonces { pointer-events: none; position: relative; height: 18px; margin-top: -2px; overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+#annonces span { position: absolute; top: 0; left: 0; white-space: nowrap; font: 600 11px/18px var(--police); letter-spacing: 0.04em; color: var(--encre);
+  text-shadow: 0 0 3px var(--carte), 0 0 3px var(--carte); padding-left: 100%; animation: defiler 40s linear infinite; }
+@keyframes defiler { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+body.nuit #annonces span { color: #f3ead6; text-shadow: 0 0 3px var(--carte); }
+body.volet-ouvert #annonces { display: none; }
+@media (prefers-reduced-motion: reduce) { #annonces span { animation-duration: 120s; } }

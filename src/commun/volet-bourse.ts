@@ -47,6 +47,8 @@ export class VoletBourse {
   private points: { t: number; cours: number; x: number; y: number }[] = []
   /** L'ordre choisi, en attente de confirmation (demande d'Adrien du 20/10/2026 : rien ne part sans confirmer). */
   private aConfirmer: OrdreAction | null = null
+  /** Le détail des placements, déplié en touchant le portefeuille. */
+  private detail = false
 
   constructor(private element: HTMLElement, private rafraichir: () => void, private ordonner: (o: OrdreAction) => void) {
     element.addEventListener('click', (e) => {
@@ -55,6 +57,7 @@ export class VoletBourse {
       if (b.dataset.ordre) this.aConfirmer = { compagnie: b.dataset.compagnie!, sens: b.dataset.ordre as OrdreAction['sens'], quantite: Number(b.dataset.quantite) }
       else if (b.dataset.confirmer !== undefined && this.aConfirmer) { const o = this.aConfirmer; this.aConfirmer = null; this.ordonner(o); return }
       else if (b.dataset.annuler !== undefined) this.aConfirmer = null
+      else if (b.dataset.portefeuille !== undefined) this.detail = !this.detail
       else if (b.dataset.action !== undefined) { this.choisie = b.dataset.action; this.aConfirmer = null }
       else if (b.dataset.periode !== undefined) this.periode = Number(b.dataset.periode)
       else return
@@ -89,9 +92,18 @@ export class VoletBourse {
     html += '<div class="portefeuille">'
     if (investi > 0) {
       const g = valeur - investi
-      html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>${entier(valeur)} cr.</b></span>`
+      // Toucher le portefeuille déplie le détail des placements (demande d'Adrien du 22/10/2026).
+      html += `<button type="button" class="ligne-portefeuille" data-portefeuille aria-expanded="${this.detail}"><span><small>PORTEFEUILLE ${this.detail ? '▴' : '▾'}</small><b>${entier(valeur)} cr.</b></span>`
         + `<span class="${sens(g)}"><b>${g >= 0 ? '+' : '−'}${entier(Math.abs(g))} cr.</b><small>${pourcent(g / investi)}</small></span>`
-        + '</div>'
+        + '</button>'
+      if (this.detail) {
+        html += '<div class="placements"><div class="titres"><span>compagnie</span><span>actions</span><span>payées</span><span>valent</span></div>'
+          + Object.entries(p.positions).map(([cle, x]) => {
+            const co = compagnie(cle)!, v = x.actions * vueAction(co, t).cours, gx = v - x.investi
+            return `<button type="button" data-action="${cle}"><span class="nom"><i class="pastille" style="background:${co.teinte}"></i>${co.nom}</span>`
+              + `<span>${actions(x.actions)}</span><span>${entier(x.investi)}</span><span><b>${entier(v)}</b><small class="${sens(gx)}">${pourcent(gx / x.investi)}</small></span></button>`
+          }).join('') + '</div>'
+      }
     } else html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>aucune action</b></span></div>`
     html += p.ordres.map((o) => ligneOrdre(o, t)).join('')
     if (p.journal.length && !p.ordres.length) html += ligneOrdre(p.journal[0], t)

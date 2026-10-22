@@ -490,6 +490,19 @@ export class Carte2D {
     return Math.max(KM_PAR_PX_MIN, demi / (this.largeur / 2))
   }
 
+  /**
+   * Aperçu d'un trajet (demande d'Adrien du 22/10/2026 : Y ALLER ne doit plus montrer « un gros pâté ») : la
+   * destination au centre, la capsule à l'écran avec elle, dans la place laissée libre par les commandes du haut et du
+   * bas ; au plus près, l'astre visé entier.
+   */
+  echelleTrajet(nom: string, t: number): number {
+    const c = projeterCorps(nom, t), q = this.positionCapsule(t)
+    const demiH = this.largeur / 2 - 24
+    const demiV = Math.max(80, Math.min(this.hauteur / 2 - this.marges.haut, this.hauteur / 2 - this.marges.bas) - 24)
+    const k = Math.max(Math.abs(q.x - c.x) / demiH, Math.abs(q.y - c.y) / demiV) * 1.1
+    return Math.max(KM_PAR_PX_MIN, k, (1.3 * rayonDessine(nom)) / Math.min(demiH, demiV))
+  }
+
   /** Place de la capsule sur la carte (km de carte), hors trajet (en route, elle est sur le trajet dessiné). */
   positionCapsule(t: number): Point2 {
     return projeter({ p: etatCapsule(t).position, t, suivant: { p: etatCapsule(t + 60_000).position, t: t + 60_000 } })
