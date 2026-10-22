@@ -42,7 +42,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, assautIci, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -714,7 +714,10 @@ function occupation(nom: string): string {
   if (!zone(nom)) return ''
   if (jeu.zones.liberees.includes(nom)) return '<div class="occupation libre"><span>libérée par la Résistance</span></div>'
   const j = jauge(jeu.zones, nom)
-  return `<div class="occupation"><span>occupée par Andromède · résistance <b>${j} %</b></span><i><i style="width:${j}%"></i></i></div>`
+  // À 100 %, ce qu'il reste à faire pour lancer l'assaut (Adrien, 22/10/2026 : sinon on ne sait pas pourquoi la zone reste occupée).
+  const chemin = j >= 100 ? cheminVersAssaut(jeu, nom) : null
+  return `<div class="occupation"><span>occupée par Andromède · résistance <b>${j} %</b></span><i><i style="width:${j}%"></i></i>`
+    + `${chemin ? `<span class="chemin-assaut">${chemin}</span>` : ''}</div>`
 }
 function mettreAJourFiche(t: number): void {
   const enRoute = mission.phase(t) === 'trajet' ? mission.plan! : null

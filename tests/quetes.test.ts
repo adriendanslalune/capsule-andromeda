@@ -4,7 +4,7 @@ import { PNJS, QUETES } from '../src/donnees/quetes'
 import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
-import { accepter, avancerQuetes, disponibles, enCours, objectif, parler, quete, signePnj } from '../src/moteur/quetes'
+import { accepter, avancerQuetes, cheminVersAssaut, disponibles, enCours, objectif, parler, quete, signePnj } from '../src/moteur/quetes'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
 const t0 = Date.UTC(2026, 9, 20, 12)
@@ -125,5 +125,22 @@ describe('la Lune, de bout en bout', () => {
     expect(copie.quetes).toEqual(jeu.quetes)
     expect(copie.zones.liberees).toEqual(['Lune'])
     expect(copie.queteSuivie).toBe('veilleur')
+  })
+})
+
+describe('le chemin vers l’assaut d’une zone (Adrien, 22/10/2026 : la Lune à 100 % restait occupée sans explication)', () => {
+  it('dit, à chaque moment, ce qu’il reste à faire pour lancer l’assaut', () => {
+    const jeu = new Jeu(), t = Date.UTC(2026, 9, 22, 12)
+    // Pas encore la quête de libération : ses quêtes préalables.
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/La Lune libérée.*termine d'abord/)
+    // Les préalables finis : la quête est à prendre auprès de son donneur.
+    for (const c of quete('lune-5').conditions) jeu.quetes[c] = { etape: 0, compte: 0, debut: t, fin: t }
+    for (const c of ['lune-1', 'lune-3']) jeu.quetes[c] ??= { etape: 0, compte: 0, debut: t, fin: t }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/va chercher la quête « La Lune libérée » auprès d'Elsa Varga \(ISS\)/)
+    // La quête en cours, à son étape d'assaut : en orbite, l'ASSAUT.
+    jeu.quetes['lune-5'] = { etape: 1, compte: 0, debut: t, fin: null }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/orbite autour de la Lune et lance l'ASSAUT/)
+    // Une zone sans quête d'assaut : rien à dire.
+    expect(cheminVersAssaut(jeu, 'Terre')).toBeNull()
   })
 })

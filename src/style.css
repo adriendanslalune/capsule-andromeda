@@ -2456,3 +2456,4 @@ body.volet-ouvert #annonces { display: none; }
 .tampon-capitaine .nom-tampon { font: 900 17px 'Big Shoulders Display', var(--titre); }
 .tampon-capitaine .numero-tampon { font: 700 10px var(--titre); letter-spacing: 0.08em; }
 .bloc.signature .petit { margin: 0; }
+#trajet-texte .occupation .chemin-assaut { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: var(--encre); font-weight: 600; }

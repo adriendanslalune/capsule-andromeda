@@ -41,9 +41,9 @@ function pasMelange(n: number, depuis: number): number {
 }
 
 /**
- * La brève de Radio Résistance de l'heure (Adrien, 22/10/2026 : plus fun ; près de trois cents, pour qu'un joueur de
+ * La brève de Radio Résistance de l'heure (Adrien, 22/10/2026 : plus fun ; plus de quatre cents, pour qu'un joueur de
  * longue date ne s'en lasse pas) : une par heure, dans un ordre mélangé (toutes passent avant qu'une revienne : près de
- * douze jours), la même pour tous.
+ * trois semaines), la même pour tous.
  */
 export function breve(t: number): string {
   const h = Math.floor(t / 3_600_000)
