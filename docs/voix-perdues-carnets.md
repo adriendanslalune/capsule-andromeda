@@ -376,3 +376,60 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 
 17. **Hana Sato, astronome** · observatoire de fortune, Titania · jour 320
    « Je pars vers Neptune, la Station Le Verrier. Un vieux savant, là-bas, regarde Triton depuis quarante ans. Il doit savoir à qui il parle. Si quelqu'un trouve mes chaussures, gardez-les-moi. »
+
+
+## Neptune
+
+1. **Aksel, gardien de phare** · Station Le Verrier · jour 300
+   « Ici le vieil Aksel, Station Le Verrier. Le Verrier a trouvé Neptune avec un crayon et du papier, sans jamais la voir. Moi, je regarde Triton depuis quarante ans, et je commence à peine à le voir. »
+
+2. **Bastien Morel, contrebandier** · Protée · jour 302
+   « Bastien, sur Protée. Je fais passer des choses entre Neptune et le reste du système. Lesquelles, ça ne vous regarde pas. Ce que je peux dire : il y a beaucoup moins de clients depuis l'invasion. Et beaucoup plus de chasseurs. »
+
+3. **Jun Takeda, apprentie d'Aksel** · Station Le Verrier · jour 305
+   « Aksel ne dort plus. Il dit qu'à son âge, on n'a plus le temps. Il a collé une note sur le télescope : « Ne pas toucher. Il nous regarde aussi. » J'espère que c'est une blague. »
+
+4. **Message automatique** · archives de la Station Le Verrier · jour 308
+   « VOYAGER 2. SURVOL DE TRITON, 25 AOÛT 1989. ANOMALIES DÉTECTÉES : AUCUNE. — NOTE MANUSCRITE AJOUTÉE : « ELLE N'A PAS MENTI. ELLE N'A PAS POSÉ LA BONNE QUESTION. » SIGNÉ : A. »
+
+5. ◆ **Cne Mireille Dacosta, cargo Sainte-Hélène** · à l'intérieur de Triton · jour 311
+   « Ici le cargo Sainte-Hélène. Nous sommes passés trop près de Triton. Quelque chose nous a pris, tout doucement, comme une main qui ramasse un oiseau. Nous sommes à l'intérieur. Nous sommes vivants. »
+
+6. ◆ **Aksel, gardien de phare** · Station Le Verrier · jour 314
+   « Les geysers de Triton, que Voyager avait photographiés : je les ai chronométrés. Ils soufflent toutes les 4,7 secondes. Ce ne sont pas des geysers. Ce sont des évents. Triton respire. »
+
+7. **Petit Louis, mécanicien du Sainte-Hélène** · à l'intérieur de Triton · jour 317
+   « Petit Louis, mécanicien. Ici, tout est propre, tiède, silencieux. Il y a des couloirs qui s'allument quand on passe. Le capitaine dit de ne toucher à rien. J'ai touché à un truc. Il ne s'est rien passé. Je préfère le dire. »
+
+8. **Bastien Morel, contrebandier** · Protée · jour 321
+   « J'ai vendu ma dernière caisse de whisky à un officier de la Résistance. Il l'a payée en promesses. Je les ai acceptées. Si on gagne, elles vaudront plus que le whisky. »
+
+9. ◆ **Cne Mireille Dacosta, cargo Sainte-Hélène** · à l'intérieur de Triton · jour 324
+   « Nous avons trouvé une salle immense, éclairée comme une serre. Des rangées de bacs, à perte de vue. Dans l'un, des feuilles de Mars, une de chaque plante, étiquetées. Dans l'autre, de l'eau d'Europe. »
+
+10. **Jun Takeda, apprentie d'Aksel** · Station Le Verrier · jour 328
+   « Aksel a capté le Sainte-Hélène. Il pleure, je crois. Il dit que ce n'est pas de tristesse : c'est qu'il avait raison depuis quarante ans, et qu'il aurait préféré se tromper. »
+
+11. ◆ **Petit Louis, mécanicien du Sainte-Hélène** · à l'intérieur de Triton · jour 332
+   « Les étiquettes des bacs : une écriture qu'on ne connaît pas, mais avec des petits dessins. La Terre, Europe, Mars. Et à côté de chaque dessin, des traits, comme on compte les jours en prison. Pour la Terre, il y en a beaucoup. »
+
+12. ◆ **Aksel, gardien de phare** · Station Le Verrier · jour 336
+   « Ce que je sais, après quarante ans : Triton n'est pas venu faire la guerre. Il est venu faire l'inventaire. La guerre, c'est seulement ce qui arrive quand l'inventaire résiste. »
+
+13. ◆ **Cne Mireille Dacosta, cargo Sainte-Hélène** · à l'intérieur de Triton · jour 341
+   « Une autre salle, plus loin. Des alcôves alignées, vides, propres, à la taille d'un homme. Des centaines de milliers. Petit Louis a voulu en compter une rangée. Il a arrêté à mille. Il ne parle plus beaucoup. »
+
+14. **Bastien Morel, contrebandier** · Protée · jour 346
+   « Avis à la population : la contrebande de Protée reste ouverte. Le café arrive de Mars par des chemins que je ne détaillerai pas. Les officiers de la Résistance ont droit à une remise. Les autres, au café. »
+
+15. **Jun Takeda, apprentie d'Aksel** · Station Le Verrier · jour 352
+   « J'ai demandé à Aksel ce qu'on ferait si le Sainte-Hélène ne ressortait jamais. Il a dit : « On écoutera. Tant qu'ils parlent, ils sont des nôtres. Et tant qu'on les écoute, ils ne sont pas seuls. » »
+
+16. **Petit Louis, mécanicien du Sainte-Hélène** · à l'intérieur de Triton · jour 359
+   « Le capitaine dit qu'on doit continuer à émettre, pour ceux qui viendront. Alors j'émets. Je suis Louis Peyrac, de Saint-Nazaire. J'ai trente et un ans. J'aime le cidre et les orages. Voilà. Maintenant, vous savez. »
+
+17. ◆ **Cne Mireille Dacosta, cargo Sainte-Hélène** · à l'intérieur de Triton · jour 367
+   « Triton s'est mis à émettre plus fort, vers l'extérieur, au-delà de Pluton. Les murs vibrent. Je crois qu'il annonce que la récolte est mûre. Je crois que quelque chose, très loin, va venir la chercher. »
+
+18. **Aksel, gardien de phare** · Station Le Verrier · jour 380
+   « À qui viendra abattre Triton : il y a des gens à l'intérieur. Le Sainte-Hélène, et peut-être d'autres. Ne tirez pas sur les serres. Et quand ce sera fini, venez boire un verre au phare. J'aurai enfin le temps de dormir. »
