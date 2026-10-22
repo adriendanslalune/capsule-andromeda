@@ -1,10 +1,11 @@
 // La radio de la capsule (décisions d'Adrien du 20/10/2026) : un vieux poste TSF, ouvert depuis la carte (sous le
 // RADAR). Bande OC (ondes courtes) : les « Voix perdues », 150 balises laissées par des équipages pendant l'invasion,
-// une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à heure fixe (la même
-// pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
+// une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à
+// heure fixe (la même pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
 // Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET, à corriger par Adrien (Terre et Lune,
-// Mercure, Vénus, Mars, Jupiter, Saturne) ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
+// Mercure, Vénus, Mars, Jupiter, Saturne, Uranus) ; les autres systèmes sont à écrire (leurs voix n'émettent pas
+// encore). Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
 export const BANDE_OC = { min: 3, max: 10 } as const
@@ -145,5 +146,24 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Bo Lindqvist, chef de chantier', lieu: 'Glacières des Anneaux', jour: 234, texte: 'Nouvelle direction aux Glacières : moi. Premier ordre : on recommence à découper la glace des anneaux. Le Couronné peut regarder. On a des clients à Jupiter qui ont soif.' },
     { auteur: 'Yann Le Goff, radioamateur', lieu: 'crête de Japet', jour: 247, texte: 'Soixante-trois ans de radio, et je n\'ai jamais entendu autant de gens s\'écouter les uns les autres. Il a fallu une invasion pour ça. F6YLG, sur Japet, je vous dis à bientôt.' },
     { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 260, texte: 'On dit qu\'ils sont venus voir ce qui a poussé. Moi, je pêche depuis quarante ans. Je sais ce qu\'on fait de ce qu\'on vient voir pousser. Quelqu\'un, là-haut, a déjà sorti son panier.' },
+  ],
+  Uranus: [
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 240, texte: 'Ici Hana Sato, sur Titania. J\'étais astronome à Tokyo, je suis réfugiée dans un canyon de glace, à trois milliards de kilomètres de chez moi. J\'ai sauvé mon télescope. Pas mes chaussures.' },
+    { auteur: 'Mère Ottilie, cantinière', lieu: 'canyons de Titania', jour: 242, texte: 'Cantine des canyons : soupe de lichen à midi, soupe de lichen le soir. Le dimanche, soupe de lichen avec une herbe aromatique. Nous sommes six cents. Personne ne s\'est plaint. Enfin, pas fort.' },
+    { auteur: 'Dagny Halvorsen, alpiniste', lieu: 'falaise de Verona Rupes, Miranda', jour: 245, texte: 'Verona Rupes, sur Miranda : vingt kilomètres de falaise, la plus haute du système. Si on tombe, la chute dure douze minutes. J\'ai eu le temps de chanter deux couplets la dernière fois.' },
+    { auteur: 'Silas Crabbe, brocanteur', lieu: 'comptoir d\'Umbriel', jour: 248, texte: 'Comptoir d\'Umbriel, ouvert jour et nuit, ce qui ne veut rien dire sur Umbriel. J\'achète tout, je vends tout. Sauf mon chapeau. Le chapeau n\'est pas à vendre.' },
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 251, texte: 'Depuis mon canyon, je vois Neptune chaque nuit. Et Triton. Dans tous mes livres, Triton tourne autour de Neptune à trois cent cinquante mille kilomètres. Cette nuit, je mesure moins. Il s\'est rapproché.' },
+    { auteur: 'Message automatique', lieu: 'station météo d\'Obéron', jour: 255, texte: 'SAISON : HIVER, DEPUIS 2007. PROCHAIN PRINTEMPS : 2049. TEMPÉRATURE : −200 °C. CONSEIL DU JOUR : UNE ÉCHARPE.' },
+    { auteur: 'Nino, 10 ans', lieu: 'canyons de Titania', jour: 258, texte: 'La Reine Pâle est passée au-dessus du canyon. Elle a éclairé chacun de nous avec une lumière bleue, un par un, et elle a écrit un numéro sur nos tentes. Le mien, c\'est le 412. Je l\'ai pas effacé, c\'est joli.' },
+    { auteur: 'Mère Ottilie, cantinière', lieu: 'canyons de Titania', jour: 262, texte: 'Les numéros de la Reine Pâle, je les ai recopiés. Six cent trois. Elle ne s\'est pas trompée d\'un seul. On a été recensés comme du bétail. Ou comme des plants dans une serre.' },
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 266, texte: 'Triton continue d\'approcher de Neptune, lentement, avec une régularité de machine. Une lune ne fait pas ça. Un navire qui manœuvre pour se mettre à quai, si.' },
+    { auteur: 'Dagny Halvorsen, alpiniste', lieu: 'falaise de Verona Rupes, Miranda', jour: 270, texte: 'J\'ai planté un drapeau de la Résistance au sommet de Verona Rupes. Un chasseur est venu le regarder. Il est resté longtemps. Puis il est reparti sans y toucher. Je crois qu\'il trouvait ça mignon.' },
+    { auteur: 'Silas Crabbe, brocanteur', lieu: 'comptoir d\'Umbriel', jour: 274, texte: 'Arrivage du jour : trois clés à molette, un accordéon, un livre de recettes de Mars. La Résistance m\'a acheté les clés. Personne ne veut de l\'accordéon. Je joue de l\'accordéon, maintenant.' },
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 279, texte: 'Cette nuit, au télescope, j\'ai vu Triton de près. Les collines en peau de melon, sur sa surface, que tout le monde croyait de la glace : ce sont des plaques. Des rangées de plaques, rivetées.' },
+    { auteur: 'Nino, 10 ans', lieu: 'canyons de Titania', jour: 284, texte: 'Hana m\'a laissé regarder dans le télescope. J\'ai vu Neptune, toute bleue. Elle a dit : « Regarde la petite à côté, c\'est un bateau. » Je lui ai demandé si on pouvait monter dedans. Elle a pas répondu.' },
+    { auteur: 'Mère Ottilie, cantinière', lieu: 'canyons de Titania', jour: 290, texte: 'Un enfant est né cette nuit dans le canyon. Une fille. La Reine Pâle est passée au-dessus de nous une heure après. Elle a écrit 604 sur la tente. Personne ne lui avait rien dit.' },
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 297, texte: 'Chaque nuit, Triton envoie un long signal vers l\'extérieur du système, au-delà de Pluton. Ce n\'est pas un ordre à ses chasseurs. C\'est un rapport. Il raconte à quelqu\'un ce qu\'il trouve ici.' },
+    { auteur: 'Dagny Halvorsen, alpiniste', lieu: 'falaise de Verona Rupes, Miranda', jour: 305, texte: 'Je redescends de Verona Rupes. Pas à pied : en sautant. Douze minutes de chute. Si vous m\'entendez crier dans la radio, c\'est normal. C\'est le seul endroit du système où l\'on peut encore s\'amuser.' },
+    { auteur: 'Hana Sato, astronome', lieu: 'observatoire de fortune, Titania', jour: 320, texte: 'Je pars vers Neptune, la Station Le Verrier. Un vieux savant, là-bas, regarde Triton depuis quarante ans. Il doit savoir à qui il parle. Si quelqu\'un trouve mes chaussures, gardez-les-moi.' },
   ],
 }

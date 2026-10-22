@@ -322,3 +322,57 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 
 22. ◆ **Tomás Reyes, pêcheur de méthane** · Titan · jour 260
    « On dit qu'ils sont venus voir ce qui a poussé. Moi, je pêche depuis quarante ans. Je sais ce qu'on fait de ce qu'on vient voir pousser. Quelqu'un, là-haut, a déjà sorti son panier. »
+
+
+## Uranus
+
+1. **Hana Sato, astronome** · observatoire de fortune, Titania · jour 240
+   « Ici Hana Sato, sur Titania. J'étais astronome à Tokyo, je suis réfugiée dans un canyon de glace, à trois milliards de kilomètres de chez moi. J'ai sauvé mon télescope. Pas mes chaussures. »
+
+2. **Mère Ottilie, cantinière** · canyons de Titania · jour 242
+   « Cantine des canyons : soupe de lichen à midi, soupe de lichen le soir. Le dimanche, soupe de lichen avec une herbe aromatique. Nous sommes six cents. Personne ne s'est plaint. Enfin, pas fort. »
+
+3. **Dagny Halvorsen, alpiniste** · falaise de Verona Rupes, Miranda · jour 245
+   « Verona Rupes, sur Miranda : vingt kilomètres de falaise, la plus haute du système. Si on tombe, la chute dure douze minutes. J'ai eu le temps de chanter deux couplets la dernière fois. »
+
+4. **Silas Crabbe, brocanteur** · comptoir d'Umbriel · jour 248
+   « Comptoir d'Umbriel, ouvert jour et nuit, ce qui ne veut rien dire sur Umbriel. J'achète tout, je vends tout. Sauf mon chapeau. Le chapeau n'est pas à vendre. »
+
+5. ◆ **Hana Sato, astronome** · observatoire de fortune, Titania · jour 251
+   « Depuis mon canyon, je vois Neptune chaque nuit. Et Triton. Dans tous mes livres, Triton tourne autour de Neptune à trois cent cinquante mille kilomètres. Cette nuit, je mesure moins. Il s'est rapproché. »
+
+6. **Message automatique** · station météo d'Obéron · jour 255
+   « SAISON : HIVER, DEPUIS 2007. PROCHAIN PRINTEMPS : 2049. TEMPÉRATURE : −200 °C. CONSEIL DU JOUR : UNE ÉCHARPE. »
+
+7. **Nino, 10 ans** · canyons de Titania · jour 258
+   « La Reine Pâle est passée au-dessus du canyon. Elle a éclairé chacun de nous avec une lumière bleue, un par un, et elle a écrit un numéro sur nos tentes. Le mien, c'est le 412. Je l'ai pas effacé, c'est joli. »
+
+8. ◆ **Mère Ottilie, cantinière** · canyons de Titania · jour 262
+   « Les numéros de la Reine Pâle, je les ai recopiés. Six cent trois. Elle ne s'est pas trompée d'un seul. On a été recensés comme du bétail. Ou comme des plants dans une serre. »
+
+9. ◆ **Hana Sato, astronome** · observatoire de fortune, Titania · jour 266
+   « Triton continue d'approcher de Neptune, lentement, avec une régularité de machine. Une lune ne fait pas ça. Un navire qui manœuvre pour se mettre à quai, si. »
+
+10. **Dagny Halvorsen, alpiniste** · falaise de Verona Rupes, Miranda · jour 270
+   « J'ai planté un drapeau de la Résistance au sommet de Verona Rupes. Un chasseur est venu le regarder. Il est resté longtemps. Puis il est reparti sans y toucher. Je crois qu'il trouvait ça mignon. »
+
+11. **Silas Crabbe, brocanteur** · comptoir d'Umbriel · jour 274
+   « Arrivage du jour : trois clés à molette, un accordéon, un livre de recettes de Mars. La Résistance m'a acheté les clés. Personne ne veut de l'accordéon. Je joue de l'accordéon, maintenant. »
+
+12. ◆ **Hana Sato, astronome** · observatoire de fortune, Titania · jour 279
+   « Cette nuit, au télescope, j'ai vu Triton de près. Les collines en peau de melon, sur sa surface, que tout le monde croyait de la glace : ce sont des plaques. Des rangées de plaques, rivetées. »
+
+13. **Nino, 10 ans** · canyons de Titania · jour 284
+   « Hana m'a laissé regarder dans le télescope. J'ai vu Neptune, toute bleue. Elle a dit : « Regarde la petite à côté, c'est un bateau. » Je lui ai demandé si on pouvait monter dedans. Elle a pas répondu. »
+
+14. **Mère Ottilie, cantinière** · canyons de Titania · jour 290
+   « Un enfant est né cette nuit dans le canyon. Une fille. La Reine Pâle est passée au-dessus de nous une heure après. Elle a écrit 604 sur la tente. Personne ne lui avait rien dit. »
+
+15. ◆ **Hana Sato, astronome** · observatoire de fortune, Titania · jour 297
+   « Chaque nuit, Triton envoie un long signal vers l'extérieur du système, au-delà de Pluton. Ce n'est pas un ordre à ses chasseurs. C'est un rapport. Il raconte à quelqu'un ce qu'il trouve ici. »
+
+16. **Dagny Halvorsen, alpiniste** · falaise de Verona Rupes, Miranda · jour 305
+   « Je redescends de Verona Rupes. Pas à pied : en sautant. Douze minutes de chute. Si vous m'entendez crier dans la radio, c'est normal. C'est le seul endroit du système où l'on peut encore s'amuser. »
+
+17. **Hana Sato, astronome** · observatoire de fortune, Titania · jour 320
+   « Je pars vers Neptune, la Station Le Verrier. Un vieux savant, là-bas, regarde Triton depuis quarante ans. Il doit savoir à qui il parle. Si quelqu'un trouve mes chaussures, gardez-les-moi. »
