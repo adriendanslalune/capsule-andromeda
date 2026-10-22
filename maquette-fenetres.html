@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#e7dcc4" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Special+Elite&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
+    <title>Maquette des fenêtres</title>
+    <!--
+      Trois looks rétro pour les fenêtres (demande d'Adrien du 22/10/2026 : « vintage, rétro, pulp 50's ; tu peux carrément
+      changer le look ? »), sur la carte kraft. Données fictives. La pastille du haut fait passer d'un look à l'autre.
+    -->
+    <style>
+      :root { --carte: #e7dcc4; --encre: #1f1b18; --moutarde: #f2b53a; --cerise: #d9694f; --rouge: #c8402c; --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; overflow: hidden; color: var(--encre); font-family: var(--police); -webkit-user-select: none; user-select: none; }
+      body { background: var(--carte); }
+      .carte { position: fixed; inset: 0; width: 100vw; height: 100dvh; object-fit: cover; object-position: center 46%; mix-blend-mode: multiply; }
+      button { font: inherit; color: inherit; border: none; background: none; }
+      #look { position: fixed; z-index: 50; top: calc(4px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); padding: 2px 10px; font: bold 10px var(--police);
+        letter-spacing: 0.06em; border: 1.5px dashed var(--encre); border-radius: 10px; background: var(--carte); white-space: nowrap; }
+
+      /* Structure commune : la console du haut, un volet ouvert (Journal), la console du bas, les onglets. */
+      .console { position: fixed; top: calc(26px + env(safe-area-inset-top)); left: 10px; right: 10px; z-index: 5; }
+      .console .etat { display: flex; align-items: center; gap: 8px; padding: 7px 9px; }
+      .console .ou { flex: 1; min-width: 0; }
+      .console .ou b { display: block; font-size: 12px; letter-spacing: 0.04em; }
+      .console .ou small { font-size: 11px; opacity: 0.75; }
+      .rond { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font-size: 15px; }
+      .puce { flex: none; padding: 4px 8px; font-size: 11px; font-weight: bold; }
+      .alerte { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 9px; font-size: 12px; }
+      .alerte span { flex: 1; }
+      .alerte em { font-style: normal; font-weight: bold; font-size: 11px; padding: 6px 8px; }
+      .volet { position: fixed; left: 10px; right: 10px; top: 128px; bottom: 80px; z-index: 4; display: flex; flex-direction: column; overflow: hidden; }
+      .volet .titre { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
+      .volet .titre h2 { font: 26px 'Bowlby One SC', sans-serif; letter-spacing: 0.02em; }
+      .volet .corps { flex: 1; overflow: hidden; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+      .sous { display: flex; gap: 8px; }
+      .sous button { flex: 1; min-height: 44px; font-weight: bold; font-size: 12px; letter-spacing: 0.08em; }
+      .contrat { display: flex; gap: 10px; padding: 10px; }
+      .tuile { flex: none; width: 56px; height: 56px; display: grid; place-items: center; font-size: 9px; font-weight: bold; text-align: center; }
+      .contrat .txt { flex: 1; font-size: 12px; line-height: 1.35; }
+      .contrat .txt b { display: block; font-size: 13px; }
+      .contrat .prix { font-weight: bold; font-size: 13px; white-space: nowrap; }
+      .contrat .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+      .contrat .actions button { min-height: 44px; padding: 0 14px; font-weight: bold; font-size: 12px; letter-spacing: 0.06em; }
+      .onglets { position: fixed; left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); height: 60px; z-index: 5; display: flex; overflow: hidden; }
+      .onglets button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10.5px; font-weight: bold; }
+      .onglets i { font-style: normal; font-size: 18px; line-height: 1; }
+
+      /* ===== 1. PULP : couverture de magazine. Papier jauni tramé, gros cadre noir, coins coupés, bannière cerise
+         penchée, boutons en étiquettes, la police machine à écrire pour les textes. ===== */
+      body.pulp .panneau { background: #fff6dc radial-gradient(circle, rgba(200, 64, 44, 0.09) 1px, transparent 1.3px) 0 0 / 6px 6px;
+        border: 3px solid var(--encre); box-shadow: 5px 5px 0 var(--encre); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+      body.pulp .console, body.pulp .volet, body.pulp .onglets, body.pulp .bas { font-family: 'Special Elite', var(--police); }
+      body.pulp .rond { background: var(--moutarde); border: 2px solid var(--encre); }
+      body.pulp .puce { background: var(--encre); color: #fff6dc; transform: rotate(-2deg); }
+      body.pulp .alerte { border-top: 2px solid var(--encre); background: rgba(242, 181, 58, 0.25); }
+      body.pulp .alerte em { background: var(--rouge); color: #fff6dc; border: 2px solid var(--encre); transform: rotate(-2deg); box-shadow: 2px 2px 0 var(--encre); }
+      body.pulp .volet .titre { background: var(--rouge); border-bottom: 3px solid var(--encre); }
+      body.pulp .volet .titre h2 { color: #fff6dc; -webkit-text-stroke: 1.5px var(--encre); text-shadow: 3px 3px 0 var(--encre); transform: rotate(-3deg); }
+      body.pulp .volet .titre button { font: bold 12px 'Oswald', sans-serif; letter-spacing: 0.1em; color: #fff6dc; }
+      body.pulp .sous button { font-family: 'Oswald', sans-serif; font-size: 14px; border: 2.5px solid var(--encre); background: #fff6dc; }
+      body.pulp .sous button.actif { background: var(--moutarde); transform: rotate(-1.5deg); box-shadow: 3px 3px 0 var(--encre); }
+      body.pulp .contrat { background: #fffaf0; border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--encre); }
+      body.pulp .tuile { border: 2px solid var(--encre); border-radius: 50%; background: #bfe0c8; font-family: 'Oswald', sans-serif; }
+      body.pulp .contrat .prix { padding: 2px 8px; height: fit-content; background: var(--moutarde); border: 2px solid var(--encre); border-radius: 50%; transform: rotate(8deg); }
+      body.pulp .contrat .actions button { font-family: 'Oswald', sans-serif; font-size: 14px; border: 2.5px solid var(--encre); background: #fff6dc; box-shadow: 3px 3px 0 var(--encre); }
+      body.pulp .contrat .actions button.go { background: var(--rouge); color: #fff6dc; }
+      body.pulp .onglets button + button { border-left: 2px solid var(--encre); }
+      body.pulp .onglets button.actif { background: var(--rouge); color: #fff6dc; }
+
+      /* ===== 2. TABLEAU DE BORD : bakélite, émail et laiton. Fenêtres en émail crème à double filet, rivets aux coins,
+         plaques gravées en laiton pour les titres, boutons-poussoirs bombés. ===== */
+      body.bord .panneau { background: linear-gradient(#fbf5e6, #f1e7cf); border: 2px solid #3a2e24; border-radius: 14px;
+        box-shadow: inset 0 0 0 3px #fbf5e6, inset 0 0 0 4.5px #8a6d3b, 0 4px 0 #3a2e24, 0 6px 14px rgba(40, 25, 10, 0.35); position: fixed; }
+      body.bord .panneau::before, body.bord .panneau::after { content: ''; position: absolute; top: 7px; width: 7px; height: 7px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #f6e2a8, #9b7a3c 70%); box-shadow: 0 1px 0 #3a2e24; }
+      body.bord .panneau::before { left: 7px; } body.bord .panneau::after { right: 7px; }
+      body.bord .console, body.bord .volet, body.bord .onglets, body.bord .bas { font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
+      body.bord .console .ou b, body.bord .alerte, body.bord .contrat .txt { font-family: var(--police); letter-spacing: 0; }
+      body.bord .rond { background: radial-gradient(circle at 35% 30%, #fff, #e6d7b5); border: 2px solid #3a2e24; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15); }
+      body.bord .puce { border-radius: 6px; background: linear-gradient(#f4d98c, #c9a24f); border: 1.5px solid #3a2e24; }
+      body.bord .alerte { margin: 0 8px 6px; border-radius: 8px; background: #f6dccf; border: 1.5px solid #8c3a26; }
+      body.bord .alerte em { border-radius: 14px; background: linear-gradient(#e7735a, #b9442d); color: #fff; border: 1.5px solid #5e1f13; box-shadow: 0 2px 0 #5e1f13; }
+      body.bord .volet .titre { margin: 12px 14px 4px; padding: 6px 14px; border-radius: 6px; background: linear-gradient(#f6e2a8, #c9a24f 55%, #a8843e); border: 1.5px solid #3a2e24;
+        box-shadow: inset 0 1px 0 #fff6d8, 0 2px 0 #3a2e24; }
+      body.bord .volet .titre h2 { font: 700 22px 'Oswald', sans-serif; letter-spacing: 0.22em; color: #3a2e24; text-shadow: 0 1px 0 #fff3cf; }
+      body.bord .volet .titre button { font-size: 12px; letter-spacing: 0.1em; color: #3a2e24; }
+      body.bord .sous button { border-radius: 22px; border: 1.5px solid #3a2e24; background: linear-gradient(#fffaf0, #e9dcc0); box-shadow: 0 3px 0 #3a2e24; font-family: 'Oswald', sans-serif; font-size: 14px; }
+      body.bord .sous button.actif { background: linear-gradient(#ffd877, #e0a52e); box-shadow: 0 1px 0 #3a2e24; transform: translateY(2px); }
+      body.bord .contrat { border-radius: 10px; background: #fffaf0; border: 1.5px solid #8a6d3b; box-shadow: inset 0 0 0 3px #fffaf0, inset 0 0 0 4px #e3d3ad; }
+      body.bord .tuile { border-radius: 12px; background: radial-gradient(circle at 40% 30%, #e3f3e6, #a9d3b4); border: 1.5px solid #3a2e24; box-shadow: 0 2px 0 #3a2e24; font-family: 'Oswald', sans-serif; }
+      body.bord .contrat .prix { font-family: 'Oswald', sans-serif; font-size: 15px; }
+      body.bord .contrat .actions button { border-radius: 22px; border: 1.5px solid #3a2e24; background: linear-gradient(#fffaf0, #e9dcc0); box-shadow: 0 3px 0 #3a2e24; font-family: 'Oswald', sans-serif; font-size: 14px; }
+      body.bord .contrat .actions button.go { background: linear-gradient(#e7735a, #b9442d); color: #fff; }
+      body.bord .onglets button.actif { background: linear-gradient(#ffd877, #e0a52e); border-radius: 10px; margin: 5px 2px; box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.25); }
+
+      /* ===== 3. SÉRIGRAPHIE : affiche de propagande spatiale. Fenêtres en aplat bleu canard, texte crème, titres
+         moutarde, ombres décalées de couleur (le décalage des passages d'encre), un grain d'impression. ===== */
+      body.affiche .panneau { color: #f6ead0; background: #1f5c63 radial-gradient(circle, rgba(0, 0, 0, 0.12) 0.8px, transparent 1px) 0 0 / 4px 4px;
+        border: 2.5px solid #12292c; border-radius: 4px; box-shadow: 6px 6px 0 var(--rouge); }
+      body.affiche .console, body.affiche .volet, body.affiche .onglets, body.affiche .bas { font-family: 'Oswald', sans-serif; letter-spacing: 0.04em; }
+      body.affiche .console .ou b, body.affiche .alerte span, body.affiche .contrat .txt { font-family: var(--police); letter-spacing: 0; }
+      body.affiche .rond { background: var(--moutarde); color: var(--encre); border: 2px solid #12292c; }
+      body.affiche .puce { background: #f6ead0; color: #12292c; border-radius: 2px; }
+      body.affiche .alerte { border-top: 2px solid rgba(246, 234, 208, 0.35); background: rgba(200, 64, 44, 0.45); }
+      body.affiche .alerte em { background: var(--moutarde); color: #12292c; border: 2px solid #12292c; }
+      body.affiche .volet .titre { border-bottom: 3px solid var(--moutarde); }
+      body.affiche .volet .titre h2 { color: var(--moutarde); text-shadow: 3px 3px 0 var(--rouge); letter-spacing: 0.04em; }
+      body.affiche .volet .titre button { font-size: 12px; letter-spacing: 0.12em; color: #f6ead0; }
+      body.affiche .sous button { border: 2px solid #f6ead0; color: #f6ead0; font-size: 14px; }
+      body.affiche .sous button.actif { background: var(--moutarde); color: #12292c; border-color: var(--moutarde); box-shadow: 3px 3px 0 var(--rouge); }
+      body.affiche .contrat { background: rgba(246, 234, 208, 0.1); border: 1.5px solid rgba(246, 234, 208, 0.5); }
+      body.affiche .tuile { background: #f6ead0; color: #1f5c63; border: 2px solid #12292c; box-shadow: 3px 3px 0 var(--moutarde); }
+      body.affiche .contrat .prix { color: var(--moutarde); font-size: 15px; }
+      body.affiche .contrat .actions button { border: 2px solid #f6ead0; color: #f6ead0; font-size: 14px; }
+      body.affiche .contrat .actions button.go { background: var(--rouge); border-color: #12292c; box-shadow: 3px 3px 0 var(--moutarde); }
+      body.affiche .onglets button.actif { background: var(--moutarde); color: #12292c; }
+
+      .bas { position: fixed; left: 10px; right: 10px; bottom: 80px; z-index: 5; display: none; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body class="pulp">
+    <img class="carte" src="./maquette/carte-repos.png" alt="" />
+    <button type="button" id="look">LOOK 1/3 · PULP ›</button>
+
+    <div class="console panneau">
+      <div class="etat"><span class="rond">◎</span><div class="ou"><b>EN ORBITE · TERRE</b><small>400 km · un tour en 1 h 32</small></div><span class="puce">NIV 3</span><span class="puce">◉ 1 240</span></div>
+      <div class="alerte"><span>△ <b>PANNE · MOTEUR</b> vitesse ÷ 2</span><em>RÉPARER</em></div>
+    </div>
+
+    <div class="volet panneau">
+      <div class="titre"><h2>JOURNAL</h2><button type="button">FERMER</button></div>
+      <div class="corps">
+        <div class="sous"><button type="button">QUÊTES</button><button type="button" class="actif">CONTRATS</button></div>
+        <div class="contrat"><span class="tuile">VIDER</span><div class="txt"><b>Vider l'épave Envisat</b>poste de tri · 3 min · ●○○
+          <div class="actions"><button type="button">VOIR</button><button type="button" class="go">ACCEPTER</button></div></div><span class="prix">90</span></div>
+        <div class="contrat"><span class="tuile" style="background:#f3c2b0">ESCORTER</span><div class="txt"><b>Escorter un convoi de Tiangong à Terra</b>tourelle · 12 min · ●●○
+          <div class="actions"><button type="button">VOIR</button><button type="button" class="go">ACCEPTER</button></div></div><span class="prix">130</span></div>
+      </div>
+    </div>
+
+    <nav class="onglets panneau">
+      <button type="button"><i>⌂</i>Capsule</button><button type="button" class="actif"><i>☰</i>Journal</button><button type="button"><i>↗</i>Marché</button><button type="button"><i>▤</i>Collect.</button><button type="button"><i>…</i>Plus</button>
+    </nav>
+
+    <script>
+      const LOOKS = [['pulp', 'PULP'], ['bord', 'TABLEAU DE BORD'], ['affiche', 'SÉRIGRAPHIE']]
+      let n = Math.max(0, LOOKS.findIndex(([k]) => k === new URLSearchParams(location.search).get('look')))
+      const afficher = () => { document.body.className = LOOKS[n][0]; document.querySelector('#look').textContent = `LOOK ${n + 1}/3 · ${LOOKS[n][1]} ›` }
+      document.querySelector('#look').onclick = () => { n = (n + 1) % LOOKS.length; afficher() }
+      afficher()
+    </script>
+  </body>
+</html>
