@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { annonces, breve, rapprochement } from '../src/moteur/annonces'
+import { annonces, breve, rapprochement, reclame } from '../src/moteur/annonces'
+import { RECLAMES } from '../src/donnees/reclames'
 import { BREVES } from '../src/donnees/breves'
 
 const t0 = Date.UTC(2026, 9, 22, 12)
@@ -20,10 +21,13 @@ describe('les annonces générales (demande d’Adrien du 22/10/2026)', () => {
   })
 
   it('une brève de Radio Résistance ferme la ronde ; elle change toutes les heures, la même pour tous', () => {
-    expect(annonces(t0).at(-1)).toBe(breve(t0))
+    expect(annonces(t0).at(-2)).toBe(breve(t0))
+    expect(annonces(t0).at(-1)).toBe(reclame(t0))
     expect(breve(t0 + 3_600_000)).not.toBe(breve(t0))
     expect(new Set(BREVES).size).toBe(BREVES.length)
-    expect(BREVES.length).toBeGreaterThanOrEqual(100)
+    expect(BREVES.length).toBeGreaterThanOrEqual(250)
+    expect(new Set(RECLAMES).size).toBe(RECLAMES.length)
+    expect(new Set(Array.from({ length: RECLAMES.length }, (_, k) => reclame(t0 + k * 3_600_000))).size).toBe(RECLAMES.length)
     // Toutes passent avant qu'une revienne (une centaine d'heures, plus de quatre jours).
     const vues = new Set(Array.from({ length: BREVES.length }, (_, k) => breve(t0 + k * 3_600_000)))
     expect(vues.size).toBe(BREVES.length)

@@ -159,6 +159,17 @@ export function vueAction(c: Compagnie, t: number): VueAction {
 // --- Le portefeuille du joueur ---
 
 /** Ce que le joueur a d'une compagnie : ses actions, et ce qu'elles lui ont coûté (frais compris). */
+/**
+ * Depuis quand on a une position (demande d'Adrien du 22/10/2026 : la date et l'heure dans le portefeuille) : sa date
+ * notée, sinon (parties d'avant) le plus ancien achat de cette compagnie dont on garde la trace ; null si on ne sait pas.
+ */
+export function dateDePosition(p: Portefeuille, id: string): number | null {
+  const notee = p.positions[id]?.depuis
+  if (notee !== undefined) return notee
+  const achats = p.journal.filter((o) => o.compagnie === id && o.sens === 'acheter').map((o) => o.arrivee)
+  return achats.length ? Math.min(...achats) : null
+}
+
 /** depuis : quand la position a été ouverte (l'exécution du premier achat, ms UTC ; absente des parties plus anciennes). */
 export interface Position { actions: number; investi: number; depuis?: number }
 
@@ -264,6 +275,8 @@ export function avancerOrdres(p: Portefeuille, credits: { valeur: number }, t: n
     if (o.sens === 'acheter') {
       o.actions = (o.credits - fraisOrdre(o.credits)) / o.prix!
       const pos = p.positions[o.compagnie] ??= { actions: 0, investi: 0, depuis: o.arrivee }
+      // Une position ouverte avant qu'on note sa date (parties d'avant le 22/10/2026) : la date de cet achat.
+      pos.depuis ??= dateDePosition(p, o.compagnie) ?? o.arrivee
       pos.actions += o.actions
       pos.investi += o.credits
     } else {

@@ -232,6 +232,20 @@ export function avancement(p: Plan, t: number): number {
   return (montee + v * (s - ta)) / L
 }
 
+/** Longueur du trajet (km) : l'aire sous le profil des vitesses (voir avancement). */
+export function longueurTrajet(p: Plan): number {
+  const T = (p.arrivee - p.depart) / 1000
+  if (T <= 0) return 0
+  const v0 = p.vitesseInitiale ?? 0
+  const a = acceleration(p.vitesse), v = vitesseDePointe(T, p.vitesse, v0), ta = (v - v0) / a, tf = v / a
+  return (v * v - v0 * v0) / (2 * a) + (v * v) / (2 * a) + v * Math.max(0, T - ta - tf)
+}
+
+/** Kilomètres qui restent à faire à l'instant t (demande d'Adrien du 22/10/2026 : les voir défiler jusqu'à 0). */
+export function kmRestants(p: Plan, t: number): number {
+  return Math.max(0, longueurTrajet(p) * (1 - avancement(p, t)))
+}
+
 /**
  * Vitesse de la capsule à l'instant t sur son trajet (km/s) et la phase du vol (demande d'Adrien du 20/10/2026 : un
  * cadran de vitesse sur la carte) : elle accélère (2 minutes jusqu'à la vitesse max), garde sa vitesse de pointe, puis freine.

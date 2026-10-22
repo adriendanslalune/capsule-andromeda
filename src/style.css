@@ -2430,3 +2430,29 @@ body.volet-ouvert #annonces { display: none; }
   clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
 .couverture-pulp { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-right: 96px; }
 .couverture-pulp .etoile-revue { top: -14px; right: -6px; width: 86px; height: 86px; }
+/* Les consignes de sécurité du Manuel (section 8) : des dessins d'instructions façon notice des années 50. */
+:is(#manuel, .papier) .consignes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+:is(#manuel, .papier) .consigne { margin: 0; padding: 6px 6px 8px; border: 1.5px solid var(--encre); text-align: center; background: var(--creme); }
+:is(#manuel, .papier) .consigne svg { width: 100%; max-width: 140px; height: auto; overflow: visible; }
+:is(#manuel, .papier) .consigne .tete { fill: var(--creme); stroke: var(--encre); stroke-width: 2.4; }
+:is(#manuel, .papier) .consigne .corps, :is(#manuel, .papier) .consigne .langue { fill: none; stroke: var(--encre); stroke-width: 2.4; stroke-linecap: round; }
+:is(#manuel, .papier) .consigne .langue { stroke: #e0571f; }
+:is(#manuel, .papier) .consigne .objet { fill: #f2d58e; stroke: var(--encre); stroke-width: 2.2; stroke-linejoin: round; }
+:is(#manuel, .papier) .consigne .chaleur, :is(#manuel, .papier) .consigne .etoiles { fill: none; stroke: var(--encre); stroke-width: 1.8; stroke-linecap: round; }
+:is(#manuel, .papier) .consigne .oeil, :is(#manuel, .papier) .consigne .voyant { fill: var(--encre); }
+:is(#manuel, .papier) .consigne .rond { fill: none; stroke: #c0392b; stroke-width: 5; opacity: 0.85; }
+:is(#manuel, .papier) .consigne .barre { stroke: #c0392b; stroke-width: 5; opacity: 0.85; }
+:is(#manuel, .papier) .consigne.conseille .rond { stroke: #3f8a4f; }
+:is(#manuel, .papier) .consigne .coche { fill: none; stroke: #3f8a4f; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+:is(#manuel, .papier) .consigne figcaption { margin-top: 4px; font: 700 13px/1.15 var(--titre); letter-spacing: 0.02em; text-transform: uppercase; }
+/* La signature du capitaine, au tampon (Profil). */
+.bloc.signature { display: flex; align-items: center; gap: 12px; }
+.tampon-capitaine { flex: none; width: 128px; height: 128px; transform: rotate(-9deg); mix-blend-mode: multiply; }
+.tampon-capitaine circle { fill: none; stroke: #c0392b; }
+.tampon-capitaine .anneau-ext { stroke-width: 3.5; }
+.tampon-capitaine .anneau-int { stroke-width: 1.5; }
+.tampon-capitaine text { fill: #c0392b; }
+.tampon-capitaine .tour { font: 700 12.5px var(--titre); letter-spacing: 0.08em; }
+.tampon-capitaine .nom-tampon { font: 900 17px 'Big Shoulders Display', var(--titre); }
+.tampon-capitaine .numero-tampon { font: 700 10px var(--titre); letter-spacing: 0.08em; }
+.bloc.signature .petit { margin: 0; }

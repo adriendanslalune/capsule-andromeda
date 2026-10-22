@@ -3,6 +3,7 @@
 // positions) et les événements du jeu en cours. Les mêmes pour tous : rien ne dépend de la partie.
 
 import { BREVES } from '../donnees/breves'
+import { RECLAMES } from '../donnees/reclames'
 import { EVENEMENTS, type Evenement } from '../donnees/evenements'
 import { position } from './corps'
 
@@ -31,15 +32,28 @@ export function rapprochement(planete: string, t: number): { distance: number; m
   return { distance: distance(planete, t), min, max, auPlusPres }
 }
 
+/** Un pas premier avec n (et au moins `depuis`) : en avançant de ce pas, on passe par tous les éléments avant d'en revoir un. */
+function pasMelange(n: number, depuis: number): number {
+  const pgcd = (a: number, b: number): number => (b ? pgcd(b, a % b) : a)
+  let pas = depuis
+  while (pgcd(pas, n) !== 1) pas++
+  return pas
+}
+
 /**
- * La brève de Radio Résistance de l'heure (Adrien, 22/10/2026 : plus fun ; une centaine, pour éviter les répétitions) :
- * une par heure, dans un ordre mélangé (un pas premier avec leur nombre : toutes passent avant qu'une revienne), la
- * même pour tous ; elle ferme la ronde des annonces.
+ * La brève de Radio Résistance de l'heure (Adrien, 22/10/2026 : plus fun ; près de trois cents, pour qu'un joueur de
+ * longue date ne s'en lasse pas) : une par heure, dans un ordre mélangé (toutes passent avant qu'une revienne : près de
+ * douze jours), la même pour tous.
  */
-const PAS_BREVES = 37
 export function breve(t: number): string {
   const h = Math.floor(t / 3_600_000)
-  return `Radio Résistance · ${BREVES[(h * PAS_BREVES) % BREVES.length]}`
+  return `Radio Résistance · ${BREVES[(h * pasMelange(BREVES.length, 37)) % BREVES.length]}`
+}
+
+/** La réclame d'époque de l'heure (proposition validée par Adrien le 22/10/2026), à son propre rythme. */
+export function reclame(t: number): string {
+  const h = Math.floor(t / 3_600_000)
+  return `Réclame · ${RECLAMES[(h * pasMelange(RECLAMES.length, 11) + 5) % RECLAMES.length]}`
 }
 
 const millions = (km: number) => (km >= 1e9 ? `${(km / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} milliards de km`
@@ -57,6 +71,6 @@ export function annonces(t: number, evenements: readonly Evenement[] = EVENEMENT
     else if (jours > 0) liste.push(`${planete} se rapproche de la Terre : au plus près dans ${jours} jours, ${millions(r.min)}. Bon moment pour y aller`)
     else liste.push(`${planete} s'éloigne de la Terre après son passage au plus près : il est encore temps d'y aller`)
   }
-  liste.push(breve(t))
+  liste.push(breve(t), reclame(t))
   return liste
 }

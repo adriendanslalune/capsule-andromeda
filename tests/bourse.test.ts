@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { COMPAGNIES, FRAIS_BOURSE } from '../src/donnees/bourse'
 import { corps } from '../src/moteur/corps'
 import {
-  avancerOrdres, coursAction, devisOrdre, evenementDuJour, historiqueAction, ORIGINE_BOURSE, ordresDesBots, passerOrdre, portefeuilleVide, rumeursEntre,
+  avancerOrdres, coursAction, dateDePosition, devisOrdre, evenementDuJour, historiqueAction, ORIGINE_BOURSE, ordresDesBots, passerOrdre, portefeuilleVide, rumeursEntre,
 } from '../src/moteur/bourse'
 
 const t0 = Date.UTC(2026, 9, 20, 12)
@@ -84,6 +84,9 @@ describe('la Bourse : les ordres du joueur', () => {
     expect(p.positions.jovienne.investi).toBe(500)
     // La date de la position (demande d'Adrien du 22/10/2026) : quand le premier achat s'est exécuté au siège.
     expect(p.positions.jovienne.depuis).toBe(t0 + 40 * 60_000)
+    // Une position d'avant (sans date) : le plus ancien achat dont on garde la trace.
+    delete p.positions.jovienne.depuis
+    expect(dateDePosition(p, 'jovienne')).toBe(t0 + 40 * 60_000)
     expect(p.ordres).toHaveLength(0)
     expect(p.journal[0]).toBe(o)
   })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { corps, position } from '../src/moteur/corps'
-import { avancement, contourner, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, vitesseEnVol, type Plan } from '../src/moteur/mission'
+import { avancement, contourner, kmRestants, longueurTrajet, dureeTrajet, etatSurTrajet, Mission, planifier, positionsDesPoints, securite, vitesseAstre, vitesseDePointe, vitesseEnVol, type Plan } from '../src/moteur/mission'
 import { acceleration, DUREE_ACCELERATION } from '../src/donnees/capsule'
 
 const t0 = Date.UTC(2026, 9, 17, 12)
@@ -224,5 +224,23 @@ describe('durées selon la puissance (pour choisir le réglage)', () => {
     // Un moteur plus lent (panne) : on ne repart jamais plus vite que lui.
     const lent = planifier(jeu.etatHeliocentrique(t0), 'Lune', t0, 15, 30)
     expect(lent.possible && lent.plan.vitesseInitiale).toBe(15)
+  })
+})
+
+describe('les kilomètres restants (demande d’Adrien du 22/10/2026)', () => {
+  it('toute la longueur au départ, 0 à l’arrivée, toujours en baisse', () => {
+    const p = planifier(new Mission().etatHeliocentrique(t0), 'Lune', t0, 30)
+    if (!p.possible) throw new Error('Lune impossible')
+    const L = longueurTrajet(p.plan)
+    expect(L).toBeGreaterThan(300_000)
+    expect(L).toBeLessThan(500_000)
+    expect(kmRestants(p.plan, p.plan.depart)).toBeCloseTo(L, 0)
+    expect(kmRestants(p.plan, p.plan.arrivee)).toBe(0)
+    let avant = Infinity
+    for (let k = 0; k <= 50; k++) {
+      const r = kmRestants(p.plan, p.plan.depart + ((p.plan.arrivee - p.plan.depart) * k) / 50)
+      expect(r).toBeLessThanOrEqual(avant)
+      avant = r
+    }
   })
 })

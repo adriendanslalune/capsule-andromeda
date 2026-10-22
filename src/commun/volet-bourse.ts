@@ -7,7 +7,7 @@
 // Le doigt posé sur le graphique lit le cours à un instant. La vue ne calcule rien : tout vient de moteur/bourse.ts.
 
 import { COMPAGNIES, FRAIS_BOURSE, FRAIS_MINIMUM, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
-import { compagnie, devisOrdre, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
+import { compagnie, dateDePosition, devisOrdre, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
 import { texteRestant } from './textes'
 
 /** Âge des cours, lisible : « 1,3 s », « 12 min 48 s », « 4 h 05 min ». */
@@ -102,7 +102,7 @@ export class VoletBourse {
           + Object.entries(p.positions).map(([cle, x]) => {
             const co = compagnie(cle)!, v = x.actions * vueAction(co, t).cours, gx = v - x.investi
             return `<button type="button" data-action="${cle}"><span class="nom"><i class="pastille" style="background:${co.teinte}"></i><span class="nom-texte">${co.nom}`
-              + `${x.depuis ? `<small class="depuis">depuis le ${date(x.depuis)}</small>` : ''}</span></span>`
+              + `${dateDePosition(p, cle) !== null ? `<small class="depuis">depuis le ${date(dateDePosition(p, cle)!)}</small>` : ''}</span></span>`
               + `<span>${actions(x.actions)}</span><span>${entier(x.investi)}</span><span><b>${entier(v)}</b><small class="${sens(gx)}">${pourcent(gx / x.investi)}</small></span></button>`
           }).join('') + '</div>'
       }

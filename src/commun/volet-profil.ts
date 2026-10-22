@@ -92,6 +92,22 @@ function htmlNiveau(jeu: Jeu): string {
     + '<p class="petit">Tout rapporte de l\'XP : contrats, chasseurs, zones libérées, quêtes, réparations, commerce (au plus 100 XP par jour), monolithes, Voix perdues. Ton niveau s\'affiche à côté de ton nom ; tous les 20 niveaux, ta capsule change de forme sur la carte.</p></div>'
 }
 
+/**
+ * La signature du capitaine, au tampon (proposition validée par Adrien le 22/10/2026 : plus fun) : un tampon rond à
+ * l'encre rouge, « CAPITAINE BREVETÉ DE LA RÉSISTANCE » tout autour, le nom et le numéro de la capsule au milieu.
+ */
+function signature(jeu: Jeu): string {
+  const nom = jeu.pseudo.replace(/[<>&"]/g, '')
+  return `<div class="bloc signature"><svg class="tampon-capitaine" viewBox="0 0 160 160" role="img" aria-label="Tampon du capitaine ${nom}">`
+    + '<defs><path id="cercle-tampon" d="M80 80m-58 0a58 58 0 1 1 116 0a58 58 0 1 1-116 0"/></defs>'
+    + '<circle cx="80" cy="80" r="74" class="anneau-ext"/><circle cx="80" cy="80" r="46" class="anneau-int"/>'
+    + '<text class="tour"><textPath href="#cercle-tampon" startOffset="0">CAPITAINE BREVETÉ ★ RÉSISTANCE TERRIENNE ★ </textPath></text>'
+    + `<text x="80" y="76" class="nom-tampon" text-anchor="middle" textLength="${Math.min(84, nom.length * 9)}" lengthAdjust="spacingAndGlyphs">${nom}</text>`
+    + `<text x="80" y="93" class="numero-tampon" text-anchor="middle">N° ${jeu.numeroSerie}</text>`
+    + `<text x="80" y="108" class="numero-tampon" text-anchor="middle">★ NIV. ${niveauDe(jeu.xp).niveau} ★</text></svg>`
+    + '<p class="petit">Ton tampon de capitaine. Il fait foi dans tout le système solaire (sauf sur Triton).</p></div>'
+}
+
 export function htmlProfil(jeu: Jeu): string {
   const pref = maisonPreferee(jeu), c = jeu.carnet
   const total = MAISONS.reduce((s, m) => s + c.missions[m.maison], 0)
@@ -99,6 +115,7 @@ export function htmlProfil(jeu: Jeu): string {
     + `<h3>Capitaine</h3><div class="bloc pseudo"><label for="pseudo">Ton nom dans les Messages</label>`
     + `<div class="ligne-pseudo"><input id="pseudo" type="text" maxlength="16" autocomplete="off" spellcheck="false" value="${jeu.pseudo}"/>`
     + `<button type="button" data-pseudo>OK</button></div><small>Capsule n° ${jeu.numeroSerie} · 3 à 16 lettres ou chiffres</small></div>`
+    + signature(jeu)
     + htmlNiveau(jeu)
     + htmlCollection(jeu)
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`

@@ -557,16 +557,25 @@ export class Carte2D {
    * de la capsule et filent dans toutes les directions, de plus en plus pâles en s'éloignant.
    */
   dessinerOndesPing(ctx: CanvasRenderingContext2D, x: number, y: number, maintenant: number): void {
-    const portee = Math.hypot(this.largeur, this.hauteur), periode = 2600, n = 4
+    // Lentes (un tour toutes les 7 secondes), chaque onde est un dégradé : un front plus vif, une traîne qui s'estompe
+    // vers la capsule ; elles pâlissent doucement en grandissant.
+    const portee = 0.8 * Math.hypot(this.largeur, this.hauteur), periode = 7000, n = 4
     ctx.save()
-    ctx.strokeStyle = '#7a5aa8'
     for (let k = 0; k < n; k++) {
-      const f = ((maintenant / periode + k / n) % 1)
-      ctx.globalAlpha = 0.75 * (1 - f) ** 1.5
-      ctx.lineWidth = 2.6 - 1.6 * f
+      const f = (maintenant / periode + k / n) % 1
+      const r = 10 + f * portee, epaisseur = 14 + 46 * f
+      const opacite = 0.55 * (1 - f) ** 2 * Math.min(1, f * 12)
+      if (opacite < 0.01) continue
+      const degrade = ctx.createRadialGradient(x, y, Math.max(0, r - epaisseur), x, y, r + 2)
+      degrade.addColorStop(0, 'rgba(122, 90, 168, 0)')
+      degrade.addColorStop(0.75, `rgba(122, 90, 168, ${(opacite * 0.45).toFixed(3)})`)
+      degrade.addColorStop(0.95, `rgba(122, 90, 168, ${opacite.toFixed(3)})`)
+      degrade.addColorStop(1, 'rgba(122, 90, 168, 0)')
+      ctx.fillStyle = degrade
       ctx.beginPath()
-      ctx.arc(x, y, 8 + f * portee * 0.75, 0, 2 * Math.PI)
-      ctx.stroke()
+      ctx.arc(x, y, r + 2, 0, 2 * Math.PI)
+      ctx.arc(x, y, Math.max(0, r - epaisseur), 0, 2 * Math.PI, true)
+      ctx.fill()
     }
     ctx.restore()
   }

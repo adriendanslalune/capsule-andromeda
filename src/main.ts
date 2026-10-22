@@ -107,7 +107,7 @@ import { couleurAstre } from './carte/couleurs'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
 import type { Contrat } from './moteur/contrats'
-import { avancement, planifier, vitesseDePointe, vitesseEnVol, type Plan, type Planification } from './moteur/mission'
+import { avancement, kmRestants, planifier, vitesseDePointe, vitesseEnVol, type Plan, type Planification } from './moteur/mission'
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
@@ -824,7 +824,9 @@ function mettreAJourFiche(t: number): void {
   if (!texte && enRoute) {
     const e = jeu.etapeActuelle()
     // Compacte (demande d'Adrien du 22/10/2026) : le reste du trajet et l'étape du contrat sur une seule ligne.
+    // Les kilomètres qui restent, qui défilent jusqu'à 0 (demande d'Adrien du 22/10/2026).
     texte = `<b class="destination">${enRoute.cible.toUpperCase()}</b><span class="vals">${avec('duree', `reste ${texteRestant(enRoute.arrivee - t)}`)}`
+      + avec('distance', `${Math.round(kmRestants(enRoute, t)).toLocaleString('fr-FR')} km`, 'km-restants')
       + (jeu.enCours && e?.lieu === enRoute.cible ? `<span class="etape-contrat">contrat ${jeu.enCours.etape + 1}/${jeu.enCours.contrat.etapes.length}</span>` : '') + '</span>'
     planFiche = enRoute
     enVol = true

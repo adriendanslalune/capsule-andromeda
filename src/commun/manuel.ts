@@ -330,6 +330,33 @@ function sectionSymboles(): string {
       Mercenaires) ; les points ●○○, ●●○, ●●● disent si la mission est proche, à mi-distance ou lointaine dans son système.</p>`)
 }
 
+/**
+ * Les consignes de sécurité (proposition validée par Adrien le 22/10/2026 : plus fun) : des dessins d'instructions comme
+ * dans les notices des années 50, un bonhomme à l'encre et un rond barré de rouge (ou coché de vert). Pour rire ; les
+ * mêmes pour tous (le Manuel s'imprime).
+ */
+const BONHOMME = '<circle class="tete" cx="30" cy="22" r="9"/><path class="corps" d="M30 31v22M30 38l-11 8M30 38l11 6M30 53l-9 15M30 53l9 15"/>'
+const CONSIGNES: { interdit: boolean; texte: string; dessin: string }[] = [
+  { interdit: true, texte: 'NE PAS lécher le réacteur.', dessin: `${BONHOMME}<path class="langue" d="M39 24q6 2 8 0"/><rect class="objet" x="56" y="16" width="22" height="44" rx="3"/><path class="chaleur" d="M62 12q3-4 0-8M68 12q3-4 0-8M74 12q3-4 0-8"/>` },
+  { interdit: true, texte: 'NE PAS ouvrir le sas en vol.', dessin: `${BONHOMME}<rect class="objet" x="52" y="12" width="28" height="56" rx="2"/><path class="corps" d="M41 44h12"/><path class="etoiles" d="M86 20l2 2M88 20l-2 2M84 52l2 2M86 52l-2 2"/>` },
+  { interdit: true, texte: 'NE PAS caresser les chasseurs d\'Andromède.', dessin: `${BONHOMME}<path class="objet" d="M56 50l16-26 16 26z"/><circle class="oeil" cx="66" cy="42" r="2"/><circle class="oeil" cx="76" cy="42" r="2"/><path class="corps" d="M41 44q8-10 18-6"/>` },
+  { interdit: true, texte: 'NE PAS taper sur le tableau de bord (sauf si ça marche).', dessin: `${BONHOMME}<rect class="objet" x="54" y="30" width="30" height="22" rx="2"/><circle class="voyant" cx="62" cy="40" r="3"/><circle class="voyant" cx="74" cy="40" r="3"/><path class="chaleur" d="M50 26l-4-6M58 24l1-7"/>` },
+  { interdit: true, texte: 'NE PAS confondre le PING et la sonnette.', dessin: `${BONHOMME}<path class="objet" d="M60 46q0-22 12-22t12 22h4H56z"/><circle class="corps" cx="72" cy="50" r="3"/><path class="chaleur" d="M90 30q4 6 0 12M94 26q6 10 0 20"/>` },
+  { interdit: false, texte: 'TOUJOURS lire le Manuel. Oui, celui-ci.', dessin: `${BONHOMME}<path class="objet" d="M44 30l14-4 14 4v24l-14-4-14 4z"/><path class="corps" d="M58 26v24"/>` },
+  { interdit: true, texte: 'NE PAS faire de barbecue à bord.', dessin: `${BONHOMME}<path class="objet" d="M54 42h30l-4 12H58z"/><path class="corps" d="M60 54l-3 12M78 54l3 12"/><path class="chaleur" d="M62 38q3-5 0-10M70 38q3-5 0-10M78 38q3-5 0-10"/>` },
+  { interdit: false, texte: 'TOUJOURS allumer le radar avant de partir.', dessin: `${BONHOMME}<circle class="objet" cx="70" cy="40" r="16"/><path class="corps" d="M70 40l11-8"/><path class="chaleur" d="M70 40m-22 0a22 22 0 0 1 44 0"/>` },
+]
+function sectionConsignes(): string {
+  const cartes = CONSIGNES.map((c) => `<figure class="consigne ${c.interdit ? 'interdit' : 'conseille'}"><svg viewBox="0 0 100 80" aria-hidden="true">${c.dessin}`
+    + (c.interdit ? '<circle class="rond" cx="50" cy="40" r="36"/><path class="barre" d="M24.5 14.5l51 51"/>' : '<circle class="rond" cx="50" cy="40" r="36"/><path class="coche" d="M78 12l6 6 12-14"/>')
+    + `</svg><figcaption>${c.texte}</figcaption></figure>`).join('')
+  return feuille('CA-MM-08', 'SECTION 8 — CONSIGNES DE SÉCURITÉ', '8-1', `
+    <h3>8.0 À lire avant de décoller</h3>
+    <p>La Résistance a constaté certains comportements à bord. Les consignes ci-dessous ne sont pas facultatives.</p>
+    <div class="consignes">${cartes}</div>
+    <p class="petit">Toute ressemblance avec un capitaine existant serait purement fortuite.</p>`)
+}
+
 /** Le texte du manuel (HTML), avec un bouton pour revenir au panneau de réparation. */
 export function htmlManuel(): string {
   return `
@@ -344,6 +371,7 @@ export function htmlManuel(): string {
       <tr><td>5</td><td class="gauche"><b>Coque — vannes, brèche, sas</b></td><td>p. 5-1</td></tr>
       <tr><td>6</td><td class="gauche"><b>Engins à dépanner — disjoncteurs, câblage, gyroscope</b></td><td>p. 6-1</td></tr>
       <tr><td>7</td><td class="gauche"><b>Symboles du cockpit</b></td><td>p. 7-1</td></tr>
+      <tr><td>8</td><td class="gauche"><b>Consignes de sécurité</b></td><td>p. 8-1</td></tr>
     </table>
     <p class="petit">Le panneau compte cinq blocs de trois modules. Quand un bloc tombe en panne, un ou deux de ses modules
       sont en défaut (voyant rouge) ; le bloc remarche quand ils sont tous réparés. Toucher un module en défaut ouvre ses
@@ -354,5 +382,6 @@ export function htmlManuel(): string {
   ${sectionNavigation()}
   ${sectionCoque()}
   ${sectionEngins()}
-  ${sectionSymboles()}`
+  ${sectionSymboles()}
+  ${sectionConsignes()}`
 }
