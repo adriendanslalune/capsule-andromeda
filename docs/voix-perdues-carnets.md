@@ -184,3 +184,72 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 
 20. **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 120
    « Bradbury tient. La tempête est passée, le titane sort de la mine, les serres repoussent. Roux n'est pas revenu. Sa balise chante toujours. Moi, j'ai arrêté d'écouter. »
+
+
+## Jupiter
+
+1. **Lt Nadia Orlov, flotte jovienne** · Ganymède · jour 60
+   « Ici le lieutenant Orlov, flotte jovienne. Il nous reste trois navires sur onze. Je ne vais pas vous mentir : c'est moi qui commande, maintenant. Personne d'autre n'était encore debout. »
+
+2. **Raoul Desforges, Jovienne d'Hélium** · Ganymède · jour 61
+   « La Jovienne d'Hélium informe son aimable clientèle que les livraisons sont suspendues pour cause d'invasion. Les tarifs, eux, restent inchangés. Merci de votre fidélité. »
+
+3. **Dr Ingrid Solberg, cheffe de forage** · station Conamara, Europe · jour 63
+   « Station Conamara, sur Europe. Ils se sont posés à dix kilomètres de nous et ils ont commencé à forer. Pas vers le métal, pas vers la roche : tout droit vers l'océan. »
+
+4. **Lev Antonov, doyen des mineurs** · Ganymède · jour 66
+   « J'ai quatre-vingt-onze ans. J'ai vu la première base de Ganymède, la première naissance, le premier enterrement. Je croyais avoir tout vu. Je râle, donc je vis. »
+
+5. **Message automatique** · gazoduc de la Jovienne d'Hélium · jour 70
+   « DÉBIT D'HÉLIUM 3 : NUL. PRESSION : NULLE. MORAL DE L'OPÉRATEUR : NON MESURÉ. VEUILLEZ CONTACTER VOTRE OPÉRATEUR. »
+
+6. **Tama Rangi, volcanologue** · Io · jour 72
+   « Sur Io, les volcans crachent du soufre à trois cents kilomètres de haut. Leur amiral se cache dans les panaches. Moi aussi. Nous sommes voisins. Nous ne nous saluons pas. »
+
+7. **Kofi Mensah, foreur** · station Conamara, Europe · jour 77
+   « On a descendu une caméra dans leur puits pendant qu'ils dormaient. S'ils dorment. Vingt kilomètres de glace, et au fond, une eau noire, tiède, qui bouge. »
+
+8. **Marius, gardien de phare** · phare de Valhalla, Callisto · jour 80
+   « Phare de Valhalla, sur Callisto. Rien à signaler, à part un chat qui refuse les croquettes lyophilisées. Lui non plus ne se rendra pas. »
+
+9. ◆ **Dr Ingrid Solberg, cheffe de forage** · station Conamara, Europe · jour 84
+   « Les images de Kofi. Au fond de l'océan, une balise, la même que celle de Tycho. Et autour d'elle, de la vie. Minuscule. Des voiles de microbes, serrés contre elle comme des pousses contre leur tuteur. »
+
+10. **Lt Nadia Orlov, flotte jovienne** · Ganymède · jour 88
+   « Le Léviathan est sorti des nuages de Jupiter ce matin. On a vu sa silhouette en entier. J'ai ordonné à mes trois navires de ne pas tirer. Personne n'a discuté. Personne ne pouvait parler. »
+
+11. **Raoul Desforges, Jovienne d'Hélium** · Ganymède · jour 93
+   « Offre spéciale de la Jovienne d'Hélium : pour dix tonnes d'hélium 3 achetées, la onzième est offerte. Offre valable jusqu'à la fin de l'invasion. Ou de la Jovienne. »
+
+12. ◆ **Kofi Mensah, foreur** · station Conamara, Europe · jour 99
+   « Chaque jour, ils remontent de l'eau de l'océan dans des cuves, et un vaisseau les emporte. Pas vers leurs lignes : vers Neptune. Ils envoient des échantillons à quelqu'un. »
+
+13. **Lev Antonov, doyen des mineurs** · Ganymède · jour 104
+   « Les jeunes me demandent si on va gagner. Je leur réponds que j'ai survécu à trois faillites de la Jovienne, deux épidémies de grippe et un mariage. On va gagner. »
+
+14. **Tama Rangi, volcanologue** · Io · jour 110
+   « Un panache a explosé juste sous leur amiral. Il a fait un bond de deux kilomètres. J'aurais voulu filmer. J'ai ri, à la place. Ça faisait longtemps. »
+
+15. ◆ **Dr Ingrid Solberg, cheffe de forage** · station Conamara, Europe · jour 116
+   « J'ai daté les microbes d'Europe : ils ont l'âge des premières traces de vie sur Terre. Même âge, même balise. Quelqu'un a semé deux jardins le même jour. Le nôtre a poussé. Celui-ci est resté dans le noir. »
+
+16. **Message automatique** · station Conamara, Europe · jour 120
+   « CHUTE DE GLACE DANS LE PUITS 3. LE PERSONNEL EST PRIÉ DE NE PAS REGARDER EN BAS. LE PERSONNEL EST PRIÉ DE NE PAS ÉCOUTER CE QUI REMONTE. »
+
+17. **Marius, gardien de phare** · phare de Valhalla, Callisto · jour 126
+   « Le chat a mangé les croquettes. C'est la meilleure nouvelle depuis le début de l'invasion. Phare de Valhalla, terminé. »
+
+18. **Lt Nadia Orlov, flotte jovienne** · Ganymède · jour 133
+   « Nous avons perdu le Saint-Brendan au-dessus d'Io. Équipage récupéré, navire perdu. Il me reste deux navires et une certitude : on ne recule plus. »
+
+19. ◆ **Kofi Mensah, foreur** · station Conamara, Europe · jour 141
+   « Leur foreuse s'est arrêtée juste au-dessus de la balise. Ils ne l'ont pas touchée. Ils ont mesuré les microbes, longtemps, et noté quelque chose. On aurait dit un inspecteur qui compare deux parcelles. »
+
+20. **Raoul Desforges, Jovienne d'Hélium** · Ganymède · jour 150
+   « La direction de la Jovienne d'Hélium a démissionné. Je suis désormais directeur commercial, directeur général et standardiste. Nos tarifs restent inchangés. »
+
+21. **Lev Antonov, doyen des mineurs** · Ganymède · jour 162
+   « Je ne verrai pas la fin. Mais je l'ai entendue arriver, dans la radio des jeunes. Gardez ma place au bistrot de Ganymède. Et payez ma tournée : je vous la dois. »
+
+22. **Lt Nadia Orlov, flotte jovienne** · Ganymède · jour 180
+   « Si un capitaine de la Résistance m'entend un jour : venez sur Ganymède, je vous attendrai. Je ne sais pas encore ce qu'on fera, mais avec deux navires et un capitaine, on fera du bruit. »

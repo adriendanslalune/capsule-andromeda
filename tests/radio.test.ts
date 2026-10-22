@@ -22,7 +22,7 @@ describe('la radio : les Voix perdues (décisions d’Adrien du 20/10/2026)', ()
     let n = 0
     for (let t = t0; t < t0 + PERIODE_EMISSION; t += pas) if (emet(v, t)) n++
     expect(n).toBe(DUREE_EMISSION / pas)
-    expect(VOIX.filter((x) => x.systeme === 'Jupiter').some((x) => [...Array(360).keys()].some((k) => emet(x, t0 + k * pas)))).toBe(false)
+    expect(VOIX.filter((x) => x.systeme === 'Saturne').some((x) => [...Array(360).keys()].some((k) => emet(x, t0 + k * pas)))).toBe(false)
   })
 
   it('on ne capte une voix que dans son système, pendant qu’elle émet, d’autant mieux qu’on est calé près d’elle', () => {

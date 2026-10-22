@@ -3,7 +3,7 @@
 // une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à heure fixe (la même
 // pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus, Mars), à corriger par
+// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus, Mars, Jupiter), à corriger par
 // Adrien ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
@@ -97,5 +97,29 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Mateo Ruiz, mineur', lieu: 'mine de Bradbury', jour: 80, texte: 'Pendant la tempête, on ne voit plus le feu d\'Olympus. C\'est bizarre, il me manque. On s\'habitue à tout, même à être surveillé.' },
     { auteur: 'Pr Anselme Roux, géologue', lieu: 'caldeira d\'Olympus Mons', jour: 88, texte: 'Je suis à côté d\'elle, elle chante pour moi. Je crois comprendre : elle ne compte pas les années, elle compte ce qui pousse. Et nous avons poussé jusqu\'ici. Dites à la Terre que nous avons grandi trop vite.' },
     { auteur: 'Hélène Castagne, directrice', lieu: 'colonie Bradbury, Mars', jour: 120, texte: 'Bradbury tient. La tempête est passée, le titane sort de la mine, les serres repoussent. Roux n\'est pas revenu. Sa balise chante toujours. Moi, j\'ai arrêté d\'écouter.' },
+  ],
+  Jupiter: [
+    { auteur: 'Lt Nadia Orlov, flotte jovienne', lieu: 'Ganymède', jour: 60, texte: 'Ici le lieutenant Orlov, flotte jovienne. Il nous reste trois navires sur onze. Je ne vais pas vous mentir : c\'est moi qui commande, maintenant. Personne d\'autre n\'était encore debout.' },
+    { auteur: 'Raoul Desforges, Jovienne d\'Hélium', lieu: 'Ganymède', jour: 61, texte: 'La Jovienne d\'Hélium informe son aimable clientèle que les livraisons sont suspendues pour cause d\'invasion. Les tarifs, eux, restent inchangés. Merci de votre fidélité.' },
+    { auteur: 'Dr Ingrid Solberg, cheffe de forage', lieu: 'station Conamara, Europe', jour: 63, texte: 'Station Conamara, sur Europe. Ils se sont posés à dix kilomètres de nous et ils ont commencé à forer. Pas vers le métal, pas vers la roche : tout droit vers l\'océan.' },
+    { auteur: 'Lev Antonov, doyen des mineurs', lieu: 'Ganymède', jour: 66, texte: 'J\'ai quatre-vingt-onze ans. J\'ai vu la première base de Ganymède, la première naissance, le premier enterrement. Je croyais avoir tout vu. Je râle, donc je vis.' },
+    { auteur: 'Message automatique', lieu: 'gazoduc de la Jovienne d\'Hélium', jour: 70, texte: 'DÉBIT D\'HÉLIUM 3 : NUL. PRESSION : NULLE. MORAL DE L\'OPÉRATEUR : NON MESURÉ. VEUILLEZ CONTACTER VOTRE OPÉRATEUR.' },
+    { auteur: 'Tama Rangi, volcanologue', lieu: 'Io', jour: 72, texte: 'Sur Io, les volcans crachent du soufre à trois cents kilomètres de haut. Leur amiral se cache dans les panaches. Moi aussi. Nous sommes voisins. Nous ne nous saluons pas.' },
+    { auteur: 'Kofi Mensah, foreur', lieu: 'station Conamara, Europe', jour: 77, texte: 'On a descendu une caméra dans leur puits pendant qu\'ils dormaient. S\'ils dorment. Vingt kilomètres de glace, et au fond, une eau noire, tiède, qui bouge.' },
+    { auteur: 'Marius, gardien de phare', lieu: 'phare de Valhalla, Callisto', jour: 80, texte: 'Phare de Valhalla, sur Callisto. Rien à signaler, à part un chat qui refuse les croquettes lyophilisées. Lui non plus ne se rendra pas.' },
+    { auteur: 'Dr Ingrid Solberg, cheffe de forage', lieu: 'station Conamara, Europe', jour: 84, texte: 'Les images de Kofi. Au fond de l\'océan, une balise, la même que celle de Tycho. Et autour d\'elle, de la vie. Minuscule. Des voiles de microbes, serrés contre elle comme des pousses contre leur tuteur.' },
+    { auteur: 'Lt Nadia Orlov, flotte jovienne', lieu: 'Ganymède', jour: 88, texte: 'Le Léviathan est sorti des nuages de Jupiter ce matin. On a vu sa silhouette en entier. J\'ai ordonné à mes trois navires de ne pas tirer. Personne n\'a discuté. Personne ne pouvait parler.' },
+    { auteur: 'Raoul Desforges, Jovienne d\'Hélium', lieu: 'Ganymède', jour: 93, texte: 'Offre spéciale de la Jovienne d\'Hélium : pour dix tonnes d\'hélium 3 achetées, la onzième est offerte. Offre valable jusqu\'à la fin de l\'invasion. Ou de la Jovienne.' },
+    { auteur: 'Kofi Mensah, foreur', lieu: 'station Conamara, Europe', jour: 99, texte: 'Chaque jour, ils remontent de l\'eau de l\'océan dans des cuves, et un vaisseau les emporte. Pas vers leurs lignes : vers Neptune. Ils envoient des échantillons à quelqu\'un.' },
+    { auteur: 'Lev Antonov, doyen des mineurs', lieu: 'Ganymède', jour: 104, texte: 'Les jeunes me demandent si on va gagner. Je leur réponds que j\'ai survécu à trois faillites de la Jovienne, deux épidémies de grippe et un mariage. On va gagner.' },
+    { auteur: 'Tama Rangi, volcanologue', lieu: 'Io', jour: 110, texte: 'Un panache a explosé juste sous leur amiral. Il a fait un bond de deux kilomètres. J\'aurais voulu filmer. J\'ai ri, à la place. Ça faisait longtemps.' },
+    { auteur: 'Dr Ingrid Solberg, cheffe de forage', lieu: 'station Conamara, Europe', jour: 116, texte: 'J\'ai daté les microbes d\'Europe : ils ont l\'âge des premières traces de vie sur Terre. Même âge, même balise. Quelqu\'un a semé deux jardins le même jour. Le nôtre a poussé. Celui-ci est resté dans le noir.' },
+    { auteur: 'Message automatique', lieu: 'station Conamara, Europe', jour: 120, texte: 'CHUTE DE GLACE DANS LE PUITS 3. LE PERSONNEL EST PRIÉ DE NE PAS REGARDER EN BAS. LE PERSONNEL EST PRIÉ DE NE PAS ÉCOUTER CE QUI REMONTE.' },
+    { auteur: 'Marius, gardien de phare', lieu: 'phare de Valhalla, Callisto', jour: 126, texte: 'Le chat a mangé les croquettes. C\'est la meilleure nouvelle depuis le début de l\'invasion. Phare de Valhalla, terminé.' },
+    { auteur: 'Lt Nadia Orlov, flotte jovienne', lieu: 'Ganymède', jour: 133, texte: 'Nous avons perdu le Saint-Brendan au-dessus d\'Io. Équipage récupéré, navire perdu. Il me reste deux navires et une certitude : on ne recule plus.' },
+    { auteur: 'Kofi Mensah, foreur', lieu: 'station Conamara, Europe', jour: 141, texte: 'Leur foreuse s\'est arrêtée juste au-dessus de la balise. Ils ne l\'ont pas touchée. Ils ont mesuré les microbes, longtemps, et noté quelque chose. On aurait dit un inspecteur qui compare deux parcelles.' },
+    { auteur: 'Raoul Desforges, Jovienne d\'Hélium', lieu: 'Ganymède', jour: 150, texte: 'La direction de la Jovienne d\'Hélium a démissionné. Je suis désormais directeur commercial, directeur général et standardiste. Nos tarifs restent inchangés.' },
+    { auteur: 'Lev Antonov, doyen des mineurs', lieu: 'Ganymède', jour: 162, texte: 'Je ne verrai pas la fin. Mais je l\'ai entendue arriver, dans la radio des jeunes. Gardez ma place au bistrot de Ganymède. Et payez ma tournée : je vous la dois.' },
+    { auteur: 'Lt Nadia Orlov, flotte jovienne', lieu: 'Ganymède', jour: 180, texte: 'Si un capitaine de la Résistance m\'entend un jour : venez sur Ganymède, je vous attendrai. Je ne sais pas encore ce qu\'on fera, mais avec deux navires et un capitaine, on fera du bruit.' },
   ],
 }
