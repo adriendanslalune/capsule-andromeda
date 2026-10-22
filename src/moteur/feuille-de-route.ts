@@ -27,15 +27,25 @@ export interface FeuilleDeRoute {
  * La feuille de route d'un trajet (en cours, ou prévu si enVol est faux). contrat : le contrat en cours et le numéro
  * de son étape actuelle ; si le trajet y mène, les étapes suivantes s'ajoutent au bout de la frise.
  */
-export function feuilleDeRoute(plan: Plan, enVol: boolean, t: number, contrat?: { contrat: Contrat; etape: number } | null,
-  ici?: string | null): FeuilleDeRoute {
+export function feuilleDeRoute(plan: Plan, enVol: boolean, t: number,
+  contrat?: { contrat: Contrat; etape: number; depart?: string } | null, ici?: string | null): FeuilleDeRoute {
   const etape = contrat?.contrat.etapes[contrat.etape]
   const versLEtape = !!etape && etape.lieu === plan.cible
-  const points: PointDeRoute[] = [
-    { nom: (enVol ? plan.origine : ici ?? plan.origine) ?? 'plein espace', quand: enVol ? plan.depart : undefined, passe: enVol, but: false },
-    { nom: plan.cible, quand: plan.arrivee, passe: false, but: true, ...(versLEtape ? { action: etape!.action } : {}) },
-  ]
+  const points: PointDeRoute[] = []
+  // Une étape d'un contrat après la première (demande d'Adrien du 22/10/2026) : toute la route du contrat, ce qui est
+  // déjà fait en tête (d'où il est parti, les étapes passées), pas seulement le tronçon en cours.
+  if (versLEtape && contrat!.etape > 0) {
+    if (contrat!.depart) points.push({ nom: contrat!.depart, passe: true, but: false })
+    for (const e of contrat!.contrat.etapes.slice(0, contrat!.etape)) points.push({ nom: e.lieu, action: e.action, passe: true, but: false })
+    // Le tronçon en cours part de la dernière étape faite (son heure de départ, en vol).
+    if (enVol) points[points.length - 1].quand = plan.depart
+    else points[points.length - 1].passe = true
+  } else {
+    points.push({ nom: (enVol ? plan.origine : ici ?? plan.origine) ?? 'plein espace', quand: enVol ? plan.depart : undefined, passe: enVol, but: false })
+  }
+  const debut = points.length - 1
+  points.push({ nom: plan.cible, quand: plan.arrivee, passe: false, but: true, ...(versLEtape ? { action: etape!.action } : {}) })
   if (versLEtape) for (const e of contrat!.contrat.etapes.slice(contrat!.etape + 1)) points.push({ nom: e.lieu, action: e.action, passe: false, but: false })
-  const position = enVol ? Math.min(1, Math.max(0, avancement(plan, t))) / (points.length - 1) : 0
-  return { points, position }
+  const f = enVol ? Math.min(1, Math.max(0, avancement(plan, t))) : 0
+  return { points, position: (debut + f) / (points.length - 1) }
 }

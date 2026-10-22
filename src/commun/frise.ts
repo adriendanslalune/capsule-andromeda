@@ -17,7 +17,8 @@ export function htmlFrise(f: FeuilleDeRoute, t: number): string {
   const points = f.points.map((p, k) => {
     const sous: string[] = []
     if (p.action) sous.push(VERBES[p.action].toLowerCase())
-    if (k === 0) sous.push(p.passe && p.quand !== undefined ? `parti ${heure(p.quand, t)}` : 'maintenant')
+    if (p.passe) { if (p.quand !== undefined) sous.push(`parti ${heure(p.quand, t)}`) }
+    else if (k === 0) sous.push('maintenant')
     else if (p.quand !== undefined) sous.push(`<em>${heure(p.quand, t)}</em>`)
     const classe = ['point', k === 0 ? 'debut' : '', k === n - 1 ? 'fin' : '', p.passe ? 'passe' : '', p.but ? 'but' : ''].filter(Boolean).join(' ')
     return `<div class="${classe}" style="left:${((100 * k) / (n - 1)).toFixed(1)}%"><b>${p.nom}</b><i></i><small>${sous.join('<br>')}</small></div>`

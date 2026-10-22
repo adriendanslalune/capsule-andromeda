@@ -1,25 +1,26 @@
 :root {
-  /* Fond blanc cassé (choix d'Adrien), encre presque noire ; palette du jeu pour les aplats. */
-  --fond: #f4f1ea;
+  /* Teintes choisies par Adrien le 22/10/2026 : la carte en papier kraft (--carte), les fenêtres en papier clair par-dessus,
+     pour qu'elles s'en détachent ; encre presque noire ; palette du jeu pour les aplats. */
+  --carte: #e7dcc4;
+  --fond: #fbf8f1;
   --encre: #1f1b18;
   --moutarde: #f2b53a;
-  --creme: #faf2dc;
+  --creme: #fffbf2;
   /* Ombre portée des cadres et des boutons. */
   --ombre: #1f1b18;
   --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
-/* Mode nuit (bouton dans « Repères », choix d'Adrien du 17/10/2026) : Moebius de nuit, fond bleu nuit, encre crème. */
+/* Thème sombre (bouton des calques) : la carte de nuit, bleu nuit, les fenêtres restent en papier clair (choix d'Adrien
+   du 22/10/2026, « nuit + papier »). */
 body.nuit {
-  --fond: #141826;
-  --encre: #efe6d2;
-  --creme: #232a3d;
+  --carte: #141826;
   --ombre: #05070d;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
   overflow: hidden;
-  background: var(--fond);
+  background: var(--carte);
   color: var(--encre);
   font-family: var(--police);
   -webkit-user-select: none;
@@ -86,7 +87,6 @@ html, body {
 /* Missile en approche : la ligne la plus urgente, sur fond cerise, qui palpite. */
 #bandeau .ligne.missile { background: color-mix(in srgb, #e04b37 30%, transparent); border-radius: 6px 6px 0 0; animation: alerte-missile 1s ease-in-out infinite; }
 #bandeau .ligne.missile b { color: #8f2a1c; }
-body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 @keyframes alerte-missile { 50% { background: color-mix(in srgb, #e04b37 12%, transparent); } }
 #bandeau .alerte { animation: palpiter 1.2s ease-in-out infinite; }
 @keyframes palpiter { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
@@ -735,8 +735,6 @@ body.nuit #bandeau .ligne.missile b { color: #ffd2c4; }
 #marche .liste-cours .valeur { width: 74px; text-align: right; font-weight: bold; }
 #marche .hausse { color: #3f8a4f; }
 #marche .baisse { color: #b4442f; }
-body.nuit #marche .hausse { color: #8fcf98; }
-body.nuit #marche .baisse { color: #f08a72; }
 #marche .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
 
 /* Capsule › ARMEMENT (étape 6, écrans d'abord) : l'énergie à répartir, l'équipement, le simulateur. */
@@ -1311,7 +1309,6 @@ body.nuit #marche .baisse { color: #f08a72; }
 #comptoir .tete-materiau .nom { flex: 1; display: flex; flex-direction: column; }
 #comptoir .specialite, #comptoir .besoin { font-size: 10.5px; font-weight: bold; }
 #comptoir .bon-marche { color: #3f8a4f; } #comptoir .recherche { color: #b4442f; }
-body.nuit #comptoir .bon-marche { color: #8fcf98; } body.nuit #comptoir .recherche { color: #f08a72; }
 #comptoir .besoin { display: inline-flex; align-items: center; gap: 3px; color: #7a5aa8; }
 #comptoir .prix-comptoir { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; }
 #comptoir .prix-comptoir b { font-size: 13px; }
@@ -1334,8 +1331,6 @@ body.nuit #comptoir .bon-marche { color: #8fcf98; } body.nuit #comptoir .recherc
 #comptoir .lots button small { font-size: 12px; font-weight: bold; white-space: nowrap; }
 #comptoir .achat .lots button small { color: #b4442f; }
 #comptoir .vente .lots button small { color: #2f7a3f; }
-body.nuit #comptoir .achat .lots button small { color: #f08a72; }
-body.nuit #comptoir .vente .lots button small { color: #8fcf98; }
 #comptoir .lots button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 #comptoir .lots button:disabled { opacity: 0.35; box-shadow: none; }
 /* La Bourse (onglet du Marché) : le portefeuille, les ordres en route, la position, le fil des ordres des bots. */
@@ -1355,7 +1350,6 @@ body.nuit #comptoir .vente .lots button small { color: #8fcf98; }
 #bourse .liste-cours .pastille { flex: none; width: 12px; height: 12px; border: 1.5px solid var(--encre); border-radius: 50%; }
 #bourse .liste-cours .nom { font-size: 12px; }
 #bourse .hausse { color: #3f8a4f; } #bourse .baisse { color: #b4442f; }
-body.nuit #bourse .hausse { color: #8fcf98; } body.nuit #bourse .baisse { color: #f08a72; }
 #bourse .tete-cours .droite span { white-space: nowrap; }
 /* La confirmation d'un ordre de Bourse (ou d'un gros achat au Comptoir) : rien ne part sans confirmer. */
 #marche .confirmation { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--encre); border-radius: 8px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); font-size: 12.5px; }
@@ -1793,7 +1787,6 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #bandeau .ligne.panne, #bandeau .ligne.missile { border-radius: 0; }
 #bandeau .ligne.panne { background: color-mix(in srgb, var(--moutarde) 28%, var(--creme)); }
 #bandeau .ligne.panne b { color: #8a5a00; }
-body.nuit #bandeau .ligne.panne b { color: #f5d38a; }
 #suivi { width: 100%; min-height: 40px; padding: 4px 10px; font-size: 12px; text-align: left; color: var(--encre); background: none; border: none; border-radius: 0;
   box-shadow: none; border-top: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); }
 #suivi.secondaire { background: color-mix(in srgb, #8fb4e6 18%, var(--creme)); }
@@ -1885,9 +1878,3 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 .instrument-requis { display: inline-flex; align-self: flex-start; flex: none; width: max-content; height: 26px; align-items: center; gap: 5px; margin: 2px 0 4px; padding: 2px 8px 2px 4px; font-size: 10px; letter-spacing: 0.06em;
   border: 1.5px solid var(--encre); border-radius: 12px; background: var(--creme); }
 .instrument-requis svg { width: 20px; height: 20px; overflow: visible; }
-
-/* Essai de teintes (demande d'Adrien du 22/10/2026) : la carte d'une couleur, les fenêtres plus claires par-dessus. */
-body.teinte-b { --fond: #fbf8f1; --creme: #fffbf2; background: #e7dcc4; }
-body.teinte-c { --fond: #fbf7ee; --creme: #fff9ea; background: #d9e2e6; }
-body.teinte-d { --fond: #fbf8f1; --creme: #fffaf0; background: #e3ddee; }
-body.teinte-e { --ombre: #05070d; background: #141826; }

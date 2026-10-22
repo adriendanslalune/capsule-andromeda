@@ -55,7 +55,11 @@ export const DUREE_FEUX = 120_000
  * La mission acceptée : où on en est (numéro de l'étape) et, si une action est en cours, son début (ms UTC) et sa
  * durée (ms ; plus longue si l'énergie est en panne au moment où elle commence).
  */
-export interface ContratEnCours { contrat: Contrat; etape: number; debutAction: number | null; dureeAction?: number }
+export interface ContratEnCours {
+  contrat: Contrat; etape: number; debutAction: number | null; dureeAction?: number
+  /** D'où la capsule est partie vers la première étape (pour la feuille de route des étapes suivantes). */
+  depart?: string
+}
 
 /** Ce qui s'est passé en faisant avancer le jeu (pour prévenir le joueur). */
 export type Evenement =
@@ -587,6 +591,9 @@ export class Jeu {
     this.menaces(t, evenements)
     this.soleil(t, evenements)
     this.visiter(t)
+    // D'où part le contrat (la feuille de route le garde pour les étapes suivantes).
+    const accepte = this.enCours, p = this.mission.plan
+    if (accepte && accepte.etape === 0 && p?.origine && p.cible === accepte.contrat.etapes[0].lieu) accepte.depart = p.origine
     this.user(t, evenements)
     this.proposer(t)
     // Les quêtes : un lieu atteint, des marchandises à livrer.

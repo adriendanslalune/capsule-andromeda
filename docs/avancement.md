@@ -17,9 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
-- Essai de teintes (demande d'Adrien du 22/10/2026 : tout est trop dans le même ton clair) — **en essai, au choix
-  d'Adrien** : planche `docs/essais-teintes.png` et choix dans Plus › Réglages (A actuelle, B kraft, C cyanotype,
-  D lavande, E carte de nuit et fenêtres claires) ; la carte a sa couleur, les fenêtres sont plus claires par-dessus.
+- Teintes (choix d'Adrien du 22/10/2026, d'après la planche `docs/essais-teintes.png`) — **fait** : la carte en papier
+  kraft (`--carte`), les fenêtres en papier clair par-dessus ; en sombre, la carte de nuit et les fenêtres restent
+  claires. La feuille de route d'un contrat garde toute sa route aux étapes suivantes (ce qui est fait en tête).
 - Retours d'Adrien du 21/10/2026 — **faits, en attente de ses essais** : étiquettes de la carte sans chevauchement
   (`dessinerNoms` dans `src/carte/carte.ts` : la plaque de la capsule et les noms en dernier, en évitant astres,
   médaillons, étiquette de la destination et commandes) ; actions sur place sans manœuvre à 30 s au lieu de 2 min

@@ -245,9 +245,8 @@ let suivre = true
 /** Glissement d'un doigt depuis le début du geste (px) : un petit glissement ne lâche pas ce qu'on suit. */
 let glisseCumul = 0
 /** Encre et fond de la carte : style Moebius, fond blanc cassé le jour, bleu nuit en mode nuit. */
-const THEMES = { jour: { encre: '#1f1b18', halo: '#f4f1ea' }, nuit: { encre: '#efe6d2', halo: '#141826' } }
-/** Fond de la carte de chaque teinte d'essai (le même que --carte dans style.css). */
-const TEINTES_CARTE: Record<string, string> = { b: '#e7dcc4', c: '#d9e2e6', d: '#e3ddee' }
+/** Encre et fond de la carte (le même que --carte dans style.css) : kraft le jour, bleu nuit en sombre. */
+const THEMES = { jour: { encre: '#1f1b18', halo: '#e7dcc4' }, nuit: { encre: '#efe6d2', halo: '#141826' } }
 let th = THEMES.jour
 
 function redimensionner(): void {
@@ -277,8 +276,6 @@ const reglages = {
   /** Essai : forcer la vitesse de croisière (km/s) au lieu de celle du moteur de la capsule. */
   forcerVitesse: false,
   vitesse: 120,
-  /** Essai de teintes (demande d'Adrien du 22/10/2026) : a (actuelle), b (kraft), c (cyanotype), d (lavande), e (carte de nuit, fenêtres claires). */
-  teinte: 'a',
 }
 try {
   const memo = JSON.parse(localStorage.getItem(CLE_REGLAGES) ?? '{}')
@@ -287,7 +284,7 @@ try {
 const memoriser = () => { try { localStorage.setItem(CLE_REGLAGES, JSON.stringify(reglages)) } catch { /* rien */ } }
 const panneau = document.querySelector<HTMLDivElement>('#reglages')!
 for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data-reglage]')) {
-  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'vitesse' | 'teinte'>
+  const cle = caseACocher.dataset.reglage as Exclude<keyof typeof reglages, 'vitesse'>
   caseACocher.checked = reglages[cle]
   caseACocher.addEventListener('change', () => {
     reglages[cle] = caseACocher.checked
@@ -299,12 +296,8 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
 
 /** Jour ou nuit : couleurs de la page (style.css), de la carte et de la barre du téléphone. */
 function appliquerTheme(): void {
-  // Essai de teintes : la carte a sa propre couleur (--carte), les fenêtres restent claires ; le thème sombre l'emporte.
-  const teinte = reglages.nuit ? 'a' : reglages.teinte
-  const carteNuit = reglages.nuit || teinte === 'e'
-  for (const k of ['b', 'c', 'd', 'e']) document.body.classList.toggle(`teinte-${k}`, teinte === k)
-  th = carteNuit ? THEMES.nuit : { ...THEMES.jour, halo: TEINTES_CARTE[teinte] ?? THEMES.jour.halo }
-  carte.nuit = carteNuit
+  th = reglages.nuit ? THEMES.nuit : THEMES.jour
+  carte.nuit = reglages.nuit
   document.body.classList.toggle('nuit', reglages.nuit)
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', th.halo)
 }
@@ -586,10 +579,6 @@ function montrerEcho(t: number): void {
 toilePlan.addEventListener('pointerdown', () => { cockpit.fermer(); glisseCumul = 0 })
 
 // --- Réglages d'essai : accélération du temps et puissance des moteurs.
-for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="teinte"]')) {
-  bouton.checked = bouton.value === reglages.teinte
-  bouton.addEventListener('change', () => { reglages.teinte = bouton.value; memoriser(); appliquerTheme(); carteSale = true })
-}
 for (const bouton of panneau.querySelectorAll<HTMLInputElement>('input[name="acceleration"]')) {
   bouton.checked = Number(bouton.value) === acceleration
   bouton.addEventListener('change', () => { acceleration = Number(bouton.value); planAJour = 0 })
@@ -2027,8 +2016,6 @@ requestAnimationFrame(image)
 Object.assign(window, {
   andromeda: {
     horloge: () => horloge(),
-    // Essais de teintes : la couleur du liseré des noms sur la carte (celle de son fond).
-    teinte: (halo: string) => { th = { ...th, halo } },
     // Essais : les Voix perdues qui émettent en ce moment dans le système de la capsule (numéro, fréquence).
     voix: () => VOIX.filter((v) => v.systeme === systemeDeLaCapsule(horloge()) && emet(v, horloge())).map((v) => ({ numero: v.numero, frequence: v.frequence })),
     // Essais : la réponse du manuel pour le tour en cours de la réparation d'un module.
