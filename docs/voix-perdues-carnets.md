@@ -121,3 +121,66 @@ Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les f
 
 15. ◆ **Cdt Ilse Brandt** · ISS · jour 30
    « Nous avons appris à vivre avec eux, là-haut. Ce n'est pas une occupation. C'est une attente. Ils attendent que quelque chose se réveille. »
+
+
+## Mars
+
+1. **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 15
+   « Ici Bradbury, colonie d'Arès Titane. Quatre cents colons, deux serres, une mine de titane et un moral à reconstruire. On a connu pire. Non, en fait, on n'a pas connu pire. »
+
+2. **Mateo Ruiz, mineur** · mine de Bradbury · jour 16
+   « On continue à creuser. Le titane ne va pas sortir tout seul, invasion ou pas. Et au fond de la mine, au moins, on ne les voit pas passer. »
+
+3. **Message automatique** · rover Curiosity, cratère Gale · jour 17
+   « ANNIVERSAIRE DE L'ATTERRISSAGE. JOYEUX ANNIVERSAIRE, CURIOSITY. JOYEUX ANNIVERSAIRE, CURIOSITY. PERSONNE N'A RÉPONDU. JOYEUX ANNIVERSAIRE QUAND MÊME. »
+
+4. **Les jumeaux Oyelaran, Radio Poussière** · colonie Bradbury, Mars · jour 19
+   « Ici Radio Poussière, la seule radio de Mars animée par des moins de seize ans ! Au programme : la météo (poussière), les infos (poussière) et la recette du jour : la poussière. »
+
+5. **Cne Yusuf Demir, garde de la colonie** · colonie Bradbury, Mars · jour 22
+   « Ils ont posé un vaisseau au sommet d'Olympus Mons. Vingt-deux kilomètres de haut : de là, ils voient toute la planète. Nous, on voit son feu clignoter toutes les 4,7 secondes. »
+
+6. **Pr Anselme Roux, géologue** · flanc d'Olympus Mons · jour 25
+   « Je connais ce vaisseau. Enfin, je connais ce qu'il garde. Il y a deux ans, j'ai trouvé quelque chose dans la caldeira d'Olympus. Je n'en ai parlé à personne : on m'aurait ri au nez. »
+
+7. **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 28
+   « Rationnement : une douche par semaine, un œuf par mois, une blague par jour. Ruiz a déjà épuisé son quota de l'année. »
+
+8. ◆ **Pr Anselme Roux, géologue** · caldeira d'Olympus Mons · jour 31
+   « Une balise, dans la lave figée, plus vieille que le volcan. Elle était muette. Un matin, il y a deux ans, elle s'est mise à chanter. J'ai vérifié la date : c'est le jour où Tycho a ouvert son premier puits, sur la Lune. »
+
+9. **Mateo Ruiz, mineur** · mine de Bradbury · jour 34
+   « Dans la mine, on a trouvé un de leurs éclats. J'ai collé l'oreille dessus, comme dit le nettoyeur de la radio de la Terre. C'est vrai, ça chante. Faux, mais ça chante. »
+
+10. **Sœur Agathe** · observatoire de Phobos · jour 38
+   « D'ici, Mars tourne sous nos pieds en moins de huit heures. Je prie à chaque tour. Ça fait beaucoup de prières. Le Seigneur doit commencer à reconnaître ma voix. »
+
+11. **Les jumeaux Oyelaran, Radio Poussière** · colonie Bradbury, Mars · jour 41
+   « Flash spécial : un chasseur s'est posé près des serres cette nuit. Il est reparti ce matin. Rien de cassé. Maman dit qu'on n'a pas le droit d'aller voir. On y est allés quand même. »
+
+12. ◆ **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 42
+   « Ils sont entrés dans les serres et n'ont touché à rien d'autre. Ils ont prélevé une feuille de chaque plante, une seule, proprement, comme un botaniste. Puis ils sont partis. »
+
+13. **Cne Yusuf Demir, garde de la colonie** · colonie Bradbury, Mars · jour 47
+   « Mes gars veulent attaquer le vaisseau d'Olympus. Avec quoi ? Deux foreuses et un camion-citerne. J'ai dit non. Ils ont dit : on peut au moins le klaxonner. J'ai dit d'accord. »
+
+14. ◆ **Pr Anselme Roux, géologue** · bord de la caldeira d'Olympus Mons · jour 55
+   « Je suis monté au bord de la caldeira. Leur vaisseau ne garde pas la balise : il l'écoute. Il reste posé contre elle des heures, comme on relève un pluviomètre, puis il repart. »
+
+15. **Message automatique** · colonie Bradbury, Mars · jour 60
+   « TEMPÊTE DE POUSSIÈRE EN APPROCHE. DURÉE ESTIMÉE : TROIS MOIS. LES COLONS SONT PRIÉS DE RENTRER LE LINGE. »
+
+16. **Sœur Agathe** · observatoire de Phobos · jour 66
+   « Les lumières de Deimos se sont éteintes cette nuit : la station relais ne répond plus. J'ai allumé une bougie pour eux. Une vraie. La dernière de Phobos. »
+
+17. **Les jumeaux Oyelaran, Radio Poussière** · colonie Bradbury, Mars · jour 74
+   « Ici Radio Poussière. Aujourd'hui, pas de blague. Le professeur Roux est parti seul vers Olympus avec son marteau de géologue. Si quelqu'un le croise, dites-lui que sa soupe refroidit. »
+
+18. **Mateo Ruiz, mineur** · mine de Bradbury · jour 80
+   « Pendant la tempête, on ne voit plus le feu d'Olympus. C'est bizarre, il me manque. On s'habitue à tout, même à être surveillé. »
+
+19. ◆ **Pr Anselme Roux, géologue** · caldeira d'Olympus Mons · jour 88
+   « Je suis à côté d'elle, elle chante pour moi. Je crois comprendre : elle ne compte pas les années, elle compte ce qui pousse. Et nous avons poussé jusqu'ici. Dites à la Terre que nous avons grandi trop vite. »
+
+20. **Hélène Castagne, directrice** · colonie Bradbury, Mars · jour 120
+   « Bradbury tient. La tempête est passée, le titane sort de la mine, les serres repoussent. Roux n'est pas revenu. Sa balise chante toujours. Moi, j'ai arrêté d'écouter. »

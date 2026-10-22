@@ -39,8 +39,8 @@ Chaque collection se trouve à sa manière : l'écho pour les monolithes, l'expl
 les Voix perdues**. Une voix n'a pas de lieu précis (son lieu, dans le texte, n'est que de l'ambiance) : elle se capte
 n'importe où dans son système, à son heure à elle, la même pour tous. Pour la voix qui lui manque, le joueur revient à
 son heure, même en pleine nuit ; pour en trouver d'autres, il change de système.
-Chaque voix émet une demi-heure **une fois par jour** ; le carnet donne l'heure de celles qui manquent (« chaque jour à
-03:40 »), jamais leur fréquence, qu'on cherche sur place (décisions d'Adrien du 22/10/2026).
+Chaque voix émet une demi-heure **une fois par jour** ; le carnet donne l'heure de celles qui manquent (« chaque jour de
+03:40 à 04:10 »), jamais leur fréquence, qu'on cherche sur place (décisions d'Adrien du 22/10/2026).
 
 ## La forme
 

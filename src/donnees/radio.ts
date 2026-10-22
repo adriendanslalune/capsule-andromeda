@@ -3,7 +3,7 @@
 // une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à heure fixe (la même
 // pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus), à corriger par
+// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus, Mars), à corriger par
 // Adrien ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
@@ -75,5 +75,27 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Dr Samuel Okafor', lieu: 'Base Tycho, Lune', jour: 12, texte: 'On a creusé. Sous Tycho, il y a une balise plus vieille que les roches qui l\'entourent. Le jour où on l\'a dégagée, elle s\'est mise à émettre. Sur la même fréquence que la chose de Neptune.' },
     { auteur: 'Gaspard « la Pince », nettoyeur', lieu: 'épave Envisat', jour: 20, texte: 'J\'ai récupéré un de leurs débris. Ça ne rouille pas, ça ne brûle pas, ça ne se coupe pas. Mais ça chante, quand on colle l\'oreille contre.' },
     { auteur: 'Cdt Ilse Brandt', lieu: 'ISS', jour: 30, texte: 'Nous avons appris à vivre avec eux, là-haut. Ce n\'est pas une occupation. C\'est une attente. Ils attendent que quelque chose se réveille.' },
+  ],
+  Mars: [
+    { auteur: 'Hélène Castagne, directrice', lieu: 'colonie Bradbury, Mars', jour: 15, texte: 'Ici Bradbury, colonie d\'Arès Titane. Quatre cents colons, deux serres, une mine de titane et un moral à reconstruire. On a connu pire. Non, en fait, on n\'a pas connu pire.' },
+    { auteur: 'Mateo Ruiz, mineur', lieu: 'mine de Bradbury', jour: 16, texte: 'On continue à creuser. Le titane ne va pas sortir tout seul, invasion ou pas. Et au fond de la mine, au moins, on ne les voit pas passer.' },
+    { auteur: 'Message automatique', lieu: 'rover Curiosity, cratère Gale', jour: 17, texte: 'ANNIVERSAIRE DE L\'ATTERRISSAGE. JOYEUX ANNIVERSAIRE, CURIOSITY. JOYEUX ANNIVERSAIRE, CURIOSITY. PERSONNE N\'A RÉPONDU. JOYEUX ANNIVERSAIRE QUAND MÊME.' },
+    { auteur: 'Les jumeaux Oyelaran, Radio Poussière', lieu: 'colonie Bradbury, Mars', jour: 19, texte: 'Ici Radio Poussière, la seule radio de Mars animée par des moins de seize ans ! Au programme : la météo (poussière), les infos (poussière) et la recette du jour : la poussière.' },
+    { auteur: 'Cne Yusuf Demir, garde de la colonie', lieu: 'colonie Bradbury, Mars', jour: 22, texte: 'Ils ont posé un vaisseau au sommet d\'Olympus Mons. Vingt-deux kilomètres de haut : de là, ils voient toute la planète. Nous, on voit son feu clignoter toutes les 4,7 secondes.' },
+    { auteur: 'Pr Anselme Roux, géologue', lieu: 'flanc d\'Olympus Mons', jour: 25, texte: 'Je connais ce vaisseau. Enfin, je connais ce qu\'il garde. Il y a deux ans, j\'ai trouvé quelque chose dans la caldeira d\'Olympus. Je n\'en ai parlé à personne : on m\'aurait ri au nez.' },
+    { auteur: 'Hélène Castagne, directrice', lieu: 'colonie Bradbury, Mars', jour: 28, texte: 'Rationnement : une douche par semaine, un œuf par mois, une blague par jour. Ruiz a déjà épuisé son quota de l\'année.' },
+    { auteur: 'Pr Anselme Roux, géologue', lieu: 'caldeira d\'Olympus Mons', jour: 31, texte: 'Une balise, dans la lave figée, plus vieille que le volcan. Elle était muette. Un matin, il y a deux ans, elle s\'est mise à chanter. J\'ai vérifié la date : c\'est le jour où Tycho a ouvert son premier puits, sur la Lune.' },
+    { auteur: 'Mateo Ruiz, mineur', lieu: 'mine de Bradbury', jour: 34, texte: 'Dans la mine, on a trouvé un de leurs éclats. J\'ai collé l\'oreille dessus, comme dit le nettoyeur de la radio de la Terre. C\'est vrai, ça chante. Faux, mais ça chante.' },
+    { auteur: 'Sœur Agathe', lieu: 'observatoire de Phobos', jour: 38, texte: 'D\'ici, Mars tourne sous nos pieds en moins de huit heures. Je prie à chaque tour. Ça fait beaucoup de prières. Le Seigneur doit commencer à reconnaître ma voix.' },
+    { auteur: 'Les jumeaux Oyelaran, Radio Poussière', lieu: 'colonie Bradbury, Mars', jour: 41, texte: 'Flash spécial : un chasseur s\'est posé près des serres cette nuit. Il est reparti ce matin. Rien de cassé. Maman dit qu\'on n\'a pas le droit d\'aller voir. On y est allés quand même.' },
+    { auteur: 'Hélène Castagne, directrice', lieu: 'colonie Bradbury, Mars', jour: 42, texte: 'Ils sont entrés dans les serres et n\'ont touché à rien d\'autre. Ils ont prélevé une feuille de chaque plante, une seule, proprement, comme un botaniste. Puis ils sont partis.' },
+    { auteur: 'Cne Yusuf Demir, garde de la colonie', lieu: 'colonie Bradbury, Mars', jour: 47, texte: 'Mes gars veulent attaquer le vaisseau d\'Olympus. Avec quoi ? Deux foreuses et un camion-citerne. J\'ai dit non. Ils ont dit : on peut au moins le klaxonner. J\'ai dit d\'accord.' },
+    { auteur: 'Pr Anselme Roux, géologue', lieu: 'bord de la caldeira d\'Olympus Mons', jour: 55, texte: 'Je suis monté au bord de la caldeira. Leur vaisseau ne garde pas la balise : il l\'écoute. Il reste posé contre elle des heures, comme on relève un pluviomètre, puis il repart.' },
+    { auteur: 'Message automatique', lieu: 'colonie Bradbury, Mars', jour: 60, texte: 'TEMPÊTE DE POUSSIÈRE EN APPROCHE. DURÉE ESTIMÉE : TROIS MOIS. LES COLONS SONT PRIÉS DE RENTRER LE LINGE.' },
+    { auteur: 'Sœur Agathe', lieu: 'observatoire de Phobos', jour: 66, texte: 'Les lumières de Deimos se sont éteintes cette nuit : la station relais ne répond plus. J\'ai allumé une bougie pour eux. Une vraie. La dernière de Phobos.' },
+    { auteur: 'Les jumeaux Oyelaran, Radio Poussière', lieu: 'colonie Bradbury, Mars', jour: 74, texte: 'Ici Radio Poussière. Aujourd\'hui, pas de blague. Le professeur Roux est parti seul vers Olympus avec son marteau de géologue. Si quelqu\'un le croise, dites-lui que sa soupe refroidit.' },
+    { auteur: 'Mateo Ruiz, mineur', lieu: 'mine de Bradbury', jour: 80, texte: 'Pendant la tempête, on ne voit plus le feu d\'Olympus. C\'est bizarre, il me manque. On s\'habitue à tout, même à être surveillé.' },
+    { auteur: 'Pr Anselme Roux, géologue', lieu: 'caldeira d\'Olympus Mons', jour: 88, texte: 'Je suis à côté d\'elle, elle chante pour moi. Je crois comprendre : elle ne compte pas les années, elle compte ce qui pousse. Et nous avons poussé jusqu\'ici. Dites à la Terre que nous avons grandi trop vite.' },
+    { auteur: 'Hélène Castagne, directrice', lieu: 'colonie Bradbury, Mars', jour: 120, texte: 'Bradbury tient. La tempête est passée, le titane sort de la mine, les serres repoussent. Roux n\'est pas revenu. Sa balise chante toujours. Moi, j\'ai arrêté d\'écouter.' },
   ],
 }

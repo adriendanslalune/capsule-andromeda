@@ -2,7 +2,7 @@
 // radio, rangées par système, avec leur texte ; les autres restent grisées. Lues dans l'ordre, elles racontent
 // l'invasion. La vue ne calcule rien : les voix viennent de moteur/radio.ts.
 
-import { NOMBRE_VOIX, VOIX_PAR_SYSTEME } from '../donnees/radio'
+import { DUREE_EMISSION, NOMBRE_VOIX, VOIX_PAR_SYSTEME } from '../donnees/radio'
 import { debutEmission, emet, texteVoix, VOIX, type EtatRadio } from '../moteur/radio'
 
 const du = (s: string) => (s === 'Terre' ? 'de la Terre' : `de ${s}`)
@@ -24,8 +24,9 @@ export class VueCarnet {
         // Une voix qui manque donne son heure (l'heure du téléphone), pas sa fréquence (décision d'Adrien du 22/10/2026).
         if (!t) return `<div class="bande"><b>Bande n° ${v.numero}</b><span class="vide">· · · · · ·</span></div>`
         if (!captees.has(v.numero)) {
-          const heure = new Date(debutEmission(v, maintenant)).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-          return `<div class="bande"><b>Bande n° ${v.numero}</b><span class="heure-voix">${emet(v, maintenant) ? 'émet en ce moment !' : `chaque jour à ${heure}`}</span></div>`
+          // De telle heure à telle heure (demande d'Adrien du 22/10/2026).
+          const debut = debutEmission(v, maintenant), h = (x: number) => new Date(x).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          return `<div class="bande"><b>Bande n° ${v.numero}</b><span class="heure-voix">${emet(v, maintenant) ? `émet en ce moment, jusqu'à ${h(debut + DUREE_EMISSION)} !` : `chaque jour de ${h(debut)} à ${h(debut + DUREE_EMISSION)}`}</span></div>`
         }
         return `<div class="bande captee"><b>Bande n° ${v.numero}</b><small>${t.auteur} · ${t.lieu} · jour ${t.jour}</small><p>${t.texte}</p></div>`
       }).join('') + '</div>'
