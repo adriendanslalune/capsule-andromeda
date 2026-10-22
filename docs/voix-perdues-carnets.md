@@ -1,6 +1,6 @@
 # Les Voix perdues : les carnets écrits
 
-Recopiés de `src/donnees/radio.ts` (premier jet, à corriger par Adrien). Les fragments du secret sont marqués ◆.
+Recopiés de `src/donnees/radio.ts` (validés par Adrien le 22/10/2026). Les fragments du secret sont marqués ◆.
 
 
 ## Mercure

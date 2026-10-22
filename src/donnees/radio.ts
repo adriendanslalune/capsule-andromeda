@@ -3,8 +3,8 @@
 // une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à
 // heure fixe (la même pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET des 150 voix, à corriger par
-// Adrien. Le fil : `docs/voix-perdues.md`.
+// Fréquences, horaires et répartition PROVISOIRES ; textes : les 150 voix, validées par Adrien le
+// 22/10/2026. Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
 export const BANDE_OC = { min: 3, max: 10 } as const
