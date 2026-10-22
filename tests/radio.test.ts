@@ -13,7 +13,7 @@ describe('la radio : les Voix perdues (décisions d’Adrien du 20/10/2026)', ()
       expect(v.frequence).toBeLessThan(BANDE_OC.max)
       for (const w of VOIX) if (w !== v && w.systeme === v.systeme) expect(Math.abs(w.frequence - v.frequence)).toBeGreaterThan(2 * LARGEUR_SIGNAL)
     }
-    expect(VOIX.filter((v) => texteVoix(v)).length).toBe(TEXTES_VOIX.Terre.length)
+    expect(VOIX.filter((v) => texteVoix(v)).length).toBe(Object.values(TEXTES_VOIX).reduce((n, l) => n + l.length, 0))
   })
 
   it('une voix émet 30 minutes toutes les 6 heures, à heure fixe ; celles sans texte n’émettent pas', () => {

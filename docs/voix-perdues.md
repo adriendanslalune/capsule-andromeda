@@ -1,4 +1,4 @@
-# Les Voix perdues : la bible (proposition à valider par Adrien)
+# Les Voix perdues : la bible
 
 But : avant d'écrire les 135 voix qui manquent, se mettre d'accord sur ce qu'elles racontent, pour que tout tienne
 ensemble. Une fois la bible validée, j'écris système par système, Adrien lit et corrige chaque lot, je l'intègre.
@@ -19,9 +19,9 @@ Conséquence : les voix ne doivent pas se contenter de répéter « Triton est u
 doivent donner ce que la campagne ne dit pas : **pourquoi ils sont là, et ce qu'ils attendent**. C'est la récompense
 de ceux qui les collectionnent.
 
-## Le secret : trois pistes, à toi de choisir
+## Le secret
 
-**A · Les jardiniers** (précisée le 22/10/2026, après la question d'Adrien). Ce qu'ils ont semé, ce ne sont pas les
+**Les jardiniers** (piste A, choisie par Adrien le 22/10/2026). Ce qu'ils ont semé, ce ne sont pas les
 balises : c'est la vie. Il y a quatre milliards d'années, Triton passe dans le système (dans la réalité, c'est un objet
 capturé, venu d'ailleurs) et ensemence la Terre. Avant de s'endormir derrière Neptune, il pose des **balises** sur les
 mondes voisins (sous Tycho, dans Olympus Mons, sous la glace d'Europe…) : ce ne sont pas des graines, ce sont des
@@ -33,18 +33,12 @@ cloche (« ce n'est pas une occupation, c'est une attente ») le temps de décid
 les voix ne le disent pas : c'est l'acte 2. La dernière voix laisse le doute : la récolte est-elle à cueillir… ou à
 emporter ailleurs, pour semer un autre jardin ?
 
-**B · Les gardiens d'une prison.** Triton n'est pas un vaisseau de conquête : c'est un geôlier. Quelque chose est
-enfermé au cœur du système (dans le Soleil, d'où le rêve du Soleil et le trou noir). Les balises sont les verrous. Les
-humains, en s'étendant, ont commencé à les abîmer sans le savoir ; Andromède est revenu resserrer les verrous. En
-libérant les zones, le joueur affaiblit la prison. Grosse ambiguïté morale pour l'acte 2.
+## Comment on les trouve : le Temps (Adrien, 22/10/2026)
 
-**C · Le rendez-vous.** Triton est un phare, garé là pour attendre un autre vaisseau (celui qui « répond » à la fin
-de l'acte 1). Le battement de 4,7 s est un compte à rebours très lent. Les voix découvrent que l'invasion n'est pas
-dirigée contre nous : nous sommes juste sur le quai de la gare. La fin des voix donne la date approximative de
-l'arrivée, un hameçon pour l'acte 2.
-
-Ma préférence : **A**. Elle colle à ce qui existe déjà (la balise de Tycho, Europe, « ils attendent que quelque chose
-se réveille », Triton capturé dans la réalité), elle est poétique, très Moebius, et ne casse rien de la campagne.
+Chaque collection se trouve à sa manière : l'écho pour les monolithes, l'exploration pour les Disparus, **le temps pour
+les Voix perdues**. Une voix n'a pas de lieu précis (son lieu, dans le texte, n'est que de l'ambiance) : elle se capte
+n'importe où dans son système, à son heure à elle, la même pour tous. Pour la voix qui lui manque, le joueur revient à
+son heure, même en pleine nuit ; pour en trouver d'autres, il change de système.
 
 ## La forme
 
@@ -77,7 +71,7 @@ se réveille », Triton capturé dans la réalité), elle est poétique, très M
 
 ## Comment on travaille
 
-1. Tu choisis la piste (A, B, C, ou un mélange) et tu corriges cette bible si besoin.
-2. Je corrige les 15 voix de la Terre pour qu'elles collent à la piste choisie.
+1. Piste A choisie ; les 15 voix de la Terre retouchées (Okafor : la balise s'est mise à émettre quand on l'a dégagée).
+2. Les textes écrits sont recopiés dans `docs/voix-perdues-carnets.md`, pour les lire d'un trait.
 3. J'écris un système à la fois, dans l'ordre Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton. Tu lis
    tout, tu corriges, je l'intègre au jeu (les voix du système se mettent à émettre).
