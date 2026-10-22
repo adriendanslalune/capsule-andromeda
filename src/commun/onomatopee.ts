@@ -21,3 +21,13 @@ export function onomatopee(texte: string, couleur = '#f2d58e'): void {
   document.body.append(el)
   setTimeout(() => el.remove(), 1500)
 }
+
+/** Un coup de tampon à l'encre rouge (« MISSION ACCOMPLIE », un contrat fini) : il s'abat de travers sur l'écran, puis s'efface. */
+export function tampon(texte: string, sous = ''): void {
+  const el = document.createElement('div')
+  el.className = 'tampon-ecran'
+  el.style.setProperty('--angle', `${Math.round(Math.random() * 8 - 14)}deg`)
+  el.innerHTML = `<b>${texte}</b>${sous ? `<small>${sous}</small>` : ''}`
+  document.body.append(el)
+  setTimeout(() => el.remove(), 2200)
+}

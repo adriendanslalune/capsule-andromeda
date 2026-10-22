@@ -553,6 +553,25 @@ export class Carte2D {
   }
 
   /**
+   * Les ondes du PING (demande d'Adrien du 22/10/2026) : tant que l'écho n'est pas revenu, des ondes violettes partent
+   * de la capsule et filent dans toutes les directions, de plus en plus pâles en s'éloignant.
+   */
+  dessinerOndesPing(ctx: CanvasRenderingContext2D, x: number, y: number, maintenant: number): void {
+    const portee = Math.hypot(this.largeur, this.hauteur), periode = 2600, n = 4
+    ctx.save()
+    ctx.strokeStyle = '#7a5aa8'
+    for (let k = 0; k < n; k++) {
+      const f = ((maintenant / periode + k / n) % 1)
+      ctx.globalAlpha = 0.75 * (1 - f) ** 1.5
+      ctx.lineWidth = 2.6 - 1.6 * f
+      ctx.beginPath()
+      ctx.arc(x, y, 8 + f * portee * 0.75, 0, 2 * Math.PI)
+      ctx.stroke()
+    }
+    ctx.restore()
+  }
+
+  /**
    * L'échelle de la grille (demandes d'Adrien du 22/10/2026 : dans un coin, très discrète) : en bas à gauche, juste
    * au-dessus des commandes du bas, un trait fin de la longueur d'un pas de la grille, et ce qu'il mesure.
    */

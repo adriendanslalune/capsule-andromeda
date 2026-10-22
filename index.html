@@ -15,6 +15,24 @@
     <title>Capsule Andromeda</title>
   </head>
   <body>
+    <!-- L'écran de chargement, en couverture de pulp des années 50 (Adrien, 22/10/2026 : plus fun) : il s'affiche pendant
+         que le jeu se charge, puis s'efface tout seul (ou en le touchant). -->
+    <div id="couverture" role="img" aria-label="Capitaines ! Histoires étonnantes de l'espace">
+      <div class="bandeau-revue"><b>CAPITAINES&nbsp;!</b><span>Histoires étonnantes de l'espace</span><small id="numero-revue">N° 1 · 25 cents</small></div>
+      <svg class="illustration-revue" viewBox="0 0 300 300" aria-hidden="true">
+        <circle class="etoile-fond" cx="40" cy="60" r="2"/><circle class="etoile-fond" cx="250" cy="40" r="2.5"/><circle class="etoile-fond" cx="270" cy="200" r="1.8"/>
+        <circle class="etoile-fond" cx="30" cy="230" r="2.2"/><circle class="etoile-fond" cx="120" cy="30" r="1.6"/><circle class="etoile-fond" cx="200" cy="270" r="2"/>
+        <ellipse class="anneau" cx="190" cy="175" rx="105" ry="26" transform="rotate(-18 190 175)"/>
+        <circle class="planete-revue" cx="190" cy="175" r="62"/>
+        <path class="bande" d="M134 150q56-22 112 0M130 175q60-20 120 0M136 200q54-18 108 0"/>
+        <path class="anneau-devant" d="M86 205q90 6 204-50" />
+        <g transform="translate(92 118) rotate(-35)"><path class="flamme" d="M-6 30 0 58 6 30z"/><path class="fusee" d="M0-34c14 14 16 40 12 62h-24c-4-22-2-48 12-62z"/>
+          <circle class="hublot" cx="0" cy="-6" r="6"/><path class="aileron" d="M-12 14-24 34-11 28zM12 14 24 34 11 28z"/></g>
+      </svg>
+      <h1 class="titre-revue">CAPSULE<br>ANDROMEDA</h1>
+      <p class="une-revue" id="une-revue">L'invasion venue des étoiles !</p>
+      <span class="etoile-revue">Inédit&nbsp;!</span>
+    </div>
     <canvas id="plan"></canvas>
     <div id="haut">
       <!-- La console du haut (maquette validée par Adrien le 21/10/2026) : où est la capsule, le niveau, les crédits ;

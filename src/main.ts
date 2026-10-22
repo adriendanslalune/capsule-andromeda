@@ -48,7 +48,7 @@ import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { alienLa, intercepterMissile, surLaCarte } from './moteur/espace'
 import { angleRadar, basculerRadar, echoRadar, EFFACEMENT_RADAR, jaugeRadar, PORTEE_RADAR } from './moteur/radar'
-import { echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
+import { echoEnRoute, echosNonVus, echosRevenus, localise, marquerEchosVus, monolitheNomme, monolithesEcoutes, placesPossibles, statut } from './moteur/monolithes'
 import { NOMBRE_MONOLITHES } from './donnees/monolithes'
 import { etatBoutonPing } from './commun/radio'
 import { tableauDeLaCapsule } from './moteur/tableaux'
@@ -94,7 +94,8 @@ import { htmlFrise } from './commun/frise'
 import { INSTRUMENTS } from './commun/instruments'
 import { feuilleDeRoute } from './moteur/feuille-de-route'
 import { annonces } from './moteur/annonces'
-import { onomatopee } from './commun/onomatopee'
+import { onomatopee, tampon } from './commun/onomatopee'
+import { bavardsIci, phraseDePassage } from './moteur/passages'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
 import { CAPSULE, Carte2D } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
@@ -1252,7 +1253,7 @@ const vueInvitation = new VueInvitation(document.querySelector<HTMLDivElement>('
 })
 function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
   for (const e of evenements) {
-    if (e.genre === 'contrat-fini') { annoncer(`Mission terminée : +${e.contrat.recompense} crédits`); onomatopee('JACKPOT !', '#b9d8a8') }
+    if (e.genre === 'contrat-fini') { annoncer(`Mission terminée : +${e.contrat.recompense} crédits`); tampon('MISSION ACCOMPLIE', `+${e.contrat.recompense.toLocaleString('fr-FR')} crédits`) }
     else if (e.genre === 'etape-finie' && e.contrat.etapes.length > 1 && e.etape !== e.contrat.etapes[e.contrat.etapes.length - 1]) annoncer(ACTIONS_FINIES[e.etape.action])
     else if (e.genre === 'depart-auto') {
       // Les étapes s'enchaînent : la capsule est partie d'elle-même vers l'étape suivante (voir Jeu.avancer).
@@ -1267,6 +1268,7 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
       annoncer(`RADAR : le ${e.alien} te tire dessus ! Touche le bandeau pour intercepter le missile`)
       navigator.vibrate?.([200, 100, 200])
     } else if (e.genre === 'impact') {
+      onomatopee('BLAM !', '#f6c4ad')
       annoncer(e.modules.length ? `IMPACT ! En panne : ${e.modules.map((m) => MODULES.find((f) => f.nom === m)!.titre).join(', ')}` : 'IMPACT !')
       navigator.vibrate?.(400)
       // Le moteur a déjà ralenti le trajet à l'heure de l'impact ; s'il vient d'avoir lieu, on le redessine depuis la
@@ -1275,6 +1277,7 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
       if (p && p !== departEnVol?.plan && mission.phase(t) === 'trajet' && t - p.depart < 5000) dessinerDepart(p, true, t)
       apresChangementDePanne()
     } else if (e.genre === 'panne') {
+      onomatopee('KRRZZT !', '#f2d58e')
       annoncer(`PANNE : ${MODULES.find((f) => f.nom === e.module)!.titre} !`)
       apresChangementDePanne()
     } else if (e.genre === 'reve-soleil') {
@@ -1561,7 +1564,23 @@ function courrier(): void {
     finBulle = t + 6000
     navigator.vibrate?.(30)
   } else if (!bulleMessage.hidden && t > finBulle) bulleMessage.hidden = true
+  // Un bavard sur la même orbite lance une phrase (Adrien, 22/10/2026 : plus fun), une fois par jour et par lieu ; la
+  // toucher ouvre la conversation avec lui.
+  const tj = horloge()
+  if (bulleMessage.hidden && cockpit.pageOuverte === null && mission.phase(tj) === 'orbite') {
+    const lieu = mission.centre(tj), jour = Math.floor(tj / 86_400_000)
+    const pseudo = bavardsIci(lieu, tj).find((p) => !passagesVus.has(`${p}@${lieu}@${jour}`))
+    if (pseudo) {
+      passagesVus.add(`${pseudo}@${lieu}@${jour}`)
+      bulleMessage.innerHTML = `<b>${pseudo}</b> ${phraseDePassage(pseudo, lieu, tj)}`
+      bulleMessage.dataset.canal = `prive:${pseudo}`
+      bulleMessage.hidden = false
+      finBulle = t + 7000
+    }
+  }
 }
+/** Les bavards qui nous ont déjà parlé (pseudo, lieu, jour). */
+const passagesVus = new Set<string>()
 
 // Au tout début du jeu (demande d'Adrien du 20/10/2026) : la capsule a reçu son numéro ; le joueur choisit le nom de
 // son capitaine (3 à 16 caractères). Il pourra le changer plus tard dans le Profil.
@@ -1915,6 +1934,8 @@ function image(maintenant: number): void {
       texte: [g.nouvelleForme ? `Ta capsule devient une ${g.nomForme.toLowerCase()} ! Tout le système la verra passer sur la carte.` : `Bravo, capitaine. Ta ${g.nomForme.toLowerCase()} prend un peu d'envergure sur la carte.`,
         g.prochain ? `Prochaine forme au niveau ${g.prochain.niveau} : ${g.prochain.nom.toLowerCase()}.` : 'Tu as atteint le sommet : la Légende, dorée.'],
       ouvre: [], bouton: 'EN AVANT !',
+      // La fenêtre en couverture de pulp, le numéro du niveau en numéro de la revue.
+      couverture: { numero: niveau, accroche: g.nouvelleForme ? 'Nouvelle forme !' : ['Il monte en grade !', 'Inédit !', 'Sensationnel !', 'Plus fort que jamais !'][niveau % 4] },
     })
   }
   // Une sonde disparue retrouvée : sa fenêtre, avec son histoire vraie.
@@ -1965,7 +1986,8 @@ function image(maintenant: number): void {
   const rendezVous = trace ? trace[trace.length - 1] : null
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
-  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0
+  // (Les ondes d'un PING en attente d'écho aussi : elles doivent filer en douceur.)
+  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
   // Le Soleil dessiné en grand s'anime (demande d'Adrien du 21/10/2026) : on redessine alors à chaque image.
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && !soleilAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
@@ -2024,6 +2046,9 @@ function image(maintenant: number): void {
       carte.dessinerEchos(ctxPlan, t, revenus.map((x) => ({ numero: x.monolithe, centre: x.centre, rayon: x.rayon })), places, { encre: th.encre, fond: th.halo })
     }
     for (const tr of autresTraces) carte.dessinerTraits(ctxPlan, t, null, tr, tr[tr.length - 1], accent, { encre: th.encre, fond: th.halo })
+    // Un PING envoyé : des ondes violettes partent de la capsule jusqu'au retour de l'écho (demande d'Adrien du 22/10/2026).
+    const capsuleIci = carte.place(CAPSULE)
+    if (capsuleIci && echoEnRoute(jeu.monolithes, t)) carte.dessinerOndesPing(ctxPlan, capsuleIci.x, capsuleIci.y, performance.now())
     // Les missiles aliens en vol, avec leur décompte.
     if (jeu.espace.missiles.length) {
       carte.dessinerMissiles(ctxPlan, t, jeu.espace.missiles.map((m) => {
@@ -2064,6 +2089,22 @@ function image(maintenant: number): void {
   requestAnimationFrame(image)
 }
 requestAnimationFrame(image)
+
+// L'écran de chargement en couverture de pulp (Adrien, 22/10/2026) : le numéro de la revue (le nombre de jours depuis
+// le lancement du jeu), une accroche au hasard ; il s'efface une fois le jeu prêt, ou en le touchant.
+{
+  const couverture = document.querySelector<HTMLElement>('#couverture')
+  if (couverture) {
+    const UNES = ['L\'invasion venue des étoiles !', 'Seul contre les chasseurs furtifs !', 'Le secret de Triton enfin révélé ?', 'Mille monolithes dans la nuit !',
+      'Des voix perdues sur les ondes courtes !', 'Panne sèche au bord du Soleil !', 'La Résistance a besoin de vous !', 'Pirates sur l\'orbite de Mars !']
+    const jours = Math.max(1, Math.floor((Date.now() - Date.UTC(2026, 9, 17)) / 86_400_000))
+    document.querySelector('#numero-revue')!.textContent = `N° ${jours} · 25 cents`
+    document.querySelector('#une-revue')!.textContent = UNES[Math.floor(Math.random() * UNES.length)]
+    const effacer = () => { couverture.classList.add('effacee'); setTimeout(() => couverture.remove(), 600) }
+    couverture.addEventListener('click', effacer)
+    setTimeout(effacer, 2200)
+  }
+}
 
 // Pour les essais : window.andromeda dans la console.
 Object.assign(window, {

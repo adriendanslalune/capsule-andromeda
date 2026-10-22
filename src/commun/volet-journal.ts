@@ -16,6 +16,8 @@ function carte(jeu: Jeu, q: Quete, ouverte: boolean): string {
   const o = finie ? null : objectif(jeu, q)
   const suivie = jeu.queteSuivie === q.id
   let html = `<div class="quete ${q.type}${suivie ? ' suivie' : ''}${finie ? ' finie' : ''}">`
+    // Une quête finie porte son coup de tampon (Adrien, 22/10/2026 : plus fun).
+    + (finie ? '<span class="tampon-quete">ACCOMPLIE !</span>' : '')
     + `<button type="button" class="tete-quete" data-ouvrir="${q.id}">${medaillon(donneur, 'medaillon')}`
     + `<span><small>${q.type === 'principale' ? '◆ PRINCIPALE' : '● SECONDAIRE'}${suivie ? ' · suivie' : ''}</small><b>${echapper(q.titre)}</b>`
     + `${o ? `<em>${echapper(o.texte)}${o.compte ? ` · ${o.compte}` : ''}</em>` : '<em>Terminée</em>'}</span><i>${ouverte ? '▾' : '▸'}</i></button>`

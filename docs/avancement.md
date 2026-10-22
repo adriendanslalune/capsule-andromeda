@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- L'esprit pulp (Adrien, 22/10/2026) — **fait, en attente de ses essais** : ondes violettes du PING jusqu'à l'écho ;
+  tampon « MISSION ACCOMPLIE » ; fenêtre de niveau en couverture de revue ; écran de chargement en couverture ; 101
+  brèves de Radio Résistance ; phrases des bavards croisés ; BLAM ! et KRRZZT !.
 - Tableau de bord en onglets de dossier (piste B, choisie par Adrien le 22/10/2026), titres pulp, touches fun
   (onomatopées, crédits qui sautent, brèves de Radio Résistance, textes vides drôles) — **fait, en attente de ses
   essais**.

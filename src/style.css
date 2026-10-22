@@ -2368,3 +2368,65 @@ body.volet-ouvert #annonces { display: none; }
 /* Des crédits gagnés : le compteur saute, un éclat doré. */
 #bandeau .credits.gagne { animation: credits-gagnes 0.7s cubic-bezier(0.3, 1.8, 0.5, 1); }
 @keyframes credits-gagnes { 0% { transform: scale(1); } 35% { transform: scale(1.25) rotate(-4deg); background: #f2d58e; } 100% { transform: scale(1); } }
+/* Le coup de tampon (un contrat fini) : encre rouge, double cadre, de travers ; il s'abat, puis s'efface. */
+.tampon-ecran { position: fixed; z-index: 40; left: 50%; top: 40%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 16px 7px;
+  pointer-events: none; color: #c0392b; border: 3px double #c0392b; border-radius: 4px; background: color-mix(in srgb, var(--creme) 70%, transparent);
+  transform: translate(-50%, -50%) rotate(var(--angle)); animation: tamponner 2.2s ease-out forwards; mix-blend-mode: multiply; }
+.tampon-ecran b { font: 900 30px/1 'Big Shoulders Display', var(--titre); letter-spacing: 0.06em; white-space: nowrap; }
+.tampon-ecran small { font: 700 14px var(--titre); letter-spacing: 0.1em; }
+@keyframes tamponner {
+  0% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(2.4); opacity: 0; }
+  12% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(0.95); opacity: 1; }
+  18% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(1); opacity: 0; }
+}
+/* Une quête finie, dans le Journal : son coup de tampon en coin. */
+#journal .quete.finie { position: relative; }
+.tampon-quete { position: absolute; z-index: 1; right: 10px; top: 8px; padding: 2px 8px; pointer-events: none; font: 900 16px/1.2 'Big Shoulders Display', var(--titre);
+  letter-spacing: 0.08em; color: #c0392b; border: 2.5px double #c0392b; border-radius: 3px; transform: rotate(-9deg); opacity: 0.85; mix-blend-mode: multiply; }
+/* La fenêtre de niveau en couverture de pulp des années 50 : le nom de la revue en grosses lettres penchées sur un
+   bandeau orange, son sous-titre, son numéro et son prix ; une accroche dans une étoile, en coin. */
+.carte-confirmation.en-couverture { overflow: visible; }
+.couverture-pulp { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0 8px; margin: -1px -1px 6px; padding: 10px 14px 8px;
+  color: var(--creme); background: var(--orange); border-bottom: 3px double var(--encre); }
+.couverture-pulp .nom-revue { grid-column: 1 / -1; font: 900 40px/0.9 'Big Shoulders Display', var(--titre); letter-spacing: 0.02em; transform: skewX(-9deg);
+  text-shadow: 3px 3px 0 var(--encre); }
+.couverture-pulp .sous-revue { font: italic 700 13px var(--titre); letter-spacing: 0.04em; color: var(--encre); }
+.couverture-pulp .numero-revue { font: 600 10px var(--police); letter-spacing: 0.08em; color: var(--encre); white-space: nowrap; }
+.couverture-pulp .etoile-revue { position: absolute; right: 8px; top: -6px; width: 92px; height: 92px; display: grid; place-items: center; padding: 14px; text-align: center;
+  font: 900 14px/1 'Big Shoulders Display', var(--titre); color: var(--encre); background: #f2d58e; transform: rotate(12deg);
+  clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
+/* Les titres de toutes les fenêtres, façon pulp comme ceux des volets. */
+.confirmation-jeu .titre-confirmation .titre-pulp, .titre-fenetre { font-family: 'Big Shoulders Display', var(--titre); font-weight: 900; display: inline-block;
+  transform: skewX(-9deg) rotate(-1.5deg); transform-origin: left bottom; text-shadow: 2px 2px 0 var(--creme), 4px 4px 0 var(--orange); }
+/* L'écran de chargement, en couverture de pulp des années 50 (Adrien, 22/10/2026 : plus fun). */
+#couverture { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; overflow: hidden;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); background: var(--grain), #f3e3bd; color: var(--encre); transition: opacity 0.5s, transform 0.5s; }
+#couverture.effacee { opacity: 0; transform: scale(1.06); pointer-events: none; }
+#couverture .bandeau-revue { align-self: stretch; display: grid; grid-template-columns: 1fr auto; align-items: end; padding: 14px 16px 10px; background: var(--orange);
+  border-bottom: 4px double var(--encre); }
+#couverture .bandeau-revue b { grid-column: 1 / -1; font: 900 62px/0.85 'Big Shoulders Display', var(--titre); letter-spacing: 0.01em; color: var(--creme);
+  transform: skewX(-9deg); text-shadow: 4px 4px 0 var(--encre); }
+#couverture .bandeau-revue span { font: italic 700 15px var(--titre); }
+#couverture .bandeau-revue small { font: 600 11px var(--police); }
+#couverture .illustration-revue { width: min(84vw, 380px); margin-top: 18px; overflow: visible; }
+#couverture .etoile-fond { fill: var(--encre); }
+#couverture .planete-revue { fill: #9fcfca; stroke: var(--encre); stroke-width: 3; }
+#couverture .bande { fill: none; stroke: #5e9c97; stroke-width: 7; stroke-linecap: round; }
+#couverture .anneau, #couverture .anneau-devant { fill: none; stroke: var(--encre); stroke-width: 9; }
+#couverture .anneau { stroke: #e8b86a; stroke-width: 7; }
+#couverture .anneau-devant { stroke: #e8b86a; stroke-width: 7; }
+#couverture .fusee { fill: var(--creme); stroke: var(--encre); stroke-width: 3; stroke-linejoin: round; }
+#couverture .hublot { fill: #bcd6ee; stroke: var(--encre); stroke-width: 2.5; }
+#couverture .aileron { fill: #e0571f; stroke: var(--encre); stroke-width: 2.5; stroke-linejoin: round; }
+#couverture .flamme { fill: #f2d58e; stroke: var(--encre); stroke-width: 2; animation: flamme-revue 0.25s ease-in-out infinite alternate; transform-origin: 0 30px; }
+@keyframes flamme-revue { to { transform: scaleY(1.35); } }
+#couverture .titre-revue { margin-top: 10px; font: 900 54px/0.88 'Big Shoulders Display', var(--titre); text-align: center; letter-spacing: 0.02em;
+  transform: skewX(-9deg) rotate(-3deg); text-shadow: 3px 3px 0 var(--creme), 6px 6px 0 var(--orange); }
+#couverture .une-revue { margin-top: 18px; padding: 6px 14px; font: italic 700 19px var(--titre); background: var(--creme); border: 2px solid var(--encre); transform: rotate(2deg); }
+#couverture .etoile-revue { position: absolute; right: 10px; top: 118px; width: 100px; height: 100px; display: grid; place-items: center; padding: 16px; text-align: center;
+  font: 900 20px/1 'Big Shoulders Display', var(--titre); background: #f2d58e; transform: rotate(14deg);
+  clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
+.couverture-pulp { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-right: 96px; }
+.couverture-pulp .etoile-revue { top: -14px; right: -6px; width: 86px; height: 86px; }

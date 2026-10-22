@@ -2,6 +2,7 @@
 // sous le tableau de bord. Les planètes au plus près de la Terre (le bon moment pour y aller, d'après les vraies
 // positions) et les événements du jeu en cours. Les mêmes pour tous : rien ne dépend de la partie.
 
+import { BREVES } from '../donnees/breves'
 import { EVENEMENTS, type Evenement } from '../donnees/evenements'
 import { position } from './corps'
 
@@ -31,23 +32,14 @@ export function rapprochement(planete: string, t: number): { distance: number; m
 }
 
 /**
- * Les brèves de Radio Résistance (Adrien, 22/10/2026 : plus fun) : une à la fois, qui change toutes les heures, la même
- * pour tous ; elles ferment la ronde des annonces.
+ * La brève de Radio Résistance de l'heure (Adrien, 22/10/2026 : plus fun ; une centaine, pour éviter les répétitions) :
+ * une par heure, dans un ordre mélangé (un pas premier avec leur nombre : toutes passent avant qu'une revienne), la
+ * même pour tous ; elle ferme la ronde des annonces.
  */
-export const BREVES: readonly string[] = [
-  'Radio Résistance · météo solaire clémente aujourd\'hui : sortez couverts quand même',
-  'Radio Résistance · rappel : on ne caresse pas les chasseurs d\'Andromède',
-  'Radio Résistance · ce soir à la cantine de l\'ISS : lasagnes lyophilisées',
-  'Radio Résistance · un capitaine distrait a perdu ses clés dans la ceinture d\'astéroïdes',
-  'Radio Résistance · pensez à vérifier vos fusibles avant de partir en week-end sur Pluton',
-  'Radio Résistance · Vénus, 465 °C à l\'ombre : prévoyez une crème solaire indice 3 000',
-  'Radio Résistance · on recherche un joueur d\'harmonica pour l\'orchestre de la Station Tycho',
-  'Radio Résistance · les Nettoyeurs rappellent qu\'une épave n\'est pas une poubelle… enfin, si',
-  'Radio Résistance · ne répondez pas aux messages venus de Triton. Jamais.',
-  'Radio Résistance · le Veilleur de Hubble affirme avoir vu un monolithe bâiller',
-]
+const PAS_BREVES = 37
 export function breve(t: number): string {
-  return BREVES[Math.floor(t / 3_600_000) % BREVES.length]
+  const h = Math.floor(t / 3_600_000)
+  return `Radio Résistance · ${BREVES[(h * PAS_BREVES) % BREVES.length]}`
 }
 
 const millions = (km: number) => (km >= 1e9 ? `${(km / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} milliards de km`

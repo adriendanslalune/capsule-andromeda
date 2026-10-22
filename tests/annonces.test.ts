@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { annonces, BREVES, breve, rapprochement } from '../src/moteur/annonces'
+import { annonces, breve, rapprochement } from '../src/moteur/annonces'
+import { BREVES } from '../src/donnees/breves'
 
 const t0 = Date.UTC(2026, 9, 22, 12)
 
@@ -22,5 +23,9 @@ describe('les annonces générales (demande d’Adrien du 22/10/2026)', () => {
     expect(annonces(t0).at(-1)).toBe(breve(t0))
     expect(breve(t0 + 3_600_000)).not.toBe(breve(t0))
     expect(new Set(BREVES).size).toBe(BREVES.length)
+    expect(BREVES.length).toBeGreaterThanOrEqual(100)
+    // Toutes passent avant qu'une revienne (une centaine d'heures, plus de quatre jours).
+    const vues = new Set(Array.from({ length: BREVES.length }, (_, k) => breve(t0 + k * 3_600_000)))
+    expect(vues.size).toBe(BREVES.length)
   })
 })
