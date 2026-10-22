@@ -80,6 +80,15 @@ export function rattraperSuivi(jeu: Jeu): void {
   if (!valide || campagneOubliee) jeu.queteSuivie = queteASuivre(jeu)
 }
 
+/**
+ * La suite de l'histoire (Adrien, 22/10/2026 : « le tableau de bord doit TOUJOURS afficher la suite de l'histoire ; un
+ * joueur ne doit jamais se demander ce qu'il doit faire ») : la quête principale en cours, sinon celle qui attend qu'on
+ * vienne la prendre ; null quand la campagne écrite est finie.
+ */
+export function suiteDeLHistoire(jeu: Jeu): Quete | null {
+  return enCours(jeu).find((q) => q.type === 'principale') ?? principalesAPrendre(jeu)[0] ?? null
+}
+
 /** Les quêtes en cours, les principales d'abord. */
 export function enCours(jeu: Jeu): Quete[] {
   return QUETES.filter((q) => jeu.quetes[q.id] && jeu.quetes[q.id].fin == null)

@@ -42,7 +42,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { accepter as accepterQuete, assautIci, rattraperSuivi, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -703,7 +703,10 @@ bandeau.addEventListener('click', (e) => {
   // Les lignes éteintes du tableau de bord mènent là où on les allume.
   else if (ligne === 'vide-alerte') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   else if (ligne === 'vide-contrat') ouvrirJournal('contrats')
-  else if (ligne === 'quete' || ligne === 'vide-quete') { journalOuvert = jeu.queteSuivie; ouvrirJournal('quetes') }
+  else if (ligne === 'quete' || ligne === 'vide-quete') {
+    journalOuvert = (e.target as HTMLElement).closest<HTMLElement>('[data-quete]')?.dataset.quete ?? jeu.queteSuivie
+    ouvrirJournal('quetes')
+  }
   else if (ligne === 'vide-echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
 })
 
@@ -726,7 +729,7 @@ function mettreAJourFiche(t: number): void {
   const ou = astreDominant(mission.etat(t).position, t)
   afficherAnnonces(t)
   afficherBandeau(bandeau, lignesDuBandeau(jeu, t), {
-    credits: jeu.credits, ...xpBandeau(), quete: queteDuTableau(),
+    credits: jeu.credits, ...xpBandeau(), quetes: queteDuTableau(),
     phase: !vol ? '' : vol.phase === 'accelere' ? 'accélère' : vol.phase === 'freine' ? 'freine' : vol.phase === 'croisiere' ? 'croisière' : 'arrivée',
     systeme: ou === 'Soleil' ? 'plein espace' : ou,
   }, t)
@@ -1246,10 +1249,11 @@ function afficherAnnonces(t: number): void {
   bandeAnnonces.style.animationDuration = `${Math.max(14, texte.length * 0.16)}s`
 }
 /** La quête suivie, pour le voyant QUÊTE du tableau de bord : son titre et son objectif en cours. */
-function queteDuTableau(): { titre: string; objectif: string; principale: boolean } | null {
-  const q = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
-  const o = q ? objectif(jeu, q) : null
-  return q && o ? { titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale' } : null
+function queteDuTableau(): { id: string; titre: string; objectif: string; principale: boolean }[] {
+  // Toujours la suite de l'histoire (Adrien, 22/10/2026) ; puis la quête suivie, si c'est une autre (une secondaire).
+  const ligne = (q: ReturnType<typeof quete>) => { const o = objectif(jeu, q); return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale' }] : [] }
+  const suite = suiteDeLHistoire(jeu), suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
+  return [...(suite ? ligne(suite) : []), ...(suivie && suivie !== suite ? ligne(suivie) : [])]
 }
 
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).

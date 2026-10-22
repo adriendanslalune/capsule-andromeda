@@ -67,7 +67,7 @@ export interface EtatCapsuleBandeau {
   /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
   phase: string; systeme: string
   /** La quête suivie (son titre, son objectif en cours), ou null. */
-  quete: { titre: string; objectif: string; principale: boolean } | null
+  quetes: { id: string; titre: string; objectif: string; principale: boolean }[]
 }
 
 /** Le triangle d'alerte du voyant (c'est le voyant qui s'allume). */
@@ -135,7 +135,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   // montre sa catégorie. L'écho reste allumé jusqu'à ce qu'on touche son bouton.
   const categorieDe = (l: LigneBandeau): Voyant => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 'alerte' : l.genre === 'contrat' ? 'contrat' : 'echo')
   const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet')
-  const nombre = (v: Voyant) => (v === 'quete' ? (capsule.quete ? 1 : 0) : actives.filter((l) => categorieDe(l) === v).length)
+  const nombre = (v: Voyant) => (v === 'quete' ? capsule.quetes.length : actives.filter((l) => categorieDe(l) === v).length)
   const urgent = actives.some((l) => l.genre === 'missile' || l.genre === 'chaleur')
   const alertes = actives.filter((l) => categorieDe(l) === 'alerte').map((l) => l.genre).sort().join()
   if (alertes && alertes !== alertesVues) voyantOuvert = null
@@ -156,9 +156,12 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   }
   let detail = ''
   if (affiche === 'quete') {
-    const q = capsule.quete
-    if (q) { textes.push(q.titre, q.objectif); detail = `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>` }
-    else detail = vide('vide-quete', 'aucune quête suivie : l\'aventure attend au Journal')
+    // La suite de l'histoire d'abord (toujours là), puis la quête secondaire suivie s'il y en a une.
+    for (const q of capsule.quetes) {
+      textes.push(q.titre, q.objectif)
+      detail += `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete" data-quete="${q.id}"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
+    }
+    if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')
   } else if (affiche) {
     const ici = actives.filter((l) => categorieDe(l) === affiche)
     detail = ici.length ? ici.map(ligneHtml).join('')

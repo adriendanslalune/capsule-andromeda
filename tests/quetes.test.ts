@@ -4,7 +4,7 @@ import { PNJS, QUETES } from '../src/donnees/quetes'
 import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
-import { accepter, avancerQuetes, cheminVersAssaut, principalesAPrendre, rattraperSuivi, disponibles, enCours, objectif, parler, quete, signePnj } from '../src/moteur/quetes'
+import { accepter, avancerQuetes, cheminVersAssaut, principalesAPrendre, rattraperSuivi, suiteDeLHistoire, disponibles, enCours, objectif, parler, quete, signePnj } from '../src/moteur/quetes'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 
 const t0 = Date.UTC(2026, 9, 20, 12)
@@ -160,5 +160,10 @@ describe('les principales à prendre sont des quêtes comme les autres (Adrien, 
     expect(objectif(jeu, quete('lune-3'))!.texte).toMatch(/Keïta/)
     rattraperSuivi(jeu)
     expect(jeu.queteSuivie).toBe('lune-3')
+    // La suite de l'histoire, toujours (Adrien, 22/10/2026), même si on suit une secondaire.
+    jeu.queteSuivie = 'veilleur'
+    expect(suiteDeLHistoire(jeu)?.id).toBe('lune-3')
+    jeu.quetes['lune-3'] = { etape: 0, compte: 0, debut: t, fin: null }
+    expect(suiteDeLHistoire(jeu)?.id).toBe('lune-3')
   })
 })
