@@ -66,7 +66,8 @@ export class VoletComptoir {
     const charge = Object.values(etat.soute).reduce((a, b) => a + b, 0)
     const t1 = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
 
-    let html = '<div class="places">' + MARCHES.map((x, i) => !ouvert(i) ? '' :
+    // Les comptoirs ouverts, pour regarder les prix d'ailleurs ; un seul ouvert : rien à choisir, la rangée disparaît.
+    let html = MARCHES.filter((_, i) => ouvert(i)).length < 2 ? '' : '<div class="places">' + MARCHES.map((x, i) => !ouvert(i) ? '' :
       `<button type="button" data-comptoir="${i}"${i === k ? ' class="actif"' : ''}><span class="pastille" style="background:${x.teinte}"></span>`
       + `${x.nom}${etat.ici === x.nom ? '<small>ici</small>' : ''}</button>`).join('') + '</div>'
     html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('credits', etat.credits.toLocaleString('fr-FR'))}${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
@@ -132,9 +133,11 @@ export class VoletComptoir {
     if (html === this.dernier) return
     const rangee = this.element.querySelector('.places')?.scrollLeft ?? 0
     this.element.innerHTML = this.dernier = html
-    const places = this.element.querySelector<HTMLElement>('.places')!
+    const places = this.element.querySelector<HTMLElement>('.places')
+    if (!places) return
     places.scrollLeft = rangee
-    const actif = places.querySelector<HTMLElement>('.actif')!
+    const actif = places.querySelector<HTMLElement>('.actif')
+    if (!actif) return
     if (actif.offsetLeft < places.scrollLeft || actif.offsetLeft + actif.offsetWidth > places.scrollLeft + places.clientWidth) places.scrollLeft = actif.offsetLeft - 10
   }
 }

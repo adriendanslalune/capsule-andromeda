@@ -17,6 +17,13 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Retours d'Adrien du 22/10/2026 — **fait, en attente de ses essais** : le bouton de la capsule zoome sur l'astre le
+  plus proche (en orbite autour de la Lune, on voit ses cratères) ; plus de pointillés au-dessus de la frise ; un
+  DOSSIER pour chacun des 40 Disparus (le voyage, le jour de la perte, pourquoi, d'après les vraies histoires :
+  `src/donnees/dossiers-disparus.ts`) ; la Bourse se lit en trois temps (1 · choisir une compagnie, 2 · son cours,
+  3 · acheter ou vendre ; VENDRE seulement quand on a des actions) ; le Comptoir sans la rangée de systèmes quand un
+  seul est ouvert. Couleurs des fenêtres : 4 propositions à choisir par Adrien (`docs/propositions-couleurs.png` :
+  A bandeaux encre, B bleu NASA, C tableau de bord, D une couleur par onglet), rien d'appliqué.
 - Plus aucune hachure (décision d'Adrien du 22/10/2026) : des traits fins à la place (intitulés de section, coins des
   cadres, bord des alertes) — **fait, en attente de ses essais**.
 - Fenêtres refaites au propre (demande d'Adrien du 22/10/2026 : « des bugs partout ») — **fait, en attente de ses

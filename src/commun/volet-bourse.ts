@@ -1,8 +1,9 @@
 // La Bourse (onglet du volet Marché ; décisions d'Adrien du 20/10/2026) : des actions de neuf compagnies, aux cours
-// les mêmes pour tous. En haut, le portefeuille en direct (ce qu'il vaut, le gain ou la perte) et les ordres en route ;
-// puis la compagnie choisie : son cours connu (avec l'âge que lui donne la lumière venue de son siège), un graphique
-// façon trading dont la fin, hachurée, est « en route », ce qu'on en a, ACHETER et VENDRE, et le fil des ordres des
-// bots ; enfin toutes les compagnies. Un ordre part à la vitesse de la lumière et s'exécute au cours de son arrivée.
+// les mêmes pour tous. Lue de haut en bas, en trois temps (demande d'Adrien du 22/10/2026 : plus clair pour un
+// nouveau) : en tête, une phrase pour comprendre et le portefeuille en direct (ce qu'il vaut, le gain ou la perte, les
+// ordres en route) ; 1, les compagnies ; 2, le cours de la compagnie choisie (avec l'âge que lui donne la lumière
+// venue de son siège), un graphique façon trading dont la fin, hachurée, est « en route » ; 3, ACHETER et VENDRE
+// (VENDRE seulement quand on en a) ; enfin le fil des ordres des bots. Un ordre part à la vitesse de la lumière et s'exécute au cours de son arrivée.
 // Le doigt posé sur le graphique lit le cours à un instant. La vue ne calcule rien : tout vient de moteur/bourse.ts.
 
 import { COMPAGNIES, FRAIS_BOURSE, FRAIS_MINIMUM, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
@@ -85,7 +86,8 @@ export class VoletBourse {
 
     // Le portefeuille : ce qu'il vaut aux cours connus, le gain ou la perte ; les ordres en route.
     const { valeur, investi } = valeurPortefeuille(p, t)
-    let html = '<div class="portefeuille">'
+    let html = '<p class="mode-emploi">Achète des actions quand leur cours est bas, revends-les quand il a monté. Les cours sont les mêmes pour tous les capitaines.</p>'
+    html += '<div class="portefeuille">'
     if (investi > 0) {
       const g = valeur - investi
       html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>${entier(valeur)} cr.</b></span>`
@@ -96,21 +98,37 @@ export class VoletBourse {
     if (p.journal.length && !p.ordres.length) html += ligneOrdre(p.journal[0], t)
     html += '</div>'
 
-    // La compagnie choisie : cours connu, variation, âge des cours.
+    // 1. Les compagnies (demande d'Adrien du 22/10/2026 : une lecture claire, dans l'ordre où l'on s'en sert) :
+    // la courbe des dernières 24 h, le cours connu, la variation, ce qu'on en a.
+    html += '<h3>1 · Choisis une compagnie</h3><div class="liste-cours">' + visibles.map((x) => {
+      const v = vueAction(x, t)
+      const h = historiqueAction(x, v.connuA - 24 * HEURE, v.connuA, 40)
+      const lo = Math.min(...h.map((q) => q.cours)), hi = Math.max(...h.map((q) => q.cours))
+      const pts = h.map((q, j) => `${((j / 40) * 70).toFixed(1)},${(20 - ((q.cours - lo) / (hi - lo || 1)) * 18).toFixed(1)}`).join(' ')
+      const a = p.positions[x.id]
+      return `<button type="button" data-action="${x.id}"${x.id === id ? ' class="actif"' : ''}>`
+        + `<span class="pastille" style="background:${x.teinte}"></span><span class="nom">${x.nom}<small>${x.siege}${a ? ` · ${actions(a.actions)} action${a.actions >= 2 ? 's' : ''}` : ''}</small></span>`
+        + `<svg class="mini" viewBox="0 0 70 22"><polyline points="${pts}"/></svg>`
+        + `<span class="valeur">${prix(v.cours)}<small class="${sens(v.variation)}">${pourcent(v.variation)}</small></span></button>`
+    }).join('') + '</div>'
+
+    // 2. La compagnie choisie : cours connu, variation, graphique, âge des cours.
+    html += '<h3>2 · Son cours</h3>'
     html += `<div class="tete-cours"><div><b>${c.nom}</b><small>${c.metier} · siège : ${c.siege}</small><small class="caractere">${c.caractere}</small></div>`
       + `<div class="droite"><b class="grand">${prix(vue.cours)}</b><small>cr. l'action</small>`
       + `<span class="${sens(vue.variation)}">${pourcent(vue.variation)} <small>24 h</small></span></div></div>`
-    html += `<p class="age">Cours d'il y a <b>${texteDelai(vue.delai)}</b> : le temps que met la lumière pour venir de son siège (${c.siege}) jusqu'à ta capsule.</p>`
     html += `<div class="bloc graphe">${this.graphique(c.id, c.nom, c.teinte, t, vue.connuA)}<div class="periodes">`
-      + PERIODES.map((q, i) => `<button type="button" data-periode="${i}"${i === this.periode ? ' class="actif"' : ''}>${q.nom}</button>`).join('') + '</div>'
+      + PERIODES.map((q, i) => `<button type="button" data-periode="${i}"${i === this.periode ? ' class="actif"' : ''}>${q.nom}</button>`).join('') + '</div></div>'
+    html += `<p class="age">Cours vu avec <b>${texteDelai(vue.delai)}</b> de retard : le temps que met la lumière pour venir de ${c.siege}.</p>`
 
-    // Ce qu'on en a ; acheter, vendre.
+    // 3. Ce qu'on en a ; acheter, vendre.
+    html += '<h3>3 · Acheter ou vendre</h3>'
     if (pos) {
       const vaut = pos.actions * vue.cours, g = vaut - pos.investi
       html += `<p class="position">Tu as <b>${actions(pos.actions)} action${pos.actions >= 2 ? 's' : ''}</b>, payées ${entier(pos.investi)} cr. · elles valent <b>${entier(vaut)} cr.</b> <span class="${sens(g)}">${pourcent(g / pos.investi)}</span></p>`
     }
     const bouton = (s: 'acheter' | 'vendre', q: number, texte: string, off: boolean) =>
-      `<button type="button" data-ordre="${s}" data-compagnie="${c.id}" data-quantite="${q}"${off ? ' disabled' : ''}${s === 'vendre' ? ' class="principal"' : ''}>${texte}</button>`
+      `<button type="button" data-ordre="${s}" data-compagnie="${c.id}" data-quantite="${q}"${off ? ' disabled' : ''}>${texte}</button>`
     const devis = this.aConfirmer?.compagnie === c.id ? devisOrdre(p, etat.credits, c.id, this.aConfirmer.sens, this.aConfirmer.quantite, t) : null
     if (devis) {
       // La confirmation : ce qui part, les frais, ce qu'on obtiendrait au cours connu, le temps du trajet de l'ordre.
@@ -120,33 +138,23 @@ export class VoletBourse {
         + `<div><span>Frais (${FRAIS_BOURSE * 100} %, au moins ${FRAIS_MINIMUM} cr.)</span><b>${prix(devis.frais)} cr.</b></div>`
         + `<div><span>Au cours connu (${prix(devis.cours)})</span><b>≈ ${achat ? `${actions(devis.estime)} action${devis.estime >= 2 ? 's' : ''}` : `${entier(devis.estime)} cr.`}</b></div>`
         + `<p>L'ordre arrivera au siège (${c.siege}) dans <b>${texteDelai(devis.delai)}</b> et s'exécutera au cours de ce moment-là : il peut avoir bougé.</p>`
-        + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div></div>'
-    } else if (!cotee) html += `<p class="raison">Cotation suspendue : ${c.siege} est occupé par Andromède. Libère la zone pour acheter ou vendre.</p></div>`
-    else html += '<div class="commerce">'
-      + `<div class="ligne-commerce"><span>ACHETER</span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'TOUT', etat.credits <= FRAIS_MINIMUM)}</div>`
-      + `<div class="ligne-commerce"><span>VENDRE</span>${PARTS_VENTE.map((f) => bouton('vendre', pos ? pos.actions * f : 0, f === 1 ? 'TOUT' : f === 0.5 ? '½' : '¼', !pos)).join('')}</div>`
-      + `<p class="petit">Achat en crédits. Ton ordre mettra <b>${texteDelai(vue.delai)}</b> à arriver au siège (${c.siege}) ; il s'exécutera au cours de ce moment-là. Frais : ${FRAIS_BOURSE * 100} % par ordre, au moins ${FRAIS_MINIMUM} cr.</p></div></div>`
+        + '<div class="boutons-confirmation"><button type="button" data-annuler>ANNULER</button><button type="button" class="principal" data-confirmer>CONFIRMER</button></div></div>'
+    } else if (!cotee) html += `<p class="raison">Cotation suspendue : ${c.siege} est occupé par Andromède. Libère la zone pour acheter ou vendre.</p>`
+    else {
+      html += '<div class="commerce">'
+        + `<div class="ligne-commerce"><span>ACHETER<small>pour (cr.)</small></span>${MONTANTS_ACHAT.map((m) => bouton('acheter', m, `${m}`, etat.credits < m)).join('')}${bouton('acheter', Infinity, 'TOUT', etat.credits <= FRAIS_MINIMUM)}</div>`
+        + (pos ? `<div class="ligne-commerce"><span>VENDRE<small>tes actions</small></span>${PARTS_VENTE.map((f) => bouton('vendre', pos.actions * f, f === 1 ? 'TOUT' : f === 0.5 ? '1/2' : '1/4', false)).join('')}</div>`
+          : `<p class="sans-actions">Tu n'as pas d'actions ${c.nom} : achète d'abord, tu pourras les revendre ici.</p>`)
+        + `<p class="petit">Chaque ordre passe par un devis à confirmer. Frais : ${FRAIS_BOURSE * 100} % par ordre, au moins ${FRAIS_MINIMUM} cr. L'ordre voyage à la vitesse de la lumière jusqu'à ${c.siege} et s'exécute au cours de son arrivée.</p></div>`
+    }
 
     // Le fil des ordres des bots (connus, eux aussi, avec le délai de la lumière).
     const bots = ordresDesBots(c, vue.connuA - 6 * HEURE, vue.connuA).slice(0, 6)
     if (bots.length) {
-      html += '<h3>Derniers ordres</h3><div class="fil-ordres">' + bots.map((o) =>
+      html += '<h3>Les derniers ordres</h3><div class="fil-ordres">' + bots.map((o) =>
         `<div><span>${heure(o.t, false)}</span><b>${o.bot}</b><span class="${o.achat ? 'hausse' : 'baisse'}">${o.achat ? 'achète' : 'vend'} ${o.actions.toLocaleString('fr-FR')}</span><span>à ${prix(o.prix)}</span></div>`).join('') + '</div>'
     }
-
-    // Toutes les compagnies : courbe des dernières 24 h, cours connu, variation, ce qu'on en a.
-    html += '<h3>Compagnies</h3><div class="liste-cours">' + visibles.map((x) => {
-      const v = vueAction(x, t)
-      const h = historiqueAction(x, v.connuA - 24 * HEURE, v.connuA, 40)
-      const lo = Math.min(...h.map((q) => q.cours)), hi = Math.max(...h.map((q) => q.cours))
-      const pts = h.map((q, j) => `${((j / 40) * 70).toFixed(1)},${(20 - ((q.cours - lo) / (hi - lo || 1)) * 18).toFixed(1)}`).join(' ')
-      const a = p.positions[x.id]
-      return `<button type="button" data-action="${x.id}"${x.id === id ? ' class="actif"' : ''}>`
-        + `<span class="pastille" style="background:${x.teinte}"></span><span class="nom">${x.nom}<small>${x.siege} · ${a ? `${actions(a.actions)} action${a.actions >= 2 ? 's' : ''}` : texteDelai(v.delai)}</small></span>`
-        + `<svg class="mini" viewBox="0 0 70 22"><polyline points="${pts}"/></svg>`
-        + `<span class="valeur">${prix(v.cours)}<small class="${sens(v.variation)}">${pourcent(v.variation)}</small></span></button>`
-    }).join('') + '</div>'
-    html += '<p class="note">Seules les compagnies des zones libres sont cotées : libère une zone, et la compagnie qui y a son siège entre en Bourse. Les cours sont les mêmes pour tous les capitaines. Les rumeurs du canal général annoncent parfois un gros mouvement… trois fois sur quatre, elles disent vrai.</p>'
+    html += '<p class="note">Seules les compagnies des zones libres sont cotées : libère une zone, et la compagnie qui y a son siège entre en Bourse. Les rumeurs du canal général annoncent parfois un gros mouvement… trois fois sur quatre, elles disent vrai.</p>'
 
     if (html === this.dernier) return
     this.element.innerHTML = this.dernier = html

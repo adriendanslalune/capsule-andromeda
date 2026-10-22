@@ -99,7 +99,7 @@ import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Poi
 import { Gestes } from './commun/gestes'
 import { dessinerReperes, type Boite } from './commun/reperes'
 import { periode, suivreMission } from './moteur/capsule'
-import { astreDominant, corps } from './moteur/corps'
+import { astreDominant, corps, enfants, position } from './moteur/corps'
 import { couleurAstre } from './carte/couleurs'
 import { Jeu } from './moteur/jeu'
 import { restaurer, sauvegarder } from './moteur/sauvegarde'
@@ -353,13 +353,29 @@ let decalageCapsule: Point2 = { x: 0, y: 0 }
  * Cadre la carte sur la capsule (le système de l'astre où elle se trouve, la capsule au centre) et la suit : en vol
  * fluide depuis le bouton « Capsule », d'un coup à l'ouverture du jeu (demandes d'Adrien du 17/10/2026).
  */
+/**
+ * L'astre au-dessus duquel est la capsule, pour le gros plan (demande d'Adrien du 22/10/2026 : près de la Lune, on doit
+ * en voir les cratères) : celui autour duquel elle tourne (pour un engin, son astre), sinon, en vol, le plus proche de
+ * son système (la planète ou une de ses grandes lunes).
+ */
+function astreLePlusProche(systeme: string, t: number): string {
+  if (systeme === 'Soleil') return systeme
+  if (mission.phase(t) === 'orbite') {
+    let c = corps(mission.centre(t))
+    while (c && c.type !== 'planete' && c.type !== 'lune' && c.type !== 'naine' && c.type !== 'etoile' && c.parent) c = corps(c.parent)
+    if (c) return c.nom
+  }
+  const p = mission.etat(t).position
+  const hauteur = (nom: string) => { const q = position(nom, t); return Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z) - (corps(nom)?.rayon ?? 0) }
+  return [systeme, ...enfants(systeme).filter((c) => c.type === 'lune' && c.rayon >= 100).map((c) => c.nom)].reduce((a, b) => (hauteur(b) < hauteur(a) ? b : a))
+}
 function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
   // Le bouton : un gros plan sur la capsule (demandes d'Adrien du 19 et du 20/10/2026) ; à l'ouverture du jeu, tout le
   // système de la planète (comme avant).
   const k = !animer ? (ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou))
-    : carte.echelleGrosPlan(ou, t)
+    : carte.echelleGrosPlan(astreLePlusProche(ou, t), t)
   if (animer) choisir(CAPSULE, false, k)
   else {
     // D'un coup : on place la caméra avant de choisir la capsule (le vol lancé par le choix est alors immobile).

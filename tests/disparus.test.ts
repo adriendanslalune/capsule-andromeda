@@ -5,6 +5,7 @@ import { detecter, identifier, nouveauxDisparus, ouChercher } from '../src/moteu
 import { Jeu } from '../src/moteur/jeu'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 import { PORTEE_RADAR } from '../src/moteur/radar'
+import { DOSSIERS } from '../src/donnees/dossiers-disparus'
 
 const t0 = Date.UTC(2026, 9, 21, 12)
 const ecart = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -58,5 +59,16 @@ describe('les Disparus (idée validée par Adrien le 21/10/2026)', () => {
     jeu.disparus.suivi = 12
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.disparus).toEqual(jeu.disparus)
+  })
+
+  it('chaque sonde a son dossier : le voyage, le jour de la perte et pourquoi (demande d\'Adrien du 22/10/2026)', () => {
+    expect(Object.keys(DOSSIERS).length).toBe(NOMBRE_DISPARUS)
+    for (const d of DISPARUS) {
+      const dossier = DOSSIERS[d.numero]
+      expect(dossier, d.nom).toBeDefined()
+      expect(dossier.voyage.length, d.nom).toBeGreaterThan(40)
+      expect(dossier.cause.length, d.nom).toBeGreaterThan(40)
+      expect(dossier.perte, d.nom).toMatch(/^(1er|\d{1,2}) [a-zéû]+ (19|20)\d\d$/)
+    }
   })
 })
