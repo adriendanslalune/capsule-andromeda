@@ -1956,7 +1956,6 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
   border: 3px solid transparent; background: linear-gradient(var(--orange), var(--orange)) padding-box, var(--danger) border-box;
 }
 /* La console du trajet : une étiquette gravée ; la feuille de route sous une règle graduée, son rail gradué. */
-#trajet::before { content: 'NAVIGATION · NAV-02'; position: absolute; right: 12px; top: 4px; font: 600 7px var(--police); letter-spacing: 0.22em; opacity: 0.45; pointer-events: none; }
 #frise { padding-top: 12px; margin-top: 8px; height: 76px; }
 #frise::before { content: ''; position: absolute; left: -12px; right: -12px; top: 0; height: 8px; background: var(--plaques); opacity: 0.7; }
 #frise .rail { top: 34px; } #frise .fait { top: 33px; } #frise .point { top: 12px; } #frise .capsule { top: 24px; }
@@ -1993,3 +1992,37 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--equerres), var(--grain), var(--fond); }
 .plein, .groupe-vue, #instruments, #onglets, #bouton-messages, #tas { background-image: var(--grain); }
 #collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { background: var(--equerres), var(--grain), var(--creme); }
+
+/* ===== Les cadres de bord (demande d'Adrien du 22/10/2026, d'après son croquis : « des détails un peu partout, avec
+   des rivets discrets, des mini hachures, des traits fins ») : chaque document posé sur la carte devient une plaque
+   d'interface de vaisseau. Coins coupés en biseau (en haut à gauche, en bas à droite), un filet intérieur aux coins
+   coupés, un rivet dans les deux autres coins, deux petites hachures à côté ; une barre de tête : un trait fin qui
+   descend en biseau aux deux bouts, une languette hachurée au milieu. ===== */
+:root {
+  --cadre: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%3E%0A%3Cpath%20d%3D%27M7.5%20.75H47.25V40.5L40.5%2047.25H.75V7.5Z%27%20stroke-width%3D%271.5%27/%3E%0A%3Cpath%20d%3D%27M3.6%2012.5V9.3L9.3%203.6H13%27%20stroke-width%3D%27.7%27/%3E%0A%3Cpath%20d%3D%27M44.4%2035.5v3.2L38.7%2044.4H35%27%20stroke-width%3D%27.7%27/%3E%0A%3Ccircle%20cx%3D%2744%27%20cy%3D%274%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%0A%3Ccircle%20cx%3D%274%27%20cy%3D%2744%27%20r%3D%271.05%27%20fill%3D%27%231f1b18%27%20stroke%3D%27none%27%20opacity%3D%27.55%27/%3E%0A%3Cpath%20d%3D%27M35.5%205.6l2-3M38.5%205.6l2-3%27%20stroke-width%3D%27.8%27/%3E%0A%3Cpath%20d%3D%27M8%2045.4l2-3M11%2045.4l2-3%27%20stroke-width%3D%27.8%27/%3E%0A%3C/svg%3E");
+  --decoupe: polygon(7.5px 0, 100% 0, 100% calc(100% - 7.5px), calc(100% - 7.5px) 100%, 0 100%, 0 7.5px);
+  --languette: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27120%27%20height%3D%2712%27%20viewBox%3D%270%200%20120%2012%27%3E%0A%3Cdefs%3E%3CclipPath%20id%3D%27c%27%3E%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27/%3E%3C/clipPath%3E%3C/defs%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27%23fbf8f1%27/%3E%0A%3Cg%20clip-path%3D%27url%28%23c%29%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%272.2%27%20opacity%3D%27.85%27%3E%3Cpath%20d%3D%27M-10%2014L2%20-2M-3%2014L9%20-2M4%2014L16%20-2M11%2014L23%20-2M18%2014L30%20-2M25%2014L37%20-2M32%2014L44%20-2M39%2014L51%20-2M46%2014L58%20-2M53%2014L65%20-2M60%2014L72%20-2M67%2014L79%20-2M74%2014L86%20-2M81%2014L93%20-2M88%2014L100%20-2M95%2014L107%20-2M102%2014L114%20-2M109%2014L121%20-2M116%2014L128%20-2M123%2014L135%20-2M130%2014L142%20-2M137%2014L149%20-2%27/%3E%3C/g%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271.1%27/%3E%0A%3C/svg%3E");
+  --barre: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27120%27%20height%3D%2712%27%20viewBox%3D%270%200%20120%2012%27%3E%0A%3Cdefs%3E%3CclipPath%20id%3D%27c%27%3E%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27/%3E%3C/clipPath%3E%3C/defs%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27%23fbf8f1%27/%3E%0A%3Cg%20clip-path%3D%27url%28%23c%29%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%272.2%27%20opacity%3D%27.85%27%3E%3Cpath%20d%3D%27M-10%2014L2%20-2M-3%2014L9%20-2M4%2014L16%20-2M11%2014L23%20-2M18%2014L30%20-2M25%2014L37%20-2M32%2014L44%20-2M39%2014L51%20-2M46%2014L58%20-2M53%2014L65%20-2M60%2014L72%20-2M67%2014L79%20-2M74%2014L86%20-2M81%2014L93%20-2M88%2014L100%20-2M95%2014L107%20-2M102%2014L114%20-2M109%2014L121%20-2M116%2014L128%20-2M123%2014L135%20-2M130%2014L142%20-2M137%2014L149%20-2%27/%3E%3C/g%3E%0A%3Cpath%20d%3D%27M7%201.6H113L117.4%206L113%2010.4H7L2.6%206Z%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271.1%27/%3E%0A%3C/svg%3E") center top / 120px 12px no-repeat, url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M.5%2011.5V9L3.5%206H10%27/%3E%3C/svg%3E") left top / 10px 12px no-repeat, url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2712%27%20viewBox%3D%270%200%2010%2012%27%20fill%3D%27none%27%20stroke%3D%27%231f1b18%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M9.5%2011.5V9L6.5%206H0%27/%3E%3C/svg%3E") right top / 10px 12px no-repeat,
+    linear-gradient(#1f1b18, #1f1b18) center 5.5px / calc(100% - 20px) 1px no-repeat;
+}
+#console, #trajet, #volet, .carte-fenetre, #instruments, .groupe-vue, #onglets, #collections .couverture, #choix-systeme, #choix-affichage {
+  border: 1.5px solid transparent; border-image: var(--cadre) 14 / 14px / 0 stretch; clip-path: var(--decoupe); box-shadow: none; border-radius: 0;
+}
+#console, #collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { background: var(--grain), var(--creme); }
+#volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--grain), var(--fond); }
+.groupe-vue, #instruments, #onglets { background: var(--grain), var(--creme); }
+/* La console du trajet : la barre de tête, son étiquette gravée à gauche (plus sur le bouton PARLER). */
+#trajet { padding-top: 18px; }
+#trajet::before { content: ''; position: absolute; left: 12px; right: 12px; top: 3px; height: 12px; background: var(--barre); pointer-events: none; }
+#trajet::after { content: 'NAVIGATION · NAV-02'; position: absolute; left: 24px; top: 5px; padding: 0 5px; font: 600 7px/8px var(--police); letter-spacing: 0.22em;
+  color: color-mix(in srgb, var(--encre) 60%, transparent); background: var(--fond); pointer-events: none; }
+/* Les fenêtres au milieu de l'écran : la barre de tête. */
+.carte-fenetre::before { height: 12px; top: 6px; left: 14px; right: 14px; background: var(--barre); opacity: 1; }
+/* Les volets : la languette hachurée posée au milieu de la règle graduée, sous le titre. */
+#volet .entete::after, .plein .entete-plein::after { height: 12px; bottom: -13px; background: var(--languette) center bottom / 120px 12px no-repeat, var(--regle); }
+/* Les Collections : la barre de tête de chaque fiche, la référence au-dessus. */
+#collections .couverture { padding-top: 22px; }
+#collections .couverture::before { content: ''; position: absolute; left: 12px; right: 12px; top: 6px; height: 12px; background: var(--barre); pointer-events: none; }
+#collections .couverture::after { top: 8px; left: 26px; right: auto; padding: 0 5px; line-height: 8px; background: var(--creme); opacity: 1; color: color-mix(in srgb, var(--encre) 60%, transparent); }
+/* Les instruments : leur intitulé gravé sous le biseau. */
+#instruments::before { top: 4px; }
