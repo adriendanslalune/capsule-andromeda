@@ -18,7 +18,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 12. Version installable (PWA), puis boutique | à faire |
 
 - Voix perdues : piste A (les jardiniers), le temps pour les trouver ; une émission par jour, l'heure des voix qui
-  manquent dans le carnet (Adrien, 22/10/2026) ; Terre retouchée, Mercure (10), Vénus (12), Mars (20) et Jupiter (22) écrits ; le carnet donne l'heure de début et de fin
+  manquent dans le carnet (Adrien, 22/10/2026) ; Terre retouchée, Mercure (10), Vénus (12), Mars (20), Jupiter (22) et Saturne (22) écrits ; le carnet donne l'heure de début et de fin
   (`docs/voix-perdues-carnets.md`) — **en attente de sa lecture**. Quêtes principales à revoir plus tard (Adrien tourne
   en rond), une fois les mécaniques en place.
 - Orbite de la capsule autour de la Lune (et de toute lune) tracée depuis l'astre : plus de grande boucle rouge

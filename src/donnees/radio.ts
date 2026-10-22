@@ -3,8 +3,8 @@
 // une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à heure fixe (la même
 // pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET (Terre et Lune, Mercure, Vénus, Mars, Jupiter), à corriger par
-// Adrien ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
+// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET, à corriger par Adrien (Terre et Lune,
+// Mercure, Vénus, Mars, Jupiter, Saturne) ; les autres systèmes sont à écrire (leurs voix n'émettent pas encore). Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
 export const BANDE_OC = { min: 3, max: 10 } as const
@@ -29,7 +29,7 @@ export const NOMBRE_VOIX = Object.values(VOIX_PAR_SYSTEME).reduce((a, b) => a + 
 export interface TexteVoix { auteur: string; lieu: string; jour: number; texte: string }
 
 /**
- * Les textes, par système, dans l'ordre de leurs voix. PREMIER JET (Terre et Lune) : des voix de l'invasion qui, mises
+ * Les textes, par système, dans l'ordre de leurs voix. PREMIER JET : des voix de l'invasion qui, mises
  * bout à bout, mènent vers le secret de Triton.
  */
 export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
@@ -121,5 +121,29 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Raoul Desforges, Jovienne d\'Hélium', lieu: 'Ganymède', jour: 150, texte: 'La direction de la Jovienne d\'Hélium a démissionné. Je suis désormais directeur commercial, directeur général et standardiste. Nos tarifs restent inchangés.' },
     { auteur: 'Lev Antonov, doyen des mineurs', lieu: 'Ganymède', jour: 162, texte: 'Je ne verrai pas la fin. Mais je l\'ai entendue arriver, dans la radio des jeunes. Gardez ma place au bistrot de Ganymède. Et payez ma tournée : je vous la dois.' },
     { auteur: 'Lt Nadia Orlov, flotte jovienne', lieu: 'Ganymède', jour: 180, texte: 'Si un capitaine de la Résistance m\'entend un jour : venez sur Ganymède, je vous attendrai. Je ne sais pas encore ce qu\'on fera, mais avec deux navires et un capitaine, on fera du bruit.' },
+  ],
+  Saturne: [
+    { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 150, texte: 'Ici Tomás, pêcheur de méthane, sur Titan. Les lacs sont calmes, le brouillard est orange, et il y a des envahisseurs dans le ciel. Deux de ces trois choses sont normales.' },
+    { auteur: 'Inès Carvalho, gardienne de phare', lieu: 'phare de Cassini, anneaux de Saturne', jour: 151, texte: 'Phare de Cassini. Je guide les cargos à travers la division des anneaux depuis vingt ans. Ce matin, plus aucun cargo. Juste le Couronné, posé au milieu de la glace, comme un roi sur son trône.' },
+    { auteur: 'Bo Lindqvist, chef de chantier', lieu: 'Glacières des Anneaux', jour: 153, texte: 'Les Glacières des Anneaux suspendent leurs livraisons de glace. Nos découpeurs refusent de sortir tant que le Couronné est là. Je les comprends. Je suis dans le placard.' },
+    { auteur: 'Message automatique', lieu: 'sonde Huygens, surface de Titan', jour: 155, texte: 'HUYGENS. BATTERIE ÉPUISÉE DEPUIS 2005. CE MESSAGE NE PEUT PAS ÊTRE ÉMIS. CE MESSAGE EST ÉMIS QUAND MÊME. PRIÈRE DE NE PAS CHERCHER À COMPRENDRE.' },
+    { auteur: 'Dr Amara Nwosu, planétologue', lieu: 'base des Geysers, Encelade', jour: 158, texte: 'Base des Geysers, sur Encelade. Les geysers crachent de l\'eau salée dans l\'espace, deux cents kilos par seconde. Leurs chasseurs passent dedans pour se laver. Je n\'invente rien.' },
+    { auteur: 'Yann Le Goff, radioamateur', lieu: 'crête de Japet', jour: 160, texte: 'Ici F6YLG, sur la crête de Japet. Une face blanche, une face noire, et moi au milieu avec mon antenne. Je capte la Terre, Mars, Jupiter. Vous êtes nombreux à parler dans le noir.' },
+    { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 164, texte: 'Un chasseur s\'est posé sur mon lac. Il a trempé une sonde dans le méthane, il a attendu, il est reparti. Les poissons n\'existent pas, ici. Il a eu l\'air déçu.' },
+    { auteur: 'Inès Carvalho, gardienne de phare', lieu: 'phare de Cassini, anneaux de Saturne', jour: 168, texte: 'Depuis mon phare, je vois la glace des anneaux frissonner. De toutes petites vagues, régulières : une toutes les 4,7 secondes. Le même battement que Neptune, celui dont parlent les voix de la Terre.' },
+    { auteur: 'Bo Lindqvist, chef de chantier', lieu: 'Glacières des Anneaux', jour: 172, texte: 'Un de nos découpeurs est sorti malgré tout. Il a rapporté un bloc de glace des anneaux, et dedans, figée, une de leurs balises. Je ne l\'ai pas mise au congélateur. Elle y était déjà depuis toujours.' },
+    { auteur: 'Yann Le Goff, radioamateur', lieu: 'crête de Japet', jour: 177, texte: 'Les jeunes de Radio Poussière, sur Mars, m\'ont demandé une chanson bretonne. Je leur ai chanté « Tri martolod ». À Japet, à un milliard de kilomètres, on chante encore faux. C\'est ça, la civilisation.' },
+    { auteur: 'Dr Amara Nwosu, planétologue', lieu: 'base des Geysers, Encelade', jour: 182, texte: 'J\'ai cherché une balise dans l\'océan d\'Encelade, comme celle d\'Europe. Il n\'y en a pas. Rien n\'a été semé ici. De l\'eau, de la chaleur, du sel, et rien. Une jachère.' },
+    { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 186, texte: 'Ma femme dit que je parle trop à la radio. Je réponds qu\'à Titan, le brouillard est si épais qu\'on ne voit pas à qui on parle. Alors autant parler à tout le monde.' },
+    { auteur: 'Inès Carvalho, gardienne de phare', lieu: 'phare de Cassini, anneaux de Saturne', jour: 191, texte: 'Les vagues des anneaux ont commencé il y a deux ans, le jour où, d\'après les archives, la balise de Tycho s\'est réveillée. Avant, la glace dormait. Quelque chose, là-bas vers Neptune, a ouvert un œil.' },
+    { auteur: 'Message automatique', lieu: 'phare de Cassini, anneaux de Saturne', jour: 195, texte: 'FEU DU PHARE : ALLUMÉ. CARGOS EN APPROCHE : 0. CARGOS EN APPROCHE : 0. GARDIENNE : SOUS LA COUVERTURE AVEC UN THÉ.' },
+    { auteur: 'Bo Lindqvist, chef de chantier', lieu: 'Glacières des Anneaux', jour: 201, texte: 'Bilan des Glacières : zéro tonne livrée, trois découpeurs en grève, un bloc de glace avec une balise dedans, et un cours en Bourse qui fait le grand huit. Jamais je ne me suis autant amusé.' },
+    { auteur: 'Yann Le Goff, radioamateur', lieu: 'crête de Japet', jour: 206, texte: 'Pour ceux qui demandent : Mimas ressemble à une arme gigantesque, avec son cratère. Ce n\'en est pas une. Je suis allé vérifier. C\'est juste un caillou avec un gros trou. Dommage.' },
+    { auteur: 'Dr Amara Nwosu, planétologue', lieu: 'base des Geysers, Encelade', jour: 212, texte: 'Europe, oui. La Terre, oui. Encelade, non. Mars, peut-être, il y a longtemps. Ils n\'ont pas semé au hasard : ils ont choisi les mondes où l\'eau dure. Un jardinier qui connaît son sol.' },
+    { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 219, texte: 'Le Couronné a envoyé un chasseur se poser près de chaque base de Titan, une à une, sans tirer. Ils comptent. Ils comptent combien nous sommes. Moi aussi, je compte mes poissons avant de les vendre.' },
+    { auteur: 'Inès Carvalho, gardienne de phare', lieu: 'phare de Cassini, anneaux de Saturne', jour: 226, texte: 'J\'ai perdu le compte des jours. Mais le phare reste allumé. Si un cargo de la Résistance passe un jour par la division de Cassini, il trouvera la lumière.' },
+    { auteur: 'Bo Lindqvist, chef de chantier', lieu: 'Glacières des Anneaux', jour: 234, texte: 'Nouvelle direction aux Glacières : moi. Premier ordre : on recommence à découper la glace des anneaux. Le Couronné peut regarder. On a des clients à Jupiter qui ont soif.' },
+    { auteur: 'Yann Le Goff, radioamateur', lieu: 'crête de Japet', jour: 247, texte: 'Soixante-trois ans de radio, et je n\'ai jamais entendu autant de gens s\'écouter les uns les autres. Il a fallu une invasion pour ça. F6YLG, sur Japet, je vous dis à bientôt.' },
+    { auteur: 'Tomás Reyes, pêcheur de méthane', lieu: 'Titan', jour: 260, texte: 'On dit qu\'ils sont venus voir ce qui a poussé. Moi, je pêche depuis quarante ans. Je sais ce qu\'on fait de ce qu\'on vient voir pousser. Quelqu\'un, là-haut, a déjà sorti son panier.' },
   ],
 }
