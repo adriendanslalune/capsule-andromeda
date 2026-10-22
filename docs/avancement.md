@@ -18,7 +18,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 12. Version installable (PWA), puis boutique | **version installable faite** (22/10/2026), en attente des essais d'Adrien ; boutique à faire |
 
 - Comète de Halley sur la carte, à sa vraie place, avec sa traînée animée ; puis 14 petits corps célèbres et ʻOumuamua
-  (éléments de JPL ; Philae et Rosetta posés sur 67P) (Adrien, 22/10/2026) — **fait, en attente de ses essais**. Événements mensuels : en tout dernier (décision d'Adrien du 22/10/2026).
+  (éléments de JPL ; Philae et Rosetta posés sur 67P, validé) (Adrien, 22/10/2026) — **fait, en attente de ses essais**. Événements mensuels : en tout dernier (décision d'Adrien du 22/10/2026).
 - Version installable : icône, manifeste, plein écran, jeu jouable hors ligne, rubrique « Installer le jeu » dans
   Plus (Adrien, 22/10/2026) — **fait, en attente de ses essais**.
 - Voix perdues : piste A (les jardiniers), le temps pour les trouver ; une émission par jour, l'heure des voix qui
