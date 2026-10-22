@@ -269,6 +269,8 @@ redimensionner()
 const CLE_REGLAGES = 'andromeda-reperes-v8'
 const reglages = {
   orbites: true, noms: true,
+  /** La grille de la carte et son échelle (demande d'Adrien du 22/10/2026). */
+  grille: true,
   /** Les cercles des échos des PING (monolithes) sur la carte. */
   cercles: true,
   /** Mode nuit : seulement par le bouton (choix d'Adrien du 17/10/2026), jour par défaut. */
@@ -413,7 +415,7 @@ document.querySelector('#commandes-carte .vue')!.addEventListener('click', (e) =
     boutonAffichage.setAttribute('aria-expanded', String(!choixAffichage.hidden))
   } else if (b.dataset.afficher) {
     // Les calques, et le mode nuit en accès rapide (demande d'Adrien du 20/10/2026).
-    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'cercles' | 'nuit'
+    const cle = b.dataset.afficher as 'orbites' | 'noms' | 'grille' | 'cercles' | 'nuit'
     reglages[cle] = !reglages[cle]
     memoriser()
     if (cle === 'nuit') appliquerTheme()
@@ -1983,6 +1985,7 @@ function image(maintenant: number): void {
     carte.sillage = enVol && etapeEnCours === 'larguer' ? 'epave' : enVol && etapeEnCours === 'escorter' ? 'convoi' : null
     oublierSoleilAnime()
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
+    if (reglages.grille) carte.dessinerEchelle(ctxPlan, { encre: th.encre, fond: th.halo }, texteDistance)
     // Décalage de la capsule dessinée par rapport à sa vraie place sur la carte (voir decalageCapsule).
     const dessinee = carte.place(CAPSULE)
     if (dessinee) {

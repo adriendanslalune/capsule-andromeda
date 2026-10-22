@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Grille de la carte et tableau de bord sans fond noir (demandes d'Adrien du 22/10/2026) — **fait, en attente de ses
+  essais** : grille qui suit le zoom, échelle au bord gauche, masquable ; les touches posées sur le papier, avec un halo
+  vif ; toucher une touche ne recharge plus le tableau.
 - Tableau de bord en console (demande d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : touches en relief
   qui s'allument et brillent, écran e-ink qui montre d'office l'alerte, sinon le contrat, sinon la quête ; portefeuille
   en une ligne qu'on déplie (date de chaque position).

@@ -24,9 +24,23 @@ import type { Vecteur3 } from '../moteur/vecteur'
 
 export const CAPSULE = 'Andromeda'
 
-export interface ReglagesCarte { orbites: boolean; noms: boolean }
+export interface ReglagesCarte { orbites: boolean; noms: boolean; /** La grille et son échelle (demande d'Adrien du 22/10/2026). */ grille?: boolean }
 
 export interface Couleurs2D { encre: string; fond: string }
+
+/**
+ * Le pas de la grille (demande d'Adrien du 22/10/2026), en km : un nombre rond (1, 2 ou 5 fois une puissance de dix)
+ * qui fait à peu près `cible` pixels à ce zoom.
+ */
+export function pasDeGrille(kmParPx: number, cible = 110): number {
+  const rond = (brut: number) => {
+    const p = 10 ** Math.floor(Math.log10(brut))
+    return [1, 2, 5, 10].map((f) => f * p).reduce((a, b) => (Math.abs(Math.log(b / brut)) < Math.abs(Math.log(a / brut)) ? b : a))
+  }
+  // Au-delà de 0,1 UA, le pas est rond en UA (l'échelle s'écrit en UA : « 5 UA », pas « 33,4 UA »).
+  const brut = kmParPx * cible
+  return brut >= 0.1 * UA_KM ? rond(brut / UA_KM) * UA_KM : rond(brut)
+}
 
 /** Ce qui est dessiné à l'écran (pour le toucher et les repères). */
 interface Dessine { nom: string; x: number; y: number; r: number; /** Opacité (un écho du radar qui s'efface). */ alpha?: number }
@@ -522,6 +536,52 @@ export class Carte2D {
   }
 
   /** Dessine la carte ; renvoie la place (à l'écran) d'un astre donné. */
+  /** Les lignes de la grille, alignées sur des multiples du pas (elles restent en place quand on fait glisser la carte). */
+  private dessinerGrille(ctx: CanvasRenderingContext2D, couleurs: Couleurs2D): void {
+    const pas = pasDeGrille(this.kmParPx), m = this.milieu()
+    const x0 = this.centre.x - m.x * this.kmParPx, x1 = this.centre.x + (this.largeur - m.x) * this.kmParPx
+    const y0 = this.centre.y - (this.hauteur - m.y) * this.kmParPx, y1 = this.centre.y + m.y * this.kmParPx
+    ctx.save()
+    ctx.strokeStyle = couleurs.encre
+    ctx.globalAlpha = 0.17
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    for (let x = Math.ceil(x0 / pas) * pas; x <= x1; x += pas) { const e = Math.round(this.ecranDe({ x, y: 0 }).x) + 0.5; ctx.moveTo(e, 0); ctx.lineTo(e, this.hauteur) }
+    for (let y = Math.ceil(y0 / pas) * pas; y <= y1; y += pas) { const e = Math.round(this.ecranDe({ x: 0, y }).y) + 0.5; ctx.moveTo(0, e); ctx.lineTo(this.largeur, e) }
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  /**
+   * L'échelle de la grille, au bord gauche de l'écran (demande d'Adrien du 22/10/2026) : un crochet entre deux lignes
+   * de la grille, au milieu de la place libre, et ce qu'il mesure. Dessinée par-dessus le reste.
+   */
+  dessinerEchelle(ctx: CanvasRenderingContext2D, couleurs: Couleurs2D, texte: (km: number) => string): void {
+    const pas = pasDeGrille(this.kmParPx), m = this.milieu()
+    const milieu = (this.marges.haut + this.hauteur - this.marges.bas) / 2
+    // La ligne de la grille juste au-dessus du milieu de la place libre, et la suivante dessous.
+    const yMonde = this.centre.y + (m.y - milieu) * this.kmParPx
+    const haut = this.ecranDe({ x: 0, y: Math.floor(yMonde / pas) * pas + pas }).y, bas = haut + pas / this.kmParPx
+    const x = 10.5
+    ctx.save()
+    ctx.strokeStyle = couleurs.encre
+    ctx.fillStyle = couleurs.encre
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(x + 6, haut); ctx.lineTo(x, haut); ctx.lineTo(x, bas); ctx.lineTo(x + 6, bas)
+    ctx.stroke()
+    ctx.font = `600 10px 'IBM Plex Mono', monospace`
+    ctx.textBaseline = 'middle'
+    ctx.lineWidth = 3
+    ctx.strokeStyle = couleurs.fond
+    ctx.lineJoin = 'round'
+    const libelle = texte(pas)
+    ctx.translate(x + 5, (haut + bas) / 2)
+    ctx.strokeText(libelle, 0, 0)
+    ctx.fillText(libelle, 0, 0)
+    ctx.restore()
+  }
+
   dessiner(ctx: CanvasRenderingContext2D, t: number, reglages: ReglagesCarte, couleurs: Couleurs2D,
     selection: string | null, directionCapsule?: { x: number; y: number } | null, capsuleDessinee?: Point2 | null):
     { x: number; y: number; r: number; visible: boolean } | null {
@@ -533,6 +593,9 @@ export class Carte2D {
     if (!this.nuit && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
     const soleil = this.ecranDe({ x: 0, y: 0 })
     const dedans = (x: number, y: number, marge = 30) => x > -marge && x < this.largeur + marge && y > -marge && y < this.hauteur + marge
+
+    // La grille (demande d'Adrien du 22/10/2026) : des traits fins tous les « pas », un nombre rond qui suit le zoom.
+    if (reglages.grille !== false) this.dessinerGrille(ctx, couleurs)
 
     // Ceintures : astéroïdes de 2,2 à 3,3 UA, Kuiper de 30 à 50 UA, en trame légère.
     for (const [a, b] of [[2.2, 3.3], [30, 50]]) {

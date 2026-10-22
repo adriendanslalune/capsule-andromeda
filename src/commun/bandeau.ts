@@ -90,8 +90,8 @@ export function basculerVoyant(v: Voyant): void {
   voyantOuvert = afficheActuel === v ? null : v
 }
 
-/** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
-let forme = ''
+/** Formes déjà affichées (l'état, l'écran) : si elles ne changent pas, on ne change que les textes. */
+let formeEtat = '', formeDetail = ''
 
 
 /** Le mot du bouton au bout de chaque alerte (toute la ligne se touche). */
@@ -126,6 +126,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   const statut = `<div class="etat-capsule" data-ligne="orbite">${etat}`
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
+  const nEtat = textes.length
   // Le tableau de bord (demandes d'Adrien du 22/10/2026) : quatre voyants sur une rangée, ALERTE, QUÊTE, CONTRAT,
   // ÉCHO, allumés quand il y a quelque chose ; dessous, l'afficheur (un écran e-ink). Il montre d'office l'alerte
   // (une nouvelle alerte passe devant tout), sinon le contrat en cours, sinon la quête suivie ; toucher un voyant y
@@ -139,11 +140,6 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   alertesVues = alertes
   const affiche: Voyant | null = voyantOuvert ?? (nombre('alerte') ? 'alerte' : nombre('contrat') ? 'contrat' : nombre('quete') ? 'quete' : null)
   afficheActuel = affiche
-  const voyants = VOYANTS.map(({ cle, nom, symbole }) => {
-    const n = nombre(cle)
-    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', affiche === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
-    return `<button type="button" class="${classe}" data-voyant="${cle}" aria-pressed="${affiche === cle}">${symbole}<small>${nom}</small>${n > 1 ? `<i class="compte">${n}</i>` : ''}</button>`
-  }).join('')
   // L'afficheur : les lignes de la catégorie ouverte, ou ce qui dit qu'il n'y a rien ; vide si aucun voyant n'est ouvert.
   const ligneHtml = (l: LigneBandeau) => {
     const { titre, detail } = texteLigne(l, t)
@@ -166,11 +162,31 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     detail = ici.length ? ici.map(ligneHtml).join('')
       : vide(`vide-${affiche}`, affiche === 'alerte' ? 'RAS · tous les modules en état' : affiche === 'contrat' ? 'aucun contrat en cours' : 'aucun écho attendu')
   }
-  const html = statut + `<div class="voyants">${voyants}</div><div class="afficheur${affiche ? ` v-${affiche}` : ''}">${detail}</div>`
-  // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
-  // change ; sinon, les textes seuls.
-  if (html !== forme) element.innerHTML = forme = html
-  element.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
+  // Trois zones qui ne sont jamais refaites d'un bloc (Adrien, 22/10/2026 : toucher une touche rechargeait tout le
+  // tableau) : l'état, les touches (seules leurs classes changent : une touche enfoncée reste la même touche) et
+  // l'écran, chacun réécrit seulement si sa forme change ; sinon, les textes seuls.
+  if (!element.querySelector('.zone-etat')) {
+    element.innerHTML = '<div class="zone-etat"></div><div class="voyants">' + VOYANTS.map(({ cle, nom, symbole }) =>
+      `<button type="button" class="voyant v-${cle}" data-voyant="${cle}">${symbole}<small>${nom}</small><i class="compte" hidden></i></button>`).join('')
+      + '</div><div class="afficheur"></div>'
+    formeEtat = formeDetail = ''
+  }
+  const zone = element.querySelector<HTMLElement>('.zone-etat')!, ecran = element.querySelector<HTMLElement>('.afficheur')!
+  if (statut !== formeEtat) zone.innerHTML = formeEtat = statut
+  zone.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
+  for (const b of element.querySelectorAll<HTMLElement>('.voyant')) {
+    const cle = b.dataset.voyant as Voyant, n = nombre(cle)
+    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', affiche === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
+    if (b.className !== classe) b.className = classe
+    b.setAttribute('aria-pressed', String(affiche === cle))
+    const compte = b.querySelector<HTMLElement>('.compte')!
+    compte.hidden = n < 2
+    if (compte.textContent !== String(n)) compte.textContent = String(n)
+  }
+  const classeEcran = `afficheur${affiche ? ` v-${affiche}` : ''}`
+  if (ecran.className !== classeEcran) ecran.className = classeEcran
+  if (detail !== formeDetail) ecran.innerHTML = formeDetail = detail
+  ecran.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[nEtat + k]) e.textContent = textes[nEtat + k] })
   const barre = element.querySelector<HTMLElement>('.jauge-xp i')
   const largeur = `${Math.round(capsule.xp * 1000) / 10}%`
   if (barre && barre.style.width !== largeur) barre.style.width = largeur

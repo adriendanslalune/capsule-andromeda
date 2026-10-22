@@ -2276,3 +2276,27 @@ body.volet-ouvert #annonces { display: none; }
 #bourse .placements .pastille { margin-top: 3px; }
 #bandeau .voyant.allume, #bandeau .voyant.ouvert.allume { box-shadow: 0 3px 0 #120f0c, 0 0 14px 2px color-mix(in srgb, var(--cat) 95%, transparent), 0 0 30px 7px color-mix(in srgb, var(--cat) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
 #bandeau .voyant.ouvert.allume { box-shadow: 0 1px 0 #120f0c, 0 0 14px 2px color-mix(in srgb, var(--cat) 95%, transparent), 0 0 30px 7px color-mix(in srgb, var(--cat) 55%, transparent), inset 0 2px 4px rgba(0, 0, 0, 0.2); }
+
+/* Sans boîtier noir (Adrien, 22/10/2026 : « rappelle-toi la DA ») : les touches en relief posées sur le papier, à
+   l'encre, leur épaisseur dessinée en dessous ; allumées, un capuchon lumineux et un halo de couleur vive (sur le
+   papier clair, une lueur pastel ne se verrait pas) ; l'écran e-ink dans un cadre d'encre fin. */
+#bandeau .voyant.v-alerte { --lueur: #ff7a4d; }
+#bandeau .voyant.v-quete { --lueur: #4f9dff; }
+#bandeau .voyant.v-contrat { --lueur: #ffbf1a; }
+#bandeau .voyant.v-echo { --lueur: #a271ff; }
+#bandeau .voyants { margin: 6px 3px 0; padding: 4px 2px 6px; background: none; border-radius: 0; box-shadow: none; }
+#bandeau .voyant { border: 1.5px solid var(--encre); border-radius: 4px; color: color-mix(in srgb, var(--encre) 75%, transparent);
+  background: linear-gradient(var(--creme), color-mix(in srgb, var(--cat) 28%, #e6dece));
+  box-shadow: 0 3px 0 var(--encre), inset 0 1px 0 #fff; }
+#bandeau .voyant.eteint > :not(.compte) { opacity: 0.5; }
+#bandeau .voyant.allume, #bandeau .voyant.ouvert.allume { color: var(--encre);
+  background: radial-gradient(ellipse at 50% 42%, #fff 0%, color-mix(in srgb, var(--cat) 45%, #fff) 35%, color-mix(in srgb, var(--cat) 70%, var(--lueur)) 85%);
+  box-shadow: 0 3px 0 var(--encre), 0 0 10px 2px color-mix(in srgb, var(--lueur) 75%, transparent), 0 0 22px 5px color-mix(in srgb, var(--lueur) 35%, transparent), inset 0 1px 0 #fff; }
+#bandeau .voyant.ouvert { transform: translateY(2px); }
+#bandeau .voyant.ouvert.eteint { box-shadow: 0 1px 0 var(--encre), inset 0 2px 3px rgba(0, 0, 0, 0.2); }
+#bandeau .voyant.ouvert.allume { box-shadow: 0 1px 0 var(--encre), 0 0 10px 2px color-mix(in srgb, var(--lueur) 75%, transparent), 0 0 22px 5px color-mix(in srgb, var(--lueur) 35%, transparent), inset 0 2px 3px rgba(0, 0, 0, 0.15); }
+#bandeau .voyant:active { transform: translateY(2px); }
+@keyframes voyant-urgent { 50% { filter: brightness(1.15) saturate(1.5); box-shadow: 0 3px 0 var(--encre), 0 0 16px 5px #ff6a3d, 0 0 32px 10px rgba(255, 106, 61, 0.45); } }
+#bandeau .voyant .compte { color: #fff; background: var(--encre); box-shadow: none; }
+#bandeau .afficheur, #bandeau .afficheur.v-alerte, #bandeau .afficheur.v-quete, #bandeau .afficheur.v-contrat, #bandeau .afficheur.v-echo {
+  margin: 6px 3px 3px; padding: 3px; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 3px; }
