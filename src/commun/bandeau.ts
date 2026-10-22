@@ -156,15 +156,13 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   }
   let detail = ''
   if (affiche === 'quete') {
-    // La suite de l'histoire d'abord (toujours là), puis les secondaires en cours. Dans la liste, la ligne de l'histoire
-    // se détache au premier coup d'œil (Adrien, 22/10/2026) : un bandeau doré, son losange, « L'HISTOIRE » gravé
-    // au-dessus du titre en capitales ; les secondaires restent de simples lignes, avec leur rond bleu.
+    // La suite de l'histoire d'abord (toujours là), puis les secondaires en cours. Discret (Adrien, 22/10/2026) : un
+    // losange doré devant le titre de l'histoire, un plus petit losange noir devant celui d'une secondaire.
     for (const q of capsule.quetes) {
       const g = q.principale ? 'principale' : 'secondaire'
       textes.push(q.titre, q.objectif)
       detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}" data-ligne="quete" data-quete="${q.id}">`
-        + `<span class="marque-quete">${picto(g)}</span>`
-        + `<span class="texte">${q.principale ? '<small>L\'HISTOIRE</small>' : ''}<b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>`
+        + `<span class="texte"><b><i class="losange"></i><span data-texte></span></b> <span data-texte></span></span><em>VOIR</em></div>`
     }
     if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')
   } else if (affiche) {

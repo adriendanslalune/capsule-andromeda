@@ -17,9 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
-- Onglet QUÊTE : l'histoire en bandeau doré, bien à part des secondaires (la ligne séparée sous l'état est retirée :
-  Adrien ne voulait pas la sortir du tableau de bord) ; les volets se calent sous la console quelle que soit sa hauteur
-  (Adrien, 22/10/2026) — **fait, en attente de ses essais**.
+- Onglet QUÊTE : un losange doré devant l'histoire, un plus petit losange noir devant les secondaires ; les volets se
+  calent sous la console quelle que soit sa hauteur (Adrien, 22/10/2026) — **fait, en attente de ses essais**.
 - Onde du PING à la vitesse de la lumière, qui s'arrête sur le monolithe ; onglet QUÊTE : l'histoire à part, puis
   toutes les secondaires en cours (Adrien, 22/10/2026) — **fait, en attente de ses essais**.
 - L'onglet QUÊTE du tableau de bord montre toujours la suite de l'histoire, puis la secondaire suivie (Adrien,
