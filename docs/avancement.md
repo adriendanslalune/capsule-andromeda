@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Plus aucune hachure (décision d'Adrien du 22/10/2026) : des traits fins à la place (intitulés de section, coins des
+  cadres, bord des alertes) — **fait, en attente de ses essais**.
 - Fenêtres refaites au propre (demande d'Adrien du 22/10/2026 : « des bugs partout ») — **fait, en attente de ses
   essais** : un seul bloc de styles en fin de `src/style.css` (plaques à cadre de bord, languette hachurée seulement
   après les intitulés de section, bandes de danger, étiquettes gravées) ; fenêtres de niveau, de moteur, de
