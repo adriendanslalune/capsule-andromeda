@@ -1885,3 +1885,9 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 .instrument-requis { display: inline-flex; align-self: flex-start; flex: none; width: max-content; height: 26px; align-items: center; gap: 5px; margin: 2px 0 4px; padding: 2px 8px 2px 4px; font-size: 10px; letter-spacing: 0.06em;
   border: 1.5px solid var(--encre); border-radius: 12px; background: var(--creme); }
 .instrument-requis svg { width: 20px; height: 20px; overflow: visible; }
+
+/* Essai de teintes (demande d'Adrien du 22/10/2026) : la carte d'une couleur, les fenêtres plus claires par-dessus. */
+body.teinte-b { --fond: #fbf8f1; --creme: #fffbf2; background: #e7dcc4; }
+body.teinte-c { --fond: #fbf7ee; --creme: #fff9ea; background: #d9e2e6; }
+body.teinte-d { --fond: #fbf8f1; --creme: #fffaf0; background: #e3ddee; }
+body.teinte-e { --ombre: #05070d; background: #141826; }
