@@ -18,7 +18,8 @@ import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
 import { traceOrbite } from '../moteur/orbite'
-import { HALLEY, orbiteHalley } from '../moteur/comete'
+import { activiteComete, HALLEY, orbitePetitCorps } from '../moteur/petits-corps'
+import { PETITS_CORPS, type PetitCorps } from '../donnees/petits-corps'
 import { positionsPoussiere } from '../moteur/poussiere'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
@@ -70,8 +71,9 @@ const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 const LOIN_CAPSULES = 40
 const NOMS_CAPITAINES = 30
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
-/** L'orbite de la comète de Halley (fixe : on la calcule une fois). */
-const ORBITE_HALLEY = orbiteHalley(512)
+/** Les orbites des petits corps (fixes : chacune calculée une fois, à la demande). */
+const ORBITES_PETITS = new Map<string, Vecteur3[]>()
+const orbitePetit = (p: PetitCorps) => { let o = ORBITES_PETITS.get(p.nom); if (!o) { o = orbitePetitCorps(p, 512); ORBITES_PETITS.set(p.nom, o) } return o }
 const RAYON_POINT = 1.8
 
 /** Rayon (km) sous lequel une lune ne se dessine que de près (sous ZOOM_PETITES_LUNES km par pixel) ou si on la vise. */
@@ -649,15 +651,18 @@ export class Carte2D {
         ctx.stroke()
         ctx.globalAlpha = 1
       }
-      // L'orbite de la comète de Halley : un long pointillé, de 0,6 à 35 UA.
-      ctx.beginPath()
-      this.ligneCoupee(ctx, ORBITE_HALLEY.map((p) => this.ecranDe(p)))
-      ctx.setLineDash([4, 5])
-      ctx.strokeStyle = couleurs.encre
-      ctx.globalAlpha = 0.35
-      ctx.stroke()
-      ctx.setLineDash([])
-      ctx.globalAlpha = 1
+      // Les orbites des petits corps, en long pointillé : celle de Halley toujours, les autres quand on les choisit.
+      for (const p of PETITS_CORPS) {
+        if (p.nom !== HALLEY && p.nom !== selection) continue
+        ctx.beginPath()
+        this.ligneCoupee(ctx, orbitePetit(p).map((x) => this.ecranDe(x)))
+        ctx.setLineDash([4, 5])
+        ctx.strokeStyle = couleurs.encre
+        ctx.globalAlpha = 0.35
+        ctx.stroke()
+        ctx.setLineDash([])
+        ctx.globalAlpha = 1
+      }
     }
 
     this.poussiere(ctx, t, couleurs)
@@ -695,10 +700,16 @@ export class Carte2D {
     }
     astre(corps('Soleil')!, soleil)
     for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
-    // La comète de Halley et sa traînée (demande d'Adrien du 22/10/2026), toujours visible, comme un astre.
-    const halley = this.ecranDe(projeterCorps(HALLEY, t))
-    this.dessines.push({ nom: HALLEY, x: halley.x, y: halley.y, r: 7 })
-    this.comete(ctx, halley, soleil, couleurs, dedans)
+    // Les petits corps célèbres (demandes d'Adrien du 22/10/2026), toujours visibles, comme des astres : les comètes et
+    // leur traînée, les astéroïdes et les planètes naines lointaines dans leur silhouette.
+    for (const p of PETITS_CORPS) {
+      const q = this.ecranDe(projeterCorps(p.nom, t))
+      const r = Math.max(p.genre === 'comete' ? 4 : 3, p.rayon / this.kmParPx)
+      this.dessines.push({ nom: p.nom, x: q.x, y: q.y, r: Math.max(r, 6) })
+      // (Halley a la grande traînée ; les autres comètes, une plus modeste.)
+      if (p.genre === 'comete') this.comete(ctx, q, soleil, couleurs, dedans, activiteComete(p, t) * (p.nom === HALLEY ? 1 : 0.55), p, t)
+      else if (dedans(q.x, q.y, r * 3 + 10)) this.silhouette(ctx, q, r, p, couleurs, t)
+    }
     for (const nom of CENTRES) {
       const e = this.ecranDe(projeterCorps(nom, t))
       const zone = zoneDessinee(nom) / this.kmParPx
@@ -1168,7 +1179,7 @@ export class Carte2D {
     const priorite = (d: Dessine) => {
       if (d.nom === CAPSULE) return 0
       const k = corps(d.nom)!
-      return k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' || k.type === 'comete' ? 3
+      return k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' || k.type === 'comete' ? 3 : k.type === 'asteroide' ? 5
         : k.type === 'lune' && k.rayon >= 100 ? 4 : k.type === 'satellite' || k.type === 'sonde' ? 5 : 6
     }
     // Le chevron de la capsule n'empêche pas un nom de se poser (vue de loin, il est collé à son astre).
@@ -1213,12 +1224,13 @@ export class Carte2D {
    * La comète de Halley, façon Moebius (demande d'Adrien du 22/10/2026) : un noyau en patate, une chevelure pâle, et une
    * immense traînée à l'opposé du Soleil, qui ondule et file. Deux queues, comme les vraies : celle de poussière,
    * large, couleur paille et un peu courbée ; celle d'ions, droite et bleutée, parcourue de filets qui s'en vont.
-   * (À 35 UA, la vraie n'a plus de queue : elle ne s'allume qu'en approchant du Soleil. Ici, on la montre toujours.)
+   * La traînée s'allume en approchant du Soleil (activite, moteur/petits-corps.ts) ; celle de Halley, jamais éteinte (à
+   * 35 UA, la vraie n'en a plus : licence poétique demandée par Adrien).
    */
   private comete(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, soleil: { x: number; y: number },
-    couleurs: Couleurs2D, dedans: (x: number, y: number, marge?: number) => boolean): void {
-    const L = Math.min(430, Math.max(170, 1.2e8 / this.kmParPx))
-    if (!dedans(q.x, q.y, L * 1.2)) return
+    couleurs: Couleurs2D, dedans: (x: number, y: number, marge?: number) => boolean, activite: number, p: PetitCorps, t: number): void {
+    const L = Math.min(430, Math.max(170, 1.2e8 / this.kmParPx)) * activite
+    if (!dedans(q.x, q.y, L * 1.2 + 12)) return
     let dx = q.x - soleil.x, dy = q.y - soleil.y
     const n = Math.hypot(dx, dy) || 1
     dx /= n; dy /= n
@@ -1255,6 +1267,7 @@ export class Carte2D {
       ctx.globalAlpha = 0.5
       ctx.stroke()
     }
+    if (L > 4) {
     voile(L * 0.5, '#e8b86a', 0.55, true)
     voile(L * 0.32, '#f2d58e', 0.8)
     voile(L * 0.15, '#fffbf2', 0.95)
@@ -1286,6 +1299,7 @@ export class Carte2D {
       ctx.stroke()
     }
     ctx.setLineDash([])
+    }
     // La chevelure : un halo crème ; le noyau : une patate brune cernée d'encre.
     const halo = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, 11)
     halo.addColorStop(0, 'rgba(255,251,242,0.95)')
@@ -1295,13 +1309,86 @@ export class Carte2D {
     ctx.arc(q.x, q.y, 11, 0, 2 * Math.PI)
     ctx.fillStyle = halo
     ctx.fill()
+    // De près, le noyau prend sa vraie taille et sa silhouette (le canard de 67P).
+    const rn = p.rayon / this.kmParPx
+    if (rn > 3.6) { ctx.restore(); this.silhouette(ctx, q, rn, p, couleurs, t); return }
     ctx.beginPath()
     ctx.ellipse(q.x, q.y, 3.6, 2.4, Math.atan2(dy, dx) + 0.5, 0, 2 * Math.PI)
-    ctx.fillStyle = '#b79f7e'
+    ctx.fillStyle = p.teinte
     ctx.fill()
     ctx.lineWidth = 1
     ctx.strokeStyle = couleurs.encre
     ctx.stroke()
+    ctx.restore()
+  }
+
+  /**
+   * Un astéroïde ou une planète naine lointaine, façon Moebius : un aplat de sa teinte cerné d'un trait d'encre fin, dans
+   * sa silhouette (une boule, une toupie, une patate, le ballon de rugby d'Haumea et son anneau, le bonhomme de neige
+   * d'Arrokoth et de 67P, l'éclat allongé d'ʻOumuamua qui culbute sur lui-même).
+   */
+  private silhouette(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, r: number, p: PetitCorps,
+    couleurs: Couleurs2D, t: number): void {
+    const graine = [...p.nom].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 9973, 7)
+    const angle = p.forme === 'cigare' ? (2 * Math.PI * t) / (7.3 * 3_600_000) : graine
+    ctx.save()
+    ctx.translate(q.x, q.y)
+    ctx.rotate(angle)
+    ctx.beginPath()
+    if (p.forme === 'boule') ctx.arc(0, 0, r, 0, 2 * Math.PI)
+    else if (p.forme === 'ballon') ctx.ellipse(0, 0, r * 1.45, r * 0.75, 0, 0, 2 * Math.PI)
+    else if (p.forme === 'cigare') ctx.ellipse(0, 0, r * 2.2, r * 0.45, 0, 0, 2 * Math.PI)
+    else if (p.forme === 'bonhomme') {
+      // Deux lobes soudés : le trait d'encre d'abord, plus épais, puis les aplats par-dessus (un seul contour).
+      const lobes = () => { ctx.beginPath(); ctx.arc(-r * 0.45, 0, r * 0.62, 0, 2 * Math.PI); ctx.moveTo(r * 1, 0); ctx.arc(r * 0.55, 0, r * 0.45, 0, 2 * Math.PI) }
+      lobes()
+      ctx.lineWidth = 2
+      ctx.strokeStyle = couleurs.encre
+      ctx.stroke()
+      lobes()
+      ctx.fillStyle = p.teinte
+      ctx.fill()
+      ctx.restore()
+      return
+    }
+    else if (p.forme === 'toupie') {
+      ctx.moveTo(-r, 0)
+      ctx.quadraticCurveTo(-r * 0.6, -r * 0.95, 0, -r * 0.85); ctx.quadraticCurveTo(r * 0.6, -r * 0.95, r, 0)
+      ctx.quadraticCurveTo(r * 0.6, r * 0.95, 0, r * 0.85); ctx.quadraticCurveTo(-r * 0.6, r * 0.95, -r, 0)
+    } else {
+      for (let k = 0; k <= 10; k++) {
+        const a = (2 * Math.PI * k) / 10, f = 0.78 + 0.3 * ((Math.sin(graine * (k % 10 + 1) * 1.7) + 1) / 2)
+        if (k === 0) ctx.moveTo(r * f, 0)
+        else ctx.lineTo(r * f * Math.cos(a), r * f * 0.8 * Math.sin(a))
+      }
+      ctx.closePath()
+    }
+    ctx.fillStyle = p.teinte
+    ctx.fill()
+    ctx.lineWidth = 1
+    ctx.strokeStyle = couleurs.encre
+    ctx.stroke()
+    // De près : l'arête de la toupie, l'anneau d'Haumea, la tache de sel de Cérès, quelques cratères.
+    if (r > 6) {
+      ctx.lineWidth = 0.8
+      if (p.forme === 'toupie') { ctx.beginPath(); ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.stroke() }
+      if (p.nom === 'Cérès') { ctx.beginPath(); ctx.arc(r * 0.25, -r * 0.2, Math.max(1.2, r * 0.07), 0, 2 * Math.PI); ctx.fillStyle = '#fffbf2'; ctx.fill() }
+      for (let k = 0; k < 4; k++) {
+        const a = graine * (k + 1), d = r * 0.5 * ((Math.sin(a * 3.1) + 1) / 2)
+        ctx.beginPath()
+        ctx.arc(d * Math.cos(a), d * Math.sin(a) * 0.7, Math.max(0.8, r * 0.08), 0, 2 * Math.PI)
+        ctx.globalAlpha = 0.5
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      }
+    }
+    if (p.forme === 'ballon') {
+      ctx.beginPath()
+      ctx.ellipse(0, 0, r * 2.2, r * 1.5, 0, 0, 2 * Math.PI)
+      ctx.lineWidth = Math.max(0.8, r * 0.1)
+      ctx.strokeStyle = '#b9ad98'
+      ctx.stroke()
+    }
     ctx.restore()
   }
 

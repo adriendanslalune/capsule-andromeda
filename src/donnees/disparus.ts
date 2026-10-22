@@ -101,9 +101,9 @@ export const DISPARUS: readonly Disparu[] = [
     'Elle a bombardé la comète Tempel 1 pour voir ce qu\'il y a dedans ; perdue en 2013, son horloge ayant débordé.'),
   D(33, 'NEAR Shoemaker', 'NASA', 1996, { genre: 'soleil', ua: 1.46, longitude: 205 }, 'Autour du Soleil, posée sur l\'astéroïde Éros.',
     'La première sonde posée sur un astéroïde, Éros, le 12 février 2001, sans même avoir été conçue pour atterrir.'),
-  D(34, 'Philae', 'ESA', 2004, { genre: 'soleil', ua: 3.46, longitude: 151 }, 'Autour du Soleil, sur une comète, au-delà de Mars.',
+  D(34, 'Philae', 'ESA', 2004, { genre: 'sol', astre: 'Comète 67P', lat: -9, lon: 0 }, 'Autour du Soleil, sur une comète, au-delà de Mars.',
     'Posé sur la comète Tchourioumov-Guérassimenko en novembre 2014, il rebondit deux fois et se coince à l\'ombre d\'une falaise.'),
-  D(35, 'Rosetta', 'ESA', 2004, { genre: 'soleil', ua: 3.46, longitude: 151.3 }, 'Autour du Soleil, sur une comète, au-delà de Mars.',
+  D(35, 'Rosetta', 'ESA', 2004, { genre: 'sol', astre: 'Comète 67P', lat: 20, lon: 40 }, 'Autour du Soleil, sur une comète, au-delà de Mars.',
     'Après deux ans à accompagner sa comète, elle se pose doucement près de Philae le 30 septembre 2016, et se tait.'),
   // Les géantes.
   D(36, 'Sonde de Galileo', 'NASA', 1989, { genre: 'sol', astre: 'Jupiter', lat: 6.5, lon: 4.4 }, 'Dans les nuages de Jupiter, près de l\'équateur.',

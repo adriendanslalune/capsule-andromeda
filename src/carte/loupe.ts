@@ -134,7 +134,7 @@ export function projeter(m: PointMobile): Point2 {
 export function projeterCorps(nom: string, t: number): Point2 {
   if (nom === 'Soleil') return { x: 0, y: 0 }
   const c = corps(nom)
-  if (c && (c.type === 'planete' || c.type === 'naine' || c.type === 'comete')) { const p = position(nom, t); return { x: p.x, y: p.y } }
+  if (c && (c.type === 'planete' || c.type === 'naine' || c.type === 'comete' || c.type === 'asteroide')) { const p = position(nom, t); return { x: p.x, y: p.y } }
   return projeter({ p: position(nom, t), t, suivant: { p: position(nom, t + 60_000), t: t + 60_000 } })
 }
 
