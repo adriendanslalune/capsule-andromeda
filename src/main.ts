@@ -808,8 +808,9 @@ function mettreAJourFiche(t: number): void {
   let enVol = false
   if (!texte && enRoute) {
     const e = jeu.etapeActuelle()
-    texte = `<b class="destination">${enRoute.cible.toUpperCase()}</b><span class="vals">${avec('duree', `reste ${texteRestant(enRoute.arrivee - t)}`)}</span>`
-      + (jeu.enCours && e?.lieu === enRoute.cible ? `<span class="etape-contrat">contrat · étape ${jeu.enCours.etape + 1} sur ${jeu.enCours.contrat.etapes.length}</span>` : '')
+    // Compacte (demande d'Adrien du 22/10/2026) : le reste du trajet et l'étape du contrat sur une seule ligne.
+    texte = `<b class="destination">${enRoute.cible.toUpperCase()}</b><span class="vals">${avec('duree', `reste ${texteRestant(enRoute.arrivee - t)}`)}`
+      + (jeu.enCours && e?.lieu === enRoute.cible ? `<span class="etape-contrat">contrat ${jeu.enCours.etape + 1}/${jeu.enCours.contrat.etapes.length}</span>` : '') + '</span>'
     planFiche = enRoute
     enVol = true
   }
@@ -1222,7 +1223,7 @@ function afficherSuivi(forcer = false): void {
   const o = q ? objectif(jeu, q) : null
   ligneSuivi.hidden = !q || !o
   if (!q || !o) return
-  const html = `<span class="signe ${q.type}">${q.type === 'principale' ? '◆' : '●'}</span><span><b>${q.titre}</b> · ${o.texte}${o.compte ? ` (${o.compte})` : ''}</span>`
+  const html = `<span class="symbole-ligne"><span class="signe ${q.type}">${q.type === 'principale' ? '◆' : '●'}</span><small>QUÊTE</small></span><span class="texte"><b>${q.titre}</b><span>${o.texte}${o.compte ? ` (${o.compte})` : ''}</span></span>`
   if (ligneSuivi.innerHTML !== html) ligneSuivi.innerHTML = html
   ligneSuivi.classList.toggle('secondaire', q.type === 'secondaire')
 }

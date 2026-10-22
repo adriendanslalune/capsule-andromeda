@@ -113,7 +113,10 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     const symbole = l.genre === 'contrat' ? SYMBOLES[l.contrat.genre] : l.genre === 'panne' || l.genre === 'missile' || l.genre === 'chaleur' ? SYMBOLE_PANNE : picto('monolithe')
     const classe = l.genre === 'contrat' && l.situation === 'action' ? 'contrat action' : l.genre
     const b = bouton(l)
-    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="symbole-ligne">${symbole}</span><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
+    // Chaque ligne a son intercalaire (demande d'Adrien du 22/10/2026 : alertes, contrat, écho et quête bien séparés) :
+    // la catégorie écrite sous son symbole, sur la couleur de sa catégorie.
+    const categorie = l.genre === 'contrat' ? 'CONTRAT' : l.genre === 'missile' ? 'MISSILE' : l.genre === 'panne' ? 'PANNE' : l.genre === 'chaleur' ? 'CHALEUR' : 'ÉCHO'
+    return `<div class="ligne ${classe}" data-ligne="${l.genre}"><span class="symbole-ligne">${symbole}<small>${categorie}</small></span><span class="texte"><b data-texte></b> <span data-texte></span></span>${b ? `<em>${b}</em>` : ''}</div>`
   })
   const html = statut + alertes.join('')
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
