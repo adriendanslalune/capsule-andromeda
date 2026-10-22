@@ -2032,3 +2032,45 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #bourse .age { margin: 6px 2px 0; font-size: 11px; line-height: 1.4; opacity: 0.75; }
 #bourse .commerce { display: flex; flex-direction: column; gap: 10px; }
 #bourse .mode-emploi, #bourse .age, #bourse .commerce, #bourse .position, #bourse .raison, #bourse > .note { margin-left: 10px; margin-right: 10px; }
+/* Les volets en plein écran (demande d'Adrien du 22/10/2026 : « on ne doit plus rien voir de l'écran de derrière ») :
+   la carte disparaît sous le kraft ; la console reste en haut (les crédits, le niveau, les alertes : jamais répétés
+   dans les volets), le volet prend toute la place entre elle et la barre d'onglets. */
+body.volet-ouvert::before { content: ''; position: fixed; inset: 0; z-index: 3; background: var(--grain), var(--carte); }
+body.volet-ouvert #haut { z-index: 5; }
+body.volet-ouvert #commandes-carte, body.volet-ouvert #instruments, body.volet-ouvert #trajet { display: none; }
+body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: calc(72px + env(safe-area-inset-bottom)); height: auto; max-height: none; }
+/* Les contrats (demande d'Adrien du 22/10/2026) : la Maison en liseré sur le bord gauche, comme un intercalaire fin de
+   classeur, plutôt qu'en carré de couleur. */
+#missions .contrat[data-maison] { position: relative; padding-left: 16px; border-left-width: 1.5px; }
+#missions .contrat[data-maison]::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 5px; background: var(--liseret); }
+#missions .contrat[data-maison]::after { content: ''; position: absolute; left: -1.5px; top: 10px; width: 3px; height: 26px; background: var(--liseret); }
+#missions .contrat[data-maison="nettoyeurs"] { --liseret: #3f8a5a; }
+#missions .contrat[data-maison="ingenieurs"] { --liseret: #c48a1c; }
+#missions .contrat[data-maison="mercenaires"] { --liseret: #c4553a; }
+#missions .tuile-type { background: var(--fond); }
+/* Une couleur par onglet (proposition D, choisie par Adrien le 22/10/2026) : le bandeau du titre, les intitulés de
+   section, le sous-onglet actif et l'onglet de la barre prennent la couleur de la rubrique ; on sait où l'on est d'un
+   coup d'œil. Le bouton qui engage reste orange. */
+:root { --rub-capsule: #2c7a80; --rub-journal: #b27a14; --rub-marche: #3d7a4c; --rub-collections: #6a4c9c; --rub-plus: #4b5563; }
+#volet { --rub: var(--rub-plus); }
+#volet:has(.page[data-contenu="capsule"]:not([hidden])) { --rub: var(--rub-capsule); }
+#volet:has(.page[data-contenu="missions"]:not([hidden])) { --rub: var(--rub-journal); }
+#volet:has(.page[data-contenu="marche"]:not([hidden])) { --rub: var(--rub-marche); }
+#volet:has(.page[data-contenu="collections"]:not([hidden])) { --rub: var(--rub-collections); }
+#volet .entete { margin: 0 0 14px; padding: 10px 12px 10px 16px; background: var(--rub); color: #fff; }
+#volet .entete button, #volet #volet-titre { color: #fff; }
+#volet #volet-titre::before { color: color-mix(in srgb, var(--rub) 25%, #fff); }
+#volet h3 { color: var(--rub); }
+#volet h3::after { border-color: var(--rub); }
+#volet .sous-onglets button.actif { background: var(--rub); border-color: var(--rub); color: #fff; }
+#volet .portefeuille, #volet .liste-cours, #volet .fil-ordres, #volet .bloc { background: #fff; }
+#volet .liste-cours button.actif { box-shadow: inset 4px 0 0 var(--rub); }
+#onglets button[data-onglet="capsule"] { --t: var(--rub-capsule); }
+#onglets button[data-onglet="missions"] { --t: var(--rub-journal); }
+#onglets button[data-onglet="marche"] { --t: var(--rub-marche); }
+#onglets button[data-onglet="collections"] { --t: var(--rub-collections); }
+#onglets button[data-onglet="plus"] { --t: var(--rub-plus); }
+#onglets button { color: var(--t); }
+#onglets button .picto * { stroke: var(--t); }
+#onglets button.actif { background: var(--t); color: #fff; box-shadow: none; }
+#onglets button.actif .picto * { stroke: #fff; }

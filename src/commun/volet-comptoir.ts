@@ -70,7 +70,7 @@ export class VoletComptoir {
     let html = MARCHES.filter((_, i) => ouvert(i)).length < 2 ? '' : '<div class="places">' + MARCHES.map((x, i) => !ouvert(i) ? '' :
       `<button type="button" data-comptoir="${i}"${i === k ? ' class="actif"' : ''}><span class="pastille" style="background:${x.teinte}"></span>`
       + `${x.nom}${etat.ici === x.nom ? '<small>ici</small>' : ''}</button>`).join('') + '</div>'
-    html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('credits', etat.credits.toLocaleString('fr-FR'))}${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
+    html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
     // Les boutons n'apparaissent qu'en touchant un matériau : on le dit en haut (Adrien ne les avait pas trouvés).
     if (possible && !this.ouverte) html += '<p class="consigne-comptoir">Touche un matériau pour l\'acheter ou le vendre.</p>'
     if (!possible) {

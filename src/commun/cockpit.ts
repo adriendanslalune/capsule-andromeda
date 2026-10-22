@@ -23,8 +23,13 @@ const ONGLET: Record<Page, string> = {
   navigation: 'plus', capsule: 'capsule', missions: 'missions', marche: 'marche', manuel: 'plus', profil: 'plus', messages: 'plus', plus: 'plus', reglages: 'plus', boutique: 'plus', collections: 'collections',
 }
 
+/** Les cinq onglets, dans l'ordre de la barre (pour passer de l'un à l'autre d'un glissement). */
+const ORDRE_ONGLETS: readonly Page[] = ['capsule', 'missions', 'marche', 'collections', 'plus']
+
 export class Cockpit {
   private page: Page | null = null
+  /** Vrai si un geste qui commence sur cet élément ne doit pas changer d'onglet (le panneau de réparation et le Manuel ont leur propre glissement). */
+  glissementPropre: (cible: HTMLElement) => boolean = () => false
   private volet: HTMLElement
   private titre: HTMLElement
 
@@ -64,6 +69,29 @@ export class Cockpit {
       this.volet.style.transform = `translateY(${Math.max(0, dy)}px)`
     }
     const finir = (e: TouchEvent) => { if (debut) lacher(e.type === 'touchend' && e.changedTouches[0].clientY - debut.y > 80) }
+    // Glisser à gauche ou à droite passe à l'onglet voisin (demande d'Adrien du 22/10/2026), comme entre le panneau de
+    // réparation et le Manuel ; pas sur ce qui défile en largeur ni sur ce qui a son propre glissement.
+    let depuis: { x: number; y: number } | null = null
+    this.volet.addEventListener('touchstart', (e) => {
+      const cible = e.target as HTMLElement
+      let defile = false
+      for (let el: HTMLElement | null = cible; el && el !== this.volet; el = el.parentElement) if (el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX !== 'hidden' && getComputedStyle(el).overflowX !== 'visible') defile = true
+      depuis = e.touches.length === 1 && !defile && !this.glissementPropre(cible) && !cible.closest('input[type="range"], .sans-glisser')
+        ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null
+    }, { passive: true })
+    this.volet.addEventListener('touchend', (e) => {
+      if (!depuis || this.page === null) return
+      const dx = e.changedTouches[0].clientX - depuis.x, dy = e.changedTouches[0].clientY - depuis.y
+      depuis = null
+      if (Math.abs(dx) < 70 || Math.abs(dx) < 2 * Math.abs(dy)) return
+      const k = ORDRE_ONGLETS.indexOf(ONGLET[this.page] as Page) + (dx < 0 ? 1 : -1)
+      const voisin = ORDRE_ONGLETS[k]
+      const bouton = voisin && document.querySelector<HTMLButtonElement>(`#onglets [data-onglet="${voisin}"]`)
+      if (!bouton || bouton.disabled) return
+      this.ouvrir(voisin)
+      const page = this.volet.querySelector<HTMLElement>(`.page[data-contenu="${voisin}"]`)
+      if (page) { page.classList.remove('vers-gauche', 'vers-droite'); void page.offsetWidth; page.classList.add(dx < 0 ? 'vers-gauche' : 'vers-droite') }
+    }, { passive: true })
     this.volet.addEventListener('touchstart', (e) => {
       const cible = e.target as HTMLElement
       const page = cible.closest<HTMLElement>('.page')
@@ -103,12 +131,15 @@ export class Cockpit {
       b.classList.toggle('actif', b.dataset.onglet === ONGLET[page])
     }
     this.volet.hidden = false
+    // Le volet occupe tout l'écran sous la console (demande d'Adrien du 22/10/2026) : la carte ne se voit plus.
+    document.body.classList.add('volet-ouvert')
     this.quandOuvert(page)
   }
 
   fermer(): void {
     this.page = null
     this.volet.hidden = true
+    document.body.classList.remove('volet-ouvert')
     for (const b of document.querySelectorAll<HTMLElement>('#onglets [data-onglet]')) b.classList.remove('actif')
   }
 }

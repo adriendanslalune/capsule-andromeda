@@ -42,6 +42,10 @@ export function missionsParMaison(maisonDuJoueur: Maison | null, nombre = 6, lie
   return r
 }
 
+/** Les deux genres de chaque Maison. */
+export const GENRES_DE_MAISON = Object.fromEntries(MAISONS.map((m) => [m.maison,
+  (Object.keys(MAISON_DU_GENRE) as GenreContrat[]).filter((g) => MAISON_DU_GENRE[g] === m.maison)])) as Record<Maison, GenreContrat[]>
+
 export function maisonDuContrat(c: Contrat): Maison {
   return MAISON_DU_GENRE[c.genre]
 }

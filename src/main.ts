@@ -369,6 +369,11 @@ function astreLePlusProche(systeme: string, t: number): string {
   const hauteur = (nom: string) => { const q = position(nom, t); return Math.hypot(q.x - p.x, q.y - p.y, q.z - p.z) - (corps(nom)?.rayon ?? 0) }
   return [systeme, ...enfants(systeme).filter((c) => c.type === 'lune' && c.rayon >= 100).map((c) => c.nom)].reduce((a, b) => (hauteur(b) < hauteur(a) ? b : a))
 }
+// Le bas de la console (sa hauteur change avec les alertes) : le volet ouvert commence juste dessous.
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty('--bas-console', `${Math.round(document.querySelector('#console')!.getBoundingClientRect().bottom)}px`)
+}).observe(document.querySelector('#console')!)
+
 function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
@@ -439,6 +444,15 @@ choixSysteme.addEventListener('click', (e) => {
   if (nom === 'tout') vueGenerale(carte.echelleExterieure())
   else choisir(nom, false, carte.echellePlanete(nom))
 })
+// Toucher n'importe où ailleurs referme les calques et la bande des systèmes (demande d'Adrien du 22/10/2026).
+document.addEventListener('pointerdown', (e) => {
+  const cible = e.target as HTMLElement
+  if (!choixAffichage.hidden && !choixAffichage.contains(cible) && !boutonAffichage.contains(cible)) {
+    choixAffichage.hidden = true
+    boutonAffichage.setAttribute('aria-expanded', 'false')
+  }
+  if (!choixSysteme.hidden && !choixSysteme.contains(cible) && !boutonSystemes.contains(cible)) ouvrirSystemes(false)
+}, true)
 function afficherChoixAffichage(): void {
   for (const b of choixAffichage.querySelectorAll<HTMLElement>('[data-afficher]')) {
     // Le thème (demande d'Adrien du 21/10/2026) : le bouton propose l'autre, SOMBRE en clair (par défaut), CLAIR en sombre.
@@ -1718,6 +1732,8 @@ function glisserEntre(page: HTMLElement, vers: 'panneau' | 'manuel', sens: -1 | 
   }, { passive: true })
 }
 glisserEntre(pagePanneau, 'manuel', -1, () => sousOnglet === 'reparation')
+// Ces deux-là ont leur propre glissement : pas de changement d'onglet en glissant dessus.
+cockpit.glissementPropre = (cible) => !!cible.closest('#manuel') || (sousOnglet === 'reparation' && pagePanneau.contains(cible))
 glisserEntre(pageManuel, 'panneau', 1, () => true)
 zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => basculer('manuel'))
 pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => basculer('panneau'))

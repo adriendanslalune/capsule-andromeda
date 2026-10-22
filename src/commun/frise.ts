@@ -17,8 +17,10 @@ export function htmlFrise(f: FeuilleDeRoute, t: number): string {
   const points = f.points.map((p, k) => {
     const sous: string[] = []
     if (p.action) sous.push(VERBES[p.action].toLowerCase())
+    // Le point de départ d'un trajet (pas une étape du contrat) le dit, pour ne pas le prendre pour une étape.
+    else if (k === 0) sous.push('départ')
     if (p.passe) { if (p.quand !== undefined) sous.push(`parti ${heure(p.quand, t)}`) }
-    else if (k === 0) sous.push('maintenant')
+    else if (k === 0 && !p.action) sous[0] = 'départ · maintenant'
     else if (p.quand !== undefined) sous.push(`<em>${heure(p.quand, t)}</em>`)
     const classe = ['point', k === 0 ? 'debut' : '', k === n - 1 ? 'fin' : '', p.passe ? 'passe' : '', p.but ? 'but' : ''].filter(Boolean).join(' ')
     return `<div class="${classe}" style="left:${((100 * k) / (n - 1)).toFixed(1)}%"><b>${p.nom}</b><i></i><small>${sous.join('<br>')}</small></div>`

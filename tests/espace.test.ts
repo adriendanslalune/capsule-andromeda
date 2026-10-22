@@ -51,7 +51,8 @@ describe('les chasseurs : très nombreux, partout, imprévisibles', () => {
     expect(ALIENS.length).toBeGreaterThan(300)
     for (const p of ['Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton']) expect(ALIENS.filter((a) => a.parent === p).length, p).toBeGreaterThanOrEqual(10)
     expect(ALIENS.filter((a) => a.parent === 'Soleil').length).toBeGreaterThan(100)
-    expect(ALIENS.filter((a) => a.parent === 'Terre').length).toBeLessThanOrEqual(3)
+    // Autour de la Terre : trois au bord du système, et deux tout près pour les premiers contrats ABATTRE (22/10/2026).
+    expect(ALIENS.filter((a) => a.parent === 'Terre').length).toBeLessThanOrEqual(5)
     expect(tirsParHeure(ALIENS.find((a) => a.parent === 'Neptune')!)).toBeGreaterThan(5 * tirsParHeure(ALIENS.find((a) => a.parent === 'Terre')!))
   })
 
@@ -63,10 +64,10 @@ describe('les chasseurs : très nombreux, partout, imprévisibles', () => {
     for (const x of ALIENS.filter((y) => y.parent !== 'Soleil')) expect(ecart(x.nom, x.parent, t0)).toBeLessThan(rayonInfluence(x.parent))
   })
 
-  it('au départ (orbite basse terrestre), le radar ne voit aucun chasseur', () => {
+  it('au départ (orbite basse terrestre), le radar ne voit que les deux chasseurs des premiers contrats ABATTRE', () => {
     const e = nouvelEspace()
     expect(porteeRadar(t0)).toBe(100_000)
-    expect(aliensReperes(e, t0)).toEqual([])
+    expect(aliensReperes(e, t0).sort()).toEqual(['Chasseur Π-1', 'Chasseur Π-2'])
     expect(surLaCarte(e, ALIENS[0].nom, t0)).toBe(false)
   })
 

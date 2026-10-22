@@ -69,7 +69,8 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     const n = (p: string) => jeu.proposes.filter((c) => c.portee === p && systemes.some((x) => x.lieu === c.tableau)).length
     expect(n('proche')).toBeGreaterThan(n('moyenne'))
     expect(n('moyenne')).toBeGreaterThan(n('lointaine'))
-    expect(n('lointaine')).toBeGreaterThanOrEqual(5)
+    // (Tous les genres à chaque fois passent avant la portée, demande d'Adrien du 22/10/2026 : un peu moins de lointaines.)
+    expect(n('lointaine')).toBeGreaterThanOrEqual(3)
   })
 
   it('début de partie (demande d’Adrien du 21/10/2026) : autour de la Terre, les contrats restent à 25 minutes de vol du moteur', () => {
@@ -155,6 +156,27 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     expect([...new Set(jeu.proposes.map((c) => c.genre))].sort()).toEqual(['chasser', 'depanner', 'escorter', 'livrer', 'nettoyer', 'remorquer'])
     for (const c of jeu.proposes) expect(maisonDuContrat(c)).toBe({ nettoyer: 'nettoyeurs', remorquer: 'nettoyeurs', chasser: 'mercenaires', escorter: 'mercenaires', depanner: 'ingenieurs', livrer: 'ingenieurs' }[c.genre])
     for (const c of jeu.proposes.filter((x) => x.genre === 'chasser')) expect(corps(c.etapes[0].lieu)?.type).toBe('alien')
+  })
+
+  it('tous les genres possibles à chaque fois (demande d’Adrien du 22/10/2026) : dès le début, ABATTRE autour de la Terre', () => {
+    const jeu = new Jeu()
+    jeu.avancer(t0)
+    for (const systeme of ['Terre', 'Mars', 'Jupiter', 'Saturne']) {
+      const genres = new Set(jeu.proposes.filter((c) => c.tableau === systeme).map((c) => c.genre))
+      expect([...genres].sort(), systeme).toEqual(['chasser', 'depanner', 'escorter', 'livrer', 'nettoyer', 'remorquer'])
+    }
+    // Autour de la Lune (4 contrats), quatre genres différents.
+    expect(new Set(jeu.proposes.filter((c) => c.tableau === 'Lune').map((c) => c.genre)).size).toBe(4)
+    // Une partie plus ancienne, avec deux contrats du même genre pour une Maison : l'un est remplacé par l'autre genre.
+    const vieux = jeu.proposes.filter((c) => c.tableau === 'Terre' && c.genre === 'escorter')[0]
+    const chasse = jeu.proposes.find((c) => c.tableau === 'Terre' && c.genre === 'chasser')!
+    jeu.proposes = jeu.proposes.map((c) => (c === chasse ? { ...vieux, id: 9999 } : c))
+    jeu.proposer(t0 + 1000)
+    expect(jeu.proposes.filter((c) => c.tableau === 'Terre' && c.genre === 'chasser')).toHaveLength(1)
+    jeu.proposer(t0 + 2000)
+    const ids = jeu.proposes.map((c) => c.id).join()
+    jeu.proposer(t0 + 3000)
+    expect(jeu.proposes.map((c) => c.id).join()).toBe(ids)
   })
 
   it('prix : fixé par la zone (loin et dangereux paie plus), jamais par la position de la capsule', () => {

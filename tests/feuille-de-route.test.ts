@@ -38,10 +38,11 @@ describe('la feuille de route (demande d’Adrien du 21/10/2026)', () => {
     expect(f.position).toBeCloseTo(0.25, 1)
     // La deuxième étape (demande d'Adrien du 22/10/2026) : toute la route du contrat, la première étape faite.
     const p2 = plan('Lune')
-    const suite = feuilleDeRoute(p2, true, (p2.depart + p2.arrivee) / 2, { contrat: { ...contrat, etapes: [{ lieu: 'ISS', action: 'harponner' }, { lieu: 'Lune', action: 'larguer' }] }, etape: 1, depart: 'Terre' })
-    expect(suite.points.map((x) => [x.nom, x.passe])).toEqual([['Terre', true], ['ISS', true], ['Lune', false]])
-    expect(suite.points[1].quand).toBe(p2.depart)
-    expect(suite.position).toBeCloseTo(0.75, 1)
+    const suite = feuilleDeRoute(p2, true, (p2.depart + p2.arrivee) / 2, { contrat: { ...contrat, etapes: [{ lieu: 'ISS', action: 'harponner' }, { lieu: 'Lune', action: 'larguer' }] }, etape: 1 })
+    // Rien que le contrat (Adrien, 22/10/2026) : pas d'où l'on venait avant lui.
+    expect(suite.points.map((x) => [x.nom, x.passe])).toEqual([['ISS', true], ['Lune', false]])
+    expect(suite.points[0].quand).toBe(p2.depart)
+    expect(suite.position).toBeCloseTo(0.5, 1)
     // Un trajet qui ne mène pas à l'étape du contrat : seulement le départ et l'arrivée.
     expect(feuilleDeRoute(p, true, t0, { contrat: { ...contrat, etapes: [{ lieu: 'ISS', action: 'livrer' }] }, etape: 0 }).points).toHaveLength(2)
   })

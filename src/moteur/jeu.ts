@@ -23,7 +23,7 @@ import { BONUS_SANS_COUP } from '../donnees/escorte'
 import type { MessageEnvoye } from './messages'
 import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ramasser, type Echo, type EtatMonolithes } from './monolithes'
 import { avancerEspace, mettreAQuai, nouvelEspace, recycler, reperer, vaincre, type EtatEspace } from './espace'
-import { MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
+import { GENRES_DE_MAISON, MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, systemeDuTableau, type Portee } from '../donnees/tableaux'
 import { EPAVES } from '../donnees/espace'
 import { contexte } from './tableaux'
@@ -32,7 +32,7 @@ import { MOTS_DU_PARRAIN, PARRAINS } from '../donnees/messages'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
-import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape } from './contrats'
+import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape, type GenreContrat } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { astreDominant, corps, deplacerEpaves, position } from './corps'
 import { niveauDe } from './niveau'
@@ -57,8 +57,6 @@ export const DUREE_FEUX = 120_000
  */
 export interface ContratEnCours {
   contrat: Contrat; etape: number; debutAction: number | null; dureeAction?: number
-  /** D'où la capsule est partie vers la première étape (pour la feuille de route des étapes suivantes). */
-  depart?: string
 }
 
 /** Ce qui s'est passé en faisant avancer le jeu (pour prévenir le joueur). */
@@ -455,6 +453,16 @@ export class Jeu {
       const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
       let ctx: ContexteTableau | null = null
       for (const { maison } of MAISONS) {
+        // Une Maison dont tous les contrats du tableau sont du même genre, alors que l'autre est possible ici (parties
+        // commencées avant le 22/10/2026) : le dernier est retiré, et remplacé par un contrat de l'autre genre.
+        const siens = this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison)
+        const autre = GENRES_DE_MAISON[maison].find((g) => !siens.some((c) => c.genre === g))
+        if (siens.length >= 2 && autre) {
+          ctx ??= contexte(tableau, this.espace, t, tableau.centre === 'Terre' ? porteeTerre : Infinity)
+          const lieux = autre === 'nettoyer' ? ctx.epaves : autre === 'remorquer' ? ctx.remorquables : autre === 'chasser' ? ctx.aliens
+            : autre === 'depanner' ? ctx.depannages : ctx.departs.length > 1 ? ctx.arrivees : ctx.arrivees.filter((l) => !ctx!.departs.includes(l))
+          if (lieux.length && ctx.departs.length) this.proposes = this.proposes.filter((c) => c !== siens[siens.length - 1])
+        }
         while (this.proposes.filter((c) => c.tableau === tableau.lieu && maisonDuContrat(c) === maison).length < voulues[maison]) {
           ctx ??= contexte(tableau, this.espace, t, tableau.centre === 'Terre' ? porteeTerre : Infinity)
           const exclus = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])].flatMap((c) => c.etapes.map((e) => e.lieu))
@@ -471,8 +479,13 @@ export class Jeu {
           const portees = [voulue, ...toutes.filter((p) => p !== voulue).sort((a, b) => manque(b) - manque(a))]
           // Jamais deux fois le même contrat (mêmes lieux, même genre) : on retire, quelques fois au plus.
           const meme = (x: Contrat, y: Contrat) => x.genre === y.genre && x.etapes.map((e) => e.lieu).join('>') === y.etapes.map((e) => e.lieu).join('>')
-          let { contrat, graine } = tirerContrat(this.prochainId, this.graine, ctx, maison, exclus, portees)
-          for (let essai = 0; essai < 6 && this.proposes.some((c) => meme(c, contrat)); essai++) ({ contrat, graine } = tirerContrat(this.prochainId, graine, ctx, maison, exclus, portees))
+          // Le genre de la Maison le moins présent sur le tableau (demande d'Adrien du 22/10/2026 : tous les genres
+          // possibles à chaque fois, pour qu'une quête en trouve toujours un).
+          const genres = GENRES_DE_MAISON[maison]
+          const combien = (g: GenreContrat) => ici.filter((c) => c.genre === g).length
+          const voulu = combien(genres[0]) <= combien(genres[1]) ? genres[0] : genres[1]
+          let { contrat, graine } = tirerContrat(this.prochainId, this.graine, ctx, maison, exclus, portees, voulu)
+          for (let essai = 0; essai < 6 && this.proposes.some((c) => meme(c, contrat)); essai++) ({ contrat, graine } = tirerContrat(this.prochainId, graine, ctx, maison, exclus, portees, voulu))
           this.prochainId++
           this.graine = graine
           if (maison === this.maison) contrat.recompense = Math.round((contrat.recompense * BONUS_MAISON) / 10) * 10
@@ -591,9 +604,6 @@ export class Jeu {
     this.menaces(t, evenements)
     this.soleil(t, evenements)
     this.visiter(t)
-    // D'où part le contrat (la feuille de route le garde pour les étapes suivantes).
-    const accepte = this.enCours, p = this.mission.plan
-    if (accepte && accepte.etape === 0 && p?.origine && p.cible === accepte.contrat.etapes[0].lieu) accepte.depart = p.origine
     this.user(t, evenements)
     this.proposer(t)
     // Les quêtes : un lieu atteint, des marchandises à livrer.

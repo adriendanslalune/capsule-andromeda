@@ -1,8 +1,8 @@
 // Le classeur des Disparus (idée validée par Adrien le 21/10/2026), en plein écran : pré-rempli, les quarante cases
 // sont là dès le début. Une case grise montre la sonde, qui l'a lancée, et l'indice (où chercher), avec CHERCHER ;
 // une sonde retrouvée montre son histoire vraie et la date de sa découverte. La vue ne calcule rien : l'état vient
-// de moteur/disparus.ts. Chaque case a son DOSSIER (demande d'Adrien du 22/10/2026) : le voyage, le jour de la perte
-// et pourquoi, d'après la vraie histoire.
+// de moteur/disparus.ts. Une sonde retrouvée a son DOSSIER (demande d'Adrien du 22/10/2026) : le voyage, le jour de la
+// perte et pourquoi, d'après la vraie histoire ; on ne le découvre qu'en la retrouvant.
 
 import { DISPARUS, NOMBRE_DISPARUS } from '../donnees/disparus'
 import type { EtatDisparus } from '../moteur/disparus'
@@ -37,7 +37,7 @@ export class VueDisparus {
   /** Le dossier d'une sonde, posé par-dessus le classeur. */
   private ouvrirDossier(numero: number): void {
     const d = DISPARUS.find((x) => x.numero === numero), dossier = DOSSIERS[numero]
-    if (!d || !dossier) return
+    if (!d || !dossier || this.etat().trouves[numero] === undefined) return
     this.element.querySelector('.dossier-disparu')?.remove()
     const fiche = document.createElement('div')
     fiche.className = 'dossier-disparu'
@@ -64,7 +64,6 @@ export class VueDisparus {
       return `<div class="carte-disparu${suivi ? ' suivi' : ''}"><b class="numero">n° ${d.numero}</b><b class="nom">${echapper(d.nom)}</b>`
         + `<small>${echapper(d.qui)} · ${d.annee}</small><p class="indice">${echapper(d.indice)}</p>`
         + (echo ? '<small class="echo">écho capté : elle est sur la carte</small>' : '')
-        + `<button type="button" class="dossier" data-dossier="${d.numero}">DOSSIER</button>`
         + `<button type="button" data-chercher="${d.numero}">${suivi ? 'Y RETOURNER' : 'CHERCHER'}</button></div>`
     }).join('')
     this.element.innerHTML = `

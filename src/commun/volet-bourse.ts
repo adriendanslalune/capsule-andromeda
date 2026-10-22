@@ -8,7 +8,6 @@
 
 import { COMPAGNIES, FRAIS_BOURSE, FRAIS_MINIMUM, MONTANTS_ACHAT, PARTS_VENTE } from '../donnees/bourse'
 import { compagnie, devisOrdre, historiqueAction, ordresDesBots, valeurPortefeuille, vueAction, type OrdreBourse, type Portefeuille } from '../moteur/bourse'
-import { avec } from './symboles'
 import { texteRestant } from './textes'
 
 /** Âge des cours, lisible : « 1,3 s », « 12 min 48 s », « 4 h 05 min ». */
@@ -92,8 +91,8 @@ export class VoletBourse {
       const g = valeur - investi
       html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>${entier(valeur)} cr.</b></span>`
         + `<span class="${sens(g)}"><b>${g >= 0 ? '+' : '−'}${entier(Math.abs(g))} cr.</b><small>${pourcent(g / investi)}</small></span>`
-        + `<span>${avec('credits', entier(etat.credits))}</span></div>`
-    } else html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>aucune action</b></span><span>${avec('credits', entier(etat.credits))}</span></div>`
+        + '</div>'
+    } else html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>aucune action</b></span></div>`
     html += p.ordres.map((o) => ligneOrdre(o, t)).join('')
     if (p.journal.length && !p.ordres.length) html += ligneOrdre(p.journal[0], t)
     html += '</div>'

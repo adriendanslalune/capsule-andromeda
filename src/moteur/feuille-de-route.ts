@@ -28,14 +28,14 @@ export interface FeuilleDeRoute {
  * de son étape actuelle ; si le trajet y mène, les étapes suivantes s'ajoutent au bout de la frise.
  */
 export function feuilleDeRoute(plan: Plan, enVol: boolean, t: number,
-  contrat?: { contrat: Contrat; etape: number; depart?: string } | null, ici?: string | null): FeuilleDeRoute {
+  contrat?: { contrat: Contrat; etape: number } | null, ici?: string | null): FeuilleDeRoute {
   const etape = contrat?.contrat.etapes[contrat.etape]
   const versLEtape = !!etape && etape.lieu === plan.cible
   const points: PointDeRoute[] = []
-  // Une étape d'un contrat après la première (demande d'Adrien du 22/10/2026) : toute la route du contrat, ce qui est
-  // déjà fait en tête (d'où il est parti, les étapes passées), pas seulement le tronçon en cours.
+  // Une étape d'un contrat après la première (demande d'Adrien du 22/10/2026) : toute la route du contrat, ses étapes
+  // déjà faites en tête, pas seulement le tronçon en cours. Rien d'autre que le contrat (Adrien, 22/10/2026 : chaque
+  // contrat a sa frise, chaque quête la sienne ; d'où l'on venait avant le contrat n'en fait pas partie).
   if (versLEtape && contrat!.etape > 0) {
-    if (contrat!.depart) points.push({ nom: contrat!.depart, passe: true, but: false })
     for (const e of contrat!.contrat.etapes.slice(0, contrat!.etape)) points.push({ nom: e.lieu, action: e.action, passe: true, but: false })
     // Le tronçon en cours part de la dernière étape faite (son heure de départ, en vol).
     if (enVol) points[points.length - 1].quand = plan.depart

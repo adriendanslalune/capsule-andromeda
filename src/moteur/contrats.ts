@@ -72,10 +72,11 @@ export interface ContexteTableau {
 
 /**
  * Tire une nouvelle mission d'une Maison sur un tableau : un nettoyage pour les Nettoyeurs, une livraison pour les
- * Ingénieurs, une chasse ou un dépannage pour les Mercenaires. `exclus` : lieux déjà pris (pour varier).
+ * Ingénieurs, une chasse ou un dépannage pour les Mercenaires. `exclus` : lieux déjà pris (pour varier). `genreVoulu` :
+ * le genre qui manque au tableau (demande d'Adrien du 22/10/2026 : tous les genres possibles, à chaque fois).
  */
 export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, maison: Maison, exclus: string[] = [],
-  portees: readonly Portee[] = ['proche', 'moyenne', 'lointaine']): { contrat: Contrat; graine: number } {
+  portees: readonly Portee[] = ['proche', 'moyenne', 'lointaine'], genreVoulu?: GenreContrat): { contrat: Contrat; graine: number } {
   let g = graine
   const x = () => { const h = hasard(g); g = h.graine; return h.x }
   const tirer = <T>(liste: readonly T[]): T => liste[Math.floor(x() * liste.length)]
@@ -99,8 +100,10 @@ export function tirerContrat(id: number, graine: number, ctx: ContexteTableau, m
       : maison === 'mercenaires' ? ['chasser', 'escorter', ctx.aliens, ctx.arrivees]
         : ['depanner', 'livrer', ctx.depannages, ctx.arrivees]
   const pile = x() < 0.5
-  let genre: GenreContrat = !lieux1.length ? g2 : !lieux2.length ? g1
-    : aPortee(lieux1) && !aPortee(lieux2) ? g1 : aPortee(lieux2) && !aPortee(lieux1) ? g2 : pile ? g1 : g2
+  // Le genre voulu par le tableau (celui qui y manque), s'il a des lieux.
+  let genre: GenreContrat = genreVoulu === g1 && lieux1.length ? g1 : genreVoulu === g2 && lieux2.length ? g2
+    : !lieux1.length ? g2 : !lieux2.length ? g1
+      : aPortee(lieux1) && !aPortee(lieux2) ? g1 : aPortee(lieux2) && !aPortee(lieux1) ? g2 : pile ? g1 : g2
   // Pas de station dans le système (ou aucune destination ailleurs qu'au départ) : ni remorquage, ni escorte, ni livraison.
   const destinations = ctx.departs.length > 1 ? ctx.arrivees : ctx.arrivees.filter((l) => !ctx.departs.includes(l))
   if ((!ctx.departs.length || (genre !== 'remorquer' && !destinations.length)) && genre !== g1) genre = g1

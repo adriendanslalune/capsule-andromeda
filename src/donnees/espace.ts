@@ -109,6 +109,9 @@ const REGIONS: readonly Region[] = [
   // Autour de chaque grande lune (demande d'Adrien du 21/10/2026) : 3 épaves et 2 chasseurs, de 1,3 à 25 fois son rayon
   // (au plus 80 % de sa sphère d'influence). Ajoutées à la fin : le reste du monde ne change pas.
   ...Object.keys(GRANDES_LUNES).map((nom): Region => ({ parent: nom, min: 1.3, max: 25, epaves: 3, aliens: 2, lettre: nom })),
+  // Deux chasseurs tout près de la Terre (demande d'Adrien du 22/10/2026 : tous les genres de contrat, dès le début, et
+  // ABATTRE en fait partie) : à portée du premier moteur (VOL_MAX_DEBUT). Ajoutés à la fin : le reste ne change pas.
+  { parent: 'Terre', min: 3, max: 5, epaves: 0, aliens: 2, lettre: 'Π' },
 ]
 
 const SORTES_EPAVES = [

@@ -42,9 +42,9 @@ function portee(c: Contrat): string {
   return `<span class="val portee" data-symbole="Contrat ${NOMS_PORTEES[c.portee]} dans son système">${[1, 2, 3].map((k) => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span>`
 }
 
-/** La tuile du type de mission : la couleur de sa Maison, le dessin et le nom de son type. */
+/** La tuile du type de mission : le dessin et le nom de son type (la Maison, c'est le liseré du contrat). */
 function tuile(c: Contrat): string {
-  return `<div class="tuile-type maison-${maisonDuContrat(c)}" data-symbole="Maison des ${titreMaison(maisonDuContrat(c)).toLowerCase()}">${picto(SYMBOLE_GENRE[c.genre])}<small>${GENRES_COURTS[c.genre]}</small></div>`
+  return `<div class="tuile-type" data-symbole="Maison des ${titreMaison(maisonDuContrat(c)).toLowerCase()}">${picto(SYMBOLE_GENRE[c.genre])}<small>${GENRES_COURTS[c.genre]}</small></div>`
 }
 
 export class VoletMissions {
@@ -121,7 +121,7 @@ export class VoletMissions {
           : jeu.surPlace(t)
           ? `<button type="button" class="principal" data-choix="agir">${VERBES[e.action]}</button>`
           : `<button type="button" class="principal" data-choix="aller" data-lieu="${e.lieu}">Y ALLER</button><span class="consigne">${consigne(e)} · ${texteDistance(distanceDepuisCapsule(e.lieu, t))}</span>`
-      html += `<h3>Contrat en cours</h3><div class="contrat en-cours"><div class="carte-mission">${tuile(ec.contrat)}<div class="corps-mission"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${avec('credits', String(ec.contrat.recompense))}</span></div>`
+      html += `<h3>Contrat en cours</h3><div class="contrat en-cours" data-maison="${maisonDuContrat(ec.contrat)}"><div class="carte-mission">${tuile(ec.contrat)}<div class="corps-mission"><div class="titre"><b>${titreContrat(ec.contrat)}</b><span class="prix">${avec('credits', String(ec.contrat.recompense))}</span></div>`
         + `${avec('poste', POSTES[ec.contrat.genre], 'poste')}</div></div><ol>${etapes}</ol><div class="actions">${bouton}</div>`
         + `<button type="button" class="abandon" data-choix="abandonner">Abandonner le contrat</button></div>`
     }
@@ -139,7 +139,7 @@ export class VoletMissions {
       .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity))
     for (const { c, d } of triees) {
       const trajet = d === null ? 'hors de portée' : d === 0 ? 'sur place' : texteDuree(d)
-      html += `<div class="contrat"><div class="carte-mission">${tuile(c)}<div class="corps-mission">`
+      html += `<div class="contrat" data-maison="${maisonDuContrat(c)}"><div class="carte-mission">${tuile(c)}<div class="corps-mission">`
         + `<div class="titre"><b>${titreContrat(c)}</b><span class="prix">${avec('credits', String(c.recompense))}</span></div>`
         + `${avec('poste', POSTES[c.genre], 'poste')}<div class="vals">${avec('duree', trajet)}${portee(c)}</div>`
         + `<div class="boutons"><button type="button" data-choix="voir" data-id="${c.id}" aria-label="Voir sur la carte">${picto('voir')}</button>`
