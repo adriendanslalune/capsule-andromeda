@@ -18,6 +18,7 @@ import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
 import { traceOrbite } from '../moteur/orbite'
+import { HALLEY, orbiteHalley } from '../moteur/comete'
 import { positionsPoussiere } from '../moteur/poussiere'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
@@ -69,6 +70,8 @@ const illustre = (r: number) => r >= RAYON_ILLUSTRATION
 const LOIN_CAPSULES = 40
 const NOMS_CAPITAINES = 30
 /** Rayon le plus petit d'un astre, quand on a beaucoup dézoomé : un point. */
+/** L'orbite de la comète de Halley (fixe : on la calcule une fois). */
+const ORBITE_HALLEY = orbiteHalley(512)
 const RAYON_POINT = 1.8
 
 /** Rayon (km) sous lequel une lune ne se dessine que de près (sous ZOOM_PETITES_LUNES km par pixel) ou si on la vise. */
@@ -646,6 +649,15 @@ export class Carte2D {
         ctx.stroke()
         ctx.globalAlpha = 1
       }
+      // L'orbite de la comète de Halley : un long pointillé, de 0,6 à 35 UA.
+      ctx.beginPath()
+      this.ligneCoupee(ctx, ORBITE_HALLEY.map((p) => this.ecranDe(p)))
+      ctx.setLineDash([4, 5])
+      ctx.strokeStyle = couleurs.encre
+      ctx.globalAlpha = 0.35
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.globalAlpha = 1
     }
 
     this.poussiere(ctx, t, couleurs)
@@ -683,6 +695,10 @@ export class Carte2D {
     }
     astre(corps('Soleil')!, soleil)
     for (const nom of CENTRES) astre(corps(nom)!, this.ecranDe(projeterCorps(nom, t)))
+    // La comète de Halley et sa traînée (demande d'Adrien du 22/10/2026), toujours visible, comme un astre.
+    const halley = this.ecranDe(projeterCorps(HALLEY, t))
+    this.dessines.push({ nom: HALLEY, x: halley.x, y: halley.y, r: 7 })
+    this.comete(ctx, halley, soleil, couleurs, dedans)
     for (const nom of CENTRES) {
       const e = this.ecranDe(projeterCorps(nom, t))
       const zone = zoneDessinee(nom) / this.kmParPx
@@ -1152,7 +1168,7 @@ export class Carte2D {
     const priorite = (d: Dessine) => {
       if (d.nom === CAPSULE) return 0
       const k = corps(d.nom)!
-      return k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' ? 3
+      return k.type === 'etoile' ? 1 : k.type === 'planete' ? 2 : k.type === 'naine' || k.type === 'comete' ? 3
         : k.type === 'lune' && k.rayon >= 100 ? 4 : k.type === 'satellite' || k.type === 'sonde' ? 5 : 6
     }
     // Le chevron de la capsule n'empêche pas un nom de se poser (vue de loin, il est collé à son astre).
@@ -1191,6 +1207,102 @@ export class Carte2D {
         break
       }
     }
+  }
+
+  /**
+   * La comète de Halley, façon Moebius (demande d'Adrien du 22/10/2026) : un noyau en patate, une chevelure pâle, et une
+   * immense traînée à l'opposé du Soleil, qui ondule et file. Deux queues, comme les vraies : celle de poussière,
+   * large, couleur paille et un peu courbée ; celle d'ions, droite et bleutée, parcourue de filets qui s'en vont.
+   * (À 35 UA, la vraie n'a plus de queue : elle ne s'allume qu'en approchant du Soleil. Ici, on la montre toujours.)
+   */
+  private comete(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, soleil: { x: number; y: number },
+    couleurs: Couleurs2D, dedans: (x: number, y: number, marge?: number) => boolean): void {
+    const L = Math.min(430, Math.max(170, 1.2e8 / this.kmParPx))
+    if (!dedans(q.x, q.y, L * 1.2)) return
+    let dx = q.x - soleil.x, dy = q.y - soleil.y
+    const n = Math.hypot(dx, dy) || 1
+    dx /= n; dy /= n
+    const px = -dy, py = dx
+    const s = performance.now() / 1000
+    const pt = (le: number, tr: number) => ({ x: q.x + dx * le + px * tr, y: q.y + dy * le + py * tr })
+    ctx.save()
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+    // La queue de poussière : trois voiles emboîtés, du plus large au plus serré, qui s'effacent vers le bout.
+    const voile = (largeur: number, couleur: string, alpha: number, contour = false) => {
+      const ondule = Math.sin(s * 0.9) * L * 0.015
+      const bout = pt(L, L * 0.2 + ondule)
+      const g = ctx.createLinearGradient(q.x, q.y, bout.x, bout.y)
+      g.addColorStop(0, couleur)
+      g.addColorStop(1, 'rgba(255,255,255,0)')
+      const a = pt(0, 4), b = pt(0, -4), c1 = pt(L * 0.5, L * 0.03 + largeur * 0.5), c2 = pt(L * 0.55, L * 0.06 - largeur * 0.5)
+      ctx.beginPath()
+      ctx.moveTo(a.x, a.y)
+      ctx.quadraticCurveTo(c1.x, c1.y, bout.x + px * largeur * 0.5, bout.y + py * largeur * 0.5)
+      ctx.lineTo(bout.x - px * largeur * 0.5, bout.y - py * largeur * 0.5)
+      ctx.quadraticCurveTo(c2.x, c2.y, b.x, b.y)
+      ctx.closePath()
+      ctx.fillStyle = g
+      ctx.globalAlpha = alpha
+      ctx.fill()
+      if (!contour) return
+      // Un trait d'encre fin le long du voile extérieur, qui s'efface lui aussi (le trait Moebius).
+      const ge = ctx.createLinearGradient(q.x, q.y, bout.x, bout.y)
+      ge.addColorStop(0, couleurs.encre)
+      ge.addColorStop(0.75, 'rgba(0,0,0,0)')
+      ctx.strokeStyle = ge
+      ctx.lineWidth = 1
+      ctx.globalAlpha = 0.5
+      ctx.stroke()
+    }
+    voile(L * 0.5, '#e8b86a', 0.55, true)
+    voile(L * 0.32, '#f2d58e', 0.8)
+    voile(L * 0.15, '#fffbf2', 0.95)
+    // La queue d'ions : droite, bleutée, avec des filets qui filent vers le bout.
+    const L2 = L * 1.15, fin = pt(L2, 0)
+    const gi = ctx.createLinearGradient(q.x, q.y, fin.x, fin.y)
+    gi.addColorStop(0, 'rgba(159,196,232,0.95)')
+    gi.addColorStop(1, 'rgba(188,214,238,0)')
+    ctx.beginPath()
+    const ia = pt(0, 3), ib = pt(0, -3), ic = pt(L2, L2 * 0.05), id = pt(L2, -L2 * 0.05)
+    ctx.moveTo(ia.x, ia.y); ctx.lineTo(ic.x, ic.y); ctx.lineTo(id.x, id.y); ctx.lineTo(ib.x, ib.y); ctx.closePath()
+    ctx.fillStyle = gi
+    ctx.globalAlpha = 1
+    ctx.fill()
+    for (let k = -2; k <= 2; k++) {
+      ctx.beginPath()
+      for (let i = 0; i <= 24; i++) {
+        const f = i / 24, le = L2 * f
+        const tr = k * L2 * 0.012 * f + Math.sin(f * 9 - s * 2.2 + k) * 2.2 * f
+        const p = pt(le, tr)
+        if (i === 0) ctx.moveTo(p.x, p.y)
+        else ctx.lineTo(p.x, p.y)
+      }
+      ctx.setLineDash([14, 22])
+      ctx.lineDashOffset = -s * 38 - k * 9
+      ctx.lineWidth = k === 0 ? 1.4 : 0.9
+      ctx.strokeStyle = '#6f9cc9'
+      ctx.globalAlpha = 0.75
+      ctx.stroke()
+    }
+    ctx.setLineDash([])
+    // La chevelure : un halo crème ; le noyau : une patate brune cernée d'encre.
+    const halo = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, 11)
+    halo.addColorStop(0, 'rgba(255,251,242,0.95)')
+    halo.addColorStop(1, 'rgba(255,251,242,0)')
+    ctx.globalAlpha = 1
+    ctx.beginPath()
+    ctx.arc(q.x, q.y, 11, 0, 2 * Math.PI)
+    ctx.fillStyle = halo
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(q.x, q.y, 3.6, 2.4, Math.atan2(dy, dx) + 0.5, 0, 2 * Math.PI)
+    ctx.fillStyle = '#b79f7e'
+    ctx.fill()
+    ctx.lineWidth = 1
+    ctx.strokeStyle = couleurs.encre
+    ctx.stroke()
+    ctx.restore()
   }
 
   private orbite(c: Corps, t: number): Vecteur3[] | null {

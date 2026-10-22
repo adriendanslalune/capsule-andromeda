@@ -18,13 +18,14 @@ import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
 import { RAPPORT_MASSE_SOLEIL } from '../donnees/planetes'
 import { DISPARUS, ZONE_RECHERCHE, type Disparu } from '../donnees/disparus'
+import { HALLEY, positionHalley, RAYON_HALLEY } from './comete'
 import { positionPluton } from './pluton'
 import { positionSondeRelative, TRAJECTOIRES } from './sondes'
 import { MS_PAR_JOUR, TT_MOINS_UTC_MS, UA_KM } from './temps'
 import { ajouter, type Vecteur3 } from './vecteur'
 import { positionVSOP } from './vsop87'
 
-export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe' | 'joueur' | 'disparu' | 'zone'
+export type TypeCorps = 'etoile' | 'planete' | 'naine' | 'comete' | 'lune' | 'satellite' | 'sonde' | 'epave' | 'alien' | 'monolithe' | 'joueur' | 'disparu' | 'zone'
 
 export interface Corps {
   nom: string
@@ -64,6 +65,8 @@ export const CORPS: readonly Corps[] = [
   { nom: 'Soleil', type: 'etoile', parent: null, rayon: 695_700 },
   ...PLANETES.map((nom, i): Corps => ({ nom, type: 'planete', parent: null, rayon: RAYONS_PLANETES[i] })),
   { nom: 'Pluton', type: 'naine', parent: null, rayon: RAYON_PLUTON },
+  // La comète de Halley (demande d'Adrien du 22/10/2026), sur sa vraie orbite (moteur/comete.ts).
+  { nom: HALLEY, type: 'comete', parent: null, rayon: RAYON_HALLEY },
   { nom: 'Lune', type: 'lune', parent: 'Terre', rayon: 1737.4 },
   { nom: 'Charon', type: 'lune', parent: 'Pluton', rayon: RAYON_CHARON },
   ...LISTE_SATELLITES.map((s): Corps => ({ nom: s.nom, type: 'lune', parent: s.planete, rayon: s.rayon ?? 0 })),
@@ -337,6 +340,7 @@ export function position(nom: string, t: number): Vecteur3 {
 function calculerPosition(nom: string, t: number): Vecteur3 {
   if (nom === 'Soleil') return { x: 0, y: 0, z: 0 }
   if (nom === 'Pluton') return positionPluton(t)
+  if (nom === HALLEY) return positionHalley(t)
   const fixe = PLACES_MONOLITHES.get(nom)
   if (fixe) return fixe
   const bot = positionBot(nom, t)
