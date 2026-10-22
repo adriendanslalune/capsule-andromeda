@@ -8,7 +8,13 @@
   --creme: #fffbf2;
   /* Ombre portée des cadres et des boutons. */
   --ombre: #1f1b18;
-  --police: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --police: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* Le look « dossier de mission » (choix d'Adrien du 22/10/2026) : titres et boutons en condensée, orange sécurité,
+     ombre douce de papier posé, hachures d'avertissement discrètes en séparateur. */
+  --titre: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --orange: #e0571f;
+  --ombre-papier: 0 1px 0 var(--encre), 3px 4px 0 rgba(31, 27, 24, 0.2);
+  --hachures: repeating-linear-gradient(-45deg, rgba(224, 87, 31, 0.6) 0 2px, transparent 2px 6px);
 }
 /* Thème sombre (bouton des calques) : la carte de nuit, bleu nuit, les fenêtres restent en papier clair (choix d'Adrien
    du 22/10/2026, « nuit + papier »). */
@@ -66,9 +72,9 @@ html, body {
 }
 #bandeau {
   background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -82,10 +88,10 @@ html, body {
 #bandeau .ligne.calme b { font-weight: normal; letter-spacing: 0.06em; }
 #bandeau .ligne.contrat b { color: #b4442f; }
 /* Panne : la ligne la plus urgente, sur fond rosé, avec un triangle qui palpite. */
-#bandeau .ligne.panne { background: color-mix(in srgb, #e04b37 16%, transparent); border-radius: 6px 6px 0 0; }
+#bandeau .ligne.panne { background: color-mix(in srgb, #e04b37 16%, transparent); border-radius: 0; }
 #bandeau .ligne.panne b { color: #b4442f; }
 /* Missile en approche : la ligne la plus urgente, sur fond cerise, qui palpite. */
-#bandeau .ligne.missile { background: color-mix(in srgb, #e04b37 30%, transparent); border-radius: 6px 6px 0 0; animation: alerte-missile 1s ease-in-out infinite; }
+#bandeau .ligne.missile { background: color-mix(in srgb, #e04b37 30%, transparent); border-radius: 0; animation: alerte-missile 1s ease-in-out infinite; }
 #bandeau .ligne.missile b { color: #8f2a1c; }
 @keyframes alerte-missile { 50% { background: color-mix(in srgb, #e04b37 12%, transparent); } }
 #bandeau .alerte { animation: palpiter 1.2s ease-in-out infinite; }
@@ -139,9 +145,9 @@ html, body {
   bottom: calc(8px + env(safe-area-inset-bottom));
   display: flex;
   background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 10px;
-  box-shadow: 3px 3px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
   overflow: hidden;
   z-index: 4;
 }
@@ -159,7 +165,7 @@ html, body {
   border-left: 1px solid color-mix(in srgb, var(--encre) 35%, transparent);
 }
 #onglets button:first-child { border-left: none; }
-#onglets button.actif { color: #1f1b18; background: var(--moutarde); }
+#onglets button.actif { color: var(--encre); background: transparent; box-shadow: inset 0 -4px 0 var(--orange); }
 #onglets button:disabled, #volet .rubrique:disabled { opacity: 0.35; }
 
 /* Volet : une feuille qui monte du bas, au-dessus de la barre d'onglets. */
@@ -172,9 +178,9 @@ html, body {
   display: flex;
   flex-direction: column;
   background: var(--fond);
-  border: 2.5px solid var(--encre);
-  border-radius: 12px;
-  box-shadow: 4px 4px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
   z-index: 3;
 }
 #volet[hidden] { display: none; }
@@ -189,7 +195,7 @@ html, body {
   letter-spacing: 0.08em;
   background: var(--moutarde);
   color: #1f1b18;
-  border-radius: 9px 9px 0 0;
+  border-radius: 1px 1px 0 0;
   touch-action: none;
 }
 #volet .entete button {
@@ -250,14 +256,14 @@ html, body {
   color: #e04b37;
   background: transparent;
   border: 2px solid #e04b37;
-  border-radius: 8px;
+  border-radius: 2px;
 }
 #provoquer-panne { color: var(--encre); border-color: var(--encre); }
 
 /* Volet Capsule : le moteur, l'achat du suivant, les modules. */
 #capsule { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #capsule h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
-#capsule .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+#capsule .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 2px; }
 #capsule .bloc.grise { opacity: 0.45; }
 #capsule .achat { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 #capsule .prix { font-weight: bold; }
@@ -269,10 +275,10 @@ html, body {
   font-size: 12px;
   font-weight: bold;
   color: #fff;
-  background: #d9694f;
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 2px 2px 0 var(--ombre);
+  background: var(--orange);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
 }
 #capsule button[data-choix]:disabled { opacity: 0.35; box-shadow: none; }
 #capsule .module { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
@@ -302,9 +308,9 @@ html, body {
   padding: 0 0 16px;
   text-align: center;
   background: var(--fond);
-  border: 3px solid var(--encre);
-  border-radius: 14px;
-  box-shadow: 6px 6px 0 var(--ombre), inset 0 0 0 5px var(--fond), inset 0 0 0 6.5px var(--encre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier), inset 0 0 0 5px var(--fond), inset 0 0 0 6.5px var(--encre);
   animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
   overflow: hidden;
 }
@@ -319,7 +325,7 @@ html, body {
 }
 .compteur { width: 220px; height: auto; margin: 10px auto 0; display: block; overflow: visible; }
 .compteur .boitier { fill: var(--creme); stroke: var(--encre); stroke-width: 3; }
-.compteur .arc { fill: none; stroke: #d9694f; stroke-width: 5; stroke-linecap: round; }
+.compteur .arc { fill: none; stroke: var(--orange); stroke-width: 5; stroke-linecap: round; }
 .compteur .graduations line { stroke: var(--encre); stroke-width: 2.4; stroke-linecap: round; }
 .compteur .graduations line.fine { stroke-width: 1; }
 .compteur text { font: bold 10px ui-monospace, Menlo, monospace; fill: var(--encre); text-anchor: middle; }
@@ -336,7 +342,7 @@ html, body {
 .fenetre.cale .compteur .eclats line { animation: eclater 0.9s ease-out 2; }
 .fenetre.installe .titre-fenetre { animation: briller 0.6s ease-in-out 3 alternate; }
 .niveaux { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-top: 2px; font-size: 15px; }
-.niveaux .fleche { color: #d9694f; }
+.niveaux .fleche { color: var(--orange); }
 .vitesses { margin-top: 6px; font-size: 13px; line-height: 1.5; }
 .prix-fenetre { margin: 10px auto 0; display: inline-block; padding: 4px 12px; font-weight: bold; border: 2px dashed var(--encre); border-radius: 6px; }
 .boutons-fenetre { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
@@ -348,11 +354,11 @@ html, body {
   font-weight: bold;
   color: var(--encre);
   background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
 }
-.boutons-fenetre button[data-choix="installer"], .boutons-fenetre button.principal { color: #fff; background: #d9694f; }
+.boutons-fenetre button[data-choix="installer"], .boutons-fenetre button.principal { color: #fff; background: var(--orange); }
 @keyframes apparaitre { from { opacity: 0; } }
 @keyframes disparaitre { to { opacity: 0; } }
 @keyframes surgir { from { transform: scale(0.6) rotate(-3deg); opacity: 0; } }
@@ -367,19 +373,19 @@ html, body {
 .sous-onglets { display: flex; gap: 6px; padding: 8px 10px 4px; position: sticky; top: 0; background: var(--fond); z-index: 1; }
 .sous-onglets button {
   flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.06em;
-  color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px;
+  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px;
 }
 .sous-onglets button:disabled { opacity: 0.35; }
 :is(#manuel, .papier) > .retour { margin: -8px -8px 0; width: calc(100% + 16px); }
-.sous-onglets button.actif { color: #1f1b18; background: var(--moutarde); }
+.sous-onglets button.actif { color: var(--fond); background: var(--encre); }
 
 /* Panneau de réparation (dessiné en SVG) et sa barre. */
 .barre-reparation { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 10px 6px; font-size: 12px; }
 .barre-reparation button, .vers-panneau {
   min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre);
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier);
 }
-#panneau { margin: 0 8px 10px; border: 2.5px solid var(--encre); border-radius: 12px; overflow: hidden; background: #efe2c4; }
+#panneau { margin: 0 8px 10px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; background: #efe2c4; }
 .panneau-svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
 .panneau-svg text { font-family: ui-monospace, Menlo, monospace; }
 .panneau-svg .commande { cursor: pointer; }
@@ -393,7 +399,7 @@ html, body {
 /* Commandes du module Énergie : collées en bas du volet, toujours visibles. */
 .commandes {
   position: sticky; bottom: 0; margin: 0 6px; padding: 6px 8px 8px;
-  background: #e9dfc4; border: 2.5px solid var(--encre); border-radius: 10px 10px 0 0; box-shadow: 0 -3px 0 rgba(43, 33, 56, 0.25);
+  background: #e9dfc4; border: 1.5px solid var(--encre); border-radius: 10px 10px 0 0; box-shadow: 0 -3px 0 rgba(43, 33, 56, 0.25);
 }
 .commandes[hidden] { display: none; }
 .titre-commandes { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 4px; }
@@ -401,7 +407,7 @@ html, body {
 .grille-commandes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .commandes button {
   min-height: 46px; padding: 2px; font: inherit; font-size: 10px; font-weight: bold; line-height: 1.2;
-  border: 2px solid var(--encre); border-radius: 7px; box-shadow: 2px 2px 0 var(--encre);
+  border: 1.5px solid var(--encre); border-radius: 7px; box-shadow: 2px 2px 0 var(--encre);
 }
 .commandes button b { display: block; font-size: 13px; }
 .commandes button:disabled { opacity: 0.35; box-shadow: none; }
@@ -457,7 +463,7 @@ html, body {
   font-size: 13px;
   line-height: 1.4;
   border: 1.5px solid var(--encre);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 #missions .contrat.en-cours { border-width: 2.5px; background: var(--creme); }
 #missions .titre { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -480,11 +486,11 @@ html, body {
   font-weight: bold;
   color: var(--encre);
   background: var(--creme);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 2px 2px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
 }
-#missions button.principal { color: #fff; background: #d9694f; }
+#missions button.principal { color: #fff; background: var(--orange); }
 #missions button[data-choix]:disabled { opacity: 0.35; box-shadow: none; }
 #missions button.abandon {
   margin-top: 8px;
@@ -507,15 +513,15 @@ html, body {
 .maison-mercenaires { background: #f3c2b0; }
 .filtre-lieux { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
 .filtre-lieux button { flex: none; display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 0 11px; font: inherit;
-  font-size: 12px; font-weight: bold; line-height: 1.15; color: var(--encre); background: transparent; border: 1.5px solid var(--encre); border-radius: 8px; }
+  font-size: 12px; font-weight: bold; line-height: 1.15; color: var(--encre); background: transparent; border: 1.5px solid var(--encre); border-radius: 2px; }
 .filtre-lieux button.lune { font-weight: normal; border-style: dashed; }
 .filtre-lieux button small { font-size: 9.5px; font-weight: normal; opacity: 0.75; }
-.filtre-lieux button.actif { color: #1f1b18; background: var(--moutarde); border-width: 2.5px; border-style: solid; }
+.filtre-lieux button.actif { color: var(--fond); background: var(--encre); border-width: 1.5px; border-style: solid; }
 .filtre-maisons { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
 .filtre-maisons button { flex: none; min-height: 44px; padding: 0 9px; font: inherit; font-size: 10px; font-weight: bold; letter-spacing: 0.06em;
   color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 22px; opacity: 0.55; }
 .filtre-maisons button[data-filtre=""] { background: var(--creme); color: var(--encre); }
-.filtre-maisons button.actif { opacity: 1; border-width: 2.5px; box-shadow: 2px 2px 0 var(--ombre); }
+.filtre-maisons button.actif { opacity: 1; border-width: 2.5px; box-shadow: var(--ombre-papier); }
 
 /* Message bref (mission terminée, cargaison chargée…), au-dessus de la fiche. */
 #message {
@@ -530,9 +536,9 @@ html, body {
   text-align: center;
   color: #1f1b18;
   background: var(--moutarde);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
   pointer-events: none;
   z-index: 5;
 }
@@ -587,9 +593,9 @@ html, body {
   gap: 10px;
   padding: 8px 8px 8px 12px;
   background: var(--fond);
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--ombre);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
   font-size: 12px;
   line-height: 1.45;
   z-index: 1;
@@ -604,10 +610,10 @@ html, body {
   font-weight: bold;
   letter-spacing: 0.05em;
   color: #fff;
-  background: #d9694f;
-  border: 2px solid var(--encre);
-  border-radius: 8px;
-  box-shadow: 2px 2px 0 var(--ombre);
+  background: var(--orange);
+  border: 1.5px solid var(--encre);
+  border-radius: 2px;
+  box-shadow: var(--ombre-papier);
 }
 #bouton-depart[hidden] { display: none; }
 
@@ -644,7 +650,7 @@ html, body {
 .ligne-commandes .lampe { width: 44px; height: 44px; flex: none; }
 .ligne-commandes .affichage {
   flex: 1; padding: 6px 10px; font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: bold;
-  color: #b9f08c; background: #1f2b22; border: 2px solid var(--encre); border-radius: 6px;
+  color: #b9f08c; background: #1f2b22; border: 1.5px solid var(--encre); border-radius: 6px;
 }
 .ligne-commandes .tour { font-size: 11px; font-weight: bold; }
 .note-commandes { margin-top: 6px; font-size: 11px; text-align: center; }
@@ -662,7 +668,7 @@ html, body {
 /* Volet Marché (étape 7, écrans d'abord) et onglet SOUTE du volet Capsule. */
 #marche, #soute { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #soute h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
-#marche .bloc, #soute .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+#marche .bloc, #soute .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 2px; }
 #soute .note { margin-top: 6px; font-size: 11px; opacity: 0.6; }
 #soute .jauge-soute { height: 10px; margin: 0 10px 6px; border: 1.5px solid var(--encre); border-radius: 5px; overflow: hidden; background: var(--fond); }
 #soute .jauge-soute i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #8fc3e0 0 4px, #bfe0e8 4px 8px); }
@@ -672,14 +678,14 @@ html, body {
 #soute .module small { opacity: 0.7; }
 #soute .vers-marche { padding: 6px 10px 0; }
 #soute .vers-marche button { width: 100%; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #marche .places { display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px 6px; }
 #marche .places button { flex: none; display: grid; grid-template-columns: auto auto; column-gap: 6px; align-items: center; min-height: 48px;
   padding: 3px 10px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: transparent;
-  border: 1.5px solid var(--encre); border-radius: 8px; text-align: left; line-height: 1.25; }
+  border: 1.5px solid var(--encre); border-radius: 2px; text-align: left; line-height: 1.25; }
 #marche .places button small { grid-column: 2; font-weight: normal; font-size: 10.5px; opacity: 0.75; }
 #marche .places .pastille { grid-row: span 2; width: 14px; height: 14px; border: 1.5px solid #2b2138; border-radius: 50%; }
-#marche .places button.actif { background: var(--moutarde); color: #1f1b18; border-width: 2.5px; }
+#marche .places button.actif { background: var(--encre); color: var(--fond); border-width: 1.5px; }
 #marche .tete-cours { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 6px 14px 0; }
 #marche .tete-cours b { font-size: 16px; display: block; }
 #marche .tete-cours small { font-size: 11px; opacity: 0.7; display: block; }
@@ -697,32 +703,32 @@ html, body {
 #marche .graphique .hachure { stroke: color-mix(in srgb, var(--encre) 30%, transparent); stroke-width: 1.4; }
 #marche .graphique .aire { opacity: 0.45; }
 #marche .graphique .courbe { fill: none; stroke: var(--encre); stroke-width: 2; stroke-linejoin: round; }
-#marche .graphique .point, #marche .graphique .point-viseur { fill: #d9694f; stroke: var(--fond); stroke-width: 2; }
+#marche .graphique .point, #marche .graphique .point-viseur { fill: var(--orange); stroke: var(--fond); stroke-width: 2; }
 #marche .graphique .viseur { stroke: var(--encre); stroke-width: 1; stroke-dasharray: 3 3; }
 #marche .graphique .lecture { font: bold 10px var(--police); fill: var(--encre); }
 #marche .periodes { display: flex; gap: 6px; margin-top: 4px; }
 #marche .periodes button { flex: 1; min-height: 40px; font: inherit; font-size: 11px; font-weight: bold; color: var(--encre);
-  background: transparent; border: 1.5px solid var(--encre); border-radius: 8px; }
-#marche .periodes button.actif { background: var(--moutarde); color: #1f1b18; }
+  background: transparent; border: 1.5px solid var(--encre); border-radius: 2px; }
+#marche .periodes button.actif { background: var(--encre); color: var(--fond); }
 #marche .achat-vente { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; }
 #marche .achat-vente span { flex: 1; }
 #marche .achat-vente button { min-height: 44px; padding: 0 10px; font: inherit; font-size: 11px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#marche .achat-vente button.principal { color: #fff; background: #d9694f; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#marche .achat-vente button.principal { color: #fff; background: var(--orange); }
 #marche .achat-vente button:disabled { opacity: 0.35; box-shadow: none; }
 #marche .commerce { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
 #marche .ligne-commerce { display: flex; align-items: center; gap: 6px; }
 #marche .ligne-commerce span { flex: 1; font-size: 11px; font-weight: bold; letter-spacing: 0.08em; }
 #marche .ligne-commerce button { min-height: 44px; min-width: 56px; padding: 0 10px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#marche .ligne-commerce button.principal { color: #fff; background: #d9694f; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#marche .ligne-commerce button.principal { color: #fff; background: var(--orange); }
 #marche .ligne-commerce button:disabled { opacity: 0.35; box-shadow: none; }
 #marche .commerce .petit { margin: 0; font-size: 11px; opacity: 0.75; }
 #marche .commerce .raison { margin: 0; font-size: 12px; line-height: 1.4; }
 #marche .commerce .vers-ici { align-self: flex-start; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold;
-  color: var(--encre); background: var(--moutarde); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  color: var(--encre); background: var(--moutarde); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #marche h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 14px 4px; opacity: 0.6; }
-#marche .liste-cours { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }
+#marche .liste-cours { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; }
 #marche .liste-cours button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 4px 12px; font: inherit;
   font-size: 13px; color: var(--encre); background: transparent; border: none; text-align: left;
   border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
@@ -740,7 +746,7 @@ html, body {
 /* Capsule › ARMEMENT (étape 6, écrans d'abord) : l'énergie à répartir, l'équipement, le simulateur. */
 #armement { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #armement h3, .plein h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
-#armement .bloc { margin: 4px 10px; padding: 8px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+#armement .bloc { margin: 4px 10px; padding: 8px 12px; border: 1.5px solid var(--encre); border-radius: 2px; }
 #armement .module { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0;
   border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
 #armement .module:last-child { border-bottom: none; }
@@ -750,7 +756,7 @@ html, body {
 #armement .note { padding: 6px 14px; font-size: 11px; opacity: 0.6; }
 .vers-combat { padding: 8px 10px 0; }
 .vers-combat button { width: 100%; min-height: 48px; font: inherit; font-size: 13px; font-weight: bold; letter-spacing: 0.08em; color: #fff;
-  background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--orange); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 /* L'énergie : des crans à répartir (Armement et combat). */
 .energie .systeme { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0;
   border-bottom: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
@@ -759,7 +765,7 @@ html, body {
 .energie .crans i { width: 16px; height: 24px; border: 1.5px solid var(--encre); border-radius: 3px; background: var(--fond); }
 .energie .crans i.rempli { background: var(--moutarde); }
 .energie .crans button { width: 44px; min-height: 44px; font: inherit; font-size: 18px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 .energie .crans button:disabled { opacity: 0.3; }
 .energie .libres { padding-top: 6px; font-size: 11px; opacity: 0.7; }
 
@@ -770,7 +776,7 @@ html, body {
   padding: env(safe-area-inset-top) 6px 0 14px; background: var(--moutarde); color: #1f1b18; border-bottom: 2.5px solid var(--encre);
   font-weight: bold; font-size: 13px; letter-spacing: 0.08em; }
 .plein .entete-plein button { min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #1f1b18;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 .plein .corps { flex: 1; overflow-y: auto; padding: 8px 10px calc(12px + env(safe-area-inset-bottom)); font-size: 13px; }
 .plein .energie { padding: 0 4px; }
 /* La scène du combat. */
@@ -780,20 +786,20 @@ html, body {
   background: color-mix(in srgb, #2b2138 45%, transparent); }
 .plein .fin-combat[hidden] { display: none; }
 .plein .carte-fin { width: 100%; max-width: 320px; padding: 18px 16px 16px; text-align: center; background: var(--fond);
-  border: 3px solid var(--encre); border-radius: 14px; box-shadow: 6px 6px 0 var(--ombre); animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
 .plein .carte-fin b { font-size: 20px; letter-spacing: 0.12em; }
 .plein .carte-fin p { margin: 8px 0 14px; font-size: 13px; }
 .plein .boutons-fin { display: flex; gap: 10px; justify-content: center; }
 .plein .boutons-fin button { min-height: 48px; padding: 0 16px; font: inherit; font-size: 13px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
-.plein .boutons-fin button.principal { color: #fff; background: #d9694f; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+.plein .boutons-fin button.principal { color: #fff; background: var(--orange); }
 
 /* Le tri d'une épave (étape 5, prototype) : chrono, objet sur le tapis, quatre bacs. */
 #tri .tableau-tri { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-#tri .chrono { position: relative; flex: 1; height: 16px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; background: var(--fond); }
+#tri .chrono { position: relative; flex: 1; height: 16px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; background: var(--fond); }
 #tri .chrono i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #f2b53a 0 5px, #f5d38a 5px 10px); }
 #tri .chrono::after { content: attr(data-secondes); position: absolute; inset: 0; text-align: center; font-size: 10px; font-weight: bold; line-height: 13px; }
-#tri .tapis { margin-top: 10px; padding: 10px 0 8px; text-align: center; border: 2px solid var(--encre); border-radius: 10px;
+#tri .tapis { margin-top: 10px; padding: 10px 0 8px; text-align: center; border: 1.5px solid var(--encre); border-radius: 2px;
   background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--encre) 8%, var(--creme)) 0 18px, var(--creme) 18px 36px); overflow: hidden; }
 #tri .objet svg { display: block; width: 190px; height: 152px; margin: 0 auto; }
 #tri .objet b { display: block; font-size: 16px; letter-spacing: 0.04em; }
@@ -803,7 +809,7 @@ html, body {
 @keyframes trembler { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 #tri .bacs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
 #tri .bacs button { min-height: 92px; font: inherit; font-size: 13px; font-weight: bold; letter-spacing: 0.04em; color: #1f1b18;
-  border: 2.5px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: manipulation; }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); touch-action: manipulation; }
 #tri .bacs button:active { transform: translate(2px, 2px); box-shadow: none; }
 #tri .bacs button.bon { animation: avaler 0.25s ease-out; }
 #tri .bacs button.mauvais { animation: trembler 0.3s ease-in-out; outline: 3px solid #e04b37; }
@@ -819,16 +825,16 @@ html, body {
 /* Volet Profil (dans « Plus ») : pseudo, toile d'araignée des Maisons, carnet de bord, zones. */
 #profil { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #profil h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
-#profil .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 8px; }
+#profil .bloc { margin: 4px 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 2px; }
 #profil .bloc.centre { text-align: center; }
 #profil .petit { margin-top: 6px; font-size: 11.5px; opacity: 0.75; }
 #profil .pseudo label { display: block; font-size: 11px; opacity: 0.7; margin-bottom: 4px; }
 #profil .pseudo small { display: block; margin-top: 4px; font-size: 10.5px; opacity: 0.6; }
 #profil .ligne-pseudo { display: flex; gap: 6px; }
 #profil .ligne-pseudo input { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; font: inherit; font-size: 16px; font-weight: bold;
-  color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; user-select: text; -webkit-user-select: text; }
+  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; user-select: text; -webkit-user-select: text; }
 #profil .ligne-pseudo button { min-width: 56px; min-height: 44px; font: inherit; font-size: 13px; font-weight: bold; color: #fff;
-  background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  background: var(--orange); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #profil .toile { display: block; width: 100%; max-width: 280px; margin: 0 auto; }
 #profil .toile .anneau { fill: none; stroke: color-mix(in srgb, var(--encre) 30%, transparent); stroke-width: 1; }
 #profil .toile .axe { stroke: color-mix(in srgb, var(--encre) 40%, transparent); stroke-width: 1; }
@@ -846,7 +852,7 @@ html, body {
 /* Le bouton des Messages : un pictogramme dessiné à l'encre, en aplats pastel (DA Moebius, demande d'Adrien du
    18/10/2026) : deux bulles de dialogue et une petite antenne qui émet. Même cadre que les autres boutons de la carte. */
 #bouton-messages { position: relative; pointer-events: auto; width: 52px; height: 48px; padding: 4px;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #bouton-messages .picto-messages { display: block; width: 100%; height: 100%; overflow: visible; }
 .picto-messages path, .picto-messages circle { stroke: var(--encre); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
 .picto-messages .bulle-a { fill: #f2c66a; }
@@ -862,14 +868,14 @@ html, body {
 @media (prefers-reduced-motion: reduce) { #bouton-messages .ondes { animation: none !important; } }
 #bouton-messages .pastille, #onglets .pastille-onglet, .pastille-rubrique, #messages .canaux .pastille {
   min-width: 18px; height: 18px; padding: 0 5px; font: bold 10px/15px var(--police); color: #fff; text-align: center;
-  background: #e04b37; border: 1.5px solid var(--encre); border-radius: 9px; }
+  background: #e04b37; border: 1.5px solid var(--encre); border-radius: 2px; }
 #bouton-messages .pastille { position: absolute; top: -7px; left: -8px; }
 #onglets .pastille-onglet { position: absolute; top: 3px; right: 6px; }
 .pastille-rubrique { display: inline-block; margin: 0 6px; vertical-align: 2px; }
 #bouton-messages .pastille[hidden], #onglets .pastille-onglet[hidden], .pastille-rubrique[hidden] { display: none; }
 #bulle-message { pointer-events: auto; flex: 1; max-width: 300px; min-height: 44px; padding: 7px 12px; font: inherit; font-size: 12px; line-height: 1.35;
-  text-align: left; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 14px 14px 4px 14px;
-  box-shadow: 3px 3px 0 var(--ombre); animation: surgir 0.4s cubic-bezier(0.2, 1.5, 0.4, 1); }
+  text-align: left; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 14px 14px 4px 14px;
+  box-shadow: var(--ombre-papier); animation: surgir 0.4s cubic-bezier(0.2, 1.5, 0.4, 1); }
 #bulle-message[hidden] { display: none; }
 #bulle-message b { margin-right: 4px; }
 
@@ -877,8 +883,8 @@ html, body {
 #messages { display: flex; flex-direction: column; min-height: 60dvh; font-size: 13px; line-height: 1.4; }
 #messages .canaux { display: flex; gap: 6px; padding: 8px 10px 6px; position: sticky; top: 0; z-index: 1; background: var(--fond); }
 #messages .canaux button { flex: 1; min-height: 44px; font: inherit; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
-#messages .canaux button.actif { background: var(--moutarde); color: #1f1b18; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
+#messages .canaux button.actif { background: var(--encre); color: var(--fond); }
 #messages .canaux .pastille { display: inline-block; margin-left: 5px; vertical-align: 1px; }
 #messages .fil { flex: 1; padding: 0 0 8px; }
 #messages h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
@@ -894,7 +900,7 @@ html, body {
 #messages .bulle small { display: block; margin-top: 3px; font-size: 10px; opacity: 0.65; }
 #messages .tete-prive { display: flex; align-items: center; gap: 10px; padding: 4px 10px 8px; border-bottom: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
 #messages .tete-prive button { width: 44px; min-height: 44px; font: inherit; font-size: 18px; color: var(--encre); background: var(--creme);
-  border: 2px solid var(--encre); border-radius: 8px; }
+  border: 1.5px solid var(--encre); border-radius: 2px; }
 #messages .tete-prive small, #messages .conversation small, #messages .annuaire small { display: block; font-size: 10.5px; opacity: 0.7; }
 #messages .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; font-weight: bold;
   color: #1f1b18; border: 2px solid #2b2138; border-radius: 50%; }
@@ -905,7 +911,7 @@ html, body {
 #messages .conversation .quand { font-size: 10px; opacity: 0.6; white-space: nowrap; }
 #messages .annuaire { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 10px; }
 #messages .annuaire button { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; min-height: 52px; padding: 4px 8px;
-  font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); text-align: left; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 8px; }
+  font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); text-align: left; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 #messages .annuaire .avatar { grid-row: span 2; width: 28px; height: 28px; }
 #messages .annuaire small { font-weight: normal; }
 #messages .saisie { position: sticky; bottom: 0; padding: 6px 0 8px; background: var(--fond); border-top: 1.5px solid var(--encre); }
@@ -915,9 +921,9 @@ html, body {
   background: var(--creme); border: 1.5px solid var(--encre); border-radius: 20px; }
 #messages .ecrire { display: flex; gap: 6px; padding: 0 10px; }
 #messages .ecrire input { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; font: inherit; font-size: 16px; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; user-select: text; -webkit-user-select: text; }
-#messages .ecrire button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; user-select: text; -webkit-user-select: text; }
+#messages .ecrire button { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: var(--orange);
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 
 /* Les commandes de la carte (demande d'Adrien du 18/10/2026) : deux colonnes de petits carrés dessinés à l'encre.
    À gauche, se repérer : système intérieur, extérieur, capsule ; zoom ; ce que montre la carte. À droite, communiquer :
@@ -928,7 +934,7 @@ html, body {
 #commandes-carte .ecart { height: 6px; }
 .carre {
   position: relative; pointer-events: auto; width: 46px; height: 46px; padding: 7px; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre);
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier);
 }
 .carre:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 .carre svg, #choix-affichage svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -951,10 +957,10 @@ html, body {
 #choix-affichage[hidden] { display: none; }
 #choix-affichage button {
   width: 58px; height: 46px; padding: 4px 4px 2px; display: flex; flex-direction: column; align-items: center; gap: 1px;
-  font: 9px var(--police); color: var(--encre); background: var(--creme); border: 1.5px dashed var(--encre); border-radius: 8px; opacity: 0.6;
+  font: 9px var(--police); color: var(--encre); background: var(--creme); border: 1.5px dashed var(--encre); border-radius: 2px; opacity: 0.6;
 }
 #choix-affichage button svg { width: 24px; height: 24px; flex: none; }
-#choix-affichage button.actif { border-style: solid; opacity: 1; box-shadow: 2px 2px 0 var(--ombre); }
+#choix-affichage button.actif { border-style: solid; opacity: 1; box-shadow: var(--ombre-papier); }
 /* Le PING : grisé pendant que la radio se recharge (la jauge violette se remplit) ; les ondes palpitent tant que
    l'écho n'est pas revenu. */
 .picto-ping .onde { stroke: #7a5aa8; stroke-width: 1.7; }
@@ -973,10 +979,10 @@ html, body {
 .liste-monolithes span { opacity: 0.75; }
 /* Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
 .statut { font-style: normal; font-size: 10px; font-weight: normal; padding: 0 5px; margin-left: 4px; border: 1px solid currentColor;
-  border-radius: 8px; color: #7a5aa8; white-space: nowrap; vertical-align: 1px; }
+  border-radius: 2px; color: #7a5aa8; white-space: nowrap; vertical-align: 1px; }
 #profil .paliers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
 #profil .paliers span { display: flex; flex-direction: column; align-items: center; padding: 5px 2px; font-size: 11px;
-  border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 8px; opacity: 0.6; }
+  border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 2px; opacity: 0.6; }
 #profil .paliers span.atteint { border: 1.5px solid #7a5aa8; background: #d7cdee; opacity: 1; }
 #profil .paliers small { font-size: 10px; }
 /* La portée d'une mission dans son système (proche, mi-distance, lointaine). */
@@ -986,17 +992,17 @@ html, body {
 #amarrage .vue { position: relative; flex: 1; min-height: 0; }
 #amarrage canvas { display: block; width: 100%; height: 100%; }
 #amarrage .message-amarrage { position: absolute; left: 12px; right: 12px; bottom: 10px; padding: 8px 12px; font-size: 13px; text-align: center;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #amarrage .message-amarrage[hidden] { display: none; }
 #amarrage .cadrans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 6px 10px; }
-#amarrage .cadrans span { display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border: 1.5px solid var(--encre); border-radius: 8px; background: var(--creme); }
+#amarrage .cadrans span { display: flex; flex-direction: column; align-items: center; padding: 4px 2px; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); }
 #amarrage .cadrans small { font-size: 9px; letter-spacing: 0.08em; opacity: 0.7; }
 #amarrage .cadrans b { font-size: 13px; white-space: nowrap; }
 #amarrage .cadrans .ok { background: #cfe9cf; }
 #amarrage .cadrans .pas-ok { background: #f6d2c6; }
 #amarrage .commandes-amarrage { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px calc(14px + env(safe-area-inset-bottom)); touch-action: none; user-select: none; -webkit-user-select: none; }
 #amarrage .commandes-amarrage button { width: 58px; height: 58px; font-size: 22px; color: var(--encre); background: var(--creme);
-  border: 2px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: none; -webkit-touch-callout: none; }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); touch-action: none; -webkit-touch-callout: none; }
 #amarrage .commandes-amarrage button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 #amarrage .rotation { display: flex; gap: 10px; }
 #amarrage .croix { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 58px); gap: 6px; }
@@ -1009,15 +1015,15 @@ html, body {
 /* Le dépannage (RÉPARER) : le boîtier technique d'un engin, ses modules, le Manuel sur place. */
 #depannage { --lampe-rouge: #e04b37; --lampe-verte: #6dbb75; }
 #depannage .plaque { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 10px; color: #efe6d2;
-  background: #3a3340; border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: #3a3340; border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #depannage .plaque div { display: flex; flex-direction: column; }
 #depannage .plaque small { font-size: 9px; letter-spacing: 0.1em; opacity: 0.75; }
 #depannage .plaque b { font-size: 22px; letter-spacing: 0.08em; }
 #depannage .voyant-defaut { align-items: center; }
 #depannage .voyant-defaut i { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #efe6d2; box-shadow: 0 0 10px currentColor; animation: palpiter 1.2s ease-in-out infinite; }
 #depannage .plaque button { margin-left: auto; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
-#depannage .module-engin { margin-bottom: 10px; padding: 10px; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
+#depannage .module-engin { margin-bottom: 10px; padding: 10px; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #depannage .module-engin.calme { display: flex; align-items: center; gap: 8px; padding: 8px 10px; opacity: 0.6; box-shadow: none; }
 #depannage .module-engin.calme small { margin-left: auto; }
 #depannage .titre-module { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -1027,15 +1033,15 @@ html, body {
 #depannage button:disabled { opacity: 0.55; }
 #depannage .leviers { display: flex; justify-content: space-around; padding: 6px 0; }
 #depannage .leviers button { width: 52px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 6px 0; background: #d9d1bd; border: 2px solid var(--encre); border-radius: 8px; font: inherit; color: var(--encre); }
-#depannage .leviers i { display: block; width: 14px; height: 40px; border: 2px solid var(--encre); border-radius: 7px; background: #c9c2b0; position: relative; }
-#depannage .leviers i::after { content: ''; position: absolute; left: -7px; width: 24px; height: 14px; border: 2px solid var(--encre); border-radius: 4px; background: #e04b37; }
+  padding: 6px 0; background: #d9d1bd; border: 1.5px solid var(--encre); border-radius: 2px; font: inherit; color: var(--encre); }
+#depannage .leviers i { display: block; width: 14px; height: 40px; border: 1.5px solid var(--encre); border-radius: 7px; background: #c9c2b0; position: relative; }
+#depannage .leviers i::after { content: ''; position: absolute; left: -7px; width: 24px; height: 14px; border: 1.5px solid var(--encre); border-radius: 4px; background: #e04b37; }
 #depannage .leviers .leve i::after { top: -6px; }
 #depannage .leviers .baisse i::after { bottom: -6px; background: #a69f86; }
 #depannage .cablage { display: flex; justify-content: space-between; gap: 10px; }
 #depannage .cables, #depannage .prises { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 #depannage .cables button, #depannage .prises button { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 10px; font: inherit; font-size: 12px; font-weight: bold;
-  color: var(--encre); background: var(--fond); border: 2px solid var(--encre); border-radius: 8px; }
+  color: var(--encre); background: var(--fond); border: 1.5px solid var(--encre); border-radius: 2px; }
 #depannage .cables button small { margin-left: auto; font-weight: normal; }
 #depannage .cables button.choisi { background: #f2c66a; }
 #depannage .cables i, #depannage .prises i { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--encre); }
@@ -1043,38 +1049,38 @@ html, body {
 #depannage .prises button { justify-content: space-between; }
 #depannage .aide { margin: 6px 0 0; font-size: 11px; opacity: 0.7; }
 #depannage .gyro { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-#depannage .ecran-gyro { display: flex; gap: 18px; padding: 8px 18px; font-family: Georgia, serif; font-size: 26px; color: #8fcf98; background: #1f2a24; border: 2px solid var(--encre); border-radius: 8px; }
+#depannage .ecran-gyro { display: flex; gap: 18px; padding: 8px 18px; font-family: Georgia, serif; font-size: 26px; color: #8fcf98; background: #1f2a24; border: 1.5px solid var(--encre); border-radius: 2px; }
 #depannage .molettes { display: flex; gap: 18px; }
 #depannage .molette { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-#depannage .molette b { width: 48px; padding: 6px 0; font-size: 22px; text-align: center; background: var(--fond); border: 2px solid var(--encre); border-radius: 6px; }
-#depannage .molette button { width: 48px; height: 40px; font-size: 16px; color: var(--encre); background: #d9d1bd; border: 2px solid var(--encre); border-radius: 6px; }
+#depannage .molette b { width: 48px; padding: 6px 0; font-size: 22px; text-align: center; background: var(--fond); border: 1.5px solid var(--encre); border-radius: 6px; }
+#depannage .molette button { width: 48px; height: 40px; font-size: 16px; color: var(--encre); background: #d9d1bd; border: 1.5px solid var(--encre); border-radius: 6px; }
 #depannage .verifier { display: block; width: 100%; min-height: 46px; margin-top: 10px; font: inherit; font-weight: bold; letter-spacing: 0.08em; color: var(--encre);
-  background: #f2c66a; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: #f2c66a; border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #depannage .repare-texte { margin: 8px 0 0; text-align: center; font-weight: bold; letter-spacing: 0.15em; color: #3f8a4a; }
 #depannage .message-depannage { position: absolute; left: 12px; right: 12px; bottom: calc(16px + env(safe-area-inset-bottom)); padding: 8px 12px; font-size: 13px; text-align: center;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); z-index: 2; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); z-index: 2; }
 #depannage .message-depannage[hidden] { display: none; }
 #depannage .papier { position: absolute; inset: 52px 0 0; overflow-y: auto; padding: 8px 8px 20px; background: var(--fond); z-index: 3; }
 #depannage .papier[hidden] { display: none; }
 #depannage .retour-boitier { display: block; width: 100%; min-height: 44px; margin-bottom: 8px; font: inherit; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 
 /* Le remorquage (REMORQUER) : l'épave qui tourne, le grappin, les propulseurs de rotation. */
 :is(#remorquage, #largage, #convoi) .vue { position: relative; flex: 1; min-height: 0; }
 :is(#remorquage, #largage, #convoi) canvas { display: block; width: 100%; height: 100%; }
 :is(#remorquage, #largage, #convoi) .message-remorquage { position: absolute; left: 12px; right: 12px; top: 10px; padding: 8px 12px; font-size: 13px; text-align: center;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 :is(#remorquage, #largage, #convoi) .message-remorquage[hidden] { display: none; }
 :is(#remorquage, #largage, #convoi) .commandes-remorquage { padding: 8px 14px calc(16px + env(safe-area-inset-bottom)); touch-action: none; user-select: none; -webkit-user-select: none; }
 :is(#remorquage, #largage, #convoi) .lancer { display: block; width: 100%; min-height: 64px; font: inherit; font-size: 16px; font-weight: bold; letter-spacing: 0.08em; color: var(--encre);
-  background: #f2b53a; border: 2px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: #f2b53a; border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 :is(#remorquage, #largage, #convoi) .lancer:disabled { background: #d9d1bd; opacity: 0.7; }
 :is(#remorquage, #largage, #convoi) .lancer:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 :is(#remorquage, #largage, #convoi) .stabiliser { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-:is(#remorquage, #largage, #convoi) .stabiliser button { width: 76px; height: 64px; font-size: 26px; color: var(--encre); background: var(--creme); border: 2px solid var(--encre);
-  border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: none; -webkit-touch-callout: none; }
+:is(#remorquage, #largage, #convoi) .stabiliser button { width: 76px; height: 64px; font-size: 26px; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre);
+  border-radius: 2px; box-shadow: var(--ombre-papier); touch-action: none; -webkit-touch-callout: none; }
 :is(#remorquage, #largage, #convoi) .stabiliser button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
-:is(#remorquage, #largage, #convoi) .jauge-rotation { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px; background: #f6d2c6; border: 2px solid var(--encre); border-radius: 10px; }
+:is(#remorquage, #largage, #convoi) .jauge-rotation { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px; background: #f6d2c6; border: 1.5px solid var(--encre); border-radius: 2px; }
 :is(#remorquage, #largage, #convoi) .jauge-rotation.ok { background: #cfe9cf; }
 :is(#remorquage, #largage, #convoi) .jauge-rotation small { font-size: 10px; letter-spacing: 0.1em; opacity: 0.7; }
 :is(#remorquage, #largage, #convoi) .jauge-rotation b { font-size: 22px; }
@@ -1082,13 +1088,13 @@ html, body {
 #largage .largage { display: flex; align-items: stretch; gap: 10px; }
 #largage .largage button { width: 96px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center;
   font: inherit; font-size: 14px; font-weight: bold; letter-spacing: 0.06em; color: var(--encre); background: var(--creme);
-  border: 2px solid var(--encre); border-radius: 12px; box-shadow: 3px 3px 0 var(--ombre); touch-action: none; }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); touch-action: none; }
 #largage .largage button small { font-size: 10px; font-weight: normal; opacity: 0.7; }
 #largage .largage button.tenu { background: #f2c66a; transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
-#largage .largage button.lacher { color: #fff; background: #d9694f; }
+#largage .largage button.lacher { color: #fff; background: var(--orange); }
 #largage .largage button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 #largage .cadrans-largage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 6px 10px;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 #largage .cadrans-largage.seul { flex-direction: row; justify-content: space-around; min-height: 64px; }
 #largage .cadrans-largage div { display: flex; flex-direction: column; align-items: center; }
 #largage .cadrans-largage small { font-size: 9.5px; letter-spacing: 0.1em; opacity: 0.7; }
@@ -1096,7 +1102,7 @@ html, body {
 /* La formation du convoi : le compte des cargos en place. */
 #convoi canvas { touch-action: none; }
 #convoi .compte-convoi { min-height: 52px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; letter-spacing: 0.1em;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 12px; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 
 /* L'escorte (ESCORTER) : l'embuscade, on touche les missiles. */
 #escorte .infos-escorte { display: flex; justify-content: space-around; padding: 6px 10px; font-size: 11px; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--encre); }
@@ -1104,11 +1110,11 @@ html, body {
 #escorte .vue { position: relative; flex: 1; min-height: 0; }
 #escorte canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 #escorte .message-escorte { position: absolute; left: 12px; right: 12px; top: 10px; padding: 8px 12px; font-size: 13px; text-align: center; pointer-events: none;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #escorte .message-escorte[hidden] { display: none; }
 
 #combat .fin-tour { display: block; width: 100%; min-height: 54px; font: inherit; font-size: 15px; font-weight: bold; letter-spacing: 0.1em; color: #fff;
-  background: #d9694f; border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--orange); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 
 /* Le combat en temps réel (ABATTRE) : la coque, la jauge du chasseur, le terrain, la bombe. */
 #combat .infos-combat { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; font-size: 10px; font-weight: bold; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--encre); }
@@ -1125,33 +1131,33 @@ html, body {
 #combat .vue { position: relative; flex: 1; min-height: 0; }
 #combat canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 #combat .bombe { position: absolute; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 72px; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f; border: 2px solid var(--encre); border-radius: 50%; box-shadow: 3px 3px 0 var(--ombre); touch-action: manipulation; }
+  font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: var(--orange); border: 1.5px solid var(--encre); border-radius: 50%; box-shadow: var(--ombre-papier); touch-action: manipulation; }
 #combat .bombe small { font-size: 10px; font-weight: normal; }
 #combat .bombe:disabled { opacity: 0.4; }
 #combat .aide-combat { position: absolute; left: 16px; right: 16px; bottom: 40%; margin: 0; padding: 8px 12px; font-size: 13px; text-align: center; pointer-events: none;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #combat .aide-combat[hidden] { display: none; }
 /* L'appartenance aux Maisons (Profil). */
 #profil .appartenance { margin-top: 8px; text-align: left; }
 #profil .appartenance .rang { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
 #profil .appartenance small { font-size: 10.5px; opacity: 0.75; text-align: right; }
-#profil .appartenance button { min-height: 40px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: #f2c66a; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#profil .appartenance button { min-height: 40px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: #f2c66a; border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #profil .appartenance button.neutre { display: block; width: 100%; margin-top: 6px; background: var(--fond); }
-#profil .appartenance .membre { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; padding: 4px 8px; border: 2px solid var(--encre); border-radius: 8px; background: #cfe9cf; }
+#profil .appartenance .membre { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; padding: 4px 8px; border: 1.5px solid var(--encre); border-radius: 2px; background: #cfe9cf; }
 
 /* La lettre d'invitation d'une Maison (aux couleurs de la Maison, cachet et signature du parrain). */
 #invitation { overflow-y: auto; align-items: center; justify-content: flex-start;
   padding: calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--teinte, #f5d38a) 35%, var(--fond)); }
 #invitation .lettre { position: relative; width: 100%; max-width: 360px; margin-top: 18px; padding: 0 0 18px; background: var(--creme);
-  border: 3px solid var(--encre); border-radius: 6px; box-shadow: 6px 6px 0 var(--ombre); animation: surgir 0.6s cubic-bezier(0.2, 1.3, 0.4, 1); }
+  border: 1.5px solid var(--encre); border-radius: 6px; box-shadow: var(--ombre-papier); animation: surgir 0.6s cubic-bezier(0.2, 1.3, 0.4, 1); }
 #invitation .bandeau-maison { display: flex; flex-direction: column; align-items: center; padding: 14px 12px 22px;
   color: #1f1b18; background: var(--teinte, #f5d38a); border-bottom: 2.5px solid var(--encre); }
 #invitation .bandeau-maison small { font-size: 10px; letter-spacing: 0.3em; }
 #invitation .bandeau-maison b { font-size: 24px; letter-spacing: 0.18em; }
 #invitation .sceau { position: absolute; left: 50%; top: 62px; width: 46px; height: 46px; margin-left: -23px; display: flex;
-  align-items: center; justify-content: center; font-size: 22px; background: #c8463a; border: 2.5px solid var(--encre);
-  border-radius: 50%; box-shadow: 2px 2px 0 var(--ombre); }
+  align-items: center; justify-content: center; font-size: 22px; background: #c8463a; border: 1.5px solid var(--encre);
+  border-radius: 50%; box-shadow: var(--ombre-papier); }
 #invitation .texte-lettre { padding: 34px 20px 4px; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; line-height: 1.5; }
 #invitation .texte-lettre p { margin: 0 0 12px; }
 #invitation .texte-lettre p:first-child { font-style: italic; }
@@ -1160,14 +1166,14 @@ html, body {
 #invitation .signature small { font-size: 11px; opacity: 0.7; text-align: right; }
 #invitation .boutons-lettre { display: flex; gap: 10px; width: 100%; max-width: 360px; margin-top: 18px; }
 #invitation .boutons-lettre button { flex: 1; min-height: 52px; padding: 0 10px; font: inherit; font-size: 13px; font-weight: bold;
-  color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
-#invitation .boutons-lettre button.principal { flex: 1.6; color: #fff; background: #d9694f; }
+  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#invitation .boutons-lettre button.principal { flex: 1.6; color: #fff; background: var(--orange); }
 #invitation .note-lettre { margin: 12px 0 0; font-size: 11px; opacity: 0.7; text-align: center; }
 
 /* Les quêtes (décisions d'Adrien du 20/10/2026). La ligne de la quête suivie, sous le bandeau. */
 #suivi { pointer-events: auto; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 10px; font: inherit;
   font-size: 12px; line-height: 1.3; text-align: left; color: var(--encre); background: color-mix(in srgb, #f2b53a 22%, var(--creme));
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #suivi[hidden] { display: none; }
 #suivi.secondaire { background: color-mix(in srgb, #8fb4e6 22%, var(--creme)); }
 #suivi .signe { font-size: 14px; color: #b8860b; }
@@ -1179,39 +1185,39 @@ html, body {
   background: color-mix(in srgb, #2b2138 55%, var(--fond)); }
 #dialogue > * { width: 100%; max-width: 360px; }
 #dialogue .fiche-pnj { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px; background: var(--creme);
-  border: 3px solid var(--encre); border-radius: 12px; box-shadow: 5px 5px 0 var(--ombre); animation: surgir 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); animation: surgir 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
 #dialogue .fiche-pnj b { display: block; font-size: 17px; }
 #dialogue .fiche-pnj small { font-size: 11px; opacity: 0.75; }
-#dialogue .portrait { flex: none; width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--encre); object-fit: cover;
+#dialogue .portrait { flex: none; width: 84px; height: 84px; border-radius: 50%; border: 1.5px solid var(--encre); object-fit: cover;
   display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: bold; color: #1f1b18; }
-#dialogue .type-quete { margin-top: 12px; padding: 6px 10px; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; border: 2px solid var(--encre);
+#dialogue .type-quete { margin-top: 12px; padding: 6px 10px; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; border: 1.5px solid var(--encre);
   border-radius: 6px; background: #f2c66a; color: #1f1b18; }
 #dialogue .type-quete.secondaire { background: #bcd3f2; }
-#dialogue .bulle { position: relative; margin-top: 12px; padding: 14px 16px 22px; background: var(--creme); border: 2.5px solid var(--encre);
-  border-radius: 12px; box-shadow: 4px 4px 0 var(--ombre); font-family: Georgia, 'Times New Roman', serif; font-size: 15px; line-height: 1.5; }
+#dialogue .bulle { position: relative; margin-top: 12px; padding: 14px 16px 22px; background: var(--creme); border: 1.5px solid var(--encre);
+  border-radius: 2px; box-shadow: var(--ombre-papier); font-family: Georgia, 'Times New Roman', serif; font-size: 15px; line-height: 1.5; }
 #dialogue .bulle p { margin: 0; }
 #dialogue .bulle small { position: absolute; right: 10px; bottom: 4px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; opacity: 0.6; }
-#dialogue .recompense { margin-top: 10px; padding: 8px 10px; font-size: 13px; text-align: center; background: #bfe0c8; border: 2px solid var(--encre); border-radius: 8px; color: #1f1b18; }
+#dialogue .recompense { margin-top: 10px; padding: 8px 10px; font-size: 13px; text-align: center; background: #bfe0c8; border: 1.5px solid var(--encre); border-radius: 2px; color: #1f1b18; }
 #dialogue .boutons-dialogue { display: flex; gap: 10px; margin-top: 14px; }
 #dialogue .boutons-dialogue button { flex: 1; min-height: 52px; font: inherit; font-size: 13px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
-#dialogue .boutons-dialogue button.principal { color: #fff; background: #d9694f; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#dialogue .boutons-dialogue button.principal { color: #fff; background: var(--orange); }
 
 /* Le journal des quêtes. */
 #journal h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 4px 4px; opacity: 0.6; }
 #journal .vide-journal { padding: 12px 6px; font-size: 13px; line-height: 1.5; }
-#journal .quete { margin: 0 0 8px; border: 2px solid var(--encre); border-radius: 10px; background: var(--creme); overflow: hidden; }
+#journal .quete { margin: 0 0 8px; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); overflow: hidden; }
 #journal .quete.principale { border-left: 7px solid #f2b53a; }
 #journal .quete.secondaire { border-left: 7px solid #8fb4e6; }
 #journal .quete.finie { opacity: 0.65; }
-#journal .quete.suivie { box-shadow: 3px 3px 0 var(--ombre); }
+#journal .quete.suivie { box-shadow: var(--ombre-papier); }
 #journal .tete-quete { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 10px; font: inherit; text-align: left;
   color: var(--encre); background: none; border: none; }
 #journal .tete-quete > span:not(.medaillon) { flex: 1; display: flex; flex-direction: column; gap: 1px; }
 #journal .tete-quete small { font-size: 10px; letter-spacing: 0.06em; opacity: 0.7; }
 #journal .tete-quete b { font-size: 14px; }
 #journal .tete-quete em { font-style: normal; font-size: 12px; opacity: 0.85; }
-#journal .medaillon { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--encre); object-fit: cover;
+#journal .medaillon { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--encre); object-fit: cover;
   display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #1f1b18; }
 #journal .etapes { margin: 0; padding: 4px 14px 4px 16px; list-style: none; font-size: 12px; line-height: 1.6; }
 #journal .etapes .en-cours { font-weight: bold; }
@@ -1220,8 +1226,8 @@ html, body {
 #journal .donneur { margin: 4px 14px 8px; font-size: 11px; opacity: 0.8; }
 #journal .boutons-quete { display: flex; gap: 8px; padding: 0 10px 10px; }
 #journal .boutons-quete button { flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#journal .boutons-quete button.principal { color: #fff; background: #d9694f; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#journal .boutons-quete button.principal { color: #fff; background: var(--orange); }
 #journal .boutons-quete button:disabled { opacity: 0.5; box-shadow: none; }
 
 /* Les symboles de l'interface (décision d'Adrien du 20/10/2026 ; src/commun/symboles.ts) : trait d'encre, aplats
@@ -1237,7 +1243,7 @@ html, body {
 /* Appui long sur un symbole : son nom, dans une petite bulle. */
 #nom-symbole {
   position: fixed; z-index: 50; max-width: 220px; padding: 5px 9px; font-size: 12px; font-weight: bold; pointer-events: none;
-  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 6px; box-shadow: 2px 2px 0 var(--ombre);
+  color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 6px; box-shadow: var(--ombre-papier);
 }
 #nom-symbole[hidden] { display: none; }
 
@@ -1253,7 +1259,7 @@ html, body {
 #missions .carte-mission { display: flex; gap: 10px; align-items: flex-start; }
 #missions .tuile-type {
   flex: none; width: 58px; min-height: 58px; padding: 5px 2px 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  border: 2px solid var(--encre); border-radius: 10px; color: #1f1b18;
+  border: 1.5px solid var(--encre); border-radius: 2px; color: #1f1b18;
 }
 #missions .tuile-type .picto { width: 28px; height: 28px; }
 #missions .tuile-type small { font-size: 8px; font-weight: bold; letter-spacing: 0.02em; }
@@ -1271,7 +1277,7 @@ html, body {
 #capsule .tuiles-modules { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding-top: 8px; }
 #capsule .tuile-module {
   position: relative; min-height: 58px; padding: 6px 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  font: inherit; font-size: 8px; font-weight: bold; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 10px;
+  font: inherit; font-size: 8px; font-weight: bold; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px;
 }
 #capsule .tuile-module .picto { width: 28px; height: 28px; }
 #capsule .tuile-module.en-panne { background: color-mix(in srgb, #e04b37 16%, var(--creme)); }
@@ -1298,10 +1304,10 @@ html, body {
 #comptoir .tete-comptoir { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 14px 6px; }
 #comptoir .tete-comptoir > b { font-size: 15px; }
 #comptoir > .raison { margin: 0 14px 6px; font-size: 12px; line-height: 1.4; }
-#comptoir > .consigne-comptoir { margin: 0 14px 8px; padding: 6px 10px; font-size: 12px; font-weight: bold; text-align: center; background: color-mix(in srgb, var(--moutarde) 35%, transparent); border: 1.5px dashed var(--encre); border-radius: 8px; }
+#comptoir > .consigne-comptoir { margin: 0 14px 8px; padding: 6px 10px; font-size: 12px; font-weight: bold; text-align: center; background: color-mix(in srgb, var(--moutarde) 35%, transparent); border: 1.5px dashed var(--encre); border-radius: 2px; }
 #comptoir > .vers-ici { margin: 0 14px 8px; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold;
-  color: var(--encre); background: var(--moutarde); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#comptoir .liste-comptoir { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }
+  color: var(--encre); background: var(--moutarde); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#comptoir .liste-comptoir { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; }
 #comptoir .materiau-comptoir + .materiau-comptoir { border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
 #comptoir .materiau-comptoir.ouvert { background: color-mix(in srgb, var(--moutarde) 22%, transparent); }
 #comptoir .tete-materiau { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 54px; padding: 6px 12px; font: inherit; font-size: 13px;
@@ -1320,13 +1326,13 @@ html, body {
 #comptoir .entete-liste span:first-child { flex: 1; }
 #comptoir .entete-liste span:last-child { width: 48px; text-align: right; }
 /* Acheter et vendre : chaque bouton dit les tonnes échangées et les crédits payés (cerise) ou reçus (vert). */
-#comptoir .bloc-commerce { margin-top: 8px; padding: 8px 10px 10px; border: 2px solid var(--encre); border-radius: 10px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); }
+#comptoir .bloc-commerce { margin-top: 8px; padding: 8px 10px 10px; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); box-shadow: var(--ombre-papier); }
 #comptoir .bloc-commerce.vente { background: color-mix(in srgb, #bfe0c8 55%, var(--creme)); }
 #comptoir .titre-bloc { display: flex; flex-direction: column; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; }
 #comptoir .titre-bloc small { font-size: 10.5px; font-weight: normal; letter-spacing: 0; opacity: 0.8; }
 #comptoir .lots { display: flex; gap: 8px; margin-top: 8px; }
 #comptoir .lots button { flex: 1; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 6px;
-  font: inherit; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  font: inherit; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #comptoir .lots button b { font-size: 13px; white-space: nowrap; }
 #comptoir .lots button small { font-size: 12px; font-weight: bold; white-space: nowrap; }
 #comptoir .achat .lots button small { color: #b4442f; }
@@ -1334,7 +1340,7 @@ html, body {
 #comptoir .lots button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 #comptoir .lots button:disabled { opacity: 0.35; box-shadow: none; }
 /* La Bourse (onglet du Marché) : le portefeuille, les ordres en route, la position, le fil des ordres des bots. */
-#bourse .portefeuille { margin: 6px 10px 4px; padding: 8px 12px; border: 2px solid var(--encre); border-radius: 8px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); }
+#bourse .portefeuille { margin: 6px 10px 4px; padding: 8px 12px; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); box-shadow: var(--ombre-papier); }
 #bourse .ligne-portefeuille { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 #bourse .ligne-portefeuille > span { display: flex; flex-direction: column; }
 #bourse .ligne-portefeuille small { font-size: 10px; letter-spacing: 0.08em; opacity: 0.75; }
@@ -1344,7 +1350,7 @@ html, body {
 #bourse .tete-cours .caractere { font-style: italic; }
 #bourse .position { margin: 8px 0 0; font-size: 12px; line-height: 1.4; }
 #bourse .commerce .petit { margin: 0; font-size: 11px; line-height: 1.4; opacity: 0.8; }
-#bourse .fil-ordres { margin: 0 10px; font-size: 11.5px; border: 1.5px solid var(--encre); border-radius: 8px; padding: 4px 10px; }
+#bourse .fil-ordres { margin: 0 10px; font-size: 11.5px; border: 1.5px solid var(--encre); border-radius: 2px; padding: 4px 10px; }
 #bourse .fil-ordres div { display: grid; grid-template-columns: 42px 1fr auto auto; gap: 8px; padding: 3px 0; }
 #bourse .fil-ordres div + div { border-top: 1px dashed color-mix(in srgb, var(--encre) 25%, transparent); }
 #bourse .liste-cours .pastille { flex: none; width: 12px; height: 12px; border: 1.5px solid var(--encre); border-radius: 50%; }
@@ -1352,14 +1358,14 @@ html, body {
 #bourse .hausse { color: #3f8a4f; } #bourse .baisse { color: #b4442f; }
 #bourse .tete-cours .droite span { white-space: nowrap; }
 /* La confirmation d'un ordre de Bourse (ou d'un gros achat au Comptoir) : rien ne part sans confirmer. */
-#marche .confirmation { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--encre); border-radius: 8px; background: var(--creme); box-shadow: 2px 2px 0 var(--ombre); font-size: 12.5px; }
+#marche .confirmation { margin-top: 10px; padding: 10px 12px; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); box-shadow: var(--ombre-papier); font-size: 12.5px; }
 #marche .confirmation > b { display: block; font-size: 14px; margin-bottom: 6px; }
 #marche .confirmation > div:not(.boutons-confirmation) { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
 #marche .confirmation p { margin: 6px 0 0; font-size: 11.5px; line-height: 1.4; opacity: 0.85; }
 #marche .boutons-confirmation { display: flex; gap: 8px; margin-top: 10px; }
 #marche .boutons-confirmation button { flex: 1; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre); background: var(--fond);
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#marche .boutons-confirmation button.principal { color: #fff; background: #d9694f; }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#marche .boutons-confirmation button.principal { color: #fff; background: var(--orange); }
 /* Les bots sont marqués PNJ (décision d'Adrien du 20/10/2026) : des personnages du jeu, pas des joueurs. */
 .bulle .pnj, .annuaire .pnj { margin-left: 5px; padding: 0 4px; font-size: 8.5px; font-style: normal; font-weight: bold; letter-spacing: 0.06em;
   border: 1px solid currentColor; border-radius: 3px; opacity: 0.6; vertical-align: 1px; }
@@ -1380,77 +1386,77 @@ html, body {
 #boutique { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #boutique .intro-boutique { margin: 8px 14px; font-size: 12.5px; }
 #boutique h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 14px 4px; opacity: 0.6; }
-#boutique .rayon-boutique { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 8px; overflow: hidden; }
+#boutique .rayon-boutique { margin: 0 10px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; }
 #boutique .article { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
 #boutique .article + .article { border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); }
 #boutique .article > div { flex: 1; display: flex; flex-direction: column; }
 #boutique .article small { font-size: 11px; opacity: 0.75; }
 #boutique .article button { min-height: 44px; padding: 0 10px; font: inherit; font-size: 11px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; opacity: 0.4; }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; opacity: 0.4; }
 #boutique .note { margin: 10px 14px; font-size: 11.5px; opacity: 0.75; }
 /* L'onglet Journal (décision d'Adrien du 20/10/2026) : en cours, puis QUÊTES et CONTRATS. */
 #missions #journal { padding: 0 10px; }
 #en-cours-journal { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 0; }
 #en-cours-journal[hidden] { display: none; }
 #en-cours-journal .ligne-en-cours { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 10px; font: inherit; font-size: 12px;
-  text-align: left; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  text-align: left; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #en-cours-journal .ligne-en-cours > span:last-child { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 #en-cours-journal small { font-size: 11px; opacity: 0.8; }
 #en-cours-journal .signe { font-size: 16px; color: #d9a43a; }
 #en-cours-journal .secondaire .signe { color: #6f9bd6; }
 #en-cours-journal .picto { width: 24px; height: 24px; }
 
-/* Titres des fenêtres façon magazine pulp des années 50 (demande d'Adrien du 20/10/2026) : lettres crème cernées
-   d'encre, ombre cerise décalée, penchées ; bandeau moutarde tramé comme une couverture imprimée. */
-:root { --pulp: 'Bowlby One SC', 'Arial Black', Impact, sans-serif; }
+/* Titres des volets et des fenêtres (choix d'Adrien du 22/10/2026, « dossier de mission », qui remplace le pulp) :
+   grandes capitales condensées à l'encre sur le papier, un double filet dessous, une bande de hachures d'avertissement. */
+:root { --pulp: var(--titre); }
 #volet .entete, .plein .entete-plein {
-  background-color: var(--moutarde);
-  background-image: radial-gradient(rgba(180, 68, 47, 0.22) 1px, transparent 1.3px);
-  background-size: 5px 5px;
+  position: relative;
+  background: var(--fond);
+  border-bottom: 3px double var(--encre);
+  margin-bottom: 6px;
+}
+#volet .entete::after, .plein .entete-plein::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -9px; height: 4px; background: var(--hachures); opacity: 0.8; pointer-events: none;
 }
 #volet-titre, .plein .entete-plein > span:first-child, .titre-pulp {
   display: inline-block;
-  font-family: var(--pulp);
-  font-weight: normal;
-  font-size: 19px;
-  letter-spacing: 0.03em;
-  color: #faf2dc;
-  -webkit-text-stroke: 1.2px #1f1b18;
-  paint-order: stroke fill;
-  text-shadow: 2px 2px 0 #b4442f;
-  transform: skew(-8deg);
-  line-height: 1.15;
+  font-family: var(--titre);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--encre);
+  line-height: 1.05;
 }
-.plein .entete-plein > span:first-child { font-size: 17px; }
+.plein .entete-plein > span:first-child { font-size: 22px; }
 .titre-fenetre, #invitation .bandeau-maison b {
-  font-family: var(--pulp);
-  font-weight: normal;
-  color: #faf2dc;
-  -webkit-text-stroke: 1.2px #1f1b18;
-  paint-order: stroke fill;
-  text-shadow: 2px 2px 0 #b4442f;
+  font-family: var(--titre);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--encre);
 }
 /* Bienvenue à bord : le choix du nom du capitaine, au tout début du jeu. */
 #bienvenue { align-items: center; justify-content: center; padding: 16px; background: color-mix(in srgb, var(--fond) 92%, transparent); }
 #bienvenue .carte-bienvenue { width: 100%; max-width: 340px; padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; line-height: 1.45;
-  background: var(--creme); border: 2.5px solid var(--encre); border-radius: 12px; box-shadow: 4px 4px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #bienvenue .titre-pulp { font-size: 26px; align-self: center; margin-bottom: 4px; }
-#bienvenue input { min-height: 48px; padding: 0 12px; font: inherit; font-size: 16px; color: var(--encre); background: var(--fond); border: 2px solid var(--encre); border-radius: 8px; }
+#bienvenue input { min-height: 48px; padding: 0 12px; font: inherit; font-size: 16px; color: var(--encre); background: var(--fond); border: 1.5px solid var(--encre); border-radius: 2px; }
 #bienvenue input.erreur { border-color: #e04b37; }
 #bienvenue small { font-size: 11px; opacity: 0.7; margin-top: -6px; }
-#bienvenue button { min-height: 50px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#bienvenue button { min-height: 50px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: var(--orange); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 /* Le classeur des monolithes (demande d'Adrien du 20/10/2026) : neuf pochettes par page. */
 #classeur .corps { display: flex; flex-direction: column; gap: 10px; touch-action: pan-y; }
 #classeur .bilan-classeur { margin: 2px 4px; font-size: 14px; display: flex; flex-direction: column; }
 #classeur .bilan-classeur small { font-size: 11px; opacity: 0.75; }
-#classeur .page-classeur { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; border: 2.5px solid var(--encre); border-radius: 12px;
-  background: #d9cfb8; box-shadow: 3px 3px 0 var(--ombre); }
+#classeur .page-classeur { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; border: 1.5px solid var(--encre); border-radius: 2px;
+  background: #d9cfb8; box-shadow: var(--ombre-papier); }
 #classeur .pochette { aspect-ratio: 5 / 7; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 5px 4px 6px;
-  border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 8px; background: color-mix(in srgb, #fff 35%, transparent); color: color-mix(in srgb, var(--encre) 45%, transparent); }
+  border: 1.5px dashed color-mix(in srgb, var(--encre) 40%, transparent); border-radius: 2px; background: color-mix(in srgb, #fff 35%, transparent); color: color-mix(in srgb, var(--encre) 45%, transparent); }
 #classeur .pochette.absente { visibility: hidden; }
 #classeur .pochette .numero { font-size: 11px; }
 #classeur .pochette .vide { flex: 1; display: flex; align-items: center; font-family: var(--pulp); font-size: 30px; opacity: 0.35; }
-#classeur .pochette.trouve { border: 2px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: 2px 2px 0 var(--ombre);
+#classeur .pochette.trouve { border: 1.5px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: var(--ombre-papier);
   background-image: linear-gradient(160deg, #e9e0f7 0%, var(--creme) 55%); }
 #classeur .pochette.trouve svg { width: 54%; flex: 1; }
 #classeur .pochette svg .sol { fill: #c9b8e8; } #classeur .pochette svg .pierre { fill: #2b2138; } #classeur .pochette svg .reflet { fill: #5d4a7a; }
@@ -1459,7 +1465,7 @@ html, body {
 #classeur .pochette.trouve small { font-size: 8.5px; opacity: 0.7; }
 #classeur .tourner { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: bold; }
 #classeur .tourner button { min-width: 56px; min-height: 48px; font: inherit; font-size: 22px; color: var(--encre); background: var(--creme);
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #classeur .tourner button:disabled { opacity: 0.3; box-shadow: none; }
 #classeur input[type="range"] { width: 100%; min-height: 44px; accent-color: #7a5aa8; }
 /* Le mode nuit, en accès rapide parmi les calques de la carte (demande d'Adrien du 20/10/2026). */
@@ -1476,10 +1482,10 @@ html, body {
 /* Les collections (Plus › Collections) : une couverture par collection. */
 #collections { padding: 0 0 12px; font-size: 13px; line-height: 1.45; }
 #collections .couverture { margin: 10px; padding: 14px; display: grid; grid-template-columns: 92px 1fr; gap: 10px 14px; align-items: center;
-  border: 2.5px solid var(--encre); border-radius: 12px; box-shadow: 4px 4px 0 var(--ombre);
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier);
   background: linear-gradient(160deg, #e9e0f7 0%, var(--creme) 60%); }
-#collections .illustration { width: 92px; height: 120px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--encre);
-  border-radius: 8px; background: #d9cfb8; }
+#collections .illustration { width: 92px; height: 120px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--encre);
+  border-radius: 2px; background: #d9cfb8; }
 #collections .illustration svg { height: 100px; }
 #collections svg .sol { fill: #c9b8e8; } #collections svg .pierre { fill: #2b2138; } #collections svg .reflet { fill: #5d4a7a; }
 #collections svg .glyphe { stroke: #d7cdee; stroke-width: 1.6; fill: none; stroke-linecap: round; }
@@ -1491,10 +1497,10 @@ html, body {
 #collections .couverture p, #collections .couverture button { grid-column: 1 / -1; }
 #collections .couverture p { margin: 0; font-size: 12px; opacity: 0.85; }
 #collections .couverture button { min-height: 50px; font: inherit; font-size: 13px; font-weight: bold; color: #fff; background: #7a5aa8;
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 /* Le dépanneur, sous l'effet d'une panne (décision d'Adrien du 20/10/2026). */
 #capsule .depanneur { display: block; width: 100%; min-height: 44px; margin-top: 6px; font: inherit; font-size: 12px; font-weight: bold; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 
 /* Le bouton RADIO de la carte (sous le RADAR). */
 .picto-radio .coffret { fill: #c98a5a; } .picto-radio .haut-parleur { fill: #f3e2c2; } .picto-radio .cadran-radio { fill: #f2c66a; }
@@ -1503,10 +1509,10 @@ html, body {
 /* Le poste radio (décisions d'Adrien du 20/10/2026) : un poste TSF des années 50, bois verni et cadran de verre. */
 #radio .corps { display: flex; flex-direction: column; }
 #radio .poste { display: flex; flex-direction: column; gap: 12px; padding: 14px 12px; border: 3px solid #3a2418; border-radius: 18px;
-  background: linear-gradient(175deg, #a8683f 0%, #8a4f2c 55%, #6e3c20 100%); box-shadow: 4px 4px 0 var(--ombre), inset 0 2px 0 rgba(255,255,255,0.25); }
+  background: linear-gradient(175deg, #a8683f 0%, #8a4f2c 55%, #6e3c20 100%); box-shadow: var(--ombre-papier), inset 0 2px 0 rgba(255,255,255,0.25); }
 #radio .bandes { display: flex; gap: 8px; }
 #radio .bandes button { flex: 1; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: inherit; font-size: 11px;
-  font-weight: bold; color: #2b2138; background: #e9d9b8; border: 2px solid #3a2418; border-radius: 8px; }
+  font-weight: bold; color: #2b2138; background: #e9d9b8; border: 2px solid #3a2418; border-radius: 2px; }
 #radio .bandes button.actif { background: #f2c66a; box-shadow: inset 0 0 0 2px #fff6; }
 #radio .bandes button:disabled { opacity: 0.55; }
 #radio .bandes small { font-size: 8.5px; font-weight: normal; }
@@ -1516,10 +1522,10 @@ html, body {
 #radio .cadran text { font: bold 11px var(--police); fill: #3a2418; }
 #radio .cadran .aiguille line { stroke: #e04b37; stroke-width: 2.5; stroke-linecap: round; }
 #radio .reglage { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-#radio .lecture { flex: 1; display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; border: 2px solid #3a2418; border-radius: 8px; background: #1c1410; }
+#radio .lecture { flex: 1; display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; border: 2px solid #3a2418; border-radius: 2px; background: #1c1410; }
 #radio .lecture b { font: bold 28px var(--police); color: #f2b53a; letter-spacing: 0.04em; text-shadow: 0 0 8px rgba(242, 181, 58, 0.6); }
 #radio .lecture small { color: #f2b53a; opacity: 0.8; }
-#radio .vumetre { width: 110px; height: 66px; flex: none; background: #f6e7b8; border: 2px solid #3a2418; border-radius: 8px; }
+#radio .vumetre { width: 110px; height: 66px; flex: none; background: #f6e7b8; border: 2px solid #3a2418; border-radius: 2px; }
 #radio .vumetre .arc { fill: none; stroke: #3a2418; stroke-width: 2; }
 #radio .vumetre .zone-nette { fill: none; stroke: #5fb36a; stroke-width: 5; }
 #radio .vumetre .aiguille-vu { stroke: #e04b37; stroke-width: 2; stroke-linecap: round; }
@@ -1528,7 +1534,7 @@ html, body {
   background: linear-gradient(180deg, #4a3326, #2b1d15); color: #f6e7b8; font-size: 20px; font-weight: bold; }
 #radio .molette .stries { flex: 1; height: 34px; border-radius: 6px;
   background: repeating-linear-gradient(90deg, #8a6a52 0 3px, #2b1d15 3px 8px); box-shadow: inset 0 0 8px #000; }
-#radio .ecran-radio { min-height: 150px; padding: 10px 12px; border: 2px solid #3a2418; border-radius: 10px; background: #1c1410; color: #9fe3a0;
+#radio .ecran-radio { min-height: 150px; padding: 10px 12px; border: 2px solid #3a2418; border-radius: 2px; background: #1c1410; color: #9fe3a0;
   font-family: var(--police); transition: background 0.3s; }
 #radio .ecran-radio.flash { background: #2d4a2e; }
 #radio .tete-voix { font-size: 11px; font-weight: bold; letter-spacing: 0.04em; color: #f2b53a; margin-bottom: 6px; }
@@ -1538,7 +1544,7 @@ html, body {
 #radio .enregistrement i { position: absolute; inset: 0 auto 0 0; background: #5fb36a; opacity: 0.6; }
 #radio .enregistrement span { position: relative; display: block; text-align: center; font-size: 10px; line-height: 15px; font-weight: bold; color: #e8f6e8; }
 #radio .son { align-self: flex-end; min-height: 40px; padding: 0 12px; font: inherit; font-size: 11px; font-weight: bold; color: #2b2138; background: #e9d9b8;
-  border: 2px solid #3a2418; border-radius: 8px; }
+  border: 2px solid #3a2418; border-radius: 2px; }
 /* La couverture et le carnet des Voix perdues. */
 #collections .couverture.voix { background: linear-gradient(160deg, #f3dcc2 0%, var(--creme) 60%); }
 #collections .couverture.voix .illustration { background: #e9d9b8; }
@@ -1553,8 +1559,8 @@ html, body {
 #carnet .bilan-classeur small { font-size: 11.5px; opacity: 0.75; }
 #carnet h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 4px 4px; opacity: 0.6; }
 #carnet .bandes-systeme { display: flex; flex-direction: column; gap: 6px; }
-#carnet .bande { padding: 8px 10px; border: 1.5px dashed color-mix(in srgb, var(--encre) 35%, transparent); border-radius: 8px; color: color-mix(in srgb, var(--encre) 50%, transparent); font-size: 12px; display: flex; justify-content: space-between; }
-#carnet .bande.captee { display: block; border: 2px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: 2px 2px 0 var(--ombre); }
+#carnet .bande { padding: 8px 10px; border: 1.5px dashed color-mix(in srgb, var(--encre) 35%, transparent); border-radius: 2px; color: color-mix(in srgb, var(--encre) 50%, transparent); font-size: 12px; display: flex; justify-content: space-between; }
+#carnet .bande.captee { display: block; border: 1.5px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: var(--ombre-papier); }
 #carnet .bande.captee small { display: block; font-size: 11px; opacity: 0.75; margin: 2px 0 4px; }
 #carnet .bande.captee p { margin: 0; font-size: 12.5px; line-height: 1.5; }
 /* Le cadran de vitesse (demandes d'Adrien du 20/10/2026), en bas à droite de la carte, un peu transparent pour rester
@@ -1578,12 +1584,12 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 /* La fiche : ses boutons l'un sous l'autre (COMMUNIQUER avec un capitaine, Y ALLER…). */
 #trajet .boutons-fiche { display: flex; flex-direction: column; gap: 6px; flex: none; }
 #bouton-communiquer { min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.04em; color: var(--encre);
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #bouton-communiquer[hidden] { display: none; }
 /* Le fil des Messages, en console de communication spatiale (demandes d'Adrien du 20/10/2026) : une ligne par message,
    l'heure, le pseudo aux couleurs de sa Maison, le texte ; sur le papier clair du jeu, comme un télex de bord. */
-#messages .console { margin: 6px 8px; padding: 4px 0; border: 2px solid var(--encre); border-radius: 10px; background: var(--creme); color: var(--encre);
-  font-family: var(--police); box-shadow: 3px 3px 0 var(--ombre);
+#messages .console { margin: 6px 8px; padding: 4px 0; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); color: var(--encre);
+  font-family: var(--police); box-shadow: var(--ombre-papier);
   background-image: repeating-linear-gradient(180deg, transparent 0 27px, color-mix(in srgb, var(--encre) 6%, transparent) 27px 28px); }
 #messages .console .ligne { display: flex; gap: 8px; padding: 5px 10px; font-size: 12.5px; line-height: 1.45; }
 #messages .console .ligne + .ligne { border-top: 1px dashed color-mix(in srgb, var(--encre) 18%, transparent); }
@@ -1598,7 +1604,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #messages .console .en-route { font-style: italic; opacity: 0.65; }
 #messages .menu-pseudo { display: flex; gap: 6px; margin-top: 6px; }
 #messages .menu-pseudo button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; font: inherit; font-size: 11px; font-weight: bold;
-  color: var(--encre); background: var(--moutarde); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  color: var(--encre); background: var(--moutarde); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #messages .menu-pseudo .picto { width: 20px; height: 20px; }
 /* Conversations privées : celles qui ont du nouveau en gras, avec leur pastille. */
 #messages .conversation .texte b { font-weight: normal; }
@@ -1610,7 +1616,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #messages .annuaire .texte .statut { display: table; margin: 1px 0; }
 /* ATTAQUER un capitaine : grisé tant qu'il n'y a que des PNJ (avec le serveur). */
 #bouton-attaquer { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px;
-  font-weight: bold; letter-spacing: 0.04em; color: var(--encre); background: var(--creme); border: 2px dashed var(--encre); border-radius: 8px; opacity: 0.45; }
+  font-weight: bold; letter-spacing: 0.04em; color: var(--encre); background: var(--creme); border: 2px dashed var(--encre); border-radius: 2px; opacity: 0.45; }
 #bouton-attaquer small { font-size: 8px; font-weight: normal; letter-spacing: 0; }
 #bouton-attaquer[hidden] { display: none; }
 /* La fenêtre de confirmation du jeu (demande d'Adrien du 21/10/2026, à la place de celle du navigateur) : une carte
@@ -1618,7 +1624,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 .confirmation-jeu { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px;
   background: color-mix(in srgb, #2b2138 50%, transparent); animation: fondu 0.18s ease-out; }
 .confirmation-jeu .carte-confirmation { width: 100%; max-width: 340px; overflow: hidden; background: var(--creme);
-  border: 3px solid var(--encre); border-radius: 14px; box-shadow: 6px 6px 0 var(--ombre); animation: surgir 0.4s cubic-bezier(0.2, 1.5, 0.4, 1); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); animation: surgir 0.4s cubic-bezier(0.2, 1.5, 0.4, 1); }
 .confirmation-jeu .titre-confirmation { padding: 12px 16px 10px; text-align: center; border-bottom: 2.5px solid var(--encre);
   background-color: var(--moutarde); background-image: radial-gradient(rgba(180, 68, 47, 0.22) 1px, transparent 1.3px); background-size: 5px 5px; }
 .confirmation-jeu .titre-pulp { font-size: 23px; }
@@ -1626,18 +1632,18 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 .confirmation-jeu .texte-confirmation p + p { margin-top: 8px; }
 .confirmation-jeu .boutons-confirmation-jeu { display: flex; gap: 10px; padding: 14px 16px 16px; }
 .confirmation-jeu button { flex: 1; min-height: 50px; padding: 0 10px; font: inherit; font-size: 12.5px; font-weight: bold; letter-spacing: 0.04em;
-  color: var(--encre); background: var(--fond); border: 2px solid var(--encre); border-radius: 9px; box-shadow: 3px 3px 0 var(--ombre); }
+  color: var(--encre); background: var(--fond); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 .confirmation-jeu button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ombre); }
 .confirmation-jeu button.principal, .confirmation-jeu button.grave { flex: 1.4; color: #fff; }
-.confirmation-jeu button.principal { background: #d9694f; }
+.confirmation-jeu button.principal { background: var(--orange); }
 .confirmation-jeu button.grave { background: #b4442f; }
 /* La fenêtre d'une zone libérée : le portrait du PNJ de la Résistance, ses mots, ce qui s'ouvre. */
 .felicitation .pnj-felicitation { display: flex; align-items: center; gap: 12px; padding: 14px 18px 0; }
 .felicitation .pnj-felicitation b { display: block; font-size: 16px; }
 .felicitation .pnj-felicitation small { font-size: 11px; opacity: 0.75; }
-.felicitation .portrait { flex: none; width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--encre); object-fit: cover;
-  display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: bold; color: #1f1b18; box-shadow: 2px 2px 0 var(--ombre); }
-.felicitation .ouvre { margin: 10px 16px 0; padding: 8px 12px; font-size: 12.5px; background: #bfe0c8; color: #1f1b18; border: 2px solid var(--encre); border-radius: 8px; }
+.felicitation .portrait { flex: none; width: 76px; height: 76px; border-radius: 50%; border: 1.5px solid var(--encre); object-fit: cover;
+  display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: bold; color: #1f1b18; box-shadow: var(--ombre-papier); }
+.felicitation .ouvre { margin: 10px 16px 0; padding: 8px 12px; font-size: 12.5px; background: #bfe0c8; color: #1f1b18; border: 1.5px solid var(--encre); border-radius: 2px; }
 .felicitation .ouvre ul { margin: 4px 0 0; padding-left: 18px; }
 @keyframes fondu { from { opacity: 0; } }
 /* Panneau ↔ Manuel d'un glissement (demande d'Adrien du 21/10/2026) : la page arrive du côté où l'on a poussé. */
@@ -1649,7 +1655,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 .indice-glisser { display: block; padding: 0 10px 4px; font-size: 10.5px; text-align: center; opacity: 0.6; }
 /* Le tas sous le doigt, à l'échelle réelle : choisir parmi les engins serrés près d'une planète. */
 #tas { position: fixed; z-index: 25; display: flex; flex-direction: column; min-width: 170px; max-width: 260px; overflow: hidden;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #tas[hidden] { display: none; }
 #tas button { min-height: 44px; padding: 0 14px; font: inherit; font-size: 13px; text-align: left; color: var(--encre); background: none; border: 0; }
 #tas button + button { border-top: 1px dashed color-mix(in srgb, var(--encre) 35%, transparent); }
@@ -1660,7 +1666,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #choix-systeme[hidden] { display: none; }
 #choix-systeme button {
   display: flex; align-items: center; gap: 8px; min-width: 128px; height: 44px; padding: 0 10px; font: 12px var(--police); color: var(--encre);
-  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre);
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier);
 }
 #choix-systeme button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ombre); }
 #choix-systeme button i { width: 14px; height: 14px; flex: none; border: 1.5px solid var(--encre); border-radius: 50%; }
@@ -1671,27 +1677,27 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #reve { z-index: 40; background: #f4f1ea; }
 #reve canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 #reve .passer-reve { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px;
-  font-weight: bold; color: var(--encre); background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+  font-weight: bold; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #reve .fin-reve { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 18px; }
 #reve .fin-reve[hidden] { display: none; }
-#reve .case-reveil { width: 100%; max-width: 340px; overflow: hidden; text-align: center; background: var(--creme); border: 3px solid var(--encre);
-  border-radius: 6px; box-shadow: 6px 6px 0 var(--ombre); animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
+#reve .case-reveil { width: 100%; max-width: 340px; overflow: hidden; text-align: center; background: var(--creme); border: 1.5px solid var(--encre);
+  border-radius: 6px; box-shadow: var(--ombre-papier); animation: surgir 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
 #reve .titre-reveil { padding: 12px; border-bottom: 2.5px solid var(--encre); background-color: var(--moutarde);
   background-image: radial-gradient(rgba(180, 68, 47, 0.22) 1px, transparent 1.3px); background-size: 5px 5px; }
 #reve .titre-pulp { font-size: 26px; }
 #reve .bulle-reveil { position: relative; margin: 18px 16px 8px; padding: 12px 14px; font-size: 15px; font-weight: bold; line-height: 1.4; background: #fff;
-  border: 2px solid var(--encre); border-radius: 18px; }
+  border: 1.5px solid var(--encre); border-radius: 18px; }
 #reve .case-reveil > .petit { margin: 6px 16px; font-size: 12px; line-height: 1.4; opacity: 0.8; }
-#reve .titre-gagne { margin: 10px 16px; padding: 8px; font-size: 13px; border: 1.5px dashed var(--encre); border-radius: 8px; background: color-mix(in srgb, var(--moutarde) 30%, transparent); }
+#reve .titre-gagne { margin: 10px 16px; padding: 8px; font-size: 13px; border: 1.5px dashed var(--encre); border-radius: 2px; background: color-mix(in srgb, var(--moutarde) 30%, transparent); }
 #reve .titre-gagne b { display: block; font-family: var(--pulp); font-weight: normal; font-size: 22px; letter-spacing: 0.05em; color: #b4442f; }
 #reve .titre-gagne small { display: block; margin-top: 4px; font-size: 11px; line-height: 1.35; opacity: 0.8; }
 #reve [data-reprendre] { width: calc(100% - 32px); min-height: 50px; margin: 10px 16px 16px; font: inherit; font-size: 14px; font-weight: bold; color: #fff;
-  background: #d9694f; border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--orange); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 /* La libération des zones dans le Profil (décisions d'Adrien du 21/10/2026). */
 #profil .zones .systeme-zones { margin: 10px 0 2px; font-size: 10px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
 #profil .zones .rang.zone { align-items: center; }
 #profil .zones .jauge-zone { position: relative; flex: none; width: 120px; height: 14px; border: 1.5px solid var(--encre); border-radius: 7px; overflow: hidden; background: var(--fond); }
-#profil .zones .jauge-zone i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(-45deg, #d9694f 0 4px, #e98a6f 4px 8px); }
+#profil .zones .jauge-zone i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(-45deg, var(--orange) 0 4px, #e98a6f 4px 8px); }
 #profil .zones .jauge-zone small { position: relative; display: block; text-align: center; font-size: 9.5px; font-weight: bold; line-height: 11px; }
 #profil .zones .libere { color: #3f7a4c; font-weight: bold; }
 /* L'armement (décisions d'Adrien du 21/10/2026) : une ligne par équipement, son niveau, son effet, le prix du suivant. */
@@ -1705,8 +1711,8 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #armement .achat-armement { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding-top: 4px; border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); font-size: 12px; }
 #armement .achat-armement .materiau { opacity: 0.75; }
 #armement .achat-armement .materiau.assez { color: #3f7a4c; opacity: 1; }
-#armement .achat-armement button { margin-left: auto; min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #d9694f;
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
+#armement .achat-armement button { margin-left: auto; min-height: 44px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: var(--orange);
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #armement .achat-armement button:disabled { color: var(--encre); background: var(--fond); opacity: 0.45; box-shadow: none; }
 /* Le niveau du capitaine (décisions d'Adrien du 21/10/2026) : la fine jauge d'XP au pied du bandeau, les gains qui
    flottent, et le bloc du Profil. */
@@ -1714,8 +1720,8 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #bandeau .jauge-xp i { position: absolute; inset: 0 auto 0 0; width: 0; background: color-mix(in srgb, #f2b53a 70%, transparent); transition: width 0.6s ease-out; }
 #bandeau .jauge-xp small { position: relative; display: block; padding-left: 8px; font-size: 9px; font-weight: bold; line-height: 13px; letter-spacing: 0.06em; }
 #gain-xp { position: fixed; top: calc(150px + env(safe-area-inset-top)); left: 50%; z-index: 22; pointer-events: none; transform: translateX(-50%); }
-#gain-xp span { display: block; padding: 2px 8px; font: bold 13px var(--police); color: #9a6a12; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 10px;
-  box-shadow: 2px 2px 0 var(--ombre); animation: flotter-xp 1.6s ease-out forwards; }
+#gain-xp span { display: block; padding: 2px 8px; font: bold 13px var(--police); color: #9a6a12; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px;
+  box-shadow: var(--ombre-papier); animation: flotter-xp 1.6s ease-out forwards; }
 @keyframes flotter-xp { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-22px); } }
 #profil .niveau-capitaine .jauge-niveau { height: 12px; margin: 6px 0; border: 1.5px solid var(--encre); border-radius: 6px; overflow: hidden; background: var(--fond); }
 #profil .niveau-capitaine .jauge-niveau i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, #f2b53a 0 4px, #f5d38a 4px 8px); }
@@ -1733,7 +1739,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #disparus .bilan-classeur small { font-size: 11px; line-height: 1.4; opacity: 0.8; }
 #disparus .cartes-disparus { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 #disparus .carte-disparu { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 2px dashed color-mix(in srgb, var(--encre) 40%, transparent);
-  border-radius: 10px; background: color-mix(in srgb, var(--encre) 6%, transparent); color: color-mix(in srgb, var(--encre) 70%, transparent); }
+  border-radius: 2px; background: color-mix(in srgb, var(--encre) 6%, transparent); color: color-mix(in srgb, var(--encre) 70%, transparent); }
 #disparus .carte-disparu.suivi { border-style: solid; border-color: #7a5aa8; }
 #disparus .carte-disparu .numero { font-size: 10px; opacity: 0.7; }
 #disparus .carte-disparu .nom { font-size: 13px; }
@@ -1742,8 +1748,8 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #disparus .carte-disparu .indice { font-style: italic; }
 #disparus .carte-disparu .echo { color: #3f8a4f; font-weight: bold; }
 #disparus .carte-disparu button { margin-top: auto; min-height: 44px; font: inherit; font-size: 12px; font-weight: bold; color: #fff; background: #7a5aa8;
-  border: 2px solid var(--encre); border-radius: 8px; box-shadow: 2px 2px 0 var(--ombre); }
-#disparus .carte-disparu.trouve { border: 2px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: 2px 2px 0 var(--ombre); }
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
+#disparus .carte-disparu.trouve { border: 1.5px solid var(--encre); background: var(--creme); color: var(--encre); box-shadow: var(--ombre-papier); }
 #disparus .carte-disparu svg, .couverture.disparus svg, .felicitation .sonde svg { width: 56px; align-self: center; }
 #disparus svg .panneau, .couverture.disparus svg .panneau, .felicitation svg .panneau { fill: #8fc3e0; stroke: var(--encre); stroke-width: 1.2; }
 #disparus svg .corps-sonde, .couverture.disparus svg .corps-sonde, .felicitation svg .corps-sonde { fill: #e8c77a; stroke: var(--encre); stroke-width: 1.2; }
@@ -1758,7 +1764,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
    capsule, calques ; les Messages à droite). Au bord droit, le boîtier des instruments. En bas, la console du trajet
    (compteur de vitesse en vol, destination, feuille de route en frise), seulement quand il y a un trajet. */
 #haut { left: 10px; right: 10px; top: calc(8px + env(safe-area-inset-top)); gap: 8px; }
-#console { pointer-events: auto; overflow: hidden; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+#console { pointer-events: auto; overflow: hidden; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #bandeau { background: none; border: none; border-radius: 0; box-shadow: none; }
 #bandeau .etat-capsule { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 8px; }
 #bandeau .etat-capsule > .phase { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
@@ -1769,12 +1775,12 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #bandeau .ou .vals { display: flex; gap: 10px; }
 /* Le niveau du capitaine et son XP : la jauge dans la pastille, avec son nom ; la toucher ouvre le Profil. */
 #bandeau .niveau { flex: none; display: flex; flex-direction: column; gap: 2px; width: 60px; padding: 3px 6px 4px; white-space: nowrap;
-  border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); }
+  border: 1.5px solid var(--encre); border-radius: 2px; background: var(--fond); }
 #bandeau .niveau b { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0; }
 #bandeau .niveau b span { color: #7a5aa8; }
 #bandeau .niveau .jauge-xp { display: block; height: 5px; border: 1px solid var(--encre); border-radius: 3px; overflow: hidden; background: color-mix(in srgb, #7a5aa8 12%, var(--fond)); }
 #bandeau .niveau .jauge-xp i { display: block; height: 100%; background: #7a5aa8; }
-#bandeau .credits { flex: none; display: flex; align-items: center; gap: 4px; padding: 4px 7px; font-size: 12px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 14px; background: var(--fond); }
+#bandeau .credits { flex: none; display: flex; align-items: center; gap: 4px; padding: 4px 7px; font-size: 12px; font-weight: bold; border: 1.5px solid var(--encre); border-radius: 2px; background: var(--fond); }
 #bandeau .credits svg { width: 16px; height: 16px; }
 /* Les alertes : une ligne chacune, son symbole, son texte, son bouton (toute la ligne se touche). */
 #bandeau .ligne { flex-direction: row; align-items: center; gap: 8px; min-height: 40px; padding: 4px 8px 4px 10px; font-size: 12px; line-height: 1.25;
@@ -1794,12 +1800,13 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 /* La rangée de la vue : un bloc de trois boutons (le système regardé, la capsule, les calques). */
 #commandes-carte { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 #commandes-carte .vue { position: relative; pointer-events: auto; }
-.groupe-vue { display: flex; height: 46px; background: var(--creme); border: 2px solid var(--encre); border-radius: 8px; box-shadow: 3px 3px 0 var(--ombre); overflow: hidden; }
+.groupe-vue { display: flex; height: 46px; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); overflow: hidden; }
 .groupe-vue > button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; padding: 0 9px; font: inherit; color: var(--encre);
   background: none; border: none; border-right: 1.5px solid var(--encre); }
 .groupe-vue > button:last-child { border-right: none; }
 .groupe-vue > button:active { background: color-mix(in srgb, var(--moutarde) 35%, transparent); }
-.groupe-vue > button[aria-expanded="true"] { background: var(--moutarde); color: #1f1b18; }
+.groupe-vue > button[aria-expanded="true"] { background: var(--encre); color: var(--fond); }
+.groupe-vue > button[aria-expanded="true"] svg * { stroke: var(--fond); }
 .groupe-vue svg { width: 24px; height: 24px; overflow: visible; }
 .groupe-vue svg *, .picto-instrument * { stroke: var(--encre); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; fill: none; }
 .groupe-vue .soleil { fill: #f2c66a; }
@@ -1813,16 +1820,16 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 .groupe-vue .fleche { font-size: 9px; opacity: 0.7; }
 /* Les systèmes : une ligne de pastilles sous la rangée, pas une colonne qui mange la carte. */
 #choix-systeme { left: 0; top: 54px; width: calc(100vw - 20px); flex-direction: row; gap: 2px; padding: 6px 4px; overflow-x: auto; scrollbar-width: none;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #choix-systeme button { flex: none; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; width: 56px; height: 58px; padding: 2px 0;
-  font-size: 9.5px; border: none; border-radius: 8px; box-shadow: none; background: none; }
+  font-size: 9.5px; border: none; border-radius: 2px; box-shadow: none; background: none; }
 #choix-systeme button i { width: 24px; height: 24px; }
 #choix-systeme button small { margin: -2px 0 0; font-size: 8px; font-weight: bold; }
 /* Les calques : quatre interrupteurs, en carré, sous la rangée. */
 #choix-affichage { left: 0; top: 54px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 236px; padding: 8px;
-  background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); }
+  background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); }
 #choix-affichage button { width: auto; height: 44px; flex-direction: row; gap: 7px; padding: 0 8px; font: bold 11.5px var(--police);
-  border: 1.5px solid var(--encre); border-radius: 8px; background: var(--fond); opacity: 1; }
+  border: 1.5px solid var(--encre); border-radius: 2px; background: var(--fond); opacity: 1; }
 #choix-affichage button.actif { background: color-mix(in srgb, var(--moutarde) 55%, var(--fond)); box-shadow: none; }
 #choix-affichage button svg { width: 20px; height: 20px; }
 /* Les Messages, à droite de la rangée ; la bulle d'un message qui arrive, juste en dessous. */
@@ -1832,7 +1839,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 
 /* Le boîtier des instruments, au bord droit, sous le pouce, posé au-dessus de la console du bas. */
 #instruments { position: fixed; right: 10px; bottom: calc(86px + var(--fiche, 0px) + env(safe-area-inset-bottom)); z-index: 2; display: flex; flex-direction: column;
-  width: 56px; background: var(--creme); border: 2px solid var(--encre); border-radius: 10px; box-shadow: 3px 3px 0 var(--ombre); overflow: hidden; }
+  width: 56px; background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); overflow: hidden; }
 #instruments button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 58px; padding: 0;
   font: bold 8.5px var(--police); letter-spacing: 0.05em; color: var(--encre); background: none; border: none; border-bottom: 1.5px solid var(--encre); }
 #instruments button:last-child { border-bottom: none; }
@@ -1843,7 +1850,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #bouton-ping.attente, #bouton-ping.recharge { background: color-mix(in srgb, var(--creme) 70%, #b8b2a8); }
 
 /* La console du bas : le compteur de vitesse (en vol), la destination, ses boutons, et la feuille de route. */
-#trajet { left: 10px; right: 10px; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 8px 6px 10px; background: var(--creme); border-radius: 10px; }
+#trajet { left: 10px; right: 10px; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 8px 6px 10px; background: var(--creme); border-radius: 2px; }
 #trajet .tete { display: flex; align-items: center; gap: 10px; }
 #trajet-texte .etape-contrat { display: block; font-size: 11px; opacity: 0.75; }
 #cadran-vitesse { position: relative; right: auto; bottom: auto; flex: none; width: 74px; height: auto; z-index: auto; border: none; border-radius: 0; background: none; box-shadow: none; }
@@ -1861,7 +1868,7 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #frise .fait { position: absolute; left: 0; top: 21px; border-top: 3px solid var(--encre); }
 #frise .point { position: absolute; top: 0; display: flex; flex-direction: column; align-items: center; width: 96px; text-align: center; transform: translateX(-50%); }
 #frise .point b { max-width: 96px; height: 13px; font-size: 10.5px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#frise .point i { width: 14px; height: 14px; margin-top: 3px; border: 2px solid var(--encre); border-radius: 50%; background: var(--fond); }
+#frise .point i { width: 14px; height: 14px; margin-top: 3px; border: 1.5px solid var(--encre); border-radius: 50%; background: var(--fond); }
 #frise .point.passe i { background: var(--encre); }
 #frise .point.but i { width: 15px; height: 15px; margin-top: 2.5px; border-radius: 3px; transform: rotate(45deg); background: var(--moutarde); }
 #frise .point small { margin-top: 3px; font-size: 9.5px; line-height: 1.2; opacity: 0.85; }
@@ -1876,5 +1883,52 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 #reglages #infos { position: static; padding: 4px 0 8px; font-size: 11px; opacity: 0.7; text-shadow: none; }
 /* Dans les Collections, l'instrument qui sert à chercher chaque collection (demande d'Adrien du 21/10/2026). */
 .instrument-requis { display: inline-flex; align-self: flex-start; flex: none; width: max-content; height: 26px; align-items: center; gap: 5px; margin: 2px 0 4px; padding: 2px 8px 2px 4px; font-size: 10px; letter-spacing: 0.06em;
-  border: 1.5px solid var(--encre); border-radius: 12px; background: var(--creme); }
+  border: 1.5px solid var(--encre); border-radius: 2px; background: var(--creme); }
 .instrument-requis svg { width: 20px; height: 20px; overflow: visible; }
+
+/* ===== Le dossier de mission (choix d'Adrien du 22/10/2026, maquette-fenetres.html) : la finition. =====
+   Boutons, onglets et étiquettes en capitales condensées ; équerres d'imprimerie aux coins des documents posés sur la
+   carte ; hachures d'avertissement discrètes en séparateur, au bord des alertes et sous les titres. */
+:root {
+  --equerres: linear-gradient(var(--encre), var(--encre)) 4px 4px / 9px 1.5px no-repeat, linear-gradient(var(--encre), var(--encre)) 4px 4px / 1.5px 9px no-repeat,
+    linear-gradient(var(--encre), var(--encre)) calc(100% - 4px) calc(100% - 4px) / 9px 1.5px no-repeat, linear-gradient(var(--encre), var(--encre)) calc(100% - 4px) calc(100% - 4px) / 1.5px 9px no-repeat;
+}
+#console, #volet, #trajet, .carte-fenetre, #choix-systeme, #choix-affichage { background: var(--equerres), var(--fond); }
+#console { background: var(--equerres), var(--creme); }
+/* Boutons et onglets : capitales condensées, espacées. */
+#onglets button, .sous-onglets button, #volet .entete button, .plein .entete-plein button, #bouton-depart, #bouton-communiquer, #bouton-attaquer,
+.boutons-fenetre button, .confirmation-jeu button, button.principal, #missions .contrat button, #bandeau .ligne em, #instruments button, .rubrique,
+#suivi b, .groupe-vue #titre, #frise .point b, #bandeau .niveau b, #choix-affichage button {
+  font-family: var(--titre); letter-spacing: 0.1em; text-transform: uppercase;
+}
+#onglets button { font-size: 13px; font-weight: 600; }
+.sous-onglets button { font-size: 15px; font-weight: 600; letter-spacing: 0.08em; }
+#volet .entete button, .plein .entete-plein button { font-size: 14px; font-weight: 600; background: transparent; border: none; }
+#bouton-depart, .boutons-fenetre button, .confirmation-jeu button, button.principal { font-size: 16px; font-weight: 700; }
+#missions .contrat button { font-size: 15px; font-weight: 600; }
+#instruments button { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
+.groupe-vue #titre { font-size: 15px; font-weight: 700; }
+#frise .point b { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: none; }
+#bandeau .ligne em { font-size: 13px; font-weight: 700; color: #fff; background: var(--orange); border-color: var(--orange); }
+#bandeau .niveau b { font-size: 12px; letter-spacing: 0.06em; }
+#bandeau .credits { font-family: var(--titre); font-size: 15px; letter-spacing: 0.04em; }
+/* Les hachures d'avertissement : sous le titre des volets (voir plus haut), en tête des alertes de la console, au-dessus
+   de la feuille de route, sur le haut de la barre d'onglets, sous les intitulés de section. */
+#bandeau .ligne { border-top: none; background-image: var(--hachures); background-size: 100% 3px; background-repeat: no-repeat; background-position: top; padding-top: 7px; }
+#bandeau .ligne.panne, #bandeau .ligne.missile, #bandeau .ligne.chaleur {
+  background: var(--hachures) top / 100% 3px no-repeat, repeating-linear-gradient(-45deg, rgba(224, 87, 31, 0.1) 0 6px, transparent 6px 12px);
+  animation: none;
+}
+#bandeau .ligne.missile b, #bandeau .ligne.panne b, #bandeau .ligne.chaleur b { color: var(--orange); }
+#suivi { border-top: none; background: var(--hachures) top / 100% 3px no-repeat; padding-top: 7px; }
+#frise { padding-top: 8px; margin-top: 8px; background: var(--hachures) top / 100% 3px no-repeat; height: 72px; }
+#frise .rail { top: 30px; } #frise .fait { top: 29px; } #frise .point { top: 8px; } #frise .capsule { top: 20px; }
+#onglets { box-shadow: var(--ombre-papier); }
+#onglets::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--hachures); opacity: 0.7; pointer-events: none; }
+#volet h3, .plein h3 { font-family: var(--titre); font-size: 14px; font-weight: 700; letter-spacing: 0.16em; opacity: 1; color: var(--orange);
+  padding-bottom: 6px; margin: 4px 10px 6px; background: var(--hachures) bottom / 100% 3px no-repeat; }
+/* Les fenêtres au milieu de l'écran : un document posé, une bande de hachures en tête. */
+.carte-fenetre { border-width: 1.5px; box-shadow: var(--ombre-papier); border-radius: 2px; position: relative; }
+.carte-fenetre::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--hachures); pointer-events: none; }
+/* Le bouton principal : orange sécurité, plat. */
+#bouton-depart { background: var(--orange); border-color: var(--orange); }

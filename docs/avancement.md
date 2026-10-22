@@ -17,6 +17,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Look « dossier de mission » (choix d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : polices Barlow
+  Condensed et IBM Plex Mono, cadres fins, ombre de papier posé, équerres aux coins, titres à l'encre sur double filet,
+  orange sécurité, hachures d'avertissement en séparateur (`src/style.css`, variables `--titre`, `--orange`,
+  `--ombre-papier`, `--hachures`, `--equerres`).
 - Teintes (choix d'Adrien du 22/10/2026, d'après la planche `docs/essais-teintes.png`) — **fait** : la carte en papier
   kraft (`--carte`), les fenêtres en papier clair par-dessus ; en sombre, la carte de nuit et les fenêtres restent
   claires. La feuille de route d'un contrat garde toute sa route aux étapes suivantes (ce qui est fait en tête).
