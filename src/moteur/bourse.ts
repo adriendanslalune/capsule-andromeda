@@ -159,7 +159,8 @@ export function vueAction(c: Compagnie, t: number): VueAction {
 // --- Le portefeuille du joueur ---
 
 /** Ce que le joueur a d'une compagnie : ses actions, et ce qu'elles lui ont coûté (frais compris). */
-export interface Position { actions: number; investi: number }
+/** depuis : quand la position a été ouverte (l'exécution du premier achat, ms UTC ; absente des parties plus anciennes). */
+export interface Position { actions: number; investi: number; depuis?: number }
 
 /** Un ordre du joueur, de son envoi à sa confirmation. */
 export interface OrdreBourse {
@@ -262,7 +263,7 @@ export function avancerOrdres(p: Portefeuille, credits: { valeur: number }, t: n
     if (o.confirme === null || t < o.confirme) continue
     if (o.sens === 'acheter') {
       o.actions = (o.credits - fraisOrdre(o.credits)) / o.prix!
-      const pos = p.positions[o.compagnie] ??= { actions: 0, investi: 0 }
+      const pos = p.positions[o.compagnie] ??= { actions: 0, investi: 0, depuis: o.arrivee }
       pos.actions += o.actions
       pos.investi += o.credits
     } else {

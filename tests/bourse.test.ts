@@ -82,6 +82,8 @@ describe('la Bourse : les ordres du joueur', () => {
     expect(avancerOrdres(p, cr, t0 + 81 * 60_000, () => 40 * 60_000)).toEqual([o])
     expect(p.positions.jovienne.actions).toBeCloseTo((500 * (1 - FRAIS_BOURSE)) / o.prix!, 6)
     expect(p.positions.jovienne.investi).toBe(500)
+    // La date de la position (demande d'Adrien du 22/10/2026) : quand le premier achat s'est exécuté au siège.
+    expect(p.positions.jovienne.depuis).toBe(t0 + 40 * 60_000)
     expect(p.ordres).toHaveLength(0)
     expect(p.journal[0]).toBe(o)
   })

@@ -2209,7 +2209,7 @@ body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: ca
 #bourse .placements { margin-top: 8px; border-top: 1px solid color-mix(in srgb, var(--encre) 35%, transparent); }
 #bourse .placements .titres, #bourse .placements button { display: grid; grid-template-columns: 1fr 52px 56px 64px; gap: 4px; align-items: center; }
 #bourse .placements .titres { padding: 5px 0 3px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.65; }
-#bourse .placements .titres span:not(:first-child), #bourse .placements button span:not(.nom) { text-align: right; }
+#bourse .placements .titres span:not(:first-child), #bourse .placements button > span:not(.nom) { text-align: right; }
 #bourse .placements button { width: 100%; min-height: 44px; padding: 4px 0; font: inherit; font-size: 11px; color: var(--encre); background: none; border: none;
   border-top: 1px dashed color-mix(in srgb, var(--encre) 30%, transparent); text-align: left; }
 #bourse .placements .nom { display: flex; align-items: center; gap: 6px; font-weight: bold; line-height: 1.2; }
@@ -2226,3 +2226,53 @@ body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: ca
 body.nuit #annonces span { color: #f3ead6; text-shadow: 0 0 3px var(--carte); }
 body.volet-ouvert #annonces { display: none; }
 @media (prefers-reduced-motion: reduce) { #annonces span { animation-duration: 120s; } }
+#bourse .placements .depuis { display: block; margin-top: 1px; font-weight: normal; font-size: 9.5px; opacity: 0.65; }
+
+/* Le tableau de bord, version console (demandes d'Adrien du 22/10/2026 : « des boutons », « un écran e-ink », des
+   voyants qui brillent vraiment) : un boîtier sombre ; dedans, quatre touches en relief dont le capuchon s'allume
+   comme une ampoule derrière un verre coloré ; dessous, un écran e-ink, gris perle, encre noire, sans couleur. */
+#bandeau .voyants { gap: 7px; margin: 6px 2px 0; padding: 8px 8px 9px; background: linear-gradient(#36312b, #29251f); border-radius: 4px 4px 0 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+#bandeau .voyant { min-height: 48px; border: 1px solid #14110e; border-radius: 4px; color: #3b362f;
+  background: linear-gradient(color-mix(in srgb, var(--cat) 30%, #8f877a), color-mix(in srgb, var(--cat) 20%, #6d665b));
+  box-shadow: 0 3px 0 #120f0c, inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 3px rgba(0, 0, 0, 0.25); transition: transform 0.08s, box-shadow 0.08s; }
+#bandeau .voyant.eteint > :not(.compte) { opacity: 0.55; }
+#bandeau .voyant small { color: inherit; }
+/* Allumé : le capuchon brille, un cœur presque blanc, un halo autour de la touche. */
+#bandeau .voyant.allume { color: var(--encre); border-color: #14110e;
+  background: radial-gradient(ellipse at 50% 42%, #fffdf6 0%, color-mix(in srgb, var(--cat) 55%, #fff) 38%, var(--cat) 78%, color-mix(in srgb, var(--cat) 80%, #000) 100%);
+  box-shadow: 0 3px 0 #120f0c, 0 0 10px 1px color-mix(in srgb, var(--cat) 85%, transparent), 0 0 22px 4px color-mix(in srgb, var(--cat) 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+#bandeau .voyant.allume small { text-shadow: 0 0 4px #fff; }
+#bandeau .voyant.allume.v-alerte small { color: #8f2a1c; }
+#bandeau .voyant.urgent { animation: voyant-urgent 0.8s ease-in-out infinite; }
+@keyframes voyant-urgent { 50% { filter: brightness(1.25) saturate(1.4); box-shadow: 0 3px 0 #120f0c, 0 0 16px 4px #ff8a66, 0 0 30px 8px rgba(255, 120, 80, 0.5); } }
+/* La touche de ce que montre l'écran : enfoncée. */
+#bandeau .voyant.ouvert { border: 1px solid #14110e; transform: translateY(2px); }
+#bandeau .voyant.ouvert.eteint { box-shadow: 0 1px 0 #120f0c, inset 0 2px 4px rgba(0, 0, 0, 0.4); }
+#bandeau .voyant.ouvert.allume { box-shadow: 0 1px 0 #120f0c, 0 0 10px 1px color-mix(in srgb, var(--cat) 85%, transparent), 0 0 22px 4px color-mix(in srgb, var(--cat) 45%, transparent),
+  inset 0 2px 4px rgba(0, 0, 0, 0.25); }
+#bandeau .voyant.ouvert::after { display: none; }
+#bandeau .voyant .compte { top: -5px; right: -5px; color: #29251f; background: #fffdf6; box-shadow: 0 0 0 1.5px #14110e; }
+/* L'écran e-ink, encastré dans le même boîtier. */
+#bandeau .afficheur, #bandeau .afficheur.v-alerte, #bandeau .afficheur.v-quete, #bandeau .afficheur.v-contrat, #bandeau .afficheur.v-echo {
+  min-height: 40px; margin: 0 2px 2px; padding: 0 8px 8px; border: none; border-radius: 0 0 4px 4px; background: #29251f; box-shadow: none; }
+#bandeau .afficheur::before { content: ''; display: block; height: 0; }
+#bandeau .afficheur > .ligne:first-child, #bandeau .afficheur:empty { margin-top: 0; }
+#bandeau .afficheur { display: flex; flex-direction: column; }
+#bandeau .afficheur > * { background: #d9d8cf; }
+#bandeau .afficheur:empty::after { content: ''; display: block; min-height: 34px; background: var(--grain), #d9d8cf; border-radius: 2px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35); }
+#bandeau .afficheur .ligne { color: #262522; background: var(--grain), #d9d8cf; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3); }
+#bandeau .afficheur .ligne:first-child { border-radius: 2px 2px 0 0; }
+#bandeau .afficheur .ligne:last-child { border-radius: 0 0 2px 2px; }
+#bandeau .afficheur .ligne:only-child { border-radius: 2px; }
+#bandeau .afficheur .ligne + .ligne { border-top: 1px dashed rgba(38, 37, 34, 0.35); }
+#bandeau .afficheur .ligne b, #bandeau .afficheur .ligne.panne b, #bandeau .afficheur .ligne.missile b, #bandeau .afficheur .ligne.contrat b { color: #262522; }
+#bandeau .afficheur .ligne.vide .texte { opacity: 0.55; }
+/* Les boutons de l'écran : en noir e-ink. */
+#bandeau .afficheur .ligne em { color: #e9e8df; background: #262522; border: 1px solid #262522; border-radius: 2px; box-shadow: none; }
+#bourse .placements button span.nom-texte { text-align: left; }
+#bourse .placements .nom { align-items: flex-start; }
+#bourse .placements .pastille { margin-top: 3px; }
+#bandeau .voyant.allume, #bandeau .voyant.ouvert.allume { box-shadow: 0 3px 0 #120f0c, 0 0 14px 2px color-mix(in srgb, var(--cat) 95%, transparent), 0 0 30px 7px color-mix(in srgb, var(--cat) 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+#bandeau .voyant.ouvert.allume { box-shadow: 0 1px 0 #120f0c, 0 0 14px 2px color-mix(in srgb, var(--cat) 95%, transparent), 0 0 30px 7px color-mix(in srgb, var(--cat) 55%, transparent), inset 0 2px 4px rgba(0, 0, 0, 0.2); }

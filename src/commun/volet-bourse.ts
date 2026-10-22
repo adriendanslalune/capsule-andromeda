@@ -91,22 +91,24 @@ export class VoletBourse {
     let html = '<p class="mode-emploi">Achète des actions quand leur cours est bas, revends-les quand il a monté. Les cours sont les mêmes pour tous les capitaines.</p>'
     html += '<div class="portefeuille">'
     if (investi > 0) {
-      const g = valeur - investi
-      // Toucher le portefeuille déplie le détail des placements (demande d'Adrien du 22/10/2026).
-      html += `<button type="button" class="ligne-portefeuille" data-portefeuille aria-expanded="${this.detail}"><span><small>PORTEFEUILLE ${this.detail ? '▴' : '▾'}</small><b>${entier(valeur)} cr.</b></span>`
-        + `<span class="${sens(g)}"><b>${g >= 0 ? '+' : '−'}${entier(Math.abs(g))} cr.</b><small>${pourcent(g / investi)}</small></span>`
-        + '</button>'
+      const g = valeur - investi, n = Object.keys(p.positions).length
+      // Une ligne qui résume tout ; la toucher déplie le détail des placements (demandes d'Adrien du 22/10/2026).
+      html += `<button type="button" class="ligne-portefeuille" data-portefeuille aria-expanded="${this.detail}">`
+        + `<span><small>PORTEFEUILLE · ${n} compagnie${n > 1 ? 's' : ''} ${this.detail ? '▴' : '▾'}</small><b>${entier(valeur)} cr.</b></span>`
+        + `<span class="${sens(g)}"><b>${g >= 0 ? '+' : '−'}${entier(Math.abs(g))} cr.</b><small>${pourcent(g / investi)}</small></span></button>`
       if (this.detail) {
+        const date = (x: number) => new Date(x).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(' ', ' à ')
         html += '<div class="placements"><div class="titres"><span>compagnie</span><span>actions</span><span>payées</span><span>valent</span></div>'
           + Object.entries(p.positions).map(([cle, x]) => {
             const co = compagnie(cle)!, v = x.actions * vueAction(co, t).cours, gx = v - x.investi
-            return `<button type="button" data-action="${cle}"><span class="nom"><i class="pastille" style="background:${co.teinte}"></i>${co.nom}</span>`
+            return `<button type="button" data-action="${cle}"><span class="nom"><i class="pastille" style="background:${co.teinte}"></i><span class="nom-texte">${co.nom}`
+              + `${x.depuis ? `<small class="depuis">depuis le ${date(x.depuis)}</small>` : ''}</span></span>`
               + `<span>${actions(x.actions)}</span><span>${entier(x.investi)}</span><span><b>${entier(v)}</b><small class="${sens(gx)}">${pourcent(gx / x.investi)}</small></span></button>`
           }).join('') + '</div>'
       }
     } else html += `<div class="ligne-portefeuille"><span><small>PORTEFEUILLE</small><b>aucune action</b></span></div>`
+    // Les ordres en route (pas le dernier ordre confirmé : il est déjà dans le portefeuille, Adrien, 22/10/2026).
     html += p.ordres.map((o) => ligneOrdre(o, t)).join('')
-    if (p.journal.length && !p.ordres.length) html += ligneOrdre(p.journal[0], t)
     html += '</div>'
 
     // 1. Les compagnies (demande d'Adrien du 22/10/2026 : une lecture claire, dans l'ordre où l'on s'en sert) :

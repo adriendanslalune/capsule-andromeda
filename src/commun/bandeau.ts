@@ -80,11 +80,14 @@ const VOYANTS: { cle: Voyant; nom: string; symbole: string }[] = [
   { cle: 'contrat', nom: 'CONTRAT', symbole: picto('missions') },
   { cle: 'echo', nom: 'ÉCHO', symbole: picto('ping') },
 ]
-/** Le voyant dont l'afficheur montre le détail (null : l'afficheur est vide). */
+/** Le voyant choisi au doigt (null : l'afficheur montre ce qui compte le plus, voir afficherBandeau). */
 let voyantOuvert: Voyant | null = null
-/** Toucher un voyant : l'afficheur montre sa catégorie ; le retoucher le vide. */
+/** Ce que montre l'afficheur en ce moment, et les alertes déjà vues (une nouvelle passe devant tout). */
+let afficheActuel: Voyant | null = null
+let alertesVues = ''
+/** Toucher un voyant : l'afficheur montre sa catégorie ; retoucher celui qui est montré revient au choix du tableau. */
 export function basculerVoyant(v: Voyant): void {
-  voyantOuvert = voyantOuvert === v ? null : v
+  voyantOuvert = afficheActuel === v ? null : v
 }
 
 /** Forme du bandeau déjà affichée (lignes, genres, symboles) : si elle ne change pas, on ne change que les textes. */
@@ -124,16 +127,22 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     + `<span class="niveau" data-ligne="profil"><b>NIV ${capsule.niveau}<span>XP</span></b><span class="jauge-xp"><i></i></span></span>`
     + `<span class="credits" data-ligne="etat">${picto('credits')}<span data-texte></span></span></div>`
   // Le tableau de bord (demandes d'Adrien du 22/10/2026) : quatre voyants sur une rangée, ALERTE, QUÊTE, CONTRAT,
-  // ÉCHO, allumés quand il y a quelque chose ; dessous, l'afficheur, toujours là, vide tant qu'on n'a pas touché un
-  // voyant ; touché, il montre le détail de sa catégorie (de nouveau : il se vide).
+  // ÉCHO, allumés quand il y a quelque chose ; dessous, l'afficheur (un écran e-ink). Il montre d'office l'alerte
+  // (une nouvelle alerte passe devant tout), sinon le contrat en cours, sinon la quête suivie ; toucher un voyant y
+  // montre sa catégorie. L'écho reste allumé jusqu'à ce qu'on touche son bouton.
   const categorieDe = (l: LigneBandeau): Voyant => (l.genre === 'missile' || l.genre === 'panne' || l.genre === 'chaleur' ? 'alerte' : l.genre === 'contrat' ? 'contrat' : 'echo')
   const actives = lignes.filter((l) => l.genre !== 'orbite' && l.genre !== 'trajet')
   const nombre = (v: Voyant) => (v === 'quete' ? (capsule.quete ? 1 : 0) : actives.filter((l) => categorieDe(l) === v).length)
   const urgent = actives.some((l) => l.genre === 'missile' || l.genre === 'chaleur')
+  const alertes = actives.filter((l) => categorieDe(l) === 'alerte').map((l) => l.genre).sort().join()
+  if (alertes && alertes !== alertesVues) voyantOuvert = null
+  alertesVues = alertes
+  const affiche: Voyant | null = voyantOuvert ?? (nombre('alerte') ? 'alerte' : nombre('contrat') ? 'contrat' : nombre('quete') ? 'quete' : null)
+  afficheActuel = affiche
   const voyants = VOYANTS.map(({ cle, nom, symbole }) => {
     const n = nombre(cle)
-    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', voyantOuvert === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
-    return `<button type="button" class="${classe}" data-voyant="${cle}" aria-pressed="${voyantOuvert === cle}">${symbole}<small>${nom}</small>${n > 1 ? `<i class="compte">${n}</i>` : ''}</button>`
+    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', affiche === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
+    return `<button type="button" class="${classe}" data-voyant="${cle}" aria-pressed="${affiche === cle}">${symbole}<small>${nom}</small>${n > 1 ? `<i class="compte">${n}</i>` : ''}</button>`
   }).join('')
   // L'afficheur : les lignes de la catégorie ouverte, ou ce qui dit qu'il n'y a rien ; vide si aucun voyant n'est ouvert.
   const ligneHtml = (l: LigneBandeau) => {
@@ -148,16 +157,16 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     return `<div class="ligne vide" data-ligne="${cle}"><span class="texte"><b data-texte></b> <span data-texte></span></span></div>`
   }
   let detail = ''
-  if (voyantOuvert === 'quete') {
+  if (affiche === 'quete') {
     const q = capsule.quete
     if (q) { textes.push(q.titre, q.objectif); detail = `<div class="ligne quete ${q.principale ? 'principale' : 'secondaire'}" data-ligne="quete"><span class="texte"><b data-texte></b> <span data-texte></span></span><em>VOIR</em></div>` }
     else detail = vide('vide-quete', 'aucune quête suivie')
-  } else if (voyantOuvert) {
-    const ici = actives.filter((l) => categorieDe(l) === voyantOuvert)
+  } else if (affiche) {
+    const ici = actives.filter((l) => categorieDe(l) === affiche)
     detail = ici.length ? ici.map(ligneHtml).join('')
-      : vide(`vide-${voyantOuvert}`, voyantOuvert === 'alerte' ? 'RAS · tous les modules en état' : voyantOuvert === 'contrat' ? 'aucun contrat en cours' : 'aucun écho attendu')
+      : vide(`vide-${affiche}`, affiche === 'alerte' ? 'RAS · tous les modules en état' : affiche === 'contrat' ? 'aucun contrat en cours' : 'aucun écho attendu')
   }
-  const html = statut + `<div class="voyants">${voyants}</div><div class="afficheur${voyantOuvert ? ` v-${voyantOuvert}` : ''}">${detail}</div>`
+  const html = statut + `<div class="voyants">${voyants}</div><div class="afficheur${affiche ? ` v-${affiche}` : ''}">${detail}</div>`
   // Réécrire le bandeau relancerait les animations (le compte à rebours change chaque seconde) : seulement si sa forme
   // change ; sinon, les textes seuls.
   if (html !== forme) element.innerHTML = forme = html

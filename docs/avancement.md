@@ -17,6 +17,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | à faire |
 
+- Tableau de bord en console (demande d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : touches en relief
+  qui s'allument et brillent, écran e-ink qui montre d'office l'alerte, sinon le contrat, sinon la quête ; portefeuille
+  en une ligne qu'on déplie (date de chaque position).
 - Tableau de bord en voyants (demande d'Adrien du 22/10/2026) — **fait, en attente de ses essais** : quatre voyants
   sur une rangée (ALERTE, QUÊTE, CONTRAT, ÉCHO) et l'afficheur dessous ; annonces générales qui défilent ; Y ALLER
   cadre la capsule et la destination ; détail des placements en touchant le portefeuille ; plus de rappel « en
