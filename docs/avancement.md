@@ -17,6 +17,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 | 11. Tutoriel autour de la Terre (déplacé à la fin : d'abord toutes les mécaniques, décision d'Adrien du 18/10/2026) | à faire |
 | 12. Version installable (PWA), puis boutique | **version installable faite** (22/10/2026), en attente des essais d'Adrien ; boutique à faire |
 
+- La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
+  Adrien, 22/10/2026).
 - Comète de Halley sur la carte, à sa vraie place, avec sa traînée animée ; puis 14 petits corps célèbres et ʻOumuamua
   (éléments de JPL ; Philae et Rosetta posés sur 67P, validé) (Adrien, 22/10/2026) — **fait, en attente de ses essais**. Événements mensuels : en tout dernier (décision d'Adrien du 22/10/2026).
 - Version installable : icône, manifeste, plein écran, jeu jouable hors ligne, rubrique « Installer le jeu » dans
