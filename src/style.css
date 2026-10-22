@@ -17,6 +17,8 @@
   --hachures: repeating-linear-gradient(-45deg, rgba(224, 87, 31, 0.6) 0 2px, transparent 2px 6px);
   /* Les bandes de danger des cockpits (jaune et noir), autour de ce qui engage : DÉPART, INTERCEPTER, RÉPARER. */
   --danger: repeating-linear-gradient(-45deg, #1f1b18 0 3px, #f2b53a 3px 6px);
+  /* Hachures de dissuasion, fines et discrètes (demande d'Adrien du 22/10/2026, à la place des règles grises). */
+  --dissuasion: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--encre) 50%, transparent) 0 1.5px, transparent 1.5px 5px);
   /* Une règle graduée, comme le bord d'un instrument : un trait fin, une petite graduation, une grande tous les 5. */
   --regle: linear-gradient(var(--encre), var(--encre)) top / 100% 1px no-repeat,
     repeating-linear-gradient(90deg, var(--encre) 0 1px, transparent 1px 6px) top / 100% 3px no-repeat,
@@ -1929,7 +1931,7 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
 .grave { position: absolute; font: 600 7.5px var(--police); letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.55; pointer-events: none; }
 /* La console du haut : graduée à son pied ; une étiquette gravée. */
 #console { position: relative; padding-bottom: 11px; }
-#console::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 2px; height: 5px; background: var(--regle); opacity: 0.55; transform: scaleY(-1); pointer-events: none; }
+#console::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 4px; background: var(--dissuasion); pointer-events: none; }
 /* L'étiquette gravée, posée sur la règle comme une plaque. */
 #console::before { content: 'STATUT · CAP-01'; position: absolute; right: 18px; bottom: 1px; z-index: 1; padding: 0 5px; font: 600 7px/9px var(--police); letter-spacing: 0.22em;
   color: color-mix(in srgb, var(--encre) 55%, transparent); background: var(--creme); pointer-events: none; }
@@ -1944,24 +1946,23 @@ body.avec-trajet #cadran-vitesse { bottom: auto; }
   border: 3px solid transparent; background: linear-gradient(var(--orange), var(--orange)) padding-box, var(--danger) border-box;
 }
 /* La console du trajet : une étiquette gravée ; la feuille de route sous une règle graduée, son rail gradué. */
-#trajet { position: relative; }
 #trajet::before { content: 'NAVIGATION · NAV-02'; position: absolute; right: 12px; top: 4px; font: 600 7px var(--police); letter-spacing: 0.22em; opacity: 0.45; pointer-events: none; }
-#frise { background: var(--regle); background-size: auto; padding-top: 10px; opacity: 1; }
-#frise .rail { border-top-style: solid; border-top-width: 1px; }
-#frise .rail::after { content: ''; position: absolute; left: 0; right: 0; top: 2px; height: 4px; background: repeating-linear-gradient(90deg, var(--encre) 0 1px, transparent 1px 10px); opacity: 0.45; }
+#frise { padding-top: 10px; margin-top: 8px; height: 72px; background: var(--dissuasion) top / 100% 4px no-repeat; }
+#frise .rail { top: 30px; } #frise .fait { top: 29px; } #frise .point { top: 8px; } #frise .capsule { top: 20px; }
 /* Les instruments : un intitulé gravé en tête du boîtier. */
 #instruments { padding-top: 13px; }
 #instruments::before { content: 'CAPTEURS'; position: absolute; left: 0; right: 0; top: 3px; text-align: center; font: 600 7px var(--police); letter-spacing: 0.2em; opacity: 0.55; }
 #instruments button:first-of-type { border-top: 1px solid var(--encre); }
 /* La barre d'onglets : graduée sur son bord haut. */
-#onglets::before { height: 5px; background: var(--regle); opacity: 0.45; }
+#onglets { position: fixed; }
+#onglets::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--dissuasion); pointer-events: none; }
 /* Les intitulés de section : en orange, suivis d'une règle graduée jusqu'au bord. */
 #volet h3, .plein h3 { display: flex; align-items: center; gap: 8px; background: none; padding-bottom: 0; }
-#volet h3::after, .plein h3::after { content: ''; flex: 1; height: 7px; margin-top: 4px; background: var(--regle); opacity: 0.6; }
+#volet h3::after, .plein h3::after { content: ''; flex: 1; height: 4px; background: var(--dissuasion); }
 /* Le titre d'un volet : sa référence gravée au-dessus (data-surtitre, voir cockpit.ts). */
 #volet-titre::before { content: attr(data-surtitre); display: block; font: 600 9px var(--police); letter-spacing: 0.22em; color: var(--orange); }
 /* Les fenêtres au milieu de l'écran : la règle graduée en tête plutôt que des hachures. */
-.carte-fenetre::before { height: 7px; background: var(--regle); top: 8px; left: 14px; right: 14px; opacity: 0.6; }
+.carte-fenetre::before { height: 4px; background: var(--dissuasion); top: 6px; left: 14px; right: 14px; }
 
 /* Les Collections au même papier (demande d'Adrien du 22/10/2026) : des fiches d'archives, plus de dégradés. */
 #collections .couverture, #collections .couverture.voix, #collections .couverture.disparus { position: relative; background: var(--equerres), var(--creme); }
