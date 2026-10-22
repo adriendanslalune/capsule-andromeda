@@ -3,9 +3,8 @@
 // une autre collection que les monolithes. Chacune émet depuis un système, sur sa fréquence, une fois par jour à
 // heure fixe (la même pour tous) : il faut être dans ce système au bon moment et rester calé sur elle pour l'enregistrer. Ce sont des
 // textes (pas de voix enregistrées : le jeu sera traduit). Bande FM : les groupes de joueurs (avec le serveur).
-// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET, à corriger par Adrien (Terre et Lune,
-// Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune) ; les autres systèmes sont à écrire (leurs voix n'émettent pas
-// encore). Le fil : `docs/voix-perdues.md`.
+// Fréquences, horaires et répartition PROVISOIRES ; textes : PREMIER JET des 150 voix, à corriger par
+// Adrien. Le fil : `docs/voix-perdues.md`.
 
 /** La bande OC (MHz) : où se cachent les voix perdues. */
 export const BANDE_OC = { min: 3, max: 10 } as const
@@ -185,5 +184,21 @@ export const TEXTES_VOIX: Readonly<Record<string, readonly TexteVoix[]>> = {
     { auteur: 'Petit Louis, mécanicien du Sainte-Hélène', lieu: 'à l\'intérieur de Triton', jour: 359, texte: 'Le capitaine dit qu\'on doit continuer à émettre, pour ceux qui viendront. Alors j\'émets. Je suis Louis Peyrac, de Saint-Nazaire. J\'ai trente et un ans. J\'aime le cidre et les orages. Voilà. Maintenant, vous savez.' },
     { auteur: 'Cne Mireille Dacosta, cargo Sainte-Hélène', lieu: 'à l\'intérieur de Triton', jour: 367, texte: 'Triton s\'est mis à émettre plus fort, vers l\'extérieur, au-delà de Pluton. Les murs vibrent. Je crois qu\'il annonce que la récolte est mûre. Je crois que quelque chose, très loin, va venir la chercher.' },
     { auteur: 'Aksel, gardien de phare', lieu: 'Station Le Verrier', jour: 380, texte: 'À qui viendra abattre Triton : il y a des gens à l\'intérieur. Le Sainte-Hélène, et peut-être d\'autres. Ne tirez pas sur les serres. Et quand ce sera fini, venez boire un verre au phare. J\'aurai enfin le temps de dormir.' },
+  ],
+  Pluton: [
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 400, texte: 'Station Tombaugh, sur Pluton. Ici, le Soleil n\'est qu\'une étoile un peu plus brillante que les autres. On l\'aime quand même. On n\'a que lui.' },
+    { auteur: 'Hector, prospecteur, Société des Confins', lieu: 'Spoutnik, Pluton', jour: 402, texte: 'Hector, de la Société des Confins. On a vendu des parts à toute la Terre en promettant des mines d\'or au bout du système. Il n\'y a pas d\'or. Il y a de la glace d\'azote et une vue magnifique. Les actionnaires apprécieront la vue.' },
+    { auteur: 'Ezra Vance, géomètre', lieu: 'Charon', jour: 405, texte: 'Je cartographie Charon. Au pôle, il y a une grande tache sombre que les astronomes ont surnommée Mordor. Je confirme : il y fait sombre, il y fait froid, et quelque chose nous surveille. Ils avaient bien choisi le nom.' },
+    { auteur: 'Message automatique', lieu: 'sonde New Horizons, aux Confins', jour: 408, texte: 'NEW HORIZONS. DISTANCE DU SOLEIL : PLUS DE 60 UA, ET CROISSANTE. À BORD : UNE PART DES CENDRES DE CLYDE TOMBAUGH, QUI DÉCOUVRIT PLUTON. IL VOUS SALUE. IL CONTINUE.' },
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 412, texte: 'Le Gardien des Confins tourne au-dessus de Pluton. Il ne regarde jamais vers le dehors. Il regarde vers le Soleil, comme un douanier qui surveille la sortie.' },
+    { auteur: 'Hector, prospecteur, Société des Confins', lieu: 'Spoutnik, Pluton', jour: 417, texte: 'Il y a vingt ans, la Terre a décidé que Pluton n\'était plus une planète. Ici, on ne l\'a jamais accepté. On a une planète, un drapeau et une rancune. La rancune, c\'est ce qui tient le mieux au froid.' },
+    { auteur: 'Ezra Vance, géomètre', lieu: 'Charon', jour: 421, texte: 'Un des nôtres a tenté de quitter le système, vers les étoiles. Le Gardien l\'a rattrapé, gentiment, et l\'a ramené en orbite, sans une égratignure. Il ne garde pas la porte contre ceux qui entrent. Il la garde contre ceux qui sortent.' },
+    { auteur: 'Hector, prospecteur, Société des Confins', lieu: 'Spoutnik, Pluton', jour: 428, texte: 'On a trouvé une balise sous la glace de Spoutnik, le grand cœur blanc de Pluton. Pas comme les autres : celle-ci ne regarde pas la Terre. Elle regarde dehors, vers le noir. C\'est un phare. Pour quelqu\'un qui doit arriver.' },
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 434, texte: 'Nous sommes quatre-vingts à Tombaugh. On joue aux cartes, on écoute les voix des autres systèmes, on les recopie. Celle de Petit Louis, je la connais par cœur. Le cidre et les orages. Je n\'ai jamais vu d\'orage.' },
+    { auteur: 'Ezra Vance, géomètre', lieu: 'Charon', jour: 441, texte: 'J\'ai planté le drapeau de la Résistance au milieu de Mordor. Puis j\'ai eu un doute, et je l\'ai replanté un peu plus loin. On a sa dignité, même au bout du système.' },
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 448, texte: 'Chaque nuit, Triton envoie son rapport vers le dehors. Cette nuit, pour la première fois, quelque chose a répondu. Pas d\'une autre étoile : de bien plus près, du fond du nuage d\'Oort. Le signal a mis des semaines à nous parvenir.' },
+    { auteur: 'Hector, prospecteur, Société des Confins', lieu: 'Spoutnik, Pluton', jour: 455, texte: 'La Société des Confins annonce son premier dividende : une soupe chaude pour chaque actionnaire qui viendra la chercher jusqu\'ici. Aucun ne s\'est présenté. Plus de soupe pour nous.' },
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 466, texte: 'Le délai de la lumière ne ment pas : ce qui répond est à un mois-lumière d\'ici, et le délai raccourcit à chaque message. Il se rapproche. Triton n\'était que le jardinier. Celui qui répond, c\'est le propriétaire.' },
+    { auteur: 'Mira Kovač, opératrice radio', lieu: 'Station Tombaugh, Pluton', jour: 480, texte: 'J\'ai décodé la réponse. Les mêmes petits dessins que sur les étiquettes de Triton : la Terre, Europe, Mars. Et un dessin nouveau, une planète que personne ne connaît, avec une flèche de la Terre vers elle. Ils ne viennent peut-être pas nous cueillir. Ils viennent peut-être nous replanter. Tombaugh, terminé.' },
   ],
 }
