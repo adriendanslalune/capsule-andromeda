@@ -181,6 +181,13 @@ export class Carte2D {
    * engins) : l'épave au bout du câble, ou les trois cargos du convoi en flèche derrière elle.
    */
   sillage: 'epave' | 'convoi' | null = null
+  /**
+   * La carte épurée, pendant la présentation du monde (demande d'Adrien du 23/10/2026 : retirer tout ce qui gêne) : ni
+   * épaves, ni capsules des autres, ni chasseurs, ni drapeaux, ni poussière de satellites ; les astres et les engins
+   * seulement. Et la capsule cachée tant qu'on ne la présente pas.
+   */
+  epure = false
+  cacherCapsule = false
   /** Centre de la vue (km de carte) et échelle (km par pixel). */
   centre: Point2 = { x: 0, y: 0 }
   kmParPx = VUE_GENERALE / 195
@@ -692,7 +699,7 @@ export class Carte2D {
       }
     }
 
-    this.poussiere(ctx, t, couleurs)
+    if (!this.epure) this.poussiere(ctx, t, couleurs)
 
     // Astres : Soleil, planètes, Pluton toujours ; ce qui tourne autour d'eux quand leur système est assez grand à
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
@@ -714,7 +721,7 @@ export class Carte2D {
       if (illustre(r) && aUneIllustration(c.nom) && dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris, t)) { /* dessiné */ }
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
-      if (z?.occupee) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
+      if (z?.occupee && !this.epure) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
       if (this.nuit && c.type !== 'etoile') {
         ctx.beginPath()
@@ -776,6 +783,7 @@ export class Carte2D {
     const engins = CORPS.filter((c) => (c.type === 'alien' || c.type === 'epave' || c.type === 'monolithe' || c.type === 'satellite' || c.type === 'sonde' || c.type === 'joueur' || c.type === 'disparu' || c.type === 'zone'))
       .sort((a, b) => Number(b.type === 'alien') - Number(a.type === 'alien'))
     for (const c of engins) {
+      if (this.epure && c.type !== 'satellite' && c.type !== 'sonde') continue
       const q = this.ecranDe(projeterCorps(c.nom, t))
       if (!dedans(q.x, q.y)) continue
       const alpha = this.visibilite(c.nom, t, Math.atan2(q.y - cap.y, q.x - cap.x))
@@ -814,7 +822,24 @@ export class Carte2D {
       ctx.globalAlpha = 1
     }
 
-    // La capsule : un petit chevron cerise, dans le sens de sa marche.
+    if (!this.cacherCapsule) this.dessinerCapsule(ctx, cap, t, directionCapsule, selection, couleurs)
+
+    if (!selection) return null
+    const cible = this.dessines.find((d) => d.nom === selection)
+    if (cible) {
+      const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 144 && cible.y <= this.hauteur - 100
+      return { x: cible.x, y: cible.y, r: cible.r, visible }
+    }
+    // Pas dessinée (trop près de son astre à ce zoom) : sa place à l'écran, sans disque.
+    if (!corps(selection)) return null
+    const q = this.ecranDe(projeterCorps(selection, t))
+    const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 144 && q.y <= this.hauteur - 100
+    return { x: q.x, y: q.y, r: 2, visible }
+  }
+
+  /** La capsule : un petit chevron cerise, dans le sens de sa marche. */
+  private dessinerCapsule(ctx: CanvasRenderingContext2D, cap: { x: number; y: number }, t: number, directionCapsule: { x: number; y: number } | null | undefined,
+    selection: string | null, couleurs: Couleurs2D): void {
     // En route : sa place sur le trajet dessiné (elle y avance à vitesse régulière, voir loupe.ts).
     let { x, y } = cap
     // Vue de loin, la capsule tomberait sur le disque de son astre : on la pose juste à côté, sans le cacher.
@@ -849,18 +874,6 @@ export class Carte2D {
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
     this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }
-
-    if (!selection) return null
-    const cible = this.dessines.find((d) => d.nom === selection)
-    if (cible) {
-      const visible = cible.x >= 0 && cible.x <= this.largeur && cible.y >= 144 && cible.y <= this.hauteur - 100
-      return { x: cible.x, y: cible.y, r: cible.r, visible }
-    }
-    // Pas dessinée (trop près de son astre à ce zoom) : sa place à l'écran, sans disque.
-    if (!corps(selection)) return null
-    const q = this.ecranDe(projeterCorps(selection, t))
-    const visible = q.x >= 0 && q.x <= this.largeur && q.y >= 144 && q.y <= this.hauteur - 100
-    return { x: q.x, y: q.y, r: 2, visible }
   }
 
   /**
@@ -1256,7 +1269,8 @@ export class Carte2D {
    */
   private comete(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, soleil: { x: number; y: number },
     couleurs: Couleurs2D, dedans: (x: number, y: number, marge?: number) => boolean, activite: number, p: PetitCorps, t: number): void {
-    const L = Math.min(430, Math.max(170, 1.2e8 / this.kmParPx)) * activite
+    // Plus courte (Adrien, 23/10/2026 : trop grande, elle faisait tache) : de 70 à 190 px pour Halley.
+    const L = Math.min(190, Math.max(70, 5e7 / this.kmParPx)) * activite
     if (!dedans(q.x, q.y, L * 1.2 + 12)) return
     let dx = q.x - soleil.x, dy = q.y - soleil.y
     const n = Math.hypot(dx, dy) || 1

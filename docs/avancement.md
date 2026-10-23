@@ -41,6 +41,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   radio, Elsa annonce Nadia par radio. Écart avec le document : les contrats d'une étape (escorter, réparer, remorquer,
   le chasseur d'Olympus) se prennent au tableau du système, la quête ne pose pas encore son propre contrat. Reste :
   retrouver les messages radio dans les Messages ; les systèmes extérieurs, un à la fois.
+- La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
+  Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
+  l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.
 - Le tout début refait (23/10/2026, demandes d'Adrien) : la capsule naît 40 km derrière l'ISS (25 s de trajet) ; rien
   à l'écran que la carte, une présentation du monde en six cases (`src/commun/presentation.ts`), puis Elsa appelle par
   radio (T1 devient « rejoins-moi à l'ISS ») ; l'interface apparaît au fur et à mesure (caché, plus grisé). L'écho du

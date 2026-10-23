@@ -46,6 +46,7 @@ import { PNJS } from './donnees/quetes'
 import { radioALire, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
 import { Guide, type Cible } from './commun/guide'
 import { Presentation } from './commun/presentation'
+import { dessinerScene, type ScenePresentation } from './carte/presentation-carte'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
@@ -1621,19 +1622,36 @@ const passagesVus = new Set<string>()
 // La présentation du monde (demande d'Adrien du 23/10/2026) : avant l'histoire, une visite guidée de la carte, ses
 // vraies distances, ses vraies tailles, le temps réel, la lumière ; puis Elsa appelle (la capsule est à 30 s de l'ISS).
 const presentation = new Presentation(document.querySelector<HTMLDivElement>('#presentation')!)
+/** Cadre la carte sur le milieu de deux astres, assez large pour les voir tous les deux. */
+function cadrerEntre(a: string, b: string, part = 0.62): void {
+  const t = horloge(), p = projeterCorps(a, t), q = projeterCorps(b, t)
+  const d = Math.hypot(q.x - p.x, q.y - p.y)
+  choisir(null)
+  carte.voler(d / (part * carte.largeur), performance.now(), { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }, true)
+}
+/** Cadre la carte sur le Soleil, l'astre donné au bord. */
+function cadrerSoleil(jusqua: string, marge = 1.1): void {
+  const t = horloge(), p = projeterCorps(jusqua, t)
+  choisir(null)
+  carte.voler((marge * Math.hypot(p.x, p.y)) / (0.45 * carte.largeur), performance.now(), { x: 0, y: 0 }, true)
+}
 function lancerPresentation(): void {
   presentation.ouvrir([
-    { titre: 'Le vrai système solaire', texte: 'Voici le système solaire. Le vrai, en ce moment même : chaque planète est à sa vraie place, aujourd\'hui, à cette heure-ci. Rien n\'est inventé.',
-      vue: () => vueGenerale(carte.echelleExterieure()) },
-    { titre: 'De vraies distances', texte: 'Tout est à l\'échelle. La Lune tourne à 384 400 km de la Terre : on pourrait aligner trente Terres entre elles. Rien n\'est rapproché pour faire joli.',
-      vue: () => choisir('Terre', false, 2600) },
-    { titre: 'De vraies tailles', texte: 'Jupiter est onze fois plus large que la Terre : plus de mille Terres tiendraient dedans. Ce qui est trop petit pour être vu devient une pastille. Écarte deux doigts pour zoomer, n\'importe où.',
+    { scene: 'systeme', titre: 'Le vrai système solaire', texte: 'Voici le système solaire. Le vrai, en ce moment même : chaque planète est à sa vraie place, aujourd\'hui, à cette heure-ci. Rien n\'est inventé.',
+      vue: () => cadrerSoleil('Pluton') },
+    { scene: 'distances', titre: 'De vraies distances', texte: 'Tout est à l\'échelle. Entre la Terre et la Lune, on pourrait aligner une trentaine de Terres côte à côte. Rien n\'est rapproché pour faire joli.',
+      vue: () => cadrerEntre('Terre', 'Lune') },
+    { scene: 'tailles', titre: 'De vraies tailles', texte: 'Jupiter est onze fois plus large que la Terre : plus de mille Terres tiendraient dedans. Ce qui est trop petit pour être vu devient une pastille. Écarte deux doigts pour zoomer, n\'importe où.',
       vue: () => choisir('Jupiter', false, carte.echellePlanete('Jupiter')) },
-    { titre: 'Tout bouge, en vrai', texte: 'Tout tourne en temps réel : la Terre sur elle-même, avec la nuit là où il fait nuit ; la Lune autour d\'elle en 27 jours ; l\'ISS autour de la Terre en une heure et demie. Ce que tu vois, c\'est maintenant.',
+    { scene: 'engins', titre: 'Les vrais engins', texte: 'Les satellites et les sondes sont à leur vraie place, eux aussi : l\'ISS et Hubble frôlent la Terre, le télescope James Webb veille à un million et demi de kilomètres.',
+      vue: () => cadrerEntre('Terre', 'James Webb') },
+    { scene: 'confins', titre: 'Jusqu\'aux Confins', texte: 'Plus loin que Pluton, la comète de Halley file vers son retour, en 2061. Et tout au bout, Voyager 1, l\'objet le plus lointain jamais lancé : sa lumière met presque une journée à nous parvenir.',
+      vue: () => cadrerSoleil('Voyager 1', 1.15) },
+    { scene: 'mouvement', titre: 'Tout bouge, en vrai', texte: 'Tout tourne en temps réel : la Terre sur elle-même, avec la nuit là où il fait nuit ; la Lune autour d\'elle en 27 jours ; l\'ISS autour de la Terre en une heure et demie. Ce que tu vois, c\'est maintenant.',
       vue: () => choisir('Terre', false, carte.echelleGrosPlan('Terre', horloge())) },
-    { titre: 'La vitesse de la lumière', texte: 'Rien ne va plus vite que la lumière : 300 000 km par seconde. Un message met plus d\'une seconde à venir de la Lune, des minutes de Mars, quatre heures de Neptune. Ici, les messages et les échos voyagent à cette vitesse-là.',
-      vue: () => vueGenerale(carte.echelleGenerale()) },
-    { titre: 'Et ça, c\'est toi', texte: `Ta capsule ${jeu.numeroSerie}, en orbite à 400 km au-dessus de la Terre. Pour aller quelque part, touche un astre ou un engin sur la carte, puis DÉPART. Les trajets durent le temps qu\'il faut : de vraies distances, à la vitesse de ton moteur.`,
+    { scene: 'lumiere', titre: 'La vitesse de la lumière', texte: 'Rien ne va plus vite que la lumière : 300 000 km par seconde. Celle du Soleil met 8 minutes à nous parvenir (ici en accéléré). Les messages et les échos voyagent à cette vitesse-là.',
+      vue: () => cadrerSoleil('Mars', 1.15) },
+    { scene: 'toi', titre: 'Et ça, c\'est toi', texte: `Ta capsule ${jeu.numeroSerie}, en orbite à 400 km au-dessus de la Terre. Pour aller quelque part, touche un astre ou un engin sur la carte, puis DÉPART. Les trajets durent le temps qu'il faut : de vraies distances, à la vitesse de ton moteur.`,
       vue: () => allerALaCapsule() },
   ], () => { allerALaCapsule(); jeu.finirPresentation(horloge()); enregistrerPartie() })
 }
@@ -2086,7 +2104,7 @@ function image(maintenant: number): void {
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
   // (Les ondes d'un PING en attente d'écho aussi : elles doivent filer en douceur.)
-  const radarAnime = jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
+  const radarAnime = presentation.ouverte || jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
   // Le Soleil dessiné en grand s'anime (demande d'Adrien du 21/10/2026) : on redessine alors à chaque image.
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && !soleilAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
@@ -2109,6 +2127,9 @@ function image(maintenant: number): void {
     const enVol = mission.phase(t) === 'trajet', etapeEnCours = jeu.etapeActuelle()?.action
     carte.sillage = enVol && etapeEnCours === 'larguer' ? 'epave' : enVol && etapeEnCours === 'escorter' ? 'convoi' : null
     oublierSoleilAnime()
+    // La présentation du monde : la carte épurée, la capsule cachée jusqu'à ce qu'on la présente.
+    carte.epure = presentation.ouverte
+    carte.cacherCapsule = presentation.ouverte && presentation.scene !== 'toi'
     const place = carte.dessiner(ctxPlan, t, reglages, { encre: th.encre, fond: th.halo }, selection, direction, capsuleDessinee)
     if (reglages.grille) carte.dessinerEchelle(ctxPlan, { encre: th.encre, fond: th.halo }, texteDistance)
     // Décalage de la capsule dessinée par rapport à sa vraie place sur la carte (voir decalageCapsule).
@@ -2137,7 +2158,7 @@ function image(maintenant: number): void {
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
     // Les PNJ, leurs signes, et l'objectif de la quête suivie.
     const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null, lieuObjectif = suivie ? objectif(jeu, suivie)?.lieu ?? null : null
-    carte.dessinerPnj(ctxPlan, t, PNJS.map((p) => {
+    if (!presentation.ouverte) carte.dessinerPnj(ctxPlan, t, PNJS.map((p) => {
       const s = signePnj(jeu, p.id)
       return { lieu: p.lieu, initiale: p.nom.replace(/^(Dr|Le|La) /, '')[0], teinte: p.teinte, signe: s?.signe ?? null, principale: s?.principale ?? false }
     }), lieuObjectif ? { lieu: lieuObjectif, principale: suivie!.type === 'principale' } : null, { encre: th.encre, fond: th.halo })
@@ -2175,6 +2196,7 @@ function image(maintenant: number): void {
       boiteEtiquette = dessinerReperes(ctxPlan, largeur, hauteur, place.x, place.y, place.r, place.visible, nom, sel.distance, reglages,
         { encre: th.encre, fond: th.halo, accent }, eviter)
     }
+    if (presentation.scene) dessinerScene(ctxPlan, carte, presentation.scene as ScenePresentation, Math.max(0, performance.now() - presentation.debutScene), t, maintenant)
     // La plaque de la capsule et les noms, en dernier : là où rien d'autre n'est posé (demande d'Adrien du 21/10/2026).
     carte.dessinerNoms(ctxPlan, { encre: th.encre, fond: th.halo }, selection, [...(boiteEtiquette ? [boiteEtiquette] : []), ...zonesCommandes])
   }

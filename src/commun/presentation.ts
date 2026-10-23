@@ -5,7 +5,7 @@
 // lui donne les pages et ce que fait la caméra (main.ts).
 
 /** Une page de la visite : son titre, son texte, et la vue de la carte qui va avec. */
-export interface PagePresentation { titre: string; texte: string; vue: () => void }
+export interface PagePresentation { titre: string; texte: string; vue: () => void; scene: string }
 
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 
@@ -27,6 +27,10 @@ export class Presentation {
 
   get ouverte(): boolean { return !this.element.hidden }
 
+  /** La scène de la page affichée, et quand elle a commencé (performance.now()), pour ses animations. */
+  scene: string | null = null
+  debutScene = 0
+
   ouvrir(pages: PagePresentation[], fin: () => void): void {
     this.pages = pages
     this.fin = fin
@@ -36,6 +40,7 @@ export class Presentation {
 
   private terminer(): void {
     this.element.hidden = true
+    this.scene = null
     this.fin()
   }
 
@@ -49,6 +54,8 @@ export class Presentation {
       <div class="boutons-presentation">${derniere ? '' : '<button type="button" class="passer" data-passer>PASSER</button>'}<button type="button" class="principal">${derniere ? 'EN AVANT !' : 'SUITE ›'}</button></div>
     </div>`
     this.element.hidden = false
+    this.scene = p.scene
+    this.debutScene = performance.now()
     p.vue()
   }
 }
