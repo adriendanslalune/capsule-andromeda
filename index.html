@@ -62,14 +62,14 @@
               <button type="button" data-afficher="nuit"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="vers-sombre"><path class="lune-nuit" d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/><circle class="etoile-nuit" cx="7" cy="6" r="0.9"/><circle class="etoile-nuit" cx="4.5" cy="11" r="0.7"/></g><g class="vers-clair"><circle class="soleil-clair" cx="12" cy="12" r="4.5"/><path class="rayons-clair" d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></g></svg><span>Sombre</span></button>
             </div>
         </div>
-        <div id="rangee-messages"><button id="bulle-message" type="button" hidden></button><button id="bouton-messages" type="button" aria-label="Messages"><svg class="picto-messages" viewBox="0 0 40 40" aria-hidden="true"><path class="ondes" d="M29 7.5a6 6 0 0 1 4.5 4.5M30 3.5a10 10 0 0 1 8 8"/><path class="bulle-b" d="M16 17h17a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3l1 5-6-5h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="bulle-a" d="M6 8h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5 1-5h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="antenne" d="M22 8l4-3.5"/><circle class="antenne-bout" cx="26.5" cy="4.2" r="1.6"/><path class="texte" d="M8 13h12M8 17h8"/><circle class="point" cx="22" cy="25" r="1.3"/><circle class="point" cx="26" cy="25" r="1.3"/><circle class="point" cx="30" cy="25" r="1.3"/></svg><span class="pastille" hidden></span></button></div>
+        <div id="rangee-messages"><button id="bulle-message" type="button" hidden></button><button id="bouton-messages" type="button" data-instrument="communications" aria-label="Messages"><svg class="picto-messages" viewBox="0 0 40 40" aria-hidden="true"><path class="ondes" d="M29 7.5a6 6 0 0 1 4.5 4.5M30 3.5a10 10 0 0 1 8 8"/><path class="bulle-b" d="M16 17h17a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-3l1 5-6-5h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="bulle-a" d="M6 8h16a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-6 5 1-5h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/><path class="antenne" d="M22 8l4-3.5"/><circle class="antenne-bout" cx="26.5" cy="4.2" r="1.6"/><path class="texte" d="M8 13h12M8 17h8"/><circle class="point" cx="22" cy="25" r="1.3"/><circle class="point" cx="26" cy="25" r="1.3"/><circle class="point" cx="30" cy="25" r="1.3"/></svg><span class="pastille" hidden></span></button></div>
       </div>
     </div>
     <!-- Le boîtier des instruments, au bord droit, sous le pouce. -->
     <div id="instruments">
-      <button type="button" id="bouton-radar" aria-label="RADAR : balayer les alentours (30 secondes)"><span class="nom">RADAR</span><i class="charge"></i></button>
-      <button type="button" id="bouton-ping" aria-label="PING : chercher un monolithe à la radio"><span class="nom">PING</span><i class="charge"></i></button>
-      <button type="button" id="bouton-radio" aria-label="RADIO : chercher les Voix perdues"><span class="nom">RADIO</span></button>
+      <button type="button" id="bouton-radar" data-instrument="radar" aria-label="RADAR : balayer les alentours (30 secondes)"><span class="nom">RADAR</span><i class="charge"></i></button>
+      <button type="button" id="bouton-ping" data-instrument="ping" aria-label="PING : chercher un monolithe à la radio"><span class="nom">PING</span><i class="charge"></i></button>
+      <button type="button" id="bouton-radio" data-instrument="radio" aria-label="RADIO : chercher les Voix perdues"><span class="nom">RADIO</span></button>
     </div>
     <div id="message" hidden></div>
     <div id="trajet" hidden><div class="tete"><div id="cadran-vitesse" aria-label="Vitesse de la capsule"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="fond-cadran" d="M18 78a40 40 0 1 1 64 0"/><path class="phase-cadran" d=""/><g class="graduations"></g><line class="aiguille-vitesse" x1="50" y1="54" x2="50" y2="20"/><circle class="axe" cx="50" cy="54" r="4"/></svg><b class="valeur-vitesse"></b><small class="phase-vitesse"></small></div><div id="trajet-texte"></div><div class="boutons-fiche"><button id="bouton-communiquer" type="button" hidden>COMMUNIQUER</button><button id="bouton-attaquer" type="button" disabled hidden>ATTAQUER<small>avec les autres joueurs</small></button><button id="bouton-depart" type="button" hidden>DÉPART</button></div></div><div id="frise" hidden></div></div>
@@ -77,7 +77,7 @@
       <div class="entete"><span id="volet-titre"></span><button type="button" id="volet-fermer">Fermer</button></div>
       <div class="page" data-contenu="navigation" id="cadran"></div>
       <div class="page" data-contenu="capsule" hidden>
-        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="armement">ARMEMENT</button><button type="button" data-sous="reparation">RÉPARATION</button></div>
+        <div class="sous-onglets"><button type="button" data-sous="etat" class="actif">ÉTAT</button><button type="button" data-sous="soute">SOUTE</button><button type="button" data-sous="armement" data-instrument="armement">ARMEMENT</button><button type="button" data-sous="reparation" data-instrument="reparation">RÉPARATION</button></div>
         <div id="capsule"></div>
         <div id="soute" hidden></div>
         <div id="armement" hidden></div>
@@ -91,10 +91,10 @@
       <div class="page" data-contenu="manuel" id="manuel" hidden></div>
       <div class="page" data-contenu="profil" id="profil" hidden></div>
       <div class="page" data-contenu="messages" id="messages" hidden></div>
-      <div class="page" data-contenu="missions" id="missions" hidden><div id="en-cours-journal"></div><div class="sous-onglets" id="onglets-journal"><button type="button" data-journal-onglet="quetes" class="actif">QUÊTES</button><button type="button" data-journal-onglet="contrats">CONTRATS</button></div><div id="journal"></div><div id="contrats" hidden></div></div>
-      <div class="page" data-contenu="marche" id="marche" hidden><div class="sous-onglets" id="onglets-marche"><button type="button" data-marche-onglet="bourse" class="actif">BOURSE</button><button type="button" data-marche-onglet="comptoir">COMPTOIR</button></div><div id="bourse"></div><div id="comptoir" hidden></div></div>
+      <div class="page" data-contenu="missions" id="missions" hidden><div id="en-cours-journal"></div><div class="sous-onglets" id="onglets-journal"><button type="button" data-journal-onglet="quetes" class="actif">QUÊTES</button><button type="button" data-journal-onglet="contrats" data-instrument="contrats">CONTRATS</button></div><div id="journal"></div><div id="contrats" hidden></div></div>
+      <div class="page" data-contenu="marche" id="marche" hidden><div class="sous-onglets" id="onglets-marche"><button type="button" data-marche-onglet="bourse" data-instrument="bourse" class="actif">BOURSE</button><button type="button" data-marche-onglet="comptoir">COMPTOIR</button></div><div id="bourse"></div><div id="comptoir" hidden></div></div>
       <div class="page" data-contenu="plus" hidden>
-        <button type="button" class="rubrique" data-page="messages">Messages <span class="pastille-rubrique" hidden></span>›</button>
+        <button type="button" class="rubrique" data-page="messages" data-instrument="communications">Messages <span class="pastille-rubrique" hidden></span>›</button>
         <button type="button" class="rubrique" data-page="navigation">Navigation ›</button>
         <button type="button" class="rubrique" data-page="profil">Profil ›</button>
         <button type="button" class="rubrique" data-page="manuel">Manuel ›</button>
@@ -131,8 +131,8 @@
     <nav id="onglets">
       <button type="button" data-onglet="capsule">Capsule</button>
       <button type="button" data-onglet="missions">Journal</button>
-      <button type="button" data-onglet="marche">Marché</button>
-      <button type="button" data-onglet="collections">Collect.</button>
+      <button type="button" data-onglet="marche" data-instrument="marche">Marché</button>
+      <button type="button" data-onglet="collections" data-instrument="collections">Collect.</button>
       <button type="button" data-onglet="plus">Plus</button>
     </nav>
     <div id="combat" class="plein" hidden></div>

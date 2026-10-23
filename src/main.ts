@@ -43,6 +43,8 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
+import { radioALire, pnj as pnjDe, quiInstalle } from './moteur/quetes'
+import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
@@ -1194,10 +1196,17 @@ const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dia
   joueur: () => jeu.pseudo,
   accepter: (id) => {
     const ok = accepterQuete(jeu, id, horloge())
-    if (ok) { enregistrerPartie(); annoncer(`Nouvelle quête : ${quete(id).titre} (voir le Journal)`) }
+    if (ok) {
+      enregistrerPartie()
+      const q = quete(id)
+      annoncer(jeu.quetes[id]?.fin != null ? `Quête finie : ${q.titre} (+${q.recompense} crédits)` : `Nouvelle quête : ${q.titre} (voir le Journal)`)
+    }
     return ok
   },
+  // Un message radio lu : il ne revient plus (il reste dans la conversation du PNJ, dans les Messages).
+  ferme: (d) => { if (d.radio && radioEnCours) { radioEnCours.lu = true; radioEnCours = null; enregistrerPartie() } },
 })
+let radioEnCours: ReturnType<typeof radioALire> = null
 const pageJournal = document.querySelector<HTMLDivElement>('#journal')!
 let journalOuvert: string | null = null
 function afficherJournal(): void {
@@ -1571,6 +1580,8 @@ bulleMessage.addEventListener('click', () => { bulleMessage.hidden = true; ouvri
 function courrier(): void {
   const t = Date.now()
   if (cockpit.pageOuverte === 'messages') voletMessages.afficher(t)
+  // Sans communications (le tout début du tutoriel), rien n'arrive : la bulle et les pastilles se taisent.
+  if (!jeu.installe('communications')) { courrierDepuis = t; bulleMessage.hidden = true; return }
   const n = nonLus(jeu, t).total
   for (const [el, texte] of [[boutonMessages.querySelector<HTMLElement>('.pastille')!, String(n)],
     [document.querySelector<HTMLElement>('.pastille-rubrique')!, String(n)]] as [HTMLElement, string][]) {
@@ -1724,6 +1735,26 @@ const voletBourse = new VoletBourse(document.querySelector<HTMLDivElement>('#bou
   enregistrerPartie()
   afficherMarche(t)
 })
+// Les instruments pas encore installés (décision d'Adrien du 23/10/2026 : une capsule neuve n'a rien ; chaque instrument
+// arrive par une quête) : grisés, et les toucher dit qui va les installer. Le panneau de réparation reste ouvert pendant
+// une panne (on n'est jamais coincé).
+function instrumentLibre(i: Instrument): boolean {
+  return jeu.installe(i) || (i === 'reparation' && jeu.pannes.length > 0)
+}
+function appliquerInstruments(): void {
+  for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) el.classList.toggle('pas-installe', !instrumentLibre(el.dataset.instrument as Instrument))
+  if (!instrumentLibre('bourse') && ongletMarche === 'bourse') ongletMarche = 'comptoir'
+  if (!instrumentLibre('contrats') && ongletJournal === 'contrats') { ongletJournal = 'quetes'; afficherOngletJournal() }
+  if ((sousOnglet === 'armement' || sousOnglet === 'reparation') && !instrumentLibre(sousOnglet)) choisirSousOnglet('etat')
+}
+document.addEventListener('click', (e) => {
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-instrument]')
+  if (!el || instrumentLibre(el.dataset.instrument as Instrument)) return
+  e.preventDefault()
+  e.stopPropagation()
+  const i = el.dataset.instrument as Instrument, qui = quiInstalle(i)
+  annoncer(`${NOMS_INSTRUMENTS[i]} : pas encore installé${qui ? `. ${qui.pnj.nom} (${qui.pnj.lieu}) s'en occupera, quête « ${qui.quete.titre} »` : ''}`)
+}, true)
 // Les deux onglets du Marché ; le dernier choisi est retenu sur le téléphone.
 const CLE_ONGLET_MARCHE = 'andromeda-onglet-marche'
 let ongletMarche: 'bourse' | 'comptoir' = (() => { try { return localStorage.getItem(CLE_ONGLET_MARCHE) === 'comptoir' ? 'comptoir' : 'bourse' } catch { return 'bourse' } })()
@@ -1930,6 +1961,7 @@ function image(maintenant: number): void {
   afficherPing(t)
   afficherRadar(t)
   vueRadio.afficher()
+  appliquerInstruments()
   afficherCadranVitesse(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
@@ -1975,6 +2007,13 @@ function image(maintenant: number): void {
     navigator.vibrate?.([120, 80, 120, 80, 240])
     void feliciter({ titre: `${l.zone} libérée !`, portrait: medaillon(l.pnj, 'portrait'), nom: l.pnj.nom, role: l.pnj.role,
       texte: l.texte.map((x) => x.replaceAll('{joueur}', jeu.pseudo)), ouvre: l.ouvre, bouton: 'VIVE LA RÉSISTANCE !' })
+  }
+  // Un message radio d'un PNJ arrivé : il s'ouvre dans la fenêtre de dialogue, avec son portrait.
+  const radioArrivee = !vueDialogue.ouvert && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioALire(jeu, t) : null
+  if (radioArrivee) {
+    radioEnCours = radioArrivee
+    navigator.vibrate?.([40, 40, 40])
+    vueDialogue.ouvrir({ pnj: pnjDe(radioArrivee.pnj), pages: radioArrivee.texte, proposition: null, terminee: null, radio: { delai: radioArrivee.arrivee - radioArrivee.envoye }, ...(radioArrivee.quete ? { nouvelle: quete(radioArrivee.quete) } : {}) })
   }
   // Une confirmation de la Bourse revenue à la capsule.
   if (jeu.annoncesBourse.length && message.hidden) {

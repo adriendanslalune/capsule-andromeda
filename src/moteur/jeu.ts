@@ -40,7 +40,8 @@ import { XP } from '../donnees/niveaux'
 import { niveauDeZone } from './combat'
 import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
-import { avancerQuetes, type EtatQuete } from './quetes'
+import { avancerQuetes, type EtatQuete, type RadioPnj } from './quetes'
+import { INSTRUMENTS, type Instrument } from '../donnees/instruments'
 import { detecter, identifier, nouveauxDisparus, type EtatDisparus } from './disparus'
 import type { Disparu } from '../donnees/disparus'
 import { Mission, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
@@ -112,6 +113,12 @@ export class Jeu {
   /** Les quêtes commencées (décisions d'Adrien du 20/10/2026), celle qu'on suit sur la carte, les zones libérées. */
   quetes: Record<string, EtatQuete> = {}
   queteSuivie: string | null = null
+  /** Les messages radio des PNJ (envoyés, en route, arrivés). */
+  radioPnj: RadioPnj[] = []
+  /** Calé sur le signal d'une quête (pas sauvegardé). */
+  calageSignal: { quete: string; depuis: number } | null = null
+  /** Les instruments installés (décision d'Adrien du 23/10/2026 : une capsule neuve n'a rien ; une partie déjà commencée a tout). */
+  installes: Instrument[] = [...INSTRUMENTS]
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
   /** L'expérience du capitaine (décisions d'Adrien du 21/10/2026) : le niveau s'en déduit (moteur/niveau.ts). */
@@ -219,11 +226,17 @@ export class Jeu {
     return this.enPanne(m) && !this.defauts[m]?.length
   }
 
+  /** L'instrument est-il installé ? */
+  installe(i: Instrument): boolean {
+    return this.installes.includes(i)
+  }
+
   /** Nouvelle partie : un hasard propre à elle (missions, pannes) et un numéro de série tiré au sort. */
   nouvellePartie(graine: number): void {
     this.graine = graine >>> 0
     this.numeroSerie = numeroDeSerie(this.graine)
     this.pseudo = `Capitaine-${this.numeroSerie.slice(-3)}`
+    this.installes = []
   }
 
   /** La réparation d'un module du panneau (commencée au premier regard), ou null s'il n'est pas en défaut. */
@@ -717,6 +730,8 @@ export class Jeu {
    */
   vaincreChasseur(nom: string, t: number): void {
     this.annoncesQuetes.push(...resister(this.zones, position(nom, t), POINTS_RESISTANCE.chasseur, t))
+    const systeme = astreDominant(position(nom, t), t)
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'chasseur', systeme }, t))
     const zone = niveauDeZone(ZONES[astreDominant(position(nom, t), t)] ?? 1)
     this.gagnerXp(XP.chasseur[0] + (XP.chasseur[1] - XP.chasseur[0]) * zone)
     if (this.mission.centre(t) === nom) this.mission.decrocher(t, corps(nom)?.parent ?? 'Soleil')
@@ -1010,6 +1025,8 @@ export class Jeu {
     const p = this.mission.plan
     if (!p || t < p.arrivee || p.arrivee <= this.usureJusqua) return
     this.usureJusqua = p.arrivee
+    // Pas d'usure tant que le panneau de réparation n'est pas installé (le tutoriel l'apprend : T5).
+    if (!this.installe('reparation')) return
     const a = hasard(this.graine), b = hasard(a.graine)
     this.graine = b.graine
     if (a.x >= CHANCE_PANNE_PAR_TRAJET) return

@@ -7,11 +7,22 @@ import type { Contrat } from './contrats'
 import type { Jeu } from './jeu'
 import { deLa, estLibre, jauge, zone } from './zones'
 import { XP } from '../donnees/niveaux'
+import type { Instrument } from '../donnees/instruments'
+import { MODULES } from '../donnees/modules'
 import { COMPAGNIES } from '../donnees/bourse'
 import { MARCHES } from '../donnees/marche'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 import { zoneDuLieu } from './zones'
 import { systemeDuTableau } from '../donnees/tableaux'
+import type { MessageRadio, SuiteEtape } from '../donnees/quetes'
+import type { TexteVoix } from '../donnees/radio'
+import { DUREE_ENREGISTREMENT } from '../donnees/radio'
+import { nettete } from './radio'
+import { PORTEE_RADAR } from './radar'
+import { DISPARUS } from '../donnees/disparus'
+import { position } from './corps'
+import { C_KM_S } from './navigation'
+import { ajouterPoints } from './zones'
 
 /** Où en est une quête commencée. */
 export interface EtatQuete {
@@ -22,10 +33,16 @@ export interface EtatQuete {
   /** Acceptée à cet instant ; finie à cet instant (ou null). */
   debut: number
   fin: number | null
+  /** Début de l'étape en cours (ce qui compte pour elle : un chasseur repéré, un écho revenu depuis). */
+  depuis?: number
 }
+
+/** Un message radio d'un PNJ reçu par la capsule : il part de chez lui et arrive au délai de la lumière. */
+export interface RadioPnj { id: number; pnj: string; texte: string[]; envoye: number; arrivee: number; lu: boolean; quete?: string }
 
 /** Ce qui fait avancer les quêtes. */
 export type FaitDeJeu = { genre: 'contrat'; contrat: Contrat } | { genre: 'monolithe' } | { genre: 'instant' } | { genre: 'assaut'; zone: string }
+  | { genre: 'chasseur'; systeme: string | null }
 
 /** Ce que dit un PNJ quand on lui parle. */
 export interface Dialogue {
@@ -35,6 +52,10 @@ export interface Dialogue {
   proposition: Quete | null
   /** Une quête qu'on vient de finir avec lui (et sa récompense). */
   terminee: Quete | null
+  /** Un message reçu par radio (il parle de loin) : son délai de la lumière (ms). */
+  radio?: { delai: number }
+  /** La quête qu'il ouvre (par radio, elle est prise d'office). */
+  nouvelle?: Quete
 }
 
 export function pnj(id: string): Pnj {
@@ -111,6 +132,8 @@ export function lieuEtape(e: EtapeQuete): string | null {
   if (e.genre === 'parler') return pnj(e.pnj).lieu
   if (e.genre === 'aller' || e.genre === 'livrer') return e.lieu
   if (e.genre === 'jauge' || e.genre === 'assaut') return e.zone
+  if (e.genre === 'radar' && e.lieu) return e.lieu
+  if (e.genre === 'disparu') return DISPARUS.find((d) => d.nom === e.nom)?.nom ?? null
   return null
 }
 
@@ -127,6 +150,13 @@ export function texteEtape(e: EtapeQuete): string {
     case 'jauge': return `Porte la résistance ${deLa(e.zone)} à 100 % : contrats, chasseurs, monolithes près d'elle`
     case 'assaut': return `Attaque ${zone(e.zone)?.amiral ?? 'le vaisseau amiral'} : en orbite autour ${deLa(e.zone)}, touche ASSAUT`
     case 'liberer': return e.texte
+    case 'chasseurs': return e.texte
+    case 'signal': return e.enonce
+    case 'radar': return e.texte
+    case 'disparu': return `Retrouve ${e.nom} (les Disparus : radar allumé, puis en orbite autour)`
+    case 'moteur': return `Installe le moteur de niveau ${e.niveau} (Capsule › MOTEUR)`
+    case 'reparer': return `Répare le module ${MODULES.find((m) => m.nom === e.module)!.titre} sur le panneau (Capsule › RÉPARATION)`
+    case 'ping': return 'Envoie un PING (bouton PING de la carte) et attends son écho'
   }
 }
 
@@ -139,7 +169,7 @@ export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | 
   }
   const e = etapeCourante(jeu, q)
   if (!e) return null
-  const n = e.genre === 'mission' || e.genre === 'monolithes' ? e.nombre : 0
+  const n = e.genre === 'mission' || e.genre === 'monolithes' || e.genre === 'chasseurs' ? e.nombre : 0
   const compte = e.genre === 'jauge' ? `${jauge(jeu.zones, e.zone)} %`
     : e.genre === 'liberer' ? `${e.zones.filter((z) => jeu.zones.liberees.includes(z)).length}/${e.zones.length}`
       : n > 1 ? `${jeu.quetes[q.id].compte}/${n}` : null
@@ -163,18 +193,83 @@ export function pnjIci(jeu: Jeu, t: number): Pnj[] {
 }
 
 /** Passe à l'étape suivante d'une quête ; à la dernière, la quête est finie (récompense, zone libérée). */
-function franchir(jeu: Jeu, q: Quete, t: number): void {
+function franchir(jeu: Jeu, q: Quete, t: number): string[] {
   const e = jeu.quetes[q.id]
+  const annonces = suivreEtape(jeu, q.etapes[e.etape], t)
   e.etape++
   e.compte = 0
-  if (e.etape < q.etapes.length) return
+  e.depuis = t
+  if (e.etape < q.etapes.length) return annonces
+  finir(jeu, q, t)
+  return annonces
+}
+
+/** Une quête finie : sa récompense, ce qu'elle installe, la zone qu'elle libère, la suivante à suivre. */
+function finir(jeu: Jeu, q: Quete, t: number): void {
+  const e = jeu.quetes[q.id]
+  e.etape = q.etapes.length
   e.fin = t
+  for (const i of q.ouvre ?? []) if (!jeu.installes.includes(i)) jeu.installes.push(i)
   jeu.credits += q.recompense
   jeu.gagnerXp(Math.min(XP.quete[1], Math.max(XP.quete[0], q.recompense / 10)))
   if (q.libere && !jeu.zones.liberees.includes(q.libere)) jeu.gagnerAssaut(q.libere, t)
   // La suivante à suivre ; une principale qui s'ouvre passe devant une secondaire suivie.
   const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
   if (!suivie || suivie.id === q.id || (suivie.type === 'secondaire' && principalesAPrendre(jeu).length)) jeu.queteSuivie = queteASuivre(jeu)
+}
+
+/** Ce qui suit une étape franchie : sa part de la jauge, la réponse radio d'un PNJ. */
+function suivreEtape(jeu: Jeu, e: SuiteEtape | undefined, t: number): string[] {
+  const annonces: string[] = []
+  if (e?.jauge) {
+    const z = zone(e.jauge.zone)
+    if (z) annonces.push(...ajouterPoints(jeu.zones, z.nom, (z.seuil * e.jauge.part) / 100))
+  }
+  if (e?.radio) envoyerRadio(jeu, e.radio, t)
+  return annonces
+}
+
+/** Délai de la lumière (ms) entre le lieu d'un PNJ et la capsule. */
+export function delaiRadio(jeu: Jeu, id: string, t: number): number {
+  const a = position(pnj(id).lieu, t), b = jeu.mission.etat(t).position
+  return (Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) / C_KM_S) * 1000
+}
+
+/** Un PNJ envoie un message radio à la capsule : il arrive au délai de la lumière. */
+export function envoyerRadio(jeu: Jeu, m: MessageRadio, t: number, queteOuverte?: string): RadioPnj {
+  const r: RadioPnj = { id: (jeu.radioPnj.at(-1)?.id ?? 0) + 1, pnj: m.pnj, texte: m.texte, envoye: t, arrivee: t + delaiRadio(jeu, m.pnj, t), lu: false, ...(queteOuverte ? { quete: queteOuverte } : {}) }
+  jeu.radioPnj.push(r)
+  return r
+}
+
+/** Le prochain message radio arrivé et pas encore lu (le plus ancien), ou null. */
+export function radioALire(jeu: Jeu, t: number): RadioPnj | null {
+  return jeu.radioPnj.find((r) => !r.lu && r.arrivee <= t) ?? null
+}
+
+/** Les messages radio d'un PNJ arrivés (sa conversation, dans les Messages). */
+export function radiosDe(jeu: Jeu, id: string, t: number): RadioPnj[] {
+  return jeu.radioPnj.filter((r) => r.pnj === id && r.arrivee <= t)
+}
+
+/** Prend une quête : elle commence, avec ce qu'elle installe, donne ou met en panne. */
+function commencer(jeu: Jeu, q: Quete, t: number): void {
+  jeu.quetes[q.id] = { etape: 0, compte: 0, debut: t, fin: null, depuis: t }
+  for (const i of q.installe ?? []) if (!jeu.installes.includes(i)) jeu.installes.push(i)
+  if (q.don) jeu.charger(q.don)
+  if (q.panne && !jeu.enPanne(q.panne)) jeu.casser(q.panne)
+}
+
+/** Les quêtes proposées par radio sont prises d'office ; leur intro arrive en message. */
+function prendreParRadio(jeu: Jeu, t: number): void {
+  for (const q of disponibles(jeu)) {
+    if (!q.parRadio) continue
+    commencer(jeu, q, t)
+    envoyerRadio(jeu, { pnj: q.donneur, texte: q.intro }, t, q.id)
+    if (!q.etapes.length) finir(jeu, q, t)
+    const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
+    if (!suivie || q.type === 'principale' && suivie.type !== 'principale' || finie(jeu, suivie.id)) jeu.queteSuivie = q.id
+  }
 }
 
 /** On parle à un PNJ (la capsule en orbite à son lieu). */
@@ -184,10 +279,11 @@ export function parler(jeu: Jeu, id: string, t: number): Dialogue {
   for (const q of enCours(jeu)) {
     const e = etapeCourante(jeu, q)
     if (e?.genre !== 'parler' || e.pnj !== id) continue
-    franchir(jeu, q, t)
+    jeu.annoncesQuetes.push(...franchir(jeu, q, t))
+    avancerQuetes(jeu, { genre: 'instant' }, t)
     return { pnj: p, pages: e.texte, proposition: null, terminee: finie(jeu, q.id) ? q : null }
   }
-  const q = disponibles(jeu).find((x) => x.donneur === id)
+  const q = disponibles(jeu).find((x) => x.donneur === id && !x.parRadio)
   if (q) return { pnj: p, pages: q.intro, proposition: q, terminee: null }
   return { pnj: p, pages: [p.repos], proposition: null, terminee: null }
 }
@@ -196,8 +292,10 @@ export function parler(jeu: Jeu, id: string, t: number): Dialogue {
 export function accepter(jeu: Jeu, id: string, t: number): boolean {
   const q = disponibles(jeu).find((x) => x.id === id)
   if (!q) return false
-  jeu.quetes[id] = { etape: 0, compte: 0, debut: t, fin: null }
+  commencer(jeu, q, t)
   if (!jeu.queteSuivie || q.type === 'principale' && quete(jeu.queteSuivie).type !== 'principale') jeu.queteSuivie = id
+  // Une quête sans étape (le premier mot d'Elsa) est finie en la prenant.
+  if (!q.etapes.length) finir(jeu, q, t)
   avancerQuetes(jeu, { genre: 'instant' }, t)
   return true
 }
@@ -208,6 +306,7 @@ export function accepter(jeu: Jeu, id: string, t: number): boolean {
  */
 export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
   const annonces: string[] = []
+  prendreParRadio(jeu, t)
   for (const q of enCours(jeu)) {
     for (let garde = 0; garde < q.etapes.length; garde++) {
       const e = etapeCourante(jeu, q), etat = jeu.quetes[q.id]
@@ -220,6 +319,28 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
       } else if (e.genre === 'monolithes' && fait.genre === 'monolithe' && garde === 0) {
         etat.compte++
         atteint = etat.compte >= e.nombre
+      } else if (e.genre === 'chasseurs' && fait.genre === 'chasseur' && garde === 0 && (!e.systeme || fait.systeme === e.systeme)) {
+        etat.compte++
+        atteint = etat.compte >= e.nombre
+        if (!atteint) annonces.push(`${q.titre} : ${etat.compte}/${e.nombre}`)
+      } else if (e.genre === 'signal') {
+        atteint = etat.compte >= 1
+      } else if (e.genre === 'radar') {
+        const depuis = etat.depuis ?? etat.debut
+        if (e.lieu) {
+          const a = position(e.lieu, t), b = jeu.mission.etat(t).position
+          atteint = jeu.radar.actif && Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) <= PORTEE_RADAR
+        } else atteint = Object.values(jeu.espace.reperes ?? {}).some((x) => x >= depuis)
+      } else if (e.genre === 'disparu') {
+        const d = DISPARUS.find((x) => x.nom === e.nom)
+        atteint = !d || jeu.disparus.trouves[d.numero] !== undefined
+      } else if (e.genre === 'moteur') {
+        atteint = jeu.niveauMoteur >= e.niveau
+      } else if (e.genre === 'reparer') {
+        atteint = !jeu.enPanne(e.module)
+      } else if (e.genre === 'ping') {
+        const depuis = etat.depuis ?? etat.debut
+        atteint = jeu.monolithes.echos.some((x) => x.envoye >= depuis && x.retour <= t)
       } else if (e.genre === 'jauge') {
         atteint = jauge(jeu.zones, e.zone) >= 100
       } else if (e.genre === 'assaut') {
@@ -238,11 +359,13 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
         atteint = true
       }
       if (!atteint) break
-      franchir(jeu, q, t)
+      annonces.push(...franchir(jeu, q, t))
       const suite = objectif(jeu, q)
       annonces.push(suite ? `${q.titre} : ${suite.texte}` : `Quête finie : ${q.titre} (+${q.recompense} crédits)`)
     }
   }
+  // Une quête finie peut en ouvrir une autre par radio : elle arrive aussitôt.
+  prendreParRadio(jeu, t)
   return annonces
 }
 
@@ -298,6 +421,12 @@ export function liberation(nom: string): Liberation {
   const retour = q?.etapes.find((e) => e.genre === 'parler')
   const p = pnj(retour && retour.genre === 'parler' ? retour.pnj : q?.donneur ?? PNJS[0].id)
   const la = ['Lune', 'Terre'].includes(nom) ? `La ${nom}` : nom
+  if (q?.liberation) {
+    const ouvreL: string[] = []
+    if (MARCHES.some((m) => m.lieu === nom)) ouvreL.push(`Le comptoir ${deLa(nom)}`)
+    for (const c of COMPAGNIES.filter((x) => x.siege === nom)) ouvreL.push(`La cotation de la ${c.nom}`)
+    return { zone: nom, pnj: pnj(q.liberation.pnj), texte: q.liberation.texte, ouvre: ouvreL }
+  }
   const texte = [`Le vaisseau amiral ${z.amiral} est en miettes, {joueur} ! ${la} est libre.`,
     `Viens me voir à ${p.lieu} : la Résistance te doit une récompense.`]
   const ouvre: string[] = []
@@ -307,4 +436,40 @@ export function liberation(nom: string): Liberation {
   if (secondaires.length) ouvre.push(`Les quêtes de ${secondaires.join(', ')}`)
   if (z.planete) ouvre.push(`Plus de chasseurs autour ${deLa(nom)}`)
   return { zone: nom, pnj: p, texte, ouvre }
+}
+
+/** Le signal radio d'une quête qu'on peut capter dans ce système (une étape « signal » en cours), ou null. */
+export function signalDeQuete(jeu: Jeu, systeme: string | null): { quete: Quete; frequence: number; texte: TexteVoix } | null {
+  if (!systeme) return null
+  for (const q of enCours(jeu)) {
+    const e = etapeCourante(jeu, q)
+    if (e?.genre === 'signal' && e.systeme === systeme && jeu.quetes[q.id].compte < 1) {
+      return { quete: q, frequence: e.frequence, texte: { auteur: e.auteur, lieu: e.lieu, jour: 0, texte: e.texte } }
+    }
+  }
+  return null
+}
+
+/**
+ * On écoute un signal de quête, calé à `frequence` (MHz) : comme une Voix perdue, calé net DUREE_ENREGISTREMENT, il
+ * est capté et l'étape est faite. Null si aucun signal de quête ne s'entend ici à cette fréquence.
+ */
+export function ecouterSignal(jeu: Jeu, systeme: string | null, frequence: number, t: number): { texte: TexteVoix; nettete: number; enregistrement: number; capte: boolean } | null {
+  const s = signalDeQuete(jeu, systeme)
+  const n = s ? nettete(frequence - s.frequence) : 0
+  if (!s || n <= 0) { jeu.calageSignal = null; return null }
+  if (n < 0.95) { jeu.calageSignal = null; return { texte: s.texte, nettete: n, enregistrement: 0, capte: false } }
+  if (jeu.calageSignal?.quete !== s.quete.id) jeu.calageSignal = { quete: s.quete.id, depuis: t }
+  const enregistrement = Math.min(1, (t - jeu.calageSignal.depuis) / DUREE_ENREGISTREMENT)
+  if (enregistrement < 1) return { texte: s.texte, nettete: n, enregistrement, capte: false }
+  jeu.quetes[s.quete.id].compte = 1
+  jeu.calageSignal = null
+  jeu.annoncesQuetes.push(...avancerQuetes(jeu, { genre: 'instant' }, t))
+  return { texte: s.texte, nettete: n, enregistrement: 1, capte: true }
+}
+
+/** Qui installe un instrument : la quête qui l'apporte et son donneur (pour le dire sur ce qui est encore grisé). */
+export function quiInstalle(i: Instrument): { quete: Quete; pnj: Pnj } | null {
+  const q = QUETES.find((x) => x.installe?.includes(i) || x.ouvre?.includes(i))
+  return q ? { quete: q, pnj: pnj(q.donneur) } : null
 }

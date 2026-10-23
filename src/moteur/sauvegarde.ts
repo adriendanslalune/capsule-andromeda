@@ -13,7 +13,8 @@ import { MODULES, type NomModule } from '../donnees/modules'
 import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
-import { QUETES } from '../donnees/quetes'
+import { PNJS, QUETES } from '../donnees/quetes'
+import { INSTRUMENTS } from '../donnees/instruments'
 import { COMPAGNIES } from '../donnees/bourse'
 import { NOMBRE_VOIX } from '../donnees/radio'
 import type { OrdreBourse, Portefeuille } from './bourse'
@@ -63,6 +64,10 @@ export interface Sauvegarde {
   disparus?: Jeu['disparus']
   quetes?: Jeu['quetes']
   queteSuivie?: string | null
+  /** Les messages radio des PNJ (absent : aucun). */
+  radioPnj?: Jeu['radioPnj']
+  /** Les instruments installés (absent : une partie d'avant le 23/10/2026, qui les a tous). */
+  installes?: Jeu['installes']
   /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
   zonesLiberees?: string[]
   /** L'expérience du capitaine, et le commerce du jour (absents : 0). */
@@ -103,7 +108,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, radioPnj: jeu.radioPnj, installes: jeu.installes, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -227,10 +232,15 @@ export function restaurer(s: unknown): Jeu | null {
   if (v.quetes && typeof v.quetes === 'object') {
     for (const [id, e] of Object.entries(v.quetes)) {
       if (QUETES.some((q) => q.id === id) && e && nombre(e.etape) && nombre(e.compte) && nombre(e.debut) && (e.fin === null || nombre(e.fin))) {
-        jeu.quetes[id] = { etape: e.etape, compte: e.compte, debut: e.debut, fin: e.fin }
+        jeu.quetes[id] = { etape: e.etape, compte: e.compte, debut: e.debut, fin: e.fin, ...(nombre(e.depuis) ? { depuis: e.depuis } : {}) }
       }
     }
   }
+  if (Array.isArray(v.radioPnj)) {
+    jeu.radioPnj = v.radioPnj.filter((r) => !!r && nombre(r.id) && PNJS.some((p) => p.id === r.pnj) && Array.isArray(r.texte)
+      && r.texte.every((x) => typeof x === 'string') && nombre(r.envoye) && nombre(r.arrivee)).map((r) => ({ id: r.id, pnj: r.pnj, texte: [...r.texte], envoye: r.envoye, arrivee: r.arrivee, lu: !!r.lu, ...(typeof r.quete === 'string' ? { quete: r.quete } : {}) }))
+  }
+  if (Array.isArray(v.installes)) jeu.installes = INSTRUMENTS.filter((i) => v.installes!.includes(i))
   // La Bourse : seulement les compagnies qui existent, des nombres valides.
   if (v.bourse && typeof v.bourse === 'object') {
     const connue = (id: unknown) => COMPAGNIES.some((x) => x.id === id)
@@ -299,5 +309,19 @@ export function restaurer(s: unknown): Jeu | null {
       jeu.reparations.bornier = energie
     }
   }
+  if (!Array.isArray(v.installes)) reprendreAncienneCampagne(jeu, v.quetes ?? {}, v.enregistreLe)
   return jeu
+}
+
+/**
+ * Une partie d'avant le tutoriel (23/10/2026) : elle garde tous ses instruments, le tutoriel est compté comme fait, et
+ * les anciennes quêtes de la Lune reprennent à l'étape équivalente (lune-1 → T8, lune-3 → L1, lune-4 → L2, lune-5 → L3).
+ */
+function reprendreAncienneCampagne(jeu: Jeu, anciennes: Record<string, { fin?: unknown } | undefined>, t: unknown): void {
+  const quand = nombre(t) ? t : 0
+  const faite = (id: string) => { if (!jeu.quetes[id]) jeu.quetes[id] = { etape: QUETES.find((q) => q.id === id)!.etapes.length, compte: 0, debut: quand, fin: quand } }
+  for (const id of ['t1', 't2', 't3', 't4', 't5', 't6', 't7']) faite(id)
+  const correspondances: [string, string][] = [['lune-1', 't8'], ['lune-3', 'l1'], ['lune-4', 'l2'], ['lune-5', 'l3']]
+  for (const [ancienne, nouvelle] of correspondances) if (nombre(anciennes[ancienne]?.fin)) faite(nouvelle)
+  if (jeu.zones.liberees.includes('Lune')) faite('l3')
 }

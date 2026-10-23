@@ -94,7 +94,7 @@ export class Cockpit {
       const k = ORDRE_ONGLETS.indexOf(ONGLET[this.page] as Page) + (dx < 0 ? 1 : -1)
       const voisin = ORDRE_ONGLETS[k]
       const bouton = voisin && document.querySelector<HTMLButtonElement>(`#onglets [data-onglet="${voisin}"]`)
-      if (!bouton || bouton.disabled) return
+      if (!bouton || bouton.disabled || bouton.classList.contains('pas-installe')) return
       this.ouvrir(voisin)
       const page = this.volet.querySelector<HTMLElement>(`.page[data-contenu="${voisin}"]`)
       if (page) { page.classList.remove('vers-gauche', 'vers-droite'); void page.offsetWidth; page.classList.add(dx < 0 ? 'vers-gauche' : 'vers-droite') }

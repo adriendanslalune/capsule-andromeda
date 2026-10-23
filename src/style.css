@@ -1202,6 +1202,7 @@ html, body {
 #dialogue { overflow-y: auto; align-items: center; padding: calc(24px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
   background: color-mix(in srgb, #2b2138 55%, var(--fond)); }
 #dialogue > * { width: 100%; max-width: 360px; }
+#dialogue .par-radio { align-self: flex-start; margin-top: 10px; padding: 5px 10px; background: var(--creme); border: 1px solid var(--encre); border-left: 4px solid var(--orange); font: 600 11px/1.2 var(--police); letter-spacing: 0.08em; color: var(--encre); }
 #dialogue .fiche-pnj { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px; background: var(--creme);
   border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); animation: surgir 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
 #dialogue .fiche-pnj b { display: block; font-size: 17px; }
@@ -2465,3 +2466,6 @@ body.volet-ouvert #annonces { display: none; }
 #bandeau .afficheur .ligne.quete.secondaire .losange { width: 6px; height: 6px; margin: 0 9px 1px 3px; background: var(--encre); border: none; }
 #bandeau .afficheur .ligne.quete b > span { display: inline; font-size: inherit; opacity: 1; }
 #carnet .bande .heure-voix { font-weight: 600; color: color-mix(in srgb, var(--encre) 75%, transparent); }
+
+/* Un instrument pas encore installé (décision d'Adrien du 23/10/2026) : grisé ; le toucher dit qui l'installera. */
+.pas-installe { opacity: 0.38; filter: grayscale(1); }

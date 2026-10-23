@@ -26,6 +26,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Le tutoriel revu le 23/10/2026 : récompenses à la baisse (340 cr. pour les huit quêtes, 700 pour la Lune, 1 000 par
   planète intérieure ; le moteur se paie avec les contrats) ; une main de pulp et un contour orange montrent où toucher
   aux premières manipulations (proposition à valider).
+- Le tutoriel et la Lune codés (23/10/2026, d'après `docs/campagne-detail.md` validé par Adrien) : huit quêtes autour
+  de la Terre (Elsa, Wei Lan, Joe Hennessy, le Veilleur) puis trois autour de la Lune (Okafor, Keïta, Elsa) ; une
+  capsule neuve n'a rien d'installé, chaque instrument arrive par une quête (grisé avant, le toucher dit qui
+  l'installera ; une partie d'avant garde tout et compte le tutoriel comme fait) ; nouvelles étapes (capter un signal
+  à la radio, repérer au radar, retrouver un Disparu, installer un moteur, réparer un module, PING, abattre des
+  chasseurs) ; les PNJ répondent par radio (fenêtre « PAR RADIO », délai de la lumière) et envoient la quête suivante ;
+  chaque étape remplit sa part de la jauge ; pas d'usure avant le panneau de réparation. Reste : la main qui montre où
+  toucher, les planètes intérieures, les messages radio à retrouver dans les Messages.
 - Les orbites des comètes et petits corps en pointillé plus fin et plus pâle (demande d'Adrien du 23/10/2026).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).

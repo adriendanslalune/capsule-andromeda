@@ -48,7 +48,7 @@ const PNJ_DU_SYSTEME: Record<string, string> = {
 }
 /** La quête qui ouvre les quêtes de libération de chaque système. */
 const OUVERTURE: Record<string, string> = {
-  Mars: 'lune-5', Vénus: 'lune-5', Mercure: 'lune-5', Jupiter: 'interieures', Saturne: 'jupiter', Uranus: 'saturne', Neptune: 'uranus', Pluton: 'neptune',
+  Mars: 'l3', Vénus: 'l3', Mercure: 'l3', Jupiter: 'interieures', Saturne: 'jupiter', Uranus: 'saturne', Neptune: 'uranus', Pluton: 'neptune',
 }
 
 /** Une phrase sur chaque zone, pour la quête de sa libération. */
@@ -112,7 +112,7 @@ const libs = (systeme: string) => ZONES_A_LIBERER.filter((z) => z.systeme === sy
 /** Les grandes étapes de la campagne, après la Lune. */
 const ACTES: Quete[] = [
   {
-    id: 'interieures', titre: 'Les planètes intérieures', type: 'principale', donneur: 'elsa', conditions: ['lune-5'],
+    id: 'interieures', titre: 'Les planètes intérieures', type: 'principale', donneur: 'elsa', conditions: ['l3'],
     intro: [
       'La Lune est libre, et ça se sait. Sur Mars, sur Vénus, sur Mercure, la Résistance relève la tête.',
       'Va les aider, dans l\'ordre que tu veux : Idris sur la Station Arès, Lior sur l\'Aérostat Ishtar, Sœur Marguerite à la Forge Caloris.',

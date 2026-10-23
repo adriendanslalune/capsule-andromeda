@@ -76,8 +76,9 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
 
   it('les quêtes secondaires d’un PNJ ne s’ouvrent qu’une fois sa zone libérée', () => {
     const jeu = new Jeu()
-    // Le Veilleur (Hubble) et Rosa (Tiangong) sont dans le système de la Terre, libre.
-    expect(disponibles(jeu).filter((q) => q.type === 'secondaire').map((q) => q.id).sort()).toEqual(['rosa', 'veilleur'])
+    jeu.quetes.t4 = { etape: 9, compte: 0, debut: t0, fin: t0 }
+    // Rosa (Tiangong) est dans le système de la Terre, libre.
+    expect(disponibles(jeu).filter((q) => q.type === 'secondaire').map((q) => q.id).sort()).toEqual(['rosa'])
   })
 
   it('la campagne : chaque zone a sa quête de libération (jauge, assaut, retour au PNJ) ; l’ordre des systèmes', () => {
@@ -85,14 +86,15 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
       const q = QUETES.find((x) => x.libere === z.nom)
       expect(q, z.nom).toBeDefined()
       expect(q!.type).toBe('principale')
-      expect(q!.etapes.map((e) => e.genre)).toEqual(['jauge', 'assaut', 'parler'])
+      // Les dernières étapes : la jauge, puis l'assaut (la Lune : par radio, sans retour au PNJ).
+      expect(q!.etapes.map((e) => e.genre).slice(0, 2)).toEqual(['jauge', 'assaut'])
     }
     // Les planètes intérieures s'ouvrent ensemble après la Lune, dans l'ordre qu'on veut ; Jupiter après elles.
-    for (const n of ['mars', 'venus', 'mercure']) expect(quete(`liberer-${n}`).conditions).toEqual(['lune-5'])
+    for (const n of ['mars', 'venus', 'mercure']) expect(quete(`liberer-${n}`).conditions).toEqual(['l3'])
     expect(quete('liberer-io').conditions).toEqual(['interieures'])
     expect(quete('interieures').etapes[0]).toMatchObject({ genre: 'liberer', zones: ['Mars', 'Vénus', 'Mercure'] })
     const jeu = new Jeu()
-    jeu.quetes['lune-5'] = { etape: 9, compte: 0, debut: t0, fin: t0 }
+    jeu.quetes.l3 = { etape: 9, compte: 0, debut: t0, fin: t0 }
     accepter(jeu, 'interieures', t0)
     expect(objectif(jeu, quete('interieures'))?.compte).toBe('0/3')
     for (const z of ['Mercure', 'Mars', 'Vénus']) jeu.gagnerAssaut(z, t0)
@@ -118,7 +120,7 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
     jeu.gagnerAssaut('Lune', t0 + 1000) // déjà libre : ni fenêtre ni feu de plus
     expect(jeu.liberationsAAnnoncer).toHaveLength(1)
     const l = liberation('Lune')
-    expect(l.texte.join(' ')).toContain('le Séléné')
+    expect(l.texte.join(' ')).toContain('Tycho')
     expect(l.ouvre).toContain('La cotation de la Compagnie Lunaire de Tycho')
     const mars = liberation('Mars')
     expect(mars.ouvre).toContain('Le comptoir de Mars')
