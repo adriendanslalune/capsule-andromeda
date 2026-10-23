@@ -49,6 +49,37 @@ Elles demandent des choses simples, tout près, montrent une mécanique à la fo
 neuve n'a rien d'installé** : pas de radar, de PING, de radio, de Marché ni de communications. Chaque instrument
 arrive par une quête. Le prologue est long, c'est normal : c'est là qu'on apprend tout.
 
+### Les récompenses (Adrien, 23/10/2026 : trop élevées dans le jet précédent)
+
+Le principe : **une quête paie à peu près ce que paient un ou deux contrats de sa zone ; le moteur se paie avec les
+contrats.** Autour de la Terre, un contrat rapporte de 50 à 150 cr. Au départ, on a 0 cr. Les huit quêtes du tutoriel
+rapportent 340 cr. en tout ; avec leurs contrats (3 VIDER, 2 ABATTRE), on arrive au niveau 2 (200 cr.) à la fin de T4
+sans pouvoir s'offrir le 3 (400 cr.). Les niveaux 3 et 4 (1 200 cr. de plus) se gagnent ensuite en jouant, une
+quinzaine de contrats : c'est le moment où le joueur apprend à se débrouiller seul, avec un but clair (la Lune). La
+Lune rapporte 700 cr. en tout, chaque planète intérieure 1 000 cr.
+
+### Montrer où toucher
+
+Tant qu'une mécanique n'a jamais servi, le jeu montre où toucher : **une main de pulp qui pointe** (le doigt tendu, la
+manchette, un trait d'encre, comme dans les réclames des années 50), qui bat doucement, et **un contour orange en
+pointillés qui tourne** autour de l'endroit à toucher. Le reste ne s'assombrit pas : on peut toujours faire autre chose.
+Une seule main à la fois ; elle suit le geste suivant dès que le premier est fait, et disparaît pour de bon une fois la
+manœuvre réussie (elle ne revient jamais : c'est mémorisé dans la sauvegarde). Une bulle de BD à côté de la main, deux
+ou trois mots au plus (« Touche l'ISS », « DÉPART ! »).
+
+| Quête | Ce que la main montre, dans l'ordre |
+|---|---|
+| T1 | l'ISS sur la carte (en zoomant dessus d'office) → DÉPART → à l'arrivée, PARLER sur la fiche → la page suivante du dialogue |
+| T2 | l'onglet QUÊTE du tableau de bord (« la suite est là ») → Tiangong → DÉPART |
+| T3 | Journal › CONTRATS → un contrat VIDER → son bouton → le premier geste du tri ; puis la soute (Capsule) pour voir la ferraille |
+| T4 | le Marché › COMPTOIR → ACHETER ; puis Capsule › MOTEUR → AMÉLIORER |
+| T5 | l'onglet ALERTE (la panne) → RÉPARER → le glissement vers le Manuel → le module à régler |
+| T6 | le bouton RADAR → le chasseur révélé → Journal › CONTRATS → un ABATTRE ; puis Capsule › ARMEMENT, une fois, pour le montrer |
+| T7 | le bouton PING → l'onde qui part (« attends l'écho ») → le cercle revenu → Collections |
+| T8 | le bouton RADIO → le cadran de fréquence → l'aiguille calée net |
+
+Les contrats et la quête suivie gardent ensuite leur repère habituel sur la carte (le losange), sans la main.
+
 ### Ce qui est installé, et quand
 
 | Au départ | La carte, les trajets, le volet Capsule (moteur, modules), le Journal (QUÊTES), Plus (Profil, Manuel, Réglages) |
@@ -74,7 +105,7 @@ l'ISS, s'en occupe »). Une partie déjà commencée garde tout ce qu'elle a.
 - Puis, vers la Lune : le **Dr Keïta** (en orbite lunaire) et le **Dr Okafor** (Base Tycho, par radio).
 
 ### T1 · Bienvenue dans la Résistance
-Au lancement, la fenêtre de bienvenue, puis le tableau de bord : « Parle à Elsa Varga (ISS) ». Récompense : 200 cr.,
+Au lancement, la fenêtre de bienvenue, puis le tableau de bord : « Parle à Elsa Varga (ISS) ». Récompense : 50 cr.,
 100 XP. On apprend : toucher un lieu, DÉPART, l'arrivée en orbite, PARLER.
 
 1. **Aller à l'ISS et parler à Elsa Varga**
@@ -90,7 +121,7 @@ Au lancement, la fenêtre de bienvenue, puis le tableau de bord : « Parle à El
    → les communications sont installées.
 
 ### T2 · Un colis pour Tiangong
-Elsa, par radio, aussitôt. Récompense : 150 cr., 100 XP. On apprend : la soute, livrer.
+Elsa, par radio, aussitôt. Récompense : 40 cr., 100 XP. On apprend : la soute, livrer.
 
 « Premier service : Wei Lan, notre ingénieure, attend des pièces à Tiangong, tout près d'ici. Je les ai mises dans ta
 soute. Elle t'expliquera mieux que moi ce qu'on sait d'eux. »
@@ -103,7 +134,7 @@ soute. Elle t'expliquera mieux que moi ce qu'on sait d'eux. »
    « Je note tout, pour celui qui viendra après. Peut-être que c'est toi. »
 
 ### T3 · De la ferraille pour Wei Lan
-Wei Lan, dans la foulée. Récompense : 300 cr., 150 XP. On apprend : les contrats, VIDER, les matériaux, les Maisons.
+Wei Lan, dans la foulée. Récompense : 50 cr., 150 XP. On apprend : les contrats, VIDER, les matériaux, les Maisons.
 
 « Pour remettre Tiangong d'aplomb, il me faut de la ferraille, et l'orbite de la Terre en est pleine : des épaves,
 par centaines. Les Nettoyeurs paient pour qu'on les vide. »
@@ -122,7 +153,7 @@ VIDER, trie bien ce que tu trouves, et rapporte-moi une tonne de ferraille. Le r
    moteurs que lui. Va le voir de ma part. »
 
 ### T4 · Le garage de Joe
-Récompense : 200 cr., 200 XP. On apprend : le Marché, améliorer le moteur. Le premier « vrai » trajet : 36 000 km.
+Récompense : aucune en crédits (Joe ne fait pas crédit), 200 XP. On apprend : le Marché, améliorer le moteur. Le premier « vrai » trajet : 36 000 km.
 
 1. **Parler à Joe Hennessy** (près de GOES-19)
    « Wei Lan t'envoie ? Fais voir ta capsule. Oh là. Trente kilomètres-seconde. Ma grand-mère allait plus vite en
@@ -137,7 +168,7 @@ Récompense : 200 cr., 200 XP. On apprend : le Marché, améliorer le moteur. Le
    faudra deux de plus. Reviens me voir, j'aime bien les clients. »
 
 ### T5 · Le panneau
-Wei Lan, par radio. Récompense : 200 cr., 150 XP. On apprend : les pannes, le panneau de réparation, le Manuel.
+Wei Lan, par radio. Récompense : 30 cr., 150 XP. On apprend : les pannes, le panneau de réparation, le Manuel.
 
 « Capitaine, une chose que personne ne t'a dite : une capsule, ça tombe en panne. L'usure, ou un missile. Je vais te
 montrer, sans danger. Je coupe ton module d'Énergie à distance. Oui, exprès. »
@@ -150,7 +181,7 @@ es vraiment coincé, le dépanneur passera, mais il prend la moitié de ton arge
    plus souvent que ton canon. »
 
 ### T6 · Les yeux d'Andromède
-Elsa, par radio. Récompense : 600 cr., 200 XP. On apprend : le radar, l'armement, ABATTRE.
+Elsa, par radio. Récompense : 60 cr., 200 XP. On apprend : le radar, l'armement, ABATTRE.
 
 « Il est temps de te battre, capitaine. Leurs chasseurs sont furtifs : sans radar, tu ne les vois pas. Je t'en fais
 installer un, et de quoi tirer. »
@@ -165,7 +196,7 @@ contrats ABATTRE des Mercenaires : il y a deux chasseurs tout près de la Terre.
    de Hubble a demandé à te voir. C'est un drôle de type. Écoute-le quand même. »
 
 ### T7 · L'oreille du Veilleur
-Récompense : 300 cr., 150 XP. On apprend : le PING, les monolithes, les Collections.
+Récompense : 30 cr., 150 XP. On apprend : le PING, les monolithes, les Collections.
 
 1. **Parler au Veilleur** (Hubble)
    « Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous.
@@ -180,7 +211,7 @@ Récompense : 300 cr., 150 XP. On apprend : le PING, les monolithes, les Collect
    (Trouver un monolithe n'est pas demandé : le plus proche peut être très loin.)
 
 ### T8 · Un signal sous la Lune
-Elsa, par radio, une fois T6 et T7 faites. Récompense : 400 cr., 200 XP. On apprend : la radio. Puis le grand départ.
+Elsa, par radio, une fois T6 et T7 faites. Récompense : 80 cr., 200 XP. On apprend : la radio. Puis le grand départ.
 
 « Capitaine, depuis trois nuits un signal monte de la Lune. Pas un des leurs : il bégaie, il se répète, il est trop
 humain. Wei Lan te monte une radio. »
@@ -218,7 +249,7 @@ installée.
 Jauge de la Lune : l'arc en fait 80 % (T6 +15 %, T8 +20 %, puis les trois quêtes ci-dessous).
 
 ### L1 · De l'eau pour Tycho
-Donneur : le Dr Okafor, par radio (sa première vraie parole). Récompense : 800 cr., 150 XP.
+Donneur : le Dr Okafor, par radio (sa première vraie parole). Récompense : 150 cr., 150 XP.
 
 « Ici Samuel Okafor, base Tycho. Le docteur Keïta dit que vous êtes fiable. Je n'ai plus le luxe d'en douter. »
 « Notre recycleur d'eau est à bout, et le dôme siffle par trois fissures. Il nous faudrait cinq tonnes d'eau et deux
@@ -232,7 +263,7 @@ Réponse radio d'Okafor : « Les cuves sont pleines ! Quelqu'un s'est douché, c
 puni. Le dôme ne siffle plus. Merci, capitaine. Cette fois, je le dis au présent. »
 
 ### L2 · Le relais Apollo
-Donneur : le Dr Keïta, par radio, une fois L1 faite. Récompense : 700 cr., 200 XP.
+Donneur : le Dr Keïta, par radio, une fois L1 faite. Récompense : 150 cr., 200 XP.
 
 « Pour parler vraiment avec Tycho, il nous faut le relais Apollo, notre satellite au-dessus de la face cachée. Il est
 en panne depuis le premier jour. »
@@ -247,7 +278,7 @@ Réponse radio de Keïta : « Le Séléné. Un vaisseau amiral, rien que ça, co
 qui tient la Lune. Elsa veut te parler. »
 
 ### L3 · Le Séléné
-Donneuse : Elsa, par radio. Récompense : 1 500 cr., 500 XP. Libère la Lune.
+Donneuse : Elsa, par radio. Récompense : 400 cr., 500 XP. Libère la Lune.
 
 « Un amiral. Seul, tu n'as aucune chance, et je le sais. Mais on ne sera pas seuls : toute la Résistance va se lever
 autour de la Lune. »
@@ -270,11 +301,11 @@ Ce qui s'ouvre : les contrats et les PNJ de la Lune, la Station Tycho où l'on p
 Elsa, par radio, juste après la libération : « La Lune est libre, et ça se sait. Sur Mars, sur Vénus, sur Mercure, des
 gens tiennent bon et commencent à relever la tête. Va les aider, dans l'ordre que tu veux : Hélène Castagne à la colonie
 Bradbury, sur Mars ; Odile Varenne, la maire de Cythère, dans les nuages de Vénus ; Aurelio Benedetti, au Phare de
-Mercure. Certains, tu les as peut-être déjà entendus à la radio. » Récompense de l'ensemble : 3 000 cr.
+Mercure. Certains, tu les as peut-être déjà entendus à la radio. » Récompense de l'ensemble : 1 000 cr.
 
 Chaque planète a sa quête, qu'on prend en parlant au PNJ sur place (le lieu compte : c'est le premier voyage). Jauge :
 quatre étapes à 20 % chacune, le reste en jouant libre, puis l'assaut. Récompense de chaque planète (provisoire) :
-3 000 cr. et 500 XP, plus les contrats de quête.
+1 000 cr. et 500 XP, plus les contrats de quête.
 
 ### Mars · La tempête rouge
 PNJ : Hélène Castagne, directrice de la colonie Bradbury (en orbite autour de Mars). Amiral : le Phobétor, posé au
@@ -393,9 +424,7 @@ planètes extérieures, qu'on écrira système par système.
 
 ## Ce que je te demande
 
-1. **Le tutoriel** (T1 à T8) : l'ordre, les personnages (Wei Lan et Joe Hennessy, deux Voix perdues de la Terre), ce
-   que chaque quête installe.
-2. **La panne voulue** de T5 (Wei Lan coupe l'Énergie à distance pour apprendre à réparer) : ok ?
-3. **Les textes** : corrige ce que tu veux, ton, noms, fréquences, récompenses.
-4. Les quêtes de la Lune d'aujourd'hui disparaissent au profit de celles-ci. Une partie commencée reprend à l'étape
-   équivalente et garde tous ses instruments (je m'en charge).
+1. **Les récompenses** revues à la baisse (le principe ci-dessus) : ok ?
+2. **La main qui montre où toucher** : ok pour le style (main de pulp, contour orange qui tourne, bulle de deux mots) ?
+3. **La panne voulue** de T5 (Wei Lan coupe l'Énergie à distance pour apprendre à réparer) : ok ?
+4. Une partie déjà commencée reprend à l'étape équivalente, garde tous ses instruments et ne voit pas les mains.

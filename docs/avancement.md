@@ -23,6 +23,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   rien d'installé et chaque instrument arrive par une quête ; la jauge garde ses points ; plus de radar au sol (Mars :
   abattre le guetteur d'Olympus à la place du rover) ; Cythère et le Phare de Mercure renommés (validé) — **à relire par
   Adrien avant le code**.
+- Le tutoriel revu le 23/10/2026 : récompenses à la baisse (340 cr. pour les huit quêtes, 700 pour la Lune, 1 000 par
+  planète intérieure ; le moteur se paie avec les contrats) ; une main de pulp et un contour orange montrent où toucher
+  aux premières manipulations (proposition à valider).
 - Les orbites des comètes et petits corps en pointillé plus fin et plus pâle (demande d'Adrien du 23/10/2026).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).
