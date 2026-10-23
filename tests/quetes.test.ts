@@ -252,3 +252,45 @@ describe('les principales à prendre sont des quêtes comme les autres (Adrien, 
     expect(suiteDeLHistoire(jeu)?.id).toBe('t4')
   })
 })
+
+describe('les planètes intérieures (docs/campagne-detail.md, validé par Adrien le 23/10/2026)', () => {
+  it('chaque arc remplit 80 % de sa jauge par ses étapes, puis la jauge et l’assaut ; ses PNJ sont ceux des Voix perdues', () => {
+    for (const [id, zone, pnj] of [['liberer-mars', 'Mars', 'helene'], ['liberer-venus', 'Vénus', 'odile'], ['liberer-mercure', 'Mercure', 'aurelio']]) {
+      const q = quete(id)
+      expect(q.donneur).toBe(pnj)
+      expect(q.etapes.reduce((s, e) => s + (e.jauge?.zone === zone ? e.jauge.part : 0), 0)).toBe(80)
+      expect(q.etapes.slice(-2).map((e) => e.genre)).toEqual(['jauge', 'assaut'])
+      expect(liberation(zone).pnj.id).toBe(pnj)
+    }
+  })
+
+  it('Mars : le convoi, le chasseur, la balise à la radio, Beagle 2 ; Hélène répond à chaque fois', () => {
+    const jeu = partie()
+    finies(jeu, [...TUTO, 't8', 'l1', 'l2', 'l3'])
+    jeu.ici = 'Mars'
+    accepter(jeu, 'liberer-mars', t0)
+    avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('escorter', 'Mars') }, t0 + 1)
+    avancerQuetes(jeu, { genre: 'chasseur', systeme: 'Mars' }, t0 + 2)
+    expect(jeu.quetes['liberer-mars'].etape).toBe(2)
+    ecouterSignal(jeu, 'Mars', 6.12, t0 + 3)
+    ecouterSignal(jeu, 'Mars', 6.12, t0 + 13_003)
+    expect(jeu.quetes['liberer-mars'].etape).toBe(3)
+    const beagle = 17
+    jeu.disparus.trouves[beagle] = t0 + 14_000
+    avancerQuetes(jeu, { genre: 'instant' }, t0 + 15_000)
+    expect(jeu.quetes['liberer-mars'].etape).toBe(4)
+    expect(jauge(jeu.zones, 'Mars')).toBe(80)
+    expect(jeu.radioPnj.filter((r) => r.pnj === 'helene')).toHaveLength(4)
+  })
+
+  it('les lieux renommés (Cythère, le Phare de Mercure) : une vieille sauvegarde suit', () => {
+    const jeu = new Jeu()
+    const s = JSON.parse(JSON.stringify(sauvegarder(jeu, t0)))
+    s.proposes = [{ id: 7, genre: 'livrer', etapes: [{ lieu: 'Aérostat Ishtar', action: 'charger' }, { lieu: 'Observatoire Messenger', action: 'livrer' }], recompense: 100, tableau: 'Vénus' }]
+    const copie = restaurer(s)!
+    expect(JSON.stringify(copie.proposes)).not.toMatch(/Ishtar|Observatoire/)
+    expect(JSON.stringify(copie.proposes)).toMatch(/Cythère.*Phare de Mercure/)
+    expect(corps('Cythère')).toBeDefined()
+    expect(corps('Phare de Mercure')).toBeDefined()
+  })
+})

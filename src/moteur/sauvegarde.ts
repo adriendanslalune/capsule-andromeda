@@ -144,6 +144,8 @@ function enCoursValide(e: unknown): e is ContratEnCours {
 
 /** Reconstruit le jeu à partir d'une sauvegarde ; null si elle est illisible ou d'un autre format. */
 export function restaurer(s: unknown): Jeu | null {
+  // Les lieux renommés le 23/10/2026 (validé par Adrien) : les contrats, trajets et orbites qui les visaient suivent.
+  s = renommerLieux(s)
   const v = s as Sauvegarde
   if (!v || ![1, 2, 3, 4, VERSION_SAUVEGARDE].includes(v.version) || !nombre(v.credits) || !nombre(v.niveauMoteur)) return null
   if (!orbiteValide(v.orbite) || (v.plan !== null && !planValide(v.plan))) return null
@@ -324,4 +326,15 @@ function reprendreAncienneCampagne(jeu: Jeu, anciennes: Record<string, { fin?: u
   const correspondances: [string, string][] = [['lune-1', 't8'], ['lune-3', 'l1'], ['lune-4', 'l2'], ['lune-5', 'l3']]
   for (const [ancienne, nouvelle] of correspondances) if (nombre(anciennes[ancienne]?.fin)) faite(nouvelle)
   if (jeu.zones.liberees.includes('Lune')) faite('l3')
+  // Les planètes intérieures ont maintenant leur arc : une libération commencée sous l'ancienne forme recommence.
+  for (const id of ['liberer-mars', 'liberer-venus', 'liberer-mercure']) if (jeu.quetes[id]?.fin === null) delete jeu.quetes[id]
+}
+
+/** Les lieux renommés (validé par Adrien le 23/10/2026, pour coller aux Voix perdues). */
+const LIEUX_RENOMMES: [string, string][] = [['Aérostat Ishtar', 'Cythère'], ['Observatoire Messenger', 'Phare de Mercure']]
+
+function renommerLieux(s: unknown): unknown {
+  let texte = JSON.stringify(s ?? null)
+  for (const [ancien, nouveau] of LIEUX_RENOMMES) texte = texte.replaceAll(JSON.stringify(ancien), JSON.stringify(nouveau))
+  return JSON.parse(texte)
 }

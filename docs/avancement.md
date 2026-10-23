@@ -35,7 +35,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   chaque étape remplit sa part de la jauge ; pas d'usure avant le panneau de réparation. Pendant le tutoriel, une main de pulp
   (un contour orange qui tourne, une bulle de deux mots) montre le prochain geste : le lieu sur la carte, Y ALLER,
   DÉPART, PARLER, le Journal et ses contrats, le Comptoir, le moteur, la réparation, le RADAR, le PING, la RADIO et
-  son cadran (`src/commun/guide.ts`). Reste : les planètes intérieures, retrouver les messages radio dans les Messages.
+  son cadran (`src/commun/guide.ts`). Puis les planètes intérieures (même jour) : les arcs de Mars,
+  Vénus et Mercure (Hélène, Odile, Aurelio remplacent Idris, Lior et Sœur Marguerite), l'Aérostat Ishtar devenu Cythère
+  et l'Observatoire Messenger le Phare de Mercure (les sauvegardes suivent), « Les planètes intérieures » envoyée par
+  radio, Elsa annonce Nadia par radio. Écart avec le document : les contrats d'une étape (escorter, réparer, remorquer,
+  le chasseur d'Olympus) se prennent au tableau du système, la quête ne pose pas encore son propre contrat. Reste :
+  retrouver les messages radio dans les Messages ; les systèmes extérieurs, un à la fois.
 - Les orbites des comètes et petits corps en pointillé plus fin et plus pâle (demande d'Adrien du 23/10/2026).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).

@@ -86,8 +86,9 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
       const q = QUETES.find((x) => x.libere === z.nom)
       expect(q, z.nom).toBeDefined()
       expect(q!.type).toBe('principale')
-      // Les dernières étapes : la jauge, puis l'assaut (la Lune : par radio, sans retour au PNJ).
-      expect(q!.etapes.map((e) => e.genre).slice(0, 2)).toEqual(['jauge', 'assaut'])
+      // La jauge, puis l'assaut (les arcs écrits à la main : à la fin ; les autres : suivis du retour au PNJ).
+      const g = q!.etapes.map((e) => e.genre)
+      expect(g.indexOf('assaut')).toBe(g.indexOf('jauge') + 1)
     }
     // Les planètes intérieures s'ouvrent ensemble après la Lune, dans l'ordre qu'on veut ; Jupiter après elles.
     for (const n of ['mars', 'venus', 'mercure']) expect(quete(`liberer-${n}`).conditions).toEqual(['l3'])

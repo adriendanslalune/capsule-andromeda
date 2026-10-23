@@ -174,8 +174,8 @@ export const STATIONS_SYSTEMES: readonly ObjetEnOrbite[] = (() => {
   // 5 stations par système (demande d'Adrien du 18/10/2026 : plus de variété), chacune sur sa propre orbite (rayon en
   // rayons de la planète : elles tournent, plus vite près de la planète, plus lentement loin).
   const noms: Record<string, [string, number][]> = {
-    Mercure: [['Relais Hermès', 2.5], ['Forge Caloris', 4.5], ['Observatoire Messenger', 7], ['Dock Mariner', 11], ['Abri Solaire', 18]],
-    Vénus: [['Station Aphrodite', 2.3], ['Aérostat Ishtar', 4], ['Aérostat Lakshmi', 6.5], ['Dock Venera', 10], ['Relais Magellan', 16]],
+    Mercure: [['Relais Hermès', 2.5], ['Forge Caloris', 4.5], ['Phare de Mercure', 7], ['Dock Mariner', 11], ['Abri Solaire', 18]],
+    Vénus: [['Station Aphrodite', 2.3], ['Cythère', 4], ['Aérostat Lakshmi', 6.5], ['Dock Venera', 10], ['Relais Magellan', 16]],
     Mars: [['Station Arès', 3], ['Dock Olympus', 5], ['Base Valles', 8], ['Relais Curiosity', 12], ['Station Hellas', 20]],
     Jupiter: [['Station Zeus', 3.5], ['Raffinerie Amalthée', 6], ['Dock Galilée', 12], ['Station Héra', 20], ['Relais Juno', 35]],
     Saturne: [['Station Cronos', 3.2], ['Dock des Anneaux', 5], ['Station Huygens', 10], ['Raffinerie Pan', 18], ['Relais Cassini', 30]],

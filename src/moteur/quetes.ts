@@ -421,13 +421,7 @@ export function liberation(nom: string): Liberation {
   const retour = q?.etapes.find((e) => e.genre === 'parler')
   const p = pnj(retour && retour.genre === 'parler' ? retour.pnj : q?.donneur ?? PNJS[0].id)
   const la = ['Lune', 'Terre'].includes(nom) ? `La ${nom}` : nom
-  if (q?.liberation) {
-    const ouvreL: string[] = []
-    if (MARCHES.some((m) => m.lieu === nom)) ouvreL.push(`Le comptoir ${deLa(nom)}`)
-    for (const c of COMPAGNIES.filter((x) => x.siege === nom)) ouvreL.push(`La cotation de la ${c.nom}`)
-    return { zone: nom, pnj: pnj(q.liberation.pnj), texte: q.liberation.texte, ouvre: ouvreL }
-  }
-  const texte = [`Le vaisseau amiral ${z.amiral} est en miettes, {joueur} ! ${la} est libre.`,
+  const texte = q?.liberation?.texte ?? [`Le vaisseau amiral ${z.amiral} est en miettes, {joueur} ! ${la} est libre.`,
     `Viens me voir à ${p.lieu} : la Résistance te doit une récompense.`]
   const ouvre: string[] = []
   if (MARCHES.some((m) => m.lieu === nom)) ouvre.push(`Le comptoir ${deLa(nom)}`)
@@ -435,7 +429,7 @@ export function liberation(nom: string): Liberation {
   const secondaires = [...new Set(QUETES.filter((x) => x.type === 'secondaire' && zoneDuLieu(pnj(x.donneur).lieu) === nom).map((x) => pnj(x.donneur).nom))]
   if (secondaires.length) ouvre.push(`Les quêtes de ${secondaires.join(', ')}`)
   if (z.planete) ouvre.push(`Plus de chasseurs autour ${deLa(nom)}`)
-  return { zone: nom, pnj: p, texte, ouvre }
+  return { zone: nom, pnj: q?.liberation ? pnj(q.liberation.pnj) : p, texte, ouvre }
 }
 
 /** Le signal radio d'une quête qu'on peut capter dans ce système (une étape « signal » en cours), ou null. */
