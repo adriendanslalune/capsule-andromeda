@@ -66,6 +66,8 @@ export interface Sauvegarde {
   queteSuivie?: string | null
   /** Les messages radio des PNJ (absent : aucun). */
   radioPnj?: Jeu['radioPnj']
+  /** La présentation du monde est vue (absent : une partie d'avant, qui n'en avait pas besoin). */
+  presentation?: boolean
   /** Les instruments installés (absent : une partie d'avant le 23/10/2026, qui les a tous). */
   installes?: Jeu['installes']
   /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
@@ -108,7 +110,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, radioPnj: jeu.radioPnj, installes: jeu.installes, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, radioPnj: jeu.radioPnj, installes: jeu.installes, presentation: jeu.presentation, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -243,6 +245,7 @@ export function restaurer(s: unknown): Jeu | null {
       && r.texte.every((x) => typeof x === 'string') && nombre(r.envoye) && nombre(r.arrivee)).map((r) => ({ id: r.id, pnj: r.pnj, texte: [...r.texte], envoye: r.envoye, arrivee: r.arrivee, lu: !!r.lu, ...(typeof r.quete === 'string' ? { quete: r.quete } : {}) }))
   }
   if (Array.isArray(v.installes)) jeu.installes = INSTRUMENTS.filter((i) => v.installes!.includes(i))
+  if (v.presentation === false) jeu.presentation = false
   // La Bourse : seulement les compagnies qui existent, des nombres valides.
   if (v.bourse && typeof v.bourse === 'object') {
     const connue = (id: unknown) => COMPAGNIES.some((x) => x.id === id)

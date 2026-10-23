@@ -116,9 +116,13 @@ export function echoEnRoute(e: EtatMonolithes, t: number): Echo | null {
  * s'arrêtent en touchant le monolithe ; le joueur qui les regarde est dans le suspense) : parti de la place de l'envoi,
  * il grandit à 299 792 km/s jusqu'à la distance du monolithe, puis s'y arrête en attendant que l'écho revienne.
  */
-export function frontDuPing(e: Echo, t: number): { centre: Point; rayon: number; arrete: boolean } {
+export function frontDuPing(e: Echo, t: number): { centre: Point; rayon: number; arrete: boolean; retour: number | null } {
   const parcouru = Math.max(0, ((t - e.envoye) / 1000) * C_KM_S)
-  return { centre: e.centre, rayon: Math.min(parcouru, e.rayon), arrete: parcouru >= e.rayon }
+  // L'écho qui revient (demande d'Adrien du 23/10/2026 : voir l'onde revenir dès qu'elle a touché le monolithe) : un
+  // front qui se resserre vers la place de l'envoi, à la même vitesse, et l'atteint au retour de l'écho. Il ne dit pas
+  // de quel côté est le monolithe (centré sur la place de l'envoi : le mystère reste entier).
+  const retour = parcouru >= e.rayon ? Math.min(e.rayon, Math.max(0, ((e.retour - t) / 1000) * C_KM_S)) : null
+  return { centre: e.centre, rayon: Math.min(parcouru, e.rayon), arrete: parcouru >= e.rayon, retour }
 }
 
 /**

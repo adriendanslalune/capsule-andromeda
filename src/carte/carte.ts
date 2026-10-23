@@ -562,7 +562,8 @@ export class Carte2D {
    * la lumière (moteur : frontDuPing), un front violet suivi d'une traîne en dégradé et de deux ondes plus pâles ;
    * arrivée au monolithe, elle s'arrête et respire doucement jusqu'au retour de l'écho.
    */
-  dessinerOndePing(ctx: CanvasRenderingContext2D, centre: Point2, rayonKm: number, arrete: boolean, t: number, maintenant: number): void {
+  dessinerOndePing(ctx: CanvasRenderingContext2D, centre: Point2, rayonKm: number, arrete: boolean, t: number, maintenant: number, retourKm: number | null = null): void {
+    if (retourKm !== null) this.dessinerOndeRetour(ctx, centre, retourKm, t)
     const c = this.projeterPoint({ x: centre.x, y: centre.y, z: 0 }, t)
     const bord = this.projeterPoint({ x: centre.x + rayonKm, y: centre.y, z: 0 }, t)
     const r = Math.hypot(bord.x - c.x, bord.y - c.y)
@@ -587,6 +588,30 @@ export class Carte2D {
     ctx.restore()
   }
 
+
+  /**
+   * L'écho qui revient (demande d'Adrien du 23/10/2026) : un front qui se resserre vers la place de l'envoi, sa traîne
+   * dehors (il avance vers le centre), dans un violet plus clair que l'aller.
+   */
+  private dessinerOndeRetour(ctx: CanvasRenderingContext2D, centre: Point2, rayonKm: number, t: number): void {
+    const c = this.projeterPoint({ x: centre.x, y: centre.y, z: 0 }, t)
+    const bord = this.projeterPoint({ x: centre.x + rayonKm, y: centre.y, z: 0 }, t)
+    const r = Math.hypot(bord.x - c.x, bord.y - c.y)
+    if (r < 1 || r > 6 * Math.hypot(this.largeur, this.hauteur)) return
+    const epaisseur = Math.min(70, Math.max(6, r * 0.35))
+    const degrade = ctx.createRadialGradient(c.x, c.y, Math.max(0, r - 1.5), c.x, c.y, r + epaisseur)
+    degrade.addColorStop(0, 'rgba(176, 140, 214, 0)')
+    degrade.addColorStop(0.04, 'rgba(176, 140, 214, 0.75)')
+    degrade.addColorStop(0.25, 'rgba(176, 140, 214, 0.3)')
+    degrade.addColorStop(1, 'rgba(176, 140, 214, 0)')
+    ctx.save()
+    ctx.fillStyle = degrade
+    ctx.beginPath()
+    ctx.arc(c.x, c.y, r + epaisseur, 0, 2 * Math.PI)
+    ctx.arc(c.x, c.y, Math.max(0, r - 1.5), 0, 2 * Math.PI, true)
+    ctx.fill()
+    ctx.restore()
+  }
 
   /**
    * L'échelle de la grille (demandes d'Adrien du 22/10/2026 : dans un coin, très discrète) : en bas à gauche, juste

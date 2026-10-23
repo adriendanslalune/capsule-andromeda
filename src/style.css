@@ -2173,7 +2173,7 @@ body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: ca
 #bandeau .voyant.v-quete { --cat: #bcd6ee; }
 #bandeau .voyant.v-contrat { --cat: var(--rub-journal); }
 #bandeau .voyant.v-echo { --cat: var(--rub-collections); }
-#bandeau .voyants { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 6px 3px 0; }
+#bandeau .voyants { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 5px; padding: 6px 3px 0; }
 #bandeau .voyant { position: relative; min-height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 3px 2px;
   color: var(--encre); background: color-mix(in srgb, var(--cat) 22%, var(--creme)); border: 1.5px solid color-mix(in srgb, var(--encre) 55%, transparent); border-radius: 3px; cursor: pointer; }
 #bandeau .voyant small { font: 600 9.5px/1 var(--titre); letter-spacing: 0.12em; }
@@ -2467,8 +2467,21 @@ body.volet-ouvert #annonces { display: none; }
 #bandeau .afficheur .ligne.quete b > span { display: inline; font-size: inherit; opacity: 1; }
 #carnet .bande .heure-voix { font-weight: 600; color: color-mix(in srgb, var(--encre) 75%, transparent); }
 
-/* Un instrument pas encore installé (décision d'Adrien du 23/10/2026) : grisé ; le toucher dit qui l'installera. */
-.pas-installe { opacity: 0.38; filter: grayscale(1); }
+/* Ce qui n'est pas encore installé n'apparaît pas (demande d'Adrien du 23/10/2026 : au début, rien à part la carte). */
+.cache-tuto { display: none !important; }
+
+/* La présentation du monde (demande d'Adrien du 23/10/2026) : une case de BD en bas, par-dessus la carte. */
+#presentation { position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 60; }
+#presentation[hidden] { display: none; }
+#presentation .case-presentation { position: relative; padding: 14px 16px 12px; background: var(--fond) var(--grain); border: 2px solid var(--encre);
+  box-shadow: 4px 5px 0 rgba(31, 27, 24, 0.35); clip-path: var(--decoupe); }
+#presentation .numero { position: absolute; top: 8px; right: 12px; font: 600 10px var(--police); letter-spacing: 0.12em; opacity: 0.6; }
+#presentation h2 { margin: 0 0 6px; font-size: 26px; }
+#presentation p { margin: 0 0 12px; font: 13.5px/1.45 var(--police); }
+#presentation .boutons-presentation { display: flex; gap: 10px; justify-content: flex-end; }
+#presentation button { min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em; border: 2px solid var(--encre); background: var(--creme); color: var(--encre); }
+#presentation button.principal { background: var(--orange); color: #fff; box-shadow: 3px 3px 0 var(--encre); }
+#presentation button.passer { border-color: transparent; background: none; opacity: 0.6; }
 
 /* La main qui montre où toucher (demande d'Adrien du 23/10/2026) : une main de pulp qui bat, un contour orange en
    pointillés qui tourne, une bulle de deux mots. Elle ne bloque rien : on peut toujours toucher autre chose. */

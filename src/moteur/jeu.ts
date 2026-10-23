@@ -40,6 +40,7 @@ import { XP } from '../donnees/niveaux'
 import { niveauDeZone } from './combat'
 import { estLibre, liberer, resister, zoneDuLieu, type EtatZones } from './zones'
 import { POINTS_RESISTANCE, ZONES_A_LIBERER } from '../donnees/zones'
+import { orbiteDerriere } from './capsule'
 import { avancerQuetes, type EtatQuete, type RadioPnj } from './quetes'
 import { INSTRUMENTS, type Instrument } from '../donnees/instruments'
 import { detecter, identifier, nouveauxDisparus, type EtatDisparus } from './disparus'
@@ -119,6 +120,8 @@ export class Jeu {
   calageSignal: { quete: string; depuis: number } | null = null
   /** Les instruments installés (décision d'Adrien du 23/10/2026 : une capsule neuve n'a rien ; une partie déjà commencée a tout). */
   installes: Instrument[] = [...INSTRUMENTS]
+  /** La présentation du monde est vue (Adrien, 23/10/2026 : une partie neuve commence par elle ; une partie d'avant l'a vue). */
+  presentation = true
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
   /** L'expérience du capitaine (décisions d'Adrien du 21/10/2026) : le niveau s'en déduit (moteur/niveau.ts). */
@@ -226,17 +229,27 @@ export class Jeu {
     return this.enPanne(m) && !this.defauts[m]?.length
   }
 
+  /** La présentation du monde est finie : l'histoire commence (Elsa appelle par radio). */
+  finirPresentation(t: number): void {
+    this.presentation = true
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
+  }
+
   /** L'instrument est-il installé ? */
   installe(i: Instrument): boolean {
     return this.installes.includes(i)
   }
 
   /** Nouvelle partie : un hasard propre à elle (missions, pannes) et un numéro de série tiré au sort. */
-  nouvellePartie(graine: number): void {
+  nouvellePartie(graine: number, t?: number): void {
+    // La capsule naît sur l'orbite de l'ISS, 40 km derrière elle : le premier trajet dure moins de 30 secondes
+    // (Adrien, 23/10/2026).
+    if (t !== undefined) this.mission.orbite = orbiteDerriere('ISS', t, 40)
     this.graine = graine >>> 0
     this.numeroSerie = numeroDeSerie(this.graine)
     this.pseudo = `Capitaine-${this.numeroSerie.slice(-3)}`
     this.installes = []
+    this.presentation = false
   }
 
   /** La réparation d'un module du panneau (commencée au premier regard), ou null s'il n'est pas en défaut. */

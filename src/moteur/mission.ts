@@ -285,10 +285,16 @@ export function etatSurTrajet(p: Plan, t: number): { r: Vecteur3; v: Vecteur3 } 
  * Trajet de la capsule (état héliocentrique r, v à l'instant t0) vers une destination, avec un moteur de vitesse
  * maximale donnée (km/s). Impossible si la destination s'enfuit plus vite que la capsule.
  */
+/** En deçà de cette distance (km) d'un engin, le trajet vers lui se compte dans son repère. */
+export const RENCONTRE_PROCHE = 2000
+
 export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t0: number, vitesse: number, lance = 0): Planification {
   // Déjà lancé (un trajet recalculé en route) : on repart de cette vitesse, au plus la vitesse max du moteur.
   const v0 = Math.min(lance, vitesse)
-  const D = astreDominant(depart.r, t0)
+  // Un engin tout proche (l'ISS au début du jeu) : le trajet se compte dans son repère, qui tourne avec lui ; sinon on
+  // paierait sa vitesse en orbite (7,7 km/s), et le moindre saut de quelques kilomètres prendrait deux minutes.
+  const proche = !!corps(cible)?.tailleM && norme(moins(depart.r, position(cible, t0))) < RENCONTRE_PROCHE
+  const D = proche ? cible : astreDominant(depart.r, t0)
   const premier: PointDePassage = { ancre: D, rel: moins(depart.r, positionAncre(D, t0)) }
   /** Durée nécessaire (s) pour un trajet qui arrive après une durée T (s) : la longueur dépend du rendez-vous. */
   const essai = (T: number) => {

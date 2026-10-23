@@ -98,3 +98,27 @@ let missionCourante: SuiviCapsule = { etat: (t) => etatSurOrbite(ORBITE_DEPART, 
 export function suivreMission(m: SuiviCapsule): void {
   missionCourante = m
 }
+
+/** Écliptique → équatorial terrestre (l'inverse de versEcliptique). */
+function versEquateur(v: Vecteur3): Vecteur3 {
+  const c = Math.cos(OBLIQUITE), s = Math.sin(OBLIQUITE)
+  return { x: v.x, y: c * v.y - s * v.z, z: s * v.y + c * v.z }
+}
+
+/**
+ * Une orbite circulaire autour de la Terre, sur celle d'un engin (son altitude, son plan), `km` derrière lui. Au début du
+ * jeu (Adrien, 23/10/2026 : le premier trajet ne doit pas dépasser 30 secondes), la capsule naît derrière l'ISS.
+ */
+export function orbiteDerriere(nom: string, t: number, km: number): OrbiteCirculaire {
+  const relatif = (instant: number) => { const a = position(nom, instant), c = position('Terre', instant); return versEquateur({ x: a.x - c.x, y: a.y - c.y, z: a.z - c.z }) }
+  const r = relatif(t), r2 = relatif(t + 1000)
+  const v = { x: r2.x - r.x, y: r2.y - r.y, z: r2.z - r.z }
+  const h = { x: r.y * v.z - r.z * v.y, y: r.z * v.x - r.x * v.z, z: r.x * v.y - r.y * v.x }
+  const nh = Math.hypot(h.x, h.y, h.z), rayon = Math.hypot(r.x, r.y, r.z)
+  const inclinaison = Math.acos(h.z / nh)
+  const noeud = Math.atan2(h.x, -h.y)
+  const p = { x: Math.cos(noeud), y: Math.sin(noeud), z: 0 }
+  const q = { x: -Math.sin(noeud) * Math.cos(inclinaison), y: Math.cos(noeud) * Math.cos(inclinaison), z: Math.sin(inclinaison) }
+  const u = Math.atan2(r.x * q.x + r.y * q.y + r.z * q.z, r.x * p.x + r.y * p.y + r.z * p.z)
+  return { centre: 'Terre', mu: GM_TERRE, rayon, inclinaison, noeud, epoque: t, phase: u - km / rayon }
+}

@@ -133,14 +133,23 @@ export const QUETES: readonly Quete[] = [
   // et proches, une mécanique à la fois ; chaque quête installe un instrument. Petites récompenses : le moteur se paie
   // avec les contrats.
   {
-    id: 't1', titre: 'Bienvenue dans la Résistance', type: 'principale', donneur: 'elsa', conditions: [],
+    // Juste après la présentation du monde (Adrien, 23/10/2026) : Elsa appelle, la capsule est à 30 secondes de l'ISS.
+    id: 't1', titre: 'Bienvenue dans la Résistance', type: 'principale', donneur: 'elsa', conditions: [], parRadio: true,
     intro: [
-      'Te voilà, capitaine. Bien arrivé ? Ta capsule sort de l\'usine : un moteur, une coque, et c\'est à peu près tout. On va arranger ça.',
-      'Il y a six mois, quelque chose a éteint les étoiles du côté de Neptune. Puis ils sont arrivés : les vaisseaux d\'Andromède. Ils n\'ont pas bombardé la Terre. Ils l\'ont encerclée, comme toutes les autres planètes, et ils attendent.',
-      'Ce qui reste de la Résistance tient dans cette vieille station. Nous sommes peu, mal équipés, et têtus. Toi, tu as une capsule qui vole. C\'est déjà beaucoup.',
-      'Je te branche sur notre fréquence : tu recevras nos messages où que tu sois. Voilà de quoi commencer. Et garde l\'oreille ouverte, je t\'appelle bientôt.',
+      'Capitaine ? Capitaine, vous m\'entendez ? Ici Elsa Varga, à bord de l\'ISS. Je vous appelle sur la fréquence de secours.',
+      'Vous êtes sur notre orbite, à quarante kilomètres derrière nous : je vois votre capsule d\'ici. Rejoignez-nous, il faut qu\'on parle. Touchez l\'ISS sur la carte, puis DÉPART : vous y serez en trente secondes.',
     ],
-    etapes: [], installe: ['communications'], recompense: 50,
+    etapes: [
+      {
+        genre: 'parler', pnj: 'elsa', texte: [
+          'Te voilà, capitaine. Bien arrivé ? Ta capsule sort de l\'usine : un moteur, une coque, et c\'est à peu près tout. On va arranger ça.',
+          'Il y a six mois, quelque chose a éteint les étoiles du côté de Neptune. Puis ils sont arrivés : les vaisseaux d\'Andromède. Ils n\'ont pas bombardé la Terre. Ils l\'ont encerclée, comme toutes les autres planètes, et ils attendent.',
+          'Ce qui reste de la Résistance tient dans cette vieille station. Nous sommes peu, mal équipés, et têtus. Toi, tu as une capsule qui vole. C\'est déjà beaucoup.',
+          'Je te branche sur notre fréquence : tu recevras nos messages où que tu sois. Voilà de quoi commencer. Et garde l\'oreille ouverte, je t\'appelle bientôt.',
+        ],
+      },
+    ],
+    ouvre: ['communications'], recompense: 50,
   },
   {
     id: 't2', titre: 'Un colis pour Tiangong', type: 'principale', donneur: 'elsa', conditions: ['t1'], parRadio: true,

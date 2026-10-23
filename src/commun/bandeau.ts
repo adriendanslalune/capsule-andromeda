@@ -175,7 +175,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   // l'écran, chacun réécrit seulement si sa forme change ; sinon, les textes seuls.
   if (!element.querySelector('.zone-etat')) {
     element.innerHTML = '<div class="zone-etat"></div><div class="voyants">' + VOYANTS.map(({ cle, nom, symbole }) =>
-      `<button type="button" class="voyant v-${cle}" data-voyant="${cle}">${symbole}<small>${nom}</small><i class="compte" hidden></i></button>`).join('')
+      `<button type="button" class="voyant v-${cle}" data-voyant="${cle}"${cle === 'contrat' ? ' data-instrument="contrats"' : cle === 'echo' ? ' data-instrument="ping"' : ''}>${symbole}<small>${nom}</small><i class="compte" hidden></i></button>`).join('')
       + '</div><div class="afficheur"></div>'
     formeEtat = formeDetail = ''
   }

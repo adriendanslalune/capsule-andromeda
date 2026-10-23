@@ -45,6 +45,7 @@ import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
 import { radioALire, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
 import { Guide, type Cible } from './commun/guide'
+import { Presentation } from './commun/presentation'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
@@ -155,7 +156,7 @@ function enregistrerPartie(): void {
 /** Nouvelle partie : son propre hasard (missions, pannes) et son numéro de série. */
 function nouvellePartie(): Jeu {
   const j = new Jeu()
-  j.nouvellePartie(Math.floor(Math.random() * 2 ** 31))
+  j.nouvellePartie(Math.floor(Math.random() * 2 ** 31), horloge())
   return j
 }
 const partieChargee = chargerPartie()
@@ -1617,6 +1618,28 @@ function courrier(): void {
 /** Les bavards qui nous ont déjà parlé (pseudo, lieu, jour). */
 const passagesVus = new Set<string>()
 
+// La présentation du monde (demande d'Adrien du 23/10/2026) : avant l'histoire, une visite guidée de la carte, ses
+// vraies distances, ses vraies tailles, le temps réel, la lumière ; puis Elsa appelle (la capsule est à 30 s de l'ISS).
+const presentation = new Presentation(document.querySelector<HTMLDivElement>('#presentation')!)
+function lancerPresentation(): void {
+  presentation.ouvrir([
+    { titre: 'Le vrai système solaire', texte: 'Voici le système solaire. Le vrai, en ce moment même : chaque planète est à sa vraie place, aujourd\'hui, à cette heure-ci. Rien n\'est inventé.',
+      vue: () => vueGenerale(carte.echelleExterieure()) },
+    { titre: 'De vraies distances', texte: 'Tout est à l\'échelle. La Lune tourne à 384 400 km de la Terre : on pourrait aligner trente Terres entre elles. Rien n\'est rapproché pour faire joli.',
+      vue: () => choisir('Terre', false, 2600) },
+    { titre: 'De vraies tailles', texte: 'Jupiter est onze fois plus large que la Terre : plus de mille Terres tiendraient dedans. Ce qui est trop petit pour être vu devient une pastille. Écarte deux doigts pour zoomer, n\'importe où.',
+      vue: () => choisir('Jupiter', false, carte.echellePlanete('Jupiter')) },
+    { titre: 'Tout bouge, en vrai', texte: 'Tout tourne en temps réel : la Terre sur elle-même, avec la nuit là où il fait nuit ; la Lune autour d\'elle en 27 jours ; l\'ISS autour de la Terre en une heure et demie. Ce que tu vois, c\'est maintenant.',
+      vue: () => choisir('Terre', false, carte.echelleGrosPlan('Terre', horloge())) },
+    { titre: 'La vitesse de la lumière', texte: 'Rien ne va plus vite que la lumière : 300 000 km par seconde. Un message met plus d\'une seconde à venir de la Lune, des minutes de Mars, quatre heures de Neptune. Ici, les messages et les échos voyagent à cette vitesse-là.',
+      vue: () => vueGenerale(carte.echelleGenerale()) },
+    { titre: 'Et ça, c\'est toi', texte: `Ta capsule ${jeu.numeroSerie}, en orbite à 400 km au-dessus de la Terre. Pour aller quelque part, touche un astre ou un engin sur la carte, puis DÉPART. Les trajets durent le temps qu\'il faut : de vraies distances, à la vitesse de ton moteur.`,
+      vue: () => allerALaCapsule() },
+  ], () => { allerALaCapsule(); jeu.finirPresentation(horloge()); enregistrerPartie() })
+}
+// Une partie neuve fermée en pleine présentation la reprend au début.
+if (partieChargee && !jeu.presentation) lancerPresentation()
+
 // Au tout début du jeu (demande d'Adrien du 20/10/2026) : la capsule a reçu son numéro ; le joueur choisit le nom de
 // son capitaine (3 à 16 caractères). Il pourra le changer plus tard dans le Profil.
 if (!partieChargee) {
@@ -1639,6 +1662,7 @@ if (!partieChargee) {
     enregistrerPartie()
     bienvenue.remove()
     annoncer(`Capitaine ${p}, la capsule ${jeu.numeroSerie} est à toi`)
+    lancerPresentation()
   }
   bienvenue.querySelector('button')!.addEventListener('click', valider)
   champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') valider() })
@@ -1742,8 +1766,18 @@ const voletBourse = new VoletBourse(document.querySelector<HTMLDivElement>('#bou
 function instrumentLibre(i: Instrument): boolean {
   return jeu.installe(i) || (i === 'reparation' && jeu.pannes.length > 0)
 }
+// Demande d'Adrien du 23/10/2026 : au début, rien à part la carte ; ce qui n'est pas encore installé n'apparaît pas.
+// La console et la rangée de la vue arrivent après la présentation du monde ; les onglets, les capteurs, les voyants du
+// tableau de bord, au fur et à mesure que les quêtes du tutoriel les installent.
+function montrer(el: Element | null, oui: boolean): void {
+  if (el && el.classList.contains('cache-tuto') === oui) el.classList.toggle('cache-tuto', !oui)
+}
 function appliquerInstruments(): void {
-  for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) el.classList.toggle('pas-installe', !instrumentLibre(el.dataset.instrument as Instrument))
+  for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) montrer(el, instrumentLibre(el.dataset.instrument as Instrument))
+  for (const sel of ['#console', '#annonces', '#commandes-carte']) montrer(document.querySelector(sel), jeu.presentation)
+  montrer(document.querySelector('#onglets [data-onglet="capsule"]'), jeu.installe('marche') || instrumentLibre('reparation'))
+  montrer(document.querySelector('#instruments'), (['radar', 'ping', 'radio'] as Instrument[]).some(instrumentLibre))
+  montrer(document.querySelector('#onglets'), !!document.querySelector('#onglets button:not(.cache-tuto)'))
   if (!instrumentLibre('bourse') && ongletMarche === 'bourse') ongletMarche = 'comptoir'
   if (!instrumentLibre('contrats') && ongletJournal === 'contrats') { ongletJournal = 'quetes'; afficherOngletJournal() }
   if ((sousOnglet === 'armement' || sousOnglet === 'reparation') && !instrumentLibre(sousOnglet)) choisirSousOnglet('etat')
@@ -2120,7 +2154,7 @@ function image(maintenant: number): void {
     // Un PING envoyé : son onde grandit à la vitesse de la lumière depuis la place de l'envoi, et s'arrête sur le
     // monolithe jusqu'au retour de l'écho (demandes d'Adrien du 22/10/2026).
     const enRoute = echoEnRoute(jeu.monolithes, t)
-    if (enRoute) { const f = frontDuPing(enRoute, t); carte.dessinerOndePing(ctxPlan, f.centre, f.rayon, f.arrete, t, performance.now()) }
+    if (enRoute) { const f = frontDuPing(enRoute, t); carte.dessinerOndePing(ctxPlan, f.centre, f.rayon, f.arrete, t, performance.now(), f.retour) }
     // Les missiles aliens en vol, avec leur décompte.
     if (jeu.espace.missiles.length) {
       carte.dessinerMissiles(ctxPlan, t, jeu.espace.missiles.map((m) => {
@@ -2194,13 +2228,13 @@ function versOnglet(page: string, texte: string): Cible | null {
   return cockpit.pageOuverte === page ? null : cibleEl(`#onglets [data-onglet="${page}"]`, texte)
 }
 function gesteDuTutoriel(t: number): Cible | null {
-  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu')) return null
+  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu') || presentation.ouverte) return null
   const q = suiteDeLHistoire(jeu)
   if (!q || !TUTORIEL.includes(q.id)) return null
   // Le dialogue ouvert : CONTINUER, puis ACCEPTER (seulement au tout premier, celui d'Elsa).
   if (vueDialogue.ouvert) {
     if (jeu.quetes.t1?.fin != null) return null
-    return cibleEl('#dialogue [data-suite]', 'Lis la suite') ?? cibleEl('#dialogue [data-accepter]', 'Accepte !')
+    return cibleEl('#dialogue [data-suite]', 'Lis la suite') ?? cibleEl('#dialogue [data-accepter]', 'Accepte !') ?? cibleEl('#dialogue [data-fermer]', 'Compris !')
   }
   if (document.querySelector('div.plein:not([hidden]):not(#radio)')) return null
   const ouvert = cockpit.pageOuverte

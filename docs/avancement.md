@@ -41,6 +41,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   radio, Elsa annonce Nadia par radio. Écart avec le document : les contrats d'une étape (escorter, réparer, remorquer,
   le chasseur d'Olympus) se prennent au tableau du système, la quête ne pose pas encore son propre contrat. Reste :
   retrouver les messages radio dans les Messages ; les systèmes extérieurs, un à la fois.
+- Le tout début refait (23/10/2026, demandes d'Adrien) : la capsule naît 40 km derrière l'ISS (25 s de trajet) ; rien
+  à l'écran que la carte, une présentation du monde en six cases (`src/commun/presentation.ts`), puis Elsa appelle par
+  radio (T1 devient « rejoins-moi à l'ISS ») ; l'interface apparaît au fur et à mesure (caché, plus grisé). L'écho du
+  PING revient : un front qui se resserre vers la place de l'envoi.
 - Les orbites des comètes et petits corps en pointillé plus fin et plus pâle (demande d'Adrien du 23/10/2026).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).

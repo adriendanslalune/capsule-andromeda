@@ -70,6 +70,8 @@ const finie = (jeu: Jeu, id: string) => jeu.quetes[id]?.fin != null
 
 /** Les quêtes qu'on peut se voir proposer (conditions remplies, pas encore acceptées). */
 export function disponibles(jeu: Jeu): Quete[] {
+  // Avant la fin de la présentation du monde, l'histoire n'a pas commencé.
+  if (!jeu.presentation) return []
   // Les quêtes secondaires d'un PNJ ne s'ouvrent qu'une fois sa zone libérée (décision d'Adrien du 21/10/2026).
   return QUETES.filter((q) => !jeu.quetes[q.id] && q.conditions.every((c) => finie(jeu, c))
     && (q.type === 'principale' || estLibre(jeu.zones, pnj(q.donneur).lieu)))

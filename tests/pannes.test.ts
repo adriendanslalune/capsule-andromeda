@@ -70,6 +70,8 @@ describe('usure', () => {
 
   it('environ une panne tous les 10 trajets, tirée une seule fois par trajet', () => {
     const jeu = new Jeu()
+    // Pas d'histoire ici (un faux trajet sans points : Elsa ne doit pas appeler par radio).
+    jeu.presentation = false
     let pannes = 0
     for (let k = 1; k <= 400; k++) {
       trajetArriveA(jeu, t0 + k * 60_000)

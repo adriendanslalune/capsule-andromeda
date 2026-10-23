@@ -180,4 +180,13 @@ describe('les ondes du PING (demande d’Adrien du 22/10/2026)', () => {
     expect(frontDuPing(e, touche + 1).arrete).toBe(true)
     expect(frontDuPing(e, e.retour - 1).rayon).toBe(3e8)
   })
+
+  it('l’écho revient (Adrien, 23/10/2026) : dès le monolithe touché, un front se resserre vers la place de l’envoi', () => {
+    const e = { monolithe: 1, centre: { x: 0, y: 0 }, rayon: 3e8, envoye: 0, retour: (2 * 3e8 / C_KM_S) * 1000 }
+    const touche = (3e8 / C_KM_S) * 1000
+    expect(frontDuPing(e, touche - 10).retour).toBeNull()
+    expect(frontDuPing(e, touche).retour).toBeCloseTo(3e8, -3)
+    expect(frontDuPing(e, (touche + e.retour) / 2).retour).toBeCloseTo(1.5e8, -3)
+    expect(frontDuPing(e, e.retour).retour).toBe(0)
+  })
 })

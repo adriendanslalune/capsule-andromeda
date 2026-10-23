@@ -65,25 +65,28 @@ describe('le tutoriel autour de la Terre (décisions d’Adrien du 23/10/2026)',
     expect(jeu.quetes.l1).toBeUndefined()
   })
 
-  it('T1 : on parle à Elsa à l’ISS ; elle installe les communications, et envoie T2 par radio avec le colis', () => {
+  it('T1 : après la présentation du monde, Elsa appelle par radio ; on la rejoint à l’ISS et on lui parle', () => {
     const jeu = partie()
     jeu.installes = []
-    expect(principalesAPrendre(jeu).map((q) => q.id)).toEqual(['t1'])
+    jeu.presentation = false
+    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    expect(jeu.quetes.t1).toBeUndefined()
+    jeu.finirPresentation(t0)
+    expect(jeu.quetes.t1?.fin).toBeNull()
+    expect(radioALire(jeu, t0 + 1000)?.quete).toBe('t1')
     expect(objectif(jeu, quete('t1'))).toMatchObject({ lieu: 'ISS' })
-    expect(signePnj(jeu, 'elsa')).toEqual({ signe: '!', principale: true })
+    expect(signePnj(jeu, 'elsa')).toEqual({ signe: '?', principale: true })
     jeu.ici = 'ISS'
-    const d = parler(jeu, 'elsa', t0)
-    expect(d.proposition?.id).toBe('t1')
     const avant = jeu.credits
-    accepter(jeu, 't1', t0)
-    expect(jeu.quetes.t1.fin).toBe(t0)
+    const d = parler(jeu, 'elsa', t0 + 30_000)
+    expect(d.pages.join(' ')).toMatch(/Andromède/)
+    expect(jeu.quetes.t1.fin).toBe(t0 + 30_000)
     expect(jeu.credits).toBe(avant + 50)
     expect(jeu.installes).toEqual(['communications'])
     // T2 arrive par radio, prise d'office : le colis est dans la soute, la quête suivie.
     expect(jeu.quetes.t2?.fin).toBeNull()
     expect(jeu.soute['Pièces détachées']).toBe(1)
     expect(jeu.queteSuivie).toBe('t2')
-    expect(radioALire(jeu, t0 + 1000)?.pnj).toBe('elsa')
   })
 
   it('T2 puis T3 : la livraison à Tiangong, la réponse radio de Wei Lan, les contrats VIDER, la ferraille', () => {
