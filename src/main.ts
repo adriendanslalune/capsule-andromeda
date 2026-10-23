@@ -43,7 +43,8 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { radioALire, pnj as pnjDe, quiInstalle } from './moteur/quetes'
+import { radioALire, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
+import { Guide, type Cible } from './commun/guide'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
@@ -1962,6 +1963,7 @@ function image(maintenant: number): void {
   afficherRadar(t)
   vueRadio.afficher()
   appliquerInstruments()
+  guide.montrer(gesteDuTutoriel(t))
   afficherCadranVitesse(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
@@ -2174,6 +2176,84 @@ requestAnimationFrame(image)
     couverture.addEventListener('click', effacer)
     setTimeout(effacer, 2200)
   }
+}
+
+// La main qui montre où toucher (demande d'Adrien du 23/10/2026) : pendant le tutoriel (T1 à T8), d'après l'étape de
+// la quête en cours et ce qui est ouvert à l'écran, le prochain geste. Elle disparaît avec le tutoriel.
+const guide = new Guide(document.querySelector<HTMLDivElement>('#guide')!)
+const TUTORIEL = ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8']
+/** Un élément visible de l'écran à montrer (null s'il n'est pas là ou caché). */
+function cibleEl(sel: string, texte: string): Cible | null {
+  const el = document.querySelector<HTMLElement>(sel)
+  if (!el || el.offsetParent === null) return null
+  const rect = el.getBoundingClientRect()
+  return rect.width && rect.height ? { rect, texte } : null
+}
+/** Ouvrir un onglet du volet (s'il ne l'est pas), puis montrer ce qui suit. */
+function versOnglet(page: string, texte: string): Cible | null {
+  return cockpit.pageOuverte === page ? null : cibleEl(`#onglets [data-onglet="${page}"]`, texte)
+}
+function gesteDuTutoriel(t: number): Cible | null {
+  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu')) return null
+  const q = suiteDeLHistoire(jeu)
+  if (!q || !TUTORIEL.includes(q.id)) return null
+  // Le dialogue ouvert : CONTINUER, puis ACCEPTER (seulement au tout premier, celui d'Elsa).
+  if (vueDialogue.ouvert) {
+    if (jeu.quetes.t1?.fin != null) return null
+    return cibleEl('#dialogue [data-suite]', 'Lis la suite') ?? cibleEl('#dialogue [data-accepter]', 'Accepte !')
+  }
+  if (document.querySelector('div.plein:not([hidden]):not(#radio)')) return null
+  const ouvert = cockpit.pageOuverte
+  const e = jeu.quetes[q.id] ? etapeCourante(jeu, q) : null
+  // Un contrat en cours : son bouton (Y ALLER, l'action sur place) sur la fiche du trajet.
+  if (jeu.enCours && (e?.genre === 'mission' || e?.genre === 'chasseurs')) {
+    if (ouvert) return cibleEl('#contrats [data-choix="aller"], #contrats [data-choix="agir"]', 'Vas-y !')
+    return cibleEl('#bouton-depart:not([hidden])', boutonDepart.textContent === 'DÉPART' ? 'Départ !' : 'Touche ici')
+  }
+  // Prendre un contrat d'un genre : Journal › CONTRATS › le bon contrat › ACCEPTER.
+  const genre = e?.genre === 'mission' ? e.mission : e?.genre === 'chasseurs' ? 'chasser' : null
+  if (genre) {
+    if (ouvert !== 'missions') return versOnglet('missions', 'Ton Journal')
+    if (ongletJournal !== 'contrats') return cibleEl('[data-journal-onglet="contrats"]', 'Les contrats')
+    const c = jeu.proposes.find((x) => x.genre === genre && document.querySelector(`#contrats [data-choix="accepter"][data-id="${x.id}"]`))
+    return c ? cibleEl(`#contrats [data-choix="accepter"][data-id="${c.id}"]`, genre === 'chasser' ? 'Abats-le !' : 'Accepte !') : null
+  }
+  if (e?.genre === 'moteur') {
+    const manque = jeu.manquePourMoteur()
+    if (manque.credits > 0) return null
+    if (Object.keys(manque.materiaux).length) {
+      if (!jeu.installe('marche')) return null
+      if (ouvert !== 'marche') return versOnglet('marche', 'Au Comptoir')
+      return ongletMarche !== 'comptoir' ? cibleEl('[data-marche-onglet="comptoir"]', 'Le Comptoir') : null
+    }
+    if (ouvert !== 'capsule') return versOnglet('capsule', 'Ta capsule')
+    if (sousOnglet !== 'etat') return cibleEl('[data-sous="etat"]', 'Le moteur')
+    return cibleEl('#capsule [data-choix="acheter"]', 'Améliore !')
+  }
+  if (e?.genre === 'reparer') {
+    if (ouvert !== 'capsule') return versOnglet('capsule', 'Ta capsule')
+    return sousOnglet !== 'reparation' ? cibleEl('[data-sous="reparation"]', 'Répare !') : null
+  }
+  // Le Journal ouvert sur la quête : son Y ALLER.
+  if (ouvert === 'missions' && ongletJournal === 'quetes') return cibleEl('#journal [data-y-aller]', 'Y aller !')
+  if (ouvert) return null
+  if (e?.genre === 'radar') return jeu.radar.actif ? null : cibleEl('#bouton-radar', 'Allume le radar')
+  if (e?.genre === 'ping') return jeu.monolithes.echos.some((x) => x.envoye >= (jeu.quetes[q.id].depuis ?? 0)) ? null : cibleEl('#bouton-ping', 'Envoie un PING')
+  if (e?.genre === 'signal') return document.querySelector('#radio:not([hidden])') ? cibleEl('#radio .cadran', `Cherche ${e.frequence.toLocaleString('fr-FR')} MHz`) : cibleEl('#bouton-radio', 'Allume la radio')
+  if (document.querySelector('#radio:not([hidden])')) return null
+  // Aller quelque part : toucher le lieu sur la carte, puis le bouton de la fiche (Y ALLER, DÉPART, PARLER…).
+  const o = objectif(jeu, q)
+  if (!o?.lieu) return null
+  const ici = jeu.lieuEnOrbite(t) === o.lieu
+  if (ici || selection === o.lieu) {
+    if (!ici && mission.phase(t) === 'trajet' && mission.plan?.cible === o.lieu) return null
+    const texte = boutonDepart.textContent ?? ''
+    return cibleEl('#bouton-depart:not([hidden])', texte === 'PARLER' ? 'Parle-lui' : texte === 'DÉPART' ? 'Départ !' : texte === 'Y ALLER' ? 'Y aller !' : 'Touche ici')
+  }
+  if (mission.phase(t) === 'trajet' && mission.plan?.cible === o.lieu) return null
+  const p = carte.place(o.lieu)
+  if (p && p.x > 0 && p.y > 0 && p.x < innerWidth && p.y < innerHeight) return { cercle: { x: p.x, y: p.y, r: Math.max(16, p.r) }, texte: `Touche ${/^[AEIOUH]/.test(o.lieu) ? 'l\'' : ''}${o.lieu}` }
+  return cibleEl('#bandeau [data-ligne="quete"]', 'Où aller ?')
 }
 
 // Pour les essais : window.andromeda dans la console.

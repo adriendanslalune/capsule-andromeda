@@ -32,8 +32,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   l'installera ; une partie d'avant garde tout et compte le tutoriel comme fait) ; nouvelles étapes (capter un signal
   à la radio, repérer au radar, retrouver un Disparu, installer un moteur, réparer un module, PING, abattre des
   chasseurs) ; les PNJ répondent par radio (fenêtre « PAR RADIO », délai de la lumière) et envoient la quête suivante ;
-  chaque étape remplit sa part de la jauge ; pas d'usure avant le panneau de réparation. Reste : la main qui montre où
-  toucher, les planètes intérieures, les messages radio à retrouver dans les Messages.
+  chaque étape remplit sa part de la jauge ; pas d'usure avant le panneau de réparation. Pendant le tutoriel, une main de pulp
+  (un contour orange qui tourne, une bulle de deux mots) montre le prochain geste : le lieu sur la carte, Y ALLER,
+  DÉPART, PARLER, le Journal et ses contrats, le Comptoir, le moteur, la réparation, le RADAR, le PING, la RADIO et
+  son cadran (`src/commun/guide.ts`). Reste : les planètes intérieures, retrouver les messages radio dans les Messages.
 - Les orbites des comètes et petits corps en pointillé plus fin et plus pâle (demande d'Adrien du 23/10/2026).
 - La Bible du jeu (PDF et papier, dont le Manuel n'est qu'une partie) : notée, à faire (`docs/bible-du-jeu.md`,
   Adrien, 22/10/2026).
