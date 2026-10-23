@@ -651,17 +651,19 @@ export class Carte2D {
         ctx.stroke()
         ctx.globalAlpha = 1
       }
-      // Les orbites des petits corps, en long pointillé : celle de Halley toujours, les autres quand on les choisit.
+      // Les orbites des petits corps, en pointillé fin et pâle (plus discret : demande d'Adrien du 23/10/2026) :
+      // celle de Halley toujours, les autres quand on les choisit.
       for (const p of PETITS_CORPS) {
         if (p.nom !== HALLEY && p.nom !== selection) continue
+        ctx.save()
         ctx.beginPath()
         this.ligneCoupee(ctx, orbitePetit(p).map((x) => this.ecranDe(x)))
-        ctx.setLineDash([4, 5])
+        ctx.setLineDash([1.5, 6])
+        ctx.lineWidth = 0.7
         ctx.strokeStyle = couleurs.encre
-        ctx.globalAlpha = 0.35
+        ctx.globalAlpha = 0.2
         ctx.stroke()
-        ctx.setLineDash([])
-        ctx.globalAlpha = 1
+        ctx.restore()
       }
     }
 
