@@ -110,6 +110,13 @@ function deHsv(h: number, s: number, v: number): [number, number, number] {
   return [f(5), f(3), f(1)]
 }
 
+let CHASSEUR: HTMLImageElement | null = null
+/** L'image du chasseur d'Andromède (la même qu'au combat), une fois chargée. */
+export function imageChasseur(): HTMLImageElement | null {
+  if (!CHASSEUR) { CHASSEUR = new Image(); CHASSEUR.src = 'vaisseaux/chasseur.webp' }
+  return CHASSEUR.complete && CHASSEUR.naturalWidth ? CHASSEUR : null
+}
+
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */
 export function rayonVaisseau(_forme: Forme, taille: number): number {
   return 9 * taille

@@ -15,7 +15,7 @@ import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zone
 import { BOTS } from '../donnees/messages'
 import type { Forme } from '../donnees/niveaux'
 import { niveauDuBot, palierDe } from '../moteur/niveau'
-import { dessinerVaisseau, rayonVaisseau } from './vaisseaux'
+import { dessinerVaisseau, imageChasseur, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, ouEstLeBot, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
@@ -189,6 +189,8 @@ export class Carte2D {
    * engins) : l'épave au bout du câble, ou les trois cargos du convoi en flèche derrière elle.
    */
   sillage: 'epave' | 'convoi' | null = null
+  /** La capsule du joueur est en route (sa flamme). */
+  capsuleEnRoute = false
   /**
    * La carte épurée, pendant la présentation du monde (demande d'Adrien du 23/10/2026 : retirer tout ce qui gêne) : ni
    * épaves, ni capsules des autres, ni chasseurs, ni drapeaux, ni poussière de satellites ; les astres et les engins
@@ -525,21 +527,27 @@ export class Carte2D {
     const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
     const angle = Math.atan2(q2.y - q.y, q2.x - q.x), taille = p.taille * 0.85 * recul * this.grossissement()
     // En vol, une flamme derrière lui (Adrien, 24/10/2026 : on doit les voir partir et arriver).
-    if (ouEstLeBot(nom, t).enRoute) {
-      const r = rayonVaisseau(p.forme, taille), long = r * (1.1 + 0.25 * Math.sin(performance.now() / 70 + nom.length))
-      const dx = Math.cos(angle), dy = Math.sin(angle), bx = q.x - dx * r * 0.75, by = q.y - dy * r * 0.75
-      ctx.beginPath()
-      ctx.moveTo(bx - dy * r * 0.28, by + dx * r * 0.28)
-      ctx.lineTo(bx - dx * long, by - dy * long)
-      ctx.lineTo(bx + dy * r * 0.28, by - dx * r * 0.28)
-      ctx.closePath()
-      ctx.fillStyle = '#f2b53a'
-      ctx.fill()
-      ctx.lineWidth = 1
-      ctx.strokeStyle = couleurs.encre
-      ctx.stroke()
-    }
+    if (ouEstLeBot(nom, t).enRoute) this.dessinerFlamme(ctx, q.x, q.y, angle, rayonVaisseau(p.forme, taille), nom.length, couleurs)
     dessinerVaisseau(ctx, q.x, q.y, angle, p.forme, taille, teinte, couleurs.encre, false, maison)
+  }
+
+  /** La flamme d'un vaisseau en vol, derrière lui (discrète : Adrien, 24/10/2026), qui vacille. */
+  private dessinerFlamme(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, r: number, graine: number, couleurs: Couleurs2D): void {
+    const long = r * (0.65 + 0.15 * Math.sin(performance.now() / 70 + graine))
+    const dx = Math.cos(angle), dy = Math.sin(angle), bx = x - dx * r * 0.7, by = y - dy * r * 0.7, l = r * 0.17
+    ctx.save()
+    ctx.globalAlpha *= 0.85
+    ctx.beginPath()
+    ctx.moveTo(bx - dy * l, by + dx * l)
+    ctx.lineTo(bx - dx * long, by - dy * long)
+    ctx.lineTo(bx + dy * l, by - dx * l)
+    ctx.closePath()
+    ctx.fillStyle = '#f2b53a'
+    ctx.fill()
+    ctx.lineWidth = 0.8
+    ctx.strokeStyle = couleurs.encre
+    ctx.stroke()
+    ctx.restore()
   }
 
   /**
@@ -913,7 +921,17 @@ export class Carte2D {
       }
       if (c.type === 'joueur') this.capsuleJoueur(ctx, c.nom, q, t, couleurs)
       else if (c.type === 'zone') this.zoneDeRecherche(ctx, q, couleurs)
-      else dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
+      else if (c.type === 'alien' && imageChasseur()) {
+        // Le chasseur d'Andromède, son vrai vaisseau (Adrien, 24/10/2026), dans le sens de sa marche (l'image a la
+        // proue vers le bas).
+        const im = imageChasseur()!, q2 = this.ecranDe(projeterCorps(c.nom, t + 60_000))
+        const l = 26 * this.grossissement(), h = (l * im.naturalHeight) / im.naturalWidth
+        ctx.save()
+        ctx.translate(q.x, q.y)
+        ctx.rotate(Math.atan2(q2.y - q.y, q2.x - q.x) - Math.PI / 2)
+        ctx.drawImage(im, -l / 2, -h / 2, l, h)
+        ctx.restore()
+      } else dessinerEngin(ctx, c.modele ?? 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN)
       ctx.globalAlpha = 1
     }
 
@@ -966,6 +984,7 @@ export class Carte2D {
     const forme = this.formeCapsule, g = this.grossissement(), rc = rayonVaisseau(forme.forme, forme.taille * g)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
+    if (this.capsuleEnRoute) this.dessinerFlamme(ctx, x, y, a, rc, 0, couleurs)
     this.dessinerPulsesPing(ctx, x, y, rc, maintenant)
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille * g, '#e04b37', couleurs.encre, true, this.maisonCapsule)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).

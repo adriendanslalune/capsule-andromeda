@@ -2266,6 +2266,7 @@ function image(maintenant: number): void {
     // En vol, l'épave remorquée ou le convoi escorté suivent la capsule (demande d'Adrien du 21/10/2026).
     const enVol = mission.phase(t) === 'trajet', etapeEnCours = jeu.etapeActuelle()?.action
     carte.sillage = enVol && etapeEnCours === 'larguer' ? 'epave' : enVol && etapeEnCours === 'escorter' ? 'convoi' : null
+    carte.capsuleEnRoute = enVol
     oublierSoleilAnime()
     // La présentation du monde : la carte épurée, la capsule cachée jusqu'à ce qu'on la présente.
     carte.epure = presentation.ouverte
