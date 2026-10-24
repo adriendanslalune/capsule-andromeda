@@ -94,9 +94,10 @@ const DUREE_PULSE = 1800
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
-/** Le zoom le plus serré, aux doigts et à l'ouverture du jeu (Adrien, 24/10/2026 : on distinguait mal les vaisseaux) ;
- *  les cadrages automatiques (gros plan, trajet) s'arrêtent à KM_PAR_PX_MIN. */
-export const KM_PAR_PX_ZOOM = 2
+/** Le zoom le plus serré, aux doigts et à l'ouverture du jeu : l'échelle de la carte ne descend pas sous 2 000 km
+ *  (Adrien, 24/10/2026, au lieu de 2 km par pixel) ; les cadrages automatiques (gros plan, trajet) s'arrêtent à
+ *  KM_PAR_PX_MIN. */
+export const KM_PAR_PX_ZOOM = 2000 / 110
 /** Le drapeau pirate d'une zone occupée et sa jauge, agrandis (Adrien, 24/10/2026 : difficile à lire). */
 const ECHELLE_DRAPEAU = 1.6
 /** Dézoom maximal : jusqu'aux Voyager (demi-largeur de 200 UA), pour voir New Horizons et au-delà. */
