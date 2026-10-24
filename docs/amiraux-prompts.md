@@ -181,3 +181,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Léviathan** (24/10/2026).
 - **Le Geyser** (24/10/2026).
 - **L'Ithaque** (24/10/2026).
+- **Le Spectre** (24/10/2026).
