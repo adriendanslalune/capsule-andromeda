@@ -17,7 +17,7 @@ export interface Pnj {
   lieu: string
   /** Couleur de son médaillon. */
   teinte: string
-  /** Son portrait (chemin de l'image dans public/), ou null en attendant. */
+  /** Son médaillon (le visage, chemin de l'image dans public/), ou null en attendant ; ses portraits : commun/portraits.ts. */
   portrait: string | null
   /** Ce qu'il dit quand il n'a rien de particulier à dire. */
   repos: string
@@ -25,7 +25,7 @@ export interface Pnj {
 
 export const PNJS: readonly Pnj[] = [
   {
-    id: 'elsa', nom: 'Elsa Varga', role: 'Commandante de la Résistance', lieu: 'ISS', teinte: '#f3c2b0', portrait: null,
+    id: 'elsa', nom: 'Elsa Varga', role: 'Commandante de la Résistance', lieu: 'ISS', teinte: '#f3c2b0', portrait: 'portraits/elsa-medaillon.webp',
     repos: 'L\'ISS tient encore debout, et nous aussi. Je t\'appelle à la radio dès que j\'ai du nouveau.',
   },
   {
@@ -128,8 +128,8 @@ export const QUETES: readonly Quete[] = [
     id: 'q1', titre: 'Le cœur de la capsule', type: 'principale', donneur: 'elsa', conditions: [], parRadio: true,
     intro: [
       'Capitaine ? Ici Elsa Varga, à bord de l\'ISS, juste devant toi. Bienvenue dans la Résistance. Il y a six mois, Andromède a encerclé toutes les planètes du système solaire. Nous, on se bat avec ce qu\'on a.',
-      'Ce qu\'on a, c\'est ta capsule. Son cœur, c\'est son moteur, et 30 km/s, pour l\'espace, c\'est lent. Ouvre l\'onglet Capsule : tu y verras ton moteur, le prix du suivant, et ce qu\'il demande en matériaux.',
-      'L\'argent se gagne avec des contrats (Journal › CONTRATS). Les contrats VIDER des Nettoyeurs rapportent aussi des matériaux : ce que tu tries dans les épaves file droit dans ta soute. Améliore ce moteur, et rappelle-moi.',
+      '(souci) Ce qu\'on a, c\'est ta capsule. Son cœur, c\'est son moteur, et 30 km/s, pour l\'espace, c\'est lent. Ouvre l\'onglet Capsule : tu y verras ton moteur, le prix du suivant, et ce qu\'il demande en matériaux.',
+      '(joie) L\'argent se gagne avec des contrats (Journal › CONTRATS). Les contrats VIDER des Nettoyeurs rapportent aussi des matériaux : ce que tu tries dans les épaves file droit dans ta soute. Améliore ce moteur, et rappelle-moi.',
     ],
     etapes: [
       {
@@ -202,7 +202,7 @@ export const QUETES: readonly Quete[] = [
       { genre: 'jauge', zone: 'Lune' },
       {
         genre: 'assaut', zone: 'Lune',
-        radio: { pnj: 'elsa', texte: ['La Lune est libre. Et la Compagnie Lunaire de Tycho rouvre ses bureaux : son action entre en Bourse. Je t\'ouvre l\'accès, capitaine (Marché › BOURSE). Achète, vends, et ne mise jamais ce que tu n\'as pas.'] },
+        radio: { pnj: 'elsa', texte: ['(joie) La Lune est libre. Et la Compagnie Lunaire de Tycho rouvre ses bureaux : son action entre en Bourse. Je t\'ouvre l\'accès, capitaine (Marché › BOURSE). Achète, vends, et ne mise jamais ce que tu n\'as pas.'] },
       },
     ],
     ouvre: ['bourse'],

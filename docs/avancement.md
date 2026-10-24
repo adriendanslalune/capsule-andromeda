@@ -68,6 +68,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   SVG par Claude) et la fiche de prompts pour ChatGPT (`docs/portraits-prompts.md`). Mise en page validée par Adrien
   le même jour et codée dans le jeu (`commun/vue-dialogue.ts`, `commun/portraits.ts`) ; portraits et décors faits par
   ChatGPT (fiche complétée avec les treize décors) : en attendant, les dessins de Claude.
+  Elsa reçue le même jour (trois humeurs, `public/portraits/`, plus son médaillon) : le logo de l'Alliance rebelle de
+  Star Wars sur sa poitrine remplacé par l'écusson de la Résistance ; quelques humeurs ajoutées à ses répliques.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

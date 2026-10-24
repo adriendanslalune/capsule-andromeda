@@ -24,7 +24,9 @@ tirées de leur rôle et de leurs répliques : à corriger librement.
 > en aplats d'une seule teinte plus foncée, lumière venant de la gauche. Palette douce : crème, pêche, vert d'eau, bleu
 > pâle, lavande, moutarde, avec des touches d'orange vif. Ambiance rétro-futuriste des années 1970, un peu
 > bande dessinée d'aventure. Cadrage : tête et épaules, de face ou de trois quarts, la tête dans la moitié haute de
-> l'image, le buste coupé par le bas du cadre. Pas de texte, pas de cadre, pas de bulle. Fond transparent (sinon aplat
+> l'image, le buste coupé par le bas du cadre. Pas de texte, pas de cadre, pas de bulle. Aucun logo ni insigne
+> existant (ni Star Wars, ni NASA, ni aucune marque) : l'écusson de la Résistance est une planète à anneau crème sur
+> un disque orange. Fond transparent (sinon aplat
 > vert vif uni #00FF00).
 
 ## Les treize personnages
@@ -111,7 +113,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 > Décor de bande dessinée de science-fiction, dans le style de Moebius (Jean Giraud) : ligne claire, trait d'encre fin
 > et régulier brun-violet foncé, grands aplats de couleurs pastel sans dégradé, ombres en aplats. Ambiance
 > rétro-futuriste des années 1970. Vue à hauteur d'homme, comme l'arrière-plan d'une case de BD derrière un
-> personnage : aucun personnage, aucun texte, aucun cadre. Le centre de l'image reste dégagé (un personnage sera posé
+> personnage : aucun personnage, aucun texte, aucun cadre, aucun logo existant. Le centre de l'image reste dégagé (un personnage sera posé
 > devant), l'intérêt est sur les côtés et en haut.
 
 ### Les treize lieux
@@ -142,6 +144,12 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
   le noir, Neptune bleu profond dans le ciel.
 - **Station Tombaugh** (Mira) : la plaine glacée beige et crème de Pluton, une grande zone claire en forme de cœur,
   un petit abri à coupole lavande, le Soleil réduit à une étoile brillante dans un ciel très étoilé.
+
+## Reçus
+
+- **Elsa Varga** (24/10/2026) : les trois humeurs. ChatGPT avait cousu sur sa poitrine le logo de l'Alliance rebelle de
+  Star Wars : Claude l'a remplacé par l'écusson de la Résistance (la planète à anneau du jeu). D'où la consigne « aucun
+  logo existant » dans les blocs de style.
 
 ## Ce qu'il faut envoyer à Claude
 
