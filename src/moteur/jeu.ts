@@ -122,6 +122,8 @@ export class Jeu {
   installes: Instrument[] = [...INSTRUMENTS]
   /** La présentation du monde est vue (Adrien, 23/10/2026 : une partie neuve commence par elle ; une partie d'avant l'a vue). */
   presentation = true
+  /** Les bulles d'aide déjà vues (une fenêtre ouverte pour la première fois : demande d'Adrien du 24/10/2026). */
+  aides: string[] = []
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
   /** L'expérience du capitaine (décisions d'Adrien du 21/10/2026) : le niveau s'en déduit (moteur/niveau.ts). */
@@ -248,8 +250,6 @@ export class Jeu {
     this.graine = graine >>> 0
     this.numeroSerie = numeroDeSerie(this.graine)
     this.pseudo = `Capitaine-${this.numeroSerie.slice(-3)}`
-    this.installes = []
-    this.presentation = false
   }
 
   /** La réparation d'un module du panneau (commencée au premier regard), ou null s'il n'est pas en défaut. */

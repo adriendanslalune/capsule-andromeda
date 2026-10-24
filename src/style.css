@@ -2501,3 +2501,14 @@ body.volet-ouvert #annonces { display: none; }
 #guide .bulle-guide { position: absolute; max-width: 170px; padding: 6px 10px; background: var(--creme); border: 2px solid var(--encre);
   border-radius: 14px; box-shadow: 3px 3px 0 var(--encre); font: italic 800 15px/1.1 var(--titre); letter-spacing: 0.04em;
   text-transform: uppercase; color: var(--encre); }
+
+/* Les bulles d'aide (demande d'Adrien du 24/10/2026) : le contour orange qui tourne, et une case de papier. */
+#bulles { position: fixed; inset: 0; z-index: 9100; pointer-events: none; }
+#bulles[hidden] { display: none; }
+#bulles .contour-guide { position: absolute; overflow: visible; }
+#bulles .contour-guide rect { fill: none; stroke: var(--orange); stroke-width: 3; stroke-dasharray: 7 5; animation: contour-guide 0.9s linear infinite; }
+#bulles .case-bulle { position: absolute; left: 14px; right: 14px; pointer-events: auto; padding: 12px 14px 10px; background: var(--fond) var(--grain);
+  border: 2px solid var(--encre); border-radius: 14px; box-shadow: 4px 4px 0 var(--encre); }
+#bulles .case-bulle p { margin: 0 0 10px; font: 13.5px/1.45 var(--police); color: var(--encre); }
+#bulles .case-bulle button { display: block; margin-left: auto; min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em;
+  background: var(--orange); color: #fff; border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--encre); }

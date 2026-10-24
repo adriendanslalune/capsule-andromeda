@@ -23,7 +23,9 @@ export interface NiveauMoteur {
  */
 export const NIVEAUX_MOTEUR: readonly NiveauMoteur[] = [
   { niveau: 1, vitesse: 30, prix: 0, materiaux: {} },
-  { niveau: 2, vitesse: 60, prix: 200, materiaux: { Ferraille: 3 } },
+  // Niveau 2 : très peu de ferraille (Adrien, 24/10/2026 : la première amélioration doit être facile, sans passer par
+  // le Comptoir ; un contrat VIDER suffit).
+  { niveau: 2, vitesse: 60, prix: 200, materiaux: { Ferraille: 0.5 } },
   { niveau: 3, vitesse: 120, prix: 400, materiaux: { Cuivre: 3 } },
   { niveau: 4, vitesse: 240, prix: 800, materiaux: { Cuivre: 5, Verre: 2 } },
   { niveau: 5, vitesse: 480, prix: 1_600, materiaux: { Titane: 4 } },

@@ -8,6 +8,7 @@
 // calculée une fois par taille (et préparée quand le téléphone ne fait rien) ; ensuite on ne fait que décaler le
 // planisphère, au demi-degré.
 
+import { niveauDeGris } from './gris'
 import { orientation } from '../moteur/rotation'
 import { corps } from '../moteur/corps'
 import { H, L, PLANISPHERES, type Contexte } from './planispheres'
@@ -37,7 +38,7 @@ function planisphere(nom: string, gris: boolean): Uint8ClampedArray {
   if (p) return p
   if (gris) {
     p = new Uint8ClampedArray(planisphere(nom, false))
-    for (let i = 0; i < p.length; i += 4) { const l = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2]; p[i] = p[i + 1] = p[i + 2] = l }
+    for (let i = 0; i < p.length; i += 4) { const l = niveauDeGris(p[i], p[i + 1], p[i + 2]); p[i] = p[i + 1] = p[i + 2] = l }
   } else {
     const toile = document.createElement('canvas')
     toile.width = L

@@ -4,7 +4,7 @@ import { PNJS, QUETES } from '../src/donnees/quetes'
 import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
-import { accepter, avancerQuetes, cheminVersAssaut, ecouterSignal, liberation, principalesAPrendre, radioALire, rattraperSuivi, signalDeQuete, suiteDeLHistoire, objectif, parler, quete, signePnj } from '../src/moteur/quetes'
+import { accepter, avancerQuetes, cheminVersAssaut, ecouterSignal, liberation, radioALire, rattraperSuivi, suiteDeLHistoire, objectif, parler, quete } from '../src/moteur/quetes'
 import { jauge } from '../src/moteur/zones'
 import { position } from '../src/moteur/corps'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
@@ -21,7 +21,6 @@ function partie(): Jeu & { ici: string | null } {
 const contrat = (genre: string, tableau: string) => ({ id: 1, genre, etapes: [], recompense: 0, tableau }) as unknown as Contrat
 
 const finies = (jeu: Jeu, ids: string[]) => { for (const id of ids) jeu.quetes[id] = { etape: 99, compte: 0, debut: t0, fin: t0 } }
-const TUTO = ['t1', 't2', 't3', 't4', 't5', 't6', 't7']
 
 describe('les PNJ et les quêtes : les données', () => {
   it('chaque PNJ est à un lieu de la carte ; chaque quête a un donneur, des conditions et des étapes valables', () => {
@@ -44,142 +43,61 @@ describe('les PNJ et les quêtes : les données', () => {
   })
 })
 
-describe('le tutoriel autour de la Terre (décisions d’Adrien du 23/10/2026)', () => {
-  it('une capsule neuve n’a rien d’installé ; une partie commencée avant la règle a tout', () => {
+describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lune)', () => {
+  it('tout est installé dès le départ', () => {
     const neuve = new Jeu()
-    neuve.nouvellePartie(42)
-    expect(neuve.installes).toEqual([])
-    expect(new Jeu().installe('radar')).toBe(true)
-    // Une sauvegarde d'avant la règle (sans la liste) : tout est installé.
-    const s = sauvegarder(new Jeu(), t0) as unknown as Record<string, unknown>
-    delete s.installes
-    expect(restaurer(JSON.parse(JSON.stringify(s)))!.installes.length).toBe(10)
+    neuve.nouvellePartie(42, t0)
+    expect(neuve.installes.length).toBe(10)
+    expect(neuve.presentation).toBe(true)
   })
 
-  it('une partie d’avant le tutoriel le compte comme fait ; ses quêtes de la Lune reprennent à l’étape équivalente', () => {
-    const s = sauvegarder(new Jeu(), t0) as unknown as Record<string, unknown>
-    delete s.installes
-    s.quetes = { 'lune-1': { etape: 3, compte: 0, debut: t0, fin: t0 }, 'lune-3': { etape: 1, compte: 0, debut: t0, fin: null } }
-    const jeu = restaurer(JSON.parse(JSON.stringify(s)))!
-    for (const id of ['t1', 't7', 't8']) expect(jeu.quetes[id]?.fin, id).toBe(t0)
-    expect(jeu.quetes.l1).toBeUndefined()
-  })
-
-  it('T1 : après la présentation du monde, Elsa appelle par radio ; on la rejoint à l’ISS et on lui parle', () => {
+  it('Elsa appelle par radio : améliorer le moteur ; le niveau 2 ne demande presque pas de ferraille', () => {
     const jeu = partie()
-    jeu.installes = []
-    jeu.presentation = false
     avancerQuetes(jeu, { genre: 'instant' }, t0)
-    expect(jeu.quetes.t1).toBeUndefined()
-    jeu.finirPresentation(t0)
-    expect(jeu.quetes.t1?.fin).toBeNull()
-    expect(radioALire(jeu, t0 + 1000)?.quete).toBe('t1')
-    expect(objectif(jeu, quete('t1'))).toMatchObject({ lieu: 'ISS' })
-    expect(signePnj(jeu, 'elsa')).toEqual({ signe: '?', principale: true })
-    jeu.ici = 'ISS'
-    const avant = jeu.credits
-    const d = parler(jeu, 'elsa', t0 + 30_000)
-    expect(d.pages.join(' ')).toMatch(/Andromède/)
-    expect(jeu.quetes.t1.fin).toBe(t0 + 30_000)
-    expect(jeu.credits).toBe(avant + 50)
-    expect(jeu.installes).toEqual(['communications'])
-    // T2 arrive par radio, prise d'office : le colis est dans la soute, la quête suivie.
-    expect(jeu.quetes.t2?.fin).toBeNull()
-    expect(jeu.soute['Pièces détachées']).toBe(1)
-    expect(jeu.queteSuivie).toBe('t2')
-  })
-
-  it('T2 puis T3 : la livraison à Tiangong, la réponse radio de Wei Lan, les contrats VIDER, la ferraille', () => {
-    const jeu = partie()
-    finies(jeu, ['t1'])
-    avancerQuetes(jeu, { genre: 'instant' }, t0)
-    jeu.ici = 'Tiangong'
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 1)
-    expect(jeu.quetes.t2.fin).not.toBeNull()
-    expect(jeu.soute['Pièces détachées']).toBeUndefined()
-    expect(jeu.radioPnj.map((r) => r.pnj)).toEqual(['elsa', 'weilan', 'weilan'])
-    expect(jeu.quetes.t3.fin).toBeNull()
-    avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('chasser', 'Terre') }, t0)
-    for (let k = 0; k < 3; k++) avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('nettoyer', 'Terre') }, t0 + 2)
-    expect(jeu.quetes.t3.etape).toBe(1)
-    jeu.soute = { Ferraille: 2.5 }
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 3)
-    expect(jeu.quetes.t3.fin).not.toBeNull()
-    expect(jeu.soute).toEqual({ Ferraille: 1.5 })
-    // T4 se prend chez Joe, près de GOES-19.
-    expect(principalesAPrendre(jeu).map((q) => q.id)).toEqual(['t4'])
-  })
-
-  it('T4 à T7 : le moteur, la panne voulue, le radar et les chasseurs, le PING', () => {
-    const jeu = partie()
-    finies(jeu, ['t1', 't2', 't3'])
-    jeu.installes = ['communications', 'contrats']
-    jeu.ici = 'GOES-19'
-    accepter(jeu, 't4', t0)
-    expect(jeu.installe('marche')).toBe(true)
+    expect(jeu.quetes.q1?.fin).toBeNull()
+    expect(radioALire(jeu, t0 + 1000)?.quete).toBe('q1')
+    expect(objectif(jeu, quete('q1'))?.texte).toMatch(/moteur de niveau 2/)
+    expect(jeu.moteurSuivant()!.materiaux).toEqual({ Ferraille: 0.5 })
     jeu.niveauMoteur = 2
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 1)
-    expect(jeu.quetes.t4.fin).not.toBeNull()
-    // T5 : l'Énergie coupée à distance ; réparée, l'étape est faite.
-    expect(jeu.enPanne('energie')).toBe(true)
-    expect(jeu.installe('reparation')).toBe(true)
-    jeu.reparer('energie')
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 2)
-    expect(jeu.quetes.t5.fin).not.toBeNull()
-    // T6 : un chasseur repéré au radar (après le début de l'étape), puis deux abattus près de la Terre.
-    expect(jeu.installe('radar') && jeu.installe('armement')).toBe(true)
-    jeu.espace.reperes = { vieux: t0 - 10 }
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 3)
-    expect(jeu.quetes.t6.etape).toBe(0)
-    jeu.espace.reperes = { vieux: t0 - 10, chasseur: t0 + 4 }
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 4)
-    expect(jeu.quetes.t6.etape).toBe(1)
-    avancerQuetes(jeu, { genre: 'chasseur', systeme: 'Mars' }, t0 + 5)
-    avancerQuetes(jeu, { genre: 'chasseur', systeme: 'Terre' }, t0 + 5)
-    expect(objectif(jeu, quete('t6'))?.compte).toBe('1/2')
-    avancerQuetes(jeu, { genre: 'chasseur', systeme: 'Terre' }, t0 + 6)
-    expect(jeu.quetes.t6.fin).not.toBeNull()
-    // Sa part de la jauge de la Lune : 15 %.
-    expect(jauge(jeu.zones, 'Lune')).toBe(15)
-    // T7 chez le Veilleur : le PING, un écho revenu.
-    jeu.ici = 'Hubble'
-    accepter(jeu, 't7', t0 + 7)
-    expect(jeu.installe('ping') && jeu.installe('collections')).toBe(true)
-    jeu.monolithes.echos.push({ monolithe: 1, centre: { x: 0, y: 0 }, rayon: 1, envoye: t0 + 8, retour: t0 + 20 })
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 10)
-    expect(jeu.quetes.t7.fin).toBeNull()
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 21)
-    expect(jeu.quetes.t7.fin).not.toBeNull()
+    avancerQuetes(jeu, { genre: 'instant' }, t0 + 2000)
+    expect(jeu.quetes.q1.fin).not.toBeNull()
+    // Elsa explique la suite (contrats, moteur, le Comptoir), puis envoie la Lune.
+    expect(jeu.radioPnj.some((r) => r.texte.join(' ').includes('Comptoir'))).toBe(true)
+    expect(jeu.quetes.q2?.fin).toBeNull()
+    expect(objectif(jeu, quete('q2'))).toMatchObject({ lieu: 'Lune' })
   })
 
-  it('T8 : le signal de Tycho à la radio, calé net 10 s dans le système de la Terre', () => {
+  it('sur la Lune, Keïta : la jauge de la Lune monte, Okafor appelle', () => {
     const jeu = partie()
-    finies(jeu, TUTO)
+    finies(jeu, ['q1'])
     avancerQuetes(jeu, { genre: 'instant' }, t0)
-    expect(jeu.installe('radio')).toBe(true)
-    expect(signalDeQuete(jeu, 'Mars')).toBeNull()
-    expect(ecouterSignal(jeu, 'Terre', 6, t0)).toBeNull()
-    expect(ecouterSignal(jeu, 'Terre', 4.75, t0)?.nettete).toBeLessThan(0.95)
-    ecouterSignal(jeu, 'Terre', 4.712, t0)
-    expect(ecouterSignal(jeu, 'Terre', 4.712, t0 + 5000)?.capte).toBe(false)
-    expect(ecouterSignal(jeu, 'Terre', 4.712, t0 + 10_000)?.capte).toBe(true)
-    expect(jeu.quetes.t8.etape).toBe(1)
-    expect(jauge(jeu.zones, 'Lune')).toBe(20)
-    jeu.niveauMoteur = 4
-    avancerQuetes(jeu, { genre: 'instant' }, t0 + 11_000)
-    expect(objectif(jeu, quete('t8'))?.lieu).toBe('Lune')
     jeu.ici = 'Lune'
-    parler(jeu, 'keita', t0 + 12_000)
-    expect(jeu.quetes.t8.fin).not.toBeNull()
-    // La suite arrive par radio : Okafor.
+    parler(jeu, 'keita', t0 + 1)
+    expect(jeu.quetes.q2.fin).not.toBeNull()
+    expect(jauge(jeu.zones, 'Lune')).toBe(25)
     expect(jeu.quetes.l1?.fin).toBeNull()
+  })
+
+  it('une ancienne partie reprend à l’étape équivalente (avant le tutoriel, ou en plein tutoriel du 23/10)', () => {
+    const vieille = sauvegarder(new Jeu(), t0) as unknown as Record<string, unknown>
+    vieille.quetes = { 'lune-1': { etape: 3, compte: 0, debut: t0, fin: t0 }, 'lune-3': { etape: 1, compte: 0, debut: t0, fin: null } }
+    const a = restaurer(JSON.parse(JSON.stringify(vieille)))!
+    expect(a.quetes.q1?.fin).toBe(t0)
+    expect(a.quetes.q2?.fin).toBe(t0)
+    expect(a.quetes.l1).toBeUndefined()
+    const tuto = sauvegarder(new Jeu(), t0) as unknown as Record<string, unknown>
+    tuto.quetes = { t1: { etape: 1, compte: 0, debut: t0, fin: t0 }, t2: { etape: 0, compte: 0, debut: t0, fin: null } }
+    tuto.installes = ['communications']
+    const b = restaurer(JSON.parse(JSON.stringify(tuto)))!
+    expect(b.quetes.q1).toBeUndefined()
+    expect(b.installes.length).toBe(10)
   })
 })
 
 describe('la Lune, de bout en bout', () => {
   it('livrer à la Station Tycho : il faut tout avoir en soute, au bon endroit ; les marchandises quittent la soute', () => {
     const jeu = partie()
-    finies(jeu, [...TUTO, 't8'])
+    finies(jeu, ['q1', 'q2'])
     avancerQuetes(jeu, { genre: 'instant' }, t0)
     jeu.soute = { Eau: 5, Titane: 1 }
     jeu.ici = 'Station Tycho'
@@ -195,7 +113,7 @@ describe('la Lune, de bout en bout', () => {
     const { ajouterPoints } = await import('../src/moteur/zones')
     const { assautIci } = await import('../src/moteur/quetes')
     const jeu = partie()
-    finies(jeu, [...TUTO, 't8', 'l1'])
+    finies(jeu, ['q1', 'q2', 'l1'])
     jeu.installes = jeu.installes.filter((i) => i !== 'bourse')
     avancerQuetes(jeu, { genre: 'instant' }, t0)
     avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('depanner', 'Terre') }, t0)
@@ -222,7 +140,6 @@ describe('la Lune, de bout en bout', () => {
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.quetes).toEqual(jeu.quetes)
     expect(copie.radioPnj).toEqual(jeu.radioPnj)
-    expect(copie.installes).toEqual(jeu.installes)
     expect(copie.queteSuivie).toBe('interieures')
   })
 })
@@ -230,11 +147,8 @@ describe('la Lune, de bout en bout', () => {
 describe('le chemin vers l’assaut d’une zone (Adrien, 22/10/2026 : la Lune à 100 % restait occupée sans explication)', () => {
   it('dit, à chaque moment, ce qu’il reste à faire pour lancer l’assaut', () => {
     const jeu = new Jeu(), t = Date.UTC(2026, 9, 22, 12)
-    finies(jeu, ['t1', 't2', 't3'])
-    // T4 à prendre chez Joe.
-    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/avance d'abord dans la quête « Le garage de Joe » : Joe Hennessy t'attend \(GOES-19\)/)
-    jeu.quetes.t4 = { etape: 0, compte: 0, debut: t, fin: null }
-    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/« Le garage de Joe » : installe le moteur de niveau 2/)
+    jeu.quetes.q1 = { etape: 0, compte: 0, debut: t, fin: null }
+    expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/« Le cœur de la capsule » : installe le moteur de niveau 2/)
     jeu.quetes.l3 = { etape: 1, compte: 0, debut: t, fin: null }
     expect(cheminVersAssaut(jeu, 'Lune')).toMatch(/orbite autour de la Lune et lance l'ASSAUT/)
     expect(cheminVersAssaut(jeu, 'Terre')).toBeNull()
@@ -242,17 +156,17 @@ describe('le chemin vers l’assaut d’une zone (Adrien, 22/10/2026 : la Lune �
 })
 
 describe('les principales à prendre sont des quêtes comme les autres (Adrien, 22/10/2026)', () => {
-  it('leur objectif : parler à celui qui les donne ; on les suit ; une secondaire suivie leur cède la place au chargement', () => {
+  it('le tableau de bord montre toujours la suite de l’histoire ; une secondaire suivie lui cède la place au chargement', () => {
     const jeu = new Jeu(), t = Date.UTC(2026, 9, 22, 12)
-    finies(jeu, ['t1', 't2', 't3'])
+    jeu.quetes.q1 = { etape: 1, compte: 0, debut: t, fin: t }
     jeu.quetes.rosa = { etape: 0, compte: 0, debut: t, fin: null }
     jeu.queteSuivie = 'rosa'
-    expect(principalesAPrendre(jeu).map((q) => q.id)).toEqual(['t4'])
-    expect(objectif(jeu, quete('t4'))!.texte).toMatch(/Joe Hennessy/)
+    jeu.presentation = false
+    expect(suiteDeLHistoire(jeu)).toBeNull()
+    jeu.presentation = true
+    expect(suiteDeLHistoire(jeu)?.id).toBe('q2')
     rattraperSuivi(jeu)
-    expect(jeu.queteSuivie).toBe('t4')
-    jeu.queteSuivie = 'rosa'
-    expect(suiteDeLHistoire(jeu)?.id).toBe('t4')
+    expect(jeu.queteSuivie).toBe('q2')
   })
 })
 
@@ -269,7 +183,7 @@ describe('les planètes intérieures (docs/campagne-detail.md, validé par Adrie
 
   it('Mars : le convoi, le chasseur, la balise à la radio, Beagle 2 ; Hélène répond à chaque fois', () => {
     const jeu = partie()
-    finies(jeu, [...TUTO, 't8', 'l1', 'l2', 'l3'])
+    finies(jeu, ['q1', 'q2', 'l1', 'l2', 'l3'])
     jeu.ici = 'Mars'
     accepter(jeu, 'liberer-mars', t0)
     avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('escorter', 'Mars') }, t0 + 1)

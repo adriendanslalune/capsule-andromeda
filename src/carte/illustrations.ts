@@ -5,6 +5,7 @@
 // Dessiné en coordonnées locales : centre (0, 0), rayon du disque r (pixels). Sous une certaine taille, la carte garde
 // le simple disque.
 
+import { niveauDeGris } from './gris'
 import { dessinerGlobe, epaisseurContour, preparerGlobe, tourne } from './globes'
 
 export const ENCRE = '#2b2138'
@@ -593,7 +594,7 @@ function preparer(nom: string, rp: number, angle: number | null, echelle: number
   // Un astre pas encore visité (décision d'Adrien du 21/10/2026) : le même dessin, en gris.
   if (gris) {
     const img = c.getImageData(0, 0, toile.width, toile.height), d = img.data
-    for (let i = 0; i < d.length; i += 4) { const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = l }
+    for (let i = 0; i < d.length; i += 4) { const l = niveauDeGris(d[i], d[i + 1], d[i + 2]); d[i] = d[i + 1] = d[i + 2] = l }
     c.putImageData(img, 0, 0)
   }
   return toile

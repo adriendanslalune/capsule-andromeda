@@ -5,6 +5,7 @@
 // Style Moebius : aplats pastel cernés d'encre, face de nuit en aplat violet, hachures le long du terminateur.
 // La carte ne calcule aucune position réelle : elle les demande au moteur, puis les projette.
 
+import { niveauDeGris } from './gris'
 import type { Boite } from '../commun/reperes'
 import { couleurAstre } from './couleurs'
 import { dessinerEngin } from './engins'
@@ -61,7 +62,7 @@ const PASTILLE = 0.5
 function enGris(couleur: string): string {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(couleur)
   if (!m) return couleur
-  const l = Math.round(0.3 * parseInt(m[1], 16) + 0.59 * parseInt(m[2], 16) + 0.11 * parseInt(m[3], 16)).toString(16).padStart(2, '0')
+  const l = niveauDeGris(parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)).toString(16).padStart(2, '0')
   return `#${l}${l}${l}`
 }
 /** L'astre est-il dessiné illustré, à ce rayon à l'écran ? */
@@ -169,7 +170,7 @@ export class Carte2D {
   /** Ce qui se voit toujours (choisi, visé par une mission ou la quête suivie) : une petite lune, par exemple. */
   toujoursVisible: (nom: string) => boolean = () => false
   /** Une zone à libérer : visitée ou pas (grisée), occupée ou pas (le drapeau pirate) ; null pour les autres astres. */
-  etatZone: (nom: string) => { visitee: boolean; occupee: boolean } | null = () => null
+  etatZone: (nom: string) => { visitee: boolean; occupee: boolean; jauge: number } | null = () => null
   /** Le radar s'il tourne ou si ses échos s'effacent : l'angle du balayage (radians, à l'écran) et sa portée (km). */
   radar: (t: number) => { angle: number; portee: number; actif: boolean } | null = () => null
   /** Ce qui est écrit sous la capsule du joueur : son numéro et le nom de son capitaine (demande d'Adrien du 20/10/2026). */
@@ -721,7 +722,7 @@ export class Carte2D {
       if (illustre(r) && aUneIllustration(c.nom) && dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris, t)) { /* dessiné */ }
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
-      if (z?.occupee && !this.epure) this.drapeau(ctx, q.x, q.y - r - 3, couleurs)
+      if (z?.occupee && !this.epure) this.drapeau(ctx, q.x, q.y - r - 3, couleurs, z.jauge)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
       if (this.nuit && c.type !== 'etoile') {
         ctx.beginPath()
@@ -741,7 +742,7 @@ export class Carte2D {
       const r = Math.max(p.genre === 'comete' ? 4 : 3, p.rayon / this.kmParPx)
       this.dessines.push({ nom: p.nom, x: q.x, y: q.y, r: Math.max(r, 6) })
       // (Halley a la grande traînée ; les autres comètes, une plus modeste.)
-      if (p.genre === 'comete') this.comete(ctx, q, soleil, couleurs, dedans, activiteComete(p, t) * (p.nom === HALLEY ? 1 : 0.55), p, t)
+      if (p.genre === 'comete') this.comete(ctx, q, soleil, couleurs, dedans, activiteComete(p, t) * (p.nom === HALLEY ? 1 : 0.6), p, t)
       else if (dedans(q.x, q.y, r * 3 + 10)) this.silhouette(ctx, q, r, p, couleurs, t)
     }
     for (const nom of CENTRES) {
@@ -1269,8 +1270,9 @@ export class Carte2D {
    */
   private comete(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, soleil: { x: number; y: number },
     couleurs: Couleurs2D, dedans: (x: number, y: number, marge?: number) => boolean, activite: number, p: PetitCorps, t: number): void {
-    // Plus courte (Adrien, 23/10/2026 : trop grande, elle faisait tache) : de 70 à 190 px pour Halley.
-    const L = Math.min(190, Math.max(70, 5e7 / this.kmParPx)) * activite
+    // Bien plus courte (Adrien, 23 et 24/10/2026 : trop grande, elle faisait tache, on croyait que le jeu tournait autour
+    // d'elle) : de 26 à 70 px pour Halley.
+    const L = Math.min(70, Math.max(26, 2e7 / this.kmParPx)) * activite
     if (!dedans(q.x, q.y, L * 1.2 + 12)) return
     let dx = q.x - soleil.x, dy = q.y - soleil.y
     const n = Math.hypot(dx, dy) || 1
@@ -1565,7 +1567,7 @@ export class Carte2D {
   }
 
   /** Le drapeau pirate d'une zone occupée par Andromède : un mât et un fanion noir à tête de mort, planté au-dessus. */
-  private drapeau(ctx: CanvasRenderingContext2D, x: number, y: number, couleurs: Couleurs2D): void {
+  private drapeau(ctx: CanvasRenderingContext2D, x: number, y: number, couleurs: Couleurs2D, jauge: number): void {
     ctx.save()
     ctx.translate(x, y)
     ctx.lineWidth = 1.3
@@ -1580,6 +1582,19 @@ export class Carte2D {
     ctx.strokeStyle = '#faf2dc'
     ctx.lineWidth = 0.9
     ctx.beginPath(); ctx.moveTo(3.4, -10.6); ctx.lineTo(8.2, -8.6); ctx.moveTo(8.2, -10.6); ctx.lineTo(3.4, -8.6); ctx.stroke()
+    // À côté, la jauge de la Résistance dans la zone (demande d'Adrien du 24/10/2026) : une barre qui se remplit de
+    // vert, et son pourcentage.
+    ctx.fillStyle = '#faf2dc'
+    ctx.fillRect(15, -14, 22, 5)
+    ctx.fillStyle = '#5fa86a'
+    ctx.fillRect(15, -14, (22 * Math.min(100, Math.max(0, jauge))) / 100, 5)
+    ctx.strokeStyle = couleurs.encre
+    ctx.lineWidth = 1
+    ctx.strokeRect(15, -14, 22, 5)
+    ctx.font = 'bold 8px "IBM Plex Mono", monospace'
+    ctx.fillStyle = couleurs.encre
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(`${Math.round(jauge)} %`, 15, -2)
     ctx.restore()
   }
 

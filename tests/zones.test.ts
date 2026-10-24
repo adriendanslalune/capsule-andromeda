@@ -76,9 +76,9 @@ describe('la libération des zones (décisions d’Adrien du 21/10/2026)', () =>
 
   it('les quêtes secondaires d’un PNJ ne s’ouvrent qu’une fois sa zone libérée', () => {
     const jeu = new Jeu()
-    jeu.quetes.t4 = { etape: 9, compte: 0, debut: t0, fin: t0 }
-    // Rosa (Tiangong) est dans le système de la Terre, libre.
-    expect(disponibles(jeu).filter((q) => q.type === 'secondaire').map((q) => q.id).sort()).toEqual(['rosa'])
+    jeu.quetes.q1 = { etape: 9, compte: 0, debut: t0, fin: t0 }
+    // Rosa (Tiangong) et le Veilleur (Hubble) sont dans le système de la Terre, libre.
+    expect(disponibles(jeu).filter((q) => q.type === 'secondaire').map((q) => q.id).sort()).toEqual(['rosa', 'veilleur'])
   })
 
   it('la campagne : chaque zone a sa quête de libération (jauge, assaut, retour au PNJ) ; l’ordre des systèmes', () => {

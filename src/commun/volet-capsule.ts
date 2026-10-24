@@ -37,8 +37,8 @@ export class VoletCapsule {
         return `<div class="materiau${assez ? ' assez' : ''}"><span>${assez ? '✓' : '·'} ${nom}</span><span>${tonnes(Math.min(n, jeu.soute[nom] ?? 0))} / ${n} t</span></div>`
       }).join('')
       const bloque = manque.credits > 0 || Object.keys(manque.materiaux).length > 0
-      const conseil = manque.credits > 0 && Object.keys(manque.materiaux).length ? 'fais des missions, et trouve les matériaux au Comptoir ou dans les épaves'
-        : manque.credits > 0 ? 'fais des missions' : 'trouve les matériaux au Comptoir ou dans les épaves'
+      const conseil = manque.credits > 0 && Object.keys(manque.materiaux).length ? 'fais des contrats ; les contrats VIDER rapportent aussi des matériaux (sinon, le Comptoir du Marché)'
+        : manque.credits > 0 ? 'fais des contrats' : 'les contrats VIDER rapportent des matériaux (sinon, le Comptoir du Marché)'
       html += `<h3>Moteur suivant</h3><div class="bloc"><div class="vals"><b>${avec('moteur', `Niveau ${suivant.niveau}`)}</b>${avec('vitesse', `${nombre(suivant.vitesse)} km/s max`)}`
         + `<span>(×${(suivant.vitesse / m.vitesse).toLocaleString('fr-FR', { maximumFractionDigits: 1 })})</span></div>`
         + `<div class="materiaux-moteur">${avec('soute', 'à fournir')}${materiaux}</div>`

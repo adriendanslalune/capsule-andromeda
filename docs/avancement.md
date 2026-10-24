@@ -41,6 +41,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   radio, Elsa annonce Nadia par radio. Écart avec le document : les contrats d'une étape (escorter, réparer, remorquer,
   le chasseur d'Olympus) se prennent au tableau du système, la quête ne pose pas encore son propre contrat. Reste :
   retrouver les messages radio dans les Messages ; les systèmes extérieurs, un à la fois.
+- Le début refait (24/10/2026, décisions d'Adrien : la chaîne du tutoriel était « imbuvable ») : tout installé dès le
+  départ ; « Le cœur de la capsule » (améliorer le moteur, niveau 2 à 0,5 t de ferraille), puis « Cap sur la Lune » ;
+  bulles d'aide à la première ouverture de chaque fenêtre (`donnees/aides.ts`, `commun/bulles.ts`) ; la main ne guide
+  plus que ces deux quêtes ; présentation retirée du début pour les essais. Wei Lan et Joe partent ; le Veilleur redevient
+  une secondaire (PING). Carte : zones pas visitées d'un gris sombre (la Lune aussi), jauge de la Résistance à côté du
+  drapeau pirate, traînées des comètes bien plus courtes. À faire : le chapitre « Bien commencer » du Manuel.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

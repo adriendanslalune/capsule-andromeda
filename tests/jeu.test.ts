@@ -34,7 +34,7 @@ describe('acheter un meilleur moteur (barème revu par Adrien le 21/10/2026)', (
     expect(jeu.acheterMoteur()).toBe(false)
     expect(jeu.niveauMoteur).toBe(1)
     jeu.credits = 300
-    jeu.soute = { Ferraille: 3, Cuivre: 8, Verre: 2 }
+    jeu.soute = { Ferraille: 0.5, Cuivre: 8, Verre: 2 }
     expect(jeu.acheterMoteur()).toBe(true)
     expect(jeu.credits).toBe(100)
     expect(jeu.vitesse()).toBe(60)
@@ -48,11 +48,12 @@ describe('acheter un meilleur moteur (barème revu par Adrien le 21/10/2026)', (
   it('chaque niveau demande aussi des matériaux, pris dans la soute (décision d’Adrien du 20/10/2026)', () => {
     const jeu = new Jeu()
     jeu.credits = 1000
-    jeu.soute = { Ferraille: 2.5, Eau: 1 }
-    expect(jeu.manquePourMoteur()).toEqual({ credits: 0, materiaux: { Ferraille: 0.5 } })
+    // Le niveau 2 : une demi-tonne de ferraille (Adrien, 24/10/2026 : la première amélioration doit être facile).
+    jeu.soute = { Ferraille: 0.3, Eau: 1 }
+    expect(jeu.manquePourMoteur()).toEqual({ credits: 0, materiaux: { Ferraille: 0.2 } })
     expect(jeu.acheterMoteur()).toBe(false)
     expect(jeu.credits).toBe(1000)
-    jeu.soute.Ferraille = 4
+    jeu.soute.Ferraille = 1.5
     expect(jeu.acheterMoteur()).toBe(true)
     expect(jeu.soute).toEqual({ Ferraille: 1, Eau: 1 })
     expect(jeu.manquePourMoteur()).toEqual({ credits: 0, materiaux: { Cuivre: 3 } })

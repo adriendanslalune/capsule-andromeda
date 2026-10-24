@@ -1,7 +1,7 @@
 // Les PNJ et les quêtes (décisions d'Adrien du 20/10/2026). Un PNJ a un lieu fixe (satellite, station, lune,
 // planète) : on lui parle en orbite à son lieu. Une quête est principale (la campagne) ou secondaire ; elle a un
 // donneur, des conditions (quêtes à finir avant), des étapes qui se cochent toutes seules, et une récompense.
-// Le tutoriel et la Lune d'après docs/campagne-detail.md (validé par Adrien le 23/10/2026). Les portraits
+// Le début (Adrien, 24/10/2026) et la Lune d'après docs/campagne-detail.md. Les portraits
 // viendront d'Adrien (images générées) ; en attendant, un médaillon à l'initiale.
 
 import { PNJS_CAMPAGNE, QUETES_CAMPAGNE } from './campagne'
@@ -27,14 +27,6 @@ export const PNJS: readonly Pnj[] = [
   {
     id: 'elsa', nom: 'Elsa Varga', role: 'Commandante de la Résistance', lieu: 'ISS', teinte: '#f3c2b0', portrait: null,
     repos: 'L\'ISS tient encore debout, et nous aussi. Je t\'appelle à la radio dès que j\'ai du nouveau.',
-  },
-  {
-    id: 'weilan', nom: 'Wei Lan', role: 'Ingénieure de la Résistance', lieu: 'Tiangong', teinte: '#bfe5d0', portrait: null,
-    repos: 'Je note tout, pour celui qui viendra après. Aujourd\'hui, j\'ai noté que tu passais dire bonjour.',
-  },
-  {
-    id: 'joe', nom: 'Joe Hennessy', role: 'Routier de l\'espace, cargo Marguerite', lieu: 'GOES-19', teinte: '#f5d38a', portrait: null,
-    repos: 'Garé au géostationnaire, comme un camion sur une aire d\'autoroute. Le café est infect, mais la vue est belle.',
   },
   {
     id: 'keita', nom: 'Dr Amadou Keïta', role: 'Sélénologue en exil', lieu: 'Lune', teinte: '#d7cdee', portrait: null,
@@ -129,139 +121,37 @@ export interface Quete {
 }
 
 export const QUETES: readonly Quete[] = [
-  // --- Le tutoriel autour de la Terre (décisions d'Adrien du 23/10/2026, docs/campagne-detail.md) : des choses simples
-  // et proches, une mécanique à la fois ; chaque quête installe un instrument. Petites récompenses : le moteur se paie
-  // avec les contrats.
+  // --- Le début (décisions d'Adrien du 24/10/2026, qui remplacent la chaîne du tutoriel, « imbuvable ») : une quête
+  // qui apprend le cœur du jeu, le moteur ; puis la Lune. Tout est installé dès le départ ; des bulles expliquent
+  // chaque fenêtre la première fois qu'on l'ouvre.
   {
-    // Juste après la présentation du monde (Adrien, 23/10/2026) : Elsa appelle, la capsule est à 30 secondes de l'ISS.
-    id: 't1', titre: 'Bienvenue dans la Résistance', type: 'principale', donneur: 'elsa', conditions: [], parRadio: true,
+    id: 'q1', titre: 'Le cœur de la capsule', type: 'principale', donneur: 'elsa', conditions: [], parRadio: true,
     intro: [
-      'Capitaine ? Capitaine, vous m\'entendez ? Ici Elsa Varga, à bord de l\'ISS. Je vous appelle sur la fréquence de secours.',
-      'Vous êtes sur notre orbite, à quarante kilomètres derrière nous : je vois votre capsule d\'ici. Rejoignez-nous, il faut qu\'on parle. Touchez l\'ISS sur la carte, puis DÉPART : vous y serez en trente secondes.',
+      'Capitaine ? Ici Elsa Varga, à bord de l\'ISS, juste devant toi. Bienvenue dans la Résistance. Il y a six mois, Andromède a encerclé toutes les planètes du système solaire. Nous, on se bat avec ce qu\'on a.',
+      'Ce qu\'on a, c\'est ta capsule. Son cœur, c\'est son moteur, et 30 km/s, pour l\'espace, c\'est lent. Ouvre l\'onglet Capsule : tu y verras ton moteur, le prix du suivant, et ce qu\'il demande en matériaux.',
+      'L\'argent se gagne avec des contrats (Journal › CONTRATS). Les contrats VIDER des Nettoyeurs rapportent aussi des matériaux : ce que tu tries dans les épaves file droit dans ta soute. Améliore ce moteur, et rappelle-moi.',
     ],
     etapes: [
       {
-        genre: 'parler', pnj: 'elsa', texte: [
-          'Te voilà, capitaine. Bien arrivé ? Ta capsule sort de l\'usine : un moteur, une coque, et c\'est à peu près tout. On va arranger ça.',
-          'Il y a six mois, quelque chose a éteint les étoiles du côté de Neptune. Puis ils sont arrivés : les vaisseaux d\'Andromède. Ils n\'ont pas bombardé la Terre. Ils l\'ont encerclée, comme toutes les autres planètes, et ils attendent.',
-          'Ce qui reste de la Résistance tient dans cette vieille station. Nous sommes peu, mal équipés, et têtus. Toi, tu as une capsule qui vole. C\'est déjà beaucoup.',
-          'Je te branche sur notre fréquence : tu recevras nos messages où que tu sois. Voilà de quoi commencer. Et garde l\'oreille ouverte, je t\'appelle bientôt.',
-        ],
-      },
-    ],
-    ouvre: ['communications'], recompense: 50,
-  },
-  {
-    id: 't2', titre: 'Un colis pour Tiangong', type: 'principale', donneur: 'elsa', conditions: ['t1'], parRadio: true,
-    intro: ['Premier service : Wei Lan, notre ingénieure, attend des pièces à Tiangong, tout près d\'ici. Je les ai mises dans ta soute. Elle t\'expliquera mieux que moi ce qu\'on sait d\'eux.'],
-    don: { 'Pièces détachées': 1 },
-    etapes: [
-      {
-        genre: 'livrer', lieu: 'Tiangong', marchandises: { 'Pièces détachées': 1 },
-        radio: { pnj: 'weilan', texte: [
-          'Mes pièces ! Merci, capitaine. Ici, on répare tout avec rien.',
-          'Tu veux savoir ce que je sais d\'eux ? Pas grand-chose. Quand ils passent, pas un bruit, pas une lumière : juste nos aiguilles qui tremblent. Ils ne tirent presque jamais près de la Terre. Ils surveillent.',
-          'Je note tout, pour celui qui viendra après. Peut-être que c\'est toi.',
+        genre: 'moteur', niveau: 2,
+        radio: { pnj: 'elsa', texte: [
+          'Deux fois plus vite ! Tu as compris le principe, capitaine : des contrats et des quêtes pour gagner de l\'argent, un meilleur moteur pour aller plus vite et plus loin. C\'est comme ça qu\'on traverse le système solaire.',
+          'Et s\'il te manque des matériaux, pas de panique : au Comptoir du Marché, tu peux acheter et vendre ce que tu veux.',
         ] },
       },
     ],
-    recompense: 40,
+    recompense: 100,
   },
   {
-    id: 't3', titre: 'De la ferraille pour Wei Lan', type: 'principale', donneur: 'weilan', conditions: ['t2'], parRadio: true,
+    id: 'q2', titre: 'Cap sur la Lune', type: 'principale', donneur: 'elsa', conditions: ['q1'], parRadio: true,
     intro: [
-      'Pour remettre Tiangong d\'aplomb, il me faut de la ferraille, et l\'orbite de la Terre en est pleine : des épaves, par centaines. Les Nettoyeurs paient pour qu\'on les vide.',
-      'Ouvre ton Journal, onglet CONTRATS : ce sont les missions des Maisons, chacune avec sa prime. Prends trois contrats VIDER, trie bien ce que tu trouves, et rapporte-moi une tonne de ferraille. Le reste est à toi : ça te servira.',
+      'Capitaine, depuis trois nuits un signal monte de la Lune. Pas un des leurs : il bégaie, il se répète, il est trop humain. Le Dr Keïta est en orbite là-bas, il en sait plus. Va le voir.',
+      'Avec ton moteur, il te faudra quelques heures de vol. Si tu es patient, pars tout de suite. Sinon, enchaîne les contrats et améliore encore ton moteur : au niveau 4, la Lune est à une demi-heure. À toi de juger.',
     ],
-    installe: ['contrats'],
-    etapes: [
-      { genre: 'mission', mission: 'nettoyer', systeme: 'Terre', nombre: 3, texte: 'Finis 3 contrats VIDER des Nettoyeurs (Journal › CONTRATS)' },
-      {
-        genre: 'livrer', lieu: 'Tiangong', marchandises: { Ferraille: 1 },
-        radio: { pnj: 'weilan', texte: [
-          'Joli tri. Tu as la main, et les Nettoyeurs l\'ont remarqué.',
-          'Il faut que tu saches : trois Maisons se partagent le travail. Les Nettoyeurs vident et remorquent les épaves. Les Mercenaires abattent les chasseurs et escortent les convois. Les Ingénieurs réparent et livrent.',
-          'Plus tu travailles pour l\'une, plus elle s\'intéresse à toi. Un jour, elle t\'invitera à la rejoindre : de meilleurs contrats, mieux payés. Rien d\'obligé, et tu peux changer d\'avis. Ton Profil te montre où tu en es.',
-          'Et maintenant, ce moteur. Joe Hennessy, un routier, est garé près de GOES-19. Personne ne connaît mieux les moteurs que lui. Va le voir de ma part.',
-        ] },
-      },
-    ],
-    recompense: 50,
-  },
-  {
-    id: 't4', titre: 'Le garage de Joe', type: 'principale', donneur: 'joe', conditions: ['t3'],
-    intro: [
-      'Wei Lan t\'envoie ? Fais voir ta capsule. Oh là. Trente kilomètres-seconde. Ma grand-mère allait plus vite en charrette.',
-      'Chaque niveau de moteur double ta vitesse. Pour le niveau 2 : deux cents crédits et trois tonnes de ferraille. Le reste de ton tri, plus ce qui te manque.',
-      'Ce qui te manque, ça s\'achète au Comptoir : je t\'ouvre l\'accès au Marché de la Terre. Achète au cours, revends au cours, et ne te fais pas avoir sur la marge.',
-    ],
-    installe: ['marche'],
-    etapes: [
-      { genre: 'moteur', niveau: 2, radio: { pnj: 'joe', texte: ['Tu l\'entends ronronner ? Deux fois plus vite. Et quand tu voudras aller sur la Lune, il en faudra deux de plus. Reviens me voir, j\'aime bien les clients.'] } },
-    ],
-    recompense: 0,
-  },
-  {
-    id: 't5', titre: 'Le panneau', type: 'principale', donneur: 'weilan', conditions: ['t4'], parRadio: true,
-    intro: [
-      'Capitaine, une chose que personne ne t\'a dite : une capsule, ça tombe en panne. L\'usure, ou un missile. Je vais te montrer, sans danger. Je coupe ton module d\'Énergie à distance. Oui, exprès.',
-      'Ouvre le panneau de réparation (Capsule › RÉPARATION), glisse vers le Manuel, et suis la section qui va bien. Si tu es vraiment coincé, le dépanneur passera, mais il prend la moitié de ton argent.',
-    ],
-    installe: ['reparation'], panne: 'energie',
-    etapes: [
-      { genre: 'reparer', module: 'energie', radio: { pnj: 'weilan', texte: ['CLONK ! J\'ai entendu d\'ici. Bravo. Garde le Manuel sous la main : il te sauvera la vie plus souvent que ton canon.'] } },
-    ],
-    recompense: 30,
-  },
-  {
-    id: 't6', titre: 'Les yeux d\'Andromède', type: 'principale', donneur: 'elsa', conditions: ['t5'], parRadio: true,
-    intro: [
-      'Il est temps de te battre, capitaine. Leurs chasseurs sont furtifs : sans radar, tu ne les vois pas. Je t\'en fais installer un, et de quoi tirer.',
-      'Allume le radar avant chaque départ : un chasseur que tu n\'as pas vu venir tire deux fois plus vite. Puis prends deux contrats ABATTRE des Mercenaires : il y a deux chasseurs tout près de la Terre. Ce sont leurs yeux. Crève-les.',
-    ],
-    installe: ['radar', 'armement'],
-    etapes: [
-      { genre: 'radar', texte: 'Repère un chasseur au radar (bouton RADAR de la carte)' },
-      {
-        genre: 'chasseurs', nombre: 2, systeme: 'Terre', texte: 'Abats 2 chasseurs près de la Terre (contrats ABATTRE des Mercenaires)',
-        jauge: { zone: 'Lune', part: 15 },
-        radio: { pnj: 'elsa', texte: ['Deux de moins. Ils en renverront, mais pour quelques jours, ils sont aveugles. Le Veilleur de Hubble a demandé à te voir. C\'est un drôle de type. Écoute-le quand même.'] },
-      },
-    ],
-    recompense: 60,
-  },
-  {
-    id: 't7', titre: 'L\'oreille du Veilleur', type: 'principale', donneur: 'veilleur', conditions: ['t6'],
-    intro: [
-      'Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous. Ils ne répondent qu\'à ceux qui appellent.',
-      'Je t\'ai bricolé un PING. Appuie, et le plus proche te répond. Son écho revient à la vitesse de la lumière : il trace un cercle, et le monolithe est quelque part dessus. Déplace-toi, appelle encore, et les cercles se croisent.',
-      'Ceux que tu trouves vont dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.',
-    ],
-    installe: ['ping', 'collections'],
-    etapes: [
-      { genre: 'ping', radio: { pnj: 'veilleur', texte: ['Tu l\'as entendu ? Alors tu es des nôtres. Il en reste mille. Prends ton temps.'] } },
-    ],
-    recompense: 30,
-  },
-  {
-    id: 't8', titre: 'Un signal sous la Lune', type: 'principale', donneur: 'elsa', conditions: ['t7'], parRadio: true,
-    intro: [
-      'Capitaine, depuis trois nuits un signal monte de la Lune. Pas un des leurs : il bégaie, il se répète, il est trop humain.',
-      'Wei Lan t\'a monté une radio (bouton RADIO de la carte). Tourne le bouton jusqu\'à 4,712 MHz et cale-toi bien net. Le signal est faible, mais on l\'entend de partout autour de la Terre.',
-    ],
-    installe: ['radio'],
     etapes: [
       {
-        genre: 'signal', frequence: 4.712, systeme: 'Terre', auteur: 'Signal de détresse', lieu: 'Base Tycho, Lune',
-        texte: '… Tycho… quarante-deux… le dôme tient… si quelqu\'un nous entend… Tycho…',
-        enonce: 'Capte le signal de Tycho à la radio : 4,712 MHz, près de la Terre',
-        jauge: { zone: 'Lune', part: 20 },
-        radio: { pnj: 'elsa', texte: ['Des survivants, à Tycho… Le Dr Keïta est en orbite lunaire, il en saura plus. Il te faut un moteur de niveau 4 pour y aller sans y passer la journée : Joe t\'expliquera. Prends des contrats, gagne de quoi payer, et pars quand tu es prêt.'] },
-      },
-      { genre: 'moteur', niveau: 4, radio: { pnj: 'joe', texte: ['Deux cent quarante kilomètres-seconde ! La Lune en une demi-heure. Ma grand-mère ne te reconnaîtrait pas.'] } },
-      {
-        genre: 'parler', pnj: 'keita', texte: [
-          'Elsa t\'envoie ? Bien. Je l\'enregistre depuis le premier soir, ce signal, et je croyais devenir fou.',
+        genre: 'parler', pnj: 'keita', jauge: { zone: 'Lune', part: 25 }, texte: [
+          'Elsa t\'envoie ? Bien. Ce signal, je l\'enregistre depuis le premier soir, et je croyais devenir fou.',
           'C\'est la base Tycho. Le Dr Okafor et quarante et une personnes, sous un dôme qui fuit. Vivants. Andromède les croit morts, et c\'est ce qui les sauve. Garde ta radio allumée : Tycho va vouloir te parler.',
         ],
       },
@@ -270,7 +160,7 @@ export const QUETES: readonly Quete[] = [
   },
   // --- La Lune ---
   {
-    id: 'l1', titre: 'De l\'eau pour Tycho', type: 'principale', donneur: 'okafor', conditions: ['t8'], parRadio: true,
+    id: 'l1', titre: 'De l\'eau pour Tycho', type: 'principale', donneur: 'okafor', conditions: ['q2'], parRadio: true,
     intro: [
       'Ici Samuel Okafor, base Tycho. Le docteur Keïta dit que vous êtes fiable. Je n\'ai plus le luxe d\'en douter.',
       'Notre recycleur d\'eau est à bout, et le dôme siffle par trois fissures. Il nous faudrait cinq tonnes d\'eau et deux tonnes de titane.',
@@ -278,7 +168,7 @@ export const QUETES: readonly Quete[] = [
     ],
     etapes: [
       {
-        genre: 'livrer', lieu: 'Station Tycho', marchandises: { Eau: 5, Titane: 2 }, jauge: { zone: 'Lune', part: 20 },
+        genre: 'livrer', lieu: 'Station Tycho', marchandises: { Eau: 5, Titane: 2 }, jauge: { zone: 'Lune', part: 25 },
         radio: { pnj: 'okafor', texte: ['Les cuves sont pleines ! Quelqu\'un s\'est douché, contre toutes les règles. On ne l\'a pas puni. Le dôme ne siffle plus. Merci, capitaine. Cette fois, je le dis au présent.'] },
       },
     ],
@@ -293,7 +183,7 @@ export const QUETES: readonly Quete[] = [
     etapes: [
       { genre: 'mission', mission: 'depanner', systeme: 'Terre', nombre: 1, texte: 'Répare un engin (contrat RÉPARER des Ingénieurs)', jauge: { zone: 'Lune', part: 15 } },
       {
-        genre: 'radar', lieu: 'Lune', texte: 'Allume le radar près de la Lune : quelque chose s\'y cache', jauge: { zone: 'Lune', part: 10 },
+        genre: 'radar', lieu: 'Lune', texte: 'Allume le radar près de la Lune : quelque chose s\'y cache', jauge: { zone: 'Lune', part: 15 },
         radio: { pnj: 'keita', texte: [
           'Un vaisseau énorme, immobile, ses feux à 4,7 secondes d\'intervalle… Le Séléné.',
           'Un vaisseau amiral, rien que ça, collé contre la Lune comme une tique. C\'est lui qui tient la Lune. Elsa veut te parler.',
@@ -324,7 +214,18 @@ export const QUETES: readonly Quete[] = [
   },
   // --- Quêtes secondaires ---
   {
-    id: 'rosa', titre: 'Circuits sous le manteau', type: 'secondaire', donneur: 'rosa', conditions: ['t4'],
+    id: 'veilleur', titre: 'L\'oreille du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['q1'],
+    intro: [
+      'Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous. Ils ne répondent qu\'à ceux qui appellent.',
+      'Touche le bouton PING de ta carte, et le plus proche te répond. Son écho revient à la vitesse de la lumière : il trace un cercle, et le monolithe est quelque part dessus. Déplace-toi, appelle encore, et les cercles se croisent.',
+    ],
+    etapes: [
+      { genre: 'ping', radio: { pnj: 'veilleur', texte: ['Tu l\'as entendu ? Alors tu es des nôtres. Il en reste mille. Ceux que tu trouves iront dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.'] } },
+    ],
+    recompense: 30,
+  },
+  {
+    id: 'rosa', titre: 'Circuits sous le manteau', type: 'secondaire', donneur: 'rosa', conditions: ['q1'],
     intro: [
       'Toi, tu as une tête à savoir te taire. J\'ai un client qui paie bien pour des circuits anciens. Trois tonnes.',
       'Le comptoir de la Terre en regorge. Apporte-les-moi ici, sur Tiangong, et on ne s\'est jamais vus.',
