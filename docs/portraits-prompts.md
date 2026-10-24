@@ -166,6 +166,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Décor de l'ISS** (24/10/2026) : arrivé en paysage (1536 × 1024), recadré sur sa partie droite (le hublot et la
   Terre) pour la case du dialogue, presque carrée. Les décors peuvent venir en paysage : Claude garde ce qui compte.
 - **Décor de la Lune** (24/10/2026).
+- **Décor de la Station Tycho** (24/10/2026).
 
 ## Ce qu'il faut envoyer à Claude
 
