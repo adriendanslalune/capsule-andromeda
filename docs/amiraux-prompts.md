@@ -171,3 +171,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **La capsule** (24/10/2026) : branchée au combat (13 unités de large, la flamme de la tuyère et le point d'impact
   dessinés par-dessus).
 - **Le Séléné** (24/10/2026) : l'annonce et le combat.
+- **Le Phobétor** (24/10/2026).
