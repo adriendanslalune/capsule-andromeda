@@ -189,3 +189,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Feu-Follet** (24/10/2026).
 - **L'Ombreux** (24/10/2026).
 - **La Reine Pâle** (24/10/2026).
+- **Le Roi Sombre** (24/10/2026).
