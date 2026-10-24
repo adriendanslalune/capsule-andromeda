@@ -2220,7 +2220,7 @@ function image(maintenant: number): void {
     const objectifs = quetesDuTableau(jeu).flatMap((q) => { const lieu = objectif(jeu, q)?.lieu; return lieu ? [{ lieu, principale: q.type === 'principale' }] : [] })
     if (!presentation.ouverte) carte.dessinerPnj(ctxPlan, t, PNJS.map((p) => {
       const s = signePnj(jeu, p.id)
-      return { lieu: p.lieu, initiale: p.nom.replace(/^(Dr|Le|La) /, '')[0], teinte: p.teinte, signe: s?.signe ?? null, principale: s?.principale ?? false }
+      return { lieu: p.lieu, signe: s?.signe ?? null, principale: s?.principale ?? false }
     }), objectifs, { encre: th.encre, fond: th.halo })
     // Les feux d'artifice des zones libérées (2 minutes).
     const feux = jeu.feuxEnCours(t)

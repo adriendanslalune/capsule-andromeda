@@ -11,9 +11,9 @@ Ce qui montre le niveau, c'est la silhouette, pas la taille : sur la carte, la L
 - **La fenêtre de niveau** : la forme en grand.
 - **Le combat** : la capsule du joueur prend sa forme (un peu plus large pour les grandes formes ; sa zone de touche ne
   change pas, ni la difficulté).
-- **La carte** : les mêmes images pour tout le monde (choix B), le joueur, les bots et plus tard les autres joueurs ; la
-  couleur se lit à **l'anneau sous le vaisseau** (la cerise pour le joueur, la couleur de la Maison pour les autres).
-  Loin, les autres restent un point de couleur.
+- **La carte** : les mêmes images pour tout le monde (choix B), le joueur, les bots et plus tard les autres joueurs ;
+  **un anneau cerise sous la capsule du joueur seulement** (Adrien : ceux des Maisons gâchaient la lisibilité, tant pis
+  pour l'appartenance). Loin, les autres restent un point de couleur.
 - **Le Profil** : la forme du capitaine, à côté de son tampon.
 
 Une forme pas encore dessinée garde sa silhouette de Claude (`src/carte/vaisseaux.ts`) ; on inscrit chaque image

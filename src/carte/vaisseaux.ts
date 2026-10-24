@@ -62,11 +62,12 @@ export function rayonVaisseau(forme: Forme, taille: number): number {
 
 /**
  * Dessine un engin : sa forme, tournée dans le sens de sa marche (angle), à la taille de son palier. couleur : sa
- * teinte (la cerise du joueur, la couleur de la Maison d'un bot), celle de l'anneau sous le vaisseau (choix B d'Adrien
- * du 24/10/2026 : tout le monde a les mêmes images, la Maison se lit à l'anneau) ; la Légende a en plus un halo doré.
+ * teinte (la cerise du joueur, la couleur de la Maison d'un bot) pour sa silhouette ; anneau : un anneau de cette
+ * couleur sous le vaisseau, seulement pour celui du joueur (Adrien, 24/10/2026 : pour les Maisons, ça gâchait la
+ * lisibilité ; tout le monde a les mêmes images). La Légende a en plus un halo doré.
  */
 export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, forme: Forme, taille: number,
-  couleur: string, encre: string): void {
+  couleur: string, encre: string, anneau = false): void {
   const f = COQUES[forme], k = TAILLE[forme] * taille
   ctx.save()
   ctx.translate(x, y)
@@ -81,16 +82,17 @@ export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: nu
     ctx.fillStyle = 'rgba(242, 198, 106, 0.25)'
     ctx.fill()
   }
-  // L'anneau de sa couleur, sous le vaisseau.
-  ctx.beginPath()
-  ctx.arc(0, 0, 9, 0, 2 * Math.PI)
-  ctx.fillStyle = couleur + '40'
-  ctx.fill()
-  ctx.lineWidth = 1.6 / k
-  ctx.strokeStyle = couleur
-  ctx.stroke()
-  ctx.lineWidth = 1.4 / k
-  ctx.strokeStyle = encre
+  if (anneau) {
+    ctx.beginPath()
+    ctx.arc(0, 0, 9, 0, 2 * Math.PI)
+    ctx.fillStyle = couleur + '40'
+    ctx.fill()
+    ctx.lineWidth = 1.6 / k
+    ctx.strokeStyle = couleur
+    ctx.stroke()
+    ctx.lineWidth = 1.4 / k
+    ctx.strokeStyle = encre
+  }
   // L'image de la forme (proue vers le haut, donc un quart de tour de plus), sinon sa silhouette.
   const im = chargerForme(forme)
   if (im) {

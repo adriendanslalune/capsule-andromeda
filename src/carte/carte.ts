@@ -336,12 +336,10 @@ export class Carte2D {
   }
 
   /**
-   * Les PNJ (décisions d'Adrien du 20/10/2026) : un médaillon à leur lieu (à côté de l'astre ou de l'engin dessiné),
-   * avec un signe s'ils ont quelque chose pour le joueur : « ! » une quête à proposer, « ? » ils attendent son retour.
-   * Petite distinction (demande d'Adrien) : quête principale, losange doré ; secondaire, rond bleu. Et le losange (ou
-   * rond) de l'objectif des quêtes du tableau de bord, à leur lieu.
+   * Les PNJ : un « ! » au lieu d'une quête à proposer (Adrien, 24/10/2026, qui retire les médaillons). Et le losange
+   * (principale) ou le rond (secondaire) de l'objectif des quêtes du tableau de bord, à leur lieu.
    */
-  dessinerPnj(ctx: CanvasRenderingContext2D, t: number, pnjs: { lieu: string; initiale: string; teinte: string; signe: '!' | '?' | null; principale: boolean }[],
+  dessinerPnj(ctx: CanvasRenderingContext2D, t: number, pnjs: { lieu: string; signe: '!' | '?' | null; principale: boolean }[],
     objectifs: { lieu: string; principale: boolean }[], couleurs: Couleurs2D): void {
     const placeDe = (lieu: string) => {
       const d = this.dessines.find((x) => x.nom === lieu)
@@ -368,39 +366,22 @@ export class Carte2D {
         ctx.setLineDash([])
       }
     }
-    // Plusieurs PNJ au même lieu : leurs médaillons côte à côte. En dézoomant, ils s'effacent dès que leur lieu se
-    // confond avec sa planète (demande d'Adrien du 20/10/2026 : ne pas encombrer la carte).
-    const parLieu = new Map<string, number>()
+    // Plus de médaillons (Adrien, 24/10/2026) : un simple « ! » au lieu d'une quête à proposer, un seul par lieu. En
+    // dézoomant, il s'efface dès que son lieu se confond avec sa planète (Adrien, 20/10/2026 : ne pas encombrer la carte).
+    const faits = new Set<string>()
+    ctx.font = 'bold 22px "Big Shoulders Display", Impact, sans-serif'
+    ctx.lineJoin = 'round'
     for (const n of pnjs) {
-      if (this.lieuReplie(n.lieu, t)) continue
-      const p = placeDe(n.lieu), k = parLieu.get(n.lieu) ?? 0
-      parLieu.set(n.lieu, k + 1)
-      const x = p.x + p.r * 0.75 + 12 + k * 22, y = p.y - p.r * 0.75 - 12
+      if (n.signe !== '!' || faits.has(n.lieu) || this.lieuReplie(n.lieu, t)) continue
+      faits.add(n.lieu)
+      const p = placeDe(n.lieu), x = p.x + p.r * 0.7 + 8, y = p.y - p.r * 0.7 - 10
       if (x < -20 || x > this.largeur + 20 || y < -20 || y > this.hauteur + 20) continue
-      this.reserves.push({ x0: x - 10, y0: y - (n.signe ? 19 : 10), x1: x + (n.signe ? 17 : 10), y1: y + 10 })
-      ctx.beginPath()
-      ctx.arc(x, y, 9, 0, 2 * Math.PI)
-      ctx.fillStyle = n.teinte
-      ctx.fill()
-      ctx.lineWidth = 1.5
+      this.reserves.push({ x0: x - 7, y0: y - 13, x1: x + 7, y1: y + 13 })
+      ctx.lineWidth = 3.5
       ctx.strokeStyle = couleurs.encre
-      ctx.stroke()
-      ctx.font = 'bold 10px ui-monospace, Menlo, monospace'
-      ctx.fillStyle = '#1f1b18'
-      ctx.fillText(n.initiale, x, y + 0.5)
-      if (!n.signe) continue
-      // Le signe : losange doré (principale) ou rond bleu (secondaire), au-dessus du médaillon.
-      const sx = x + 8, sy = y - 10
-      ctx.beginPath()
-      if (n.principale) { ctx.moveTo(sx, sy - 8); ctx.lineTo(sx + 8, sy); ctx.lineTo(sx, sy + 8); ctx.lineTo(sx - 8, sy); ctx.closePath() }
-      else ctx.arc(sx, sy, 6.5, 0, 2 * Math.PI)
+      ctx.strokeText('!', x, y)
       ctx.fillStyle = n.principale ? DORE : BLEU
-      ctx.fill()
-      ctx.lineWidth = 1.3
-      ctx.stroke()
-      ctx.font = 'bold 10px ui-monospace, Menlo, monospace'
-      ctx.fillStyle = '#1f1b18'
-      ctx.fillText(n.signe, sx, sy + 0.5)
+      ctx.fillText('!', x, y)
     }
     ctx.restore()
   }
@@ -877,7 +858,7 @@ export class Carte2D {
     const forme = this.formeCapsule, rc = rayonVaisseau(forme.forme, forme.taille)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
-    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre)
+    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre, true)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
     this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }
   }
