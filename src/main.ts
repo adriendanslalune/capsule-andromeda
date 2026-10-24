@@ -19,6 +19,8 @@ import { MODULES, type NomModule } from './donnees/modules'
 import { ouvrirFenetreMoteur } from './commun/fenetre-moteur'
 import { VoletCapsule, htmlArmement, htmlSoute } from './commun/volet-capsule'
 import { SIMULATEUR, VueCombat } from './commun/vue-combat'
+import { AnnonceAssaut } from './commun/annonce-assaut'
+import { dessinerAstreIllustre } from './carte/illustrations'
 import { ARMEMENT, type LigneArmement } from './donnees/combat'
 import { VueReve } from './commun/vue-reve'
 import { VueTri } from './commun/vue-tri'
@@ -69,6 +71,7 @@ import { lieuDuBot } from './moteur/messages'
 import { titreMaison, type Maison } from './donnees/maisons'
 import { ZONES } from './donnees/tableaux'
 import { estLibre, jauge, zone } from './moteur/zones'
+import { ZONES_A_LIBERER } from './donnees/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
 import { dessinerVaisseau, rayonVaisseau } from './carte/vaisseaux'
 import { oublierSoleilAnime, soleilAnime } from './carte/globes'
@@ -1901,10 +1904,18 @@ glisserEntre(pageManuel, 'panneau', 1, () => true)
 zoneReparation.querySelector('[data-choix="manuel"]')!.addEventListener('click', () => basculer('manuel'))
 pageManuel.querySelector('[data-choix="panneau"]')!.addEventListener('click', () => basculer('panneau'))
 
-/** L'assaut final d'une zone : le combat contre son vaisseau amiral ; gagné, la zone est libérée. */
+// L'annonce de l'assaut (Adrien, 24/10/2026) : l'amiral en grand devant l'astre de sa zone, avant le combat.
+const annonceAssaut = new AnnonceAssaut(document.querySelector<HTMLDivElement>('#assaut')!,
+  (ctx, nom, x, y, r) => dessinerAstreIllustre(ctx, nom, x, y, r, -0.6 * Math.PI, false, horloge()))
+
+/** L'assaut final d'une zone : son annonce, puis le combat contre son vaisseau amiral ; gagné, la zone est libérée. */
 function lancerAssaut(nom: string): void {
   const z = zone(nom)!
   cockpit.fermer()
+  annonceAssaut.ouvrir({ zone: nom, amiral: z.amiral, planete: z.planete || nom === 'Triton' }, () => combattreAmiral(nom))
+}
+function combattreAmiral(nom: string): void {
+  const z = zone(nom)!
   vueCombat.ouvrir({
     titre: `ASSAUT · ${z.amiral.toUpperCase()}`,
     zone: ZONES[z.systeme] ?? 1,
@@ -1962,6 +1973,17 @@ function apresChangementDePanne(): void {
       pnj: p, proposition: null, terminee: null, ...(radio ? { radio: { delai: delaiRadio(jeu, id, horloge()) } } : {}),
       pages: [`(neutre) ${p.repos}`, '(joie) Humeur : joie. Une bonne nouvelle, capitaine !', '(souci) Humeur : souci. Ça, ça ne me plaît pas du tout…'],
     })
+  })
+}
+// L'annonce de chaque assaut, et un combat d'essai contre son amiral (Réglages, essais ; Adrien, 24/10/2026).
+{
+  const choix = document.querySelector<HTMLSelectElement>('#galerie-assaut select')!
+  choix.innerHTML = ZONES_A_LIBERER.map((z) => `<option value="${z.nom}">${z.nom} · ${z.amiral}</option>`).join('')
+  document.querySelector('#galerie-assaut button')!.addEventListener('click', () => {
+    const z = zone(choix.value)!, planete = z.planete || z.nom === 'Triton'
+    annonceAssaut.ouvrir({ zone: z.nom, amiral: z.amiral, planete }, () => vueCombat.ouvrir({
+      titre: `ESSAI · ${z.amiral.toUpperCase()}`, zone: ZONES[z.systeme] ?? 1, amiral: { nom: z.amiral, planete }, surFin: () => 'Ce n\'était qu\'un essai.',
+    }))
   })
 }
 document.querySelector('#provoquer-panne')!.addEventListener('click', () => {

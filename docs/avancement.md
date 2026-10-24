@@ -77,7 +77,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   vaisseaux d'Andromède d'abord (fiche de prompts `docs/amiraux-prompts.md` : le langage de formes d'Andromède, poussé et
   non construit ; les 26 amiraux, le chasseur, l'escorteur, la capsule, **vus du dessus**, la même image au combat et
   sur l'annonce : Adrien), puis les formes de la capsule, les couvertures pulp, les Disparus. À coder : les sprites dans
-  le combat, l'écran d'avant l'assaut.
+  le combat, l'écran d'avant l'assaut. Faits le même jour : le chasseur, l'escorteur et la capsule au combat (flash blanc
+  à chaque tir), l'annonce de l'assaut (et son essai dans Réglages) ; restent les 26 images des amiraux.
 - Trophées (Adrien, 24/10/2026) : cadre validé (voir CLAUDE.md : 150 trophées loufoques, vitrine dans le Profil, petite
   fenêtre, la gloire seulement, médailles SVG de Claude) — **à faire**, après les illustrations.
 - Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient

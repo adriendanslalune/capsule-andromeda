@@ -28,6 +28,18 @@ function vaisseau(nom: string): HTMLImageElement | null {
   if (!im) { im = VAISSEAUX[nom] = new Image(); im.src = `vaisseaux/${nom}.webp` }
   return im.complete && im.naturalWidth ? im : null
 }
+/** Le nom de fichier d'un amiral : « le Séléné » → selene, « l'Ithaque » → ithaque, « TRITON » → triton. */
+export function idAmiral(nom: string): string {
+  return nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le |la |l')/, '').replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
+}
+/** Les amiraux déjà dessinés (vaisseaux/<id>.webp) : on les ajoute ici à mesure qu'ils arrivent. */
+const AMIRAUX_PRETS: readonly string[] = []
+/** L'image d'un amiral (son chemin), ou null s'il n'est pas encore dessiné. */
+export function imageVaisseau(amiral: string): string | null {
+  const id = idAmiral(amiral)
+  return AMIRAUX_PRETS.includes(id) ? `vaisseaux/${id}.webp` : null
+}
+
 /** La silhouette blanche d'un vaisseau (le flash quand un tir le touche), faite une fois. */
 const BLANCS = new Map<HTMLImageElement, HTMLCanvasElement>()
 function blanc(im: HTMLImageElement): HTMLCanvasElement {
@@ -202,7 +214,29 @@ export class VueCombat {
 
     // Les aliens : le chasseur (gros, cœur vert) et ses escorteurs (petits dards), pointe vers le bas.
     for (const a of e.aliens) {
-      if (a.chef && e.amiral) { this.amiral(ctx, X(a.x), Y(a.y), k, a.pv < a.pvMax / 2, e.temps); continue }
+      if (a.chef && e.amiral) {
+        // L'amiral dessiné (Adrien, 24/10/2026 : le même que sur l'annonce), 32 unités de large (40 pour une planète) ;
+        // blessé, son cœur palpite en rouge par-dessus.
+        const nom = this.options.amiral ? idAmiral(this.options.amiral.nom) : ''
+        const im = nom && AMIRAUX_PRETS.includes(nom) ? vaisseau(nom) : null
+        if (im) {
+          const l = (this.options.amiral!.planete ? 40 : 32) * k, h = (l * im.naturalHeight) / im.naturalWidth
+          ctx.drawImage(im, X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
+          if (a.pv < a.pvMax / 2) {
+            ctx.globalAlpha = 0.35 + 0.25 * Math.sin(e.temps * 12)
+            ctx.beginPath(); ctx.arc(X(a.x), Y(a.y), 4 * k, 0, 2 * Math.PI); ctx.fillStyle = CERISE; ctx.fill()
+            ctx.globalAlpha = 1
+          }
+          if (a.touche !== undefined && e.temps - a.touche < FLASH) {
+            ctx.globalAlpha = 0.85
+            ctx.drawImage(blanc(im), X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
+            ctx.globalAlpha = 1
+          }
+          continue
+        }
+        this.amiral(ctx, X(a.x), Y(a.y), k, a.pv < a.pvMax / 2, e.temps)
+        continue
+      }
       const s = a.chef ? 1.6 : 0.85
       // Dessinés : le chasseur, sa graine ailée sur 22 unités de large (sa zone de touche en fait 18) ; l'escorteur, son
       // dard sur 11 (sa zone de touche en fait 10).

@@ -152,6 +152,17 @@ révélant une coque nacrée veinée, ses alvéoles ambre allumées. Le plus gra
 **Le Gardien des Confins · Pluton.** Une forme en porte ou en bouclier, massive et immobile, beige et crème, un grand
 cœur clair au centre (comme le cœur de Pluton).
 
+## Où ils s'affichent (codé le 24/10/2026)
+
+- **L'annonce de l'assaut** (`commun/annonce-assaut.ts`) : le vaisseau en grand qui descend vers nous, l'astre de sa zone
+  au bas de l'écran (dessiné par le jeu, avec sa vraie face éclairée), « VOUS ALLEZ AFFRONTER », son nom, À L'ASSAUT ! ;
+  pas encore dessiné, une silhouette noire avec un « ? ».
+- **Le combat** : 32 unités de large (40 pour un boss de planète), le cœur qui palpite en rouge quand il enrage, le flash
+  blanc à chaque tir.
+- Les fichiers : `public/vaisseaux/<id>.webp`, l'id tiré du nom (« le Séléné » → selene, « l'Ithaque » → ithaque) ; un
+  amiral arrivé s'inscrit dans `AMIRAUX_PRETS` (`commun/vue-combat.ts`).
+- Essais : Plus › Réglages, « l'annonce d'un assaut », puis un combat d'essai contre l'amiral (sans effet sur la partie).
+
 ## Reçus
 
 - **Le chasseur** (24/10/2026) : branché au combat (`public/vaisseaux/chasseur.webp`, 22 unités de large, sa zone

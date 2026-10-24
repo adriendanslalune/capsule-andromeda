@@ -2520,3 +2520,29 @@ body.volet-ouvert #annonces { display: none; }
 #presentation button { min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em; border: 2px solid var(--encre); background: var(--creme); color: var(--encre); }
 #presentation button.principal { background: var(--orange); color: #fff; box-shadow: 3px 3px 0 var(--encre); }
 #presentation button.passer { border-color: transparent; background: none; opacity: 0.6; }
+
+/* L'annonce de l'assaut (Adrien, 24/10/2026) : couverture de pulp, l'amiral devant l'astre de sa zone. */
+#assaut { background: #141826; overflow: hidden; display: block; padding: 0; }
+#assaut[hidden] { display: none; }
+#assaut .ciel { position: absolute; inset: 0; width: 100%; height: 100%; }
+#assaut .vaisseau { position: absolute; left: 50%; top: calc(6% + env(safe-area-inset-top)); width: min(78vw, 340px); translate: -50% 0;
+  animation: amiral-arrive 1.4s cubic-bezier(.2, .9, .3, 1) both, amiral-flotte 5s 1.4s ease-in-out infinite; }
+#assaut .vaisseau img { display: block; width: 100%; filter: drop-shadow(0 0 22px rgba(242, 181, 58, 0.35)); }
+#assaut .vaisseau.inconnu img { filter: brightness(0) drop-shadow(0 0 16px rgba(157, 124, 200, 0.6)); opacity: 0.9; }
+#assaut .vaisseau.inconnu b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font: 900 110px 'Big Shoulders Display', var(--titre); color: #9d7cc8; }
+@keyframes amiral-arrive { from { translate: -50% -70%; scale: 0.4; opacity: 0; } }
+@keyframes amiral-flotte { 50% { transform: translateY(8px) rotate(1deg); } }
+#assaut .texte-assaut { position: absolute; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); padding: 14px 14px 12px;
+  background: var(--creme); border: 3px solid var(--encre); color: var(--encre); box-shadow: 4px 4px 0 var(--encre);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px); animation: surgir 0.5s 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+#assaut .etoile-assaut { display: inline-block; padding: 4px 10px; margin-bottom: 4px; background: var(--orange); color: #fff; rotate: -3deg;
+  font: 700 13px var(--titre); letter-spacing: 0.16em; text-transform: uppercase; box-shadow: 2px 2px 0 var(--encre); }
+#assaut h2 { margin: 2px 0 4px; font: italic 900 44px/0.95 'Big Shoulders Display', var(--titre); letter-spacing: 0.01em; text-shadow: 3px 3px 0 #cdbfe8; }
+#assaut p { margin: 0 0 12px; font: 12px/1.45 var(--police); opacity: 0.85; }
+#assaut .boutons-assaut { display: flex; gap: 10px; justify-content: flex-end; }
+#assaut .boutons-assaut button { min-height: 48px; padding: 0 16px; font: 700 16px var(--titre); letter-spacing: 0.12em; color: var(--encre);
+  background: var(--creme); border: 2px solid var(--encre); }
+#assaut .boutons-assaut button.principal { color: #fff; background: var(--orange); box-shadow: 3px 3px 0 var(--encre); }
+#galerie-assaut select { flex: 1; min-height: 44px; font: inherit; }
+#galerie-assaut button { min-height: 44px; padding: 0 14px; font: 700 14px var(--titre); letter-spacing: 0.1em; border: 1.5px solid var(--encre); background: var(--creme); color: var(--encre); }
