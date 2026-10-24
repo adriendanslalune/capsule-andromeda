@@ -38,7 +38,7 @@ const COQUES: Record<Forme, { coque: Pt[]; ailerons: Pt[][]; hublot?: Pt }> = {
 
 /** Les formes dessinées par ChatGPT (Adrien, 24/10/2026 ; `docs/capsule-prompts.md`), dans `public/vaisseaux/`, la proue
  *  vers le haut : la capsule est celle du combat. On inscrit ici chaque forme arrivée ; les autres restent en silhouette. */
-export const FORMES_PRETES: readonly Forme[] = ['capsule', 'navette', 'corvette']
+export const FORMES_PRETES: readonly Forme[] = ['capsule', 'navette', 'corvette', 'fregate']
 
 /** L'adresse de l'image d'une forme, si elle est dessinée. */
 export function imageForme(forme: Forme): string | null {
