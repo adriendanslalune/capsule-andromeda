@@ -174,6 +174,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Décor du Phare de Mercure** (24/10/2026).
 - **Décor de Ganymède** (24/10/2026).
 - **Décor de Titan** (24/10/2026).
+- **Décor de Titania** (24/10/2026).
 
 ## Ce qu'il faut envoyer à Claude
 
