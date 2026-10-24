@@ -48,7 +48,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   une secondaire (PING). Carte : zones pas visitées d'un gris sombre (la Lune aussi), jauge de la Résistance à côté du
   drapeau pirate, traînées des comètes bien plus courtes. À faire : le chapitre « Bien commencer » du Manuel.
   Revu le même jour : au tout début, seulement la carte (trois bulles : la carte, se déplacer et zoomer, le bouton
-  capsule) ; Elsa n'appelle qu'ensuite, puis une bulle montre la quête sur le tableau de bord.
+  capsule) ; Elsa n'appelle qu'ensuite, puis une bulle montre la quête sur le tableau de bord. Puis : les bulles
+  attendent le geste (glisser, zoomer, toucher le bouton capsule) ; la quête d'Elsa s'écoute en la touchant au tableau
+  de bord, son losange doré clignote (toute nouvelle principale) ; zones occupées un peu transparentes.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

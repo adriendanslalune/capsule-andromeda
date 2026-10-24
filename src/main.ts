@@ -43,7 +43,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { radioALire, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
+import { radioALire, radioAOuvrir, radioDeQuete, queteNouvelle, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
 import { Guide, type Cible } from './commun/guide'
 import { Presentation } from './commun/presentation'
 import { Bulles } from './commun/bulles'
@@ -427,7 +427,7 @@ document.querySelector('#commandes-carte .vue')!.addEventListener('click', (e) =
   if (!b) return
   const vue = b.dataset.vue
   if (vue === 'systemes') ouvrirSystemes(choixSysteme.hidden !== false)
-  else if (vue === 'capsule') allerALaCapsule()
+  else if (vue === 'capsule') { allerALaCapsule(); bulles.signaler('capsule') }
   else if (vue === 'affichage') {
     ouvrirSystemes(false)
     choixAffichage.hidden = !choixAffichage.hidden
@@ -720,7 +720,13 @@ bandeau.addEventListener('click', (e) => {
   else if (ligne === 'vide-alerte') { cockpit.ouvrir('capsule'); choisirSousOnglet('etat') }
   else if (ligne === 'vide-contrat') ouvrirJournal('contrats')
   else if (ligne === 'quete' || ligne === 'vide-quete') {
-    journalOuvert = (e.target as HTMLElement).closest<HTMLElement>('[data-quete]')?.dataset.quete ?? jeu.queteSuivie
+    const id = (e.target as HTMLElement).closest<HTMLElement>('[data-quete]')?.dataset.quete
+    // Une nouvelle quête annoncée par radio : on écoute le message (Adrien, 24/10/2026) ; à prendre : elle est vue.
+    const r = id ? radioDeQuete(jeu, id, horloge()) : null
+    bulles.signaler('quete')
+    if (r) { ouvrirRadio(r); return }
+    if (id && !jeu.aides.includes(`quete:${id}`)) { jeu.aides.push(`quete:${id}`); enregistrerPartie() }
+    journalOuvert = id ?? jeu.queteSuivie
     ouvrirJournal('quetes')
   }
   else if (ligne === 'vide-echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
@@ -948,6 +954,7 @@ boutonDepart.addEventListener('click', () => {
 })
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
+let glisseBulle = 0, zoomBulle = 0
 const gestesCarte = new Gestes(toilePlan, {
   // La caméra suit ce qui est choisi : le pincement zoome autour de lui, et seul un vrai glissement d'un doigt (plus de
   // 15 px : pas le petit glissement du premier doigt d'un pincement) la fait lâcher prise.
@@ -955,6 +962,9 @@ const gestesCarte = new Gestes(toilePlan, {
     fermerTas()
     const accroche = selection !== null && suivre
     if (pince) { if (!accroche) carte.glisser(dx, dy); return }
+    // (Les bulles du début attendent que le joueur essaie : un vrai glissement.)
+    glisseBulle = bulles.attente === 'glisser' ? glisseBulle + Math.hypot(dx, dy) : 0
+    if (glisseBulle > 80) bulles.signaler('glisser')
     if (accroche) {
       glisseCumul += Math.hypot(dx, dy)
       if (glisseCumul < 15) return
@@ -962,7 +972,12 @@ const gestesCarte = new Gestes(toilePlan, {
     }
     carte.glisser(dx, dy)
   },
-  zoomer: (f, sx, sy) => { fermerTas(); carte.zoomer(f, sx, sy) },
+  zoomer: (f, sx, sy) => {
+    fermerTas()
+    carte.zoomer(f, sx, sy)
+    zoomBulle = bulles.attente === 'zoomer' ? zoomBulle + Math.abs(Math.log(f)) : 0
+    if (zoomBulle > 0.6) bulles.signaler('zoomer')
+  },
   toucher: (x, y) => {
     ouvrirSystemes(false)
     // À l'échelle réelle, les engins s'entassent près de leur planète : toucher le tas propose de choisir.
@@ -1214,6 +1229,11 @@ const vueDialogue = new VueDialogue(document.querySelector<HTMLDivElement>('#dia
   ferme: (d) => { if (d.radio && radioEnCours) { radioEnCours.lu = true; radioEnCours = null; enregistrerPartie() } },
 })
 let radioEnCours: ReturnType<typeof radioALire> = null
+/** Ouvre un message radio d'un PNJ dans la fenêtre de dialogue, avec son portrait. */
+function ouvrirRadio(r: NonNullable<ReturnType<typeof radioALire>>): void {
+  radioEnCours = r
+  vueDialogue.ouvrir({ pnj: pnjDe(r.pnj), pages: r.texte, proposition: null, terminee: null, radio: { delai: r.arrivee - r.envoye }, ...(r.quete ? { nouvelle: quete(r.quete) } : {}) })
+}
 const pageJournal = document.querySelector<HTMLDivElement>('#journal')!
 let journalOuvert: string | null = null
 function afficherJournal(): void {
@@ -1278,7 +1298,7 @@ function queteDuTableau(): { id: string; titre: string; objectif: string; princi
   // en mener plusieurs à la fois), la suivie en premier.
   const ligne = (q: ReturnType<typeof quete>) => {
     const o = objectif(jeu, q)
-    return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale', suivie: jeu.queteSuivie === q.id }] : []
+    return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale', suivie: jeu.queteSuivie === q.id, nouvelle: queteNouvelle(jeu, q, horloge()) }] : []
   }
   const suite = suiteDeLHistoire(jeu)
   const secondaires = enCoursQuetes(jeu).filter((q) => q.type === 'secondaire').sort((a, b) => Number(jeu.queteSuivie === b.id) - Number(jeu.queteSuivie === a.id))
@@ -2071,12 +2091,9 @@ function image(maintenant: number): void {
       texte: l.texte.map((x) => x.replaceAll('{joueur}', jeu.pseudo)), ouvre: l.ouvre, bouton: 'VIVE LA RÉSISTANCE !' })
   }
   // Un message radio d'un PNJ arrivé : il s'ouvre dans la fenêtre de dialogue, avec son portrait.
-  const radioArrivee = !vueDialogue.ouvert && !bulles.ouvertes && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioALire(jeu, t) : null
-  if (radioArrivee) {
-    radioEnCours = radioArrivee
-    navigator.vibrate?.([40, 40, 40])
-    vueDialogue.ouvrir({ pnj: pnjDe(radioArrivee.pnj), pages: radioArrivee.texte, proposition: null, terminee: null, radio: { delai: radioArrivee.arrivee - radioArrivee.envoye }, ...(radioArrivee.quete ? { nouvelle: quete(radioArrivee.quete) } : {}) })
-  }
+  // (Celui qui annonce une nouvelle quête principale attend qu'on la touche au tableau de bord.)
+  const radioArrivee = !vueDialogue.ouvert && !bulles.ouvertes && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioAOuvrir(jeu, t) : null
+  if (radioArrivee) { navigator.vibrate?.([40, 40, 40]); ouvrirRadio(radioArrivee) }
   // Une confirmation de la Bourse revenue à la capsule.
   if (jeu.annoncesBourse.length && message.hidden) {
     const o = jeu.annoncesBourse.shift()!, c = compagnie(o.compagnie)!
@@ -2253,7 +2270,7 @@ function lancerAides(t: number): void {
   bulles.recaler()
   // (Une partie où la carte est déjà expliquée mais l'histoire pas commencée : elle commence.)
   if (!jeu.presentation && !presentation.ouverte && jeu.aides.includes('carte')) jeu.finirPresentation(t)
-  if (bulles.ouvertes || vueDialogue.ouvert || presentation.ouverte || radioALire(jeu, t)
+  if (bulles.ouvertes || vueDialogue.ouvert || presentation.ouverte || radioAOuvrir(jeu, t)
     || document.querySelector('#couverture, #bienvenue, .confirmation-jeu')) return
   const page = cockpit.pageOuverte
   let cles: string[] = []
@@ -2297,6 +2314,8 @@ function gesteDuTutoriel(t: number): Cible | null {
   if (document.querySelector('div.plein:not([hidden])')) return null
   const ouvert = cockpit.pageOuverte
   const e = jeu.quetes[q.id] ? etapeCourante(jeu, q) : null
+  // Une nouvelle quête annoncée par radio : on l'écoute en la touchant au tableau de bord.
+  if (radioDeQuete(jeu, q.id, t)) return ouvert ? null : cibleEl(`#bandeau [data-quete="${q.id}"]`, 'Écoute-la')
   if (e?.genre === 'moteur') {
     // D'abord la capsule (ses bulles montrent le moteur, son prix, la soute).
     if (!jeu.aides.includes('capsule')) return versOnglet('capsule', 'Ta capsule')

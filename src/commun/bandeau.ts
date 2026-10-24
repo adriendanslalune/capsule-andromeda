@@ -67,7 +67,7 @@ export interface EtatCapsuleBandeau {
   /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
   phase: string; systeme: string
   /** La quête suivie (son titre, son objectif en cours), ou null. */
-  quetes: { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean }[]
+  quetes: { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean; nouvelle?: boolean }[]
 }
 
 /** Le triangle d'alerte du voyant (c'est le voyant qui s'allume). */
@@ -161,7 +161,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     for (const q of capsule.quetes) {
       const g = q.principale ? 'principale' : 'secondaire'
       textes.push(q.titre, q.objectif)
-      detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}" data-ligne="quete" data-quete="${q.id}">`
+      detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}${q.nouvelle ? ' nouvelle' : ''}" data-ligne="quete" data-quete="${q.id}">`
         + `<span class="texte"><b><i class="losange"></i><span data-texte></span></b> <span data-texte></span></span><em>VOIR</em></div>`
     }
     if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')

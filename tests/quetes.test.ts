@@ -67,6 +67,19 @@ describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lun
     expect(objectif(jeu, quete('q2'))).toMatchObject({ lieu: 'Lune' })
   })
 
+  it('la quête d’Elsa n’ouvre pas son message d’elle-même : le losange clignote, on la touche pour l’écouter', async () => {
+    const { radioAOuvrir, radioDeQuete, queteNouvelle } = await import('../src/moteur/quetes')
+    const jeu = partie()
+    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    expect(radioAOuvrir(jeu, t0 + 1000)).toBeNull()
+    expect(radioDeQuete(jeu, 'q1', t0 + 1000)).not.toBeNull()
+    expect(queteNouvelle(jeu, quete('q1'), t0 + 1000)).toBe(true)
+    radioDeQuete(jeu, 'q1', t0 + 1000)!.lu = true
+    expect(queteNouvelle(jeu, quete('q1'), t0 + 1000)).toBe(false)
+    // Une secondaire n'est jamais « nouvelle ».
+    expect(queteNouvelle(jeu, quete('rosa'), t0)).toBe(false)
+  })
+
   it('sur la Lune, Keïta : la jauge de la Lune monte, Okafor appelle', () => {
     const jeu = partie()
     finies(jeu, ['q1'])

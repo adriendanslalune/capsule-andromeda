@@ -21,6 +21,14 @@ export class Bulles {
 
   get ouvertes(): boolean { return !this.element.hidden }
 
+  /** Le geste qu'attend la bulle affichée (null : elle attend son bouton). */
+  get attente(): string | null { return this.ouvertes ? this.file[this.page]?.attendre ?? null : null }
+
+  /** Le joueur a fait un geste : la bulle qui l'attendait passe à la suivante. */
+  signaler(geste: string): void {
+    if (this.ouvertes && this.file[this.page]?.attendre === geste) { this.page++; this.afficher() }
+  }
+
   /** Montre une suite de bulles (celles dont l'élément n'est pas à l'écran sont sautées) ; `fin` à la dernière. */
   montrer(bulles: Bulle[], fin: () => void): void {
     this.file = bulles
@@ -45,8 +53,9 @@ export class Bulles {
     if (this.page >= this.file.length) { this.element.hidden = true; this.fin(); return }
     const b = this.file[this.page]
     const reste = this.file.slice(this.page + 1).some((x) => this.visible(x) !== undefined)
+    // Une bulle qui attend un geste n'a pas de bouton, et laisse passer le doigt jusqu'à la carte.
     this.element.innerHTML = `<svg class="contour-guide" aria-hidden="true"><rect/></svg>
-      <div class="case-bulle"><p>${echapper(b.texte)}</p><button type="button" class="principal">${reste ? 'SUITE ›' : 'COMPRIS'}</button></div>`
+      <div class="case-bulle${b.attendre ? ' attend' : ''}"><p>${echapper(b.texte)}</p>${b.attendre ? '' : `<button type="button" class="principal">${reste ? 'SUITE ›' : 'COMPRIS'}</button>`}</div>`
     this.element.hidden = false
     this.placer()
   }

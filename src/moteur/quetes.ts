@@ -249,6 +249,29 @@ export function radioALire(jeu: Jeu, t: number): RadioPnj | null {
   return jeu.radioPnj.find((r) => !r.lu && r.arrivee <= t) ?? null
 }
 
+/**
+ * Le prochain message radio à ouvrir de lui-même : pas celui qui annonce une nouvelle quête principale (Adrien,
+ * 24/10/2026 : le tableau de bord la montre d'abord, son losange doré clignote, et on la touche pour l'écouter).
+ */
+export function radioAOuvrir(jeu: Jeu, t: number): RadioPnj | null {
+  return jeu.radioPnj.find((r) => !r.lu && r.arrivee <= t && !(r.quete && quete(r.quete)?.type === 'principale')) ?? null
+}
+
+/** Le message radio, arrivé et pas encore écouté, qui annonce une quête (null s'il n'y en a pas). */
+export function radioDeQuete(jeu: Jeu, id: string, t: number): RadioPnj | null {
+  return jeu.radioPnj.find((r) => r.quete === id && !r.lu && r.arrivee <= t) ?? null
+}
+
+/**
+ * Une quête principale nouvelle (son losange doré clignote au tableau de bord) : son message radio pas encore écouté,
+ * ou, à prendre auprès d'un PNJ, pas encore regardée.
+ */
+export function queteNouvelle(jeu: Jeu, q: Quete, t: number): boolean {
+  if (q.type !== 'principale') return false
+  if (radioDeQuete(jeu, q.id, t)) return true
+  return !jeu.quetes[q.id] && disponibles(jeu).includes(q) && !jeu.aides.includes(`quete:${q.id}`)
+}
+
 /** Les messages radio d'un PNJ arrivés (sa conversation, dans les Messages). */
 export function radiosDe(jeu: Jeu, id: string, t: number): RadioPnj[] {
   return jeu.radioPnj.filter((r) => r.pnj === id && r.arrivee <= t)

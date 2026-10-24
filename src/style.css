@@ -2512,3 +2512,9 @@ body.volet-ouvert #annonces { display: none; }
 #bulles .case-bulle p { margin: 0 0 10px; font: 13.5px/1.45 var(--police); color: var(--encre); }
 #bulles .case-bulle button { display: block; margin-left: auto; min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em;
   background: var(--orange); color: #fff; border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--encre); }
+
+/* Une nouvelle quête principale (demande d'Adrien du 24/10/2026) : son losange doré clignote. */
+#bandeau .ligne.quete.nouvelle .losange { animation: losange-nouveau 0.8s ease-in-out infinite alternate; }
+@keyframes losange-nouveau { from { opacity: 1; transform: rotate(45deg) scale(1.25); } to { opacity: 0.25; transform: rotate(45deg) scale(0.9); } }
+#bulles .case-bulle.attend { pointer-events: none; }
+#bulles .case-bulle.attend p { margin: 0; }

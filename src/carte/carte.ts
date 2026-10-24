@@ -718,10 +718,14 @@ export class Carte2D {
       // au-dessus tant qu'Andromède les occupe.
       const z = this.etatZone(c.nom), gris = !!z && !z.visitee
       const couleur = gris ? enGris(couleurDe(c)) : couleurDe(c)
+      // Une zone occupée, un peu transparente (demande d'Adrien du 24/10/2026 : elle n'est pas disponible pour l'instant).
+      const occupee = !!z?.occupee && !this.epure
+      if (occupee) ctx.globalAlpha = 0.55
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
       if (illustre(r) && aUneIllustration(c.nom) && dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris, t)) { /* dessiné */ }
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
+      if (occupee) ctx.globalAlpha = 1
       if (z?.occupee && !this.epure) this.drapeau(ctx, q.x, q.y - r - 3, couleurs, z.jauge)
       // La nuit, les astres (sauf le Soleil) s'assombrissent un peu : un voile de la couleur du fond.
       if (this.nuit && c.type !== 'etoile') {

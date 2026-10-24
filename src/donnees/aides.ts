@@ -3,19 +3,22 @@
 // null : au milieu) ; une bulle dont l'élément n'est pas à l'écran est sautée. Les explications complètes sont dans le
 // Manuel.
 
-export interface Bulle { sel: string | null; texte: string }
+/** Une bulle ; avec `attendre`, pas de bouton : elle passe quand le joueur fait le geste (Adrien, 24/10/2026). */
+export interface Bulle { sel: string | null; texte: string; attendre?: 'glisser' | 'zoomer' | 'capsule' | 'quete' }
 
 export const AIDES: Record<string, Bulle[]> = {
   // Au tout début, seulement la carte et comment s'y repérer (Adrien, 24/10/2026 : pas d'avalanche d'informations ;
   // l'histoire commence après).
   carte: [
     { sel: null, texte: 'Voici la carte : le vrai système solaire, en ce moment même. Les planètes, les lunes et les engins sont à leur vraie place, à la vraie échelle.' },
-    { sel: null, texte: 'Glisse un doigt pour te déplacer. Écarte deux doigts pour zoomer, pince-les pour voir plus loin. Touche un astre ou un engin pour le voir de près.' },
-    { sel: '[data-vue="capsule"]', texte: 'Perdu ? Ce bouton te ramène à ta capsule, où que tu sois.' },
+    { sel: null, texte: 'Glisse un doigt sur la carte pour te déplacer. Essaie !', attendre: 'glisser' },
+    { sel: null, texte: 'Écarte deux doigts pour zoomer, pince-les pour voir plus loin. À toi !', attendre: 'zoomer' },
+    { sel: '[data-vue="capsule"]', texte: 'Perdu ? Ce bouton te ramène à ta capsule, où que tu sois. Touche-le.', attendre: 'capsule' },
+    { sel: null, texte: 'Touche un astre ou un engin pour le voir de près et t\'y rendre. Bon vent, capitaine !' },
   ],
   // Une fois l'histoire commencée : où la retrouver.
   tableau: [
-    { sel: '#bandeau .afficheur', texte: 'Le tableau de bord : ta quête en cours est toujours ici. Touche-la pour la voir en détail.' },
+    { sel: '#bandeau .afficheur', texte: 'Une nouvelle quête ! Elle s\'affiche ici, sur le tableau de bord : son losange doré clignote. Touche-la.', attendre: 'quete' },
   ],
   capsule: [
     { sel: '#capsule .bloc', texte: 'Ton moteur, le cœur de ta capsule : sa vitesse décide de la durée de tes trajets.' },
