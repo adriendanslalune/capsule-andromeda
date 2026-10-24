@@ -43,11 +43,8 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { radioALire, radioAOuvrir, radioDeQuete, queteNouvelle, pnj as pnjDe, quiInstalle, etapeCourante } from './moteur/quetes'
-import { Guide, type Cible } from './commun/guide'
+import { radioALire, radioAOuvrir, radioDeQuete, queteNouvelle, pnj as pnjDe, quiInstalle } from './moteur/quetes'
 import { Presentation } from './commun/presentation'
-import { Bulles } from './commun/bulles'
-import { AIDES } from './donnees/aides'
 import { dessinerScene, type ScenePresentation } from './carte/presentation-carte'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
@@ -427,7 +424,7 @@ document.querySelector('#commandes-carte .vue')!.addEventListener('click', (e) =
   if (!b) return
   const vue = b.dataset.vue
   if (vue === 'systemes') ouvrirSystemes(choixSysteme.hidden !== false)
-  else if (vue === 'capsule') { allerALaCapsule(); bulles.signaler('capsule') }
+  else if (vue === 'capsule') allerALaCapsule()
   else if (vue === 'affichage') {
     ouvrirSystemes(false)
     choixAffichage.hidden = !choixAffichage.hidden
@@ -723,7 +720,6 @@ bandeau.addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).closest<HTMLElement>('[data-quete]')?.dataset.quete
     // Une nouvelle quête annoncée par radio : on écoute le message (Adrien, 24/10/2026) ; à prendre : elle est vue.
     const r = id ? radioDeQuete(jeu, id, horloge()) : null
-    bulles.signaler('quete')
     if (r) { ouvrirRadio(r); return }
     if (id && !jeu.aides.includes(`quete:${id}`)) { jeu.aides.push(`quete:${id}`); enregistrerPartie() }
     journalOuvert = id ?? jeu.queteSuivie
@@ -954,7 +950,6 @@ boutonDepart.addEventListener('click', () => {
 })
 
 // --- Gestes de la carte : glisser, pincer, toucher un astre.
-let glisseBulle = 0, zoomBulle = 0
 const gestesCarte = new Gestes(toilePlan, {
   // La caméra suit ce qui est choisi : le pincement zoome autour de lui, et seul un vrai glissement d'un doigt (plus de
   // 15 px : pas le petit glissement du premier doigt d'un pincement) la fait lâcher prise.
@@ -962,9 +957,6 @@ const gestesCarte = new Gestes(toilePlan, {
     fermerTas()
     const accroche = selection !== null && suivre
     if (pince) { if (!accroche) carte.glisser(dx, dy); return }
-    // (Les bulles du début attendent que le joueur essaie : un vrai glissement.)
-    glisseBulle = bulles.attente === 'glisser' ? glisseBulle + Math.hypot(dx, dy) : 0
-    if (glisseBulle > 80) bulles.signaler('glisser')
     if (accroche) {
       glisseCumul += Math.hypot(dx, dy)
       if (glisseCumul < 15) return
@@ -975,8 +967,6 @@ const gestesCarte = new Gestes(toilePlan, {
   zoomer: (f, sx, sy) => {
     fermerTas()
     carte.zoomer(f, sx, sy)
-    zoomBulle = bulles.attente === 'zoomer' ? zoomBulle + Math.abs(Math.log(f)) : 0
-    if (zoomBulle > 0.6) bulles.signaler('zoomer')
   },
   toucher: (x, y) => {
     ouvrirSystemes(false)
@@ -1679,9 +1669,8 @@ function lancerPresentation(): void {
       vue: () => allerALaCapsule() },
   ], () => { allerALaCapsule(); jeu.finirPresentation(horloge()); enregistrerPartie() })
 }
-/** La présentation au début d'une partie neuve : retirée pour les essais (Adrien, 24/10/2026 : « je n'ai pas envie de tout
- *  taper à chaque fois que je veux vérifier ») ; la remettre à vrai pour la version finale. */
-const PRESENTATION_AU_DEBUT = false
+/** La présentation au début d'une partie neuve (retirée pour les essais le 24/10/2026, remise le même jour). */
+const PRESENTATION_AU_DEBUT = true
 // Une partie neuve fermée en pleine présentation la reprend au début.
 if (PRESENTATION_AU_DEBUT && partieChargee && !jeu.presentation) lancerPresentation()
 
@@ -2042,8 +2031,6 @@ function image(maintenant: number): void {
   afficherRadar(t)
   vueRadio.afficher()
   appliquerInstruments()
-  lancerAides(t)
-  guide.montrer(gesteDuTutoriel(t))
   afficherCadranVitesse(t)
   if (cockpit.pageOuverte === 'missions' && maintenant - dernierVolet > 1000) { afficherOngletJournal(); dernierVolet = maintenant }
   if (cockpit.pageOuverte === 'capsule') { voletCapsule.afficher(jeu); afficherReparation(); afficherSoute() }
@@ -2092,7 +2079,7 @@ function image(maintenant: number): void {
   }
   // Un message radio d'un PNJ arrivé : il s'ouvre dans la fenêtre de dialogue, avec son portrait.
   // (Celui qui annonce une nouvelle quête principale attend qu'on la touche au tableau de bord.)
-  const radioArrivee = !vueDialogue.ouvert && !bulles.ouvertes && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioAOuvrir(jeu, t) : null
+  const radioArrivee = !vueDialogue.ouvert && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioAOuvrir(jeu, t) : null
   if (radioArrivee) { navigator.vibrate?.([40, 40, 40]); ouvrirRadio(radioArrivee) }
   // Une confirmation de la Bourse revenue à la capsule.
   if (jeu.annoncesBourse.length && message.hidden) {
@@ -2257,107 +2244,6 @@ requestAnimationFrame(image)
     couverture.addEventListener('click', effacer)
     setTimeout(effacer, 2200)
   }
-}
-
-// La main qui montre où toucher (demande d'Adrien du 23/10/2026) : pendant le tutoriel (T1 à T8), d'après l'étape de
-// la quête en cours et ce qui est ouvert à l'écran, le prochain geste. Elle disparaît avec le tutoriel.
-const guide = new Guide(document.querySelector<HTMLDivElement>('#guide')!)
-// Les bulles d'aide (demande d'Adrien du 24/10/2026) : la première fois qu'une fenêtre s'ouvre (la carte au tout début,
-// un volet, un sous-onglet, la radio), des bulles successives l'expliquent ; vues jusqu'au bout, elles ne reviennent plus.
-const bulles = new Bulles(document.querySelector<HTMLDivElement>('#bulles')!)
-let fenetreVue = '', fenetreDepuis = 0
-/** Des bulles attendent la fenêtre affichée (pendant les 600 ms où elle se pose) : la main ne s'y montre pas. */
-let aideEnAttente = false
-function lancerAides(t: number): void {
-  bulles.recaler()
-  aideEnAttente = false
-  // (Une partie où la carte est déjà expliquée mais l'histoire pas commencée : elle commence.)
-  if (!jeu.presentation && !presentation.ouverte && jeu.aides.includes('carte')) jeu.finirPresentation(t)
-  if (bulles.ouvertes || vueDialogue.ouvert || presentation.ouverte || radioAOuvrir(jeu, t)
-    || document.querySelector('#couverture, #bienvenue, .confirmation-jeu')) return
-  const page = cockpit.pageOuverte
-  let cles: string[] = []
-  if (document.querySelector('#radio:not([hidden])')) cles = ['radio']
-  else if (page === 'missions') cles = ['missions', ...(ongletJournal === 'contrats' ? ['contrats'] : [])]
-  else if (page === 'capsule') cles = sousOnglet === 'etat' ? ['capsule'] : []
-  else if (page) cles = [page]
-  else if (!document.querySelector('div.plein:not([hidden])')) cles = ['carte', ...(jeu.quetes.q1 ? ['tableau'] : [])]
-  const cle = cles.find((c) => AIDES[c] && !jeu.aides.includes(c))
-  aideEnAttente = !!cle
-  // La fenêtre doit être posée depuis un instant (un volet qui monte, un sous-onglet qui s'affiche).
-  if (cle !== fenetreVue) { fenetreVue = cle ?? ''; fenetreDepuis = performance.now(); return }
-  if (!cle || performance.now() - fenetreDepuis < 600) return
-  bulles.montrer(AIDES[cle], () => {
-    if (!jeu.aides.includes(cle)) jeu.aides.push(cle)
-    // La carte comprise, l'histoire commence : Elsa appelle (Adrien, 24/10/2026).
-    if (cle === 'carte' && !jeu.presentation) jeu.finirPresentation(horloge())
-    enregistrerPartie()
-  })
-}
-const TUTORIEL = ['q1', 'q2']
-/** Un élément visible de l'écran à montrer (null s'il n'est pas là ou caché). */
-function cibleEl(sel: string, texte: string): Cible | null {
-  const el = document.querySelector<HTMLElement>(sel)
-  if (!el || el.offsetParent === null) return null
-  const rect = el.getBoundingClientRect()
-  return rect.width && rect.height ? { rect, texte } : null
-}
-/** Ouvrir un onglet du volet (s'il ne l'est pas), puis montrer ce qui suit. */
-function versOnglet(page: string, texte: string): Cible | null {
-  return cockpit.pageOuverte === page ? null : cibleEl(`#onglets [data-onglet="${page}"]`, texte)
-}
-function gesteDuTutoriel(t: number): Cible | null {
-  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu') || presentation.ouverte || bulles.ouvertes || aideEnAttente) return null
-  const q = suiteDeLHistoire(jeu)
-  if (!q || !TUTORIEL.includes(q.id)) return null
-  // Le premier message d'Elsa : le lire jusqu'au bout.
-  if (vueDialogue.ouvert) {
-    if (jeu.quetes.q1?.fin != null) return null
-    return cibleEl('#dialogue [data-suite]', 'Lis la suite') ?? cibleEl('#dialogue [data-fermer]', 'Compris !')
-  }
-  if (document.querySelector('div.plein:not([hidden])')) return null
-  const ouvert = cockpit.pageOuverte
-  const e = jeu.quetes[q.id] ? etapeCourante(jeu, q) : null
-  // Une nouvelle quête annoncée par radio : on l'écoute en la touchant au tableau de bord.
-  if (radioDeQuete(jeu, q.id, t)) return ouvert ? null : cibleEl(`#bandeau [data-quete="${q.id}"]`, 'Écoute-la')
-  if (e?.genre === 'moteur') {
-    // D'abord la capsule (ses bulles montrent le moteur, son prix, la soute).
-    if (!jeu.aides.includes('capsule')) return versOnglet('capsule', 'Ta capsule')
-    const manque = jeu.manquePourMoteur()
-    if (manque.credits <= 0 && !Object.keys(manque.materiaux).length) {
-      if (ouvert !== 'capsule') return versOnglet('capsule', 'Ta capsule')
-      if (sousOnglet !== 'etat') return cibleEl('[data-sous="etat"]', 'Le moteur')
-      return cibleEl('#capsule [data-choix="acheter"]', 'Améliore !')
-    }
-    // Il manque de l'argent ou de la ferraille : un contrat (VIDER, qui rapporte aussi des matériaux).
-    if (jeu.enCours) {
-      if (ouvert === 'missions') return cibleEl('#contrats [data-choix="aller"], #contrats [data-choix="agir"]', 'Vas-y !')
-      if (ouvert) return null
-      return cibleEl('#bouton-depart:not([hidden])', boutonDepart.textContent === 'DÉPART' ? 'Départ !' : 'Touche ici')
-    }
-    if (ouvert !== 'missions') return versOnglet('missions', 'Un contrat')
-    if (ongletJournal !== 'contrats') return cibleEl('[data-journal-onglet="contrats"]', 'Les contrats')
-    const vider = !!Object.keys(manque.materiaux).length
-    const c = jeu.proposes.find((x) => (!vider || x.genre === 'nettoyer') && document.querySelector(`#contrats [data-choix="accepter"][data-id="${x.id}"]`))
-    return c ? cibleEl(`#contrats [data-choix="accepter"][data-id="${c.id}"]`, 'Accepte !') : null
-  }
-  // La première amélioration faite : le Comptoir, une fois.
-  if (jeu.quetes.q1?.fin != null && !jeu.aides.includes('marche')) return versOnglet('marche', 'Le Comptoir')
-  if (ouvert === 'missions' && ongletJournal === 'quetes') return cibleEl('#journal [data-y-aller]', 'Y aller !')
-  if (ouvert) return null
-  // Aller quelque part : toucher le lieu sur la carte, puis le bouton de la fiche (Y ALLER, DÉPART, PARLER…).
-  const o = objectif(jeu, q)
-  if (!o?.lieu) return null
-  const ici = jeu.lieuEnOrbite(t) === o.lieu
-  if (ici || selection === o.lieu) {
-    if (!ici && mission.phase(t) === 'trajet' && mission.plan?.cible === o.lieu) return null
-    const texte = boutonDepart.textContent ?? ''
-    return cibleEl('#bouton-depart:not([hidden])', texte === 'PARLER' ? 'Parle-lui' : texte === 'DÉPART' ? 'Départ !' : texte === 'Y ALLER' ? 'Y aller !' : 'Touche ici')
-  }
-  if (mission.phase(t) === 'trajet' && mission.plan?.cible === o.lieu) return null
-  const p = carte.place(o.lieu)
-  if (p && p.x > 0 && p.y > 0 && p.x < innerWidth && p.y < innerHeight) return { cercle: { x: p.x, y: p.y, r: Math.max(16, p.r) }, texte: `Touche ${/^[AEIOUH]/.test(o.lieu) ? 'l\'' : ''}${o.lieu}` }
-  return cibleEl('#bandeau [data-ligne="quete"]', 'Où aller ?')
 }
 
 // Pour les essais : window.andromeda dans la console.

@@ -2482,39 +2482,3 @@ body.volet-ouvert #annonces { display: none; }
 #presentation button { min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em; border: 2px solid var(--encre); background: var(--creme); color: var(--encre); }
 #presentation button.principal { background: var(--orange); color: #fff; box-shadow: 3px 3px 0 var(--encre); }
 #presentation button.passer { border-color: transparent; background: none; opacity: 0.6; }
-
-/* La main qui montre où toucher (demande d'Adrien du 23/10/2026) : une main de pulp qui bat, un contour orange en
-   pointillés qui tourne, une bulle de deux mots. Elle ne bloque rien : on peut toujours toucher autre chose. */
-#guide { position: fixed; inset: 0; z-index: 9000; pointer-events: none; }
-#guide[hidden] { display: none; }
-#guide .contour-guide { position: absolute; overflow: visible; }
-#guide .contour-guide rect { fill: none; stroke: var(--orange); stroke-width: 3; stroke-dasharray: 7 5; animation: contour-guide 0.9s linear infinite; }
-@keyframes contour-guide { to { stroke-dashoffset: -24; } }
-#guide .main-guide { position: absolute; width: 64px; height: 92px; overflow: visible; filter: drop-shadow(2px 3px 0 rgba(31, 27, 24, 0.25));
-  animation: main-guide 0.8s ease-in-out infinite alternate; }
-#guide .main-guide.vers-le-bas { rotate: 180deg; }
-@keyframes main-guide { from { translate: 0 6px; } to { translate: 0 -2px; } }
-#guide .main-guide .peau { fill: #fffbf2; stroke: var(--encre); stroke-width: 2.4; stroke-linejoin: round; }
-#guide .main-guide .manchette { fill: #f2b53a; stroke: var(--encre); stroke-width: 2.4; stroke-linejoin: round; }
-#guide .main-guide .trait { fill: none; stroke: var(--encre); stroke-width: 1.6; stroke-linecap: round; }
-#guide .main-guide .bouton { fill: var(--encre); }
-#guide .bulle-guide { position: absolute; max-width: 170px; padding: 6px 10px; background: var(--creme); border: 2px solid var(--encre);
-  border-radius: 14px; box-shadow: 3px 3px 0 var(--encre); font: italic 800 15px/1.1 var(--titre); letter-spacing: 0.04em;
-  text-transform: uppercase; color: var(--encre); }
-
-/* Les bulles d'aide (demande d'Adrien du 24/10/2026) : le contour orange qui tourne, et une case de papier. */
-#bulles { position: fixed; inset: 0; z-index: 9100; pointer-events: none; }
-#bulles[hidden] { display: none; }
-#bulles .contour-guide { position: absolute; overflow: visible; }
-#bulles .contour-guide rect { fill: none; stroke: var(--orange); stroke-width: 3; stroke-dasharray: 7 5; animation: contour-guide 0.9s linear infinite; }
-#bulles .case-bulle { position: absolute; left: 14px; right: 14px; pointer-events: auto; padding: 12px 14px 10px; background: var(--fond) var(--grain);
-  border: 2px solid var(--encre); border-radius: 14px; box-shadow: 4px 4px 0 var(--encre); }
-#bulles .case-bulle p { margin: 0 0 10px; font: 13.5px/1.45 var(--police); color: var(--encre); }
-#bulles .case-bulle button { display: block; margin-left: auto; min-height: 44px; padding: 0 18px; font: 700 15px var(--titre); letter-spacing: 0.12em;
-  background: var(--orange); color: #fff; border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--encre); }
-
-/* Une nouvelle quête principale (demande d'Adrien du 24/10/2026) : son losange doré clignote. */
-#bandeau .ligne.quete.nouvelle .losange { animation: losange-nouveau 0.8s ease-in-out infinite alternate; }
-@keyframes losange-nouveau { from { opacity: 1; transform: rotate(45deg) scale(1.25); } to { opacity: 0.25; transform: rotate(45deg) scale(0.9); } }
-#bulles .case-bulle.attend { pointer-events: none; }
-#bulles .case-bulle.attend p { margin: 0; }
