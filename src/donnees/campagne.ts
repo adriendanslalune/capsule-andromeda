@@ -33,7 +33,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Uranus roule sur le côté depuis des milliards d\'années. Rien d\'étonnant qu\'Andromède s\'y sente chez lui.',
   },
   {
-    id: 'aksel', nom: 'Le vieil Aksel', role: 'Gardien de phare', lieu: 'Station Le Verrier', teinte: '#a9c0ee', portrait: null,
+    id: 'aksel', nom: 'Le vieil Aksel', role: 'Gardien de phare', lieu: 'Station Le Verrier', teinte: '#a9c0ee', portrait: 'portraits/aksel-medaillon.webp',
     repos: 'J\'allume le phare tous les soirs. Personne ne passe. Mais un jour, quelqu\'un passera.',
   },
   {
@@ -311,13 +311,13 @@ const ACTES: Quete[] = [
     id: 'neptune', titre: 'Le secret de Triton', type: 'principale', donneur: 'aksel', conditions: ['uranus'],
     intro: [
       'Assieds-toi, capitaine. J\'ai passé quarante ans à regarder Triton. Ce n\'est pas une lune. C\'est un vaisseau, garé là depuis des siècles.',
-      'Libère Protée et Neptune. Puis attaque Triton. Si tu l\'abats, Andromède perd son cœur.',
+      '(souci) Libère Protée et Neptune. Puis attaque Triton. Si tu l\'abats, Andromède perd son cœur.',
     ],
     etapes: [
       { genre: 'liberer', zones: libs('Neptune'), texte: 'Libère Protée, Neptune… et Triton' },
       { genre: 'parler', pnj: 'aksel', texte: [
-        'C\'est fini. Le phare peut s\'éteindre : quelqu\'un est enfin passé.',
-        'Mais avant de mourir, Triton a envoyé un message. Vers les Confins. Mira Kovač, à la Station Tombaugh, l\'a capté.',
+        '(joie) C\'est fini. Le phare peut s\'éteindre : quelqu\'un est enfin passé.',
+        '(souci) Mais avant de mourir, Triton a envoyé un message. Vers les Confins. Mira Kovač, à la Station Tombaugh, l\'a capté.',
       ] },
     ],
     recompense: 20000,

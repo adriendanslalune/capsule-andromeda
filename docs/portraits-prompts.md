@@ -161,6 +161,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Nadia Orlov** (24/10/2026) : les trois humeurs (la joie refaite : un demi-sourire en coin).
 - **Tomás Reyes** (24/10/2026) : les trois humeurs.
 - **Hana Sato** (24/10/2026) : les trois humeurs.
+- **Le vieil Aksel** (24/10/2026) : les trois humeurs.
 
 ## Ce qu'il faut envoyer à Claude
 
