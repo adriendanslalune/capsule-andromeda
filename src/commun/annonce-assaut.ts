@@ -1,5 +1,5 @@
 // L'annonce de l'assaut (Adrien, 24/10/2026) : avant le combat contre le vaisseau amiral d'une zone, un plein écran façon
-// couverture de pulp. L'astre de la zone en grand, au bas de l'écran ; au-dessus, l'amiral qui descend vers nous, son
+// couverture de pulp. L'astre de la zone, entier, sous le vaisseau ; l'amiral qui descend vers nous, son
 // image vue du dessus (la même qu'au combat : Adrien, « sinon ça fait bizarre ») ; « VOUS ALLEZ AFFRONTER », son nom en
 // grosses lettres ; À L'ASSAUT ! ou PAS ENCORE. Un amiral pas encore dessiné reste une silhouette noire, un « ? »
 // dessus. La vue ne décide rien : on lui dit qui, et comment dessiner l'astre.
@@ -38,7 +38,7 @@ export class AnnonceAssaut {
     const fermer = () => { cancelAnimationFrame(this.boucle); this.element.hidden = true; this.element.innerHTML = '' }
     this.element.querySelector('[data-non]')!.addEventListener('click', fermer)
     this.element.querySelector('[data-oui]')!.addEventListener('click', () => { fermer(); partir() })
-    // Le ciel : des étoiles, et l'astre de la zone en grand au bas de l'écran (redessiné tant qu'il n'est pas prêt).
+    // Le ciel : des étoiles, et l'astre de la zone sous le vaisseau (redessiné tant qu'il n'est pas prêt).
     const toile = this.element.querySelector<HTMLCanvasElement>('.ciel')!, ctx = toile.getContext('2d')!
     const etoiles = Array.from({ length: 120 }, (_, k) => ({ x: ((k * 0.6180339) % 1), y: ((k * 0.7548776) % 1), r: k % 9 === 0 ? 1.6 : 0.8, p: k }))
     let pret = false
@@ -52,8 +52,9 @@ export class AnnonceAssaut {
         ctx.beginPath(); ctx.arc(e.x * l, e.y * h, e.r, 0, 2 * Math.PI); ctx.fillStyle = '#fffbf2'; ctx.fill()
       }
       ctx.globalAlpha = 1
-      // (Son haut à mi-écran, au-dessus de la plaque du texte.)
-      const r = 0.95 * l, cy = 0.5 * h + r
+      // Entier et pas trop grand (Adrien, 24/10/2026 : en très grand, le dessin de l'astre faisait cheap), sous le
+      // vaisseau, au-dessus de la plaque du texte.
+      const r = Math.min(0.26 * l, 0.12 * h), cy = 0.6 * h
       pret = this.dessinerAstre(ctx, a.zone, l * 0.5, cy, r) || pret
       if (!pret) { ctx.beginPath(); ctx.arc(l * 0.5, cy, r, 0, 2 * Math.PI); ctx.fillStyle = '#3a3448'; ctx.fill() }
       this.boucle = requestAnimationFrame(peindre)
