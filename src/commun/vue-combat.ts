@@ -248,7 +248,15 @@ export class VueCombat {
       ctx.stroke()
     }
     // La capsule (elle clignote quand elle vient d'être touchée).
-    if (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0) {
+    const imCapsule = vaisseau('capsule')
+    if (imCapsule && (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0)) {
+      // La capsule dessinée (13 unités de large), la flamme de sa tuyère qui vacille, et le point d'impact.
+      const l = 13 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
+      ctx.beginPath(); ctx.moveTo(x - 1.4 * k, y + h / 2 - 0.6 * k); ctx.lineTo(x, y + h / 2 + (2.6 + Math.sin(e.temps * 30)) * k); ctx.lineTo(x + 1.4 * k, y + h / 2 - 0.6 * k); ctx.closePath()
+      ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
+      ctx.drawImage(imCapsule, x - l / 2, y - h / 2, l, h)
+      ctx.beginPath(); ctx.arc(x, y, 0.9 * k, 0, 2 * Math.PI); ctx.fillStyle = CERISE; ctx.fill()
+    } else if (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0) {
       ctx.save()
       ctx.translate(X(e.capsule.x), Y(e.capsule.y))
       ctx.scale(k, k)

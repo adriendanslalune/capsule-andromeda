@@ -157,3 +157,5 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le chasseur** (24/10/2026) : branché au combat (`public/vaisseaux/chasseur.webp`, 22 unités de large, sa zone
   de touche en fait 18).
 - **L'escorteur** (24/10/2026) : branché au combat (11 unités de large, sa zone de touche en fait 10).
+- **La capsule** (24/10/2026) : branchée au combat (13 unités de large, la flamme de la tuyère et le point d'impact
+  dessinés par-dessus).
