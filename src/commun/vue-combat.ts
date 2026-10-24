@@ -33,7 +33,7 @@ export function idAmiral(nom: string): string {
   return nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le |la |l')/, '').replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
 }
 /** Les amiraux déjà dessinés (vaisseaux/<id>.webp) : on les ajoute ici à mesure qu'ils arrivent. */
-const AMIRAUX_PRETS: readonly string[] = ['selene', 'phobetor', 'brule-nuees', 'calcinateur', 'soufre-noir', 'brise-glace', 'grand-veilleur', 'cratere', 'leviathan', 'geyser', 'ithaque', 'spectre', 'givre', 'brouillard', 'janus', 'couronne', 'feu-follet', 'ombreux', 'reine-pale', 'roi-sombre', 'patchwork']
+const AMIRAUX_PRETS: readonly string[] = ['selene', 'phobetor', 'brule-nuees', 'calcinateur', 'soufre-noir', 'brise-glace', 'grand-veilleur', 'cratere', 'leviathan', 'geyser', 'ithaque', 'spectre', 'givre', 'brouillard', 'janus', 'couronne', 'feu-follet', 'ombreux', 'reine-pale', 'roi-sombre', 'patchwork', 'bascule']
 /** L'image d'un amiral (son chemin), ou null s'il n'est pas encore dessiné. */
 export function imageVaisseau(amiral: string): string | null {
   const id = idAmiral(amiral)
