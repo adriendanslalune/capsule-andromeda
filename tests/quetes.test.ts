@@ -271,16 +271,42 @@ describe('le Veilleur ouvre les capteurs un à un (Adrien, 24/10/2026)', () => {
     }
     avancerQuetes(jeu, { genre: 'monolithe' }, t + 30)
     expect(jeu.quetes.veilleur.fin).not.toBeNull()
-    // Le RADAR arrive par radio, avec sa quête.
+    // Le RADAR arrive par radio, avec sa quête, dix minutes plus tard (le temps de souffler).
+    expect(jeu.quetes['veilleur-radar']).toBeUndefined()
+    t += 30 + 10 * 60_000
+    avancerQuetes(jeu, { genre: 'instant' }, t)
     expect(jeu.quetes['veilleur-radar']).toBeDefined()
     expect(jeu.installe('radar')).toBe(true)
+    // Le Veilleur attend la fin du balayage avant de parler.
     jeu.espace.reperes = { 'Chasseur test': t + 40 }
     jeu.radar.actif = true
     avancerQuetes(jeu, { genre: 'instant' }, t + 50)
+    expect(jeu.quetes['veilleur-radar'].fin).toBeNull()
+    jeu.radar.actif = false
+    jeu.radar.fin = t + 30_000
+    avancerQuetes(jeu, { genre: 'instant' }, t + 31_000)
+    expect(jeu.quetes['veilleur-radar'].fin).toBeNull()
+    avancerQuetes(jeu, { genre: 'instant' }, t + 35_000)
     expect(jeu.quetes['veilleur-radar'].fin).not.toBeNull()
+    // La RADIO, une heure après.
+    t += 35_000 + 60 * 60_000
+    avancerQuetes(jeu, { genre: 'instant' }, t)
     expect(jeu.installe('radio')).toBe(true)
     avancerQuetes(jeu, { genre: 'voix' }, t + 60)
     expect(jeu.quetes['veilleur-radio'].fin).not.toBeNull()
+  })
+
+  it('l’ancienne quête finie après un seul PING reprend au deuxième ; radar et radio recommencent plus tard', () => {
+    const jeu = new Jeu()
+    jeu.nouvellePartie(42, t0)
+    jeu.quetes.q1 = { etape: 9, compte: 0, debut: 0, fin: 0 }
+    jeu.quetes.veilleur = { etape: 1, compte: 0, debut: t0, fin: t0 }
+    jeu.quetes['veilleur-radar'] = { etape: 0, compte: 0, debut: t0, fin: null }
+    const relu = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0 + 1000))))!
+    expect(relu.quetes.veilleur).toMatchObject({ etape: 1, fin: null })
+    expect(relu.quetes['veilleur-radar']).toBeUndefined()
+    expect(relu.installe('ping')).toBe(true)
+    expect(relu.installe('radar')).toBe(false)
   })
 
   it('une partie relue retrouve ses capteurs d’après ses quêtes', () => {

@@ -329,6 +329,7 @@ export function restaurer(s: unknown): Jeu | null {
   }
   if (v.quetes && Object.keys(v.quetes).some((id) => /^(lune-\d|t\d)$/.test(id))) reprendreAncienneCampagne(jeu, v.quetes, v.enregistreLe)
   restaurerTrophees(jeu, v)
+  reprendreVeilleur(jeu, v.enregistreLe)
   rattraperInstruments(jeu)
   return jeu
 }
@@ -381,4 +382,20 @@ function restaurerTrophees(jeu: Jeu, v: Sauvegarde): void {
   if (nombre(st.terre)) s.terre = st.terre
   if (nombre(st.naissance)) s.naissance = st.naissance
   jeu.stats = s
+}
+
+/**
+ * « L'oreille du Veilleur » ne demandait qu'un PING avant le 24/10/2026 ; elle en demande trois, puis le premier
+ * monolithe (Adrien : le Veilleur enchaînait sur le radar après un seul PING). Une partie qui l'avait finie sous
+ * l'ancienne forme reprend au deuxième PING ; ce qui avait suivi (radar, radio) recommence plus tard, à son tour.
+ */
+function reprendreVeilleur(jeu: Jeu, t: unknown): void {
+  const e = jeu.quetes.veilleur, q = QUETES.find((x) => x.id === 'veilleur')
+  if (!e || !q || e.fin == null || e.etape >= q.etapes.length) return
+  jeu.quetes.veilleur = { etape: 1, compte: 0, debut: e.debut, fin: null, depuis: nombre(t) ? t : e.debut }
+  const suites = ['veilleur-radar', 'veilleur-radio']
+  for (const id of suites) delete jeu.quetes[id]
+  jeu.radioPnj = jeu.radioPnj.filter((r) => !r.quete || !suites.includes(r.quete))
+  jeu.epinglees = jeu.epinglees.filter((id) => !suites.includes(id))
+  if (!jeu.epinglees.includes('veilleur') && jeu.epinglees.length < 3) jeu.epinglees.push('veilleur')
 }

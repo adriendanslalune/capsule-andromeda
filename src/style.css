@@ -2625,3 +2625,4 @@ body.volet-ouvert #annonces { display: none; }
   20%, 40%, 60%, 80% { transform: translateX(4px) rotate(2deg) scale(1.15); }
 }
 #comptoir button.eteint { opacity: 0.45; }
+#comptoir .tete-comptoir .vals.presque-pleine { color: #c0392b; font-weight: 800; }

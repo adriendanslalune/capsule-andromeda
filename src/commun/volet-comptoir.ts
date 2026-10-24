@@ -84,7 +84,7 @@ export class VoletComptoir {
     let html = MARCHES.filter((_, i) => ouvert(i)).length < 2 ? '' : '<div class="places">' + MARCHES.map((x, i) => !ouvert(i) ? '' :
       `<button type="button" data-comptoir="${i}"${i === k ? ' class="actif"' : ''}><span class="pastille" style="background:${x.teinte}"></span>`
       + `${x.nom}${etat.ici === x.nom ? '<small>ici</small>' : ''}</button>`).join('') + '</div>'
-    html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals">${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
+    html += `<div class="tete-comptoir"><b>Comptoir ${du(m.nom)}</b><span class="vals${charge > CAPACITE_SOUTE - 1 ? ' presque-pleine' : ''}">${avec('soute', `${t1(charge)}/${CAPACITE_SOUTE} t`)}</span></div>`
     // Les boutons n'apparaissent qu'en touchant un matériau : on le dit en haut (Adrien ne les avait pas trouvés).
     if (possible && !this.ouverte) html += '<p class="consigne-comptoir">Touche un matériau pour l\'acheter ou le vendre.</p>'
     if (!possible) {
@@ -127,7 +127,7 @@ export class VoletComptoir {
             if (tout && v.tonnes > 0 && v.tonnes <= avant + 1e-9 && html) continue
             const titre = tout ? (v.tonnes > 0 ? `TOUT · ${t1(v.tonnes)} t` : 'TOUT') : `${t1(v.tonnes > 0 ? v.tonnes : n)} t`
             const somme = v.tonnes > 0 ? `${sens === 'acheter' ? '−' : '+'}${v.prix.toLocaleString('fr-FR')} cr` : '—'
-            const pleine = sens === 'acheter' && v.tonnes <= 0 && possible && charge >= CAPACITE_SOUTE - 0.05
+            const pleine = sens === 'acheter' && v.tonnes <= 0 && possible && charge > CAPACITE_SOUTE - 1
             html += (pleine ? '<button type="button" class="eteint" data-soute-pleine>'
               : `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${v.tonnes > 0 ? '' : ' disabled'}>`)
               + `<b>${titre}</b><small>${somme}</small></button>`
@@ -147,7 +147,8 @@ export class VoletComptoir {
     html += '<p class="note">Achat : ce que tu paies une tonne ; vente : ce qu\'on t\'en donne. Chaque système a ses spécialités : moins chères là où elles se produisent, plus chères là où elles manquent.</p>'
 
     // Un achat vient de remplir la soute : elle tremble aussi.
-    const pleine = charge >= CAPACITE_SOUTE - 0.05, vientDeSeRemplir = pleine && this.chargePrecedente !== null && this.chargePrecedente < CAPACITE_SOUTE - 0.05
+    // Au-delà de 19 t (Adrien, 24/10/2026 : à 19,97 t, on ne peut déjà plus rien acheter), la soute compte comme pleine.
+    const pleine = charge > CAPACITE_SOUTE - 1, vientDeSeRemplir = pleine && this.chargePrecedente !== null && this.chargePrecedente <= CAPACITE_SOUTE - 1
     this.chargePrecedente = charge
     if (html === this.dernier) { if (vientDeSeRemplir) this.secouerSoute(); return }
     const rangee = this.element.querySelector('.places')?.scrollLeft ?? 0

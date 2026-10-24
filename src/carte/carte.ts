@@ -344,6 +344,9 @@ export class Carte2D {
    * Les PNJ : un « ! » au lieu d'une quête à proposer (Adrien, 24/10/2026, qui retire les médaillons). Et le losange
    * (principale) ou le rond (secondaire) de l'objectif des quêtes du tableau de bord, à leur lieu.
    */
+  /** Jusqu'à quand (performance.now()) les chasseurs repérés se signalent par des ondes : le premier radar. */
+  signalChasseurs = 0
+
   /** Les « ! » dessinés à la dernière image (ils vibrent : la carte se redessine alors à chaque image). */
   exclamations = 0
 
@@ -857,6 +860,28 @@ export class Carte2D {
         ctx.strokeStyle = '#e04b37'
         ctx.stroke()
         ctx.setLineDash([])
+        // Le premier radar (Adrien, 24/10/2026) : les chasseurs repérés se signalent par des ondes et leur nom.
+        const maintenant = performance.now()
+        if (maintenant < this.signalChasseurs) {
+          ctx.save()
+          ctx.globalAlpha = 1
+          for (let k = 0; k < 2; k++) {
+            const f = ((maintenant / 1100) + k / 2) % 1
+            ctx.beginPath()
+            ctx.arc(q.x, q.y, 16 + 34 * f, 0, 2 * Math.PI)
+            ctx.lineWidth = 2.5
+            ctx.strokeStyle = `rgba(224, 75, 55, ${(0.8 * (1 - f)).toFixed(3)})`
+            ctx.stroke()
+          }
+          ctx.font = 'bold 11px ui-monospace, Menlo, monospace'
+          ctx.textAlign = 'center'
+          ctx.lineWidth = 3
+          ctx.strokeStyle = couleurs.fond
+          ctx.strokeText('CHASSEUR', q.x, q.y - 24)
+          ctx.fillStyle = '#c0392b'
+          ctx.fillText('CHASSEUR', q.x, q.y - 24)
+          ctx.restore()
+        }
       }
       if (c.type === 'joueur') this.capsuleJoueur(ctx, c.nom, q, t, couleurs)
       else if (c.type === 'zone') this.zoneDeRecherche(ctx, q, couleurs)

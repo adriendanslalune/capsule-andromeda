@@ -83,14 +83,17 @@ export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: nu
     ctx.fillStyle = 'rgba(242, 198, 106, 0.25)'
     ctx.fill()
   }
+  // Discret (Adrien, 24/10/2026 : le disque rouge gênait) : un fin cercle pointillé, sans aplat.
   if (anneau) {
     ctx.beginPath()
-    ctx.arc(0, 0, 9, 0, 2 * Math.PI)
-    ctx.fillStyle = couleur + '40'
-    ctx.fill()
-    ctx.lineWidth = 1.6 / k
+    ctx.arc(0, 0, 9.5, 0, 2 * Math.PI)
+    ctx.globalAlpha = 0.6
+    ctx.setLineDash([2 / k, 2.5 / k])
+    ctx.lineWidth = 1.1 / k
     ctx.strokeStyle = couleur
     ctx.stroke()
+    ctx.setLineDash([])
+    ctx.globalAlpha = 1
     ctx.lineWidth = 1.4 / k
     ctx.strokeStyle = encre
   }

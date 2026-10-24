@@ -299,6 +299,8 @@ function commencer(jeu: Jeu, q: Quete, t: number): void {
 function prendreParRadio(jeu: Jeu, t: number): void {
   for (const q of disponibles(jeu)) {
     if (!q.parRadio || q.type === 'principale') continue
+    // Le temps de souffler entre deux quêtes d'un même PNJ (Adrien, 24/10/2026 : le Veilleur enchaînait trop vite).
+    if (q.apres && q.conditions.some((c) => (jeu.quetes[c]?.fin ?? t) + q.apres! > t)) continue
     commencer(jeu, q, t)
     envoyerRadio(jeu, { pnj: q.donneur, texte: q.intro }, t, q.id)
     if (!q.etapes.length) finir(jeu, q, t)
@@ -368,7 +370,11 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
         if (e.lieu) {
           const a = position(e.lieu, t), b = jeu.mission.etat(t).position
           atteint = jeu.radar.actif && Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) <= PORTEE_RADAR
-        } else atteint = Object.values(jeu.espace.reperes ?? {}).some((x) => x >= depuis)
+        } else {
+          // Un chasseur repéré, et le balayage fini depuis un instant (Adrien, 24/10/2026 : le Veilleur parlait avant
+          // qu'on ait eu le temps de regarder).
+          atteint = Object.values(jeu.espace.reperes ?? {}).some((x) => x >= depuis) && !jeu.radar.actif && t - jeu.radar.fin >= 4000
+        }
       } else if (e.genre === 'disparu') {
         const d = DISPARUS.find((x) => x.nom === e.nom)
         atteint = !d || jeu.disparus.trouves[d.numero] !== undefined

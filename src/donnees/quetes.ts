@@ -114,6 +114,8 @@ export interface Quete {
   installe?: Instrument[]
   /** Ce qu'elle met dans la soute en la prenant (un colis à livrer). */
   don?: Record<string, number>
+  /** Par radio : le temps (ms) après la fin de ses conditions avant qu'elle arrive. */
+  apres?: number
   /** Ce qu'elle installe une fois finie. */
   ouvre?: Instrument[]
   /** La fenêtre de la zone libérée : le PNJ qui l'annonce et ses mots (sinon, un texte général). */
@@ -238,7 +240,7 @@ export const QUETES: readonly Quete[] = [
     recompense: 60,
   },
   {
-    id: 'veilleur-radar', titre: 'Les yeux du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur'], parRadio: true, installe: ['radar'],
+    id: 'veilleur-radar', titre: 'Les yeux du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur'], parRadio: true, apres: 10 * 60_000, installe: ['radar'],
     intro: [
       'Capitaine. Le Veilleur. Tu as l\'oreille ; maintenant, il te faut des yeux.',
       'Les chasseurs d\'Andromède sont furtifs : ta carte ne les montre pas. Je t\'ai installé un RADAR, au-dessus du PING. Allume-le : il tourne trente secondes et révèle ce qui rôde à cent mille kilomètres.',
@@ -251,11 +253,13 @@ export const QUETES: readonly Quete[] = [
     recompense: 40,
   },
   {
-    id: 'veilleur-radio', titre: 'Les voix du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur-radar'], parRadio: true, installe: ['radio'],
+    id: 'veilleur-radio', titre: 'Les voix du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur-radar'], parRadio: true, apres: 60 * 60_000, installe: ['radio'],
     intro: [
-      'Capitaine. Dernière chose, et la plus belle. Pendant l\'invasion, des équipages ont laissé des messages. Cent cinquante voix. Elles émettent encore, chacune une demi-heure par jour, toujours à la même heure.',
-      'Je t\'ai installé une RADIO, sous le PING. Bande OC. Tourne le bouton jusqu\'à ce que la voix soit nette, et tiens-la dix secondes : elle s\'enregistre.',
-      'Une voix n\'émet que dans son système. Pour savoir quand écouter : le carnet des Voix perdues, dans les Collections, donne l\'heure de celles qui te manquent. Jamais la fréquence : ça, il faut la chercher. Commence par la Terre.',
+      'Capitaine. Dernière chose, et la plus belle. Quand Andromède est arrivée, elle a tout éteint : les lasers, les relais, les réseaux. Tout, sauf les vieilles ondes courtes, l\'OC, celle de nos grands-parents. Trop simple pour eux, sans doute. Ils ne l\'ont jamais brouillée.',
+      'Alors ceux qui étaient coincés là-haut s\'en sont servis. Des équipages, des colons, des gardiens de station, des gamins sur des cargos. Ils ont enregistré un message sur une balise de détresse, et la balise le répète encore, une demi-heure par jour, à l\'heure où il a été dit. Cent cinquante voix. Certaines datent du premier jour, d\'autres d\'un an après.',
+      'Mises bout à bout, elles racontent ce que personne n\'a voulu entendre : pourquoi ils sont là, et ce qu\'ils attendent. Je les écoute depuis des années, je ne les ai pas toutes.',
+      'Je t\'ai installé une RADIO, sous le PING. Une voix n\'émet que dans son système, et seulement à son heure. Ces heures, je les ai notées pour toi dans ton carnet : Collections › Voix perdues. Jamais la fréquence : celle-là, tu la cherches toi-même, en tournant le bouton jusqu\'à ce que la voix soit nette. Tiens-la dix secondes, et elle est à toi.',
+      'Va les découvrir toi-même. Commence par la Terre.',
     ],
     etapes: [
       { genre: 'voix', nombre: 1,

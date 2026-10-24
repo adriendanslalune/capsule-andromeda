@@ -547,7 +547,16 @@ function afficherRadar(t: number): void {
 boutonRadar.addEventListener('click', () => {
   const t = horloge()
   const avant = jeu.radar.actif
-  if (basculerRadar(jeu.radar, t)) navigator.vibrate?.(30)
+  if (basculerRadar(jeu.radar, t)) {
+    navigator.vibrate?.(30)
+    // Le premier radar (Adrien, 24/10/2026) : la caméra recule jusqu'à sa portée, et les chasseurs repérés se signalent.
+    if (jeu.radar.actif && !jeu.stats.n.radarAllume) {
+      choisir(CAPSULE, false, (PORTEE_RADAR * 1.15) / (window.innerWidth / 2))
+      carte.signalChasseurs = performance.now() + 40_000
+      annoncer('Le radar balaie cent mille kilomètres autour de toi : regarde où se cachent les chasseurs')
+    }
+    if (jeu.radar.actif) jeu.noter('radarAllume')
+  }
   else if (!avant) annoncer('Radar en surchauffe : attends que la jauge redescende un peu')
   afficherRadar(t)
   carteSale = true
