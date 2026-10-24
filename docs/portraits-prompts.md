@@ -159,6 +159,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Aurelio Benedetti** (24/10/2026) : les trois humeurs ; le neutre, arrivé dans un autre format, recalé sur les deux
   autres (même canevas, même échelle).
 - **Nadia Orlov** (24/10/2026) : les trois humeurs (la joie refaite : un demi-sourire en coin).
+- **Tomás Reyes** (24/10/2026) : les trois humeurs.
 
 ## Ce qu'il faut envoyer à Claude
 

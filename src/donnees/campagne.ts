@@ -25,7 +25,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Au-delà de la ceinture, on ne pardonne pas les erreurs. Prépare ta capsule, capitaine.',
   },
   {
-    id: 'tomas', nom: 'Tomás Reyes', role: 'Pêcheur de méthane', lieu: 'Titan', teinte: '#f6e3b8', portrait: null,
+    id: 'tomas', nom: 'Tomás Reyes', role: 'Pêcheur de méthane', lieu: 'Titan', teinte: '#f6e3b8', portrait: 'portraits/tomas-medaillon.webp',
     repos: 'Sur Titan, il pleut du gaz naturel et les lacs ne gèlent jamais. On s\'habitue à tout.',
   },
   {
@@ -286,12 +286,12 @@ const ACTES: Quete[] = [
   {
     id: 'saturne', titre: 'Les anneaux de Saturne', type: 'principale', donneur: 'tomas', conditions: ['jupiter'],
     intro: [
-      'C\'est toi, la capitaine dont parle Nadia ? Bienvenue sur Titan. Ne respire pas l\'air, surtout.',
-      'Saturne a six grandes lunes, et Andromède en tient chacune. Libère-les, puis attaque le Couronné dans les anneaux.',
+      '(joie) C\'est toi, la capitaine dont parle Nadia ? Bienvenue sur Titan. Ne respire pas l\'air, surtout.',
+      '(souci) Saturne a six grandes lunes, et Andromède en tient chacune. Libère-les, puis attaque le Couronné dans les anneaux.',
     ],
     etapes: [
       { genre: 'liberer', zones: libs('Saturne'), texte: 'Libère les lunes de Saturne et Saturne' },
-      { genre: 'parler', pnj: 'tomas', texte: ['Les anneaux sont à nous. Une astronome t\'attend sur Titania, près d\'Uranus : Hana Sato. Elle a vu des choses… étranges.'] },
+      { genre: 'parler', pnj: 'tomas', texte: ['(joie) Les anneaux sont à nous. Une astronome t\'attend sur Titania, près d\'Uranus : Hana Sato. Elle a vu des choses… étranges.'] },
     ],
     recompense: 9000,
   },
