@@ -156,6 +156,8 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Rosa Mendès** (24/10/2026) : les trois humeurs (le souci, une moue méfiante).
 - **Hélène Castagne** (24/10/2026) : les trois humeurs.
 - **Odile Varenne** (24/10/2026) : les trois humeurs.
+- **Aurelio Benedetti** (24/10/2026) : les trois humeurs ; le neutre, arrivé dans un autre format, recalé sur les deux
+  autres (même canevas, même échelle).
 
 ## Ce qu'il faut envoyer à Claude
 

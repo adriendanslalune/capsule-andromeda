@@ -17,7 +17,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Cythère flotte. Pour l\'instant, c\'est tout ce que je peux vous promettre. Et c\'est déjà beaucoup.',
   },
   {
-    id: 'aurelio', nom: 'Aurelio Benedetti', role: 'Chef de quart au Phare de Mercure', lieu: 'Phare de Mercure', teinte: '#f7c59f', portrait: null,
+    id: 'aurelio', nom: 'Aurelio Benedetti', role: 'Chef de quart au Phare de Mercure', lieu: 'Phare de Mercure', teinte: '#f7c59f', portrait: 'portraits/aurelio-medaillon.webp',
     repos: 'Le Phare reste allumé. Si vous voyez Gabin, ne lui parlez pas de tomates.',
   },
   {
@@ -188,8 +188,8 @@ const ARCS: Quete[] = [
   {
     id: 'liberer-mercure', titre: 'Le Phare', type: 'principale', donneur: 'aurelio', conditions: ['l3'],
     intro: [
-      'Bienvenue au Phare, capitaine. Quart numéro quatre-vingt-quelque-chose. On a arrêté de compter précisément, ça portait malheur.',
-      'Le Phare reste allumé, quoi qu\'il arrive. Mais le bouclier solaire tombe en lambeaux, et Gabin fait cuire ses œufs sur le hublot. Ce n\'est pas une blague, c\'est un problème de sécurité.',
+      '(joie) Bienvenue au Phare, capitaine. Quart numéro quatre-vingt-quelque-chose. On a arrêté de compter précisément, ça portait malheur.',
+      '(souci) Le Phare reste allumé, quoi qu\'il arrive. Mais le bouclier solaire tombe en lambeaux, et Gabin fait cuire ses œufs sur le hublot. Ce n\'est pas une blague, c\'est un problème de sécurité.',
       'Il me faudrait six tonnes de titane. Au Comptoir de la Terre, ou sur les épaves qui traînent autour de Mercure.',
     ],
     etapes: [
@@ -201,20 +201,20 @@ const ARCS: Quete[] = [
         genre: 'mission', mission: 'remorquer', systeme: 'Mercure', nombre: 1, texte: 'Remorque une épave dans le système de Mercure (contrat REMORQUER des Nettoyeurs)',
         jauge: { zone: 'Mercure', part: 20 },
         radio: { pnj: 'aurelio', texte: [
-          'Une épave, en parasol. On aura tout vu.',
-          'Maintenant, la vraie question : le Calcinateur. On ne le voit jamais, il ne sort que côté nuit. Stanek pense que MESSENGER, la sonde qui s\'est écrasée sur Mercure, a enregistré ses passages avant de mourir. Sa mémoire a peut-être survécu. Ne touchez pas à la balise du pôle, en passant.',
+          '(joie) Une épave, en parasol. On aura tout vu.',
+          '(souci) Maintenant, la vraie question : le Calcinateur. On ne le voit jamais, il ne sort que côté nuit. Stanek pense que MESSENGER, la sonde qui s\'est écrasée sur Mercure, a enregistré ses passages avant de mourir. Sa mémoire a peut-être survécu. Ne touchez pas à la balise du pôle, en passant.',
         ] },
       },
       {
         genre: 'disparu', nom: 'MESSENGER', jauge: { zone: 'Mercure', part: 20 },
-        radio: { pnj: 'aurelio', texte: ['La vieille mémoire parle encore ! Le Calcinateur fait toujours le même tour, sur la face de nuit, en rasant la glace. Noor a l\'heure, à peu près. Allez le voir de vos yeux, radar allumé.'] },
+        radio: { pnj: 'aurelio', texte: ['(joie) La vieille mémoire parle encore ! Le Calcinateur fait toujours le même tour, sur la face de nuit, en rasant la glace. Noor a l\'heure, à peu près. Allez le voir de vos yeux, radar allumé.'] },
       },
       {
         genre: 'radar', lieu: 'Mercure', texte: 'Allume le radar en orbite autour de Mercure : le Calcinateur fait sa ronde',
         jauge: { zone: 'Mercure', part: 20 },
         radio: { pnj: 'aurelio', texte: [
-          'Noir sur noir, il fait le tour de la planète en orbite basse, lentement, comme quelqu\'un qui fait le tour de son potager.',
-          'On le tient. Le Phare va le garder dans sa lumière : un phare, ça éclaire tout le monde, même ceux qu\'on n\'aime pas. Surtout ceux-là, ce soir.',
+          '(souci) Noir sur noir, il fait le tour de la planète en orbite basse, lentement, comme quelqu\'un qui fait le tour de son potager.',
+          '(joie) On le tient. Le Phare va le garder dans sa lumière : un phare, ça éclaire tout le monde, même ceux qu\'on n\'aime pas. Surtout ceux-là, ce soir.',
         ] },
       },
       { genre: 'jauge', zone: 'Mercure' },
