@@ -18,7 +18,7 @@ Même contenu pour tous les joueurs : rien de propre à une partie.
 - Le commerce : le Comptoir, la Bourse (ordres à la vitesse de la lumière, rumeurs, frais).
 - Les collections : monolithes (PING, triangulation), Voix perdues (la radio, les heures), Disparus (le radar).
 - La campagne, les zones et leur libération, les PNJ et les quêtes.
-- Le niveau du capitaine, les formes de la capsule, les statuts.
+- Le niveau du capitaine, les formes de la capsule, les statuts, les trophées (la vitrine ; les secrets sans les dévoiler).
 - Avec le serveur : les Messages, les groupes et la radio FM, le vol en formation, la télémaintenance, les pirates.
 - Les événements.
 - Les consignes de sécurité (section 8 du Manuel) et les secrets que les fans aiment trouver (sans tout dévoiler).

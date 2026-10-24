@@ -85,8 +85,12 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   mêmes images pour tous, un anneau cerise sous la capsule du joueur seulement), Profil (à côté du tampon).
 - Carte (Adrien, 24/10/2026) : plus de médaillons des PNJ, un simple « ! » au lieu d'une quête à proposer ; de loin, les capsules des autres sont un point crème, le même pour tous
   (plus la couleur de leur Maison).
-- Trophées (Adrien, 24/10/2026) : cadre validé (voir CLAUDE.md : 150 trophées loufoques, vitrine dans le Profil, petite
-  fenêtre, la gloire seulement, médailles SVG de Claude) — **à faire**, après les illustrations.
+- Trophées (Adrien, 24/10/2026) : cadre et liste des 150 validés, codés le même jour : données `donnees/trophees.ts`
+  (générées depuis `docs/trophees.md`), conditions et compteurs `moteur/trophees.ts` (Stats dans la sauvegarde, vérifiés
+  une fois par seconde), médailles SVG `commun/medailles.ts`, la vitrine du Profil (une étagère par catégorie, la fiche
+  sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
+  après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
+  Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
 - Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient
   en dernier (aucune fenêtre ouverte, rien d'autre à annoncer, aucun message radio sur le point d'arriver, un instant de
   calme) ; un message radio attend aussi que la fenêtre du nouveau moteur soit refermée.

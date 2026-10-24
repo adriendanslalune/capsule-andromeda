@@ -16,6 +16,9 @@ export interface EtatTri {
   /** Objets bien triés, par bac ; erreurs. */
   tries: Record<Bac, number>
   erreurs: number
+  /** Objets ratés de suite, et la pire série (pour un trophée). */
+  ratesDeSuite?: number
+  pireSerieRatee?: number
 }
 
 function suivant(e: EtatTri): number {
@@ -50,9 +53,12 @@ export function trier(e: EtatTri, bac: Bac, t: number): 'juste' | 'faux' | 'fini
     if (o.matiere) e.materiaux[o.matiere] = Math.round(((e.materiaux[o.matiere] ?? 0) + TONNES_PAR_OBJET * e.serie) * 100) / 100
     e.tries[bac]++
     e.serie = Math.min(SERIE_MAX, e.serie + 1)
+    e.ratesDeSuite = 0
   } else {
     e.serie = 1
     e.erreurs++
+    e.ratesDeSuite = (e.ratesDeSuite ?? 0) + 1
+    e.pireSerieRatee = Math.max(e.pireSerieRatee ?? 0, e.ratesDeSuite)
   }
   e.objet = suivant(e)
   return juste ? 'juste' : 'faux'

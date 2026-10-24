@@ -12,7 +12,7 @@ import { avancerCombat, bombe, chef, EQUIPEMENT_DEPART, nouveauCombat, retraite,
 
 /** Un combat : son titre, la zone (plus loin, plus d'aliens), et ce qui arrive à la fin (le texte du bilan). */
 export interface OptionsCombat {
-  titre: string; zone: number; surFin?: (fin: 'victoire' | 'retraite', degatsRecus: number) => string
+  titre: string; zone: number; surFin?: (fin: 'victoire' | 'retraite', degatsRecus: number, etat: EtatCombat) => string
   /** L'assaut final d'une zone : son vaisseau amiral (décisions d'Adrien du 21/10/2026). */
   amiral?: { nom: string; planete: boolean }
 }
@@ -182,7 +182,7 @@ export class VueCombat {
     const e = this.etat!
     const fin = e.fin as 'victoire' | 'retraite'
     navigator.vibrate?.(fin === 'victoire' ? [60, 40, 60] : 300)
-    const suite = this.options.surFin ? this.options.surFin(fin, e.degatsRecus) : 'Simulateur : rien n\'arrive à ta capsule.'
+    const suite = this.options.surFin ? this.options.surFin(fin, e.degatsRecus, e) : 'Simulateur : rien n\'arrive à ta capsule.'
     this.elFin.innerHTML = `<div class="carte-fin"><b>${fin === 'victoire' ? (this.options.amiral ? 'VAISSEAU AMIRAL DÉTRUIT !' : 'CHASSEUR ABATTU !') : 'RETRAITE'}</b>`
       + `<p>${fin === 'victoire'
         ? `${e.abattus ? `${e.abattus} escorteur${e.abattus > 1 ? 's' : ''} abattu${e.abattus > 1 ? 's' : ''} en chemin. ` : ''}${e.degatsRecus ? `${e.degatsRecus} coup${e.degatsRecus > 1 ? 's' : ''} reçu${e.degatsRecus > 1 ? 's' : ''}.` : 'Sans une égratignure : prime de 10 %.'}`

@@ -25,6 +25,8 @@ import type { MessageEnvoye } from './messages'
 import { appliquerGenerations, type EtatEspace } from './espace'
 import { monolithe, type EtatMonolithes } from './monolithes'
 import { ENERGIE_TOTALE, MAX_PAR_SYSTEME, NIVEAU_ARMEMENT_MAX, type Energie } from '../donnees/combat'
+import { statsNeuves, type Stats } from './trophees'
+import { TROPHEES } from '../donnees/trophees'
 
 /**
  * Version du format. 2 : les missions (étape 3) ; 3 : les pannes (étape 4) ; 4 : le numéro de série et les réparations
@@ -102,6 +104,9 @@ export interface Sauvegarde {
   bourse?: Portefeuille
   /** La radio : fréquence et voix enregistrées (absente : neuve). */
   radio?: { frequence: number; captees: number[]; captureesLe: Record<number, number> }
+  /** Les trophées : leurs compteurs, ceux gagnés (numéro → date) (absents : rien). */
+  stats?: Stats
+  trophees?: Record<number, number>
 }
 
 export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
@@ -113,6 +118,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
     maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, epinglees: jeu.epinglees, radioPnj: jeu.radioPnj, installes: jeu.installes, presentation: jeu.presentation, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
+    stats: jeu.stats, trophees: jeu.trophees,
   }
 }
 
@@ -321,6 +327,7 @@ export function restaurer(s: unknown): Jeu | null {
     }
   }
   if (v.quetes && Object.keys(v.quetes).some((id) => /^(lune-\d|t\d)$/.test(id))) reprendreAncienneCampagne(jeu, v.quetes, v.enregistreLe)
+  restaurerTrophees(jeu, v)
   return jeu
 }
 
@@ -349,4 +356,27 @@ function renommerLieux(s: unknown): unknown {
   let texte = JSON.stringify(s ?? null)
   for (const [ancien, nouveau] of LIEUX_RENOMMES) texte = texte.replaceAll(JSON.stringify(ancien), JSON.stringify(nouveau))
   return JSON.parse(texte)
+}
+
+/** Les trophées : les compteurs lisibles, et les trophées qui existent (une sauvegarde d'avant : tout neuf). */
+function restaurerTrophees(jeu: Jeu, v: Sauvegarde): void {
+  if (v.trophees && typeof v.trophees === 'object') {
+    for (const [n, d] of Object.entries(v.trophees)) if (TROPHEES.some((x) => x.n === Number(n)) && nombre(d)) jeu.trophees[Number(n)] = d
+  }
+  const st = v.stats
+  if (!st || typeof st !== 'object') return
+  const s = statsNeuves()
+  if (st.n && typeof st.n === 'object') for (const [k, x] of Object.entries(st.n)) if (nombre(x)) s.n[k] = x
+  if (st.ens && typeof st.ens === 'object') {
+    for (const [k, l] of Object.entries(st.ens)) if (Array.isArray(l)) s.ens[k] = [...new Set(l.filter((x): x is string => typeof x === 'string'))]
+  }
+  if (st.ici && typeof st.ici.lieu === 'string' && nombre(st.ici.depuis)) s.ici = { lieu: st.ici.lieu, depuis: st.ici.depuis }
+  if (st.jours && nombre(st.jours.dernier) && nombre(st.jours.suite)) s.jours = { dernier: st.jours.dernier, suite: st.jours.suite }
+  const d = st.dernierTrajet
+  if (d && typeof d.de === 'string' && typeof d.a === 'string' && nombre(d.depart)) s.dernierTrajet = { de: d.de, a: d.a, depart: d.depart }
+  if (Array.isArray(st.impacts)) s.impacts = st.impacts.filter(nombre)
+  if (st.passages && typeof st.passages === 'object') for (const [k, x] of Object.entries(st.passages)) if (nombre(x)) s.passages[k] = x
+  if (nombre(st.terre)) s.terre = st.terre
+  if (nombre(st.naissance)) s.naissance = st.naissance
+  jeu.stats = s
 }

@@ -1,7 +1,8 @@
-# Les trophées : la liste à valider
+# Les trophées
 
-Adrien, 24/10/2026 : cadre validé (voir CLAUDE.md) ; voici les 150 premiers, à corriger librement avant que Claude les
-code. Chaque trophée : son nom, sa phrase (affichée une fois gagné), ce qui le déclenche, sa rareté (**B** bronze,
+Adrien, 24/10/2026 : cadre validé (voir CLAUDE.md) ; les 150 premiers, validés par Adrien et codés le même jour
+(`src/donnees/trophees.ts` en est tiré ; les conditions sont dans `src/moteur/trophees.ts`). Pour en ajouter : une ligne
+ici, la même dans les données, sa condition dans le moteur. Chaque trophée : son nom, sa phrase (affichée une fois gagné), ce qui le déclenche, sa rareté (**B** bronze,
 **A** argent, **O** or). Les secrets (**S**, 38 sur 150, environ un quart) restent grisés sans indice tant qu'on ne les
 a pas ; les autres montrent leur condition comme indice. Aucune récompense : la gloire seulement.
 

@@ -36,6 +36,8 @@ export class VueDisparus {
 
   /** Le dossier d'une sonde, posé par-dessus le classeur. */
   private ouvrirDossier(numero: number): void {
+    // Pour les trophées (« Lecteur de dossiers »).
+    document.dispatchEvent(new CustomEvent('trophee', { detail: { cle: 'dossiers', valeur: String(numero) } }))
     const d = DISPARUS.find((x) => x.numero === numero), dossier = DOSSIERS[numero]
     if (!d || !dossier || this.etat().trouves[numero] === undefined) return
     this.element.querySelector('.dossier-disparu')?.remove()

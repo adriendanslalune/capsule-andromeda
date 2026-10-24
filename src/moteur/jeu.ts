@@ -14,7 +14,7 @@ import { CAPACITE_SOUTE, MARCHANDISES, type FicheMarche } from '../donnees/march
 import { achatVente, cours, delaiLumiere, marcheDeLaCapsule } from './marche'
 import { PORTEE_RADAR, avancerRadar, radarEteint, type EtatRadar } from './radar'
 import { radioNeuve, type EtatRadio } from './radio'
-import { avancerOrdres, compagnie, passerOrdre, portefeuilleVide, type OrdreBourse, type Portefeuille } from './bourse'
+import { avancerOrdres, compagnie, fraisOrdre, passerOrdre, portefeuilleVide, rumeursEntre, type OrdreBourse, type Portefeuille } from './bourse'
 import { BONUS_SANS_REBOND } from '../donnees/amarrage'
 import { BONUS_SANS_ERREUR } from '../donnees/depannage'
 import { BONUS_PREMIER_COUP } from '../donnees/remorquage'
@@ -45,7 +45,8 @@ import { avancerQuetes, type EtatQuete, type RadioPnj } from './quetes'
 import { INSTRUMENTS, type Instrument } from '../donnees/instruments'
 import { detecter, identifier, nouveauxDisparus, type EtatDisparus } from './disparus'
 import type { Disparu } from '../donnees/disparus'
-import { Mission, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
+import { Mission, longueurTrajet, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
+import { ajouter, noter, statsNeuves, suivreTrophees, type Stats } from './trophees'
 
 /** Le jeu dont les épaves déplacées sont en place (il n'y en a qu'un en vrai ; les tests en créent plusieurs). */
 let jeuDesEpaves: unknown = null
@@ -176,9 +177,32 @@ export class Jeu {
    * dans le Soleil n'a aucun effet sur le jeu : un rêve (animation), et la capsule se réveille là d'où elle était partie.
    */
   icare: number | null = null
+  /** Les trophées (idée d'Adrien du 24/10/2026) : leurs compteurs, ceux gagnés (numéro → date), ceux pas encore annoncés. */
+  stats: Stats = statsNeuves()
+  trophees: Record<number, number> = {}
+  tropheesAAnnoncer: number[] = []
+  private dernierTrophees = 0
 
   constructor() {
     this.synchroniserZones()
+  }
+
+  /** Un compteur des trophées (une action vue par l'affichage : le Manuel ouvert, un dossier lu…). */
+  noter(cle: string, n = 1): void {
+    noter(this.stats, cle, n)
+  }
+  /** Une valeur dans un ensemble des trophées (un dossier lu…). */
+  ajouterStat(cle: string, valeur: string): void {
+    ajouter(this.stats, cle, valeur)
+  }
+
+  /** La fin d'un combat (pas le simulateur) : pour les trophées. */
+  noterCombat(fin: 'victoire' | 'retraite', e: { degatsRecus: number; coque: number; bombes: number; equipement: { bombes: number }; derniereBombe?: { t: number } }): void {
+    if (fin === 'retraite') { this.noter('retraites'); return }
+    if (e.degatsRecus === 0) this.noter('combatParfait')
+    if (e.bombes === e.equipement.bombes) this.noter('victoiresSansBombe')
+    if (e.coque === 1) this.noter('surUnFil')
+    if (e.bombes === 0 && e.equipement.bombes > 0 && (e.derniereBombe?.t ?? Infinity) < 60) this.noter('bombesVite')
   }
 
   /** Le module est-il en panne ? */
@@ -220,6 +244,7 @@ export class Jeu {
   appelerDepanneur(m: NomModule): number | null {
     if (!this.enPanne(m)) return null
     const prix = this.prixDepanneur()
+    this.noter('depanneur')
     this.credits -= prix
     this.reparer(m)
     return prix
@@ -281,6 +306,7 @@ export class Jeu {
       this.defauts[bloc] = this.defauts[bloc]!.filter((d) => d !== a)
       if (!this.defauts[bloc]!.length) this.reparer(bloc)
       this.gagnerXp(XP.reparation)
+      this.noter('reparations')
     }
     return res
   }
@@ -293,7 +319,9 @@ export class Jeu {
   /** Envoie un PING depuis la place de la capsule (au plus un par heure) : l'écho attendu, ou null. */
   pinger(t: number): Echo | null {
     const r = this.mission.etatHeliocentrique(t).r
-    return pinger(this.monolithes, { x: r.x, y: r.y }, t)
+    const echo = pinger(this.monolithes, { x: r.x, y: r.y }, t)
+    if (echo) this.noter('pings')
+    return echo
   }
 
   /** Le monolithe (localisé, pas encore ramassé) à côté duquel est la capsule, ou null. */
@@ -306,7 +334,10 @@ export class Jeu {
   /** Ramasse le monolithe à côté duquel est la capsule. */
   ramasserMonolithe(t: number): number | null {
     const n = this.monolitheIci(t)
+    // Trouvé en trois PING ou moins (ses cercles, avant qu'ils s'effacent).
+    const echos = n === null ? 0 : this.monolithes.echos.filter((x) => x.monolithe === n).length
     if (n === null || !ramasser(this.monolithes, n, t)) return null
+    if (echos <= 3) this.noter('triangulation')
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'monolithe' }, t))
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.monolithe, t))
     this.gagnerXp(XP.monolithe)
@@ -351,9 +382,14 @@ export class Jeu {
     const c = compagnie(id)
     // Une compagnie n'est cotée qu'une fois la zone de son siège libérée (décision d'Adrien du 21/10/2026).
     if (!c || !estLibre(this.zones, c.siege)) return null
-    const credits = { valeur: this.credits }
+    const credits = { valeur: this.credits }, avant = this.credits
     const o = passerOrdre(this.bourse, credits, id, sens, quantite, t, delaiLumiere(c.siege, t))
     this.credits = credits.valeur
+    if (o) {
+      this.noter('ordres')
+      if (o.arrivee - o.envoye > 3_600_000) this.noter('ordreLointain')
+      if (sens === 'acheter' && avant > 5000 && o.credits >= avant - 1) this.noter('toutSurLeRouge')
+    }
     return o
   }
 
@@ -364,7 +400,19 @@ export class Jeu {
     const arrivees = avancerOrdres(this.bourse, credits, t, delaiLumiere)
     this.annoncesBourse.push(...arrivees)
     this.credits = credits.valeur
-    for (const o of arrivees) this.xpCommerce((o.actions ?? 0) * (o.prix ?? 0), t)
+    for (const o of arrivees) {
+      this.xpCommerce((o.actions ?? 0) * (o.prix ?? 0), t)
+      // Les trophées : frais, gains, pertes ; un achat juste après une rumeur de hausse (un « initié »).
+      if (o.sens === 'acheter') {
+        this.noter('frais', fraisOrdre(o.credits))
+        if (rumeursEntre(o.envoye - 6 * 3_600_000, o.envoye).some((e) => e.compagnie.id === o.compagnie && e.rumeur.hausse && e.debut > o.envoye)) ajouter(this.stats, 'initie', o.compagnie)
+      } else if (o.gain !== null) {
+        this.noter('frais', Math.max(0, o.actions * (o.prix ?? 0) - o.credits))
+        if (o.gain > 0) this.noter('gainsBourse', o.gain)
+        if (o.gain < -0.5 * o.cout) this.noter('grossePerte')
+        if (o.gain > 0 && this.stats.ens.initie?.includes(o.compagnie)) this.noter('initie')
+      }
+    }
   }
 
   /** Ce qui manque pour le moteur suivant : crédits, et tonnes de chaque matériau (vide si rien ne manque). */
@@ -565,6 +613,7 @@ export class Jeu {
     if (maison !== null && !maisonsOuvertes(this).includes(maison)) return false
     if (maison === this.maison) return false
     this.maison = maison
+    this.noter('changementsMaison')
     for (const tableau of TABLEAUX) {
       const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
       for (const { maison: m } of MAISONS) {
@@ -618,6 +667,7 @@ export class Jeu {
 
   /** Abandonne la mission en cours (sans pénalité). */
   abandonner(): void {
+    if (this.enCours) this.noter('abandons')
     this.enCours = null
   }
 
@@ -667,6 +717,8 @@ export class Jeu {
     this.soleil(t, evenements)
     this.visiter(t)
     this.user(t, evenements)
+    // Les trophées, une fois par seconde.
+    if (t - this.dernierTrophees >= 1000 || t < this.dernierTrophees) { this.dernierTrophees = t; suivreTrophees(this, t) }
     this.proposer(t)
     // Les quêtes : un lieu atteint, des marchandises à livrer.
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'instant' }, t))
@@ -675,7 +727,9 @@ export class Jeu {
     // Radar allumé : les chasseurs à portée sont repérés (une fois par seconde, il y en a des centaines).
     if (this.radar.actif && t - this.dernierReperage >= 1000) {
       this.dernierReperage = t
+      const avant = new Set(Object.keys(this.espace.reperes ?? {}))
       reperer(this.espace, t, PORTEE_RADAR)
+      this.noter('reperes', Object.keys(this.espace.reperes ?? {}).filter((x) => !avant.has(x)).length)
       // Les Disparus : un écho faible capté (la sonde apparaît sur la carte).
       for (const d of detecter(this.disparus, this.mission.etat(t).position, t)) this.annoncesQuetes.push(`Le radar capte un écho faible : ${d.nom} ? Va voir de plus près.`)
     }
@@ -711,6 +765,8 @@ export class Jeu {
       this.credits += ec.contrat.recompense
       this.carnet.credits += ec.contrat.recompense
       this.carnet.missions[maisonDuContrat(ec.contrat)]++
+      this.noter(`genre:${ec.contrat.genre}`)
+      ajouter(this.stats, 'systemes', systemeDuTableau(ec.contrat.tableau))
       this.enCours = null
       evenements.push({ genre: 'contrat-fini', contrat: ec.contrat })
       this.annoncesQuetes.push(...resister(this.zones, position(etape.lieu, fin), POINTS_RESISTANCE.contrat, fin))
@@ -738,6 +794,7 @@ export class Jeu {
     const { lances, impacts } = avancerEspace(this.espace, t)
     for (const m of lances) evenements.push({ genre: 'missile', alien: m.alien, impact: m.impact })
     for (const m of impacts) {
+      this.stats.impacts.push(m.impact)
       const coqueEnPanne = this.enPanne('coque')
       const touches: NomModule[] = []
       const autre = (graine: number) => {
@@ -778,6 +835,7 @@ export class Jeu {
    * où elle est, en orbite autour de sa planète (bug vu par Adrien le 21/10/2026 : elle sautait avec le renfort).
    */
   vaincreChasseur(nom: string, t: number): void {
+    this.noter('chasseurs')
     this.annoncesQuetes.push(...resister(this.zones, position(nom, t), POINTS_RESISTANCE.chasseur, t))
     const systeme = astreDominant(position(nom, t), t)
     this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'chasseur', systeme }, t))
@@ -791,6 +849,7 @@ export class Jeu {
   abattre(t: number, vitesseEnchainement?: number, degatsRecus?: number): Evenement[] | null {
     if (!this.etapeDeCombat() || !this.peutAgir(t)) return null
     // Abattu sans perdre un point de coque : la récompense augmente de 10 % (comme les autres missions).
+    if (degatsRecus === 0) this.noter('primes')
     if (degatsRecus === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_DEGAT) / 10) * 10
     this.vaincreChasseur(this.etapeActuelle()!.lieu, t)
     const evenements: Evenement[] = []
@@ -809,6 +868,8 @@ export class Jeu {
    */
   amarrer(rebonds: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDAmarrage() || !this.peutAgir(t)) return null
+    if (rebonds === 0) { this.noter('primes'); this.noter('amarrageParfait') }
+    if (rebonds >= 5) this.noter('rebonds')
     if (rebonds === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_REBOND) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
@@ -826,6 +887,7 @@ export class Jeu {
    */
   depanner(erreurs: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeDepannage() || !this.peutAgir(t)) return null
+    if (erreurs === 0) { this.noter('primes'); this.noter('depannageParfait') }
     if (erreurs === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_ERREUR) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
@@ -843,6 +905,8 @@ export class Jeu {
    */
   harponner(rates: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeHarponnage() || !this.peutAgir(t)) return null
+    if (rates === 0) { this.noter('primes'); this.noter('harponPremier') }
+    if (rates >= 5) this.noter('harponRicochets')
     if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_PREMIER_COUP) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
@@ -887,6 +951,7 @@ export class Jeu {
    */
   larguer(rates: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDeLargage() || !this.peutAgir(t)) return null
+    if (rates === 0) this.noter('primes')
     if (rates === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_LARGAGE) / 10) * 10
     const evenements: Evenement[] = []
     // L'épave reste à quai à la station, le temps d'être recyclée (demande d'Adrien du 21/10/2026).
@@ -901,8 +966,9 @@ export class Jeu {
   }
 
   /** Les trois cargos sont en formation : l'étape est faite, le convoi part (sans prime : c'est l'embuscade qui compte). */
-  formerConvoi(t: number, vitesseEnchainement?: number): Evenement[] | null {
+  formerConvoi(t: number, vitesseEnchainement?: number, egares = 0): Evenement[] | null {
     if (!this.etapeDeConvoi() || !this.peutAgir(t)) return null
+    if (egares >= 5) this.noter('cargosEgares')
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
     return evenements
@@ -919,6 +985,7 @@ export class Jeu {
    */
   escorter(coups: number, t: number, vitesseEnchainement?: number): Evenement[] | null {
     if (!this.etapeDEscorte() || !this.peutAgir(t)) return null
+    if (coups === 0) { this.noter('primes'); this.noter('escorteParfaite') }
     if (coups === 0) this.enCours!.contrat.recompense = Math.round((this.enCours!.contrat.recompense * BONUS_SANS_COUP) / 10) * 10
     const evenements: Evenement[] = []
     this.finirEtape(t, evenements, vitesseEnchainement)
@@ -957,6 +1024,7 @@ export class Jeu {
     this.credits -= prix
     this.soute[nom] = Math.round(((this.soute[nom] ?? 0) + q) * 100) / 100
     this.xpCommerce(prix, t)
+    ajouter(this.stats, 'comptoirs', m.lieu)
     return { tonnes: q, prix }
   }
 
@@ -973,6 +1041,8 @@ export class Jeu {
     if (reste > 0) this.soute[nom] = reste
     else delete this.soute[nom]
     this.xpCommerce(prix, t)
+    this.noter('tonnesVendues', q)
+    ajouter(this.stats, 'comptoirs', m.lieu)
     return { tonnes: q, prix }
   }
 
@@ -1002,8 +1072,10 @@ export class Jeu {
    * Fin du tri de l'épave d'une étape de nettoyage : les matériaux vont dans la soute (ce qui ne tient pas est perdu),
    * et l'étape est faite. Renvoie les événements, et les tonnes perdues ; null si ce n'est pas possible ici.
    */
-  nettoyer(materiaux: Record<string, number>, objetsTries: number, t: number, vitesseEnchainement?: number): { evenements: Evenement[]; perdu: number } | null {
+  nettoyer(materiaux: Record<string, number>, objetsTries: number, t: number, vitesseEnchainement?: number, tri?: { erreurs: number; pireSerieRatee: number }): { evenements: Evenement[]; perdu: number } | null {
     if (!this.etapeDeTri() || !this.peutAgir(t)) return null
+    if (tri && tri.erreurs === 0 && objetsTries > 0) this.noter('triParfait')
+    if (tri && tri.pireSerieRatee >= 10) this.noter('triRate')
     const perdu = this.charger(materiaux)
     this.carnet.objetsTries += objetsTries
     const evenements: Evenement[] = []
@@ -1024,6 +1096,9 @@ export class Jeu {
 
   /** Une Voix perdue enregistrée : un peu de résistance dans la zone la plus proche. */
   voixEnregistree(t: number): void {
+    const h = new Date(t).getHours()
+    if (h >= 2 && h < 5) this.noter('voixNocturne')
+    this.stats.n.ecouteVaine = 0
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.voix, t))
     this.gagnerXp(XP.voix)
   }
@@ -1070,10 +1145,32 @@ export class Jeu {
     evenements.push({ genre: 'reve-soleil', premier })
   }
 
+  /** Un trajet fini (une seule fois chacun) : les compteurs des trophées. */
+  private trajetFini(p: Plan): void {
+    const s = this.stats
+    this.noter('trajets')
+    if (!p.cles?.length || !p.points?.length) return
+    const de = p.cles[0].ancre
+    this.noter('km', longueurTrajet(p))
+    if (p.arrivee - p.depart > 24 * 3_600_000) this.noter('trajetLong')
+    if (this.niveauMoteur >= 10 && vitesseEnVol(p, p.depart + (p.arrivee - p.depart) / 2).pointe >= p.vitesse * 0.999) this.noter('vitesseMax10')
+    const d = s.dernierTrajet
+    if (d && d.a === de && d.de === p.cible && p.arrivee - d.depart < 10 * 60_000) this.noter('allerRetour')
+    s.dernierTrajet = { de, a: p.cible, depart: p.depart }
+    s.n.caps = 0
+  }
+
+  /** Un départ demandé par le joueur (pas un trajet recalculé) : trois changements de cap dans le même trajet. */
+  noterDepart(t: number): void {
+    if (this.mission.phase(t) === 'trajet') this.noter('caps')
+    else this.stats.n.caps = 0
+  }
+
   private user(t: number, evenements: Evenement[]): void {
     const p = this.mission.plan
     if (!p || t < p.arrivee || p.arrivee <= this.usureJusqua) return
     this.usureJusqua = p.arrivee
+    this.trajetFini(p)
     // Pas d'usure tant que le panneau de réparation n'est pas installé (le tutoriel l'apprend : T5).
     if (!this.installe('reparation')) return
     const a = hasard(this.graine), b = hasard(a.graine)

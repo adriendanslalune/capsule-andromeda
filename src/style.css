@@ -2551,3 +2551,41 @@ body.volet-ouvert #annonces { display: none; }
 #assaut .boutons-assaut button.principal { color: #fff; background: var(--orange); box-shadow: 3px 3px 0 var(--encre); }
 #galerie-assaut select { flex: 1; min-height: 44px; font: inherit; }
 #galerie-assaut button { min-height: 44px; padding: 0 14px; font: 700 14px var(--titre); letter-spacing: 0.1em; border: 1.5px solid var(--encre); background: var(--creme); color: var(--encre); }
+
+/* Les trophées (cadre validé par Adrien le 24/10/2026) : la vitrine du Profil, une étagère par catégorie. */
+#profil .vitrine .etagere { border-top: 1px solid color-mix(in srgb, var(--encre) 25%, transparent); padding: 6px 0; }
+#profil .vitrine summary { cursor: pointer; font-family: var(--titre); font-weight: 700; font-size: 16px; letter-spacing: 0.06em;
+  text-transform: uppercase; min-height: 44px; display: flex; align-items: center; justify-content: space-between; list-style: none; }
+#profil .vitrine summary::-webkit-details-marker { display: none; }
+#profil .vitrine summary::after { content: '▾'; font-size: 12px; margin-left: 8px; }
+#profil .vitrine details[open] summary::after { content: '▴'; }
+#profil .vitrine summary small { margin-left: auto; font-family: var(--police); font-size: 12px; font-weight: 400; letter-spacing: 0; }
+#profil .trophees { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 4px; padding: 4px 0 6px; }
+#profil .trophee { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; padding: 4px 2px;
+  background: none; border: 1px solid transparent; border-radius: 2px; color: var(--encre); font: inherit; cursor: pointer; }
+#profil .trophee svg { width: 42px; height: 50px; }
+#profil .trophee small { font-size: 9.5px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+#profil .trophee:not(.gagne) small { opacity: 0.55; }
+#profil .trophee.choisi { border-color: var(--encre); background: var(--creme); }
+#profil .detail-trophee { grid-column: 1 / -1; margin: 2px 0 6px; padding: 8px 10px; background: var(--creme); border: 1px solid var(--encre); font-size: 12.5px; line-height: 1.4; }
+#profil .detail-trophee small { display: block; margin-top: 3px; opacity: 0.75; }
+.medaille.pas-encore { opacity: 0.8; }
+
+/* La petite fenêtre « TROPHÉE ! » : elle glisse sous la console et se referme seule. */
+#trophee-gagne { position: fixed; z-index: 60; left: 50%; top: 168px; width: min(340px, calc(100vw - 32px)); translate: -50% 0;
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 10px; background: var(--fond); color: var(--encre);
+  border: 1.5px solid var(--encre); border-radius: 2px; box-shadow: var(--ombre-papier); cursor: pointer; }
+#trophee-gagne[hidden] { display: none; }
+#trophee-gagne.arrive { animation: trophee-arrive 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
+@keyframes trophee-arrive { from { transform: translateY(-24px) scale(0.85); opacity: 0; } to { transform: none; opacity: 1; } }
+#trophee-gagne > svg { flex: none; width: 52px; height: 62px; }
+#trophee-gagne > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#trophee-gagne .etoile-trophee { align-self: flex-start; font-family: 'Big Shoulders Display', var(--titre); font-weight: 900; font-style: italic;
+  font-size: 15px; letter-spacing: 0.04em; color: var(--creme); background: var(--orange); padding: 1px 8px; transform: rotate(-3deg);
+  box-shadow: 2px 2px 0 var(--encre); }
+#trophee-gagne.or .etoile-trophee { background: #d9a227; }
+#trophee-gagne b { font-family: var(--titre); font-size: 19px; line-height: 1.1; }
+#trophee-gagne small { font-size: 12px; font-style: italic; line-height: 1.3; }
+#trophee-gagne .plusieurs { align-items: stretch; width: 100%; }
+#trophee-gagne .rang-medailles { display: flex; gap: 2px; margin: 4px 0; }
+#trophee-gagne .rang-medailles svg { width: 40px; height: 48px; }

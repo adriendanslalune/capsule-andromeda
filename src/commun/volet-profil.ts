@@ -11,6 +11,8 @@ import { jauge } from '../moteur/zones'
 import { niveauDe, palierDe } from '../moteur/niveau'
 import { PALIERS as PALIERS_NIVEAU } from '../donnees/niveaux'
 import { dessinerVaisseau, imageForme, rayonVaisseau } from '../carte/vaisseaux'
+import { CATEGORIES_TROPHEES, TROPHEES } from '../donnees/trophees'
+import { medaille } from './medailles'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
@@ -110,6 +112,31 @@ function signature(jeu: Jeu): string {
     + '<p class="petit">Ton tampon de capitaine. Il fait foi dans tout le système solaire (sauf sur Triton).</p></div></div>'
 }
 
+const attribut = (x: string) => x.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+
+/**
+ * La vitrine des trophées (cadre validé par Adrien le 24/10/2026) : une étagère par catégorie, ses médailles ; gagnés,
+ * leur nom (toucher : la phrase et la date) ; pas encore, grisés avec leur indice ; secrets, ni nom ni indice.
+ */
+function htmlTrophees(jeu: Jeu): string {
+  const gagnes = Object.keys(jeu.trophees).length
+  const date = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const etageres = CATEGORIES_TROPHEES.map(({ categorie, nom }) => {
+    const liste = TROPHEES.filter((x) => x.categorie === categorie)
+    const n = liste.filter((x) => x.n in jeu.trophees).length
+    const cases = liste.map((x) => {
+      const quand = jeu.trophees[x.n], gagne = quand !== undefined, cache = !gagne && x.secret
+      const detail = gagne ? `<b>${x.nom}</b> « ${x.phrase} » <small>Gagné le ${date(quand)}.</small>`
+        : cache ? '<b>Trophée secret</b> <small>À toi de le trouver. Aucun indice.</small>'
+          : `<b>${x.nom}</b> <small>Pas encore : ${x.indice.charAt(0).toLowerCase()}${x.indice.slice(1)}.</small>`
+      return `<button type="button" class="trophee${gagne ? ' gagne' : ''}" data-trophee="${attribut(detail)}">${medaille(x.categorie, x.rarete, gagne, x.secret)}<small>${cache ? '???' : x.nom}</small></button>`
+    }).join('')
+    return `<details class="etagere"><summary>${nom} <small>${n} / ${liste.length}</small></summary><div class="trophees">${cases}<p class="detail-trophee" hidden></p></div></details>`
+  }).join('')
+  return `<h3>Trophées</h3><div class="bloc vitrine"><div class="rang"><span>Gagnés</span><b>${gagnes} / ${TROPHEES.length}</b></div>`
+    + `<p class="petit">La gloire, rien que la gloire. Touche une médaille pour la voir de près.</p>${etageres}</div>`
+}
+
 /** Le vaisseau du capitaine, dans la forme de son niveau (Adrien, 24/10/2026) : son image si elle est dessinée, sinon sa silhouette. */
 function formeDuCapitaine(jeu: Jeu): string {
   const p = palierDe(niveauDe(jeu.xp).niveau)
@@ -133,6 +160,7 @@ export function htmlProfil(jeu: Jeu): string {
     + signature(jeu)
     + htmlNiveau(jeu)
     + htmlCollection(jeu)
+    + htmlTrophees(jeu)
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`
     + `<p>Maison : <b>${jeu.maison ? titreMaison(jeu.maison) : 'aucune (neutre)'}</b></p>`
     + `<p class="petit">${!total ? 'Fais des missions : ta toile se dessinera selon ce que tu préfères faire.'

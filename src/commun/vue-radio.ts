@@ -23,6 +23,8 @@ const CADRAN = { l: 14, r: 346, larg: 360, haut: 64 }
 
 export class VueRadio {
   private ouverte = false
+  /** Le poste est-il ouvert (on écoute) ? */
+  get estOuverte(): boolean { return this.ouverte }
   private son = (() => { try { return localStorage.getItem(CLE_SON) !== 'non' } catch { return true } })()
   private audio: { ctx: AudioContext; bruit: GainNode; voix: GainNode; osc: OscillatorNode } | null = null
   private glisse: { x: number; f: number } | null = null

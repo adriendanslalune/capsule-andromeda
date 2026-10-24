@@ -20,6 +20,7 @@ export class VueDepannage {
   private elCorps: HTMLElement
   private elFin: HTMLElement
   private elManuel: HTMLElement
+  private manuelLu = false
   private elMessage: HTMLElement
   private finMessage = 0
 
@@ -39,7 +40,11 @@ export class VueDepannage {
       const e = this.etat
       if (!b) return
       if (b.dataset.abandonner !== undefined || b.dataset.fermer !== undefined) { this.fermer(); return }
-      if (b.dataset.manuel !== undefined) { this.elManuel.hidden = false; this.elManuel.scrollTop = 0; return }
+      if (b.dataset.manuel !== undefined) {
+        // Pour les trophées (« Lecteur assidu ») : un dépannage où l'on a ouvert le Manuel compte une fois.
+        if (!this.manuelLu) { this.manuelLu = true; document.dispatchEvent(new CustomEvent('trophee', { detail: { cle: 'manuelDepannage' } })) }
+        this.elManuel.hidden = false; this.elManuel.scrollTop = 0; return
+      }
       if (b.dataset.retour !== undefined) { this.elManuel.hidden = true; return }
       if (!e) return
       if (b.dataset.levier) basculer(e, Number(b.dataset.levier))
@@ -53,6 +58,7 @@ export class VueDepannage {
 
   ouvrir(options: OptionsDepannage): void {
     this.options = options
+    this.manuelLu = false
     this.etat = nouveauDepannage((Date.now() % 2147483647) >>> 0)
     this.cableChoisi = null
     this.element.querySelector('.titre-depannage')!.textContent = `DÉPANNAGE · ${options.titre}`

@@ -51,6 +51,8 @@ import { dessinerScene, type ScenePresentation } from './carte/presentation-cart
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, assautIci, rattraperEpinglees, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
+import { FenetreTrophee } from './commun/fenetre-trophee'
+import { TROPHEES } from './donnees/trophees'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
 import { alienLa, intercepterMissile, surLaCarte } from './moteur/espace'
@@ -437,7 +439,7 @@ document.querySelector('#commandes-carte .vue')!.addEventListener('click', (e) =
     const cle = b.dataset.afficher as 'orbites' | 'noms' | 'grille' | 'cercles' | 'nuit'
     reglages[cle] = !reglages[cle]
     memoriser()
-    if (cle === 'nuit') appliquerTheme()
+    if (cle === 'nuit') { appliquerTheme(); if (reglages.nuit) jeu.noter('nuit') }
     afficherChoixAffichage()
   }
 })
@@ -703,7 +705,7 @@ bandeau.addEventListener('click', (e) => {
   if (ligne === 'missile') {
     // Toucher le missile, c'est l'intercepter (s'il reste un intercepteur).
     const t = horloge()
-    if (intercepterMissile(jeu.espace, t)) { onomatopee('PAF !', '#f6c4ad'); annoncer(`Missile intercepté ! (${jeu.espace.intercepteurs} intercepteur${jeu.espace.intercepteurs > 1 ? 's' : ''} restant${jeu.espace.intercepteurs > 1 ? 's' : ''})`); enregistrerPartie() }
+    if (intercepterMissile(jeu.espace, t)) { jeu.noter('interceptions'); onomatopee('PAF !', '#f6c4ad'); annoncer(`Missile intercepté ! (${jeu.espace.intercepteurs} intercepteur${jeu.espace.intercepteurs > 1 ? 's' : ''} restant${jeu.espace.intercepteurs > 1 ? 's' : ''})`); enregistrerPartie() }
     else annoncer('Plus d\'intercepteur ! Un nouveau dans moins de 30 minutes…')
   } else if (ligne === 'panne') {
     // Un bloc qui se répare sur le panneau, sinon l'onglet ÉTAT (réparation provisoire).
@@ -895,6 +897,7 @@ function mettreAJourFiche(t: number): void {
 let departEnVol: { plan: Plan; ancre: string; rel: Point2 } | null = null
 let derniereCapsuleDessinee: Point2 | null = null
 function partir(plan: Plan, t: number): void {
+  jeu.noterDepart(t)
   dessinerDepart(plan, mission.phase(t) === 'trajet', t)
   mission.partir(plan)
 }
@@ -1022,7 +1025,8 @@ function agirMission(): void {
     vueCombat.ouvrir({
       titre: `COMBAT · ${alien.toUpperCase()}`,
       zone: jeu.zoneEnCours(),
-      surFin: (fin, degats) => {
+      surFin: (fin, degats, e) => {
+        jeu.noterCombat(fin, e)
         if (fin === 'victoire') {
           traiterEvenements(jeu.abattre(horloge(), vitesse(), degats) ?? [])
           choisir(null)
@@ -1097,8 +1101,8 @@ function agirMission(): void {
     cockpit.fermer()
     vueConvoi.ouvrir({
       titre: lieu.toUpperCase(),
-      surFin: () => {
-        const ev = jeu.formerConvoi(horloge(), vitesse())
+      surFin: (egares) => {
+        const ev = jeu.formerConvoi(horloge(), vitesse(), egares)
         if (!ev) return 'La capsule n\'est plus sur place : le convoi ne part pas.'
         traiterEvenements(ev)
         enregistrerPartie()
@@ -1153,7 +1157,7 @@ function agirMission(): void {
     vueTri.ouvrir({
       titre: `ÉPAVE · ${lieu.toUpperCase()}`,
       surFin: (e) => {
-        const r = jeu.nettoyer(e.materiaux, objetsTries(e), horloge(), vitesse())
+        const r = jeu.nettoyer(e.materiaux, objetsTries(e), horloge(), vitesse(), { erreurs: e.erreurs, pireSerieRatee: e.pireSerieRatee ?? 0 })
         if (!r) return 'La capsule n\'est plus sur place : rien n\'a été rangé.'
         traiterEvenements(r.evenements)
         enregistrerPartie()
@@ -1631,11 +1635,21 @@ function courrier(): void {
       passagesVus.add(`${pseudo}@${lieu}@${jour}`)
       bulleMessage.innerHTML = `<b>${pseudo}</b> ${phraseDePassage(pseudo, lieu, tj)}`
       bulleMessage.dataset.canal = `prive:${pseudo}`
+      jeu.stats.passages[`prive:${pseudo}`] = tj
       bulleMessage.hidden = false
       finBulle = t + 7000
     }
   }
 }
+/** Les feux d'artifice vus dès leur début (pour le trophée de celui qu'on regarde jusqu'au bout). */
+const feuxVus = new Set<string>()
+const fenetreTrophee = new FenetreTrophee()
+// Ce que les vues signalent pour les trophées (le Manuel ouvert pendant un dépannage, un dossier lu…).
+document.addEventListener('trophee', (e) => {
+  const d = (e as CustomEvent<{ cle: string; valeur?: string }>).detail
+  if (d.valeur !== undefined) jeu.ajouterStat(d.cle, d.valeur)
+  else jeu.noter(d.cle)
+})
 /** Les bavards qui nous ont déjà parlé (pseudo, lieu, jour). */
 const passagesVus = new Set<string>()
 
@@ -1714,6 +1728,7 @@ function changerPseudo(): void {
   const champ = pageProfil.querySelector<HTMLInputElement>('#pseudo')!
   const p = champ.value.trim()
   if (!pseudoValide(p)) { annoncer('Pseudo : 3 à 16 lettres, chiffres, - ou _'); return }
+  if (p !== jeu.pseudo) jeu.noter('changementsNom')
   jeu.pseudo = p
   plaque()
   enregistrerPartie()
@@ -1723,6 +1738,24 @@ function changerPseudo(): void {
 pageProfil.addEventListener('click', (e) => {
   const cible = e.target as HTMLElement
   if (cible.closest('[data-pseudo]')) { changerPseudo(); return }
+  // Une médaille de la vitrine : sa fiche sous l'étagère (la même médaille la referme).
+  const tr = cible.closest<HTMLElement>('[data-trophee]')
+  if (tr) {
+    const fiche = tr.closest('.etagere')!.querySelector<HTMLElement>('.detail-trophee')!
+    const meme = !fiche.hidden && fiche.dataset.de === tr.dataset.trophee
+    const grille = tr.parentElement!, cases = [...grille.querySelectorAll<HTMLElement>('.trophee')]
+    for (const x of cases) x.classList.remove('choisi')
+    fiche.hidden = meme
+    if (!meme) {
+      fiche.innerHTML = tr.dataset.trophee!
+      fiche.dataset.de = tr.dataset.trophee
+      tr.classList.add('choisi')
+      // La fiche se glisse sous la rangée de la médaille touchée (quatre par rangée).
+      const fin = cases[Math.min(cases.length - 1, Math.floor(cases.indexOf(tr) / 4) * 4 + 3)]
+      fin.after(fiche)
+    }
+    return
+  }
   // Rejoindre une Maison, ou redevenir neutre (jamais définitif).
   const b = cible.closest<HTMLElement>('[data-rejoindre]')
   if (!b) return
@@ -1920,8 +1953,9 @@ function combattreAmiral(nom: string): void {
     titre: `ASSAUT · ${z.amiral.toUpperCase()}`,
     zone: ZONES[z.systeme] ?? 1,
     amiral: { nom: z.amiral, planete: z.planete || nom === 'Triton' },
-    surFin: (fin) => {
+    surFin: (fin, _degats, e) => {
       const t = horloge()
+      jeu.noterCombat(fin, e)
       if (fin === 'victoire') { jeu.gagnerAssaut(nom, t); enregistrerPartie(); carteSale = true; return `${nom} est libérée ! Va le dire à la Résistance.` }
       jeu.casser('coque'); apresChangementDePanne()
       return 'La Coque est en panne. Répare, et retente l\'assaut quand tu veux : la résistance reste à 100 %.'
@@ -1935,8 +1969,9 @@ function combattre(alien: string): void {
   vueCombat.ouvrir({
     titre: `COMBAT · ${alien.toUpperCase()}`,
     zone: ZONES[lieuIci(horloge())] ?? 1,
-    surFin: (fin) => {
+    surFin: (fin, _degats, e) => {
       const t = horloge()
+      jeu.noterCombat(fin, e)
       if (fin === 'victoire') { jeu.vaincreChasseur(alien, t); choisir(null); enregistrerPartie(); return 'Il ne reviendra pas de sitôt. Ses missiles en vol sont tombés avec lui.' }
       if (fin === 'retraite') { jeu.casser('coque'); apresChangementDePanne(); return 'La Coque est en panne : à réparer (un impact touchera deux blocs).' }
       return 'Il est toujours là : il peut encore tirer.'
@@ -2092,6 +2127,7 @@ function image(maintenant: number): void {
     const { niveau, avant } = jeu.niveauAAnnoncer
     jeu.niveauAAnnoncer = null
     const g = niveauGagne(niveau, avant)
+    jeu.noter('niveauxLus')
     // La forme dessinée par ChatGPT si elle est arrivée (Adrien, 24/10/2026), sinon sa silhouette.
     const image = imageForme(g.forme)
     const toile = document.createElement('canvas')
@@ -2111,6 +2147,14 @@ function image(maintenant: number): void {
       couverture: { numero: niveau, accroche: g.nouvelleForme ? 'Nouvelle forme !' : ['Il monte en grade !', 'Inédit !', 'Sensationnel !', 'Plus fort que jamais !'][niveau % 4] },
     })
   }
+  // Les trophées gagnés : leur petite fenêtre, après toutes les autres (cadre validé par Adrien le 24/10/2026).
+  if (jeu.tropheesAAnnoncer.length && !jeu.niveauAAnnoncer && !occupe && maintenant - calmeDepuis > 1200 && !fenetreTrophee.ouverte
+    && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu, #fenetre:not([hidden]), .felicitation')) {
+    fenetreTrophee.montrer(jeu.tropheesAAnnoncer.splice(0).map((n) => TROPHEES.find((x) => x.n === n)!).filter(Boolean), document.querySelector('#console')!.getBoundingClientRect().bottom + 8)
+    enregistrerPartie()
+  }
+  // Écouter la radio sans rien capter (un trophée secret) ; une voix enregistrée remet le compteur à zéro.
+  if (vueRadio.estOuverte) jeu.noter('ecouteVaine', dt * 1000)
   // Une sonde disparue retrouvée : sa fenêtre, avec son histoire vraie.
   if (jeu.disparusAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
     const d = jeu.disparusAAnnoncer.shift()!
@@ -2225,6 +2269,11 @@ function image(maintenant: number): void {
     // Les feux d'artifice des zones libérées (2 minutes).
     const feux = jeu.feuxEnCours(t)
     if (feux.length) carte.dessinerFeux(ctxPlan, feux)
+    // Un feu d'artifice regardé du début à la fin (un trophée).
+    for (const f of feux) {
+      if (f.age < 10_000) feuxVus.add(f.zone)
+      else if (f.age > 115_000 && feuxVus.delete(f.zone)) jeu.noter('feuxEnEntier')
+    }
     // Les échos des PING : leurs cercles, et les places possibles des monolithes (pas les localisés : ils sont dessinés).
     if (reglages.cercles && jeu.monolithes.echos.length) {
       const revenus = echosRevenus(jeu.monolithes, t)

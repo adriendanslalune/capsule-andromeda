@@ -170,7 +170,7 @@ function tous(jeu: Jeu, t: number): MessageAffiche[] {
   }
   for (const m of jeu.envoyes) {
     if (m.envoye < t - MEMOIRE) continue
-    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: [`niv. ${niveauDe(jeu.xp).niveau}`, statut(jeu.monolithes.trouves.length), jeu.icare !== null ? 'Icare' : null].filter(Boolean).join(' · ') })
+    l.push({ id: `e${m.id}`, canal: m.canal, auteur: jeu.pseudo, maison: jeu.maison, lieu: '', texte: m.texte, envoye: m.envoye, recu: m.envoye, deMoi: true, statut: [`niv. ${niveauDe(jeu.xp).niveau}`, statut(jeu.monolithes.trouves.length), jeu.icare !== null ? 'Icare' : null, Object.keys(jeu.trophees).length ? `${Object.keys(jeu.trophees).length} trophée${Object.keys(jeu.trophees).length > 1 ? 's' : ''}` : null].filter(Boolean).join(' · ') })
     l.push(...reponses(m, jeu.pseudo, jeu.maison))
   }
   return l
