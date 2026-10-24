@@ -33,7 +33,7 @@ export const PNJS: readonly Pnj[] = [
     repos: 'La Lune a vu passer bien des envahisseurs. Enfin… des météores, surtout. Mais celui-là est coriace.',
   },
   {
-    id: 'okafor', nom: 'Dr Samuel Okafor', role: 'Chef de la base Tycho', lieu: 'Station Tycho', teinte: '#c9d6ee', portrait: null,
+    id: 'okafor', nom: 'Dr Samuel Okafor', role: 'Chef de la base Tycho', lieu: 'Station Tycho', teinte: '#c9d6ee', portrait: 'portraits/okafor-medaillon.webp',
     repos: 'Quarante-deux personnes sous un dôme. On tient. On tient toujours.',
   },
   {
@@ -163,13 +163,13 @@ export const QUETES: readonly Quete[] = [
     id: 'l1', titre: 'De l\'eau pour Tycho', type: 'principale', donneur: 'okafor', conditions: ['q2'], parRadio: true,
     intro: [
       'Ici Samuel Okafor, base Tycho. Le docteur Keïta dit que vous êtes fiable. Je n\'ai plus le luxe d\'en douter.',
-      'Notre recycleur d\'eau est à bout, et le dôme siffle par trois fissures. Il nous faudrait cinq tonnes d\'eau et deux tonnes de titane.',
+      '(souci) Notre recycleur d\'eau est à bout, et le dôme siffle par trois fissures. Il nous faudrait cinq tonnes d\'eau et deux tonnes de titane.',
       'Le Comptoir de la Terre en vend. Déposez-les à la Station Tycho, en orbite au-dessus de nous : on les descendra de nuit. Et merci. Pardon : merci d\'avance. Ici on a perdu l\'habitude.',
     ],
     etapes: [
       {
         genre: 'livrer', lieu: 'Station Tycho', marchandises: { Eau: 5, Titane: 2 }, jauge: { zone: 'Lune', part: 25 },
-        radio: { pnj: 'okafor', texte: ['Les cuves sont pleines ! Quelqu\'un s\'est douché, contre toutes les règles. On ne l\'a pas puni. Le dôme ne siffle plus. Merci, capitaine. Cette fois, je le dis au présent.'] },
+        radio: { pnj: 'okafor', texte: ['(joie) Les cuves sont pleines ! Quelqu\'un s\'est douché, contre toutes les règles. On ne l\'a pas puni. Le dôme ne siffle plus. Merci, capitaine. Cette fois, je le dis au présent.'] },
       },
     ],
     recompense: 150,

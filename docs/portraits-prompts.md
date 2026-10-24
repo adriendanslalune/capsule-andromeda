@@ -151,6 +151,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
   Star Wars : Claude l'a remplacé par l'écusson de la Résistance (la planète à anneau du jeu). D'où la consigne « aucun
   logo existant » dans les blocs de style.
 - **Dr Amadou Keïta** (24/10/2026) : les trois humeurs, avec le bon écusson.
+- **Dr Samuel Okafor** (24/10/2026) : les trois humeurs.
 
 ## Ce qu'il faut envoyer à Claude
 
