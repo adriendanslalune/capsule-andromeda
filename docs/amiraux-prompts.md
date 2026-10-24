@@ -177,3 +177,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Soufre-Noir** (24/10/2026).
 - **Le Brise-Glace** (24/10/2026).
 - **Le Grand Veilleur** (24/10/2026).
+- **Le Cratère** (24/10/2026).
