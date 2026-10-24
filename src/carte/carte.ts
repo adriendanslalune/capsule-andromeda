@@ -339,10 +339,10 @@ export class Carte2D {
    * Les PNJ (décisions d'Adrien du 20/10/2026) : un médaillon à leur lieu (à côté de l'astre ou de l'engin dessiné),
    * avec un signe s'ils ont quelque chose pour le joueur : « ! » une quête à proposer, « ? » ils attendent son retour.
    * Petite distinction (demande d'Adrien) : quête principale, losange doré ; secondaire, rond bleu. Et le losange (ou
-   * rond) de l'objectif de la quête suivie, à son lieu.
+   * rond) de l'objectif des quêtes du tableau de bord, à leur lieu.
    */
   dessinerPnj(ctx: CanvasRenderingContext2D, t: number, pnjs: { lieu: string; initiale: string; teinte: string; signe: '!' | '?' | null; principale: boolean }[],
-    objectif: { lieu: string; principale: boolean } | null, couleurs: Couleurs2D): void {
+    objectifs: { lieu: string; principale: boolean }[], couleurs: Couleurs2D): void {
     const placeDe = (lieu: string) => {
       const d = this.dessines.find((x) => x.nom === lieu)
       if (d) return d
@@ -353,8 +353,9 @@ export class Carte2D {
     ctx.save()
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    // L'objectif suivi : un grand losange (principale) ou un cercle (secondaire) pointillé autour du lieu.
-    if (objectif) {
+    // Les objectifs des quêtes du tableau de bord : un grand losange (principale) ou un cercle (secondaire) pointillé
+    // autour du lieu.
+    for (const objectif of objectifs) {
       const p = placeDe(objectif.lieu), r = Math.max(14, p.r + 9)
       if (p.x > -r && p.x < this.largeur + r && p.y > -r && p.y < this.hauteur + r) {
         ctx.beginPath()

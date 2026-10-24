@@ -67,7 +67,7 @@ export interface EtatCapsuleBandeau {
   /** En vol : « accélère », « croisière », « freine » ; et le système où est la capsule (« Terre », « plein espace »). */
   phase: string; systeme: string
   /** La quête suivie (son titre, son objectif en cours), ou null. */
-  quetes: { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean; nouvelle?: boolean }[]
+  quetes: { id: string; titre: string; objectif: string; principale: boolean; nouvelle?: boolean; bouton: string }[]
 }
 
 /** Le triangle d'alerte du voyant (c'est le voyant qui s'allume). */
@@ -156,13 +156,13 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   }
   let detail = ''
   if (affiche === 'quete') {
-    // La suite de l'histoire d'abord (toujours là), puis les secondaires en cours. Discret (Adrien, 22/10/2026) : un
+    // La suite de l'histoire d'abord (toujours là), puis les secondaires épinglées. Discret (Adrien, 22/10/2026) : un
     // losange doré devant le titre de l'histoire, un plus petit losange noir devant celui d'une secondaire.
     for (const q of capsule.quetes) {
       const g = q.principale ? 'principale' : 'secondaire'
       textes.push(q.titre, q.objectif)
-      detail += `<div class="ligne quete ${g}${q.suivie ? ' suivie' : ''}${q.nouvelle ? ' nouvelle' : ''}" data-ligne="quete" data-quete="${q.id}">`
-        + `<span class="texte"><b><i class="losange"></i><span data-texte></span></b> <span data-texte></span></span><em>VOIR</em></div>`
+      detail += `<div class="ligne quete ${g}${q.nouvelle ? ' nouvelle' : ''}" data-ligne="quete" data-quete="${q.id}">`
+        + `<span class="texte"><b><i class="losange"></i><span data-texte></span></b> <span data-texte></span></span><em>${q.bouton}</em></div>`
     }
     if (!detail) detail = vide('vide-quete', 'la suite de l\'histoire arrive bientôt, capitaine…')
   } else if (affiche) {

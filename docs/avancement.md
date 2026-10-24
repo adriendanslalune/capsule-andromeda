@@ -58,6 +58,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   Puis (même jour, Adrien : « trop pénible à mettre en place », il cherche de son côté) : la main et les bulles d'aide
   retirées, la présentation du monde remise au début. Restent « Le cœur de la capsule », « Cap sur la Lune » et le
   voisinage de l'ISS. Suite : les illustrations des dialogues.
+  Puis les quêtes au tableau de bord (Adrien, 24/10/2026) : une principale s'affiche d'abord au tableau de bord, son
+  losange clignote, VOIR ouvre l'appel radio de son donneur avec ACCEPTER en bas ; acceptée, DÉTAILS mène au Journal.
+  Les secondaires acceptées s'épinglent (trois au plus, ÉPINGLER et DÉSÉPINGLER dans le Journal) ; la quête « suivie »
+  disparaît, la carte marque l'objectif de chaque quête du tableau de bord.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

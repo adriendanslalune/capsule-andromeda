@@ -63,12 +63,12 @@ export interface Sauvegarde {
   disparus?: Jeu['disparus']
   quetes?: Jeu['quetes']
   queteSuivie?: string | null
+  epinglees?: string[]
   /** Les messages radio des PNJ (absent : aucun). */
   radioPnj?: Jeu['radioPnj']
   /** La présentation du monde est vue (absent : une partie d'avant, qui n'en avait pas besoin). */
   presentation?: boolean
   /** Les bulles d'aide déjà vues (absent : aucune). */
-  aides?: string[]
   /** Les instruments installés (absent : une partie d'avant le 23/10/2026, qui les a tous). */
   installes?: Jeu['installes']
   /** Ancien format (avant le 21/10/2026) : les zones libérées seules. */
@@ -111,7 +111,7 @@ export function sauvegarder(jeu: Jeu, t: number): Sauvegarde {
     graine: jeu.graine, prochainId: jeu.prochainId, proposes: jeu.proposes, enCours: jeu.enCours,
     pannes: jeu.pannes, usureJusqua: jeu.usureJusqua,
     numeroSerie: jeu.numeroSerie, reparations: jeu.reparations, defauts: jeu.defauts,
-    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, queteSuivie: jeu.queteSuivie, radioPnj: jeu.radioPnj, installes: jeu.installes, presentation: jeu.presentation, aides: jeu.aides, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
+    maison: jeu.maison, invitations: jeu.invitations, lettres: jeu.lettres, disparus: jeu.disparus, quetes: jeu.quetes, epinglees: jeu.epinglees, radioPnj: jeu.radioPnj, installes: jeu.installes, presentation: jeu.presentation, zones: jeu.zones, visites: jeu.visites, armement: jeu.armement, xp: jeu.xp, commerce: jeu.commerce, energie: jeu.energie, soute: jeu.soute, carnet: jeu.carnet, pseudo: jeu.pseudo, icare: jeu.icare, envoyes: jeu.envoyes, lus: jeu.lus, espace: jeu.espace,
     monolithes: jeu.monolithes, bourse: jeu.bourse, radio: { frequence: jeu.radio.frequence, captees: jeu.radio.captees, captureesLe: jeu.radio.captureesLe },
   }
 }
@@ -247,7 +247,6 @@ export function restaurer(s: unknown): Jeu | null {
   }
   // Tout est installé dès le départ (Adrien, 24/10/2026) : la liste sauvegardée n'est plus lue.
   if (v.presentation === false) jeu.presentation = false
-  if (Array.isArray(v.aides)) jeu.aides = v.aides.filter((x): x is string => typeof x === 'string')
   // La Bourse : seulement les compagnies qui existent, des nombres valides.
   if (v.bourse && typeof v.bourse === 'object') {
     const connue = (id: unknown) => COMPAGNIES.some((x) => x.id === id)
@@ -266,8 +265,13 @@ export function restaurer(s: unknown): Jeu | null {
     if (Array.isArray(v.radio.captees)) jeu.radio.captees = v.radio.captees.filter((n) => nombre(n) && n >= 1 && n <= NOMBRE_VOIX)
     for (const n of jeu.radio.captees) if (nombre(v.radio.captureesLe?.[n])) jeu.radio.captureesLe[n] = v.radio.captureesLe[n]
   }
-  // (Une principale pas encore prise peut être suivie : la quête suivie est revue au chargement, voir rattraperSuivi.)
-  if (typeof v.queteSuivie === 'string') jeu.queteSuivie = v.queteSuivie
+  // Les secondaires épinglées (revues au chargement, voir rattraperEpinglees). Une partie d'avant le 24/10/2026 : toutes
+  // ses secondaires en cours étaient au tableau de bord, la suivie d'abord ; elles restent épinglées.
+  if (Array.isArray(v.epinglees)) jeu.epinglees = v.epinglees.filter((x): x is string => typeof x === 'string')
+  else {
+    const enCours = QUETES.filter((q) => q.type === 'secondaire' && jeu.quetes[q.id] && jeu.quetes[q.id].fin == null).map((q) => q.id)
+    jeu.epinglees = [...enCours.filter((id) => id === v.queteSuivie), ...enCours.filter((id) => id !== v.queteSuivie)]
+  }
   // Les zones : seulement des zones qui existent, des points positifs.
   const liberees = Array.isArray(v.zones?.liberees) ? v.zones.liberees : Array.isArray(v.zonesLiberees) ? v.zonesLiberees : []
   jeu.zones.liberees = liberees.filter((z): z is string => typeof z === 'string' && !!zone(z))

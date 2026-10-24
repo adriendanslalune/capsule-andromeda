@@ -43,11 +43,11 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { radioALire, radioAOuvrir, radioDeQuete, queteNouvelle, pnj as pnjDe, quiInstalle } from './moteur/quetes'
+import { radioALire, radioAOuvrir, queteNouvelle, offre, epingler, quetesDuTableau, pnj as pnjDe, quiInstalle } from './moteur/quetes'
 import { Presentation } from './commun/presentation'
 import { dessinerScene, type ScenePresentation } from './carte/presentation-carte'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
-import { accepter as accepterQuete, enCours as enCoursQuetes, assautIci, rattraperSuivi, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
+import { accepter as accepterQuete, assautIci, rattraperEpinglees, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -163,7 +163,7 @@ function nouvellePartie(): Jeu {
 }
 const partieChargee = chargerPartie()
 const jeu = partieChargee ?? nouvellePartie()
-rattraperSuivi(jeu)
+rattraperEpinglees(jeu)
 const mission = jeu.mission
 suivreMission(mission)
 
@@ -231,7 +231,7 @@ function lieuxConnus(): string[] {
   const maintenant = performance.now()
   if (maintenant - lieuxConnusMemo.quand < 16) return lieuxConnusMemo.lieux
   const l = cibles()
-  if (jeu.queteSuivie) { const o = objectif(jeu, quete(jeu.queteSuivie))?.lieu; if (o) l.push(o) }
+  for (const q of quetesDuTableau(jeu)) { const o = objectif(jeu, q)?.lieu; if (o) l.push(o) }
   for (const p of PNJS) if (signePnj(jeu, p.id)) l.push(p.lieu)
   lieuxConnusMemo = { quand: maintenant, lieux: l }
   return l
@@ -718,11 +718,11 @@ bandeau.addEventListener('click', (e) => {
   else if (ligne === 'vide-contrat') ouvrirJournal('contrats')
   else if (ligne === 'quete' || ligne === 'vide-quete') {
     const id = (e.target as HTMLElement).closest<HTMLElement>('[data-quete]')?.dataset.quete
-    // Une nouvelle quête annoncée par radio : on écoute le message (Adrien, 24/10/2026) ; à prendre : elle est vue.
-    const r = id ? radioDeQuete(jeu, id, horloge()) : null
-    if (r) { ouvrirRadio(r); return }
-    if (id && !jeu.aides.includes(`quete:${id}`)) { jeu.aides.push(`quete:${id}`); enregistrerPartie() }
-    journalOuvert = id ?? jeu.queteSuivie
+    // Une principale à prendre (Adrien, 24/10/2026) : VOIR ouvre l'appel de son donneur, ACCEPTER en bas ; prise, DÉTAILS
+    // mène au Journal.
+    const d = id ? offre(jeu, id, horloge()) : null
+    if (d) { vueDialogue.ouvrir(d); return }
+    journalOuvert = id ?? suiteDeLHistoire(jeu)?.id ?? null
     ouvrirJournal('quetes')
   }
   else if (ligne === 'vide-echo') annoncer(etatBoutonPing(jeu, horloge()).texte)
@@ -1262,7 +1262,11 @@ pageJournal.addEventListener('click', (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>('button')
   if (!b) return
   if (b.dataset.ouvrir) journalOuvert = journalOuvert === b.dataset.ouvrir ? '' : b.dataset.ouvrir
-  else if (b.dataset.suivre) { jeu.queteSuivie = b.dataset.suivre; enregistrerPartie() }
+  else if (b.dataset.offre) { const d = offre(jeu, b.dataset.offre, horloge()); if (d) vueDialogue.ouvrir(d); return }
+  else if (b.dataset.epingler) {
+    if (!epingler(jeu, b.dataset.epingler, true)) annoncer('Trois quêtes épinglées au plus : désépingles-en une d\'abord')
+    enregistrerPartie()
+  } else if (b.dataset.desepingler) { epingler(jeu, b.dataset.desepingler, false); enregistrerPartie() }
   else if (b.dataset.yAller) { cockpit.fermer(); choisir(b.dataset.yAller, true); proposee = true; return }
   else return
   afficherJournal()
@@ -1282,17 +1286,14 @@ function afficherAnnonces(t: number): void {
   // Une vitesse de lecture constante, quelle que soit la longueur.
   bandeAnnonces.style.animationDuration = `${Math.max(14, texte.length * 0.16)}s`
 }
-/** La quête suivie, pour le voyant QUÊTE du tableau de bord : son titre et son objectif en cours. */
-function queteDuTableau(): { id: string; titre: string; objectif: string; principale: boolean; suivie: boolean }[] {
-  // Toujours la suite de l'histoire, d'abord (Adrien, 22/10/2026) ; puis toutes les quêtes secondaires en cours (on peut
-  // en mener plusieurs à la fois), la suivie en premier.
-  const ligne = (q: ReturnType<typeof quete>) => {
-    const o = objectif(jeu, q)
-    return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale', suivie: jeu.queteSuivie === q.id, nouvelle: queteNouvelle(jeu, q, horloge()) }] : []
-  }
-  const suite = suiteDeLHistoire(jeu)
-  const secondaires = enCoursQuetes(jeu).filter((q) => q.type === 'secondaire').sort((a, b) => Number(jeu.queteSuivie === b.id) - Number(jeu.queteSuivie === a.id))
-  return [...(suite ? ligne(suite) : []), ...secondaires.flatMap(ligne)]
+/** Les quêtes du voyant QUÊTE du tableau de bord : leur titre, leur objectif en cours et leur bouton. */
+function queteDuTableau(): { id: string; titre: string; objectif: string; principale: boolean; nouvelle: boolean; bouton: string }[] {
+  // Toujours la suite de l'histoire, d'abord (Adrien, 22/10/2026) ; puis les secondaires épinglées (Adrien, 24/10/2026).
+  // Une principale à prendre clignote, avec VOIR (son appel radio) ; une quête prise a DÉTAILS (le Journal).
+  return quetesDuTableau(jeu).flatMap((q) => {
+    const o = objectif(jeu, q), nouvelle = queteNouvelle(jeu, q)
+    return o ? [{ id: q.id, titre: q.titre, objectif: `${o.texte}${o.compte ? ` (${o.compte})` : ''}`, principale: q.type === 'principale', nouvelle, bouton: nouvelle ? 'VOIR' : 'DÉTAILS' }] : []
+  })
 }
 
 // La lettre d'invitation d'une Maison, en plein écran (REJOINDRE ou PLUS TARD).
@@ -2168,12 +2169,12 @@ function image(maintenant: number): void {
       })
       : null
     carte.dessinerTraits(ctxPlan, t, cibleIci, trajet, rendezVous, accent, { encre: th.encre, fond: th.halo }, orbiteCapsule)
-    // Les PNJ, leurs signes, et l'objectif de la quête suivie.
-    const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null, lieuObjectif = suivie ? objectif(jeu, suivie)?.lieu ?? null : null
+    // Les PNJ, leurs signes, et les objectifs des quêtes du tableau de bord.
+    const objectifs = quetesDuTableau(jeu).flatMap((q) => { const lieu = objectif(jeu, q)?.lieu; return lieu ? [{ lieu, principale: q.type === 'principale' }] : [] })
     if (!presentation.ouverte) carte.dessinerPnj(ctxPlan, t, PNJS.map((p) => {
       const s = signePnj(jeu, p.id)
       return { lieu: p.lieu, initiale: p.nom.replace(/^(Dr|Le|La) /, '')[0], teinte: p.teinte, signe: s?.signe ?? null, principale: s?.principale ?? false }
-    }), lieuObjectif ? { lieu: lieuObjectif, principale: suivie!.type === 'principale' } : null, { encre: th.encre, fond: th.halo })
+    }), objectifs, { encre: th.encre, fond: th.halo })
     // Les feux d'artifice des zones libérées (2 minutes).
     const feux = jeu.feuxEnCours(t)
     if (feux.length) carte.dessinerFeux(ctxPlan, feux)

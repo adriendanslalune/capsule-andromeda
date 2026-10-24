@@ -4,7 +4,7 @@ import { PNJS, QUETES } from '../src/donnees/quetes'
 import type { Contrat } from '../src/moteur/contrats'
 import { corps } from '../src/moteur/corps'
 import { Jeu } from '../src/moteur/jeu'
-import { accepter, avancerQuetes, cheminVersAssaut, ecouterSignal, liberation, radioALire, rattraperSuivi, suiteDeLHistoire, objectif, parler, quete } from '../src/moteur/quetes'
+import { accepter, avancerQuetes, cheminVersAssaut, ecouterSignal, liberation, rattraperEpinglees, epingler, quetesDuTableau, queteNouvelle, offre, suiteDeLHistoire, objectif, parler, quete } from '../src/moteur/quetes'
 import { jauge } from '../src/moteur/zones'
 import { position } from '../src/moteur/corps'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
@@ -54,8 +54,14 @@ describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lun
   it('Elsa appelle par radio : améliorer le moteur ; le niveau 2 ne demande presque pas de ferraille', () => {
     const jeu = partie()
     avancerQuetes(jeu, { genre: 'instant' }, t0)
+    // Elle s'affiche au tableau de bord, pas encore prise : son appel s'écoute avec VOIR, ACCEPTER en bas.
+    expect(jeu.quetes.q1).toBeUndefined()
+    expect(objectif(jeu, quete('q1'))?.texte).toMatch(/Elsa Varga t'appelle par radio : touche VOIR/)
+    const d = offre(jeu, 'q1', t0)!
+    expect(d.proposition?.id).toBe('q1')
+    expect(d.radio).toBeDefined()
+    expect(accepter(jeu, 'q1', t0)).toBe(true)
     expect(jeu.quetes.q1?.fin).toBeNull()
-    expect(radioALire(jeu, t0 + 1000)?.quete).toBe('q1')
     expect(objectif(jeu, quete('q1'))?.texte).toMatch(/moteur de niveau 2/)
     expect(jeu.moteurSuivant()!.materiaux).toEqual({ Ferraille: 0.5 })
     jeu.niveauMoteur = 2
@@ -63,32 +69,36 @@ describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lun
     expect(jeu.quetes.q1.fin).not.toBeNull()
     // Elsa explique la suite (contrats, moteur, le Comptoir), puis envoie la Lune.
     expect(jeu.radioPnj.some((r) => r.texte.join(' ').includes('Comptoir'))).toBe(true)
-    expect(jeu.quetes.q2?.fin).toBeNull()
+    expect(jeu.quetes.q2).toBeUndefined()
+    accepter(jeu, 'q2', t0 + 3000)
     expect(objectif(jeu, quete('q2'))).toMatchObject({ lieu: 'Lune' })
   })
 
-  it('la quête d’Elsa n’ouvre pas son message d’elle-même : le losange clignote, on la touche pour l’écouter', async () => {
-    const { radioAOuvrir, radioDeQuete, queteNouvelle } = await import('../src/moteur/quetes')
+  it('une quête principale s’affiche d’abord au tableau de bord : son losange clignote jusqu’à ACCEPTER (Adrien, 24/10/2026)', async () => {
+    const { radioAOuvrir } = await import('../src/moteur/quetes')
     const jeu = partie()
     avancerQuetes(jeu, { genre: 'instant' }, t0)
-    expect(radioAOuvrir(jeu, t0 + 1000)).toBeNull()
-    expect(radioDeQuete(jeu, 'q1', t0 + 1000)).not.toBeNull()
-    expect(queteNouvelle(jeu, quete('q1'), t0 + 1000)).toBe(true)
-    radioDeQuete(jeu, 'q1', t0 + 1000)!.lu = true
-    expect(queteNouvelle(jeu, quete('q1'), t0 + 1000)).toBe(false)
+    // Aucun message ne s'ouvre de lui-même.
+    expect(radioAOuvrir(jeu, t0 + 60_000)).toBeNull()
+    expect(quetesDuTableau(jeu).map((q) => q.id)).toEqual(['q1'])
+    expect(queteNouvelle(jeu, quete('q1'))).toBe(true)
+    accepter(jeu, 'q1', t0)
+    expect(queteNouvelle(jeu, quete('q1'))).toBe(false)
+    expect(offre(jeu, 'q1', t0)).toBeNull()
     // Une secondaire n'est jamais « nouvelle ».
-    expect(queteNouvelle(jeu, quete('rosa'), t0)).toBe(false)
+    expect(queteNouvelle(jeu, quete('rosa'))).toBe(false)
   })
 
   it('sur la Lune, Keïta : la jauge de la Lune monte, Okafor appelle', () => {
     const jeu = partie()
     finies(jeu, ['q1'])
-    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    accepter(jeu, 'q2', t0)
     jeu.ici = 'Lune'
     parler(jeu, 'keita', t0 + 1)
     expect(jeu.quetes.q2.fin).not.toBeNull()
     expect(jauge(jeu.zones, 'Lune')).toBe(25)
-    expect(jeu.quetes.l1?.fin).toBeNull()
+    expect(jeu.quetes.l1).toBeUndefined()
+    expect(suiteDeLHistoire(jeu)?.id).toBe('l1')
   })
 
   it('une ancienne partie reprend à l’étape équivalente (avant le tutoriel, ou en plein tutoriel du 23/10)', () => {
@@ -111,7 +121,7 @@ describe('la Lune, de bout en bout', () => {
   it('livrer à la Station Tycho : il faut tout avoir en soute, au bon endroit ; les marchandises quittent la soute', () => {
     const jeu = partie()
     finies(jeu, ['q1', 'q2'])
-    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    accepter(jeu, 'l1', t0)
     jeu.soute = { Eau: 5, Titane: 1 }
     jeu.ici = 'Station Tycho'
     avancerQuetes(jeu, { genre: 'instant' }, t0)
@@ -128,7 +138,7 @@ describe('la Lune, de bout en bout', () => {
     const jeu = partie()
     finies(jeu, ['q1', 'q2', 'l1'])
     jeu.installes = jeu.installes.filter((i) => i !== 'bourse')
-    avancerQuetes(jeu, { genre: 'instant' }, t0)
+    accepter(jeu, 'l2', t0)
     avancerQuetes(jeu, { genre: 'contrat', contrat: contrat('depanner', 'Terre') }, t0)
     expect(jeu.quetes.l2.etape).toBe(1)
     // Le radar allumé loin de la Lune ne trouve rien.
@@ -139,6 +149,7 @@ describe('la Lune, de bout en bout', () => {
     jeu.mission.etat = (t: number) => ({ position: position('Lune', t) }) as ReturnType<typeof jeu.mission.etat>
     avancerQuetes(jeu, { genre: 'instant' }, t0 + 2)
     expect(jeu.quetes.l2.fin).not.toBeNull()
+    accepter(jeu, 'l3', t0 + 2)
     expect(objectif(jeu, quete('l3'))).toMatchObject({ lieu: 'Lune' })
     ajouterPoints(jeu.zones, 'Lune', 100)
     avancerQuetes(jeu, { genre: 'instant' }, t0 + 3)
@@ -153,7 +164,7 @@ describe('la Lune, de bout en bout', () => {
     const copie = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
     expect(copie.quetes).toEqual(jeu.quetes)
     expect(copie.radioPnj).toEqual(jeu.radioPnj)
-    expect(copie.queteSuivie).toBe('interieures')
+    expect(suiteDeLHistoire(copie)?.id).toBe('interieures')
   })
 })
 
@@ -168,18 +179,34 @@ describe('le chemin vers l’assaut d’une zone (Adrien, 22/10/2026 : la Lune �
   })
 })
 
-describe('les principales à prendre sont des quêtes comme les autres (Adrien, 22/10/2026)', () => {
-  it('le tableau de bord montre toujours la suite de l’histoire ; une secondaire suivie lui cède la place au chargement', () => {
-    const jeu = new Jeu(), t = Date.UTC(2026, 9, 22, 12)
+describe('le tableau de bord : la suite de l’histoire, puis les secondaires épinglées (Adrien, 24/10/2026)', () => {
+  it('la suite de l’histoire est toujours là ; une secondaire acceptée s’épingle, trois au plus ; on peut la désépingler', () => {
+    const jeu = partie(), t = Date.UTC(2026, 9, 22, 12)
     jeu.quetes.q1 = { etape: 1, compte: 0, debut: t, fin: t }
-    jeu.quetes.rosa = { etape: 0, compte: 0, debut: t, fin: null }
-    jeu.queteSuivie = 'rosa'
     jeu.presentation = false
     expect(suiteDeLHistoire(jeu)).toBeNull()
     jeu.presentation = true
     expect(suiteDeLHistoire(jeu)?.id).toBe('q2')
-    rattraperSuivi(jeu)
-    expect(jeu.queteSuivie).toBe('q2')
+    jeu.ici = 'Tiangong'
+    parler(jeu, 'rosa', t)
+    accepter(jeu, 'rosa', t)
+    expect(jeu.epinglees).toEqual(['rosa'])
+    expect(quetesDuTableau(jeu).map((q) => q.id)).toEqual(['q2', 'rosa'])
+    epingler(jeu, 'rosa', false)
+    expect(quetesDuTableau(jeu).map((q) => q.id)).toEqual(['q2'])
+    // Trois au plus ; seulement des secondaires en cours.
+    jeu.epinglees = ['rosa', 'veilleur', 'q2', 'inconnue']
+    jeu.quetes.veilleur = { etape: 0, compte: 0, debut: t, fin: null }
+    rattraperEpinglees(jeu)
+    expect(jeu.epinglees).toEqual(['rosa', 'veilleur'])
+  })
+
+  it('une partie d’avant : ses secondaires en cours restent au tableau de bord, la suivie d’abord', () => {
+    const vieille = sauvegarder(new Jeu(), t0) as unknown as Record<string, unknown>
+    delete vieille.epinglees
+    vieille.quetes = { q1: { etape: 1, compte: 0, debut: t0, fin: t0 }, rosa: { etape: 0, compte: 0, debut: t0, fin: null }, veilleur: { etape: 0, compte: 0, debut: t0, fin: null } }
+    vieille.queteSuivie = 'veilleur'
+    expect(restaurer(JSON.parse(JSON.stringify(vieille)))!.epinglees).toEqual(['veilleur', 'rosa'])
   })
 })
 

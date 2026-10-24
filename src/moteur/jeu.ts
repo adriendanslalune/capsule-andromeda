@@ -118,7 +118,8 @@ export class Jeu {
   pseudo = 'Capitaine'
   /** Les quêtes commencées (décisions d'Adrien du 20/10/2026), celle qu'on suit sur la carte, les zones libérées. */
   quetes: Record<string, EtatQuete> = {}
-  queteSuivie: string | null = null
+  /** Les quêtes secondaires épinglées au tableau de bord (trois au plus). */
+  epinglees: string[] = []
   /** Les messages radio des PNJ (envoyés, en route, arrivés). */
   radioPnj: RadioPnj[] = []
   /** Calé sur le signal d'une quête (pas sauvegardé). */
@@ -127,8 +128,6 @@ export class Jeu {
   installes: Instrument[] = [...INSTRUMENTS]
   /** La présentation du monde est vue (Adrien, 23/10/2026 : une partie neuve commence par elle ; une partie d'avant l'a vue). */
   presentation = true
-  /** Les bulles d'aide déjà vues (une fenêtre ouverte pour la première fois : demande d'Adrien du 24/10/2026). */
-  aides: string[] = []
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
   zones: EtatZones = { points: {}, liberees: [] }
   /** L'expérience du capitaine (décisions d'Adrien du 21/10/2026) : le niveau s'en déduit (moteur/niveau.ts). */

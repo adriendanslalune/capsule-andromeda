@@ -86,21 +86,32 @@ export function principalesAPrendre(jeu: Jeu): Quete[] {
   return disponibles(jeu).filter((q) => q.type === 'principale')
 }
 
-/** La quête à suivre quand rien ne l'est plus : une principale en cours, sinon une principale à prendre, sinon une autre en cours. */
-export function queteASuivre(jeu: Jeu): string | null {
-  const cours = enCours(jeu)
-  return (cours.find((q) => q.type === 'principale') ?? principalesAPrendre(jeu)[0] ?? cours[0])?.id ?? null
-}
+/** Le nombre de quêtes secondaires épinglées au tableau de bord, au plus (Adrien, 24/10/2026). */
+export const EPINGLEES_MAX = 3
 
 /**
- * Au chargement : une quête suivie qui n'est plus en cours (ni à prendre) est remplacée ; une secondaire suivie cède la
- * place à la campagne quand aucune principale n'est en cours mais qu'une attend d'être prise (Adrien, 22/10/2026).
+ * Les quêtes secondaires épinglées au tableau de bord (Adrien, 24/10/2026 : on va les chercher dans le Journal ; elles
+ * apparaissent au tableau de bord une fois épinglées, trois au plus) : seulement celles en cours.
  */
-export function rattraperSuivi(jeu: Jeu): void {
-  const s = jeu.queteSuivie ? QUETES.find((q) => q.id === jeu.queteSuivie) : undefined
-  const valide = !!s && (enCours(jeu).includes(s) || principalesAPrendre(jeu).includes(s))
-  const campagneOubliee = s?.type === 'secondaire' && !enCours(jeu).some((q) => q.type === 'principale') && principalesAPrendre(jeu).length > 0
-  if (!valide || campagneOubliee) jeu.queteSuivie = queteASuivre(jeu)
+export function rattraperEpinglees(jeu: Jeu): void {
+  jeu.epinglees = jeu.epinglees.filter((id, k, l) => l.indexOf(id) === k && jeu.quetes[id] && jeu.quetes[id].fin == null
+    && QUETES.some((q) => q.id === id && q.type === 'secondaire')).slice(0, EPINGLEES_MAX)
+}
+
+/** Épingle (ou désépingle) une quête secondaire en cours ; faux s'il y en a déjà trois. */
+export function epingler(jeu: Jeu, id: string, oui: boolean): boolean {
+  if (!oui) { jeu.epinglees = jeu.epinglees.filter((x) => x !== id); return true }
+  if (jeu.epinglees.includes(id)) return true
+  if (jeu.epinglees.length >= EPINGLEES_MAX) return false
+  jeu.epinglees.push(id)
+  rattraperEpinglees(jeu)
+  return jeu.epinglees.includes(id)
+}
+
+/** Les quêtes du tableau de bord : la suite de l'histoire, puis les secondaires épinglées. */
+export function quetesDuTableau(jeu: Jeu): Quete[] {
+  const suite = suiteDeLHistoire(jeu)
+  return [...(suite ? [suite] : []), ...jeu.epinglees.map(quete).filter((q) => q && jeu.quetes[q.id]?.fin == null)]
 }
 
 /**
@@ -164,10 +175,9 @@ export function texteEtape(e: EtapeQuete): string {
 
 /** L'objectif en cours d'une quête : son énoncé, son compteur (« 1/2 ») et son lieu. */
 export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | null; lieu: string | null } | null {
-  // Une principale pas encore prise : aller parler à celui qui la donne.
+  // Une principale pas encore prise : son donneur appelle par radio, on l'écoute au tableau de bord (Adrien, 24/10/2026).
   if (!jeu.quetes[q.id] && q.type === 'principale' && disponibles(jeu).includes(q)) {
-    const premier: EtapeQuete = { genre: 'parler', pnj: q.donneur, texte: [] }
-    return { texte: texteEtape(premier), compte: null, lieu: lieuEtape(premier) }
+    return { texte: `${pnj(q.donneur).nom} t'appelle par radio : touche VOIR`, compte: null, lieu: null }
   }
   const e = etapeCourante(jeu, q)
   if (!e) return null
@@ -182,7 +192,8 @@ export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | 
 export function signePnj(jeu: Jeu, id: string): { signe: '!' | '?'; principale: boolean } | null {
   const attend = enCours(jeu).filter((q) => { const e = etapeCourante(jeu, q); return e?.genre === 'parler' && e.pnj === id })
   if (attend.length) return { signe: '?', principale: attend.some((q) => q.type === 'principale') }
-  const propose = disponibles(jeu).filter((q) => q.donneur === id)
+  // (Les principales s'offrent au tableau de bord, par radio : pas de « ! » sur la carte.)
+  const propose = disponibles(jeu).filter((q) => q.donneur === id && q.type === 'secondaire')
   if (propose.length) return { signe: '!', principale: propose.some((q) => q.type === 'principale') }
   return null
 }
@@ -215,9 +226,7 @@ function finir(jeu: Jeu, q: Quete, t: number): void {
   jeu.credits += q.recompense
   jeu.gagnerXp(Math.min(XP.quete[1], Math.max(XP.quete[0], q.recompense / 10)))
   if (q.libere && !jeu.zones.liberees.includes(q.libere)) jeu.gagnerAssaut(q.libere, t)
-  // La suivante à suivre ; une principale qui s'ouvre passe devant une secondaire suivie.
-  const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
-  if (!suivie || suivie.id === q.id || (suivie.type === 'secondaire' && principalesAPrendre(jeu).length)) jeu.queteSuivie = queteASuivre(jeu)
+  rattraperEpinglees(jeu)
 }
 
 /** Ce qui suit une étape franchie : sa part de la jauge, la réponse radio d'un PNJ. */
@@ -249,27 +258,24 @@ export function radioALire(jeu: Jeu, t: number): RadioPnj | null {
   return jeu.radioPnj.find((r) => !r.lu && r.arrivee <= t) ?? null
 }
 
-/**
- * Le prochain message radio à ouvrir de lui-même : pas celui qui annonce une nouvelle quête principale (Adrien,
- * 24/10/2026 : le tableau de bord la montre d'abord, son losange doré clignote, et on la touche pour l'écouter).
- */
+/** Le prochain message radio à ouvrir de lui-même (une réponse d'un PNJ), ou null. */
 export function radioAOuvrir(jeu: Jeu, t: number): RadioPnj | null {
-  return jeu.radioPnj.find((r) => !r.lu && r.arrivee <= t && !(r.quete && quete(r.quete)?.type === 'principale')) ?? null
-}
-
-/** Le message radio, arrivé et pas encore écouté, qui annonce une quête (null s'il n'y en a pas). */
-export function radioDeQuete(jeu: Jeu, id: string, t: number): RadioPnj | null {
-  return jeu.radioPnj.find((r) => r.quete === id && !r.lu && r.arrivee <= t) ?? null
+  return radioALire(jeu, t)
 }
 
 /**
- * Une quête principale nouvelle (son losange doré clignote au tableau de bord) : son message radio pas encore écouté,
- * ou, à prendre auprès d'un PNJ, pas encore regardée.
+ * Une quête principale nouvelle (Adrien, 24/10/2026) : elle s'affiche au tableau de bord, son losange doré clignote
+ * jusqu'à ce qu'on l'accepte (VOIR ouvre l'appel de son donneur, ACCEPTER la lance).
  */
-export function queteNouvelle(jeu: Jeu, q: Quete, t: number): boolean {
-  if (q.type !== 'principale') return false
-  if (radioDeQuete(jeu, q.id, t)) return true
-  return !jeu.quetes[q.id] && disponibles(jeu).includes(q) && !jeu.aides.includes(`quete:${q.id}`)
+export function queteNouvelle(jeu: Jeu, q: Quete): boolean {
+  return q.type === 'principale' && !jeu.quetes[q.id] && disponibles(jeu).includes(q)
+}
+
+/** L'appel d'une quête principale à prendre : son donneur parle par radio, ACCEPTER en bas (null si elle n'est pas à prendre). */
+export function offre(jeu: Jeu, id: string, t: number): Dialogue | null {
+  const q = principalesAPrendre(jeu).find((x) => x.id === id)
+  if (!q) return null
+  return { pnj: pnj(q.donneur), pages: q.intro, proposition: q, terminee: null, radio: { delai: delaiRadio(jeu, q.donneur, t) } }
 }
 
 /** Les messages radio d'un PNJ arrivés (sa conversation, dans les Messages). */
@@ -285,15 +291,17 @@ function commencer(jeu: Jeu, q: Quete, t: number): void {
   if (q.panne && !jeu.enPanne(q.panne)) jeu.casser(q.panne)
 }
 
-/** Les quêtes proposées par radio sont prises d'office ; leur intro arrive en message. */
+/**
+ * Les quêtes secondaires proposées par radio sont prises d'office ; leur intro arrive en message. (Les principales
+ * s'offrent au tableau de bord et attendent qu'on les accepte : Adrien, 24/10/2026.)
+ */
 function prendreParRadio(jeu: Jeu, t: number): void {
   for (const q of disponibles(jeu)) {
-    if (!q.parRadio) continue
+    if (!q.parRadio || q.type === 'principale') continue
     commencer(jeu, q, t)
     envoyerRadio(jeu, { pnj: q.donneur, texte: q.intro }, t, q.id)
     if (!q.etapes.length) finir(jeu, q, t)
-    const suivie = jeu.queteSuivie ? quete(jeu.queteSuivie) : null
-    if (!suivie || q.type === 'principale' && suivie.type !== 'principale' || finie(jeu, suivie.id)) jeu.queteSuivie = q.id
+    else epingler(jeu, q.id, true)
   }
 }
 
@@ -318,7 +326,8 @@ export function accepter(jeu: Jeu, id: string, t: number): boolean {
   const q = disponibles(jeu).find((x) => x.id === id)
   if (!q) return false
   commencer(jeu, q, t)
-  if (!jeu.queteSuivie || q.type === 'principale' && quete(jeu.queteSuivie).type !== 'principale') jeu.queteSuivie = id
+  // Une secondaire acceptée s'épingle au tableau de bord, s'il reste de la place.
+  if (q.type === 'secondaire') epingler(jeu, id, true)
   // Une quête sans étape (le premier mot d'Elsa) est finie en la prenant.
   if (!q.etapes.length) finir(jeu, q, t)
   avancerQuetes(jeu, { genre: 'instant' }, t)
@@ -425,7 +434,9 @@ export function cheminVersAssaut(jeu: Jeu, nomZone: string): string | null {
     return etape ? `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${texteEtape(etape).replace(/^./, (c) => c.toLowerCase())}.` : null
   }
   const d = pnj(r.quete.donneur)
-  return `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${d.nom} t'attend (${d.lieu}), mets-toi en orbite et parle-lui.`
+  return r.quete.type === 'principale'
+    ? `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${d.nom} t'appelle par radio. Au tableau de bord, touche VOIR, puis ACCEPTER.`
+    : `Pour lancer l'assaut, avance d'abord dans la quête « ${r.quete.titre} » : ${d.nom} t'attend (${d.lieu}), mets-toi en orbite et parle-lui.`
 }
 
 /** La quête qu'on peut faire maintenant sur le chemin d'une autre : elle-même ou une de ses conditions (en cours, ou à prendre). */
