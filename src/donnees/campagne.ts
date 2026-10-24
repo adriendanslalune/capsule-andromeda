@@ -9,7 +9,7 @@ import { ZONES_A_LIBERER } from './zones'
 
 export const PNJS_CAMPAGNE: readonly Pnj[] = [
   {
-    id: 'helene', nom: 'Hélène Castagne', role: 'Directrice de la colonie Bradbury', lieu: 'Mars', teinte: '#f3a08b', portrait: null,
+    id: 'helene', nom: 'Hélène Castagne', role: 'Directrice de la colonie Bradbury', lieu: 'Mars', teinte: '#f3a08b', portrait: 'portraits/helene-medaillon.webp',
     repos: 'Bradbury tient. On a connu pire. Non, en fait, on n\'a pas connu pire. Mais on tient.',
   },
   {
@@ -96,8 +96,8 @@ const ARCS: Quete[] = [
   {
     id: 'liberer-mars', titre: 'La tempête rouge', type: 'principale', donneur: 'helene', conditions: ['l3'],
     intro: [
-      'Ici Bradbury. Vous êtes la capitaine de la Lune ? On vous entend à la radio jusqu\'ici, vous savez. Les gamins de Radio Poussière ont fait une chanson sur vous. Elle est mauvaise.',
-      'Quatre cents colons, deux serres, une mine de titane. Et une tempête de trois mois qui nous coupe du ciel. Pire : Andromède attaque nos convois. Sans le titane, Arès Titane ne paie plus, et sans la paie, plus de vivres.',
+      '(joie) Ici Bradbury. Vous êtes la capitaine de la Lune ? On vous entend à la radio jusqu\'ici, vous savez. Les gamins de Radio Poussière ont fait une chanson sur vous. Elle est mauvaise.',
+      '(souci) Quatre cents colons, deux serres, une mine de titane. Et une tempête de trois mois qui nous coupe du ciel. Pire : Andromède attaque nos convois. Sans le titane, Arès Titane ne paie plus, et sans la paie, plus de vivres.',
       'Il y a autre chose, mais une chose à la fois. Le convoi d\'abord : les Mercenaires ont un contrat ESCORTER dans le système de Mars.',
     ],
     etapes: [
@@ -105,8 +105,8 @@ const ARCS: Quete[] = [
         genre: 'mission', mission: 'escorter', systeme: 'Mars', nombre: 1, texte: 'Escorte un convoi dans le système de Mars (contrat ESCORTER des Mercenaires)',
         jauge: { zone: 'Mars', part: 20 },
         radio: { pnj: 'helene', texte: [
-          'Le titane est à quai, la paie partira ce soir. Ruiz dit qu\'il vous doit une bière. Ruiz doit une bière à tout Mars.',
-          'Bon. L\'autre chose, maintenant : le professeur Roux. Il est parti seul vers Olympus il y a des semaines, et sa balise de détresse ne répond plus. Les chasseurs qui tournent autour de Mars ont vu passer tout ce qui bouge. Abattez-en un, et rapportez-moi sa mémoire.',
+          '(joie) Le titane est à quai, la paie partira ce soir. Ruiz dit qu\'il vous doit une bière. Ruiz doit une bière à tout Mars.',
+          '(souci) Bon. L\'autre chose, maintenant : le professeur Roux. Il est parti seul vers Olympus il y a des semaines, et sa balise de détresse ne répond plus. Les chasseurs qui tournent autour de Mars ont vu passer tout ce qui bouge. Abattez-en un, et rapportez-moi sa mémoire.',
         ] },
       },
       {
@@ -114,7 +114,7 @@ const ARCS: Quete[] = [
         jauge: { zone: 'Mars', part: 20 },
         radio: { pnj: 'helene', texte: [
           'Dans sa mémoire : le rover de Roux, vu d\'en haut, arrêté au bord de la caldeira, l\'antenne tournée vers le sommet. Et une silhouette qui marche vers la balise.',
-          'Il est monté à pied… Ce vieil entêté. Les jumeaux disent que son rover enregistrait tout ce qu\'il entendait, et qu\'il entendait sa balise sur 6,120 MHz. Écoutez-la, vous. Moi, j\'ai arrêté.',
+          '(souci) Il est monté à pied… Ce vieil entêté. Les jumeaux disent que son rover enregistrait tout ce qu\'il entendait, et qu\'il entendait sa balise sur 6,120 MHz. Écoutez-la, vous. Moi, j\'ai arrêté.',
         ] },
       },
       {
@@ -129,7 +129,7 @@ const ARCS: Quete[] = [
       },
       {
         genre: 'disparu', nom: 'Beagle 2', jauge: { zone: 'Mars', part: 20 },
-        radio: { pnj: 'helene', texte: ['Sa caméra a tenu, la vieille ! On a les rondes du Phobétor, minute par minute. Demir prépare ses foreuses. Il veut toujours klaxonner. Faites monter la Résistance autour de Mars, et on y va.'] },
+        radio: { pnj: 'helene', texte: ['(joie) Sa caméra a tenu, la vieille ! On a les rondes du Phobétor, minute par minute. Demir prépare ses foreuses. Il veut toujours klaxonner. Faites monter la Résistance autour de Mars, et on y va.'] },
       },
       { genre: 'jauge', zone: 'Mars' },
       { genre: 'assaut', zone: 'Mars' },

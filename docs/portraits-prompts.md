@@ -154,6 +154,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Dr Samuel Okafor** (24/10/2026) : les trois humeurs.
 - **Le Veilleur** (24/10/2026) : les trois humeurs (le souci, un œil entrouvert, aux aguets).
 - **Rosa Mendès** (24/10/2026) : les trois humeurs (le souci, une moue méfiante).
+- **Hélène Castagne** (24/10/2026) : les trois humeurs.
 
 ## Ce qu'il faut envoyer à Claude
 

@@ -389,7 +389,7 @@ export const decorSvg = (nom: string) => `<svg xmlns="http://www.w3.org/2000/svg
 // Une image arrivée (Adrien la fait faire à ChatGPT, Claude la recadre et la range dans public/) remplace le dessin :
 // ajouter ici l'identifiant du PNJ (trois images : portraits/<id>-neutre.webp, -joie.webp, -souci.webp) ou du décor
 // (decors/<decor>.webp).
-const PORTRAITS_PRETS: readonly string[] = ['elsa', 'keita', 'okafor', 'veilleur', 'rosa']
+const PORTRAITS_PRETS: readonly string[] = ['elsa', 'keita', 'okafor', 'veilleur', 'rosa', 'helene']
 const DECORS_PRETS: readonly string[] = []
 
 const PAR_ID = new Map(PERSOS.map((p) => [p.id, p]))
