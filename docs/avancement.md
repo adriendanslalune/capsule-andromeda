@@ -78,6 +78,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   non construit ; les 26 amiraux, le chasseur, l'escorteur, la capsule, **vus du dessus**, la même image au combat et
   sur l'annonce : Adrien), puis les formes de la capsule, les couvertures pulp, les Disparus. À coder : les sprites dans
   le combat, l'écran d'avant l'assaut.
+- Trophées (Adrien, 24/10/2026) : cadre validé (voir CLAUDE.md : 150 trophées loufoques, vitrine dans le Profil, petite
+  fenêtre, la gloire seulement, médailles SVG de Claude) — **à faire**, après les illustrations.
 - Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient
   en dernier (aucune fenêtre ouverte, rien d'autre à annoncer, aucun message radio sur le point d'arriver, un instant de
   calme) ; un message radio attend aussi que la fenêtre du nouveau moteur soit refermée.
