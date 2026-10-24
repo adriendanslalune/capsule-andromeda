@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Tableau de bord (Adrien, 24/10/2026) : du nouveau dans une catégorie fait s'agiter le symbole de son onglet (une
+  secousse toutes les deux secondes) jusqu'à ce qu'on touche l'onglet ou la ligne : une alerte de plus, un contrat
+  arrivé à son étape, un écho revenu, une quête ou une étape de quête de plus (`commun/bandeau.ts`). Le clignotement du
+  losange d'une nouvelle quête principale, perdu en retirant le tutoriel, est remis.
 - Contrats autour des lunes (Adrien, 24/10/2026 : « on doit toujours revenir en orbite autour de la planète ») : les
   engins et les 4 contrats par grande lune existaient, mais le trajet était faux. Parti de l'orbite d'une lune, le
   planificateur se croyait dans le système de la planète et traitait la lune comme un autre système : sortie à

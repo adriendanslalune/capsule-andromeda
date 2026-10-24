@@ -85,9 +85,25 @@ let voyantOuvert: Voyant | null = null
 /** Ce que montre l'afficheur en ce moment, et les alertes déjà vues (une nouvelle passe devant tout). */
 let afficheActuel: Voyant | null = null
 let alertesVues = ''
+/**
+ * Du nouveau dans une catégorie (Adrien, 24/10/2026 : comme le losange d'une nouvelle quête) : le symbole de son onglet
+ * s'agite, jusqu'à ce qu'on touche l'onglet ou une de ses lignes. signatures : ce qu'on a vu de chaque catégorie.
+ */
+const signatures: Partial<Record<Voyant, string>> = {}
+const nouveaux = new Set<Voyant>()
 /** Toucher un voyant : l'afficheur montre sa catégorie ; retoucher celui qui est montré revient au choix du tableau. */
 export function basculerVoyant(v: Voyant): void {
   voyantOuvert = afficheActuel === v ? null : v
+  nouveaux.delete(v)
+}
+/** Une ligne touchée : sa catégorie n'a plus rien de nouveau. */
+export function voyantVu(v: Voyant): void {
+  nouveaux.delete(v)
+}
+/** La catégorie d'une ligne du bandeau (son data-ligne). */
+export function voyantDeLigne(genre: string): Voyant | null {
+  return genre === 'missile' || genre === 'panne' || genre === 'chaleur' ? 'alerte' : genre === 'contrat' ? 'contrat'
+    : genre === 'echo' || genre === 'echo-recu' ? 'echo' : genre === 'quete' ? 'quete' : null
 }
 
 /** Formes déjà affichées (l'état, l'écran) : si elles ne changent pas, on ne change que les textes. */
@@ -140,6 +156,22 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   const alertes = actives.filter((l) => categorieDe(l) === 'alerte').map((l) => l.genre).sort().join()
   if (alertes && alertes !== alertesVues) voyantOuvert = null
   alertesVues = alertes
+  // Ce qui compte comme nouveau : une alerte de plus (une autre panne, un missile), un contrat arrivé à son étape (sur
+  // place), un écho revenu, une quête ou une étape de quête de plus. Ce qui disparaît n'est jamais nouveau.
+  const neuf: Record<Voyant, string[]> = {
+    alerte: actives.flatMap((l) => (l.genre === 'panne' ? l.modules.map((m) => `panne:${m}`) : l.genre === 'missile' || l.genre === 'chaleur' ? [l.genre] : [])),
+    contrat: actives.flatMap((l) => (l.genre === 'contrat' && l.situation === 'sur-place' ? [`${l.contrat.id}:${l.numero}`] : [])),
+    echo: actives.flatMap((l) => (l.genre === 'echo-recu' ? [`${l.monolithe}:${l.localise}`] : [])),
+    quete: capsule.quetes.map((q) => `${q.id}:${q.objectif.replace(/ \([^)]*\)$/, '')}`),
+  }
+  for (const v of VOYANTS.map((x) => x.cle)) {
+    const avant = signatures[v]
+    if (avant !== undefined && neuf[v].some((x) => !avant.split('|').includes(x))) nouveaux.add(v)
+    if (!neuf[v].length) nouveaux.delete(v)
+    signatures[v] = neuf[v].join('|')
+  }
+  // Une nouvelle quête principale à prendre agite aussi son onglet, tant qu'on ne l'a pas prise.
+  if (capsule.quetes.some((q) => q.nouvelle)) nouveaux.add('quete')
   const affiche: Voyant | null = voyantOuvert ?? (nombre('alerte') ? 'alerte' : nombre('contrat') ? 'contrat' : nombre('quete') ? 'quete' : null)
   afficheActuel = affiche
   // L'afficheur : les lignes de la catégorie ouverte, ou ce qui dit qu'il n'y a rien ; vide si aucun voyant n'est ouvert.
@@ -184,7 +216,7 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
   zone.querySelectorAll<HTMLElement>('[data-texte]').forEach((e, k) => { if (e.textContent !== textes[k]) e.textContent = textes[k] })
   for (const b of element.querySelectorAll<HTMLElement>('.voyant')) {
     const cle = b.dataset.voyant as Voyant, n = nombre(cle)
-    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', affiche === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : ''].filter(Boolean).join(' ')
+    const classe = ['voyant', `v-${cle}`, n ? 'allume' : 'eteint', affiche === cle ? 'ouvert' : '', cle === 'alerte' && urgent ? 'urgent' : '', nouveaux.has(cle) ? 'nouveau' : ''].filter(Boolean).join(' ')
     if (b.className !== classe) b.className = classe
     b.setAttribute('aria-pressed', String(affiche === cle))
     const compte = b.querySelector<HTMLElement>('.compte')!

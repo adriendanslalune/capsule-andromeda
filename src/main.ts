@@ -11,7 +11,7 @@ import './style.css'
 /** Version construite (le commit), remplacée par Vite. */
 declare const __VERSION__: string
 import { Cadran } from './carte/cadran'
-import { afficherBandeau, basculerVoyant, type Voyant } from './commun/bandeau'
+import { afficherBandeau, basculerVoyant, voyantDeLigne, voyantVu, type Voyant } from './commun/bandeau'
 import { Cockpit } from './commun/cockpit'
 import { surveillerMisesAJour } from './commun/mise-a-jour'
 import { preparerInstallation } from './commun/installation'
@@ -724,6 +724,8 @@ bandeau.addEventListener('click', (e) => {
   const voyant = (e.target as HTMLElement).closest<HTMLElement>('[data-voyant]')?.dataset.voyant
   if (voyant) { basculerVoyant(voyant as Voyant); mettreAJourFiche(horloge()); return }
   const ligne = (e.target as HTMLElement).closest<HTMLElement>('[data-ligne]')?.dataset.ligne
+  const vu = ligne ? voyantDeLigne(ligne) : null
+  if (vu) voyantVu(vu)
   if (ligne === 'missile') {
     // Toucher le missile, c'est l'intercepter (s'il reste un intercepteur).
     const t = horloge()

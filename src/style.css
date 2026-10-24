@@ -2507,6 +2507,21 @@ body.volet-ouvert #annonces { display: none; }
 #bandeau .afficheur .ligne.quete .losange { display: inline-block; width: 9px; height: 9px; margin: 0 8px 1px 2px; vertical-align: middle;
   transform: rotate(45deg); background: #e0ac2a; border: 1.5px solid var(--encre); }
 #bandeau .afficheur .ligne.quete.secondaire .losange { width: 6px; height: 6px; margin: 0 9px 1px 3px; background: var(--encre); border: none; }
+/* Une nouvelle quête principale (demande d'Adrien du 24/10/2026) : son losange doré clignote. */
+#bandeau .ligne.quete.nouvelle .losange { animation: losange-nouveau 0.8s ease-in-out infinite alternate; }
+@keyframes losange-nouveau { from { opacity: 1; transform: rotate(45deg) scale(1.25); } to { opacity: 0.25; transform: rotate(45deg) scale(0.9); } }
+/* Du nouveau dans une catégorie (Adrien, 24/10/2026) : le symbole de son onglet s'agite, une secousse toutes les deux
+   secondes comme le « ! » de la carte, jusqu'à ce qu'on touche l'onglet ou la ligne. */
+#bandeau .voyant.nouveau > :first-child { animation: voyant-nouveau 2s ease-in-out infinite; transform-origin: 50% 60%; }
+@keyframes voyant-nouveau {
+  0%, 30%, 100% { transform: none; }
+  5% { transform: scale(1.35) rotate(-14deg); }
+  10% { transform: scale(1.35) rotate(12deg); }
+  15% { transform: scale(1.3) rotate(-9deg); }
+  20% { transform: scale(1.2) rotate(6deg); }
+  25% { transform: scale(1.1) rotate(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) { #bandeau .voyant.nouveau > :first-child, #bandeau .ligne.quete.nouvelle .losange { animation: none; } }
 #bandeau .afficheur .ligne.quete b > span { display: inline; font-size: inherit; opacity: 1; }
 #carnet .bande .heure-voix { font-weight: 600; color: color-mix(in srgb, var(--encre) 75%, transparent); }
 
