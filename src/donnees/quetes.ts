@@ -29,7 +29,7 @@ export const PNJS: readonly Pnj[] = [
     repos: 'L\'ISS tient encore debout, et nous aussi. Je t\'appelle à la radio dès que j\'ai du nouveau.',
   },
   {
-    id: 'keita', nom: 'Dr Amadou Keïta', role: 'Sélénologue en exil', lieu: 'Lune', teinte: '#d7cdee', portrait: null,
+    id: 'keita', nom: 'Dr Amadou Keïta', role: 'Sélénologue en exil', lieu: 'Lune', teinte: '#d7cdee', portrait: 'portraits/keita-medaillon.webp',
     repos: 'La Lune a vu passer bien des envahisseurs. Enfin… des météores, surtout. Mais celui-là est coriace.',
   },
   {
@@ -177,7 +177,7 @@ export const QUETES: readonly Quete[] = [
   {
     id: 'l2', titre: 'Le relais Apollo', type: 'principale', donneur: 'keita', conditions: ['l1'], parRadio: true,
     intro: [
-      'Pour parler vraiment avec Tycho, il nous faut un relais au-dessus de la face cachée. Le nôtre est en panne depuis le premier jour.',
+      '(souci) Pour parler vraiment avec Tycho, il nous faut un relais au-dessus de la face cachée. Le nôtre est en panne depuis le premier jour.',
       'Les Ingénieurs ont toujours un engin à remettre en état : prends un contrat RÉPARER. Ensuite, profite d\'être là-haut pour jeter un œil autour de la Lune, radar allumé. Okafor croit qu\'ils cachent quelque chose de gros.',
     ],
     etapes: [
@@ -185,7 +185,7 @@ export const QUETES: readonly Quete[] = [
       {
         genre: 'radar', lieu: 'Lune', texte: 'Allume le radar près de la Lune : quelque chose s\'y cache', jauge: { zone: 'Lune', part: 15 },
         radio: { pnj: 'keita', texte: [
-          'Un vaisseau énorme, immobile, ses feux à 4,7 secondes d\'intervalle… Le Séléné.',
+          '(souci) Un vaisseau énorme, immobile, ses feux à 4,7 secondes d\'intervalle… Le Séléné.',
           'Un vaisseau amiral, rien que ça, collé contre la Lune comme une tique. C\'est lui qui tient la Lune. Elsa veut te parler.',
         ] },
       },
