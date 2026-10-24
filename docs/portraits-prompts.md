@@ -163,6 +163,8 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Hana Sato** (24/10/2026) : les trois humeurs.
 - **Le vieil Aksel** (24/10/2026) : les trois humeurs.
 - **Mira Kovač** (24/10/2026) : les trois humeurs. Les treize personnages sont là ; restent les décors.
+- **Décor de l'ISS** (24/10/2026) : arrivé en paysage (1536 × 1024), recadré sur sa partie droite (le hublot et la
+  Terre) pour la case du dialogue, presque carrée. Les décors peuvent venir en paysage : Claude garde ce qui compte.
 
 ## Ce qu'il faut envoyer à Claude
 
