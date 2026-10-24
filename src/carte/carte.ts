@@ -94,6 +94,9 @@ const DUREE_PULSE = 1800
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
+/** Le zoom le plus serré, aux doigts et à l'ouverture du jeu (Adrien, 24/10/2026 : on distinguait mal les vaisseaux) ;
+ *  les cadrages automatiques (gros plan, trajet) s'arrêtent à KM_PAR_PX_MIN. */
+export const KM_PAR_PX_ZOOM = 2
 /** Dézoom maximal : jusqu'aux Voyager (demi-largeur de 200 UA), pour voir New Horizons et au-delà. */
 const KM_PAR_PX_MAX = (200 * UA_KM) / 195
 /** Planètes extérieures : elles ne rétrécissent qu'une fois New Horizons à l'écran (demande d'Adrien, 17/10/2026). */
@@ -301,7 +304,7 @@ export class Carte2D {
     const ep = avant ? tot(u) : tard(u), ez = avant ? tard(u) : tot(u)
     this.centre = { x: v.c0.x + (vise.x - v.c0.x) * ep, y: v.c0.y + (vise.y - v.c0.y) * ep }
     const k = Math.exp(Math.log(v.k0) + (Math.log(v.k1) - Math.log(v.k0)) * ez + v.bosse * Math.sin(Math.PI * u))
-    this.kmParPx = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_MIN, k))
+    this.kmParPx = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_ZOOM, k))
     if (u >= 1) this.vol = null
   }
 
@@ -464,6 +467,14 @@ export class Carte2D {
     ctx.restore()
   }
 
+  /**
+   * Les vaisseaux grossissent quand on zoome sous KM_PAR_PX_MIN (Adrien, 24/10/2026 : on les distinguait mal) : jusqu'à
+   * trois fois au zoom le plus serré. Tous ensemble : la silhouette montre toujours le niveau, pas la taille.
+   */
+  grossissement(): number {
+    return Math.min(3, Math.max(1, Math.sqrt(KM_PAR_PX_MIN / this.kmParPx)))
+  }
+
   /** La capsule d'un autre joueur, dans le sens de sa marche (sa silhouette, en attendant son image, à la couleur de sa Maison). */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const maison = BOTS.find((b) => b.pseudo === nom)?.maison
@@ -485,7 +496,7 @@ export class Carte2D {
     // plus en s'éloignant.
     const p = palierDe(niveauDuBot(nom))
     const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
-    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul, teinte, couleurs.encre)
+    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul * this.grossissement(), teinte, couleurs.encre)
   }
 
   /**
@@ -887,11 +898,11 @@ export class Carte2D {
     }
     this.angleCapsule = a
     this.instantAngle = maintenant
-    const forme = this.formeCapsule, rc = rayonVaisseau(forme.forme, forme.taille)
+    const forme = this.formeCapsule, g = this.grossissement(), rc = rayonVaisseau(forme.forme, forme.taille * g)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
     this.dessinerPulsesPing(ctx, x, y, rc, maintenant)
-    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre, true)
+    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille * g, '#e04b37', couleurs.encre, true)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
     this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }
   }
@@ -1635,7 +1646,7 @@ export class Carte2D {
 
   zoomer(facteur: number, sx: number, sy: number): void {
     this.vol = null
-    const nouveau = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_MIN, this.kmParPx * facteur))
+    const nouveau = Math.min(KM_PAR_PX_MAX, Math.max(KM_PAR_PX_ZOOM, this.kmParPx * facteur))
     const m = this.milieu()
     // Le point sous les doigts reste fixe.
     const qx = this.centre.x + (sx - m.x) * this.kmParPx, qy = this.centre.y - (sy - m.y) * this.kmParPx

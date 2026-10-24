@@ -107,7 +107,7 @@ import { annonces } from './moteur/annonces'
 import { onomatopee, tampon } from './commun/onomatopee'
 import { bavardsIci, phraseDePassage } from './moteur/passages'
 import { avec, picto, SYMBOLE_GENRE } from './commun/symboles'
-import { CAPSULE, Carte2D } from './carte/carte'
+import { CAPSULE, Carte2D, KM_PAR_PX_ZOOM } from './carte/carte'
 import { CENTRES, couperTrace, projeter, projeterCorps, projeterTrajet, type Point2 } from './carte/loupe'
 import { Gestes } from './commun/gestes'
 import { dessinerReperes, type Boite } from './commun/reperes'
@@ -402,10 +402,9 @@ window.addEventListener('resize', calerVolet)
 function allerALaCapsule(animer = true): void {
   const t = horloge()
   const ou = astreDominant(mission.etat(t).position, t)
-  // Le bouton : un gros plan sur la capsule (demandes d'Adrien du 19 et du 20/10/2026) ; à l'ouverture du jeu, tout le
-  // système de la planète (comme avant).
-  const k = !animer ? (ou === 'Soleil' ? carte.echelleGenerale() : carte.echelleSysteme(ou))
-    : carte.echelleGrosPlan(astreLePlusProche(ou, t), t)
+  // Le bouton : un gros plan sur la capsule (demandes d'Adrien du 19 et du 20/10/2026) ; à l'ouverture du jeu (et à
+  // chaque rechargement), la caméra devant la capsule, au zoom le plus serré (Adrien, 24/10/2026).
+  const k = !animer ? KM_PAR_PX_ZOOM : carte.echelleGrosPlan(astreLePlusProche(ou, t), t)
   if (animer) choisir(CAPSULE, false, k)
   else {
     // D'un coup : on place la caméra avant de choisir la capsule (le vol lancé par le choix est alors immobile).
@@ -2070,7 +2069,13 @@ document.addEventListener('click', (e) => {
 }, true)
 
 // Sauvegarde aussi quand on quitte l'application (ou qu'elle passe en arrière-plan).
-document.addEventListener('visibilitychange', () => { if (document.hidden) enregistrerPartie() })
+// Le jeu rouvert (l'application revenue au premier plan après un moment) : la caméra revient devant la capsule, au zoom
+// le plus serré, comme à l'ouverture (Adrien, 24/10/2026 : systématiquement).
+let cacheDepuis = 0
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { enregistrerPartie(); cacheDepuis = Date.now(); return }
+  if (cacheDepuis && Date.now() - cacheDepuis > 30_000 && !presentation.ouverte) allerALaCapsule(false)
+})
 window.addEventListener('pagehide', enregistrerPartie)
 
 // Recommencer à zéro (dans Réglages) : la partie sauvegardée est effacée, après confirmation.
