@@ -73,6 +73,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   Keïta, Okafor, le Veilleur, Rosa, Hélène, Odile, Aurelio, Nadia, Tomás, Hana, Aksel et Mira reçus le même jour : les treize portraits sont là, puis
   les treize décors (recadrés au besoin, `public/decors/`). Les dessins SVG de Claude restent en secours.
   Galerie des dialogues dans Réglages (essais) : chaque personnage, ses trois humeurs, son décor, en direct ou par radio.
+- Les illustrations, suite (24/10/2026, Adrien : « il faut ajouter des illustrations à ce jeu ! ») : ordre choisi, les
+  vaisseaux amiraux d'abord (fiche de prompts `docs/amiraux-prompts.md` : le langage de formes d'Andromède, poussé et
+  non construit, et les 26 amiraux), puis les formes de la capsule, les couvertures pulp, les Disparus. À coder : l'écran
+  d'avant l'assaut qui montre l'amiral.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.
