@@ -37,7 +37,7 @@ export const PNJS: readonly Pnj[] = [
     repos: 'Quarante-deux personnes sous un dôme. On tient. On tient toujours.',
   },
   {
-    id: 'veilleur', nom: 'Le Veilleur', role: 'Ermite qui écoute le ciel', lieu: 'Hubble', teinte: '#bfe0e8', portrait: null,
+    id: 'veilleur', nom: 'Le Veilleur', role: 'Ermite qui écoute le ciel', lieu: 'Hubble', teinte: '#bfe0e8', portrait: 'portraits/veilleur-medaillon.webp',
     repos: 'Chut. J\'écoute. Le ciel parle à ceux qui se taisent.',
   },
   {
@@ -216,11 +216,11 @@ export const QUETES: readonly Quete[] = [
   {
     id: 'veilleur', titre: 'L\'oreille du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['q1'],
     intro: [
-      'Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous. Ils ne répondent qu\'à ceux qui appellent.',
+      '(souci) Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous. Ils ne répondent qu\'à ceux qui appellent.',
       'Touche le bouton PING de ta carte, et le plus proche te répond. Son écho revient à la vitesse de la lumière : il trace un cercle, et le monolithe est quelque part dessus. Déplace-toi, appelle encore, et les cercles se croisent.',
     ],
     etapes: [
-      { genre: 'ping', radio: { pnj: 'veilleur', texte: ['Tu l\'as entendu ? Alors tu es des nôtres. Il en reste mille. Ceux que tu trouves iront dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.'] } },
+      { genre: 'ping', radio: { pnj: 'veilleur', texte: ['(joie) Tu l\'as entendu ? Alors tu es des nôtres. Il en reste mille. Ceux que tu trouves iront dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.'] } },
     ],
     recompense: 30,
   },

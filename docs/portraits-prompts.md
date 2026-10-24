@@ -152,6 +152,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
   logo existant » dans les blocs de style.
 - **Dr Amadou Keïta** (24/10/2026) : les trois humeurs, avec le bon écusson.
 - **Dr Samuel Okafor** (24/10/2026) : les trois humeurs.
+- **Le Veilleur** (24/10/2026) : les trois humeurs (le souci, un œil entrouvert, aux aguets).
 
 ## Ce qu'il faut envoyer à Claude
 
