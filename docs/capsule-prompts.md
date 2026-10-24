@@ -4,7 +4,7 @@ Adrien, 24/10/2026 : après les amiraux, les formes de la capsule du joueur. Le 
 son engin tous les 20 niveaux (`src/donnees/niveaux.ts`) : Capsule (1), Navette (20), Corvette (40), Frégate (60),
 Croiseur (80), Légende (100, dorée). La première existe déjà : c'est l'image du combat (`public/vaisseaux/capsule.webp`).
 Il en reste cinq, qui doivent avoir l'air de la même famille, à chaque fois un cran plus grande, plus armée, plus fière.
-Ce qui montre le niveau, c'est la silhouette, pas la taille : sur la carte, la Légende ne fait que 1,25 fois la capsule.
+Sur la carte, la taille grandit aussi avec le niveau (Adrien, 24/10/2026) : la Légende fait cinq fois la capsule.
 
 ## Où on les voit (décisions d'Adrien du 24/10/2026)
 

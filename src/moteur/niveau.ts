@@ -20,13 +20,14 @@ export function niveauDe(xp: number): { niveau: number; dans: number; besoin: nu
 /**
  * Le palier d'un niveau : sa forme, son nom, et sa taille sur la carte. Elle grandit avec le niveau (Adrien, 24/10/2026,
  * qui remplace « de 1 à 1,25 fois la capsule au plus » : une capsule de niveau 3 est visiblement plus petite qu'une de
- * niveau 10, et le niveau 100 est très grand) : de 1 au niveau 1 à 3 au niveau 100, vite au début, puis plus doucement.
+ * niveau 10, et le niveau 100 est très grand ; puis plus encore, Adrien : « un jeune joueur doit se dire : waw, moi aussi je
+ * veux un gros vaisseau comme lui ! ») : de 1 au niveau 1 à 5 au niveau 100, vite au début, puis plus doucement.
  */
 export function palierDe(niveau: number): { forme: Forme; nom: string; taille: number } {
   let i = 0
   while (i + 1 < PALIERS.length && niveau >= PALIERS[i + 1].des) i++
   const p = PALIERS[i], n = Math.min(NIVEAU_MAX, Math.max(1, niveau))
-  return { forme: p.forme, nom: p.nom, taille: 1 + 2 * Math.sqrt((n - 1) / (NIVEAU_MAX - 1)) }
+  return { forme: p.forme, nom: p.nom, taille: 1 + 4 * ((n - 1) / (NIVEAU_MAX - 1)) ** 0.6 }
 }
 
 /** Le niveau d'un PNJ (un bot), tiré une fois pour toutes de son pseudo : il grandit, lui aussi. */
