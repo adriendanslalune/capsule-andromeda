@@ -30,6 +30,8 @@ function vaisseau(nom: string): HTMLImageElement | null {
   if (!im) { im = VAISSEAUX[nom] = new Image(); im.src = `vaisseaux/${nom}.webp` }
   return im.complete && im.naturalWidth ? im : null
 }
+/** Où sont les tuyères de chaque forme de la capsule (en part de sa largeur, depuis le milieu), pour leurs flammes. */
+const TUYERES: Partial<Record<Forme, number[]>> = { navette: [-0.17, 0.17] }
 /** Le nom de fichier d'un amiral : « le Séléné » → selene, « l'Ithaque » → ithaque, « TRITON » → triton. */
 export function idAmiral(nom: string): string {
   return nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le |la |l')/, '').replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
@@ -294,8 +296,11 @@ export class VueCombat {
       // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
       // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
       const l = (13 * rayonVaisseau(this.forme, 1)) / 9 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
-      ctx.beginPath(); ctx.moveTo(x - 1.4 * k, y + h / 2 - 0.6 * k); ctx.lineTo(x, y + h / 2 + (2.6 + Math.sin(e.temps * 30)) * k); ctx.lineTo(x + 1.4 * k, y + h / 2 - 0.6 * k); ctx.closePath()
-      ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
+      for (const dx of TUYERES[this.forme] ?? [0]) {
+        const xt = x + dx * l
+        ctx.beginPath(); ctx.moveTo(xt - 1.4 * k, y + h / 2 - 0.6 * k); ctx.lineTo(xt, y + h / 2 + (2.6 + Math.sin(e.temps * 30 + dx * 9)) * k); ctx.lineTo(xt + 1.4 * k, y + h / 2 - 0.6 * k); ctx.closePath()
+        ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
+      }
       ctx.drawImage(imCapsule, x - l / 2, y - h / 2, l, h)
       ctx.beginPath(); ctx.arc(x, y, 0.9 * k, 0, 2 * Math.PI); ctx.fillStyle = CERISE; ctx.fill()
     } else if (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0) {
