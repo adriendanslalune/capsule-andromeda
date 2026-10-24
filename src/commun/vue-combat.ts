@@ -204,10 +204,11 @@ export class VueCombat {
     for (const a of e.aliens) {
       if (a.chef && e.amiral) { this.amiral(ctx, X(a.x), Y(a.y), k, a.pv < a.pvMax / 2, e.temps); continue }
       const s = a.chef ? 1.6 : 0.85
-      // Le chasseur dessiné : sa graine ailée sur 22 unités de large (sa zone de touche en fait 18).
-      const im = a.chef ? vaisseau('chasseur') : null
+      // Dessinés : le chasseur, sa graine ailée sur 22 unités de large (sa zone de touche en fait 18) ; l'escorteur, son
+      // dard sur 11 (sa zone de touche en fait 10).
+      const im = vaisseau(a.chef ? 'chasseur' : 'escorteur')
       if (im) {
-        const l = 22 * k, h = (l * im.naturalHeight) / im.naturalWidth
+        const l = (a.chef ? 22 : 11) * k, h = (l * im.naturalHeight) / im.naturalWidth
         ctx.drawImage(im, X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
         // Touché : il blanchit un éclair.
         if (a.touche !== undefined && e.temps - a.touche < FLASH) {
