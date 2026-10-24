@@ -17,7 +17,7 @@ import type { Forme } from '../donnees/niveaux'
 import { niveauDuBot, palierDe } from '../moteur/niveau'
 import { dessinerVaisseau, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
-import { CORPS, corps, enfants, position, type Corps } from '../moteur/corps'
+import { CORPS, corps, enfants, ouEstLeBot, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
 import { traceOrbite } from '../moteur/orbite'
 import { activiteComete, HALLEY, orbitePetitCorps } from '../moteur/petits-corps'
@@ -499,6 +499,16 @@ export class Carte2D {
     // De loin, un petit point (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis), le même pour tous (Adrien,
     // 24/10/2026 : plus la couleur de la Maison, pour la lisibilité).
     if (this.kmParPx > LOIN_CAPSULES) {
+      // En vol, une petite traînée derrière le point : on voit qu'il bouge.
+      if (ouEstLeBot(nom, t).enRoute) {
+        const q2 = this.ecranDe(projeterCorps(nom, t + 60_000)), ang = Math.atan2(q2.y - q.y, q2.x - q.x)
+        ctx.beginPath()
+        ctx.moveTo(q.x, q.y)
+        ctx.lineTo(q.x - 9 * Math.cos(ang), q.y - 9 * Math.sin(ang))
+        ctx.lineWidth = 2
+        ctx.strokeStyle = 'rgba(242, 181, 58, 0.85)'
+        ctx.stroke()
+      }
       ctx.beginPath()
       ctx.arc(q.x, q.y, 2, 0, 2 * Math.PI)
       ctx.fillStyle = '#f6efdc'
@@ -513,7 +523,23 @@ export class Carte2D {
     // plus en s'éloignant.
     const p = palierDe(niveauDuBot(nom))
     const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
-    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul * this.grossissement(), teinte, couleurs.encre, false, maison)
+    const angle = Math.atan2(q2.y - q.y, q2.x - q.x), taille = p.taille * 0.85 * recul * this.grossissement()
+    // En vol, une flamme derrière lui (Adrien, 24/10/2026 : on doit les voir partir et arriver).
+    if (ouEstLeBot(nom, t).enRoute) {
+      const r = rayonVaisseau(p.forme, taille), long = r * (1.1 + 0.25 * Math.sin(performance.now() / 70 + nom.length))
+      const dx = Math.cos(angle), dy = Math.sin(angle), bx = q.x - dx * r * 0.75, by = q.y - dy * r * 0.75
+      ctx.beginPath()
+      ctx.moveTo(bx - dy * r * 0.28, by + dx * r * 0.28)
+      ctx.lineTo(bx - dx * long, by - dy * long)
+      ctx.lineTo(bx + dy * r * 0.28, by - dx * r * 0.28)
+      ctx.closePath()
+      ctx.fillStyle = '#f2b53a'
+      ctx.fill()
+      ctx.lineWidth = 1
+      ctx.strokeStyle = couleurs.encre
+      ctx.stroke()
+    }
+    dessinerVaisseau(ctx, q.x, q.y, angle, p.forme, taille, teinte, couleurs.encre, false, maison)
   }
 
   /**

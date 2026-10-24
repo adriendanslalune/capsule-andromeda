@@ -226,7 +226,7 @@ const DEBUT_ITINERAIRES = Date.UTC(2026, 9, 1)
 /** Une escale d'un bot : où, quand il y arrive et quand il en repart (ms UTC). */
 interface Escale { lieu: string; arrivee: number; depart: number }
 
-const ITINERAIRES = new Map(BOTS.map((b, k) => [b.pseudo, { k, bot: b, escales: [] as Escale[] }]))
+const ITINERAIRES = new Map(BOTS.map((b, k) => [b.pseudo, { k, bot: b }]))
 
 /** Hasard reproductible d'un bot pour son escale n : entre 0 et 1. */
 function hasardBot(k: number, n: number): number {
@@ -249,22 +249,93 @@ function orbiteBot(k: number, lieu: string, t: number): Vecteur3 {
   return { x: rayon * Math.cos(a), y: rayon * Math.sin(a), z: 0.2 * rayon * Math.sin(a + k) }
 }
 
-/** Les escales d'un bot jusqu'à l'instant t (calculées une fois, puis prolongées au besoin). */
-function escalesJusqua(pseudo: string, t: number): Escale[] {
+/**
+ * La durée d'une escale : de 5 minutes à 1 heure, le plus souvent courte (Adrien, 24/10/2026, qui remplace 4 à 30
+ * heures : les vaisseaux autour de la Terre ne bougeaient pas ; on doit les voir partir et arriver).
+ */
+function dureeEscale(k: number, n: number): number {
+  const x = hasardBot(k, n + 100)
+  return (5 + 55 * x * x) * 60_000
+}
+
+/**
+ * Les itinéraires se calculent par périodes de deux jours (avec des escales courtes, tout recalculer depuis le début
+ * prendrait des secondes) : chaque période part d'un port tiré au sort à l'heure dite, et la précédente s'arrange pour
+ * y finir (le bot y vole et l'y attend) : pas de saut d'une période à l'autre.
+ */
+const PERIODE_ITINERAIRE = 2 * 24 * 3_600_000
+const PERIODES = new Map<string, Escale[]>()
+
+/**
+ * La période d'un bot (au moins deux jours, assez pour plusieurs de ses plus longs vols), et la marge avant sa fin où il
+ * ne tire plus de nouvelle escale (le temps de rejoindre le port suivant). Calculées une fois.
+ */
+const RYTHMES = new Map<string, { periode: number; marge: number }>()
+function rythme(pseudo: string): { periode: number; marge: number } {
+  const deja = RYTHMES.get(pseudo)
+  if (deja) return deja
   const it = ITINERAIRES.get(pseudo)!
-  const l = it.escales
-  if (!l.length) l.push({ lieu: it.bot.escales[0], arrivee: DEBUT_ITINERAIRES, depart: DEBUT_ITINERAIRES + (6 + 18 * hasardBot(it.k, 0)) * 3_600_000 })
-  while (l[l.length - 1].depart <= t) {
-    const n = l.length, prec = l[n - 1]
-    const autres = it.bot.escales.filter((e) => e !== prec.lieu)
-    const lieu = autres[Math.floor(hasardBot(it.k, n) * autres.length) % autres.length]
-    const a = ajouter(position(prec.lieu, prec.depart), orbiteBot(it.k, prec.lieu, prec.depart))
-    const b = position(lieu, prec.depart)
-    const arrivee = prec.depart + dureeVol(Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z), it.bot.vitesse)
-    // Une escale de 4 à 30 heures.
-    l.push({ lieu, arrivee, depart: arrivee + (4 + 26 * hasardBot(it.k, n + 100)) * 3_600_000 })
+  let plusLong = 0
+  // Le plus long vol entre deux de ses escales, sur une année (douze dates).
+  for (let m = 0; m < 12; m++) {
+    const t = DEBUT_ITINERAIRES + m * 30 * 24 * 3_600_000
+    for (const a of it.bot.escales) for (const b of it.bot.escales) {
+      if (a >= b) continue
+      const p = position(a, t), q = position(b, t)
+      plusLong = Math.max(plusLong, dureeVol(Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z), it.bot.vitesse))
+    }
   }
+  const r = { periode: Math.ceil(Math.max(PERIODE_ITINERAIRE, 4 * plusLong) / 3_600_000) * 3_600_000, marge: 1.2 * plusLong + 3_600_000 }
+  RYTHMES.set(pseudo, r)
+  return r
+}
+
+/** Chaque bot a son propre calendrier (sinon, tous attendraient au port en même temps, à la fin de chaque période). */
+const decalage = (k: number, periode: number) => Math.floor(hasardBot(k, 9999) * periode)
+
+/** Le port d'où un bot part au début d'une période (le premier : son port d'attache). */
+function portDePeriode(k: number, escales: readonly string[], i: number): string {
+  return i === 0 ? escales[0] : escales[Math.floor(hasardBot(k, 5000 + i) * escales.length) % escales.length]
+}
+
+/** Les escales d'un bot pendant la période i (calculées une fois). */
+function escalesDePeriode(pseudo: string, i: number): Escale[] {
+  const cle = `${pseudo}|${i}`
+  const deja = PERIODES.get(cle)
+  if (deja) return deja
+  const it = ITINERAIRES.get(pseudo)!, { periode, marge } = rythme(pseudo)
+  const debut = DEBUT_ITINERAIRES + decalage(it.k, periode) + i * periode, fin = debut + periode
+  const port = portDePeriode(it.k, it.bot.escales, i), suivant = portDePeriode(it.k, it.bot.escales, i + 1)
+  const vol = (de: string, depart: number, vers: string) => {
+    const a = ajouter(position(de, depart), orbiteBot(it.k, de, depart)), b = position(vers, depart)
+    return dureeVol(Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z), it.bot.vitesse)
+  }
+  const l: Escale[] = [{ lieu: port, arrivee: debut, depart: debut + dureeEscale(it.k, i * 1000) }]
+  for (let n = 1; ; n++) {
+    const prec = l[l.length - 1]
+    const autres = it.bot.escales.filter((e) => e !== prec.lieu)
+    const lieu = autres[Math.floor(hasardBot(it.k, i * 1000 + n) * autres.length) % autres.length]
+    const arrivee = prec.depart + vol(prec.lieu, prec.depart, lieu)
+    const depart = arrivee + dureeEscale(it.k, i * 1000 + n)
+    if (depart > fin - marge) {
+      // La fin de la période : rejoindre le port de la suivante (à temps : on renonce aux dernières escales si le vol
+      // est long), et l'y attendre.
+      while (l.length > 1 && l[l.length - 1].lieu !== suivant && l[l.length - 1].depart + vol(l[l.length - 1].lieu, l[l.length - 1].depart, suivant) > fin) l.pop()
+      const der = l[l.length - 1]
+      if (der.lieu === suivant) der.depart = fin
+      else l.push({ lieu: suivant, arrivee: Math.min(fin, der.depart + vol(der.lieu, der.depart, suivant)), depart: fin })
+      break
+    }
+    l.push({ lieu, arrivee, depart })
+  }
+  PERIODES.set(cle, l)
   return l
+}
+
+/** Les escales d'un bot autour de l'instant t (celles de sa période). */
+function escalesJusqua(pseudo: string, t: number): Escale[] {
+  const { periode } = rythme(pseudo), k = ITINERAIRES.get(pseudo)!.k
+  return escalesDePeriode(pseudo, Math.floor((t - DEBUT_ITINERAIRES - decalage(k, periode)) / periode))
 }
 
 /** Où est un bot à l'instant t : à une escale (lieu), ou en route (de, vers, avancement de 0 à 1). */

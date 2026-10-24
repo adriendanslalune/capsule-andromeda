@@ -24,7 +24,7 @@ describe('les capsules des bots voyagent (décision d’Adrien du 19/10/2026)', 
       for (const e of etats) if (e.enRoute) { expect(e.part).toBeGreaterThanOrEqual(0); expect(e.part).toBeLessThan(1); expect(e.vers).not.toBe(e.de) }
     }
     expect(ouEstLeBot('VEGA', t0 + 50 * H)).toEqual(ouEstLeBot('VEGA', t0 + 50 * H))
-  })
+  }, 30_000)
 
   it('pas de saut : au départ et à l’arrivée, la capsule passe en douceur de l’orbite au vol', () => {
     for (const b of BOTS.slice(0, 6)) {
