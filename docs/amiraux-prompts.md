@@ -190,3 +190,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **L'Ombreux** (24/10/2026).
 - **La Reine Pâle** (24/10/2026).
 - **Le Roi Sombre** (24/10/2026).
+- **Le Patchwork** (24/10/2026).
