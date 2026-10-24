@@ -72,6 +72,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   Star Wars sur sa poitrine remplacé par l'écusson de la Résistance ; quelques humeurs ajoutées à ses répliques.
   Keïta, Okafor, le Veilleur, Rosa, Hélène, Odile, Aurelio, Nadia, Tomás, Hana, Aksel et Mira reçus le même jour : les treize portraits sont là, puis
   les treize décors (recadrés au besoin, `public/decors/`). Les dessins SVG de Claude restent en secours.
+  Galerie des dialogues dans Réglages (essais) : chaque personnage, ses trois humeurs, son décor, en direct ou par radio.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

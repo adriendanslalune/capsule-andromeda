@@ -43,7 +43,7 @@ import { htmlBoutique } from './commun/volet-boutique'
 import { confirmer, feliciter } from './commun/confirmation'
 import { htmlCollections } from './commun/volet-collections'
 import { PNJS } from './donnees/quetes'
-import { radioALire, radioAOuvrir, queteNouvelle, offre, epingler, quetesDuTableau, pnj as pnjDe, quiInstalle } from './moteur/quetes'
+import { radioALire, radioAOuvrir, queteNouvelle, offre, epingler, quetesDuTableau, delaiRadio, pnj as pnjDe, quiInstalle } from './moteur/quetes'
 import { Presentation } from './commun/presentation'
 import { dessinerScene, type ScenePresentation } from './carte/presentation-carte'
 import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
@@ -1947,6 +1947,21 @@ function apresChangementDePanne(): void {
   carteSale = true
 }
 // Essai (Réglages) : provoquer une panne au hasard parmi les modules en état.
+// La galerie des dialogues (Réglages, essais ; Adrien, 24/10/2026) : chaque personnage dans ses trois humeurs, devant
+// son décor, sans jouer la campagne ; « Par radio » montre la case qui grésille.
+{
+  const galerie = document.querySelector<HTMLDivElement>('#galerie-pnj .galerie')!
+  galerie.innerHTML = PNJS.map((p) => `<button type="button" data-pnj="${p.id}">${medaillon(p, 'medaillon')}<span>${p.nom.replace(/^Dr /, '')}</span></button>`).join('')
+  galerie.addEventListener('click', (e) => {
+    const id = (e.target as HTMLElement).closest<HTMLElement>('[data-pnj]')?.dataset.pnj
+    if (!id) return
+    const p = pnjDe(id), radio = document.querySelector<HTMLInputElement>('#galerie-radio')!.checked
+    vueDialogue.ouvrir({
+      pnj: p, proposition: null, terminee: null, ...(radio ? { radio: { delai: delaiRadio(jeu, id, horloge()) } } : {}),
+      pages: [`(neutre) ${p.repos}`, '(joie) Humeur : joie. Une bonne nouvelle, capitaine !', '(souci) Humeur : souci. Ça, ça ne me plaît pas du tout…'],
+    })
+  })
+}
 document.querySelector('#provoquer-panne')!.addEventListener('click', () => {
   const libres = MODULES.filter((f) => !jeu.enPanne(f.nom))
   if (!libres.length) return

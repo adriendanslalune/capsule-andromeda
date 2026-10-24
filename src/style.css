@@ -265,6 +265,12 @@ html, body {
 #reglages .essais .choix label { min-height: 40px; gap: 6px; }
 #reglages .essais input[type="range"] { width: 100%; height: 40px; accent-color: var(--encre); }
 
+#galerie-pnj .galerie { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin-top: 4px; }
+#galerie-pnj .galerie button { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 44px; padding: 6px 4px;
+  font: 600 11px var(--police); color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
+#galerie-pnj .galerie .medaillon { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--encre); object-fit: cover;
+  display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
 #provoquer-panne, #recommencer {
   width: 100%;
   min-height: 44px;
