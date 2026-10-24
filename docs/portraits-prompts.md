@@ -162,6 +162,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Tomás Reyes** (24/10/2026) : les trois humeurs.
 - **Hana Sato** (24/10/2026) : les trois humeurs.
 - **Le vieil Aksel** (24/10/2026) : les trois humeurs.
+- **Mira Kovač** (24/10/2026) : les trois humeurs. Les treize personnages sont là ; restent les décors.
 
 ## Ce qu'il faut envoyer à Claude
 

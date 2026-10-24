@@ -37,7 +37,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'J\'allume le phare tous les soirs. Personne ne passe. Mais un jour, quelqu\'un passera.',
   },
   {
-    id: 'mira', nom: 'Mira Kovač', role: 'Exploratrice des Confins', lieu: 'Station Tombaugh', teinte: '#c9b8e8', portrait: null,
+    id: 'mira', nom: 'Mira Kovač', role: 'Exploratrice des Confins', lieu: 'Station Tombaugh', teinte: '#c9b8e8', portrait: 'portraits/mira-medaillon.webp',
     repos: 'Au bout du système, le Soleil n\'est plus qu\'une étoile parmi d\'autres. Et pourtant on se sent observé.',
   },
 ]
@@ -325,12 +325,12 @@ const ACTES: Quete[] = [
   {
     id: 'confins', titre: 'Aux Confins', type: 'principale', donneur: 'mira', conditions: ['neptune'],
     intro: [
-      'Triton a appelé quelqu\'un, capitaine. Là-bas, au-delà de Pluton. Et quelqu\'un a répondu.',
+      '(souci) Triton a appelé quelqu\'un, capitaine. Là-bas, au-delà de Pluton. Et quelqu\'un a répondu.',
       'Libère Charon et Pluton : il nous faut la porte du système avant que la suite n\'arrive.',
     ],
     etapes: [
       { genre: 'liberer', zones: libs('Pluton'), texte: 'Libère Charon et Pluton' },
-      { genre: 'parler', pnj: 'mira', texte: ['Le système solaire est libre. Entièrement. Profites-en, capitaine… La suite arrive. (Fin de l\'acte 1.)'] },
+      { genre: 'parler', pnj: 'mira', texte: ['(joie) Le système solaire est libre. Entièrement. Profites-en, capitaine… La suite arrive. (Fin de l\'acte 1.)'] },
     ],
     recompense: 15000,
   },
