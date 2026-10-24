@@ -185,3 +185,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Givre** (24/10/2026).
 - **Le Brouillard** (24/10/2026).
 - **Le Janus** (24/10/2026).
+- **Le Couronné** (24/10/2026).
