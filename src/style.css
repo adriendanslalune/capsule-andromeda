@@ -2512,7 +2512,7 @@ body.volet-ouvert #annonces { display: none; }
 @keyframes losange-nouveau { from { opacity: 1; transform: rotate(45deg) scale(1.25); } to { opacity: 0.25; transform: rotate(45deg) scale(0.9); } }
 /* Du nouveau dans une catégorie (Adrien, 24/10/2026) : le symbole de son onglet s'agite, une secousse toutes les deux
    secondes comme le « ! » de la carte, jusqu'à ce qu'on touche l'onglet ou la ligne. */
-#bandeau .voyant.nouveau > :first-child { animation: voyant-nouveau 2s ease-in-out infinite; transform-origin: 50% 60%; }
+#bandeau .voyant.nouveau > :first-child { display: inline-block; animation: voyant-nouveau 2s ease-in-out infinite; transform-origin: 50% 60%; }
 @keyframes voyant-nouveau {
   0%, 30%, 100% { transform: none; }
   5% { transform: scale(1.35) rotate(-14deg); }

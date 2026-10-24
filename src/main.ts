@@ -2345,6 +2345,8 @@ function image(maintenant: number): void {
     if (rendezVous) eviter.push(carte.ecranDe(rendezVous))
     const ici = carte.place(CAPSULE)
     if (ici) eviter.push(ici)
+    // Les drapeaux pirates et leur jauge (leurs coins et leur milieu).
+    for (const b of carte.drapeaux) for (const x of [b.x0, (b.x0 + b.x1) / 2, b.x1]) for (const y of [b.y0, b.y1]) eviter.push({ x, y })
     if (place && sel) {
       // Destination qui tourne autour d'un autre astre que celui qu'on regarde : on le précise (« Titan (Saturne) »).
       const parent = corps(selection!)?.parent

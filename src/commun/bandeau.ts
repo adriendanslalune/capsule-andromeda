@@ -89,7 +89,11 @@ let alertesVues = ''
  * Du nouveau dans une catégorie (Adrien, 24/10/2026 : comme le losange d'une nouvelle quête) : le symbole de son onglet
  * s'agite, jusqu'à ce qu'on touche l'onglet ou une de ses lignes. signatures : ce qu'on a vu de chaque catégorie.
  */
-const signatures: Partial<Record<Voyant, string>> = {}
+const CLE_SIGNATURES = 'andromeda-tableau-vu'
+/** Retenues sur le téléphone : ce qui était déjà là à la dernière visite n'est pas nouveau en rouvrant le jeu. */
+const signatures: Partial<Record<Voyant, string>> = (() => {
+  try { return JSON.parse(localStorage.getItem(CLE_SIGNATURES) ?? '{}') } catch { return {} }
+})()
 const nouveaux = new Set<Voyant>()
 /** Toucher un voyant : l'afficheur montre sa catégorie ; retoucher celui qui est montré revient au choix du tableau. */
 export function basculerVoyant(v: Voyant): void {
@@ -164,12 +168,16 @@ export function afficherBandeau(element: HTMLElement, lignes: LigneBandeau[], ca
     echo: actives.flatMap((l) => (l.genre === 'echo-recu' ? [`${l.monolithe}:${l.localise}`] : [])),
     quete: capsule.quetes.map((q) => `${q.id}:${q.objectif.replace(/ \([^)]*\)$/, '')}`),
   }
+  let change = false
   for (const v of VOYANTS.map((x) => x.cle)) {
-    const avant = signatures[v]
-    if (avant !== undefined && neuf[v].some((x) => !avant.split('|').includes(x))) nouveaux.add(v)
+    const avant = signatures[v] ?? ''
+    if (neuf[v].some((x) => !avant.split('|').includes(x))) nouveaux.add(v)
     if (!neuf[v].length) nouveaux.delete(v)
-    signatures[v] = neuf[v].join('|')
+    if (signatures[v] !== neuf[v].join('|')) { signatures[v] = neuf[v].join('|'); change = true }
   }
+  if (change) try { localStorage.setItem(CLE_SIGNATURES, JSON.stringify(signatures)) } catch { /* pas de mémoire : tant pis */ }
+  // Un écho revenu reste allumé tant qu'on n'a pas touché son bouton : il est nouveau jusque-là, même en rouvrant le jeu.
+  if (neuf.echo.length) nouveaux.add('echo')
   // Une nouvelle quête principale à prendre agite aussi son onglet, tant qu'on ne l'a pas prise.
   if (capsule.quetes.some((q) => q.nouvelle)) nouveaux.add('quete')
   const affiche: Voyant | null = voyantOuvert ?? (nombre('alerte') ? 'alerte' : nombre('contrat') ? 'contrat' : nombre('quete') ? 'quete' : null)

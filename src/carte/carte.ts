@@ -97,6 +97,8 @@ const KM_PAR_PX_MIN = 20
 /** Le zoom le plus serré, aux doigts et à l'ouverture du jeu (Adrien, 24/10/2026 : on distinguait mal les vaisseaux) ;
  *  les cadrages automatiques (gros plan, trajet) s'arrêtent à KM_PAR_PX_MIN. */
 export const KM_PAR_PX_ZOOM = 2
+/** Le drapeau pirate d'une zone occupée et sa jauge, agrandis (Adrien, 24/10/2026 : difficile à lire). */
+const ECHELLE_DRAPEAU = 1.6
 /** Dézoom maximal : jusqu'aux Voyager (demi-largeur de 200 UA), pour voir New Horizons et au-delà. */
 const KM_PAR_PX_MAX = (200 * UA_KM) / 195
 /** Planètes extérieures : elles ne rétrécissent qu'une fois New Horizons à l'écran (demande d'Adrien, 17/10/2026). */
@@ -210,6 +212,8 @@ export class Carte2D {
    * noms se posent en dernier, là où c'est libre (dessinerNoms).
    */
   private reserves: Boite[] = []
+  /** Les drapeaux pirates dessinés à l'écran (pixels), pour que l'étiquette de la destination les évite. */
+  drapeaux: Boite[] = []
   /** La capsule dessinée (pour sa plaque), et si les noms sont à afficher. */
   private capsuleIci: { x: number; y: number; r: number; selectionnee: boolean } | null = null
   private nomsAffiches = true
@@ -782,6 +786,7 @@ export class Carte2D {
     // l'écran, et seulement si on le distingue de ce qui est déjà dessiné (sinon il apparaît en zoomant).
     this.dessines = []
     this.reserves = []
+    this.drapeaux = []
     this.capsuleIci = null
     this.nomsAffiches = reglages.noms
     const libre = (x: number, y: number, r: number) => this.dessines.every((d) => Math.hypot(d.x - x, d.y - y) > d.r + r + 3)
@@ -1682,8 +1687,14 @@ export class Carte2D {
 
   /** Le drapeau pirate d'une zone occupée par Andromède : un mât et un fanion noir à tête de mort, planté au-dessus. */
   private drapeau(ctx: CanvasRenderingContext2D, x: number, y: number, couleurs: Couleurs2D, jauge: number): void {
+    // Sa place est réservée : les noms et l'étiquette de la destination ne le cachent pas.
+    const k = ECHELLE_DRAPEAU
+    this.drapeaux.push({ x0: x - 2, y0: y - 16 * k, x1: x + 42 * k, y1: y + 2 })
+    this.reserves.push(this.drapeaux[this.drapeaux.length - 1])
     ctx.save()
     ctx.translate(x, y)
+    // En plus grand (Adrien, 24/10/2026 : difficile à lire).
+    ctx.scale(ECHELLE_DRAPEAU, ECHELLE_DRAPEAU)
     ctx.lineWidth = 1.3
     ctx.strokeStyle = couleurs.encre
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -15); ctx.stroke()
@@ -1699,16 +1710,21 @@ export class Carte2D {
     // À côté, la jauge de la Résistance dans la zone (demande d'Adrien du 24/10/2026) : une barre qui se remplit de
     // vert, et son pourcentage.
     ctx.fillStyle = '#faf2dc'
-    ctx.fillRect(15, -14, 22, 5)
+    ctx.fillRect(15, -15, 26, 6)
     ctx.fillStyle = '#5fa86a'
-    ctx.fillRect(15, -14, (22 * Math.min(100, Math.max(0, jauge))) / 100, 5)
+    ctx.fillRect(15, -15, (26 * Math.min(100, Math.max(0, jauge))) / 100, 6)
     ctx.strokeStyle = couleurs.encre
     ctx.lineWidth = 1
-    ctx.strokeRect(15, -14, 22, 5)
-    ctx.font = 'bold 8px "IBM Plex Mono", monospace'
-    ctx.fillStyle = couleurs.encre
+    ctx.strokeRect(15, -15, 26, 6)
+    ctx.font = 'bold 9px "IBM Plex Mono", monospace'
     ctx.textBaseline = 'alphabetic'
-    ctx.fillText(`${Math.round(jauge)} %`, 15, -2)
+    // Le pourcentage cerné de la couleur du fond, pour se lire sur un astre comme sur le papier.
+    ctx.lineWidth = 2.5
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = couleurs.fond
+    ctx.strokeText(`${Math.round(jauge)} %`, 15, -1)
+    ctx.fillStyle = couleurs.encre
+    ctx.fillText(`${Math.round(jauge)} %`, 15, -1)
     ctx.restore()
   }
 

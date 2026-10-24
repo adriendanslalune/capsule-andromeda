@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Suite (Adrien, 24/10/2026 : « je ne vois pas les symboles bouger », un écho reçu avant d'ouvrir le jeu) : ce qu'on a vu
+  de chaque catégorie est retenu sur le téléphone, et un écho revenu est nouveau tant qu'on n'a pas touché son bouton.
+  Le drapeau pirate et la jauge de la Résistance agrandis (1,6 fois), le pourcentage cerné du fond ; les étiquettes
+  (noms, destination) les évitent.
 - Tableau de bord (Adrien, 24/10/2026) : du nouveau dans une catégorie fait s'agiter le symbole de son onglet (une
   secousse toutes les deux secondes) jusqu'à ce qu'on touche l'onglet ou la ligne : une alerte de plus, un contrat
   arrivé à son étape, un écho revenu, une quête ou une étape de quête de plus (`commun/bandeau.ts`). Le clignotement du
