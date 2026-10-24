@@ -196,3 +196,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Maelström** (24/10/2026).
 - **TRITON** (24/10/2026).
 - **Passeur** (24/10/2026).
+- **Gardien des Confins** (24/10/2026).
