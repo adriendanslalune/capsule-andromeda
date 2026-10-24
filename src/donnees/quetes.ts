@@ -41,7 +41,7 @@ export const PNJS: readonly Pnj[] = [
     repos: 'Chut. J\'écoute. Le ciel parle à ceux qui se taisent.',
   },
   {
-    id: 'rosa', nom: 'Rosa Mendès', role: 'Contrebandière', lieu: 'Tiangong', teinte: '#f5c6a0', portrait: null,
+    id: 'rosa', nom: 'Rosa Mendès', role: 'Contrebandière', lieu: 'Tiangong', teinte: '#f5c6a0', portrait: 'portraits/rosa-medaillon.webp',
     repos: 'Pas de questions, pas de mensonges. Tu veux faire affaire ou tu admires la vue ?',
   },
   ...PNJS_CAMPAGNE,
@@ -227,12 +227,12 @@ export const QUETES: readonly Quete[] = [
   {
     id: 'rosa', titre: 'Circuits sous le manteau', type: 'secondaire', donneur: 'rosa', conditions: ['q1'],
     intro: [
-      'Toi, tu as une tête à savoir te taire. J\'ai un client qui paie bien pour des circuits anciens. Trois tonnes.',
+      '(souci) Toi, tu as une tête à savoir te taire. J\'ai un client qui paie bien pour des circuits anciens. Trois tonnes.',
       'Le comptoir de la Terre en regorge. Apporte-les-moi ici, sur Tiangong, et on ne s\'est jamais vus.',
     ],
     etapes: [
       { genre: 'livrer', lieu: 'Tiangong', marchandises: { 'Circuits anciens': 3 } },
-      { genre: 'parler', pnj: 'rosa', texte: ['Parfait. Voilà ta part. Et si on te demande : tu livrais de l\'eau.'] },
+      { genre: 'parler', pnj: 'rosa', texte: ['(joie) Parfait. Voilà ta part. Et si on te demande : tu livrais de l\'eau.'] },
     ],
     recompense: 120,
   },
