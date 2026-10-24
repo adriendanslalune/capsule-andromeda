@@ -7,7 +7,7 @@ import { titreMaison } from '../donnees/maisons'
 import { niveauDuBot, palierDe } from '../moteur/niveau'
 import { statut } from '../moteur/monolithes'
 import { lieuDuBot } from '../moteur/messages'
-import { dessinerVaisseau, imageForme, rayonVaisseau } from '../carte/vaisseaux'
+import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from '../carte/vaisseaux'
 
 export interface ActionsCapitaine { ecrire: (pseudo: string) => void; voir: (pseudo: string) => void }
 
@@ -37,7 +37,7 @@ export class FicheCapitaine {
     const bot = BOTS.find((b) => b.pseudo === pseudo)
     if (!bot) return
     const niveau = niveauDuBot(pseudo), p = palierDe(niveau), s = statut(bot.monolithes)
-    let image = imageForme(p.forme)
+    let image = imageForme(p.forme) ? urlFormePeinte(p.forme, bot.maison) : null
     if (!image) {
       const toile = document.createElement('canvas')
       toile.width = toile.height = 160

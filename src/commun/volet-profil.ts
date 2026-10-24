@@ -2,7 +2,7 @@
 // joueur (son nom dans les Messages), la toile d'araignée de son affinité avec les trois Maisons, son carnet de bord
 // et les zones à libérer, et l'appartenance à une Maison (proposée selon l'affinité, jamais définitive).
 
-import { MAISONS, SEUIL_MISSIONS, SEUIL_PART, titreMaison } from '../donnees/maisons'
+import { MAISONS, SEUIL_MISSIONS, SEUIL_PART, titreMaison, COULEURS_MAISONS } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
 import { affinites, maisonPreferee, maisonsOuvertes } from '../moteur/profil'
 import { NOMBRE_MONOLITHES, PALIERS } from '../donnees/monolithes'
@@ -10,12 +10,12 @@ import { palierSuivant, statut } from '../moteur/monolithes'
 import { jauge } from '../moteur/zones'
 import { niveauDe, palierDe } from '../moteur/niveau'
 import { PALIERS as PALIERS_NIVEAU } from '../donnees/niveaux'
-import { dessinerVaisseau, imageForme, rayonVaisseau } from '../carte/vaisseaux'
+import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from '../carte/vaisseaux'
 import { CATEGORIES_TROPHEES, TROPHEES } from '../donnees/trophees'
 import { medaille } from './medailles'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 
-const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
+const TEINTES: Record<string, string> = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].pale]))
 /** Les zones de la campagne (acte 1). */
 
 /** La toile d'araignée : un axe par Maison ; la forme dit où penche le joueur. */
@@ -140,7 +140,7 @@ function htmlTrophees(jeu: Jeu): string {
 /** Le vaisseau du capitaine, dans la forme de son niveau (Adrien, 24/10/2026) : son image si elle est dessinée, sinon sa silhouette. */
 function formeDuCapitaine(jeu: Jeu): string {
   const p = palierDe(niveauDe(jeu.xp).niveau)
-  let src = imageForme(p.forme)
+  let src = imageForme(p.forme) ? urlFormePeinte(p.forme, jeu.maison) : null
   if (!src) {
     const toile = document.createElement('canvas')
     toile.width = toile.height = 160

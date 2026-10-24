@@ -7,7 +7,7 @@
 // moteur (moteur/messages.ts).
 
 import { BOTS, BOTS_BAVARDS, PHRASES_RAPIDES } from '../donnees/messages'
-import { titreMaison } from '../donnees/maisons'
+import { titreMaison, COULEURS_MAISONS, MAISONS } from '../donnees/maisons'
 import type { Jeu } from '../moteur/jeu'
 import {
   statutBot, conversations, enRoute, envoyer, etatEnvoi, fil, lieuDuBot, marquerLu, nonLus, texteDelaiCourt, type Canal, type MessageAffiche,
@@ -18,9 +18,9 @@ import { picto } from './symboles'
 /** Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
 const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
 
-const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
+const TEINTES: Record<string, string> = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].pale]))
 /** Les mêmes couleurs, assez foncées pour un pseudo écrit sur le papier clair de la console. */
-const ENCRES: Record<string, string> = { nettoyeurs: '#3f7a4c', ingenieurs: '#9a6a12', mercenaires: '#b4442f' }
+const ENCRES: Record<string, string> = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].encre]))
 const echapper = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 
 /** « il y a 3 min », « à l'instant ». */

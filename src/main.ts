@@ -76,7 +76,7 @@ import { ZONES } from './donnees/tableaux'
 import { estLibre, jauge, zone } from './moteur/zones'
 import { ZONES_A_LIBERER } from './donnees/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
-import { dessinerVaisseau, imageForme, rayonVaisseau } from './carte/vaisseaux'
+import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from './carte/vaisseaux'
 import { oublierSoleilAnime, soleilAnime } from './carte/globes'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
@@ -178,6 +178,7 @@ const plaque = () => {
   const n = niveauDe(jeu.xp).niveau
   carte.plaqueCapsule = `${jeu.numeroSerie} · ${jeu.pseudo} · niv. ${n}`
   carte.formeCapsule = palierDe(n)
+  carte.maisonCapsule = jeu.maison
 }
 /** Le niveau du capitaine et sa jauge, pour le bandeau. */
 function xpBandeau(): { niveau: number; xp: number } {
@@ -1588,7 +1589,7 @@ pageArmement.addEventListener('click', (e) => {
   }
 })
 // La vue de combat (au tour par tour) : missions ABATTRE, riposte contre un chasseur qui tire, simulateur.
-const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.equipement(), () => palierDe(niveauDe(jeu.xp).niveau).forme)
+const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.equipement(), () => palierDe(niveauDe(jeu.xp).niveau).forme, () => jeu.maison)
 // Le rêve du Soleil (décision d'Adrien du 21/10/2026) : un secret, sans effet sur le jeu.
 const vueReve = new VueReve(document.querySelector<HTMLDivElement>('#reve')!)
 /** L'onglet SOUTE du volet Capsule. */
@@ -1792,6 +1793,7 @@ function entrerDansLaMaison(maison: Maison | null): boolean {
   voletMissions.oublierDurees()
   dernierVolet = 0
   pageProfil.innerHTML = htmlProfil(jeu)
+  plaque()
   annoncer(maison ? `Bienvenue chez les ${titreMaison(maison).toLowerCase()} ! Leurs missions t'attendent.` : 'Te voilà neutre.')
   return true
 }
@@ -2163,7 +2165,7 @@ function image(maintenant: number): void {
     const g = niveauGagne(niveau, avant)
     jeu.noter('niveauxLus')
     // La forme dessinée par ChatGPT si elle est arrivée (Adrien, 24/10/2026), sinon sa silhouette.
-    const image = imageForme(g.forme)
+    const image = imageForme(g.forme) ? urlFormePeinte(g.forme, jeu.maison) : null
     const toile = document.createElement('canvas')
     toile.width = toile.height = 240
     const c = toile.getContext('2d')!

@@ -4,10 +4,10 @@
 // Maisons écrivent en même temps, les lettres se suivent. La vue ne décide rien : le jeu dit qui invite et fait entrer.
 
 import { BOTS, LETTRES_INVITATION, PARRAINS } from '../donnees/messages'
-import { titreMaison, type Maison } from '../donnees/maisons'
+import { titreMaison, type Maison, COULEURS_MAISONS, MAISONS } from '../donnees/maisons'
 import { statut } from '../moteur/monolithes'
 
-const TEINTES: Record<Maison, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
+const TEINTES = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].pale])) as Record<Maison, string>
 const SCEAUX: Record<Maison, string> = { nettoyeurs: '🧹', ingenieurs: '🔧', mercenaires: '⚔️' }
 
 /** Le pseudo du joueur, et ce qu'on fait s'il rejoint (vrai si c'est fait). */

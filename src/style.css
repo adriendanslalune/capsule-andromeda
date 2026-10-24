@@ -532,9 +532,9 @@ html, body {
 /* Maisons : étiquette de chaque mission, et le filtre (aux couleurs des Maisons, comme dans la maquette). */
 #missions .maison { display: inline-block; margin: 0 4px 4px 0; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; color: #1f1b18;
   border: 1.5px solid var(--encre); border-radius: 4px; }
-.maison-nettoyeurs { background: #bfe0c8; }
-.maison-ingenieurs { background: #f5d38a; }
-.maison-mercenaires { background: #f3c2b0; }
+.maison-nettoyeurs { background: #c4e6cf; }
+.maison-ingenieurs { background: #c9daf3; }
+.maison-mercenaires { background: #f5c6cc; }
 .filtre-lieux { display: flex; gap: 5px; overflow-x: auto; padding: 2px 10px 6px; }
 .filtre-lieux button { flex: none; display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 0 11px; font: inherit;
   font-size: 12px; font-weight: bold; line-height: 1.15; color: var(--encre); background: transparent; border: 1.5px solid var(--encre); border-radius: 2px; }
@@ -2085,8 +2085,8 @@ body.volet-ouvert #volet { top: calc(var(--bas-console, 80px) + 8px); bottom: ca
 #missions .contrat[data-maison]::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 5px; background: var(--liseret); }
 #missions .contrat[data-maison]::after { content: ''; position: absolute; left: -1.5px; top: 10px; width: 3px; height: 26px; background: var(--liseret); }
 #missions .contrat[data-maison="nettoyeurs"] { --liseret: #3f8a5a; }
-#missions .contrat[data-maison="ingenieurs"] { --liseret: #c48a1c; }
-#missions .contrat[data-maison="mercenaires"] { --liseret: #c4553a; }
+#missions .contrat[data-maison="ingenieurs"] { --liseret: #4a78b8; }
+#missions .contrat[data-maison="mercenaires"] { --liseret: #b8495a; }
 #missions .tuile-type { background: var(--fond); }
 /* Une couleur par onglet (proposition D, choisie par Adrien le 22/10/2026) : le bandeau du titre, les intitulés de
    section, le sous-onglet actif et l'onglet de la barre prennent la couleur de la rubrique ; on sait où l'on est d'un

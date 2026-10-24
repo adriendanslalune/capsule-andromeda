@@ -5,6 +5,7 @@
 // Style Moebius : aplats pastel cernés d'encre, face de nuit en aplat violet, hachures le long du terminateur.
 // La carte ne calcule aucune position réelle : elle les demande au moteur, puis les projette.
 
+import { COULEURS_MAISONS, type Maison } from '../donnees/maisons'
 import { niveauDeGris } from './gris'
 import type { Boite } from '../commun/reperes'
 import { couleurAstre } from './couleurs'
@@ -87,7 +88,6 @@ const RAYON_ENGIN = 6
 /** En dessous de cet écart à l'écran (px) entre un lieu et sa planète, ses PNJ ne s'affichent plus (carte trop dézoomée). */
 const SEUIL_PNJ = 24
 /** Teinte des capsules des autres joueurs, selon leur Maison (celles du Profil). */
-const TEINTES_MAISONS: Record<string, string> = { nettoyeurs: '#8fcf98', ingenieurs: '#f2c66a', mercenaires: '#f3a08b' }
 const ECHELLE_ENGIN = 0.75
 /** La durée des anneaux du PING autour de la capsule (ms). */
 const DUREE_PULSE = 1800
@@ -182,6 +182,8 @@ export class Carte2D {
   plaqueCapsule = ''
   /** La forme de la capsule du joueur (son niveau, décisions d'Adrien du 21/10/2026). */
   formeCapsule: { forme: Forme; taille: number } = { forme: 'capsule', taille: 1 }
+  /** La Maison du joueur : sa capsule en porte la peinture (Adrien, 24/10/2026). */
+  maisonCapsule: Maison | null = null
   /**
    * Ce que la capsule emmène en vol (demande d'Adrien du 21/10/2026 : remorquer et escorter déplacent vraiment les
    * engins) : l'épave au bout du câble, ou les trois cargos du convoi en flèche derrière elle.
@@ -492,8 +494,8 @@ export class Carte2D {
 
   /** La capsule d'un autre joueur, dans le sens de sa marche (sa silhouette, en attendant son image, à la couleur de sa Maison). */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
-    const maison = BOTS.find((b) => b.pseudo === nom)?.maison
-    const teinte = maison ? TEINTES_MAISONS[maison] : '#d7cdee'
+    const maison = BOTS.find((b) => b.pseudo === nom)?.maison ?? null
+    const teinte = maison ? COULEURS_MAISONS[maison].peinture : '#d7cdee'
     // De loin, un petit point (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis), le même pour tous (Adrien,
     // 24/10/2026 : plus la couleur de la Maison, pour la lisibilité).
     if (this.kmParPx > LOIN_CAPSULES) {
@@ -511,7 +513,7 @@ export class Carte2D {
     // plus en s'éloignant.
     const p = palierDe(niveauDuBot(nom))
     const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
-    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul * this.grossissement(), teinte, couleurs.encre)
+    dessinerVaisseau(ctx, q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x), p.forme, p.taille * 0.85 * recul * this.grossissement(), teinte, couleurs.encre, false, maison)
   }
 
   /**
@@ -939,7 +941,7 @@ export class Carte2D {
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
     this.dessinerPulsesPing(ctx, x, y, rc, maintenant)
-    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille * g, '#e04b37', couleurs.encre, true)
+    dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille * g, '#e04b37', couleurs.encre, true, this.maisonCapsule)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
     this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }
   }

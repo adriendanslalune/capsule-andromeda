@@ -3,6 +3,7 @@
 // peu à l'intérieur de chaque palier. Nez vers +x ; unités : pixels à l'échelle 1.
 
 import type { Forme } from '../donnees/niveaux'
+import { COULEURS_MAISONS, type Maison } from '../donnees/maisons'
 
 /** Taille de chaque forme au combat, par rapport à la capsule (sur la carte, c'est le niveau qui fait la taille :
  *  palierDe, Adrien, 24/10/2026). */
@@ -56,6 +57,59 @@ export function chargerForme(forme: Forme): HTMLImageElement | null {
   return im.complete && im.naturalWidth ? im : null
 }
 
+/**
+ * La forme repeinte aux couleurs d'une Maison (Adrien, 24/10/2026) : les bandes orange de la livrée prennent la
+ * peinture pastel de la Maison, ombres et reflets gardés ; le reste (coque crème, tuyères, encre) ne bouge pas. Fait une
+ * fois par forme et par Maison ; null tant que l'image n'est pas chargée. Sans Maison : l'image d'origine.
+ */
+const PEINTES = new Map<string, HTMLCanvasElement>()
+export function formePeinte(forme: Forme, maison: Maison | null): HTMLImageElement | HTMLCanvasElement | null {
+  const im = chargerForme(forme)
+  if (!im || !maison) return im
+  const cle = `${forme}|${maison}`
+  let toile = PEINTES.get(cle)
+  if (!toile) {
+    toile = document.createElement('canvas')
+    toile.width = im.naturalWidth
+    toile.height = im.naturalHeight
+    const ctx = toile.getContext('2d')!
+    ctx.drawImage(im, 0, 0)
+    const donnees = ctx.getImageData(0, 0, toile.width, toile.height), d = donnees.data
+    const [th, ts, tv] = enHsv(...enRgb(COULEURS_MAISONS[maison].peinture))
+    for (let i = 0; i < d.length; i += 4) {
+      if (!d[i + 3]) continue
+      const [h, s, v] = enHsv(d[i], d[i + 1], d[i + 2])
+      // L'orange de la livrée : teinte de 10 à 45°, bien saturé, assez clair.
+      if (h < 10 || h > 45 || s < 0.45 || v < 0.35) continue
+      const [r, g, b] = deHsv(th, ts, Math.min(1, tv * Math.min(1.15, v / 0.98)))
+      d[i] = r; d[i + 1] = g; d[i + 2] = b
+    }
+    ctx.putImageData(donnees, 0, 0)
+    PEINTES.set(cle, toile)
+  }
+  return toile
+}
+/** L'adresse d'une forme repeinte (pour une balise img) : son dessin s'il est prêt, sinon l'image d'origine. */
+export function urlFormePeinte(forme: Forme, maison: Maison | null): string | null {
+  const p = formePeinte(forme, maison)
+  return p instanceof HTMLCanvasElement ? p.toDataURL() : imageForme(forme)
+}
+/** La largeur et la hauteur d'une image ou d'un dessin. */
+export const dimensions = (im: HTMLImageElement | HTMLCanvasElement): [number, number] =>
+  im instanceof HTMLImageElement ? [im.naturalWidth, im.naturalHeight] : [im.width, im.height]
+const enRgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number]
+function enHsv(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), e = max - min
+  let h = 0
+  if (e) h = max === r ? ((g - b) / e) % 6 : max === g ? (b - r) / e + 2 : (r - g) / e + 4
+  return [(h * 60 + 360) % 360, max ? e / max : 0, max]
+}
+function deHsv(h: number, s: number, v: number): [number, number, number] {
+  const f = (n: number) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))) }
+  return [f(5), f(3), f(1)]
+}
+
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */
 export function rayonVaisseau(_forme: Forme, taille: number): number {
   return 9 * taille
@@ -68,7 +122,7 @@ export function rayonVaisseau(_forme: Forme, taille: number): number {
  * lisibilité ; tout le monde a les mêmes images). La Légende a en plus un halo doré.
  */
 export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, forme: Forme, taille: number,
-  couleur: string, encre: string, anneau = false): void {
+  couleur: string, encre: string, anneau = false, maison: Maison | null = null): void {
   const f = COQUES[forme], k = taille
   ctx.save()
   ctx.translate(x, y)
@@ -98,9 +152,9 @@ export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: nu
     ctx.strokeStyle = encre
   }
   // L'image de la forme (proue vers le haut, donc un quart de tour de plus), sinon sa silhouette.
-  const im = chargerForme(forme)
+  const im = formePeinte(forme, maison)
   if (im) {
-    const cote = 15, l = (cote * im.naturalWidth) / Math.max(im.naturalWidth, im.naturalHeight), h = (cote * im.naturalHeight) / Math.max(im.naturalWidth, im.naturalHeight)
+    const [L, H] = dimensions(im), cote = 15, l = (cote * L) / Math.max(L, H), h = (cote * H) / Math.max(L, H)
     ctx.rotate(Math.PI / 2)
     ctx.drawImage(im, -l / 2, -h / 2, l, h)
     ctx.restore()

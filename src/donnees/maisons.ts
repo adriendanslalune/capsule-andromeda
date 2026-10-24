@@ -22,6 +22,17 @@ export const MAISONS: readonly { maison: Maison; titre: string }[] = [
   { maison: 'mercenaires', titre: 'MERCENAIRES' },
 ]
 
+/**
+ * Les couleurs des Maisons (Adrien, 24/10/2026 : les vaisseaux portent la peinture de leur Maison, en pastel ; la même
+ * couleur partout dans le jeu) : la peinture des vaisseaux, sa teinte pâle (aplats, toile, avatars), son encre (textes,
+ * liserés). Les neutres gardent la peinture orange d'origine.
+ */
+export const COULEURS_MAISONS: Readonly<Record<Maison, { peinture: string; pale: string; encre: string }>> = {
+  nettoyeurs: { peinture: '#7cc79a', pale: '#c4e6cf', encre: '#3f7a4c' },
+  ingenieurs: { peinture: '#82aee8', pale: '#c9daf3', encre: '#2f5d9a' },
+  mercenaires: { peinture: '#e9828f', pale: '#f5c6cc', encre: '#a8384a' },
+}
+
 export const MAISON_DU_GENRE: Readonly<Record<GenreContrat, Maison>> = {
   nettoyer: 'nettoyeurs', remorquer: 'nettoyeurs', chasser: 'mercenaires', escorter: 'mercenaires', depanner: 'ingenieurs', livrer: 'ingenieurs',
 }

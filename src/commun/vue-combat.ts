@@ -4,7 +4,8 @@
 // aliens ; le bouton BOMBE efface toutes les balles. La vue ne décide rien : elle montre l'état que tient le moteur
 // (moteur/combat.ts).
 
-import { FORMES_PRETES, tailleAuCombat } from '../carte/vaisseaux'
+import { FORMES_PRETES, dimensions, formePeinte, tailleAuCombat } from '../carte/vaisseaux'
+import type { Maison } from '../donnees/maisons'
 import type { Forme } from '../donnees/niveaux'
 import { confirmer } from './confirmation'
 import { HAUTEUR, LARGEUR } from '../donnees/combat'
@@ -73,6 +74,7 @@ export class VueCombat {
   private options: OptionsCombat = SIMULATEUR
   /** La forme de la capsule (le niveau du capitaine), lue à chaque combat. */
   private forme: Forme = 'capsule'
+  private maison: Maison | null = null
   private doigt: { x: number; y: number } | null = null
   private boucle = 0
   /** Le combat est figé pendant que la question de la retraite est posée. */
@@ -91,7 +93,7 @@ export class VueCombat {
 
   /** equipement : l'armement de la capsule (décisions d'Adrien du 21/10/2026), lu à chaque combat ; formeCapsule : sa forme. */
   constructor(private element: HTMLElement, private equipement: () => Equipement = () => EQUIPEMENT_DEPART,
-    private formeCapsule: () => Forme = () => 'capsule') {
+    private formeCapsule: () => Forme = () => 'capsule', private maisonCapsule: () => Maison | null = () => null) {
     element.innerHTML = `
       <div class="entete-plein"><span class="titre-combat"></span><button type="button" data-retraite>RETRAITE</button></div>
       <div class="infos-combat"></div>
@@ -136,6 +138,7 @@ export class VueCombat {
   ouvrir(options: OptionsCombat = SIMULATEUR): void {
     this.options = options
     this.forme = this.formeCapsule()
+    this.maison = this.maisonCapsule()
     this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone, options.amiral, this.equipement())
     this.doigt = null
     this.enPause = false
@@ -297,11 +300,12 @@ export class VueCombat {
     }
     // La capsule (elle clignote quand elle vient d'être touchée).
     // Sa forme, celle du niveau du capitaine (Adrien, 24/10/2026), si elle est dessinée ; sinon la capsule.
-    const imCapsule = vaisseau(FORMES_PRETES.includes(this.forme) ? this.forme : 'capsule') ?? vaisseau('capsule')
+    // Repeinte aux couleurs de sa Maison (Adrien, 24/10/2026).
+    const imCapsule = formePeinte(FORMES_PRETES.includes(this.forme) ? this.forme : 'capsule', this.maison) ?? vaisseau('capsule')
     if (imCapsule && (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0)) {
       // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
       // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
-      const l = 13 * tailleAuCombat(this.forme) * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
+      const [L, H] = dimensions(imCapsule), l = 13 * tailleAuCombat(this.forme) * k, h = (l * H) / L, x = X(e.capsule.x), y = Y(e.capsule.y)
       for (const t of TUYERES[this.forme] ?? [{ x: 0, y: 1 - (0.6 * k) / h, demi: 1.4 }]) {
         const xt = x + t.x * l, yt = y - h / 2 + t.y * h, d = t.demi * k
         ctx.beginPath(); ctx.moveTo(xt - d, yt); ctx.lineTo(xt, yt + (3.2 + Math.sin(e.temps * 30 + t.x * 9)) * k); ctx.lineTo(xt + d, yt); ctx.closePath()
