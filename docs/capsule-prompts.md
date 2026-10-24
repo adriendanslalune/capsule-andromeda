@@ -65,3 +65,4 @@ noble, **toute la livrée en or** (coque crème et or, bandes dorées au lieu d'
 - **La Navette** (24/10/2026).
 - **La Corvette** (24/10/2026).
 - **La Frégate** (24/10/2026).
+- **Le Croiseur** (24/10/2026).
