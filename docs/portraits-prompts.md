@@ -167,6 +167,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
   Terre) pour la case du dialogue, presque carrée. Les décors peuvent venir en paysage : Claude garde ce qui compte.
 - **Décor de la Lune** (24/10/2026).
 - **Décor de la Station Tycho** (24/10/2026).
+- **Décor de Hubble** (24/10/2026).
 
 ## Ce qu'il faut envoyer à Claude
 
