@@ -244,3 +244,39 @@ describe('les kilomètres restants (demande d’Adrien du 22/10/2026)', () => {
     }
   })
 })
+
+describe('autour d’une lune (Adrien, 24/10/2026 : « on doit toujours revenir en orbite autour de la planète »)', () => {
+  /** Arrivé en orbite autour d'un astre, puis un trajet vers une cible au moteur v (km/s). */
+  function depuis(lieu: string, cible: string, v: number, quand = Date.UTC(2026, 9, 24, 12)): Plan {
+    const m = new Mission()
+    const aller = planifier(m.etatHeliocentrique(quand), lieu, quand, 15_360)
+    if (!aller.possible) throw new Error(lieu)
+    m.partir(aller.plan)
+    const t = aller.plan.arrivee + 60_000
+    const p = planifier(m.etatHeliocentrique(t), cible, t, v)
+    if (!p.possible) throw new Error(cible)
+    return p.plan
+  }
+  const minutes = (p: Plan) => (p.arrivee - p.depart) / 60_000
+
+  it('de l’orbite lunaire, une station de la Lune est à quelques minutes, sans détour par le Soleil', () => {
+    const p = depuis('Lune', 'Station Tycho', 30)
+    expect(minutes(p)).toBeLessThan(10)
+    expect(p.points.every((q) => q.ancre !== 'Soleil')).toBe(true)
+    expect(margeMinimale(p, ['Lune'])).toBeGreaterThan(-1)
+  })
+
+  it('de la Lune, revenir à la Terre ou à l’ISS ne coûte pas plus qu’en venir', () => {
+    const venir = minutes(depuis('ISS', 'Lune', 30))
+    expect(minutes(depuis('Lune', 'Terre', 30))).toBeLessThan(venir * 1.1)
+    expect(minutes(depuis('Lune', 'ISS', 30))).toBeLessThan(venir * 1.1)
+  })
+
+  it('d’une lune de Jupiter à une autre, ou à une station de la planète, on reste dans le système', () => {
+    for (const cible of ['Station Minos', 'Europe', 'Station Zeus', 'Jupiter']) {
+      const p = depuis('Io', cible, 480)
+      expect(p.points.every((q) => q.ancre !== 'Soleil'), cible).toBe(true)
+      expect(minutes(p), cible).toBeLessThan(60)
+    }
+  })
+})

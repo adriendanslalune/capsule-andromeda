@@ -16,6 +16,7 @@ import { acceleration } from '../donnees/capsule'
 import { etatSurOrbite, GM_TERRE, ORBITE_DEPART, type EtatCapsule, type OrbiteCirculaire } from './capsule'
 import { astreDominant, corps, position, rayonInfluence, RAPPORT_MASSE_SOLEIL_ASTRES } from './corps'
 import { GM_SOLEIL } from './orbite'
+import { GRANDES_LUNES } from '../donnees/espace'
 import type { Vecteur3 } from './vecteur'
 
 const plus = (a: Vecteur3, b: Vecteur3) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z })
@@ -127,11 +128,24 @@ function rayonArrivee(nom: string): number {
  * planète) ; l'astre de départ lui-même si c'est lui la destination.
  */
 function ancreArrivee(cible: string, ancreDepart: string, t1: number): string {
-  if (cible === ancreDepart) return cible
+  // L'astre de départ lui-même, ou sa planète quand on part d'une de ses lunes.
+  if (cible === ancreDepart || cible === familleDe(ancreDepart)) return cible
   const c = corps(cible)
   if (!c || c.type === 'etoile' || c.type === 'planete' || c.type === 'naine') return 'Soleil'
   if (c.parent) return c.parent
   return astreDominant(position(cible, t1), t1)
+}
+
+/** La planète d'un astre : elle-même, ou celle autour de laquelle tourne une lune. */
+function familleDe(nom: string): string {
+  const c = corps(nom)
+  return c?.type === 'lune' && c.parent ? c.parent : nom
+}
+
+/** L'astre de départ d'un trajet : la grande lune dans la sphère d'influence de laquelle on est, sinon la planète. */
+function astreDuDepart(r: Vecteur3, t: number): string {
+  for (const [nom, l] of Object.entries(GRANDES_LUNES)) if (norme(moins(r, position(nom, t))) < l.hill) return nom
+  return astreDominant(r, t)
 }
 
 /** Distance de sortie (ou d'entrée) d'un système : quatre fois plus loin que le point de départ, sans quitter le système. */
@@ -151,6 +165,23 @@ function construire(depart: PointDePassage, t0: number, cible: string, t1: numbe
   if (R === D) {
     const E = arrivee(depart.rel)
     return { cles: [depart, E], points: [depart, ...contourner(depart.rel, E.rel, securite(D)).map((rel) => ({ ancre: D, rel })), E], rendezVous }
+  }
+  // Dans un même système (Adrien, 24/10/2026 : on revenait toujours à la planète) : d'une lune à sa planète, de la
+  // planète à un engin autour d'une lune, d'une lune à l'autre. Tout droit, en contournant l'astre de départ, la
+  // planète et l'astre d'arrivée s'ils sont sur le chemin ; jamais de détour par le Soleil.
+  const P = familleDe(D)
+  if (D !== 'Soleil' && R !== 'Soleil' && P === familleDe(R)) {
+    const pa = positionAncre(D, t0), pb = positionAncre(R, t1), pp = positionAncre(P, t1)
+    const tourD = contourner(depart.rel, moins(plus(pb, relCible), pa), securite(D))
+    let ici = plus(pa, tourD[tourD.length - 1] ?? depart.rel)
+    const tourP = P !== D && P !== R ? contourner(moins(ici, pp), moins(plus(pb, relCible), pp), securite(P)) : []
+    if (tourP.length) ici = plus(pp, tourP[tourP.length - 1])
+    const provenance = moins(ici, pb)
+    const E = arrivee(provenance)
+    const tourR = contourner(provenance, E.rel, securite(R))
+    const points: PointDePassage[] = [depart, ...tourD.map((rel) => ({ ancre: D, rel })), ...tourP.map((rel) => ({ ancre: P, rel })),
+      ...tourR.map((rel) => ({ ancre: R, rel })), E]
+    return { cles: [depart, E], points, rendezVous }
   }
   // Entre deux systèmes : contournement du Soleil entre le départ et l'arrivée, s'il le faut.
   const pa = positionAncre(D, t0), pb = R === 'Soleil' ? rendezVous : positionAncre(R, t1)
@@ -294,7 +325,7 @@ export function planifier(depart: { r: Vecteur3; v: Vecteur3 }, cible: string, t
   // Un engin tout proche (l'ISS au début du jeu) : le trajet se compte dans son repère, qui tourne avec lui ; sinon on
   // paierait sa vitesse en orbite (7,7 km/s), et le moindre saut de quelques kilomètres prendrait deux minutes.
   const proche = !!corps(cible)?.tailleM && norme(moins(depart.r, position(cible, t0))) < RENCONTRE_PROCHE
-  const D = proche ? cible : astreDominant(depart.r, t0)
+  const D = proche ? cible : astreDuDepart(depart.r, t0)
   const premier: PointDePassage = { ancre: D, rel: moins(depart.r, positionAncre(D, t0)) }
   /** Durée nécessaire (s) pour un trajet qui arrive après une durée T (s) : la longueur dépend du rendez-vous. */
   const essai = (T: number) => {

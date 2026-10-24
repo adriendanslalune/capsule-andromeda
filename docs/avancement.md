@@ -91,6 +91,14 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Contrats autour des lunes (Adrien, 24/10/2026 : « on doit toujours revenir en orbite autour de la planète ») : les
+  engins et les 4 contrats par grande lune existaient, mais le trajet était faux. Parti de l'orbite d'une lune, le
+  planificateur se croyait dans le système de la planète et traitait la lune comme un autre système : sortie à
+  750 000 km, détour par le Soleil (Station Tycho, à 2 800 km : 15 h au moteur 1 ; le Journal la rangeait donc après
+  les contrats de la Terre). Corrigé (`moteur/mission.ts`) : on part du repère de la grande lune dans la sphère
+  d'influence de laquelle on est, et un trajet entre une lune, sa planète et ses autres lunes reste dans le système
+  (tout droit, en contournant ce qui est sur le chemin) : Station Tycho en 5 min, la Terre depuis la Lune comme
+  l'aller. Tests : `tests/mission.test.ts`.
 - Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient
   en dernier (aucune fenêtre ouverte, rien d'autre à annoncer, aucun message radio sur le point d'arriver, un instant de
   calme) ; un message radio attend aussi que la fenêtre du nouveau moteur soit refermée.
