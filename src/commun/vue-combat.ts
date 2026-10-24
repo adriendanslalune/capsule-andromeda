@@ -35,6 +35,7 @@ function vaisseau(nom: string): HTMLImageElement | null {
 const TUYERES: Partial<Record<Forme, { x: number; y: number; demi: number }[]>> = {
   navette: [{ x: -0.106, y: 0.96, demi: 0.75 }, { x: 0.095, y: 0.96, demi: 0.75 }],
   corvette: [{ x: -0.105, y: 0.89, demi: 0.55 }, { x: 0.002, y: 0.95, demi: 1 }, { x: 0.108, y: 0.89, demi: 0.55 }],
+  fregate: [{ x: -0.367, y: 0.92, demi: 0.9 }, { x: 0.012, y: 0.96, demi: 1 }, { x: 0.389, y: 0.92, demi: 0.9 }],
 }
 /** Le nom de fichier d'un amiral : « le Séléné » → selene, « l'Ithaque » → ithaque, « TRITON » → triton. */
 export function idAmiral(nom: string): string {
