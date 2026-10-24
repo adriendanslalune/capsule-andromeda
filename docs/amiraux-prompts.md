@@ -172,3 +172,4 @@ cœur clair au centre (comme le cœur de Pluton).
   dessinés par-dessus).
 - **Le Séléné** (24/10/2026) : l'annonce et le combat.
 - **Le Phobétor** (24/10/2026).
+- **Le Brûle-Nuées** (24/10/2026).
