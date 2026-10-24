@@ -13,7 +13,7 @@ Ce qui montre le niveau, c'est la silhouette, pas la taille : sur la carte, la L
   change pas, ni la difficulté).
 - **La carte** : les mêmes images pour tout le monde (choix B), le joueur, les bots et plus tard les autres joueurs ;
   **un anneau cerise sous la capsule du joueur seulement** (Adrien : ceux des Maisons gâchaient la lisibilité, tant pis
-  pour l'appartenance). Loin, les autres restent un point de couleur.
+  pour l'appartenance). Loin, les autres sont un point crème, le même pour tous.
 - **Le Profil** : la forme du capitaine, à côté de son tampon.
 
 Une forme pas encore dessinée garde sa silhouette de Claude (`src/carte/vaisseaux.ts`) ; on inscrit chaque image

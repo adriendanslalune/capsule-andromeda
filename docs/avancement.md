@@ -83,7 +83,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   (fiche `docs/capsule-prompts.md`, 5 formes à générer) : le branchement est fait, chaque image s'inscrit dans
   `FORMES_PRETES` en arrivant — fenêtre de niveau, combat (la capsule prend sa forme), carte (choix B d'Adrien : les
   mêmes images pour tous, un anneau cerise sous la capsule du joueur seulement), Profil (à côté du tampon).
-- Carte (Adrien, 24/10/2026) : plus de médaillons des PNJ, un simple « ! » au lieu d'une quête à proposer.
+- Carte (Adrien, 24/10/2026) : plus de médaillons des PNJ, un simple « ! » au lieu d'une quête à proposer ; de loin, les capsules des autres sont un point crème, le même pour tous
+  (plus la couleur de leur Maison).
 - Trophées (Adrien, 24/10/2026) : cadre validé (voir CLAUDE.md : 150 trophées loufoques, vitrine dans le Profil, petite
   fenêtre, la gloire seulement, médailles SVG de Claude) — **à faire**, après les illustrations.
 - Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient

@@ -462,15 +462,16 @@ export class Carte2D {
     ctx.restore()
   }
 
-  /** La capsule d'un autre joueur : un chevron aux couleurs de sa Maison, dans le sens de sa marche. */
+  /** La capsule d'un autre joueur, dans le sens de sa marche (sa silhouette, en attendant son image, à la couleur de sa Maison). */
   private capsuleJoueur(ctx: CanvasRenderingContext2D, nom: string, q: { x: number; y: number }, t: number, couleurs: Couleurs2D): void {
     const maison = BOTS.find((b) => b.pseudo === nom)?.maison
     const teinte = maison ? TEINTES_MAISONS[maison] : '#d7cdee'
-    // De loin, un petit point à la couleur de sa Maison (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis).
+    // De loin, un petit point (demande d'Adrien du 21/10/2026 : tout se voit, sans fouillis), le même pour tous (Adrien,
+    // 24/10/2026 : plus la couleur de la Maison, pour la lisibilité).
     if (this.kmParPx > LOIN_CAPSULES) {
       ctx.beginPath()
       ctx.arc(q.x, q.y, 2, 0, 2 * Math.PI)
-      ctx.fillStyle = teinte
+      ctx.fillStyle = '#f6efdc'
       ctx.fill()
       ctx.lineWidth = 0.6
       ctx.strokeStyle = couleurs.encre
