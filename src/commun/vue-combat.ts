@@ -18,6 +18,17 @@ export const SIMULATEUR: OptionsCombat = { titre: 'SIMULATEUR · CHASSEUR ALIEN'
 
 const ENCRE = '#2b2138', CERISE = '#e04b37', VIOLET = '#9d7cc8'
 
+/**
+ * Les vaisseaux d'Andromède dessinés par ChatGPT (docs/amiraux-prompts.md ; Adrien, 24/10/2026 : la même image au combat
+ * et sur l'annonce de l'assaut), vus du dessus, la proue vers le bas : une image chargée remplace le dessin géométrique.
+ */
+const VAISSEAUX: Record<string, HTMLImageElement> = {}
+function vaisseau(nom: string): HTMLImageElement | null {
+  let im = VAISSEAUX[nom]
+  if (!im) { im = VAISSEAUX[nom] = new Image(); im.src = `vaisseaux/${nom}.webp` }
+  return im.complete && im.naturalWidth ? im : null
+}
+
 export class VueCombat {
   private etat: EtatCombat | null = null
   private options: OptionsCombat = SIMULATEUR
@@ -176,6 +187,13 @@ export class VueCombat {
     for (const a of e.aliens) {
       if (a.chef && e.amiral) { this.amiral(ctx, X(a.x), Y(a.y), k, a.pv < a.pvMax / 2, e.temps); continue }
       const s = a.chef ? 1.6 : 0.85
+      // Le chasseur dessiné : sa graine ailée sur 22 unités de large (sa zone de touche en fait 18).
+      const im = a.chef ? vaisseau('chasseur') : null
+      if (im) {
+        const l = 22 * k, h = (l * im.naturalHeight) / im.naturalWidth
+        ctx.drawImage(im, X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
+        continue
+      }
       ctx.save()
       ctx.translate(X(a.x), Y(a.y))
       ctx.scale(k * s, k * s)

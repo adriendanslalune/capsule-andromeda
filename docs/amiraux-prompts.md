@@ -154,4 +154,5 @@ cœur clair au centre (comme le cœur de Pluton).
 
 ## Reçus
 
-(rien pour l'instant)
+- **Le chasseur** (24/10/2026) : branché au combat (`public/vaisseaux/chasseur.webp`, 22 unités de large, sa zone
+  de touche en fait 18).
