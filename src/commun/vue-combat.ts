@@ -30,9 +30,12 @@ function vaisseau(nom: string): HTMLImageElement | null {
   if (!im) { im = VAISSEAUX[nom] = new Image(); im.src = `vaisseaux/${nom}.webp` }
   return im.complete && im.naturalWidth ? im : null
 }
-/** Où sont les tuyères de chaque forme de la capsule (en part de sa largeur, depuis le milieu, mesurées sur son image),
- *  et la demi-largeur de leurs flammes (unités du combat). */
-const TUYERES: Partial<Record<Forme, { x: number[]; demi: number }>> = { navette: { x: [-0.106, 0.095], demi: 0.75 } }
+/** Les tuyères de chaque forme de la capsule, mesurées sur son image (x : en part de sa largeur depuis le milieu ; y : en
+ *  part de sa hauteur depuis le haut, là où sort la flamme), et la demi-largeur de leur flamme (unités du combat). */
+const TUYERES: Partial<Record<Forme, { x: number; y: number; demi: number }[]>> = {
+  navette: [{ x: -0.106, y: 0.96, demi: 0.75 }, { x: 0.095, y: 0.96, demi: 0.75 }],
+  corvette: [{ x: -0.105, y: 0.89, demi: 0.55 }, { x: 0.002, y: 0.95, demi: 1 }, { x: 0.108, y: 0.89, demi: 0.55 }],
+}
 /** Le nom de fichier d'un amiral : « le Séléné » → selene, « l'Ithaque » → ithaque, « TRITON » → triton. */
 export function idAmiral(nom: string): string {
   return nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le |la |l')/, '').replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
@@ -297,10 +300,9 @@ export class VueCombat {
       // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
       // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
       const l = (13 * rayonVaisseau(this.forme, 1)) / 9 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
-      const tuyeres = TUYERES[this.forme] ?? { x: [0], demi: 1.4 }
-      for (const dx of tuyeres.x) {
-        const xt = x + dx * l, d = tuyeres.demi * k
-        ctx.beginPath(); ctx.moveTo(xt - d, y + h / 2 - 0.6 * k); ctx.lineTo(xt, y + h / 2 + (2.6 + Math.sin(e.temps * 30 + dx * 9)) * k); ctx.lineTo(xt + d, y + h / 2 - 0.6 * k); ctx.closePath()
+      for (const t of TUYERES[this.forme] ?? [{ x: 0, y: 1 - (0.6 * k) / h, demi: 1.4 }]) {
+        const xt = x + t.x * l, yt = y - h / 2 + t.y * h, d = t.demi * k
+        ctx.beginPath(); ctx.moveTo(xt - d, yt); ctx.lineTo(xt, yt + (3.2 + Math.sin(e.temps * 30 + t.x * 9)) * k); ctx.lineTo(xt + d, yt); ctx.closePath()
         ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
       }
       ctx.drawImage(imCapsule, x - l / 2, y - h / 2, l, h)
