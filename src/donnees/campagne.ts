@@ -13,7 +13,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Bradbury tient. On a connu pire. Non, en fait, on n\'a pas connu pire. Mais on tient.',
   },
   {
-    id: 'odile', nom: 'Odile Varenne', role: 'Maire de Cythère, la ville flottante', lieu: 'Cythère', teinte: '#f5d38a', portrait: null,
+    id: 'odile', nom: 'Odile Varenne', role: 'Maire de Cythère, la ville flottante', lieu: 'Cythère', teinte: '#f5d38a', portrait: 'portraits/odile-medaillon.webp',
     repos: 'Cythère flotte. Pour l\'instant, c\'est tout ce que je peux vous promettre. Et c\'est déjà beaucoup.',
   },
   {
@@ -145,19 +145,19 @@ const ARCS: Quete[] = [
     id: 'liberer-venus', titre: 'Le chant de Cythère', type: 'principale', donneur: 'odile', conditions: ['l3'],
     intro: [
       'Bienvenue à Cythère, capitaine. Trois mille âmes à cinquante-cinq kilomètres au-dessus de l\'enfer. Le conseil a voté : on ne descend pas, on ne monte pas, on ne se rend pas.',
-      'Mais on ne tient qu\'à des câbles, et les câbles s\'usent. Ce qui nous relie au reste du monde, c\'est Tant-Pis, la navette des Chantiers. Elle est revenue de la Terre en morceaux. Enfin… en moins de morceaux que prévu.',
+      '(souci) Mais on ne tient qu\'à des câbles, et les câbles s\'usent. Ce qui nous relie au reste du monde, c\'est Tant-Pis, la navette des Chantiers. Elle est revenue de la Terre en morceaux. Enfin… en moins de morceaux que prévu.',
       'Si vous savez manier une clé, les Ingénieurs ont un contrat RÉPARER dans le système de Vénus.',
     ],
     etapes: [
       {
         genre: 'mission', mission: 'depanner', systeme: 'Vénus', nombre: 1, texte: 'Répare un engin dans le système de Vénus (contrat RÉPARER des Ingénieurs)',
         jauge: { zone: 'Vénus', part: 20 },
-        radio: { pnj: 'odile', texte: ['Elle vole ! Presque. Les Chantiers disent qu\'il lui manque une coque digne de ce nom : quatre tonnes de verre et trois de cuivre. Le Comptoir de la Terre en vend. Ou videz les épaves qui tournent autour de Vénus : il en tombe assez du ciel en ce moment.'] },
+        radio: { pnj: 'odile', texte: ['(joie) Elle vole ! Presque. Les Chantiers disent qu\'il lui manque une coque digne de ce nom : quatre tonnes de verre et trois de cuivre. Le Comptoir de la Terre en vend. Ou videz les épaves qui tournent autour de Vénus : il en tombe assez du ciel en ce moment.'] },
       },
       {
         genre: 'livrer', lieu: 'Cythère', marchandises: { Verre: 4, Cuivre: 3 }, jauge: { zone: 'Vénus', part: 20 },
         radio: { pnj: 'odile', texte: [
-          'Tant-Pis a une coque, et même une deuxième couche de peinture, ce qui n\'était pas nécessaire.',
+          '(joie) Tant-Pis a une coque, et même une deuxième couche de peinture, ce qui n\'était pas nécessaire.',
           'Kenji vous a envoyé ses relevés : chaque fois qu\'un chasseur passe, les nuages dessinent la même figure, au-dessus de la Station Aphrodite. Il pense que le Brûle-Nuées est là-dessous. Allez voir, radar allumé. De loin.',
         ] },
       },
@@ -165,7 +165,7 @@ const ARCS: Quete[] = [
         genre: 'radar', lieu: 'Station Aphrodite', texte: 'Allume le radar près de la Station Aphrodite : le Brûle-Nuées s\'y cache',
         jauge: { zone: 'Vénus', part: 20 },
         radio: { pnj: 'odile', texte: [
-          'En orbite basse, au ras des nuages, une forme longue comme une ville… Il est là depuis le début, juste au-dessus de nous. Bien.',
+          '(souci) En orbite basse, au ras des nuages, une forme longue comme une ville… Il est là depuis le début, juste au-dessus de nous. Bien.',
           'Tullio a une idée, et pour une fois elle n\'est pas idiote : la chorale va chanter sur 5,330 MHz, pour que les autres villes flottantes nous entendent et se lèvent avec nous. Écoutez-les : si le chant passe jusqu\'à vous, il passe partout.',
         ] },
       },
@@ -174,7 +174,7 @@ const ARCS: Quete[] = [
         texte: '(la chorale, à pleine voix) … Il manque des ténors. Il manque toujours des ténors.',
         enonce: 'Capte le chant de la chorale à la radio : 5,330 MHz, près de Vénus',
         jauge: { zone: 'Vénus', part: 20 },
-        radio: { pnj: 'odile', texte: ['Les aérostats Lakshmi et Venera répondent, et même deux villes qu\'on croyait tombées. Vénus se lève, capitaine. Il ne manque plus que vous.'] },
+        radio: { pnj: 'odile', texte: ['(joie) Les aérostats Lakshmi et Venera répondent, et même deux villes qu\'on croyait tombées. Vénus se lève, capitaine. Il ne manque plus que vous.'] },
       },
       { genre: 'jauge', zone: 'Vénus' },
       { genre: 'assaut', zone: 'Vénus' },
