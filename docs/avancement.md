@@ -65,7 +65,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Les illustrations des dialogues (24/10/2026, Adrien : « ce jeu manque cruellement d'identité visuelle dans les
   dialogues ») : maquette `maquette-dialogue.html` (le PNJ en grande case de BD devant le décor de son lieu, cartouche,
   phylactère écrit lettre à lettre, humeur par page, radio qui grésille ; treize portraits et treize décors dessinés en
-  SVG par Claude) et la fiche de prompts pour ChatGPT (`docs/portraits-prompts.md`) — **à valider par Adrien**.
+  SVG par Claude) et la fiche de prompts pour ChatGPT (`docs/portraits-prompts.md`). Mise en page validée par Adrien
+  le même jour et codée dans le jeu (`commun/vue-dialogue.ts`, `commun/portraits.ts`) ; portraits et décors faits par
+  ChatGPT (fiche complétée avec les treize décors) : en attendant, les dessins de Claude.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

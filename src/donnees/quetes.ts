@@ -135,7 +135,7 @@ export const QUETES: readonly Quete[] = [
       {
         genre: 'moteur', niveau: 2,
         radio: { pnj: 'elsa', texte: [
-          'Deux fois plus vite ! Tu as compris le principe, capitaine : des contrats et des quêtes pour gagner de l\'argent, un meilleur moteur pour aller plus vite et plus loin. C\'est comme ça qu\'on traverse le système solaire.',
+          '(joie) Deux fois plus vite ! Tu as compris le principe, capitaine : des contrats et des quêtes pour gagner de l\'argent, un meilleur moteur pour aller plus vite et plus loin. C\'est comme ça qu\'on traverse le système solaire.',
           'Et s\'il te manque des matériaux, pas de panique : au Comptoir du Marché, tu peux acheter et vendre ce que tu veux.',
         ] },
       },
@@ -145,14 +145,14 @@ export const QUETES: readonly Quete[] = [
   {
     id: 'q2', titre: 'Cap sur la Lune', type: 'principale', donneur: 'elsa', conditions: ['q1'], parRadio: true,
     intro: [
-      'Capitaine, depuis trois nuits un signal monte de la Lune. Pas un des leurs : il bégaie, il se répète, il est trop humain. Le Dr Keïta est en orbite là-bas, il en sait plus. Va le voir.',
+      '(souci) Capitaine, depuis trois nuits un signal monte de la Lune. Pas un des leurs : il bégaie, il se répète, il est trop humain. Le Dr Keïta est en orbite là-bas, il en sait plus. Va le voir.',
       'Avec ton moteur, il te faudra quelques heures de vol. Si tu es patient, pars tout de suite. Sinon, enchaîne les contrats et améliore encore ton moteur : au niveau 4, la Lune est à une demi-heure. À toi de juger.',
     ],
     etapes: [
       {
         genre: 'parler', pnj: 'keita', jauge: { zone: 'Lune', part: 25 }, texte: [
           'Elsa t\'envoie ? Bien. Ce signal, je l\'enregistre depuis le premier soir, et je croyais devenir fou.',
-          'C\'est la base Tycho. Le Dr Okafor et quarante et une personnes, sous un dôme qui fuit. Vivants. Andromède les croit morts, et c\'est ce qui les sauve. Garde ta radio allumée : Tycho va vouloir te parler.',
+          '(joie) C\'est la base Tycho. Le Dr Okafor et quarante et une personnes, sous un dôme qui fuit. Vivants. Andromède les croit morts, et c\'est ce qui les sauve. Garde ta radio allumée : Tycho va vouloir te parler.',
         ],
       },
     ],

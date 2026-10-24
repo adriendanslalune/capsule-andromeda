@@ -1,7 +1,8 @@
-# Portraits des PNJ : fiche de prompts pour ChatGPT
+# Portraits et décors des PNJ : fiche de prompts pour ChatGPT
 
-Adrien, 24/10/2026 : Claude tente d'abord les portraits en SVG (`maquette-dialogue.html`) ; s'ils ne conviennent pas,
-Adrien les génère avec ChatGPT, d'après cette fiche. Les descriptions des personnages sont des propositions de Claude,
+Adrien, 24/10/2026 : la mise en page du dialogue en case de BD est validée (`maquette-dialogue.html`), et les portraits
+comme les décors seront faits par ChatGPT, d'après cette fiche. En attendant, le jeu montre les dessins SVG de Claude
+(`src/commun/portraits.ts`) ; chaque image qui arrive remplace son dessin. Les descriptions des personnages sont des propositions de Claude,
 tirées de leur rôle et de leurs répliques : à corriger librement.
 
 ## Comment s'y prendre
@@ -94,3 +95,55 @@ dans la barbe. Souci : sourcils baissés, regard grave.
 Femme croate d'environ 36 ans, cheveux roux en longue tresse, taches de rousseur, yeux verts. Combinaison spatiale
 blanc cassé avec l'anneau du col de casque, lunettes de protection aux verres lavande sur la tête. Aventurière
 intrépide, un peu inquiète au bout du monde. Joie : sourire aventurier. Souci : regard par-dessus l'épaule.
+
+## Les décors
+
+Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (environ 390 × 400 à l'écran).
+
+1. Coller le **bloc de style des décors**, puis la fiche du lieu.
+2. Format carré, 1024 × 1024 ; Claude recadre.
+3. **Sans personnage** : le portrait se pose au centre, devant. Ce qui compte doit donc être sur les côtés et en haut ;
+   le centre et le bas peuvent rester simples (le bas est caché par la plaque du nom, le coin en haut à gauche par
+   l'encart « Par radio · depuis… »).
+
+### Le bloc de style des décors
+
+> Décor de bande dessinée de science-fiction, dans le style de Moebius (Jean Giraud) : ligne claire, trait d'encre fin
+> et régulier brun-violet foncé, grands aplats de couleurs pastel sans dégradé, ombres en aplats. Ambiance
+> rétro-futuriste des années 1970. Vue à hauteur d'homme, comme l'arrière-plan d'une case de BD derrière un
+> personnage : aucun personnage, aucun texte, aucun cadre. Le centre de l'image reste dégagé (un personnage sera posé
+> devant), l'intérêt est sur les côtés et en haut.
+
+### Les treize lieux
+
+- **ISS** (Elsa) : l'intérieur de la station, parois capitonnées crème et gris clair, panneaux à rivets, câbles
+  colorés, rambardes moutarde ; un grand hublot rond sur la droite, la Terre bleue et verte avec ses nuages.
+- **Lune** (Keïta) : plaine grise criblée de cratères sous un ciel noir étoilé, la Terre en croissant dans le ciel, un
+  petit module d'atterrissage au loin avec un fanion orange.
+- **Station Tycho** (Okafor) : une base sous un grand dôme transparent rapiécé, bâtiments éclairés de fenêtres
+  moutarde, régolithe gris, ciel noir, la Terre petite au loin.
+- **Hubble** (le Veilleur) : le télescope spatial dans le noir étoilé, ses panneaux solaires bleu marine, une
+  nébuleuse lavande au loin, des ondes radio dessinées en traits fins.
+- **Tiangong** (Rosa) : la station chinoise, modules blancs et panneaux solaires dorés, au-dessus de la courbe bleue
+  de la Terre, ciel noir étoilé.
+- **Mars** (Hélène) : ciel saumon poussiéreux, montagnes rouges, une colonie de dômes transparents et de modules, une
+  antenne à fanion orange, une petite lune (Phobos) dans le ciel.
+- **Cythère** (Odile) : une ville volante suspendue à un grand ballon blanc au-dessus d'une mer de nuages jaunes et
+  orange (Vénus), maisons à toits pointus, autres aérostats plus petits au loin.
+- **Phare de Mercure** (Aurelio) : un sol gris et rocheux sous un ciel noir, un Soleil énorme et aveuglant sur
+  l'horizon, une tour de phare blanche à lanterne noire, plantée dans la roche.
+- **Ganymède** (Nadia) : Jupiter immense dans le ciel noir, ses bandes moutarde, crème et corail, sa Grande Tache ;
+  au sol, une plaine de glace bleu pâle, rayée.
+- **Titan** (Tomás) : brume orange épaisse, un lac de méthane gris-bleu aux vagues lentes, un petit bateau de pêche
+  orange à voile, Saturne à peine devinée à travers la brume.
+- **Titania** (Hana) : sol de glace lavande et pics glacés, Uranus cyan dans le ciel avec ses anneaux fins presque à
+  la verticale, un petit observatoire à coupole.
+- **Station Le Verrier** (Aksel) : un phare rayé blanc et rouge sur un sol bleu sombre, son faisceau jaune qui balaie
+  le noir, Neptune bleu profond dans le ciel.
+- **Station Tombaugh** (Mira) : la plaine glacée beige et crème de Pluton, une grande zone claire en forme de cœur,
+  un petit abri à coupole lavande, le Soleil réduit à une étoile brillante dans un ciel très étoilé.
+
+## Ce qu'il faut envoyer à Claude
+
+Pour chaque personnage, trois portraits (neutre, joie, souci) ; pour chaque lieu, un décor. Les noms de fichier
+importent peu : dire à qui ou à quoi est chaque image.
