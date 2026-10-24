@@ -157,7 +157,7 @@ cœur clair au centre (comme le cœur de Pluton).
 - **L'annonce de l'assaut** (`commun/annonce-assaut.ts`) : le vaisseau en grand qui descend vers nous, l'astre de sa zone
   au bas de l'écran (dessiné par le jeu, avec sa vraie face éclairée), « VOUS ALLEZ AFFRONTER », son nom, À L'ASSAUT ! ;
   pas encore dessiné, une silhouette noire avec un « ? ».
-- **Le combat** : 32 unités de large (40 pour un boss de planète), le cœur qui palpite en rouge quand il enrage, le flash
+- **Le combat** : 32 unités de large (40 pour un boss de planète, 48 pour TRITON, le boss final : Adrien, 24/10/2026), le cœur qui palpite en rouge quand il enrage, le flash
   blanc à chaque tir.
 - Les fichiers : `public/vaisseaux/<id>.webp`, l'id tiré du nom (« le Séléné » → selene, « l'Ithaque » → ithaque) ; un
   amiral arrivé s'inscrit dans `AMIRAUX_PRETS` (`commun/vue-combat.ts`).

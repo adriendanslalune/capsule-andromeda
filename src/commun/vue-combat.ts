@@ -215,12 +215,12 @@ export class VueCombat {
     // Les aliens : le chasseur (gros, cœur vert) et ses escorteurs (petits dards), pointe vers le bas.
     for (const a of e.aliens) {
       if (a.chef && e.amiral) {
-        // L'amiral dessiné (Adrien, 24/10/2026 : le même que sur l'annonce), 32 unités de large (40 pour une planète) ;
+        // L'amiral dessiné (Adrien, 24/10/2026 : le même que sur l'annonce), 32 unités de large (40 pour une planète, 48 pour TRITON, le boss final) ;
         // blessé, son cœur palpite en rouge par-dessus.
         const nom = this.options.amiral ? idAmiral(this.options.amiral.nom) : ''
         const im = nom && AMIRAUX_PRETS.includes(nom) ? vaisseau(nom) : null
         if (im) {
-          const l = (this.options.amiral!.planete ? 40 : 32) * k, h = (l * im.naturalHeight) / im.naturalWidth
+          const l = (nom === 'triton' ? 48 : this.options.amiral!.planete ? 40 : 32) * k, h = (l * im.naturalHeight) / im.naturalWidth
           ctx.drawImage(im, X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
           if (a.pv < a.pvMax / 2) {
             ctx.globalAlpha = 0.35 + 0.25 * Math.sin(e.temps * 12)
