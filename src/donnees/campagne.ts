@@ -29,7 +29,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Sur Titan, il pleut du gaz naturel et les lacs ne gèlent jamais. On s\'habitue à tout.',
   },
   {
-    id: 'hana', nom: 'Hana Sato', role: 'Astronome en exil', lieu: 'Titania', teinte: '#bfe5e6', portrait: null,
+    id: 'hana', nom: 'Hana Sato', role: 'Astronome en exil', lieu: 'Titania', teinte: '#bfe5e6', portrait: 'portraits/hana-medaillon.webp',
     repos: 'Uranus roule sur le côté depuis des milliards d\'années. Rien d\'étonnant qu\'Andromède s\'y sente chez lui.',
   },
   {
@@ -298,12 +298,12 @@ const ACTES: Quete[] = [
   {
     id: 'uranus', titre: 'Le monde couché', type: 'principale', donneur: 'hana', conditions: ['saturne'],
     intro: [
-      'Je t\'attendais. Depuis Titania, je regarde Neptune toutes les nuits. Triton ne tourne pas comme une lune devrait tourner.',
+      '(souci) Je t\'attendais. Depuis Titania, je regarde Neptune toutes les nuits. Triton ne tourne pas comme une lune devrait tourner.',
       'Mais d\'abord, Uranus. Libère ses cinq lunes et la planète. Après, je te montrerai ce que j\'ai vu.',
     ],
     etapes: [
       { genre: 'liberer', zones: libs('Uranus'), texte: 'Libère les lunes d\'Uranus et Uranus' },
-      { genre: 'parler', pnj: 'hana', texte: ['Uranus est libre. Maintenant, regarde Triton avec moi… Tu vois ? Il tourne à l\'envers. Va voir le vieil Aksel, à la Station Le Verrier. Il sait.'] },
+      { genre: 'parler', pnj: 'hana', texte: ['(souci) Uranus est libre. Maintenant, regarde Triton avec moi… Tu vois ? Il tourne à l\'envers. Va voir le vieil Aksel, à la Station Le Verrier. Il sait.'] },
     ],
     recompense: 12000,
   },
