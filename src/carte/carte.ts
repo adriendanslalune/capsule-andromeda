@@ -796,9 +796,10 @@ export class Carte2D {
       this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r })
       if (!dedans(q.x, q.y, r * 2.6 + 20)) return
       const versSoleil = c.type === 'etoile' ? null : Math.atan2(soleil.y - q.y, soleil.x - q.x)
-      // Les zones (décisions d'Adrien du 21/10/2026) : grisées tant que la capsule n'y est pas allée ; un drapeau pirate
-      // au-dessus tant qu'Andromède les occupe.
-      const z = this.etatZone(c.nom), gris = !!z && !z.visitee
+      // Les zones (décisions d'Adrien du 21/10/2026) : un drapeau pirate au-dessus tant qu'Andromède les occupe. Une zone
+      // reste grise tant qu'elle n'est pas libérée (Adrien, 24/10/2026, qui remplace « grisée tant qu'on n'y
+      // est pas allé ») : elle prend ses couleurs à sa libération, avec le feu d'artifice.
+      const z = this.etatZone(c.nom), gris = !!z?.occupee && !this.epure
       const couleur = gris ? enGris(couleurDe(c)) : couleurDe(c)
       // Une zone occupée, un peu transparente (demande d'Adrien du 24/10/2026 : elle n'est pas disponible pour l'instant).
       const occupee = !!z?.occupee && !this.epure

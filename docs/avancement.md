@@ -91,6 +91,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Zones (Adrien, 24/10/2026) : grises tant qu'elles ne sont pas libérées (au lieu de « tant qu'on n'y est pas allé ») ;
+  leurs couleurs à la libération, avec le feu d'artifice. L'étiquette de la destination dit « en orbite · 521 km
+  d'altitude » quand on est en orbite autour d'elle (au lieu de la distance à son centre).
 - Zoom (Adrien, 24/10/2026) : l'échelle de la carte ne descend plus sous 2 000 km (`KM_PAR_PX_ZOOM` = 2 000/110 km par
   pixel, au lieu de 2), aux doigts comme à l'ouverture du jeu.
 - Suite (Adrien, 24/10/2026 : « je ne vois pas les symboles bouger », un écho reçu avant d'ouvrir le jeu) : ce qu'on a vu

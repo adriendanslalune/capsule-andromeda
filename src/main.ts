@@ -2125,6 +2125,12 @@ document.querySelector('#recommencer')!.addEventListener('click', async () => {
 function infosSelection(t: number): { nom: string; distance: string } | null {
   if (!selection) return null
   if (selection === CAPSULE) return { nom: `Capsule ${jeu.numeroSerie}`, distance: `cap. ${jeu.pseudo} · vous êtes ici` }
+  // En orbite autour de lui (Adrien, 24/10/2026 : « 2 260 km » alors qu'on y est) : l'altitude, ou « à côté » d'un engin.
+  const o = mission.phase(t) === 'orbite' ? mission.orbiteActuelle(t) : null
+  if (o?.centre === selection) {
+    const c = corps(selection)
+    return { nom: selection, distance: c?.tailleM ? 'à côté' : `en orbite · ${texteDistance(o.rayon - (c?.rayon ?? 0))} d'altitude` }
+  }
   return { nom: selection, distance: texteDistance(distanceDepuisCapsule(selection, t)) }
 }
 
