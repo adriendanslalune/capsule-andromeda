@@ -78,6 +78,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   non construit ; les 26 amiraux, le chasseur, l'escorteur, la capsule, **vus du dessus**, la même image au combat et
   sur l'annonce : Adrien), puis les formes de la capsule, les couvertures pulp, les Disparus. À coder : les sprites dans
   le combat, l'écran d'avant l'assaut.
+- Ordre des fenêtres (Adrien, 24/10/2026 : au premier moteur, le niveau 2 cachait le reste) : la fenêtre de niveau vient
+  en dernier (aucune fenêtre ouverte, rien d'autre à annoncer, aucun message radio sur le point d'arriver, un instant de
+  calme) ; un message radio attend aussi que la fenêtre du nouveau moteur soit refermée.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.
