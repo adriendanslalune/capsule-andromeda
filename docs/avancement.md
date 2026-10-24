@@ -51,6 +51,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   capsule) ; Elsa n'appelle qu'ensuite, puis une bulle montre la quête sur le tableau de bord. Puis : les bulles
   attendent le geste (glisser, zoomer, toucher le bouton capsule) ; la quête d'Elsa s'écoute en la touchant au tableau
   de bord, son losange doré clignote (toute nouvelle principale) ; zones occupées un peu transparentes.
+  Puis : la bulle des matériaux reformulée (« ce que tu as, sur ce qu'il faut ») ; ARMEMENT et RÉPARATION, une bulle
+  chacun ; la main ne se montre plus pendant qu'une fenêtre attend ses bulles (elle passait sur ACCEPTER) ; pendant
+  « Le cœur de la capsule », les contrats de la Terre sont dans le voisinage de l'ISS (trois épaves qui la suivent sur
+  son orbite : deux VIDER, un REMORQUER jusqu'à l'ISS, RÉPARER l'ISS ; de 25 s à 2 min 30 de vol au moteur 1).
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

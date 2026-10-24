@@ -25,14 +25,14 @@ import { localise, monolitheNomme, nouveauxMonolithes, oublierFutur, pinger, ram
 import { avancerEspace, mettreAQuai, nouvelEspace, recycler, reperer, vaincre, type EtatEspace } from './espace'
 import { GENRES_DE_MAISON, MAISONS, maisonDuContrat, missionsParMaison, type Maison } from '../donnees/maisons'
 import { PORTEES, TABLEAUX, VOL_MAX_DEBUT, ZONES, systemeDuTableau, type Portee } from '../donnees/tableaux'
-import { EPAVES } from '../donnees/espace'
+import { EPAVES, VOISINAGE_ISS } from '../donnees/espace'
 import { contexte } from './tableaux'
 import { maisonsOuvertes } from './profil'
 import { MOTS_DU_PARRAIN, PARRAINS } from '../donnees/messages'
 import { CHANCE_PANNE_PAR_TRAJET, MODULES, type NomModule } from '../donnees/modules'
 import { APPAREILS_PRETS, blocDe, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { commencer, jouer, type Geste } from './appareils'
-import { hasard, tirerContrat, type Contrat, type ContexteTableau, type Etape, type GenreContrat } from './contrats'
+import { hasard, recompense, tirerContrat, type Contrat, type ContexteTableau, type Etape, type GenreContrat } from './contrats'
 import type { EtatReparation, Resultat } from './reparation'
 import { astreDominant, corps, deplacerEpaves, position } from './corps'
 import { niveauDe } from './niveau'
@@ -78,6 +78,11 @@ export type Evenement =
 
 /** Un message privé qu'un bot a écrit au joueur après un événement du jeu. */
 export interface LettreDeBot { id: number; bot: string; texte: string; envoye: number }
+
+/** Un contrat du voisinage de l'ISS (le tutoriel) : tous ses lieux y sont. */
+function duVoisinage(c: Contrat): boolean {
+  return c.etapes.every((e) => e.lieu === 'ISS' || e.lieu in VOISINAGE_ISS)
+}
 
 export class Jeu {
   credits = CREDITS_DEPART
@@ -455,6 +460,34 @@ export class Jeu {
   }
 
   /**
+   * Le tutoriel : « Le cœur de la capsule » (q1) prise et pas finie, au premier moteur. Ses contrats se font
+   * dans le voisinage de l'ISS (Adrien, 24/10/2026 : tout à moins de 5 minutes de vol).
+   */
+  get enTutoriel(): boolean {
+    return this.niveauMoteur === 1 && !!this.quetes.q1 && this.quetes.q1.fin == null
+  }
+
+  /** Les contrats du voisinage de l'ISS : deux à VIDER, un à REMORQUER jusqu'à l'ISS, l'ISS à RÉPARER. */
+  private proposerVoisinage(): void {
+    const [v1, v2, v3] = Object.keys(VOISINAGE_ISS)
+    const modeles: [GenreContrat, Etape[]][] = [
+      ['nettoyer', [{ lieu: v1, action: 'nettoyer' }]],
+      ['nettoyer', [{ lieu: v3, action: 'nettoyer' }]],
+      ['remorquer', [{ lieu: v2, action: 'harponner' }, { lieu: 'ISS', action: 'larguer' }]],
+      ['depanner', [{ lieu: 'ISS', action: 'reparer' }]],
+    ]
+    const lieux = (e: Etape[]) => e.map((x) => x.lieu).join('>')
+    const pris = [...this.proposes, ...(this.enCours ? [this.enCours.contrat] : [])]
+    for (const [genre, etapes] of modeles) {
+      if (pris.some((c) => c.genre === genre && lieux(c.etapes) === lieux(etapes))) continue
+      if (etapes.some((e) => !!this.espace.aQuai?.[e.lieu])) continue
+      const h = hasard(this.graine)
+      this.graine = h.graine
+      this.proposes.push({ id: this.prochainId++, genre, etapes, recompense: recompense(genre, ZONES.Terre, h.x), tableau: 'Terre', portee: 'proche' })
+    }
+  }
+
+  /**
    * Complète les tableaux de missions (décisions d'Adrien du 18/10/2026) : 6 par système, réparties entre les Maisons
    * (missionsParMaison) et entre les portées (3 proches, 2 moyennes, 1 lointaine) ; son prix est fixé par la zone du
    * système et l'éloignement du lieu (le membre d'une Maison est payé 25 % de plus pour les missions de sa Maison).
@@ -475,7 +508,11 @@ export class Jeu {
       // Une épave à quai (remorquée, en recyclage) n'est plus à vider ni à remorquer.
       || c.etapes.some((e) => !!this.espace.aQuai?.[e.lieu])
     this.proposes = this.proposes.filter((c) => !horsPortee(c) && !aberrant(c))
+    // Pendant le tutoriel, le tableau de la Terre ne propose que les contrats du voisinage de l'ISS.
+    const tuto = this.enTutoriel
+    if (tuto) this.proposes = this.proposes.filter((c) => c.tableau !== 'Terre' || duVoisinage(c))
     for (const tableau of TABLEAUX) {
+      if (tuto && tableau.lieu === 'Terre') { this.proposerVoisinage(); continue }
       const voulues = missionsParMaison(this.maison, tableau.nombre, tableau.lieu)
       let ctx: ContexteTableau | null = null
       for (const { maison } of MAISONS) {

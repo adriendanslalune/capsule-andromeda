@@ -23,10 +23,11 @@ export const AIDES: Record<string, Bulle[]> = {
   capsule: [
     { sel: '#capsule .bloc', texte: 'Ton moteur, le cœur de ta capsule : sa vitesse décide de la durée de tes trajets.' },
     { sel: '#capsule .achat', texte: 'Le moteur suivant va deux fois plus vite. Son prix se paie en crédits, gagnés avec les contrats et les quêtes.' },
-    { sel: '#capsule .materiaux-moteur', texte: 'Il demande aussi des matériaux, pris dans ta soute. Ce qui manque est marqué d\'un point : les contrats VIDER en rapportent.' },
+    { sel: '#capsule .materiaux-moteur', texte: 'Il demande aussi des matériaux, pris dans ta soute. En face de chacun : ce que tu as, sur ce qu\'il faut (0 / 0,5 t : il t\'en manque une demi-tonne). Les contrats VIDER en rapportent.' },
     { sel: '#capsule .tuiles-modules', texte: 'Tes cinq modules. En panne, ils se réparent sur le panneau, avec le Manuel.' },
     { sel: '[data-sous="soute"]', texte: 'La SOUTE : ce que tu transportes, 20 t au plus.' },
-    { sel: '[data-sous="armement"]', texte: 'L\'ARMEMENT, pour les combats ; la RÉPARATION, le panneau où l\'on répare les pannes.' },
+    { sel: '[data-sous="armement"]', texte: 'L\'ARMEMENT : ta coque, ton canon, tes bombes et ton bouclier, pour les combats.' },
+    { sel: '[data-sous="reparation"]', texte: 'La RÉPARATION : le panneau où l\'on répare les pannes, avec le Manuel.' },
   ],
   missions: [
     { sel: '[data-journal-onglet="quetes"]', texte: 'Tes quêtes : l\'histoire (le losange doré) et les quêtes secondaires, données par les personnages que tu croises.' },

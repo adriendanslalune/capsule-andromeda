@@ -12,7 +12,7 @@ import { LISTE_SATELLITES, positionSatellitePlanetocentrique, type Satellite } f
 import { twoline2satrec, type SatRec } from '../astro/sgp4'
 import { ENGINS } from '../donnees/engins'
 import { ORBITE_ISS_SECOURS } from '../donnees/iss'
-import { ALIENS, EPAVES, GRANDES_LUNES, STATIONS_SYSTEMES, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
+import { ALIENS, EPAVES, GRANDES_LUNES, STATIONS_SYSTEMES, VOISINAGE_ISS, periodeOrbite, type ObjetEnOrbite } from '../donnees/espace'
 import { acceleration } from '../donnees/capsule'
 import { BOTS } from '../donnees/messages'
 import { MONOLITHES } from '../donnees/monolithes'
@@ -302,6 +302,9 @@ function positionBot(pseudo: string, t: number): Vecteur3 | null {
 export function positionRelative(nom: string, t: number): Vecteur3 {
   if (nom === 'Lune') return positionLuneGeocentrique(t + TT_MOINS_UTC_MS)
   if (nom === 'Charon') return positionCharon(t)
+  // Le voisinage de l'ISS : là où l'ISS sera (ou était) quelques secondes plus tard, à 7,66 km/s.
+  const voisin = VOISINAGE_ISS[nom]
+  if (voisin !== undefined) return positionRelative('ISS', t + (voisin / 7.66) * 1000)
   const simple = ORBITES_SIMPLES.get(nom)
   if (simple) return positionOrbiteSimple(simple, t)
   const lune = LUNES.get(nom)

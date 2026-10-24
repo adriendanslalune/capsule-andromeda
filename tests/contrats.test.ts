@@ -9,6 +9,9 @@ import { Jeu } from '../src/moteur/jeu'
 import { maisonDuContrat } from '../src/donnees/maisons'
 import { planifier } from '../src/moteur/mission'
 
+/** Hors du tutoriel (« Le cœur de la capsule » finie) : le tableau de la Terre ordinaire. */
+const horsTutoriel = (j: Jeu): Jeu => { j.quetes.q1 = { etape: 1, compte: 0, debut: 0, fin: 0 }; return j }
+
 const t0 = Date.UTC(2026, 9, 17, 12)
 
 /** Emmène la capsule à un lieu (départ à t) ; renvoie l'instant d'arrivée. */
@@ -21,7 +24,7 @@ function allerA(jeu: Jeu, lieu: string, t: number): number {
 
 /** Un jeu avec une mission choisie, déjà acceptée (sans usure : ces essais ne parlent pas des pannes). */
 function avecContrat(contrat: Contrat): Jeu {
-  const jeu = new Jeu()
+  const jeu = horsTutoriel(new Jeu())
   jeu.usureJusqua = Number.MAX_SAFE_INTEGER
   jeu.proposes = [contrat]
   jeu.accepter(contrat.id, t0)
@@ -35,7 +38,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   it('9 systèmes, 6 missions chacun, et 4 autour de chaque grande lune, toutes différentes, sur des lieux qui existent', () => {
     expect(TABLEAUX.filter((x) => x.centre === x.systeme).map((x) => x.lieu)).toEqual(['Mercure', 'Vénus', 'Terre', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'])
     expect(TABLEAUX.filter((x) => x.centre !== x.systeme)).toHaveLength(19)
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     expect(jeu.proposes).toHaveLength(TOTAL)
     expect(new Set(jeu.proposes.map((c) => c.id)).size).toBe(TOTAL)
@@ -51,7 +54,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('dans chaque système, des missions proches et des lointaines (3 proches, 2 moyennes, 1 lointaine quand le système le permet)', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     const systemes = TABLEAUX.filter((x) => x.centre === x.systeme)
     for (const x of systemes) {
@@ -74,7 +77,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('début de partie (demande d’Adrien du 21/10/2026) : autour de la Terre, les contrats restent à 25 minutes de vol du moteur', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     const distance = (l: string) => { const p = position(l, t0), q = position('Terre', t0); return Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z) }
     const loin = (j: Jeu) => Math.max(...j.proposes.filter((c) => c.tableau === 'Terre').flatMap((c) => c.etapes.map((e) => distance(e.lieu))))
@@ -92,7 +95,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
 
   it('pas d’aberration : on ne remorque qu’une vraie épave, jusqu’à une autre station ; on ne livre jamais au point de départ', () => {
     for (let k = 0; k < 40; k++) {
-      const jeu = new Jeu()
+      const jeu = horsTutoriel(new Jeu())
       jeu.graine = 1000 + k
       jeu.niveauMoteur = 1 + (k % 6)
       jeu.avancer(t0)
@@ -117,7 +120,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('chaque mission se passe dans le système de son lieu', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     for (const c of jeu.proposes) {
       const systeme = TABLEAUX.find((x) => x.lieu === c.tableau)!.centre
@@ -129,7 +132,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('autour de chaque grande lune (demande d’Adrien du 21/10/2026) : des contrats sur place, payés comme la lune dans son système', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     const lune = jeu.proposes.filter((c) => c.tableau === 'Lune')
     expect(lune).toHaveLength(4)
@@ -144,14 +147,14 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('le tirage est reproductible (même graine, mêmes missions)', () => {
-    const a = new Jeu(), b = new Jeu()
+    const a = horsTutoriel(new Jeu()), b = horsTutoriel(new Jeu())
     a.avancer(t0)
     b.avancer(t0)
     expect(a.proposes).toEqual(b.proposes)
   })
 
   it('les six types sortent, deux par Maison (décision d’Adrien du 18/10/2026)', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     expect([...new Set(jeu.proposes.map((c) => c.genre))].sort()).toEqual(['chasser', 'depanner', 'escorter', 'livrer', 'nettoyer', 'remorquer'])
     for (const c of jeu.proposes) expect(maisonDuContrat(c)).toBe({ nettoyer: 'nettoyeurs', remorquer: 'nettoyeurs', chasser: 'mercenaires', escorter: 'mercenaires', depanner: 'ingenieurs', livrer: 'ingenieurs' }[c.genre])
@@ -159,7 +162,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
   })
 
   it('tous les genres possibles à chaque fois (demande d’Adrien du 22/10/2026) : dès le début, ABATTRE autour de la Terre', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     for (const systeme of ['Terre', 'Mars', 'Jupiter', 'Saturne']) {
       const genres = new Set(jeu.proposes.filter((c) => c.tableau === systeme).map((c) => c.genre))
@@ -185,7 +188,7 @@ describe('missions proposées (décisions d’Adrien du 18/10/2026)', () => {
     expect(recompense('livrer', 1, 0)).toBe(70)
     expect(recompense('chasser', 1, 0)).toBeGreaterThan(recompense('depanner', 1, 0))
     expect(recompense('depanner', ZONES.Neptune, 0.5)).toBe(3380) // 75 cr. × 45, à la dizaine
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     const moyenne = (lieu: string) => { const l = jeu.proposes.filter((c) => c.tableau === lieu); return l.reduce((s, c) => s + c.recompense, 0) / l.length }
     expect(moyenne('Neptune')).toBeGreaterThan(10 * moyenne('Terre'))
@@ -241,7 +244,7 @@ describe('faire une mission', () => {
   })
 
   it('une seule mission à la fois ; abandonner libère la place', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     const [a, b] = jeu.proposes
     expect(jeu.accepter(a.id, t0)).toBe(true)
@@ -252,7 +255,7 @@ describe('faire une mission', () => {
   })
 
   it('temps de trajet d’une mission : un trajet pour un dépannage, deux pour une livraison (le second part de la station)', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     const reparer: Contrat = { id: 1, genre: 'depanner', etapes: [{ lieu: 'GOES-19', action: 'reparer' }], recompense: 100 }
     const livrer: Contrat = { id: 2, genre: 'livrer', etapes: [{ lieu: 'ISS', action: 'charger' }, { lieu: 'GOES-19', action: 'livrer' }], recompense: 100 }
     const [p] = jeu.trajetsContrat(reparer, t0, 30)!

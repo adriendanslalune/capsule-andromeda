@@ -7,6 +7,9 @@ import type { Contrat } from '../src/moteur/contrats'
 import { Jeu } from '../src/moteur/jeu'
 import { planifier, type Plan } from '../src/moteur/mission'
 
+/** Hors du tutoriel (« Le cœur de la capsule » finie) : le tableau de la Terre ordinaire. */
+const horsTutoriel = (j: Jeu): Jeu => { j.quetes.q1 = { etape: 1, compte: 0, debut: 0, fin: 0 }; return j }
+
 const t0 = Date.UTC(2026, 9, 18, 12)
 
 function allerA(jeu: Jeu, lieu: string, t: number): number {
@@ -18,7 +21,7 @@ function allerA(jeu: Jeu, lieu: string, t: number): number {
 
 describe('modules en panne et leurs effets (décisions d’Adrien du 18/10/2026)', () => {
   it('moteur : vitesse divisée par 2 ; réparé, elle revient', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.casser('moteur')
     expect(jeu.vitesse()).toBe(15)
     jeu.reparer('moteur')
@@ -26,7 +29,7 @@ describe('modules en panne et leurs effets (décisions d’Adrien du 18/10/2026)
   })
 
   it('communications : plus de nouvelles missions (celles proposées restent)', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.avancer(t0)
     jeu.casser('communications')
     jeu.accepter(jeu.proposes[0].id, t0)
@@ -38,7 +41,7 @@ describe('modules en panne et leurs effets (décisions d’Adrien du 18/10/2026)
 
   it('énergie : une action sur place dure deux fois plus longtemps', () => {
     const c: Contrat = { id: 9, genre: 'depanner', etapes: [{ lieu: 'ISS', action: 'reparer' }], recompense: 50 }
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.proposes = [c]
     jeu.accepter(9, t0)
     const t = allerA(jeu, 'ISS', t0) + 1000
@@ -52,7 +55,7 @@ describe('modules en panne et leurs effets (décisions d’Adrien du 18/10/2026)
 
   it('navigation : les étapes ne s’enchaînent plus (la capsule reste sur place)', () => {
     const c: Contrat = { id: 8, genre: 'livrer', etapes: [{ lieu: 'ISS', action: 'charger' }, { lieu: 'Hubble', action: 'livrer' }], recompense: 70 }
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     jeu.proposes = [c]
     jeu.accepter(8, t0)
     const t = allerA(jeu, 'ISS', t0) + 1000
@@ -69,7 +72,7 @@ describe('usure', () => {
   const trajetArriveA = (jeu: Jeu, a: number) => { jeu.mission.plan = { depart: a - 1000, arrivee: a, cible: 'ISS' } as Plan }
 
   it('environ une panne tous les 10 trajets, tirée une seule fois par trajet', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     // Pas d'histoire ici (un faux trajet sans points : Elsa ne doit pas appeler par radio).
     jeu.presentation = false
     let pannes = 0
@@ -86,7 +89,7 @@ describe('usure', () => {
   })
 
   it('pas de panne tant que le trajet n’est pas arrivé', () => {
-    const jeu = new Jeu()
+    const jeu = horsTutoriel(new Jeu())
     for (let k = 1; k <= 100; k++) {
       trajetArriveA(jeu, t0 + 10 ** 9 + k)
       expect(jeu.avancer(t0).filter((e) => e.genre === 'panne')).toEqual([])

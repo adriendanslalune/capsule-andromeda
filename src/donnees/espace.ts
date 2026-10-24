@@ -161,8 +161,22 @@ function tirer(): { epaves: ObjetEnOrbite[]; aliens: ObjetEnOrbite[] } {
 }
 
 const MONDE = tirer()
+
+/**
+ * Le voisinage de l'ISS (Adrien, 24/10/2026 : pendant le tutoriel, tout doit être à moins de 5 minutes ; licence
+ * poétique, la vraie configuration des engins ne le permet pas) : trois épaves qui suivent l'ISS sur son orbite, à
+ * quelques centaines de kilomètres devant (km > 0) ou derrière elle. Les contrats du tutoriel s'y font.
+ */
+export const VOISINAGE_ISS: Readonly<Record<string, number>> = {
+  'Réservoir crevé V-1': 250, 'Conteneur à la dérive V-2': -700, 'Satellite mort V-3': 1300,
+}
+
 /** Les épaves (en plus des débris autour des satellites de la Terre). */
-export const EPAVES: readonly ObjetEnOrbite[] = MONDE.epaves
+export const EPAVES: readonly ObjetEnOrbite[] = [
+  ...MONDE.epaves,
+  // (Ajoutées à la fin : le reste du monde ne change pas. Leur orbite est celle de l'ISS, voir moteur/corps.ts.)
+  ...Object.keys(VOISINAGE_ISS).map((nom) => o(nom, 'Terre', 6_790, 0, 0.9)),
+]
 /** Les chasseurs aliens. */
 export const ALIENS: readonly ObjetEnOrbite[] = MONDE.aliens
 

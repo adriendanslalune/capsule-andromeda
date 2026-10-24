@@ -2266,8 +2266,11 @@ const guide = new Guide(document.querySelector<HTMLDivElement>('#guide')!)
 // un volet, un sous-onglet, la radio), des bulles successives l'expliquent ; vues jusqu'au bout, elles ne reviennent plus.
 const bulles = new Bulles(document.querySelector<HTMLDivElement>('#bulles')!)
 let fenetreVue = '', fenetreDepuis = 0
+/** Des bulles attendent la fenêtre affichée (pendant les 600 ms où elle se pose) : la main ne s'y montre pas. */
+let aideEnAttente = false
 function lancerAides(t: number): void {
   bulles.recaler()
+  aideEnAttente = false
   // (Une partie où la carte est déjà expliquée mais l'histoire pas commencée : elle commence.)
   if (!jeu.presentation && !presentation.ouverte && jeu.aides.includes('carte')) jeu.finirPresentation(t)
   if (bulles.ouvertes || vueDialogue.ouvert || presentation.ouverte || radioAOuvrir(jeu, t)
@@ -2280,6 +2283,7 @@ function lancerAides(t: number): void {
   else if (page) cles = [page]
   else if (!document.querySelector('div.plein:not([hidden])')) cles = ['carte', ...(jeu.quetes.q1 ? ['tableau'] : [])]
   const cle = cles.find((c) => AIDES[c] && !jeu.aides.includes(c))
+  aideEnAttente = !!cle
   // La fenêtre doit être posée depuis un instant (un volet qui monte, un sous-onglet qui s'affiche).
   if (cle !== fenetreVue) { fenetreVue = cle ?? ''; fenetreDepuis = performance.now(); return }
   if (!cle || performance.now() - fenetreDepuis < 600) return
@@ -2303,7 +2307,7 @@ function versOnglet(page: string, texte: string): Cible | null {
   return cockpit.pageOuverte === page ? null : cibleEl(`#onglets [data-onglet="${page}"]`, texte)
 }
 function gesteDuTutoriel(t: number): Cible | null {
-  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu') || presentation.ouverte || bulles.ouvertes) return null
+  if (document.querySelector('#couverture, #bienvenue, .confirmation-jeu') || presentation.ouverte || bulles.ouvertes || aideEnAttente) return null
   const q = suiteDeLHistoire(jeu)
   if (!q || !TUTORIEL.includes(q.id)) return null
   // Le premier message d'Elsa : le lire jusqu'au bout.
