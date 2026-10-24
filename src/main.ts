@@ -1859,10 +1859,16 @@ function montrer(el: Element | null, oui: boolean): void {
   if (el && el.classList.contains('cache-tuto') === oui) el.classList.toggle('cache-tuto', !oui)
 }
 function appliquerInstruments(): void {
-  for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) montrer(el, instrumentLibre(el.dataset.instrument as Instrument))
+  // Les capteurs du Veilleur (PING, RADAR, RADIO) restent visibles, grisés, tant qu'il ne les a pas installés (Adrien,
+  // 24/10/2026) ; les toucher dit qui s'en occupera. Le reste n'apparaît qu'une fois installé.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) {
+    const i = el.dataset.instrument as Instrument
+    if (i === 'ping' || i === 'radar' || i === 'radio') { montrer(el, true); el.toggleAttribute('data-verrou', !instrumentLibre(i)) }
+    else montrer(el, instrumentLibre(i))
+  }
   for (const sel of ['#console', '#annonces', '#commandes-carte']) montrer(document.querySelector(sel), !presentation.ouverte)
   montrer(document.querySelector('#onglets [data-onglet="capsule"]'), jeu.installe('marche') || instrumentLibre('reparation'))
-  montrer(document.querySelector('#instruments'), (['radar', 'ping', 'radio'] as Instrument[]).some(instrumentLibre))
+  montrer(document.querySelector('#instruments'), !presentation.ouverte)
   montrer(document.querySelector('#onglets'), !!document.querySelector('#onglets button:not(.cache-tuto)'))
   if (!instrumentLibre('bourse') && ongletMarche === 'bourse') ongletMarche = 'comptoir'
   if (!instrumentLibre('contrats') && ongletJournal === 'contrats') { ongletJournal = 'quetes'; afficherOngletJournal() }

@@ -41,7 +41,7 @@ export interface EtatQuete {
 export interface RadioPnj { id: number; pnj: string; texte: string[]; envoye: number; arrivee: number; lu: boolean; quete?: string }
 
 /** Ce qui fait avancer les quêtes. */
-export type FaitDeJeu = { genre: 'contrat'; contrat: Contrat } | { genre: 'monolithe' } | { genre: 'instant' } | { genre: 'assaut'; zone: string }
+export type FaitDeJeu = { genre: 'contrat'; contrat: Contrat } | { genre: 'monolithe' } | { genre: 'voix' } | { genre: 'instant' } | { genre: 'assaut'; zone: string }
   | { genre: 'chasseur'; systeme: string | null }
 
 /** Ce que dit un PNJ quand on lui parle. */
@@ -169,7 +169,8 @@ export function texteEtape(e: EtapeQuete): string {
     case 'disparu': return `Retrouve ${e.nom} (les Disparus : radar allumé, puis en orbite autour)`
     case 'moteur': return `Installe le moteur de niveau ${e.niveau} (Capsule › MOTEUR)`
     case 'reparer': return `Répare le module ${MODULES.find((m) => m.nom === e.module)!.titre} sur le panneau (Capsule › RÉPARATION)`
-    case 'ping': return 'Envoie un PING (bouton PING de la carte) et attends son écho'
+    case 'ping': return e.texte ?? 'Envoie un PING (bouton PING de la carte) et attends son écho'
+    case 'voix': return `Enregistre ${e.nombre > 1 ? `${e.nombre} Voix perdues` : 'une Voix perdue'} à la RADIO (l'heure dans Collections › Voix perdues)`
   }
 }
 
@@ -181,7 +182,7 @@ export function objectif(jeu: Jeu, q: Quete): { texte: string; compte: string | 
   }
   const e = etapeCourante(jeu, q)
   if (!e) return null
-  const n = e.genre === 'mission' || e.genre === 'monolithes' || e.genre === 'chasseurs' ? e.nombre : 0
+  const n = e.genre === 'mission' || e.genre === 'monolithes' || e.genre === 'chasseurs' || e.genre === 'voix' ? e.nombre : 0
   const compte = e.genre === 'jauge' ? `${jauge(jeu.zones, e.zone)} %`
     : e.genre === 'liberer' ? `${e.zones.filter((z) => jeu.zones.liberees.includes(z)).length}/${e.zones.length}`
       : n > 1 ? `${jeu.quetes[q.id].compte}/${n}` : null
@@ -353,6 +354,9 @@ export function avancerQuetes(jeu: Jeu, fait: FaitDeJeu, t: number): string[] {
       } else if (e.genre === 'monolithes' && fait.genre === 'monolithe' && garde === 0) {
         etat.compte++
         atteint = etat.compte >= e.nombre
+      } else if (e.genre === 'voix' && fait.genre === 'voix' && garde === 0) {
+        etat.compte++
+        atteint = etat.compte >= e.nombre
       } else if (e.genre === 'chasseurs' && fait.genre === 'chasseur' && garde === 0 && (!e.systeme || fait.systeme === e.systeme)) {
         etat.compte++
         atteint = etat.compte >= e.nombre
@@ -500,6 +504,20 @@ export function ecouterSignal(jeu: Jeu, systeme: string | null, frequence: numbe
 
 /** Qui installe un instrument : la quête qui l'apporte et son donneur (pour le dire sur ce qui est encore grisé). */
 export function quiInstalle(i: Instrument): { quete: Quete; pnj: Pnj } | null {
-  const q = QUETES.find((x) => x.installe?.includes(i) || x.ouvre?.includes(i))
+  // Les capteurs : le Veilleur d'abord (Adrien, 24/10/2026) ; la campagne ne les installe que s'il ne l'a pas fait.
+  const toutes = QUETES.filter((x) => x.installe?.includes(i) || x.ouvre?.includes(i))
+  const q = toutes.find((x) => x.donneur === 'veilleur') ?? toutes[0]
   return q ? { quete: q, pnj: pnj(q.donneur) } : null
+}
+
+/**
+ * Les instruments installés d'après les quêtes (une sauvegarde relue) : ceux qu'une quête prise installe, ceux qu'une
+ * quête finie ouvre. Les autres capteurs restent grisés jusqu'à la quête qui les apporte (Adrien, 24/10/2026).
+ */
+export function rattraperInstruments(jeu: Jeu): void {
+  for (const q of QUETES) {
+    const e = jeu.quetes[q.id]
+    if (!e) continue
+    for (const i of [...(q.installe ?? []), ...(e.fin != null ? q.ouvre ?? [] : [])]) if (!jeu.installes.includes(i)) jeu.installes.push(i)
+  }
 }

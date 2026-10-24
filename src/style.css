@@ -2612,3 +2612,16 @@ body.volet-ouvert #annonces { display: none; }
 #fiche-capitaine .boutons-capitaine button { flex: 1 1 auto; min-height: 44px; padding: 0 12px; font-family: var(--titre); font-size: 15px; font-weight: 700;
   letter-spacing: 0.08em; color: var(--encre); background: var(--creme); border: 1.5px solid var(--encre); border-radius: 2px; }
 #fiche-capitaine .boutons-capitaine button.principal { background: var(--orange); color: var(--creme); }
+
+/* Un capteur pas encore installé par le Veilleur : grisé (Adrien, 24/10/2026). */
+#instruments button[data-verrou] { filter: grayscale(1); opacity: 0.45; }
+#instruments button[data-verrou] .charge { display: none; }
+
+/* Soute pleine au Comptoir : la jauge tremble en rouge gras (Adrien, 24/10/2026). */
+#comptoir .tete-comptoir .vals.soute-pleine { color: #c0392b; font-weight: 800; animation: soute-pleine 0.7s ease-in-out; display: inline-block; }
+@keyframes soute-pleine {
+  0%, 100% { transform: none; }
+  10%, 30%, 50%, 70% { transform: translateX(-4px) rotate(-2deg) scale(1.15); }
+  20%, 40%, 60%, 80% { transform: translateX(4px) rotate(2deg) scale(1.15); }
+}
+#comptoir button.eteint { opacity: 0.45; }

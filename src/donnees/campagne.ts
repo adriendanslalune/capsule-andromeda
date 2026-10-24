@@ -94,7 +94,7 @@ const deLa = (nom: string) => (/^[AEIOUÉÈYH]/i.test(nom) ? `d'${nom}` : `de ${
  */
 const ARCS: Quete[] = [
   {
-    id: 'liberer-mars', titre: 'La tempête rouge', type: 'principale', donneur: 'helene', conditions: ['l3'],
+    id: 'liberer-mars', titre: 'La tempête rouge', type: 'principale', donneur: 'helene', conditions: ['l3'], installe: ['radar', 'radio'],
     intro: [
       '(joie) Ici Bradbury. Vous êtes la capitaine de la Lune ? On vous entend à la radio jusqu\'ici, vous savez. Les gamins de Radio Poussière ont fait une chanson sur vous. Elle est mauvaise.',
       '(souci) Quatre cents colons, deux serres, une mine de titane. Et une tempête de trois mois qui nous coupe du ciel. Pire : Andromède attaque nos convois. Sans le titane, Arès Titane ne paie plus, et sans la paie, plus de vivres.',
@@ -142,7 +142,7 @@ const ARCS: Quete[] = [
     recompense: 1000, libere: 'Mars',
   },
   {
-    id: 'liberer-venus', titre: 'Le chant de Cythère', type: 'principale', donneur: 'odile', conditions: ['l3'],
+    id: 'liberer-venus', titre: 'Le chant de Cythère', type: 'principale', donneur: 'odile', conditions: ['l3'], installe: ['radar', 'radio'],
     intro: [
       'Bienvenue à Cythère, capitaine. Trois mille âmes à cinquante-cinq kilomètres au-dessus de l\'enfer. Le conseil a voté : on ne descend pas, on ne monte pas, on ne se rend pas.',
       '(souci) Mais on ne tient qu\'à des câbles, et les câbles s\'usent. Ce qui nous relie au reste du monde, c\'est Tant-Pis, la navette des Chantiers. Elle est revenue de la Terre en morceaux. Enfin… en moins de morceaux que prévu.',
@@ -186,7 +186,7 @@ const ARCS: Quete[] = [
     recompense: 1000, libere: 'Vénus',
   },
   {
-    id: 'liberer-mercure', titre: 'Le Phare', type: 'principale', donneur: 'aurelio', conditions: ['l3'],
+    id: 'liberer-mercure', titre: 'Le Phare', type: 'principale', donneur: 'aurelio', conditions: ['l3'], installe: ['radar'],
     intro: [
       '(joie) Bienvenue au Phare, capitaine. Quart numéro quatre-vingt-quelque-chose. On a arrêté de compter précisément, ça portait malheur.',
       '(souci) Le Phare reste allumé, quoi qu\'il arrive. Mais le bouclier solaire tombe en lambeaux, et Gabin fait cuire ses œufs sur le hublot. Ce n\'est pas une blague, c\'est un problème de sécurité.',

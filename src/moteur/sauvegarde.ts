@@ -14,6 +14,7 @@ import { numeroDeSerie } from './jeu'
 import type { EtatReparation } from './reparation'
 import { BLOCS, ficheBloc, type NomAppareil } from '../donnees/blocs'
 import { PNJS, QUETES } from '../donnees/quetes'
+import { rattraperInstruments } from './quetes'
 import { COMPAGNIES } from '../donnees/bourse'
 import { NOMBRE_VOIX } from '../donnees/radio'
 import type { OrdreBourse, Portefeuille } from './bourse'
@@ -251,7 +252,7 @@ export function restaurer(s: unknown): Jeu | null {
     jeu.radioPnj = v.radioPnj.filter((r) => !!r && nombre(r.id) && PNJS.some((p) => p.id === r.pnj) && Array.isArray(r.texte)
       && r.texte.every((x) => typeof x === 'string') && nombre(r.envoye) && nombre(r.arrivee)).map((r) => ({ id: r.id, pnj: r.pnj, texte: [...r.texte], envoye: r.envoye, arrivee: r.arrivee, lu: !!r.lu, ...(typeof r.quete === 'string' ? { quete: r.quete } : {}) }))
   }
-  // Tout est installé dès le départ (Adrien, 24/10/2026) : la liste sauvegardée n'est plus lue.
+  // Les instruments se déduisent des quêtes (les capteurs du Veilleur : Adrien, 24/10/2026) ; la liste sauvegardée n'est plus lue.
   if (v.presentation === false) jeu.presentation = false
   // La Bourse : seulement les compagnies qui existent, des nombres valides.
   if (v.bourse && typeof v.bourse === 'object') {
@@ -328,6 +329,7 @@ export function restaurer(s: unknown): Jeu | null {
   }
   if (v.quetes && Object.keys(v.quetes).some((id) => /^(lune-\d|t\d)$/.test(id))) reprendreAncienneCampagne(jeu, v.quetes, v.enregistreLe)
   restaurerTrophees(jeu, v)
+  rattraperInstruments(jeu)
   return jeu
 }
 

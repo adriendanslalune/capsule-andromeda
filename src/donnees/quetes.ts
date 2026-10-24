@@ -89,7 +89,9 @@ export type EtapeQuete = SuiteEtape & (
   /** Réparer un module de la capsule sur le panneau. */
   | { genre: 'reparer'; module: NomModule }
   /** Envoyer un PING et recevoir son écho. */
-  | { genre: 'ping' })
+  | { genre: 'ping'; texte?: string }
+  /** Enregistrer des Voix perdues à la radio. */
+  | { genre: 'voix'; nombre: number })
 
 export interface Quete {
   id: string
@@ -175,7 +177,8 @@ export const QUETES: readonly Quete[] = [
     recompense: 150,
   },
   {
-    id: 'l2', titre: 'Le relais Apollo', type: 'principale', donneur: 'keita', conditions: ['l1'], parRadio: true,
+    // Son étape radar installe le RADAR si le Veilleur ne l'a pas encore fait (la campagne ne reste jamais bloquée).
+    id: 'l2', titre: 'Le relais Apollo', type: 'principale', donneur: 'keita', conditions: ['l1'], parRadio: true, installe: ['radar'],
     intro: [
       '(souci) Pour parler vraiment avec Tycho, il nous faut un relais au-dessus de la face cachée. Le nôtre est en panne depuis le premier jour.',
       'Les Ingénieurs ont toujours un engin à remettre en état : prends un contrat RÉPARER. Ensuite, profite d\'être là-haut pour jeter un œil autour de la Lune, radar allumé. Okafor croit qu\'ils cachent quelque chose de gros.',
@@ -214,15 +217,51 @@ export const QUETES: readonly Quete[] = [
   },
   // --- Quêtes secondaires ---
   {
-    id: 'veilleur', titre: 'L\'oreille du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['q1'],
+    // Le Veilleur ouvre les capteurs un à un (Adrien, 24/10/2026) : le PING (trois appels, puis le premier monolithe),
+    // puis le RADAR, puis la RADIO. Avant lui, ils sont grisés sur la carte.
+    id: 'veilleur', titre: 'L\'oreille du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['q1'], installe: ['ping'],
     intro: [
       '(souci) Chut. Tu les entends ? Non, bien sûr. Mille monolithes, capitaine, cachés dans tout le système. Plus vieux que nous. Ils ne répondent qu\'à ceux qui appellent.',
-      'Touche le bouton PING de ta carte, et le plus proche te répond. Son écho revient à la vitesse de la lumière : il trace un cercle, et le monolithe est quelque part dessus. Déplace-toi, appelle encore, et les cercles se croisent.',
+      'Je t\'ai branché un PING, là, au bord de ta carte. Appelle, et le plus proche te répond. Son écho revient à la vitesse de la lumière : il trace un cercle, et le monolithe est quelque part dessus.',
+      'Un appel par heure, pas plus : ils n\'aiment pas qu\'on crie. Appelle trois fois, de trois endroits différents, et les cercles se croiseront.',
     ],
     etapes: [
-      { genre: 'ping', radio: { pnj: 'veilleur', texte: ['(joie) Tu l\'as entendu ? Alors tu es des nôtres. Il en reste mille. Ceux que tu trouves iront dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.'] } },
+      { genre: 'ping', texte: 'Envoie un premier PING (bouton PING de la carte) et attends son écho',
+        radio: { pnj: 'veilleur', texte: ['(joie) Tu l\'as entendu ? Un cercle. Il est quelque part dessus. Maintenant, bouge : va ailleurs, loin, et rappelle dans une heure.'] } },
+      { genre: 'ping', texte: 'Déplace-toi, puis envoie un deuxième PING',
+        radio: { pnj: 'veilleur', texte: ['Deux cercles. Ils se croisent en deux points, tu vois ? L\'un des deux ment. Encore un appel, d\'un troisième endroit.'] } },
+      { genre: 'ping', texte: 'D\'un troisième endroit, envoie un troisième PING',
+        radio: { pnj: 'veilleur', texte: ['(joie) Trois cercles, un seul point. S\'ils ne se croisent pas encore, bouge et rappelle : il finit toujours par se montrer. Puis va le cueillir.'] } },
+      { genre: 'monolithes', nombre: 1,
+        radio: { pnj: 'veilleur', texte: ['(joie) Tu l\'as touché ? Alors tu es des nôtres. Il en reste neuf cent quatre-vingt-dix-neuf. Ils iront dans ton classeur, dans les Collections. Ça ne sert à rien. C\'est pour ça que c\'est beau.'] } },
     ],
-    recompense: 30,
+    recompense: 60,
+  },
+  {
+    id: 'veilleur-radar', titre: 'Les yeux du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur'], parRadio: true, installe: ['radar'],
+    intro: [
+      'Capitaine. Le Veilleur. Tu as l\'oreille ; maintenant, il te faut des yeux.',
+      'Les chasseurs d\'Andromède sont furtifs : ta carte ne les montre pas. Je t\'ai installé un RADAR, au-dessus du PING. Allume-le : il tourne trente secondes et révèle ce qui rôde à cent mille kilomètres.',
+      'Il trouve aussi les sondes perdues, les Disparus, quand tu passes près d\'elles. Allume-le, et dis-moi ce que tu vois.',
+    ],
+    etapes: [
+      { genre: 'radar', texte: 'Allume le RADAR et repère un chasseur d\'Andromède',
+        radio: { pnj: 'veilleur', texte: ['(souci) Tu les vois, hein ? Ils sont partout. Allume-le avant chaque départ : un chasseur que tu as vu venir ne te surprend pas.'] } },
+    ],
+    recompense: 40,
+  },
+  {
+    id: 'veilleur-radio', titre: 'Les voix du Veilleur', type: 'secondaire', donneur: 'veilleur', conditions: ['veilleur-radar'], parRadio: true, installe: ['radio'],
+    intro: [
+      'Capitaine. Dernière chose, et la plus belle. Pendant l\'invasion, des équipages ont laissé des messages. Cent cinquante voix. Elles émettent encore, chacune une demi-heure par jour, toujours à la même heure.',
+      'Je t\'ai installé une RADIO, sous le PING. Bande OC. Tourne le bouton jusqu\'à ce que la voix soit nette, et tiens-la dix secondes : elle s\'enregistre.',
+      'Une voix n\'émet que dans son système. Pour savoir quand écouter : le carnet des Voix perdues, dans les Collections, donne l\'heure de celles qui te manquent. Jamais la fréquence : ça, il faut la chercher. Commence par la Terre.',
+    ],
+    etapes: [
+      { genre: 'voix', nombre: 1,
+        radio: { pnj: 'veilleur', texte: ['(joie) Tu l\'as. Écoute-les toutes, un jour. Mises bout à bout, elles racontent quelque chose que personne ne veut entendre.'] } },
+    ],
+    recompense: 50,
   },
   {
     id: 'rosa', titre: 'Circuits sous le manteau', type: 'secondaire', donneur: 'rosa', conditions: ['q1'],

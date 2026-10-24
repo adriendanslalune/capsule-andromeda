@@ -44,10 +44,11 @@ describe('les PNJ et les quêtes : les données', () => {
 })
 
 describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lune)', () => {
-  it('tout est installé dès le départ', () => {
+  it('tout est installé dès le départ, sauf les capteurs du Veilleur (PING, RADAR, RADIO : grisés)', () => {
     const neuve = new Jeu()
     neuve.nouvellePartie(42, t0)
-    expect(neuve.installes.length).toBe(10)
+    expect(neuve.installes.length).toBe(7)
+    expect(['ping', 'radar', 'radio'].some((i) => neuve.installes.includes(i as never))).toBe(false)
     expect(neuve.presentation).toBe(true)
   })
 
@@ -113,7 +114,7 @@ describe('le début (Adrien, 24/10/2026 : une quête pour le moteur, puis la Lun
     tuto.installes = ['communications']
     const b = restaurer(JSON.parse(JSON.stringify(tuto)))!
     expect(b.quetes.q1).toBeUndefined()
-    expect(b.installes.length).toBe(10)
+    expect(b.installes.length).toBe(7)
   })
 })
 
@@ -249,5 +250,46 @@ describe('les planètes intérieures (docs/campagne-detail.md, validé par Adrie
     expect(JSON.stringify(copie.proposes)).toMatch(/Cythère.*Phare de Mercure/)
     expect(corps('Cythère')).toBeDefined()
     expect(corps('Phare de Mercure')).toBeDefined()
+  })
+})
+
+describe('le Veilleur ouvre les capteurs un à un (Adrien, 24/10/2026)', () => {
+  it('PING à la prise de sa quête ; trois PING, un monolithe ; puis RADAR, puis RADIO, par radio', () => {
+    const jeu = new Jeu()
+    jeu.nouvellePartie(42, t0)
+    jeu.quetes.q1 = { etape: 9, compte: 0, debut: 0, fin: 0 }
+    expect(accepter(jeu, 'veilleur', t0)).toBe(true)
+    expect(jeu.installe('ping')).toBe(true)
+    expect(jeu.installe('radar')).toBe(false)
+    // Trois PING (leur écho revenu), chacun après le précédent.
+    let t = t0
+    for (let k = 0; k < 3; k++) {
+      t += 3_700_000
+      jeu.monolithes.echos.push({ monolithe: 1 + k, centre: { x: 0, y: 0 }, rayon: 1, envoye: t, retour: t + 10, vu: true })
+      avancerQuetes(jeu, { genre: 'instant' }, t + 20)
+      expect(jeu.quetes.veilleur.etape).toBe(k + 1)
+    }
+    avancerQuetes(jeu, { genre: 'monolithe' }, t + 30)
+    expect(jeu.quetes.veilleur.fin).not.toBeNull()
+    // Le RADAR arrive par radio, avec sa quête.
+    expect(jeu.quetes['veilleur-radar']).toBeDefined()
+    expect(jeu.installe('radar')).toBe(true)
+    jeu.espace.reperes = { 'Chasseur test': t + 40 }
+    jeu.radar.actif = true
+    avancerQuetes(jeu, { genre: 'instant' }, t + 50)
+    expect(jeu.quetes['veilleur-radar'].fin).not.toBeNull()
+    expect(jeu.installe('radio')).toBe(true)
+    avancerQuetes(jeu, { genre: 'voix' }, t + 60)
+    expect(jeu.quetes['veilleur-radio'].fin).not.toBeNull()
+  })
+
+  it('une partie relue retrouve ses capteurs d’après ses quêtes', () => {
+    const jeu = new Jeu()
+    jeu.nouvellePartie(42, t0)
+    jeu.quetes.q1 = { etape: 9, compte: 0, debut: 0, fin: 0 }
+    jeu.quetes.veilleur = { etape: 4, compte: 0, debut: t0, fin: t0 }
+    const relu = restaurer(JSON.parse(JSON.stringify(sauvegarder(jeu, t0))))!
+    expect(relu.installe('ping')).toBe(true)
+    expect(relu.installe('radio')).toBe(false)
   })
 })

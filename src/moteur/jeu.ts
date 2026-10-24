@@ -48,6 +48,9 @@ import type { Disparu } from '../donnees/disparus'
 import { Mission, longueurTrajet, planifier, vitesseAstre, vitesseEnVol, type Plan } from './mission'
 import { ajouter, noter, statsNeuves, suivreTrophees, type Stats } from './trophees'
 
+/** Les capteurs qu'apporte le Veilleur (Adrien, 24/10/2026) : grisés au départ. */
+const CAPTEURS_DU_VEILLEUR: readonly Instrument[] = ['ping', 'radar', 'radio']
+
 /** Le jeu dont les épaves déplacées sont en place (il n'y en a qu'un en vrai ; les tests en créent plusieurs). */
 let jeuDesEpaves: unknown = null
 
@@ -126,7 +129,7 @@ export class Jeu {
   /** Calé sur le signal d'une quête (pas sauvegardé). */
   calageSignal: { quete: string; depuis: number } | null = null
   /** Les instruments installés (décision d'Adrien du 23/10/2026 : une capsule neuve n'a rien ; une partie déjà commencée a tout). */
-  installes: Instrument[] = [...INSTRUMENTS]
+  installes: Instrument[] = INSTRUMENTS.filter((i) => !CAPTEURS_DU_VEILLEUR.includes(i))
   /** La présentation du monde est vue (Adrien, 23/10/2026 : une partie neuve commence par elle ; une partie d'avant l'a vue). */
   presentation = true
   /** La libération des zones (décisions d'Adrien du 21/10/2026) : points de résistance et zones libérées. */
@@ -1099,6 +1102,7 @@ export class Jeu {
     const h = new Date(t).getHours()
     if (h >= 2 && h < 5) this.noter('voixNocturne')
     this.stats.n.ecouteVaine = 0
+    this.annoncesQuetes.push(...avancerQuetes(this, { genre: 'voix' }, t))
     this.annoncesQuetes.push(...resister(this.zones, this.mission.etat(t).position, POINTS_RESISTANCE.voix, t))
     this.gagnerXp(XP.voix)
   }

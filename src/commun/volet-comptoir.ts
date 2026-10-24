@@ -42,6 +42,8 @@ export class VoletComptoir {
     element.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
       if (!b || b.disabled) return
+      // Soute pleine : acheter est impossible, la jauge de la soute tremble (Adrien, 24/10/2026).
+      if (b.dataset.soutePleine !== undefined) { this.secouerSoute(); return }
       if (b.dataset.sens) {
         const o: Ordre = { sens: b.dataset.sens as Ordre['sens'], marchandise: b.dataset.nomMarchandise!, tonnes: Number(b.dataset.tonnes) }
         if (o.tonnes !== Infinity) { this.commercer(o); return }
@@ -53,6 +55,18 @@ export class VoletComptoir {
       else return
       this.rafraichir()
     })
+  }
+
+  private chargePrecedente: number | null = null
+
+  /** La jauge de la soute tremble, en rouge gras, et le téléphone vibre : elle est pleine. */
+  private secouerSoute(): void {
+    const el = this.element.querySelector<HTMLElement>('.tete-comptoir .vals')
+    if (!el) return
+    el.classList.remove('soute-pleine')
+    void el.offsetWidth
+    el.classList.add('soute-pleine')
+    navigator.vibrate?.([60, 40, 60, 40, 60])
   }
 
   /** besoins : les tonnes qui manquent pour le moteur suivant, par matériau (marquées dans la liste). */
@@ -113,7 +127,9 @@ export class VoletComptoir {
             if (tout && v.tonnes > 0 && v.tonnes <= avant + 1e-9 && html) continue
             const titre = tout ? (v.tonnes > 0 ? `TOUT · ${t1(v.tonnes)} t` : 'TOUT') : `${t1(v.tonnes > 0 ? v.tonnes : n)} t`
             const somme = v.tonnes > 0 ? `${sens === 'acheter' ? '−' : '+'}${v.prix.toLocaleString('fr-FR')} cr` : '—'
-            html += `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${v.tonnes > 0 ? '' : ' disabled'}>`
+            const pleine = sens === 'acheter' && v.tonnes <= 0 && possible && charge >= CAPACITE_SOUTE - 0.05
+            html += (pleine ? '<button type="button" class="eteint" data-soute-pleine>'
+              : `<button type="button" data-sens="${sens}" data-nom-marchandise="${nom}" data-tonnes="${n}"${v.tonnes > 0 ? '' : ' disabled'}>`)
               + `<b>${titre}</b><small>${somme}</small></button>`
             avant = Math.max(avant, v.tonnes)
           }
@@ -130,9 +146,13 @@ export class VoletComptoir {
     }).join('') + '</div>'
     html += '<p class="note">Achat : ce que tu paies une tonne ; vente : ce qu\'on t\'en donne. Chaque système a ses spécialités : moins chères là où elles se produisent, plus chères là où elles manquent.</p>'
 
-    if (html === this.dernier) return
+    // Un achat vient de remplir la soute : elle tremble aussi.
+    const pleine = charge >= CAPACITE_SOUTE - 0.05, vientDeSeRemplir = pleine && this.chargePrecedente !== null && this.chargePrecedente < CAPACITE_SOUTE - 0.05
+    this.chargePrecedente = charge
+    if (html === this.dernier) { if (vientDeSeRemplir) this.secouerSoute(); return }
     const rangee = this.element.querySelector('.places')?.scrollLeft ?? 0
     this.element.innerHTML = this.dernier = html
+    if (vientDeSeRemplir) this.secouerSoute()
     const places = this.element.querySelector<HTMLElement>('.places')
     if (!places) return
     places.scrollLeft = rangee
