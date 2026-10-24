@@ -1348,6 +1348,8 @@ function traiterEvenements(evenements: ReturnType<Jeu['avancer']>): void {
 let dernierVolet = 0
 let dernierMarche = 0
 let dernierCourrier = 0
+/** Depuis quand aucune fenêtre n'est ouverte ni attendue (performance.now) : la fenêtre de niveau attend ce calme. */
+let calmeDepuis = 0
 
 // Volet Capsule : acheter le moteur suivant (après confirmation) ; les trajets prévus se recalculent à la nouvelle vitesse.
 const voletCapsule = new VoletCapsule(document.querySelector<HTMLDivElement>('#capsule')!, () => {
@@ -2057,8 +2059,14 @@ function image(maintenant: number): void {
   if (!message.hidden && maintenant > finMessage) message.hidden = true
   // Les quêtes : la ligne de la quête suivie, et les annonces (objectif atteint…), une à la fois.
   if (jeu.annoncesQuetes.length && message.hidden) { annoncer(jeu.annoncesQuetes.shift()!); enregistrerPartie() }
-  // Un niveau gagné : sa fenêtre (demande d'Adrien du 21/10/2026), avec la capsule dessinée dans sa forme.
-  if (jeu.niveauAAnnoncer && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu')) {
+  // Un niveau gagné : sa fenêtre (demande d'Adrien du 21/10/2026), avec la capsule dessinée dans sa forme. Elle vient en
+  // dernier (Adrien, 24/10/2026 : elle cachait le nouveau moteur et la réponse d'Elsa) : aucune fenêtre ouverte, rien
+  // d'autre à annoncer, aucun message radio sur le point d'arriver, et le calme depuis un instant.
+  const occupe = !!document.querySelector('div.plein:not([hidden]), .confirmation-jeu, #fenetre:not([hidden]), #presentation:not([hidden])')
+    || vueDialogue.ouvert || jeu.liberationsAAnnoncer.length > 0 || jeu.disparusAAnnoncer.length > 0
+    || jeu.radioPnj.some((r) => !r.lu && r.arrivee <= t + 15_000)
+  if (occupe) calmeDepuis = maintenant
+  if (jeu.niveauAAnnoncer && !occupe && maintenant - calmeDepuis > 1200) {
     const { niveau, avant } = jeu.niveauAAnnoncer
     jeu.niveauAAnnoncer = null
     const g = niveauGagne(niveau, avant)
@@ -2095,7 +2103,7 @@ function image(maintenant: number): void {
   }
   // Un message radio d'un PNJ arrivé : il s'ouvre dans la fenêtre de dialogue, avec son portrait.
   // (Celui qui annonce une nouvelle quête principale attend qu'on la touche au tableau de bord.)
-  const radioArrivee = !vueDialogue.ouvert && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu') ? radioAOuvrir(jeu, t) : null
+  const radioArrivee = !vueDialogue.ouvert && !jeu.liberationsAAnnoncer.length && !document.querySelector('div.plein:not([hidden]), .confirmation-jeu, #fenetre:not([hidden])') ? radioAOuvrir(jeu, t) : null
   if (radioArrivee) { navigator.vibrate?.([40, 40, 40]); ouvrirRadio(radioArrivee) }
   // Une confirmation de la Bourse revenue à la capsule.
   if (jeu.annoncesBourse.length && message.hidden) {
