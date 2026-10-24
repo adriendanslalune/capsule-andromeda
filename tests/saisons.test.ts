@@ -10,12 +10,12 @@ describe('le fond de la carte change chaque mois (calendrier validé par Adrien 
     expect(saison(new Date(2026, 9, 31).getTime()).mois).toBe('Octobre')
   })
 
-  it('une teinte légère : le fond reste proche du kraft (ou du bleu nuit)', () => {
+  it('une teinte légère : le fond reste proche du kraft ; la nuit garde son bleu nuit', () => {
     const ecart = (a: string, b: string) => Math.max(...[1, 3, 5].map((i) => Math.abs(parseInt(a.slice(i, i + 2), 16) - parseInt(b.slice(i, i + 2), 16))))
     for (let m = 0; m < 12; m++) {
       const t = new Date(2026, m, 15).getTime()
       expect(ecart(fondDuMois(t, false), KRAFT)).toBeLessThan(20)
-      expect(ecart(fondDuMois(t, true), BLEU_NUIT)).toBeLessThan(40)
+      expect(fondDuMois(t, true)).toBe(BLEU_NUIT)
       expect(fondDuMois(t, false)).not.toBe(KRAFT)
     }
     expect(melanger('#000000', '#ffffff', 0.5)).toBe('#808080')
