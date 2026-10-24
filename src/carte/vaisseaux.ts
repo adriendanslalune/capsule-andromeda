@@ -36,14 +36,34 @@ const COQUES: Record<Forme, { coque: Pt[]; ailerons: Pt[][]; hublot?: Pt }> = {
   },
 }
 
+/** Les formes dessinées par ChatGPT (Adrien, 24/10/2026 ; `docs/capsule-prompts.md`), dans `public/vaisseaux/`, la proue
+ *  vers le haut : la capsule est celle du combat. On inscrit ici chaque forme arrivée ; les autres restent en silhouette. */
+export const FORMES_PRETES: readonly Forme[] = ['capsule']
+
+/** L'adresse de l'image d'une forme, si elle est dessinée. */
+export function imageForme(forme: Forme): string | null {
+  return FORMES_PRETES.includes(forme) ? `vaisseaux/${forme}.webp` : null
+}
+
+const IMAGES: Partial<Record<Forme, HTMLImageElement>> = {}
+/** L'image d'une forme, une fois chargée (sinon null : on dessine la silhouette en attendant). */
+export function chargerForme(forme: Forme): HTMLImageElement | null {
+  const src = imageForme(forme)
+  if (!src) return null
+  let im = IMAGES[forme]
+  if (!im) { im = IMAGES[forme] = new Image(); im.src = src }
+  return im.complete && im.naturalWidth ? im : null
+}
+
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */
 export function rayonVaisseau(forme: Forme, taille: number): number {
-  return 6 * TAILLE[forme] * taille
+  return 9 * TAILLE[forme] * taille
 }
 
 /**
  * Dessine un engin : sa forme, tournée dans le sens de sa marche (angle), à la taille de son palier. couleur : sa
- * teinte (la cerise du joueur, la couleur de la Maison d'un bot) ; la Légende est toujours dorée, avec un halo.
+ * teinte (la cerise du joueur, la couleur de la Maison d'un bot), celle de l'anneau sous le vaisseau (choix B d'Adrien
+ * du 24/10/2026 : tout le monde a les mêmes images, la Maison se lit à l'anneau) ; la Légende a en plus un halo doré.
  */
 export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, forme: Forme, taille: number,
   couleur: string, encre: string): void {
@@ -60,6 +80,25 @@ export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: nu
     ctx.arc(0, 0, 15, 0, 2 * Math.PI)
     ctx.fillStyle = 'rgba(242, 198, 106, 0.25)'
     ctx.fill()
+  }
+  // L'anneau de sa couleur, sous le vaisseau.
+  ctx.beginPath()
+  ctx.arc(0, 0, 9, 0, 2 * Math.PI)
+  ctx.fillStyle = couleur + '40'
+  ctx.fill()
+  ctx.lineWidth = 1.6 / k
+  ctx.strokeStyle = couleur
+  ctx.stroke()
+  ctx.lineWidth = 1.4 / k
+  ctx.strokeStyle = encre
+  // L'image de la forme (proue vers le haut, donc un quart de tour de plus), sinon sa silhouette.
+  const im = chargerForme(forme)
+  if (im) {
+    const cote = 15, l = (cote * im.naturalWidth) / Math.max(im.naturalWidth, im.naturalHeight), h = (cote * im.naturalHeight) / Math.max(im.naturalWidth, im.naturalHeight)
+    ctx.rotate(Math.PI / 2)
+    ctx.drawImage(im, -l / 2, -h / 2, l, h)
+    ctx.restore()
+    return
   }
   const teinte = forme === 'legende' ? '#f2c66a' : couleur
   const trace = (pts: Pt[]) => { ctx.beginPath(); pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); ctx.closePath() }

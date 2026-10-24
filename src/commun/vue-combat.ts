@@ -4,6 +4,8 @@
 // aliens ; le bouton BOMBE efface toutes les balles. La vue ne décide rien : elle montre l'état que tient le moteur
 // (moteur/combat.ts).
 
+import { FORMES_PRETES, rayonVaisseau } from '../carte/vaisseaux'
+import type { Forme } from '../donnees/niveaux'
 import { confirmer } from './confirmation'
 import { HAUTEUR, LARGEUR } from '../donnees/combat'
 import { avancerCombat, bombe, chef, EQUIPEMENT_DEPART, nouveauCombat, retraite, type Equipement, type EtatCombat } from '../moteur/combat'
@@ -61,6 +63,8 @@ const FLASH = 0.07
 export class VueCombat {
   private etat: EtatCombat | null = null
   private options: OptionsCombat = SIMULATEUR
+  /** La forme de la capsule (le niveau du capitaine), lue à chaque combat. */
+  private forme: Forme = 'capsule'
   private doigt: { x: number; y: number } | null = null
   private boucle = 0
   /** Le combat est figé pendant que la question de la retraite est posée. */
@@ -77,8 +81,9 @@ export class VueCombat {
   private ox = 0
   private oy = 0
 
-  /** equipement : l'armement de la capsule (décisions d'Adrien du 21/10/2026), lu à chaque combat. */
-  constructor(private element: HTMLElement, private equipement: () => Equipement = () => EQUIPEMENT_DEPART) {
+  /** equipement : l'armement de la capsule (décisions d'Adrien du 21/10/2026), lu à chaque combat ; formeCapsule : sa forme. */
+  constructor(private element: HTMLElement, private equipement: () => Equipement = () => EQUIPEMENT_DEPART,
+    private formeCapsule: () => Forme = () => 'capsule') {
     element.innerHTML = `
       <div class="entete-plein"><span class="titre-combat"></span><button type="button" data-retraite>RETRAITE</button></div>
       <div class="infos-combat"></div>
@@ -122,6 +127,7 @@ export class VueCombat {
 
   ouvrir(options: OptionsCombat = SIMULATEUR): void {
     this.options = options
+    this.forme = this.formeCapsule()
     this.etat = nouveauCombat((Date.now() % 2147483647) >>> 0, options.zone, options.amiral, this.equipement())
     this.doigt = null
     this.enPause = false
@@ -282,10 +288,12 @@ export class VueCombat {
       ctx.stroke()
     }
     // La capsule (elle clignote quand elle vient d'être touchée).
-    const imCapsule = vaisseau('capsule')
+    // Sa forme, celle du niveau du capitaine (Adrien, 24/10/2026), si elle est dessinée ; sinon la capsule.
+    const imCapsule = vaisseau(FORMES_PRETES.includes(this.forme) ? this.forme : 'capsule') ?? vaisseau('capsule')
     if (imCapsule && (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0)) {
-      // La capsule dessinée (13 unités de large), la flamme de sa tuyère qui vacille, et le point d'impact.
-      const l = 13 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
+      // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
+      // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
+      const l = (13 * rayonVaisseau(this.forme, 1)) / 9 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
       ctx.beginPath(); ctx.moveTo(x - 1.4 * k, y + h / 2 - 0.6 * k); ctx.lineTo(x, y + h / 2 + (2.6 + Math.sin(e.temps * 30)) * k); ctx.lineTo(x + 1.4 * k, y + h / 2 - 0.6 * k); ctx.closePath()
       ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
       ctx.drawImage(imCapsule, x - l / 2, y - h / 2, l, h)

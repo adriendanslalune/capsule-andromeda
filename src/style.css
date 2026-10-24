@@ -1814,6 +1814,7 @@ body.avec-trajet #cadran-vitesse { bottom: calc(102px + var(--fiche, 0px) + env(
 #disparus svg .bras, #disparus svg .antenne, .couverture.disparus svg .bras, .couverture.disparus svg .antenne, .felicitation svg .bras, .felicitation svg .antenne { stroke: var(--encre); stroke-width: 1.4; fill: none; }
 #disparus .carte-disparu .date { color: #3f8a4f; font-weight: bold; }
 .felicitation .portrait.sonde { background: #f6e9c8; }
+.felicitation .portrait.forme-capsule { object-fit: contain; padding: 6px; background: #e8dfcb; }
 .felicitation .portrait.sonde svg { width: 70%; }
 
 /* ===== La carte réorganisée (maquette validée par Adrien le 21/10/2026, maquette-carte.html) =====
@@ -2486,6 +2487,10 @@ body.volet-ouvert #annonces { display: none; }
 :is(#manuel, .papier) .consigne figcaption { margin-top: 4px; font: 700 13px/1.15 var(--titre); letter-spacing: 0.02em; text-transform: uppercase; }
 /* La signature du capitaine, au tampon (Profil). */
 .bloc.signature { display: flex; align-items: center; gap: 12px; }
+.cote-tampon { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cote-tampon .forme-profil { width: 84px; height: 84px; object-fit: contain; }
+.cote-tampon .nom-forme { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+.cote-tampon .petit { text-align: center; }
 .tampon-capitaine { flex: none; width: 128px; height: 128px; transform: rotate(-9deg); mix-blend-mode: multiply; }
 .tampon-capitaine circle { fill: none; stroke: #c0392b; }
 .tampon-capitaine .anneau-ext { stroke-width: 3.5; }

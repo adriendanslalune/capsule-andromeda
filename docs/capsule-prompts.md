@@ -6,6 +6,19 @@ Croiseur (80), Légende (100, dorée). La première existe déjà : c'est l'imag
 Il en reste cinq, qui doivent avoir l'air de la même famille, à chaque fois un cran plus grande, plus armée, plus fière.
 Ce qui montre le niveau, c'est la silhouette, pas la taille : sur la carte, la Légende ne fait que 1,25 fois la capsule.
 
+## Où on les voit (décisions d'Adrien du 24/10/2026)
+
+- **La fenêtre de niveau** : la forme en grand.
+- **Le combat** : la capsule du joueur prend sa forme (un peu plus large pour les grandes formes ; sa zone de touche ne
+  change pas, ni la difficulté).
+- **La carte** : les mêmes images pour tout le monde (choix B), le joueur, les bots et plus tard les autres joueurs ; la
+  couleur se lit à **l'anneau sous le vaisseau** (la cerise pour le joueur, la couleur de la Maison pour les autres).
+  Loin, les autres restent un point de couleur.
+- **Le Profil** : la forme du capitaine, à côté de son tampon.
+
+Une forme pas encore dessinée garde sa silhouette de Claude (`src/carte/vaisseaux.ts`) ; on inscrit chaque image
+arrivée dans `FORMES_PRETES` (`public/vaisseaux/navette.webp`, `corvette`, `fregate`, `croiseur`, `legende`).
+
 ## Comment s'y prendre
 
 1. Dans la conversation des amiraux (ou une nouvelle), **envoyer d'abord l'image de la capsule** (celle du combat), en

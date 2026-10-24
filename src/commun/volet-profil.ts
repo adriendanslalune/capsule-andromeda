@@ -10,6 +10,7 @@ import { palierSuivant, statut } from '../moteur/monolithes'
 import { jauge } from '../moteur/zones'
 import { niveauDe, palierDe } from '../moteur/niveau'
 import { PALIERS as PALIERS_NIVEAU } from '../donnees/niveaux'
+import { dessinerVaisseau, imageForme, rayonVaisseau } from '../carte/vaisseaux'
 import { ZONES_A_LIBERER } from '../donnees/zones'
 
 const TEINTES: Record<string, string> = { nettoyeurs: '#bfe0c8', ingenieurs: '#f5d38a', mercenaires: '#f3c2b0' }
@@ -105,7 +106,21 @@ function signature(jeu: Jeu): string {
     + `<text x="80" y="76" class="nom-tampon" text-anchor="middle" textLength="${Math.min(84, nom.length * 9)}" lengthAdjust="spacingAndGlyphs">${nom}</text>`
     + `<text x="80" y="93" class="numero-tampon" text-anchor="middle">N° ${jeu.numeroSerie}</text>`
     + `<text x="80" y="108" class="numero-tampon" text-anchor="middle">★ NIV. ${niveauDe(jeu.xp).niveau} ★</text></svg>`
-    + '<p class="petit">Ton tampon de capitaine. Il fait foi dans tout le système solaire (sauf sur Triton).</p></div>'
+    + `<div class="cote-tampon">${formeDuCapitaine(jeu)}`
+    + '<p class="petit">Ton tampon de capitaine. Il fait foi dans tout le système solaire (sauf sur Triton).</p></div></div>'
+}
+
+/** Le vaisseau du capitaine, dans la forme de son niveau (Adrien, 24/10/2026) : son image si elle est dessinée, sinon sa silhouette. */
+function formeDuCapitaine(jeu: Jeu): string {
+  const p = palierDe(niveauDe(jeu.xp).niveau)
+  let src = imageForme(p.forme)
+  if (!src) {
+    const toile = document.createElement('canvas')
+    toile.width = toile.height = 160
+    dessinerVaisseau(toile.getContext('2d')!, 80, 80, -Math.PI / 2, p.forme, 60 / rayonVaisseau(p.forme, 1), '#e04b37', '#2b2138')
+    src = toile.toDataURL()
+  }
+  return `<img class="forme-profil" src="${src}" alt=""><b class="nom-forme">${p.nom}</b>`
 }
 
 export function htmlProfil(jeu: Jeu): string {

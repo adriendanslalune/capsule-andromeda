@@ -73,7 +73,7 @@ import { ZONES } from './donnees/tableaux'
 import { estLibre, jauge, zone } from './moteur/zones'
 import { ZONES_A_LIBERER } from './donnees/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
-import { dessinerVaisseau, rayonVaisseau } from './carte/vaisseaux'
+import { dessinerVaisseau, imageForme, rayonVaisseau } from './carte/vaisseaux'
 import { oublierSoleilAnime, soleilAnime } from './carte/globes'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
@@ -1568,7 +1568,7 @@ pageArmement.addEventListener('click', (e) => {
   }
 })
 // La vue de combat (au tour par tour) : missions ABATTRE, riposte contre un chasseur qui tire, simulateur.
-const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.equipement())
+const vueCombat = new VueCombat(document.querySelector<HTMLDivElement>('#combat')!, () => jeu.equipement(), () => palierDe(niveauDe(jeu.xp).niveau).forme)
 // Le rêve du Soleil (décision d'Adrien du 21/10/2026) : un secret, sans effet sur le jeu.
 const vueReve = new VueReve(document.querySelector<HTMLDivElement>('#reve')!)
 /** L'onglet SOUTE du volet Capsule. */
@@ -2092,6 +2092,8 @@ function image(maintenant: number): void {
     const { niveau, avant } = jeu.niveauAAnnoncer
     jeu.niveauAAnnoncer = null
     const g = niveauGagne(niveau, avant)
+    // La forme dessinée par ChatGPT si elle est arrivée (Adrien, 24/10/2026), sinon sa silhouette.
+    const image = imageForme(g.forme)
     const toile = document.createElement('canvas')
     toile.width = toile.height = 240
     const c = toile.getContext('2d')!
@@ -2100,7 +2102,7 @@ function image(maintenant: number): void {
     dessinerVaisseau(c, 120, 120, -Math.PI / 2, g.forme, 70 / rayonVaisseau(g.forme, 1), '#e04b37', '#2b2138')
     navigator.vibrate?.([80, 60, 160])
     void feliciter({
-      titre: `Niveau ${niveau} !`, portrait: `<img class="portrait" src="${toile.toDataURL()}" alt="${g.nomForme}">`,
+      titre: `Niveau ${niveau} !`, portrait: `<img class="portrait${image ? ' forme-capsule' : ''}" src="${image ?? toile.toDataURL()}" alt="${g.nomForme}">`,
       nom: jeu.pseudo, role: `capitaine niv. ${niveau} · ${g.nomForme.toLowerCase()}`,
       texte: [g.nouvelleForme ? `Ta capsule devient une ${g.nomForme.toLowerCase()} ! Tout le système la verra passer sur la carte.` : `Bravo, capitaine. Ta ${g.nomForme.toLowerCase()} prend un peu d'envergure sur la carte.`,
         g.prochain ? `Prochaine forme au niveau ${g.prochain.niveau} : ${g.prochain.nom.toLowerCase()}.` : 'Tu as atteint le sommet : la Légende, dorée.'],
