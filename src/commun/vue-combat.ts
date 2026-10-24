@@ -28,6 +28,23 @@ function vaisseau(nom: string): HTMLImageElement | null {
   if (!im) { im = VAISSEAUX[nom] = new Image(); im.src = `vaisseaux/${nom}.webp` }
   return im.complete && im.naturalWidth ? im : null
 }
+/** La silhouette blanche d'un vaisseau (le flash quand un tir le touche), faite une fois. */
+const BLANCS = new Map<HTMLImageElement, HTMLCanvasElement>()
+function blanc(im: HTMLImageElement): HTMLCanvasElement {
+  let c = BLANCS.get(im)
+  if (c) return c
+  c = document.createElement('canvas')
+  c.width = im.naturalWidth; c.height = im.naturalHeight
+  const x = c.getContext('2d')!
+  x.drawImage(im, 0, 0)
+  x.globalCompositeOperation = 'source-atop'
+  x.fillStyle = '#fffbf2'
+  x.fillRect(0, 0, c.width, c.height)
+  BLANCS.set(im, c)
+  return c
+}
+/** Durée du flash blanc d'un impact (s). */
+const FLASH = 0.07
 
 export class VueCombat {
   private etat: EtatCombat | null = null
@@ -192,6 +209,12 @@ export class VueCombat {
       if (im) {
         const l = 22 * k, h = (l * im.naturalHeight) / im.naturalWidth
         ctx.drawImage(im, X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
+        // Touché : il blanchit un éclair.
+        if (a.touche !== undefined && e.temps - a.touche < FLASH) {
+          ctx.globalAlpha = 0.85
+          ctx.drawImage(blanc(im), X(a.x) - l / 2, Y(a.y) - h / 2, l, h)
+          ctx.globalAlpha = 1
+        }
         continue
       }
       ctx.save()

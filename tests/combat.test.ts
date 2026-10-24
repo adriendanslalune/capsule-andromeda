@@ -36,6 +36,16 @@ describe('le combat en temps réel (décision d’Adrien du 19/10/2026)', () => 
     expect(e.fin).toBe('retraite')
   })
 
+  it('un tir qui touche un alien le marque (la vue le fait blanchir un éclair)', () => {
+    const e = nouveauCombat(1)
+    const c = chef(e)!
+    c.y = 28
+    e.tirs.push({ x: c.x, y: c.y })
+    // (Un pas nul : ni le tir ni le chasseur ne bougent.)
+    avancerCombat(e, 0, null)
+    expect(c.touche).toBeCloseTo(e.temps, 5)
+  })
+
   it('la bombe efface les balles et abîme tous les aliens ; il y en a trois', () => {
     const e = nouveauCombat(1)
     e.balles.push({ x: 50, y: 50, vx: 0, vy: 10 })

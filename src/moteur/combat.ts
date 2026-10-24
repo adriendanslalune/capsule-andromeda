@@ -22,6 +22,8 @@ export interface Alien {
   /** Prochain tir (s), et le temps de vie (pour son mouvement). */
   prochainTir: number
   age: number
+  /** Le dernier impact d'un de nos tirs (s) : la vue le fait blanchir un instant. */
+  touche?: number
   /** Escorteur : son couloir (x de départ) et son sens. */
   couloir: number
   sens: 1 | -1
@@ -213,6 +215,7 @@ export function avancerCombat(e: EtatCombat, dt: number, doigt: { x: number; y: 
     const a = e.aliens.find((x) => Math.abs(x.x - t.x) < (x.chef ? (e.amiral ? 14 : 9) : 5) && Math.abs(x.y - t.y) < (x.chef ? (e.amiral ? 8 : 6) : 4))
     if (!a) continue
     a.pv -= e.equipement.degats
+    a.touche = e.temps
     e.tirs = e.tirs.filter((x) => x !== t)
     e.eclats.push({ x: t.x, y: t.y, t: e.temps, gros: false })
   }
