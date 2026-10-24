@@ -178,3 +178,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Brise-Glace** (24/10/2026).
 - **Le Grand Veilleur** (24/10/2026).
 - **Le Cratère** (24/10/2026).
+- **Le Léviathan** (24/10/2026).
