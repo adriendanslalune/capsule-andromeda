@@ -2,6 +2,7 @@
 // sous le tableau de bord. Les planètes au plus près de la Terre (le bon moment pour y aller, d'après les vraies
 // positions) et les événements du jeu en cours. Les mêmes pour tous : rien ne dépend de la partie.
 
+import { breveDuMois } from './saisons'
 import { BREVES } from '../donnees/breves'
 import { RECLAMES } from '../donnees/reclames'
 import { EVENEMENTS, type Evenement } from '../donnees/evenements'
@@ -71,6 +72,8 @@ export function annonces(t: number, evenements: readonly Evenement[] = EVENEMENT
     else if (jours > 0) liste.push(`${planete} se rapproche de la Terre : au plus près dans ${jours} jours, ${millions(r.min)}. Bon moment pour y aller`)
     else liste.push(`${planete} s'éloigne de la Terre après son passage au plus près : il est encore temps d'y aller`)
   }
+  const duMois = breveDuMois(t)
+  if (duMois) liste.push(duMois)
   liste.push(breve(t), reclame(t))
   return liste
 }

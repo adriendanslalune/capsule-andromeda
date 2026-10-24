@@ -5,6 +5,7 @@
 //  - La NAVIGATION : un pointillé vers la position actuelle de la destination, et le trajet en ligne droite jusqu'au
 //    point de rendez-vous (choix d'Adrien du 17/10/2026) ; le bouton DÉPART lance le voyage.
 
+import { fondDuMois } from './moteur/saisons'
 import './style.css'
 
 /** Version construite (le commit), remplacée par Vite. */
@@ -316,11 +317,16 @@ for (const caseACocher of panneau.querySelectorAll<HTMLInputElement>('input[data
 
 /** Jour ou nuit : couleurs de la page (style.css), de la carte et de la barre du téléphone. */
 function appliquerTheme(): void {
-  th = reglages.nuit ? THEMES.nuit : THEMES.jour
+  // Le fond du mois (Adrien, 24/10/2026) : le kraft, ou le bleu nuit, légèrement teinté de la couleur du mois.
+  const fond = fondDuMois(Date.now(), reglages.nuit)
+  moisDuFond = new Date().getMonth()
+  th = { ...(reglages.nuit ? THEMES.nuit : THEMES.jour), halo: fond }
+  document.body.style.setProperty('--carte', fond)
   carte.nuit = reglages.nuit
   document.body.classList.toggle('nuit', reglages.nuit)
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', th.halo)
 }
+let moisDuFond = -1
 appliquerTheme()
 
 // --- Sélection (fiche) et destination proposée.
@@ -2189,6 +2195,8 @@ function image(maintenant: number): void {
     fenetreTrophee.montrer(jeu.tropheesAAnnoncer.splice(0).map((n) => TROPHEES.find((x) => x.n === n)!).filter(Boolean), document.querySelector('#console')!.getBoundingClientRect().bottom + 8)
     enregistrerPartie()
   }
+  // Le mois change (le jeu resté ouvert à minuit) : le fond aussi.
+  if (new Date().getMonth() !== moisDuFond) { appliquerTheme(); carteSale = true }
   // Écouter la radio sans rien capter (un trophée secret) ; une voix enregistrée remet le compteur à zéro.
   if (vueRadio.estOuverte) jeu.noter('ecouteVaine', dt * 1000)
   // Une sonde disparue retrouvée : sa fenêtre, avec son histoire vraie.
