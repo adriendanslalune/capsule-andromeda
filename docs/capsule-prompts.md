@@ -62,3 +62,4 @@ noble, **toute la livrée en or** (coque crème et or, bandes dorées au lieu d'
 ## Reçus
 
 - **La Capsule** (24/10/2026) : déjà au combat.
+- **La Navette** (24/10/2026).
