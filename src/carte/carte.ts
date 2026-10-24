@@ -89,6 +89,8 @@ const SEUIL_PNJ = 24
 /** Teinte des capsules des autres joueurs, selon leur Maison (celles du Profil). */
 const TEINTES_MAISONS: Record<string, string> = { nettoyeurs: '#8fcf98', ingenieurs: '#f2c66a', mercenaires: '#f3a08b' }
 const ECHELLE_ENGIN = 0.75
+/** La durée des anneaux du PING autour de la capsule (ms). */
+const DUREE_PULSE = 1800
 /** Demi-largeur de la vue générale (km) : les planètes jusqu'à Mars. */
 const VUE_GENERALE = 2.2 * UA_KM
 const KM_PAR_PX_MIN = 20
@@ -553,6 +555,35 @@ export class Carte2D {
    * la lumière (moteur : frontDuPing), un front violet suivi d'une traîne en dégradé et de deux ondes plus pâles ;
    * arrivée au monolithe, elle s'arrête et respire doucement jusqu'au retour de l'écho.
    */
+  /**
+   * Le PING vu de près (Adrien, 24/10/2026 : on ne voyait rien) : l'onde file à la vitesse de la lumière et sort de
+   * l'écran en un éclair dès qu'on est près d'un astre. Trois anneaux autour de la capsule, à l'échelle de l'écran,
+   * s'ouvrent à l'envoi et se referment au retour de l'écho (debut : performance.now()).
+   */
+  pulsesPing: { debut: number; retour: boolean }[] = []
+  pulsePingActif(maintenant: number): boolean {
+    this.pulsesPing = this.pulsesPing.filter((p) => maintenant - p.debut < DUREE_PULSE)
+    return this.pulsesPing.length > 0
+  }
+  private dessinerPulsesPing(ctx: CanvasRenderingContext2D, x: number, y: number, rc: number, maintenant: number): void {
+    if (!this.pulsePingActif(maintenant)) return
+    ctx.save()
+    ctx.lineWidth = 3
+    for (const p of this.pulsesPing) {
+      for (let k = 0; k < 3; k++) {
+        const f = (maintenant - p.debut - k * 260) / (DUREE_PULSE - 2 * 260)
+        if (f < 0 || f > 1) continue
+        // À l'envoi, l'anneau s'ouvre et pâlit ; au retour, il arrive de loin et se resserre sur la capsule.
+        const r = rc + 4 + 110 * (p.retour ? 1 - f : f), o = 0.75 * (p.retour ? Math.min(1, f * 2.5) * (1 - f * 0.6) : 1 - f)
+        ctx.strokeStyle = p.retour ? `rgba(176, 146, 226, ${o.toFixed(3)})` : `rgba(122, 90, 168, ${o.toFixed(3)})`
+        ctx.beginPath()
+        ctx.arc(x, y, r, 0, 2 * Math.PI)
+        ctx.stroke()
+      }
+    }
+    ctx.restore()
+  }
+
   dessinerOndePing(ctx: CanvasRenderingContext2D, centre: Point2, rayonKm: number, arrete: boolean, t: number, maintenant: number, retourKm: number | null = null): void {
     if (retourKm !== null) this.dessinerOndeRetour(ctx, centre, retourKm, t)
     const c = this.projeterPoint({ x: centre.x, y: centre.y, z: 0 }, t)
@@ -859,6 +890,7 @@ export class Carte2D {
     const forme = this.formeCapsule, rc = rayonVaisseau(forme.forme, forme.taille)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
+    this.dessinerPulsesPing(ctx, x, y, rc, maintenant)
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille, '#e04b37', couleurs.encre, true)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
     this.capsuleIci = { x, y, r: rc, selectionnee: selection === CAPSULE }

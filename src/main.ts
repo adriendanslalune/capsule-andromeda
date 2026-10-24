@@ -525,7 +525,9 @@ boutonPing.addEventListener('click', () => {
   if (!jeu.pinger(t)) return
   enregistrerPartie()
   afficherPing(t)
-  annoncer('PING envoyé. On attend l\'écho…')
+  carte.pulsesPing.push({ debut: performance.now(), retour: false })
+  carteSale = true
+  annoncer('PING envoyé à la vitesse de la lumière. Dézoome pour suivre l\'onde ; on attend l\'écho…')
   navigator.vibrate?.(60)
 })
 // Le RADAR, sous le PING : on l'allume et l'éteint ; sa jauge monte pendant qu'il tourne (pleine en 30 s : il
@@ -611,6 +613,8 @@ function suivreEchos(t: number): void {
   for (const x of echosNonVus(jeu.monolithes, t)) {
     if (echosAnnonces.has(x.envoye)) continue
     echosAnnonces.add(x.envoye)
+    // L'écho revient à l'instant (pas pendant que le jeu était fermé) : les anneaux se referment sur la capsule.
+    if (t - x.retour < 5000) carte.pulsesPing.push({ debut: performance.now(), retour: true })
     const n = placesPossibles(jeu.monolithes, x.monolithe, t).length
     annoncer(n === 1 ? `Monolithe n° ${x.monolithe} localisé ! Touche le bandeau pour le voir.`
       : `Écho du monolithe n° ${x.monolithe} : à ${texteDistance(x.rayon)}${n === 2 ? ' · deux places possibles : re-pingue d\'ailleurs' : ' · déplace-toi et re-pingue'}`)
@@ -2208,7 +2212,7 @@ function image(maintenant: number): void {
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
   // (Les ondes d'un PING en attente d'écho aussi : elles doivent filer en douceur.)
-  const radarAnime = presentation.ouverte || jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
+  const radarAnime = presentation.ouverte || carte.pulsePingActif(maintenant) || jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
   // Le Soleil dessiné en grand s'anime (demande d'Adrien du 21/10/2026) : on redessine alors à chaque image.
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && !soleilAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {
