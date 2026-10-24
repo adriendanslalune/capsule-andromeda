@@ -60,7 +60,8 @@ export class Bulles {
     const contour = this.element.querySelector<SVGSVGElement>('.contour-guide')!, cas = this.element.querySelector<HTMLElement>('.case-bulle')!
     if (!el) {
       contour.style.display = 'none'
-      Object.assign(cas.style, { top: '40%', bottom: 'auto' })
+      // Sans élément : en bas de l'écran, la carte reste visible au-dessus.
+      Object.assign(cas.style, { top: 'auto', bottom: 'calc(110px + env(safe-area-inset-bottom))' })
       return
     }
     const r = el.getBoundingClientRect(), m = 5

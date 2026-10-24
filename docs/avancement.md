@@ -47,6 +47,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   plus que ces deux quêtes ; présentation retirée du début pour les essais. Wei Lan et Joe partent ; le Veilleur redevient
   une secondaire (PING). Carte : zones pas visitées d'un gris sombre (la Lune aussi), jauge de la Résistance à côté du
   drapeau pirate, traînées des comètes bien plus courtes. À faire : le chapitre « Bien commencer » du Manuel.
+  Revu le même jour : au tout début, seulement la carte (trois bulles : la carte, se déplacer et zoomer, le bouton
+  capsule) ; Elsa n'appelle qu'ensuite, puis une bulle montre la quête sur le tableau de bord.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

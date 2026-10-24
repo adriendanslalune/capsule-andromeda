@@ -6,14 +6,16 @@
 export interface Bulle { sel: string | null; texte: string }
 
 export const AIDES: Record<string, Bulle[]> = {
+  // Au tout début, seulement la carte et comment s'y repérer (Adrien, 24/10/2026 : pas d'avalanche d'informations ;
+  // l'histoire commence après).
   carte: [
-    { sel: '#console .etat-capsule', texte: 'La console : où est ta capsule, ton niveau de capitaine et tes crédits.' },
-    { sel: '#bandeau .voyants', texte: 'Le tableau de bord : les alertes, la quête en cours, ton contrat, les échos. La suite de l\'histoire est toujours sous QUÊTE.' },
-    { sel: '#commandes-carte .groupe-vue', texte: 'La vue : changer de système, revenir à ta capsule, choisir ce que montre la carte. Pour zoomer, deux doigts.' },
-    { sel: '#bouton-messages', texte: 'Les Messages : les autres capitaines. Ils voyagent à la vitesse de la lumière.' },
-    { sel: '#instruments', texte: 'Tes capteurs : le RADAR révèle les chasseurs d\'Andromède, le PING cherche les monolithes, la RADIO capte les Voix perdues.' },
-    { sel: '#onglets', texte: 'Ta Capsule, ton Journal, le Marché, tes Collections, et le reste dans Plus, dont le Manuel : tout y est expliqué.' },
-    { sel: null, texte: 'Pour aller quelque part : touche un astre ou un engin sur la carte, puis DÉPART. Bon vent, capitaine !' },
+    { sel: null, texte: 'Voici la carte : le vrai système solaire, en ce moment même. Les planètes, les lunes et les engins sont à leur vraie place, à la vraie échelle.' },
+    { sel: null, texte: 'Glisse un doigt pour te déplacer. Écarte deux doigts pour zoomer, pince-les pour voir plus loin. Touche un astre ou un engin pour le voir de près.' },
+    { sel: '[data-vue="capsule"]', texte: 'Perdu ? Ce bouton te ramène à ta capsule, où que tu sois.' },
+  ],
+  // Une fois l'histoire commencée : où la retrouver.
+  tableau: [
+    { sel: '#bandeau .afficheur', texte: 'Le tableau de bord : ta quête en cours est toujours ici. Touche-la pour la voir en détail.' },
   ],
   capsule: [
     { sel: '#capsule .bloc', texte: 'Ton moteur, le cœur de ta capsule : sa vitesse décide de la durée de tes trajets.' },

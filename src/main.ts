@@ -160,6 +160,8 @@ function enregistrerPartie(): void {
 function nouvellePartie(): Jeu {
   const j = new Jeu()
   j.nouvellePartie(Math.floor(Math.random() * 2 ** 31), horloge())
+  // L'histoire attend : d'abord la carte expliquée (ou la présentation, si elle est en service).
+  j.presentation = false
   return j
 }
 const partieChargee = chargerPartie()
@@ -1661,7 +1663,7 @@ function lancerPresentation(): void {
  *  taper à chaque fois que je veux vérifier ») ; la remettre à vrai pour la version finale. */
 const PRESENTATION_AU_DEBUT = false
 // Une partie neuve fermée en pleine présentation la reprend au début.
-if (partieChargee && !jeu.presentation) lancerPresentation()
+if (PRESENTATION_AU_DEBUT && partieChargee && !jeu.presentation) lancerPresentation()
 
 // Au tout début du jeu (demande d'Adrien du 20/10/2026) : la capsule a reçu son numéro ; le joueur choisit le nom de
 // son capitaine (3 à 16 caractères). Il pourra le changer plus tard dans le Profil.
@@ -1685,7 +1687,7 @@ if (!partieChargee) {
     enregistrerPartie()
     bienvenue.remove()
     annoncer(`Capitaine ${p}, la capsule ${jeu.numeroSerie} est à toi`)
-    if (PRESENTATION_AU_DEBUT) { jeu.presentation = false; lancerPresentation() }
+    if (PRESENTATION_AU_DEBUT) lancerPresentation()
   }
   bienvenue.querySelector('button')!.addEventListener('click', valider)
   champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') valider() })
@@ -1797,7 +1799,7 @@ function montrer(el: Element | null, oui: boolean): void {
 }
 function appliquerInstruments(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-instrument]')) montrer(el, instrumentLibre(el.dataset.instrument as Instrument))
-  for (const sel of ['#console', '#annonces', '#commandes-carte']) montrer(document.querySelector(sel), jeu.presentation)
+  for (const sel of ['#console', '#annonces', '#commandes-carte']) montrer(document.querySelector(sel), !presentation.ouverte)
   montrer(document.querySelector('#onglets [data-onglet="capsule"]'), jeu.installe('marche') || instrumentLibre('reparation'))
   montrer(document.querySelector('#instruments'), (['radar', 'ping', 'radio'] as Instrument[]).some(instrumentLibre))
   montrer(document.querySelector('#onglets'), !!document.querySelector('#onglets button:not(.cache-tuto)'))
@@ -2249,6 +2251,8 @@ const bulles = new Bulles(document.querySelector<HTMLDivElement>('#bulles')!)
 let fenetreVue = '', fenetreDepuis = 0
 function lancerAides(t: number): void {
   bulles.recaler()
+  // (Une partie où la carte est déjà expliquée mais l'histoire pas commencée : elle commence.)
+  if (!jeu.presentation && !presentation.ouverte && jeu.aides.includes('carte')) jeu.finirPresentation(t)
   if (bulles.ouvertes || vueDialogue.ouvert || presentation.ouverte || radioALire(jeu, t)
     || document.querySelector('#couverture, #bienvenue, .confirmation-jeu')) return
   const page = cockpit.pageOuverte
@@ -2257,12 +2261,17 @@ function lancerAides(t: number): void {
   else if (page === 'missions') cles = ['missions', ...(ongletJournal === 'contrats' ? ['contrats'] : [])]
   else if (page === 'capsule') cles = sousOnglet === 'etat' ? ['capsule'] : []
   else if (page) cles = [page]
-  else if (!document.querySelector('div.plein:not([hidden])')) cles = ['carte']
+  else if (!document.querySelector('div.plein:not([hidden])')) cles = ['carte', ...(jeu.quetes.q1 ? ['tableau'] : [])]
   const cle = cles.find((c) => AIDES[c] && !jeu.aides.includes(c))
   // La fenêtre doit être posée depuis un instant (un volet qui monte, un sous-onglet qui s'affiche).
   if (cle !== fenetreVue) { fenetreVue = cle ?? ''; fenetreDepuis = performance.now(); return }
   if (!cle || performance.now() - fenetreDepuis < 600) return
-  bulles.montrer(AIDES[cle], () => { if (!jeu.aides.includes(cle)) jeu.aides.push(cle); enregistrerPartie() })
+  bulles.montrer(AIDES[cle], () => {
+    if (!jeu.aides.includes(cle)) jeu.aides.push(cle)
+    // La carte comprise, l'histoire commence : Elsa appelle (Adrien, 24/10/2026).
+    if (cle === 'carte' && !jeu.presentation) jeu.finirPresentation(horloge())
+    enregistrerPartie()
+  })
 }
 const TUTORIEL = ['q1', 'q2']
 /** Un élément visible de l'écran à montrer (null s'il n'est pas là ou caché). */
