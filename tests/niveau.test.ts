@@ -12,10 +12,11 @@ describe('le niveau du capitaine (décisions d’Adrien du 21/10/2026)', () => {
     expect(xpPourNiveau(11) - xpPourNiveau(10)).toBeGreaterThan(xpPourNiveau(10) - xpPourNiveau(9))
   })
 
-  it('la forme de la capsule par paliers de 20 niveaux, un peu plus grosse dans chaque palier', () => {
+  it('la forme de la capsule par paliers de 20 niveaux ; la taille grandit avec le niveau, de 1 à 3', () => {
     expect(palierDe(1)).toEqual({ forme: 'capsule', nom: 'Capsule', taille: 1 })
     expect(palierDe(19).forme).toBe('capsule')
-    expect(palierDe(19).taille).toBeCloseTo(1.04)
+    expect(palierDe(10).taille - palierDe(3).taille).toBeGreaterThan(0.25)
+    expect(palierDe(100).taille).toBeCloseTo(3)
     expect(palierDe(20).forme).toBe('navette')
     expect(palierDe(99).forme).toBe('croiseur')
     expect(palierDe(100).forme).toBe('legende')

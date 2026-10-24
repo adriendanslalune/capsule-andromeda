@@ -42,7 +42,8 @@ export class VoletMessages {
   /** Le message dont on a touché le pseudo (son menu ÉCRIRE / VOIR est ouvert), ou null. */
   private menu: string | null = null
 
-  constructor(private element: HTMLElement, private jeu: () => Jeu, private apresEnvoi: () => void, private voir: (pseudo: string) => void) {
+  constructor(private element: HTMLElement, private jeu: () => Jeu, private apresEnvoi: () => void, private voir: (pseudo: string) => void,
+    private profil: (pseudo: string) => void = () => {}) {
     element.innerHTML = `
       <button type="button" class="retour" data-page="plus">‹ Plus</button>
       <div class="canaux"></div>
@@ -60,11 +61,12 @@ export class VoletMessages {
       this.envoyer(this.champ.value)
     })
     element.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-canal], [data-rapide], [data-ecrire-a], [data-menu], [data-voir]')
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-canal], [data-rapide], [data-ecrire-a], [data-menu], [data-voir], [data-profil]')
       if (!b) return
       if (b.dataset.menu) { this.menu = this.menu === b.dataset.menu ? null : b.dataset.menu; this.dernier = ''; this.afficher(Date.now()); return }
       this.menu = null
-      if (b.dataset.voir) this.voir(b.dataset.voir)
+      if (b.dataset.profil) this.profil(b.dataset.profil)
+      else if (b.dataset.voir) this.voir(b.dataset.voir)
       else if (b.dataset.rapide) this.envoyer(b.dataset.rapide)
       else if (b.dataset.ecrireA) this.ouvrirCanal(`prive:${b.dataset.ecrireA}`)
       else if (b.dataset.canal) this.ouvrirCanal(b.dataset.canal)
@@ -146,7 +148,7 @@ export class VoletMessages {
     const prive = this.canal.startsWith('prive:')
     const ouvert = this.menu === m.id
     const pseudo = `<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? ENCRES[m.maison] : '#6a4f9a'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
-    const menu = ouvert ? `<span class="menu-pseudo">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}">ÉCRIRE</button>`}<button type="button" data-voir="${m.auteur}" aria-label="Voir sur la carte">${picto('voir')}VOIR</button></span>` : ''
+    const menu = ouvert ? `<span class="menu-pseudo">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}">ÉCRIRE</button>`}<button type="button" data-profil="${m.auteur}">PROFIL</button><button type="button" data-voir="${m.auteur}" aria-label="Voir sur la carte">${picto('voir')}VOIR</button></span>` : ''
     return `<div class="ligne"><span class="heure">${heure}</span><span class="corps-ligne">${pseudo}${badge(m.statut)} ${echapper(m.texte)}`
       + `<small>${m.lieu.startsWith('en route') ? m.lieu : `de ${m.lieu}`} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small>${menu}</span></div>`
   }

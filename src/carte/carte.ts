@@ -344,6 +344,9 @@ export class Carte2D {
    * Les PNJ : un « ! » au lieu d'une quête à proposer (Adrien, 24/10/2026, qui retire les médaillons). Et le losange
    * (principale) ou le rond (secondaire) de l'objectif des quêtes du tableau de bord, à leur lieu.
    */
+  /** Les « ! » dessinés à la dernière image (ils vibrent : la carte se redessine alors à chaque image). */
+  exclamations = 0
+
   dessinerPnj(ctx: CanvasRenderingContext2D, t: number, pnjs: { lieu: string; signe: '!' | '?' | null; principale: boolean }[],
     objectifs: { lieu: string; principale: boolean }[], couleurs: Couleurs2D): void {
     const placeDe = (lieu: string) => {
@@ -373,7 +376,8 @@ export class Carte2D {
     }
     // Plus de médaillons (Adrien, 24/10/2026) : un simple « ! » au lieu d'une quête à proposer, un seul par lieu. En
     // dézoomant, il s'efface dès que son lieu se confond avec sa planète (Adrien, 20/10/2026 : ne pas encombrer la carte).
-    const faits = new Set<string>()
+    const faits = new Set<string>(), maintenant = performance.now()
+    this.exclamations = 0
     ctx.font = 'bold 22px "Big Shoulders Display", Impact, sans-serif'
     ctx.lineJoin = 'round'
     for (const n of pnjs) {
@@ -382,11 +386,19 @@ export class Carte2D {
       const p = placeDe(n.lieu), x = p.x + p.r * 0.7 + 8, y = p.y - p.r * 0.7 - 10
       if (x < -20 || x > this.largeur + 20 || y < -20 || y > this.hauteur + 20) continue
       this.reserves.push({ x0: x - 7, y0: y - 13, x1: x + 7, y1: y + 13 })
+      // Il vibre pour attirer l'œil (Adrien, 24/10/2026) : une secousse toutes les deux secondes, et il gonfle un peu.
+      const phase = (maintenant % 2000) / 2000, secousse = phase < 0.3 ? Math.sin(phase / 0.3 * Math.PI * 6) * (1 - phase / 0.3) : 0
+      ctx.save()
+      ctx.translate(x, y + 9)
+      ctx.rotate(0.35 * secousse)
+      ctx.scale(1 + 0.25 * Math.abs(secousse), 1 + 0.25 * Math.abs(secousse))
       ctx.lineWidth = 3.5
       ctx.strokeStyle = couleurs.encre
-      ctx.strokeText('!', x, y)
+      ctx.strokeText('!', 0, -9)
       ctx.fillStyle = n.principale ? DORE : BLEU
-      ctx.fillText('!', x, y)
+      ctx.fillText('!', 0, -9)
+      ctx.restore()
+      this.exclamations++
     }
     ctx.restore()
   }

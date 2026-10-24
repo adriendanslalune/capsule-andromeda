@@ -4,7 +4,7 @@
 // aliens ; le bouton BOMBE efface toutes les balles. La vue ne décide rien : elle montre l'état que tient le moteur
 // (moteur/combat.ts).
 
-import { FORMES_PRETES, rayonVaisseau } from '../carte/vaisseaux'
+import { FORMES_PRETES, tailleAuCombat } from '../carte/vaisseaux'
 import type { Forme } from '../donnees/niveaux'
 import { confirmer } from './confirmation'
 import { HAUTEUR, LARGEUR } from '../donnees/combat'
@@ -301,7 +301,7 @@ export class VueCombat {
     if (imCapsule && (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0)) {
       // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
       // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
-      const l = (13 * rayonVaisseau(this.forme, 1)) / 9 * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
+      const l = 13 * tailleAuCombat(this.forme) * k, h = (l * imCapsule.naturalHeight) / imCapsule.naturalWidth, x = X(e.capsule.x), y = Y(e.capsule.y)
       for (const t of TUYERES[this.forme] ?? [{ x: 0, y: 1 - (0.6 * k) / h, demi: 1.4 }]) {
         const xt = x + t.x * l, yt = y - h / 2 + t.y * h, d = t.demi * k
         ctx.beginPath(); ctx.moveTo(xt - d, yt); ctx.lineTo(xt, yt + (3.2 + Math.sin(e.temps * 30 + t.x * 9)) * k); ctx.lineTo(xt + d, yt); ctx.closePath()

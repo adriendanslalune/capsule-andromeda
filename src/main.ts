@@ -52,6 +52,7 @@ import { NOMS_INSTRUMENTS, type Instrument } from './donnees/instruments'
 import { accepter as accepterQuete, assautIci, rattraperEpinglees, suiteDeLHistoire, cheminVersAssaut, liberation, objectif, parler, pnjIci, quete, signePnj } from './moteur/quetes'
 import { htmlProfil } from './commun/volet-profil'
 import { FenetreTrophee } from './commun/fenetre-trophee'
+import { FicheCapitaine } from './commun/fiche-capitaine'
 import { TROPHEES } from './donnees/trophees'
 import { VoletMessages } from './commun/volet-messages'
 import { arrivesDepuis, nonLus } from './moteur/messages'
@@ -665,6 +666,8 @@ const ficheTexte = document.querySelector<HTMLDivElement>('#trajet-texte')!
 const boutonDepart = document.querySelector<HTMLButtonElement>('#bouton-depart')!
 const boutonCommuniquer = document.querySelector<HTMLButtonElement>('#bouton-communiquer')!
 const boutonAttaquer = document.querySelector<HTMLButtonElement>('#bouton-attaquer')!
+const boutonProfil = document.querySelector<HTMLButtonElement>('#bouton-profil')!
+boutonProfil.addEventListener('click', () => { if (selection) ficheCapitaine.ouvrir(selection, horloge()) })
 const elFrise = document.querySelector<HTMLDivElement>('#frise')!
 const onglets = document.querySelector<HTMLElement>('#onglets')!
 const instruments = document.querySelector<HTMLElement>('#instruments')!
@@ -880,6 +883,7 @@ function mettreAJourFiche(t: number): void {
   boutonCommuniquer.hidden = !texte || !capitaine?.bavard
   // ATTAQUER (décision d'Adrien du 21/10/2026) : grisé tant qu'il n'y a que des PNJ (on n'attaque que les vrais joueurs).
   boutonAttaquer.hidden = !texte || !capitaine
+  boutonProfil.hidden = !texte || !capitaine
   const html = libelle === 'DÉPART' || libelle === 'NOUVEAU CAP' ? picto('depart') + libelle : libelle
   if (boutonDepart.innerHTML !== html) boutonDepart.innerHTML = html
   document.body.classList.toggle('avec-trajet', !!texte)
@@ -1592,7 +1596,13 @@ function afficherSoute(): void {
 // Les messages vivent en temps réel (Date.now()), pas au temps accéléré des essais.
 const voletMessages = new VoletMessages(document.querySelector<HTMLDivElement>('#messages')!, () => jeu, () => enregistrerPartie(),
   // VOIR : la capsule du capitaine sur la carte (demande d'Adrien du 20/10/2026).
-  (pseudo) => { cockpit.fermer(); choisir(pseudo, true) })
+  (pseudo) => { cockpit.fermer(); choisir(pseudo, true) },
+  // PROFIL : la fiche du capitaine (Adrien, 24/10/2026).
+  (pseudo) => ficheCapitaine.ouvrir(pseudo, horloge()))
+const ficheCapitaine = new FicheCapitaine({
+  ecrire: (pseudo) => ouvrirMessages(`prive:${pseudo}`),
+  voir: (pseudo) => { cockpit.fermer(); choisir(pseudo, true) },
+})
 // Avant la première ouverture : les 20 dernières minutes de bavardage sont « nouvelles » (le système est vivant).
 if (jeu.lus.debut === undefined) jeu.lus.debut = Date.now() - 20 * 60_000
 const boutonMessages = document.querySelector<HTMLButtonElement>('#bouton-messages')!
@@ -2128,7 +2138,7 @@ function image(maintenant: number): void {
   // Un niveau gagné : sa fenêtre (demande d'Adrien du 21/10/2026), avec la capsule dessinée dans sa forme. Elle vient en
   // dernier (Adrien, 24/10/2026 : elle cachait le nouveau moteur et la réponse d'Elsa) : aucune fenêtre ouverte, rien
   // d'autre à annoncer, aucun message radio sur le point d'arriver, et le calme depuis un instant.
-  const occupe = !!document.querySelector('div.plein:not([hidden]), .confirmation-jeu, #fenetre:not([hidden]), #presentation:not([hidden])')
+  const occupe = !!document.querySelector('div.plein:not([hidden]), .confirmation-jeu, #fenetre:not([hidden]), #presentation:not([hidden]), #fiche-capitaine:not([hidden])')
     || vueDialogue.ouvert || jeu.liberationsAAnnoncer.length > 0 || jeu.disparusAAnnoncer.length > 0
     || jeu.radioPnj.some((r) => !r.lu && r.arrivee <= t + 15_000)
   if (occupe) calmeDepuis = maintenant
@@ -2217,7 +2227,7 @@ function image(maintenant: number): void {
   // La carte bouge lentement : sans geste en cours, on la redessine dix fois par seconde (économie de batterie) ; à
   // chaque image tant que le radar tourne ou que ses échos s'effacent.
   // (Les ondes d'un PING en attente d'écho aussi : elles doivent filer en douceur.)
-  const radarAnime = presentation.ouverte || carte.pulsePingActif(maintenant) || jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
+  const radarAnime = presentation.ouverte || carte.pulsePingActif(maintenant) || carte.exclamations > 0 || jeu.radar.actif || t - jeu.radar.fin < EFFACEMENT_RADAR || jeu.feux.length > 0 || !!echoEnRoute(jeu.monolithes, t)
   // Le Soleil dessiné en grand s'anime (demande d'Adrien du 21/10/2026) : on redessine alors à chaque image.
   const carteAJour = !gestesCarte.actif && !carte.enVol && !carteSale && !radarAnime && !soleilAnime && acceleration === 1 && maintenant - dernierDessinCarte < 100
   if (!carteAJour) {

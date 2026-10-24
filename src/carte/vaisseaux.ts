@@ -4,9 +4,10 @@
 
 import type { Forme } from '../donnees/niveaux'
 
-/** Taille de chaque forme par rapport à la capsule : au plus 1,25 fois (demande d'Adrien du 21/10/2026 : plus gros, c'était
- *  fantaisiste et moche ; c'est la silhouette qui montre le niveau). */
+/** Taille de chaque forme au combat, par rapport à la capsule (sur la carte, c'est le niveau qui fait la taille :
+ *  palierDe, Adrien, 24/10/2026). */
 const TAILLE: Record<Forme, number> = { capsule: 1, navette: 1.05, corvette: 1.1, fregate: 1.15, croiseur: 1.2, legende: 1.25 }
+export const tailleAuCombat = (forme: Forme) => TAILLE[forme]
 
 type Pt = [number, number]
 const symetrique = (moitie: Pt[]): Pt[] => [...moitie, ...moitie.slice(1, -1).reverse().map(([x, y]): Pt => [x, -y])]
@@ -56,8 +57,8 @@ export function chargerForme(forme: Forme): HTMLImageElement | null {
 }
 
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */
-export function rayonVaisseau(forme: Forme, taille: number): number {
-  return 9 * TAILLE[forme] * taille
+export function rayonVaisseau(_forme: Forme, taille: number): number {
+  return 9 * taille
 }
 
 /**
@@ -68,7 +69,7 @@ export function rayonVaisseau(forme: Forme, taille: number): number {
  */
 export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, forme: Forme, taille: number,
   couleur: string, encre: string, anneau = false): void {
-  const f = COQUES[forme], k = TAILLE[forme] * taille
+  const f = COQUES[forme], k = taille
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(angle)
