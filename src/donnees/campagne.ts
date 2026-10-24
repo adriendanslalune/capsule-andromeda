@@ -21,7 +21,7 @@ export const PNJS_CAMPAGNE: readonly Pnj[] = [
     repos: 'Le Phare reste allumé. Si vous voyez Gabin, ne lui parlez pas de tomates.',
   },
   {
-    id: 'nadia', nom: 'Nadia Orlov', role: 'Capitaine de la flotte jovienne', lieu: 'Ganymède', teinte: '#e8c9a0', portrait: null,
+    id: 'nadia', nom: 'Nadia Orlov', role: 'Capitaine de la flotte jovienne', lieu: 'Ganymède', teinte: '#e8c9a0', portrait: 'portraits/nadia-medaillon.webp',
     repos: 'Au-delà de la ceinture, on ne pardonne pas les erreurs. Prépare ta capsule, capitaine.',
   },
   {
@@ -274,12 +274,12 @@ const ACTES: Quete[] = [
     id: 'jupiter', titre: 'L\'appel de Ganymède', type: 'principale', donneur: 'nadia', conditions: ['interieures'],
     intro: [
       'Te voilà enfin. On parle de toi jusqu\'ici, capitaine. Je suis Nadia Orlov.',
-      'Ici, Andromède est chez lui : plus de chasseurs, plus de missiles, des amiraux plus coriaces. Le jeu devient sérieux.',
+      '(souci) Ici, Andromède est chez lui : plus de chasseurs, plus de missiles, des amiraux plus coriaces. Le jeu devient sérieux.',
       'Libère les quatre grandes lunes de Jupiter, et Jupiter elle-même. Ensuite, on parlera de Saturne.',
     ],
     etapes: [
       { genre: 'liberer', zones: libs('Jupiter'), texte: 'Libère Io, Europe, Ganymède, Callisto et Jupiter' },
-      { genre: 'parler', pnj: 'nadia', texte: ['Jupiter est libre. Un pêcheur de Titan nous appelle à l\'aide : Tomás Reyes. Saturne t\'attend, capitaine.'] },
+      { genre: 'parler', pnj: 'nadia', texte: ['(joie) Jupiter est libre. Un pêcheur de Titan nous appelle à l\'aide : Tomás Reyes. Saturne t\'attend, capitaine.'] },
     ],
     recompense: 6000,
   },
