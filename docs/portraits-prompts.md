@@ -170,6 +170,7 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Décor de Hubble** (24/10/2026).
 - **Décor de Tiangong** (24/10/2026).
 - **Décor de Mars** (24/10/2026).
+- **Décor de Cythère** (24/10/2026).
 
 ## Ce qu'il faut envoyer à Claude
 
