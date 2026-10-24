@@ -390,7 +390,7 @@ export const decorSvg = (nom: string) => `<svg xmlns="http://www.w3.org/2000/svg
 // ajouter ici l'identifiant du PNJ (trois images : portraits/<id>-neutre.webp, -joie.webp, -souci.webp) ou du décor
 // (decors/<decor>.webp).
 const PORTRAITS_PRETS: readonly string[] = ['elsa', 'keita', 'okafor', 'veilleur', 'rosa', 'helene', 'odile', 'aurelio', 'nadia', 'tomas', 'hana', 'aksel', 'mira']
-const DECORS_PRETS: readonly string[] = ['iss', 'lune', 'tycho', 'hubble', 'tiangong', 'mars', 'cythere']
+const DECORS_PRETS: readonly string[] = ['iss', 'lune', 'tycho', 'hubble', 'tiangong', 'mars', 'cythere', 'mercure']
 
 const PAR_ID = new Map(PERSOS.map((p) => [p.id, p]))
 
