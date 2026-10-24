@@ -70,8 +70,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   ChatGPT (fiche complétée avec les treize décors) : en attendant, les dessins de Claude.
   Elsa reçue le même jour (trois humeurs, `public/portraits/`, plus son médaillon) : le logo de l'Alliance rebelle de
   Star Wars sur sa poitrine remplacé par l'écusson de la Résistance ; quelques humeurs ajoutées à ses répliques.
-  Keïta, Okafor, le Veilleur, Rosa, Hélène, Odile, Aurelio, Nadia, Tomás, Hana, Aksel et Mira reçus le même jour : les treize portraits sont là. Restent
-  les treize décors (ChatGPT), en attendant ceux de Claude.
+  Keïta, Okafor, le Veilleur, Rosa, Hélène, Odile, Aurelio, Nadia, Tomás, Hana, Aksel et Mira reçus le même jour : les treize portraits sont là, puis
+  les treize décors (recadrés au besoin, `public/decors/`). Les dessins SVG de Claude restent en secours.
 - La présentation du monde en huit cases animées (23/10/2026, demandes d'Adrien) : carte épurée, Terres alignées entre la
   Terre et la Lune et en travers de Jupiter, les engins (ISS, Hubble, James Webb), les Confins (Halley, les Voyager),
   l'onde de la lumière qui part du Soleil ; étiquettes qui ne se chevauchent pas. Traînées des comètes raccourcies.

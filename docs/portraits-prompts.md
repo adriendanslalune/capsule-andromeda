@@ -142,8 +142,9 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
   la verticale, un petit observatoire à coupole.
 - **Station Le Verrier** (Aksel) : un phare rayé blanc et rouge sur un sol bleu sombre, son faisceau jaune qui balaie
   le noir, Neptune bleu profond dans le ciel.
-- **Station Tombaugh** (Mira) : la plaine glacée beige et crème de Pluton, une grande zone claire en forme de cœur,
-  un petit abri à coupole lavande, le Soleil réduit à une étoile brillante dans un ciel très étoilé.
+- **Station Tombaugh** (Mira) : la station est en orbite (pas au sol : on ne verrait pas le cœur). L'intérieur, parois
+  crème à rivets, coupole lavande, un grand hublot rond ; par le hublot, Pluton énorme avec sa grande zone claire en
+  forme de cœur (Tombaugh Regio), Charon plus loin, le Soleil réduit à une étoile brillante.
 
 ## Reçus
 
@@ -176,6 +177,8 @@ Un décor par lieu de PNJ, derrière le portrait, dans la case du dialogue (envi
 - **Décor de Titan** (24/10/2026).
 - **Décor de Titania** (24/10/2026).
 - **Décor de la Station Le Verrier** (24/10/2026).
+- **Décor de la Station Tombaugh** (24/10/2026) : vue depuis la station, Pluton et son cœur dans le hublot. Les treize
+  décors sont là.
 
 ## Ce qu'il faut envoyer à Claude
 
