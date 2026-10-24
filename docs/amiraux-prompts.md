@@ -187,3 +187,4 @@ cœur clair au centre (comme le cœur de Pluton).
 - **Le Janus** (24/10/2026).
 - **Le Couronné** (24/10/2026).
 - **Le Feu-Follet** (24/10/2026).
+- **L'Ombreux** (24/10/2026).
