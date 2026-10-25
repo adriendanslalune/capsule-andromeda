@@ -99,7 +99,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   remorquage, le largage et le tri (au-dessus du tapis) ; la station reçue le même jour : le quai (amarrage, largage),
   le hangar (convoi), la station entière (rangée pour plus tard) ; le cargo (convoi, escorte), repeint en trois livrées
   hors de sa soute ; le missile (escorte, dans une lueur verte, et sur la carte) ; les 30 débris du tri (la « Conserve entamée »
-  remplace le rouleau d'adhésif, toujours au rebut) ; tout est reçu ; les décors finalement
+  remplace le rouleau d'adhésif, en métaux : ferraille) ; tout est reçu ; les décors finalement
   dessinés par le jeu (Adrien, 25/10/2026 : des décors peints seraient incohérents selon le système) : un grand arc de
   l'astre près duquel on travaille, au pied des écrans, par le moteur des globes (`carte/decor-contrat.ts`) — fait ; 3. le dépannage refait
   façon Jules Verne (boîtier d'acajou, plaques de laiton rivetées, étiquettes d'ivoire, lampes serties, interrupteurs à

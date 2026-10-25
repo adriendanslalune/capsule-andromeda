@@ -44,8 +44,8 @@ export const OBJETS_EPAVE: readonly { nom: string; bac: Bac; matiere: string | n
   { nom: 'Toile brûlée', bac: 'rebut', matiere: null, dessin: 'toile' },
   { nom: 'Chaussette perdue', bac: 'rebut', matiere: null, dessin: 'chaussette' },
   { nom: 'Sac de déchets', bac: 'rebut', matiere: null, dessin: 'sac' },
-  // Dessinée par ChatGPT à la place du rouleau d'adhésif (25/10/2026) ; entamée et moisie : au rebut.
-  { nom: 'Conserve entamée', bac: 'rebut', matiere: null, dessin: 'conserve' },
+  // Dessinée par ChatGPT à la place du rouleau d'adhésif (25/10/2026) ; du métal (Adrien, 25/10/2026).
+  { nom: 'Conserve entamée', bac: 'metal', matiere: 'Ferraille', dessin: 'conserve' },
 ]
 
 /** Durée du tri d'une épave (ms). */

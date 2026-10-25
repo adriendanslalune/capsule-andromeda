@@ -92,6 +92,6 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
   papier) et sur la carte (le missile d'un chasseur vers la capsule, au lieu de la flèche cerise ; le pointillé et le
   décompte restent cerise).
 - **Les débris du tri** (25/10/2026) : la planche découpée objet par objet, `public/contrats/tri/<dessin>.webp`, sur le
-  tapis du tri (chargés au lancement). La boîte de conserve remplace le rouleau d'adhésif : « Conserve entamée », au
-  rebut.
+  tapis du tri (chargés au lancement). La boîte de conserve remplace le rouleau d'adhésif : « Conserve entamée », en
+  métaux (ferraille, Adrien 25/10/2026).
 - Tout est reçu.
