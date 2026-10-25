@@ -75,16 +75,21 @@ large, avec ses radiateurs en ailettes. Élégante, silencieuse, sérieuse.
 portées par deux pylônes, de part et d'autre du corps ; la soucoupe striée de panneaux et de hublots, une coupole au
 centre. Noble et rassurant : le vaisseau amiral de la Résistance.
 
-**La Légende** (niveau 100), clin d'œil au vaisseau-anneau de *2001* (la grande station en roue). Une **immense roue**
-vue du dessus : un **anneau** large et habité, couvert de hublots, relié par **quatre rayons** à un **moyeu** central
-où se trouvent le cockpit et, à l'arrière du moyeu, les tuyères ; **toute la livrée en or** (coque crème et or,
-bandes dorées au lieu d'orange, rivets dorés), une étoile à quatre branches gravée sur le moyeu. Elle doit faire
-envie : au bout d'un an de jeu, la plus belle chose du ciel.
+**La Légende** (niveau 100), clin d'œil à l'Arcadia d'Albator (choisi par Adrien le 25/10/2026, au lieu du
+vaisseau-anneau de *2001* : deux fois *2001*, et une roue n'impressionnait pas). Un **cuirassé corsaire de l'espace**,
+long et majestueux : une coque de **navire de guerre** effilée, une **proue en éperon** pointue à l'avant, un pont
+étagé au milieu avec ses **tourelles de canons en batterie** de part et d'autre, un haut **château arrière** à
+plusieurs étages (la passerelle), de courts **ailerons** latéraux, et à l'arrière une grande tuyère principale
+entourée de plus petites. **Aucune tête de mort, aucun drapeau, aucun emblème de pirate** (nos ennemis portent déjà le
+drapeau pirate) : à la place, une étoile à quatre branches gravée sur la proue. **Toute la livrée en or** : coque
+crème et or, bandes dorées au lieu d'orange, rivets dorés, liserés dorés le long des ponts. Il doit écraser tout le
+reste : au bout d'un an de jeu, le vaisseau le plus mythique du ciel.
 
 ## Anciennes formes (avant la refonte)
 
 La première série (« même famille que la capsule, un cran plus grande ») : la Navette à aile delta, la Corvette en
-flèche, la Frégate en catamaran, le Croiseur étagé comme un paquebot. Elles restent dans le jeu tant que leurs
+flèche, la Frégate en catamaran, le Croiseur étagé comme un paquebot ; puis, dans la refonte, une Légende en roue
+(le vaisseau-anneau de *2001*), remplacée par l'Arcadia. Elles restent dans le jeu tant que leurs
 remplaçantes ne sont pas arrivées.
 
 ## Reçus
@@ -99,3 +104,4 @@ remplaçantes ne sont pas arrivées.
 - **La Frégate, refonte** (25/10/2026) : le Discovery One de 2001.
 - **Le Croiseur, refonte** (25/10/2026) : l'Enterprise, une lueur rouge au bout des nacelles.
 - **La Légende, refonte** (25/10/2026) : le vaisseau-anneau de 2001 ; ses bandes orange passées en or par Claude, et elle reste dorée quelle que soit la Maison.
+- Légende : l'Arcadia d'Albator remplace la roue (Adrien, 25/10/2026), **en attente de l'image**.
