@@ -117,6 +117,16 @@ export function imageChasseur(): HTMLImageElement | null {
   return CHASSEUR.complete && CHASSEUR.naturalWidth ? CHASSEUR : null
 }
 
+/**
+ * Ce qui sort à l'arrière de chaque forme en vol (Adrien, 25/10/2026 : pas de flammes, sauf si la référence en a) :
+ * des flammes pour la capsule et la Navette (des fusées chimiques, comme l'Eagle), une lueur bleue pour la Corvette
+ * (sa fente de propulsion), rien pour la Frégate (le Discovery One n'en a pas) ni pour la Légende (la roue) ; le
+ * Croiseur aura la lueur rouge de ses moteurs d'impulsion avec sa nouvelle image.
+ */
+export const PROPULSION: Readonly<Record<Forme, 'flammes' | 'lueur' | null>> = {
+  capsule: 'flammes', navette: 'flammes', corvette: 'lueur', fregate: null, croiseur: null, legende: null,
+}
+
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */
 export function rayonVaisseau(_forme: Forme, taille: number): number {
   return 9 * taille

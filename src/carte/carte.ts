@@ -15,7 +15,7 @@ import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zone
 import { BOTS } from '../donnees/messages'
 import type { Forme } from '../donnees/niveaux'
 import { niveauDuBot, palierDe } from '../moteur/niveau'
-import { dessinerVaisseau, imageChasseur, rayonVaisseau } from './vaisseaux'
+import { dessinerVaisseau, imageChasseur, PROPULSION, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, ouEstLeBot, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
@@ -543,11 +543,13 @@ export class Carte2D {
   }
 
   /** La flamme d'un vaisseau en vol, derrière lui (discrète : Adrien, 24/10/2026), qui vacille ; pour la Corvette, une
-   *  lueur bleue qui respire (Adrien, 25/10/2026). */
+   *  lueur bleue qui respire, et rien pour les formes dont la référence n'a pas de flammes (Adrien, 25/10/2026). */
   private dessinerFlamme(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, r: number, graine: number, couleurs: Couleurs2D, forme?: Forme): void {
     const long = r * (0.65 + 0.15 * Math.sin(performance.now() / 70 + graine))
     const dx = Math.cos(angle), dy = Math.sin(angle), bx = x - dx * r * 0.7, by = y - dy * r * 0.7, l = r * 0.17
-    if (forme === 'corvette') {
+    const propulsion = forme ? PROPULSION[forme] : 'flammes'
+    if (!propulsion) return
+    if (propulsion === 'lueur') {
       const rl = r * (0.5 + 0.06 * Math.sin(performance.now() / 160 + graine))
       ctx.save()
       ctx.translate(bx, by)

@@ -91,6 +91,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Propulsion des formes (Adrien, 25/10/2026 : pas de flammes, sauf si la référence en a) : `PROPULSION` dans
+  carte/vaisseaux.ts, au combat et sur la carte : flammes pour la Capsule et la Navette, lueur bleue pour la Corvette,
+  rien pour la Frégate et la Légende ; le Croiseur aura la lueur rouge de ses moteurs d'impulsion avec sa nouvelle image.
 - Formes de la capsule, refonte (Adrien, 25/10/2026 : elles ne se distinguaient pas assez) : un clin d'œil à la SF par
   palier, validé : Navette l'Eagle de Cosmos 1999, Corvette le cargo-soucoupe à mandibules, Frégate le Discovery One,
   Croiseur l'Enterprise, Légende le vaisseau-anneau de 2001 en or ; la Capsule reste. Fiche de prompts refaite
