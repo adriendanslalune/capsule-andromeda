@@ -40,7 +40,7 @@ const COQUES: Record<Forme, { coque: Pt[]; ailerons: Pt[][]; hublot?: Pt }> = {
 
 /** Les formes dessinées par ChatGPT (Adrien, 24/10/2026 ; `docs/capsule-prompts.md`), dans `public/vaisseaux/`, la proue
  *  vers le haut : la capsule est celle du combat. On inscrit ici chaque forme arrivée ; les autres restent en silhouette. */
-export const FORMES_PRETES: readonly Forme[] = ['capsule', 'navette', 'corvette', 'fregate', 'croiseur']
+export const FORMES_PRETES: readonly Forme[] = ['capsule', 'navette', 'corvette', 'fregate', 'croiseur', 'legende']
 
 /** L'adresse de l'image d'une forme, si elle est dessinée. */
 export function imageForme(forme: Forme): string | null {
@@ -65,7 +65,8 @@ export function chargerForme(forme: Forme): HTMLImageElement | null {
 const PEINTES = new Map<string, HTMLCanvasElement>()
 export function formePeinte(forme: Forme, maison: Maison | null): HTMLImageElement | HTMLCanvasElement | null {
   const im = chargerForme(forme)
-  if (!im || !maison) return im
+  // La Légende reste dorée, quelle que soit la Maison : l'or, c'est elle (Adrien, 25/10/2026).
+  if (!im || !maison || forme === 'legende') return im
   const cle = `${forme}|${maison}`
   let toile = PEINTES.get(cle)
   if (!toile) {

@@ -98,3 +98,4 @@ remplaçantes ne sont pas arrivées.
 - **La Corvette, refonte** (25/10/2026) : le cargo-soucoupe à mandibules.
 - **La Frégate, refonte** (25/10/2026) : le Discovery One de 2001.
 - **Le Croiseur, refonte** (25/10/2026) : l'Enterprise, une lueur rouge au bout des nacelles.
+- **La Légende, refonte** (25/10/2026) : le vaisseau-anneau de 2001 ; ses bandes orange passées en or par Claude, et elle reste dorée quelle que soit la Maison.
