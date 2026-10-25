@@ -91,6 +91,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Fenêtres illustrées par ChatGPT (Adrien, 25/10/2026), ordre validé : blasons des Maisons, vignettes des Collections,
+  « Zone libérée ! » (Lune et planètes intérieures d'abord), rêve du Soleil en six cases ; fiche de prompts écrite
+  (`docs/fenetres-prompts.md`), en attente des images. Les blasons remplaceront les emojis de la lettre d'invitation.
 - Orbites (Adrien, 25/10/2026 : « on ne voit pas l'orbite de Vénus ») : sa couleur jaune pâle, éclaircie de crème, se
   confondait avec le kraft teinté d'octobre ; sur le papier, les orbites des planètes et des lunes sont maintenant
   assombries vers l'encre (30 %) au lieu d'éclaircies (inchangées sur la carte de nuit).
