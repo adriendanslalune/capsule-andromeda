@@ -96,3 +96,4 @@ remplaçantes ne sont pas arrivées.
 - **Le Croiseur** (24/10/2026).
 - **La Navette, refonte** (25/10/2026) : l'Eagle de Cosmos 1999.
 - **La Corvette, refonte** (25/10/2026) : le cargo-soucoupe à mandibules.
+- **La Frégate, refonte** (25/10/2026) : le Discovery One de 2001.
