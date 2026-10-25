@@ -2231,8 +2231,8 @@ function image(maintenant: number): void {
       texte: [g.nouvelleForme ? `Ta capsule devient une ${g.nomForme.toLowerCase()} ! Tout le système la verra passer sur la carte.` : `Bravo, capitaine. Ta ${g.nomForme.toLowerCase()} prend un peu d'envergure sur la carte.`,
         g.prochain ? `Prochaine forme au niveau ${g.prochain.niveau} : ${g.prochain.nom.toLowerCase()}.` : 'Tu as atteint le sommet : la Légende, dorée.'],
       ouvre: [], bouton: 'EN AVANT !',
-      // La fenêtre en couverture de pulp, le numéro du niveau en numéro de la revue.
-      couverture: { numero: niveau, accroche: g.nouvelleForme ? 'Nouvelle forme !' : ['Il monte en grade !', 'Inédit !', 'Sensationnel !', 'Plus fort que jamais !'][niveau % 4] },
+      // L'accroche dans son étoile, en coin.
+      couverture: { accroche: g.nouvelleForme ? 'Nouvelle forme !' : ['Il monte en grade !', 'Inédit !', 'Sensationnel !', 'Plus fort que jamais !'][niveau % 4] },
     })
   }
   // Les trophées gagnés : leur petite fenêtre, après toutes les autres (cadre validé par Adrien le 24/10/2026).
@@ -2420,15 +2420,13 @@ function image(maintenant: number): void {
 }
 requestAnimationFrame(image)
 
-// L'écran de chargement en couverture de pulp (Adrien, 22/10/2026) : le numéro de la revue (le nombre de jours depuis
-// le lancement du jeu), une accroche au hasard ; il s'efface une fois le jeu prêt, ou en le touchant.
+// L'écran de chargement en couverture de pulp (Adrien, 22/10/2026) : une accroche au hasard ; il s'efface une fois le
+// jeu prêt, ou en le touchant. Plus de nom de revue ni de numéro (Adrien, 25/10/2026).
 {
   const couverture = document.querySelector<HTMLElement>('#couverture')
   if (couverture) {
     const UNES = ['L\'invasion venue des étoiles !', 'Seul contre les chasseurs furtifs !', 'Le secret de Triton enfin révélé ?', 'Mille monolithes dans la nuit !',
       'Des voix perdues sur les ondes courtes !', 'Panne sèche au bord du Soleil !', 'La Résistance a besoin de vous !', 'Pirates sur l\'orbite de Mars !']
-    const jours = Math.max(1, Math.floor((Date.now() - Date.UTC(2026, 9, 17)) / 86_400_000))
-    document.querySelector('#numero-revue')!.textContent = `N° ${jours} · 25 cents`
     document.querySelector('#une-revue')!.textContent = UNES[Math.floor(Math.random() * UNES.length)]
     const effacer = () => { couverture.classList.add('effacee'); setTimeout(() => couverture.remove(), 600) }
     couverture.addEventListener('click', effacer)

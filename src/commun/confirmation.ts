@@ -45,10 +45,10 @@ export interface Felicitation {
   ouvre: string[]
   bouton: string
   /**
-   * En couverture de pulp (Adrien, 22/10/2026 : plus fun) : le bandeau du magazine en tête, avec son numéro et son prix,
-   * et une accroche dans une étoile en coin.
+   * En couverture de pulp (Adrien, 22/10/2026 : plus fun) : une accroche dans une étoile, en coin (le nom de la revue
+   * est retiré le 25/10/2026).
    */
-  couverture?: { numero: number; accroche: string }
+  couverture?: { accroche: string }
 }
 
 export function feliciter(f: Felicitation): Promise<void> {
@@ -57,8 +57,8 @@ export function feliciter(f: Felicitation): Promise<void> {
     fond.className = 'confirmation-jeu felicitation'
     const ouvre = f.ouvre.length ? `<div class="ouvre"><b>Ce qui s'ouvre</b><ul>${f.ouvre.map((o) => `<li>${echapper(o)}</li>`).join('')}</ul></div>` : ''
     const c = f.couverture
-    const tete = c ? `<div class="couverture-pulp"><span class="nom-revue">CAPITAINES&nbsp;!</span><span class="sous-revue">Histoires étonnantes de l'espace</span>`
-      + `<span class="numero-revue">N° ${c.numero} · 25 cents</span><span class="etoile-revue">${echapper(c.accroche)}</span></div>` : ''
+    // Plus de nom de revue (Adrien, 25/10/2026 : « CAPITAINES ! » faisait cheap) : seule l'accroche reste, dans son étoile.
+    const tete = c ? `<span class="etoile-revue etoile-fenetre">${echapper(c.accroche)}</span>` : ''
     fond.innerHTML = `<div class="carte-confirmation${c ? ' en-couverture' : ''}" role="dialog" aria-modal="true">${tete}<div class="titre-confirmation"><span class="titre-pulp">${echapper(f.titre)}</span></div>`
       + `<div class="pnj-felicitation">${f.portrait}<div><b>${echapper(f.nom)}</b><small>${echapper(f.role)}</small></div></div>`
       + `<div class="texte-confirmation">${f.texte.map((p) => `<p>${echapper(p)}</p>`).join('')}</div>${ouvre}`

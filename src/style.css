@@ -2427,18 +2427,8 @@ body.volet-ouvert #annonces { display: none; }
 #journal .quete.finie { position: relative; }
 .tampon-quete { position: absolute; z-index: 1; right: 10px; top: 8px; padding: 2px 8px; pointer-events: none; font: 900 16px/1.2 'Big Shoulders Display', var(--titre);
   letter-spacing: 0.08em; color: #c0392b; border: 2.5px double #c0392b; border-radius: 3px; transform: rotate(-9deg); opacity: 0.85; mix-blend-mode: multiply; }
-/* La fenêtre de niveau en couverture de pulp des années 50 : le nom de la revue en grosses lettres penchées sur un
-   bandeau orange, son sous-titre, son numéro et son prix ; une accroche dans une étoile, en coin. */
+/* La fenêtre de niveau en couverture de pulp des années 50 : une accroche dans une étoile, en coin. */
 .carte-confirmation.en-couverture { overflow: visible; }
-.couverture-pulp { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0 8px; margin: -1px -1px 6px; padding: 10px 14px 8px;
-  color: var(--creme); background: var(--orange); border-bottom: 3px double var(--encre); }
-.couverture-pulp .nom-revue { grid-column: 1 / -1; font: 900 40px/0.9 'Big Shoulders Display', var(--titre); letter-spacing: 0.02em; transform: skewX(-9deg);
-  text-shadow: 3px 3px 0 var(--encre); }
-.couverture-pulp .sous-revue { font: italic 700 13px var(--titre); letter-spacing: 0.04em; color: var(--encre); }
-.couverture-pulp .numero-revue { font: 600 10px var(--police); letter-spacing: 0.08em; color: var(--encre); white-space: nowrap; }
-.couverture-pulp .etoile-revue { position: absolute; right: 8px; top: -6px; width: 92px; height: 92px; display: grid; place-items: center; padding: 14px; text-align: center;
-  font: 900 14px/1 'Big Shoulders Display', var(--titre); color: var(--encre); background: #f2d58e; transform: rotate(12deg);
-  clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
 /* Les titres de toutes les fenêtres, façon pulp comme ceux des volets. */
 .confirmation-jeu .titre-confirmation .titre-pulp, .titre-fenetre { font-family: 'Big Shoulders Display', var(--titre); font-weight: 900; display: inline-block;
   transform: skewX(-9deg) rotate(-1.5deg); transform-origin: left bottom; text-shadow: 2px 2px 0 var(--creme), 4px 4px 0 var(--orange); }
@@ -2446,12 +2436,6 @@ body.volet-ouvert #annonces { display: none; }
 #couverture { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; overflow: hidden;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); background: var(--grain), #f3e3bd; color: var(--encre); transition: opacity 0.5s, transform 0.5s; }
 #couverture.effacee { opacity: 0; transform: scale(1.06); pointer-events: none; }
-#couverture .bandeau-revue { align-self: stretch; display: grid; grid-template-columns: 1fr auto; align-items: end; padding: 14px 16px 10px; background: var(--orange);
-  border-bottom: 4px double var(--encre); }
-#couverture .bandeau-revue b { grid-column: 1 / -1; font: 900 62px/0.85 'Big Shoulders Display', var(--titre); letter-spacing: 0.01em; color: var(--creme);
-  transform: skewX(-9deg); text-shadow: 4px 4px 0 var(--encre); }
-#couverture .bandeau-revue span { font: italic 700 15px var(--titre); }
-#couverture .bandeau-revue small { font: 600 11px var(--police); }
 #couverture .illustration-revue { width: min(84vw, 380px); margin-top: 18px; overflow: visible; }
 #couverture .etoile-fond { fill: var(--encre); }
 #couverture .planete-revue { fill: #9fcfca; stroke: var(--encre); stroke-width: 3; }
@@ -2470,8 +2454,6 @@ body.volet-ouvert #annonces { display: none; }
 #couverture .etoile-revue { position: absolute; right: 10px; top: 118px; width: 100px; height: 100px; display: grid; place-items: center; padding: 16px; text-align: center;
   font: 900 20px/1 'Big Shoulders Display', var(--titre); background: #f2d58e; transform: rotate(14deg);
   clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
-.couverture-pulp { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding-right: 96px; }
-.couverture-pulp .etoile-revue { top: -14px; right: -6px; width: 86px; height: 86px; }
 /* Les consignes de sécurité du Manuel (section 8) : des dessins d'instructions façon notice des années 50. */
 :is(#manuel, .papier) .consignes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
 :is(#manuel, .papier) .consigne { margin: 0; padding: 6px 6px 8px; border: 1.5px solid var(--encre); text-align: center; background: var(--creme); }
@@ -2733,3 +2715,10 @@ body.volet-ouvert #annonces { display: none; }
 #couverture { background: linear-gradient(to bottom, transparent 58%, rgba(7, 20, 40, 0.75) 82%, rgba(7, 20, 40, 0.9)), url('/couverture.webp') 50% 40% / cover no-repeat, #072644; }
 #couverture .titre-revue { margin-top: auto; color: var(--creme); text-shadow: 3px 3px 0 var(--encre), 6px 6px 0 var(--orange); }
 #couverture .une-revue { margin-bottom: calc(44px + env(safe-area-inset-bottom)); }
+/* Sans le bandeau de la revue (Adrien, 25/10/2026) : l'étoile de la une se pose en haut à droite de la couverture, et
+   en coin de la fenêtre de niveau. */
+#couverture .etoile-revue { top: calc(24px + env(safe-area-inset-top)); }
+.carte-confirmation.en-couverture { position: relative; padding-top: 18px; }
+.etoile-fenetre { position: absolute; z-index: 2; right: -12px; top: -22px; width: 92px; height: 92px; display: grid; place-items: center; padding: 14px; text-align: center;
+  font: 900 14px/1 'Big Shoulders Display', var(--titre); color: var(--encre); background: #f2d58e; transform: rotate(12deg);
+  clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }

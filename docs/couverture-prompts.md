@@ -4,9 +4,8 @@ Adrien, 25/10/2026 : l'icône du téléphone et l'écran de chargement (la couve
 dessins vectoriels simples de Claude, faits avant les illustrations de ChatGPT : à côté des vaisseaux, des épaves et
 des bandeaux, ils font clip-art. On les refait avec ChatGPT, dans le même style.
 
-Ce que le code garde par-dessus la couverture : le bandeau orange « CAPITAINES ! Histoires étonnantes de l'espace »
-(en haut, avec le numéro du jour et « 25 cents »), l'étoile de la une (qui change à chaque chargement), le titre
-« CAPSULE ANDROMEDA » et son sous-titre. **Aucun texte dans les images** : le jeu les écrit lui-même, nets et à jour.
+Ce que le code garde par-dessus la couverture : l'étoile de la une et l'accroche du jour (qui changent à chaque
+chargement) ; le titre « CAPSULE ANDROMEDA », jusqu'à ce que ChatGPT le dessine (section 3). Plus de nom de revue. **Aucun texte dans les images** : le jeu les écrit lui-même, nets et à jour.
 
 ## Comment s'y prendre
 
@@ -54,30 +53,28 @@ Format **carré 1024 × 1024**, **fond plein** (pas de transparence : l'iPhone m
 > **Tout le dessin tient dans le cercle central** (les deux tiers du milieu de l'image) : Android découpe l'icône en
 > rond. Le fond bleu nuit va jusqu'aux bords.
 
-## 3. La couverture avec ses titres (Adrien, 25/10/2026)
+## 3. La couverture avec son titre (Adrien, 25/10/2026)
 
-Adrien : le gros « CAPITAINES ! » écrit par le jeu fait cheap ; ChatGPT écrit les titres, plus harmonieux. Le jeu ne
-garde par-dessus que le petit numéro du jour (« N° 312 · 25 cents ») et l'étoile de la une, qui changent. Envoyer à
-ChatGPT **la couverture déjà reçue** (`public/couverture.webp`), puis :
+Adrien : plus de nom de revue « CAPITAINES ! », nulle part (il faisait cheap ; retiré du jeu le même jour, avec le
+numéro et le prix) ; le titre du jeu, dessiné par ChatGPT, sera plus harmonieux que celui écrit par le jeu. Le jeu ne
+garde par-dessus que l'étoile de la une, en haut à droite, et l'accroche du jour. Envoyer à ChatGPT **la couverture
+déjà reçue** (`public/couverture.webp`), puis :
 
-> Reprends exactement cette illustration (même scène, même cadrage, même style) et ajoute-lui ses titres, comme une
-> vraie couverture de magazine pulp des années 50. **En haut**, le nom de la revue, « CAPITAINES ! », en très grosses
-> lettres dessinées à la main, penchées, pleines de dynamisme, crème cernées d'encre avec une ombre portée orange,
-> comme le logo d'« Astounding Stories » ; juste dessous, en petit et en italique, « Histoires étonnantes de
-> l'espace ». **En bas**, le titre du jeu, « CAPSULE ANDROMEDA », sur deux lignes, dans un lettrage rétro-futuriste
-> spectaculaire (lettres en relief, filets de vitesse), crème et orange cernés d'encre. **Aucun autre texte** : pas
-> de prix, pas de numéro, pas de date, pas de slogan. Respecte exactement l'orthographe, les accents et la ponctuation
-> (« CAPITAINES ! » avec l'espace avant le point d'exclamation, « étonnantes », « l'espace »). Laisse **le coin en
-> haut à droite, sous le nom de la revue, sans rien d'important** (une petite étiquette s'y posera). Format portrait
-> 1024 × 1536.
+> Reprends exactement cette illustration (même scène, même cadrage, même style) et ajoute-lui le titre du jeu, comme
+> sur une vraie couverture de magazine pulp des années 50 : **en bas**, « CAPSULE ANDROMEDA », sur deux lignes, dans
+> un lettrage rétro-futuriste spectaculaire dessiné à la main (lettres penchées, en relief, filets de vitesse), crème
+> et orange cernés d'encre. **Aucun autre texte** : pas de nom de magazine, pas de prix, pas de numéro, pas de date,
+> pas de slogan. Respecte exactement l'orthographe : « CAPSULE ANDROMEDA » (sans accent). Laisse **le coin en haut à
+> droite sans rien d'important** (une petite étiquette s'y posera) et **une bande de ciel calme tout en bas, sous le
+> titre** (une phrase s'y écrira). Format portrait 1024 × 1536.
 
-Vérifier chaque lettre avant de l'envoyer : ChatGPT écorche souvent les mots (lettres en double, accents perdus).
+Vérifier chaque lettre avant de l'envoyer : ChatGPT écorche souvent les mots (lettres en double ou oubliées).
 
 ## Reçus
 
 - **La couverture** (25/10/2026) : `public/couverture.webp`, en fond plein écran (cadrée au centre : les bords sont
-  rognés sur un téléphone) ; le titre et la une descendent au pied, en crème, sur un voile de nuit ; le bandeau
-  « CAPITAINES ! » et l'étoile de la une restent en haut.
+  rognés sur un téléphone) ; le titre et la une descendent au pied, en crème, sur un voile de nuit ; l'étoile de la
+  une en haut à droite (le bandeau « CAPITAINES ! » retiré le même jour).
 - **L'icône** (25/10/2026) : `public/icones/` (512, 192, 180 pour l'iPhone, 32 pour l'onglet du navigateur) et une
   version masquable pour Android (le dessin réduit à 80 % sur le bleu nuit, pour que la découpe en rond ne mange pas
   la capsule) ; l'ancienne icône SVG est retirée.
