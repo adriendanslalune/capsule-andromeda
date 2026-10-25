@@ -27,7 +27,7 @@ import { VueReve } from './commun/vue-reve'
 import { VueTri } from './commun/vue-tri'
 import { VueClasseur } from './commun/vue-classeur'
 import { SONDE, VueDisparus } from './commun/vue-disparus'
-import { disparuVisible, ouChercher } from './moteur/disparus'
+import { ouChercher } from './moteur/disparus'
 import { DISPARUS, disparu } from './donnees/disparus'
 import { VueRadio } from './commun/vue-radio'
 import { VueCarnet } from './commun/vue-carnet'
@@ -215,7 +215,8 @@ carte.visibilite = (nom, t, angle) => {
   const type = corps(nom)?.type
   // Les Disparus : cachés jusqu'à ce que le radar capte leur écho ; la zone de recherche de celui qu'on cherche.
   const d = disparu(nom)
-  if (d) return disparuVisible(jeu.disparus, d) || nom === selection ? 1 : 0
+  // Une sonde se voit dès son écho capté, et s'efface une fois identifiée (Adrien, 25/10/2026).
+  if (d) return (jeu.disparus.echos[d.numero] !== undefined && jeu.disparus.trouves[d.numero] === undefined) || nom === selection ? 1 : 0
   if (type === 'zone') { const s = jeu.disparus.suivi !== null ? DISPARUS.find((x) => x.numero === jeu.disparus.suivi) : undefined; return s && nom === ouChercher(s).lieu ? 1 : 0 }
   // L'épave en remorque se dessine au bout du câble, derrière la capsule (carte.sillage).
   if (carte.sillage === 'epave' && nom === jeu.remorque()?.epave) return 0

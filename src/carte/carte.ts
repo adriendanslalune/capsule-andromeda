@@ -47,7 +47,8 @@ export function pasDeGrille(kmParPx: number, cible = 110): number {
 }
 
 /** Ce qui est dessiné à l'écran (pour le toucher et les repères). */
-interface Dessine { nom: string; x: number; y: number; r: number; /** Opacité (un écho du radar qui s'efface). */ alpha?: number }
+interface Dessine { nom: string; x: number; y: number; r: number; /** Opacité (un écho du radar qui s'efface). */ alpha?: number
+  /** Passe devant au toucher (une sonde disparue posée sur son astre : sinon, on touche l'astre). */ prioritaire?: boolean }
 
 /** Taille minimale à l'écran (rayon, px) quand on dézoome, dans l'ordre des vraies tailles (le Soleil énorme, Mercure
  *  petite) : assez grande pour que chaque planète soit illustrée dès l'ouverture (essai demandé par Adrien le
@@ -880,6 +881,13 @@ export class Carte2D {
       // du 21/10/2026) ; les autres engins serrés restent cachés.
       // De loin, les capsules des autres ne sont que des points : ils peuvent se superposer.
       const point = c.type === 'joueur' && this.kmParPx > LOIN_CAPSULES
+      // Une sonde disparue dont l'écho est capté (Adrien, 25/10/2026) : toujours dessinée, même posée sur son astre,
+      // avec ses ondes lavande ; elle passe devant l'astre au toucher, pour s'y rendre d'un geste.
+      if (c.type === 'disparu') {
+        this.dessines.push({ nom: c.nom, x: q.x, y: q.y, r: RAYON_ENGIN, alpha, prioritaire: true })
+        this.echoDisparu(ctx, q, couleurs)
+        continue
+      }
       if (!point && !libre(q.x, q.y, RAYON_ENGIN)) {
         if (c.type !== 'joueur') continue
         let place: { x: number; y: number } | null = null
@@ -1730,6 +1738,29 @@ export class Carte2D {
     ctx.restore()
   }
 
+  /** Une sonde disparue à l'écho capté : deux ondes lavande qui s'ouvrent, un disque crème et le symbole d'une sonde. */
+  private echoDisparu(ctx: CanvasRenderingContext2D, q: { x: number; y: number }, couleurs: Couleurs2D): void {
+    const m = performance.now()
+    ctx.save()
+    for (let k = 0; k < 2; k++) {
+      const f = ((m / 1600) + k / 2) % 1
+      ctx.beginPath()
+      ctx.arc(q.x, q.y, 9 + 16 * f, 0, 2 * Math.PI)
+      ctx.lineWidth = 2
+      ctx.strokeStyle = `rgba(124, 92, 176, ${(0.75 * (1 - f)).toFixed(3)})`
+      ctx.stroke()
+    }
+    ctx.beginPath()
+    ctx.arc(q.x, q.y, 9, 0, 2 * Math.PI)
+    ctx.fillStyle = '#f3ecfb'
+    ctx.fill()
+    ctx.lineWidth = 1.5
+    ctx.strokeStyle = '#7c5cb0'
+    ctx.stroke()
+    ctx.restore()
+    dessinerEngin(ctx, 'sonde', q.x, q.y, couleurs.encre, ECHELLE_ENGIN * 0.8)
+  }
+
   /** Astre touché (le plus proche du doigt, à moins de 24 pixels), ou null. */
   toucher(x: number, y: number): string | null {
     return this.touches(x, y)[0] ?? null
@@ -1737,6 +1768,10 @@ export class Carte2D {
 
   /** Tout ce qui est sous le doigt (à moins de 24 pixels), du plus proche au plus loin : pour choisir dans un tas. */
   touches(x: number, y: number): string[] {
+    // Les sondes disparues d'abord : touchées, elles seules (sinon l'astre sur lequel elles sont posées passe devant).
+    const sondes = this.dessines.filter((d) => d.prioritaire && Math.hypot(d.x - x, d.y - y) < 24)
+      .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))
+    if (sondes.length) return [...new Set(sondes.map((d) => d.nom))]
     const l = this.dessines.map((d) => ({ nom: d.nom, ecart: Math.hypot(d.x - x, d.y - y) - d.r })).filter((d) => d.ecart < 24)
     return [...new Set(l.sort((a, b) => a.ecart - b.ecart).map((d) => d.nom))]
   }

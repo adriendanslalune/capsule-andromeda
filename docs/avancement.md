@@ -91,6 +91,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Disparus sur la carte (Adrien, 25/10/2026) : une sonde à l'écho capté se montre même posée sur son astre (elle était
+  sautée, car sur le disque de la Lune), avec des ondes lavande ; la toucher la choisit directement (elle passe devant
+  l'astre) ; identifiée, elle s'efface de la carte.
 - Disparus (Adrien, 25/10/2026 : « les sondes posées sont impossibles à repérer ») : l'écho se captait bien, mais le
   bouton du classeur (CHERCHER, Y RETOURNER) ramenait toujours à l'astre de la sonde, jamais à elle ; or c'est en la
   rejoignant qu'on l'identifie. Son écho capté, le bouton devient Y ALLER et choisit la sonde comme destination
