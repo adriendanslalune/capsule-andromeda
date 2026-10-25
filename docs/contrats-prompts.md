@@ -80,5 +80,8 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
 
 - **Les quatre épaves** (25/10/2026) : `public/contrats/epave-satellite|etage|station|cargo.webp`, branchées dans le
   remorquage (elle tourne, l'anneau d'accroche par-dessus), le largage et le tri (au-dessus du tapis). Le nom d'une épave
-  dit sa sorte (`carte/epaves.ts`) ; une épave célèbre en prend une d'après son nom.
-- Reste à venir : le quai et le hangar de la station, la station entière, le cargo, le missile, la planche des débris.
+  dit sa sorte (`carte/objets-contrats.ts`) ; une épave célèbre en prend une d'après son nom.
+- **La station** (25/10/2026) : `public/contrats/quai.webp` (amarrage et largage : la pointe de son port au point de
+  contact), `hangar.webp` (convoi : les cargos sortent du milieu de sa baie), `station.webp` (la station entière, rangée
+  pour plus tard : fiches et carte).
+- Reste à venir : le cargo, le missile, la planche des débris.

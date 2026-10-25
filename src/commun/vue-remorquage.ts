@@ -8,7 +8,7 @@ import { SEUIL, TOLERANCE } from '../donnees/remorquage'
 import { avancerRemorquage, lancer, nouveauRemorquage, type EtatRemorquage } from '../moteur/remorquage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
-import { dessinerEpave } from '../carte/epaves'
+import { dessinerEpave } from '../carte/objets-contrats'
 
 /** Un remorquage : quelle épave, et ce qu'on fait quand elle est en remorque (renvoie le texte du bilan). */
 export interface OptionsRemorquage { titre: string; surFin: (rates: number) => string; /** Le nom de l'épave (sa sorte, son image). */ epave?: string }

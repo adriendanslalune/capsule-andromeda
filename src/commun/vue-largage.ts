@@ -8,7 +8,7 @@ import { DISTANCE_DEPART, ZONE_LOIN, ZONE_PROCHE } from '../donnees/largage'
 import { avancerLargage, lacher, nouveauLargage, type EtatLargage } from '../moteur/largage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
-import { dessinerEpave } from '../carte/epaves'
+import { dessinerEpave, dessinerStation, POINTE_QUAI } from '../carte/objets-contrats'
 
 /** Un largage : à quelle station, et ce qu'on fait quand l'épave est déposée (renvoie le texte du bilan). */
 export interface OptionsLargage { titre: string; surFin: (rates: number) => string; /** Le nom de l'épave remorquée (sa sorte, son image). */ epave?: string }
@@ -190,16 +190,21 @@ export class VueLargage {
       ctx.moveTo(cx - 26, quai); ctx.lineTo(cx + 26, quai); ctx.lineTo(cx + 40, y(e.distance)); ctx.lineTo(cx - 40, y(e.distance)); ctx.closePath()
       ctx.fill()
     }
+    // Le quai dessiné par ChatGPT (Adrien, 25/10/2026), sinon l'ancien dessin.
+    if (!dessinerStation(ctx, 'quai', cx, quai, Math.min(l - 24, 340), POINTE_QUAI)) {
+      ctx.lineWidth = 2.2
+      ctx.strokeStyle = ENCRE
+      ctx.fillStyle = '#c9c2b0'
+      ctx.fillRect(cx - 120, quai - 56, 240, 44); ctx.strokeRect(cx - 120, quai - 56, 240, 44)
+      ctx.fillStyle = '#8fd0dc'
+      for (const s of [-1, 1]) { ctx.fillRect(cx + s * 135 - 30, quai - 50, 60, 30); ctx.strokeRect(cx + s * 135 - 30, quai - 50, 60, 30) }
+      ctx.fillStyle = '#a69f86'
+      ctx.fillRect(cx - 32, quai - 12, 64, 12); ctx.strokeRect(cx - 32, quai - 12, 64, 12)
+      ctx.fillStyle = '#f2b53a'
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + s * 22, quai - 6, 4, 0, 2 * Math.PI); ctx.fill(); ctx.stroke() }
+    }
     ctx.lineWidth = 2.2
     ctx.strokeStyle = ENCRE
-    ctx.fillStyle = '#c9c2b0'
-    ctx.fillRect(cx - 120, quai - 56, 240, 44); ctx.strokeRect(cx - 120, quai - 56, 240, 44)
-    ctx.fillStyle = '#8fd0dc'
-    for (const s of [-1, 1]) { ctx.fillRect(cx + s * 135 - 30, quai - 50, 60, 30); ctx.strokeRect(cx + s * 135 - 30, quai - 50, 60, 30) }
-    ctx.fillStyle = '#a69f86'
-    ctx.fillRect(cx - 32, quai - 12, 64, 12); ctx.strokeRect(cx - 32, quai - 12, 64, 12)
-    ctx.fillStyle = '#f2b53a'
-    for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + s * 22, quai - 6, 4, 0, 2 * Math.PI); ctx.fill(); ctx.stroke() }
 
     // L'épave, la capsule, et le câble entre les deux pendant l'approche.
     const ye = y(Math.max(0, e.distance)), yc = y(e.phase === 'approche' ? e.distance + CABLE : this.capsuleArretee)

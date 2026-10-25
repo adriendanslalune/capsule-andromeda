@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sorteEpave } from '../src/carte/epaves'
+import { sorteEpave } from '../src/carte/objets-contrats'
 
 describe('la sorte d\'une épave', () => {
   it('se lit dans son nom', () => {

@@ -4,7 +4,7 @@
 // l'état du tri que tient le moteur (moteur/tri.ts).
 
 import { BACS, DUREE_TRI, OBJETS_EPAVE, type Bac } from '../donnees/tri'
-import { imageEpave } from '../carte/epaves'
+import { imageEpave } from '../carte/objets-contrats'
 import { nouveauTri, objetsTries, resteTri, tonnesTriees, trier, type EtatTri } from '../moteur/tri'
 
 /** Un tri : son titre, et ce qu'on fait des matériaux à la fin (en mission : la soute ; le texte du bilan). */

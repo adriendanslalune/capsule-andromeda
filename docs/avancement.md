@@ -95,8 +95,9 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   joueur dans sa forme et sa Maison dans les écrans des contrats (remorquage, largage, amarrage, convoi, escorte ;
   `dessinerCapsuleDuJoueur`, `CAPSULE_DU_JOUEUR` tenu par main.ts) — fait ; 2. fiche de prompts (décors, épaves,
   station, cargo, missile, débris ; `docs/contrats-prompts.md`) — écrite ; les quatre épaves reçues le 25/10/2026
-  (`public/contrats/`, `carte/epaves.ts` : la sorte se lit dans le nom de l'épave) et branchées dans le remorquage, le
-  largage et le tri (au-dessus du tapis) ; en attente : quai, hangar, station entière, cargo, missile, débris ; les décors finalement
+  (`public/contrats/`, `carte/objets-contrats.ts` : la sorte se lit dans le nom de l'épave) et branchées dans le
+  remorquage, le largage et le tri (au-dessus du tapis) ; la station reçue le même jour : le quai (amarrage, largage),
+  le hangar (convoi), la station entière (rangée pour plus tard) ; en attente : cargo, missile, débris ; les décors finalement
   dessinés par le jeu (Adrien, 25/10/2026 : des décors peints seraient incohérents selon le système) : un grand arc de
   l'astre près duquel on travaille, au pied des écrans, par le moteur des globes (`carte/decor-contrat.ts`) — fait ; 3. le dépannage refait
   façon Jules Verne (boîtier d'acajou, plaques de laiton rivetées, étiquettes d'ivoire, lampes serties, interrupteurs à

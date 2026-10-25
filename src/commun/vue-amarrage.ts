@@ -8,6 +8,7 @@ import { ANGLE_CONTACT, ECART_CONTACT, VITESSE_CONTACT } from '../donnees/amarra
 import { avancerAmarrage, contactBon, nouvelAmarrage, type EtatAmarrage, type Poussees } from '../moteur/amarrage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
+import { dessinerStation, POINTE_QUAI } from '../carte/objets-contrats'
 
 /** Un amarrage : où, et ce qu'on fait quand la capsule est amarrée (renvoie le texte du bilan). */
 export interface OptionsAmarrage { titre: string; surFin: (rebonds: number) => string }
@@ -158,11 +159,11 @@ export class VueAmarrage {
     // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
     dessinerDecorContrat(ctx, l, h)
     // L'échelle suit la distance : de loin on voit toute l'approche, de près on voit le moindre écart.
-    const voulue = Math.max(16, Math.min(90, (h - 140) / (Math.max(0, e.distance) + 9)))
+    const voulue = Math.max(16, Math.min(90, (h - 170) / (Math.max(0, e.distance) + 9)))
     this.k += (voulue - this.k) * 0.08
     const k = this.k, cx = l / 2
     // Le port assez bas pour que la station reste visible (de près, elle déborde en haut : c'est voulu).
-    const portY = Math.min(h * 0.4, 4.9 * k + 14)
+    const portY = Math.min(h * 0.4, 6.9 * k + 14)
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
 
@@ -175,20 +176,25 @@ export class VueAmarrage {
     ctx.fillStyle = 'rgba(143,207,152,0.18)'
     ctx.fillRect(cx - ECART_CONTACT * k, portY, 2 * ECART_CONTACT * k, h - portY)
 
-    // La station : un grand module, ses panneaux, et le port d'amarrage (anneau) au milieu.
-    ctx.lineWidth = 2
-    ctx.strokeStyle = ENCRE
-    const module = (x: number, y: number, w: number, hh: number, couleur: string) => { ctx.fillStyle = couleur; ctx.fillRect(x, y, w, hh); ctx.strokeRect(x, y, w, hh) }
-    module(cx - 4.5 * k, portY - 4.6 * k, 9 * k, 3.6 * k, '#d9d1bd')
-    module(cx - 16 * k, portY - 3.8 * k, 10.5 * k, 2 * k, '#8fd0dc')
-    module(cx + 5.5 * k, portY - 3.8 * k, 10.5 * k, 2 * k, '#8fd0dc')
-    ctx.lineWidth = 1
-    for (let i = 1; i < 6; i++) {
-      ctx.beginPath(); ctx.moveTo(cx - 16 * k + i * 1.75 * k, portY - 3.8 * k); ctx.lineTo(cx - 16 * k + i * 1.75 * k, portY - 1.8 * k); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(cx + 5.5 * k + i * 1.75 * k, portY - 3.8 * k); ctx.lineTo(cx + 5.5 * k + i * 1.75 * k, portY - 1.8 * k); ctx.stroke()
+    // La station : le quai dessiné par ChatGPT (Adrien, 25/10/2026), la pointe de son port au point de contact ; sinon
+    // l'ancien dessin, un grand module, ses panneaux, et le port d'amarrage (anneau) au milieu.
+    if (!dessinerStation(ctx, 'quai', cx, portY, 24 * k, POINTE_QUAI)) {
+      ctx.lineWidth = 2
+      ctx.strokeStyle = ENCRE
+      const module = (x: number, y: number, w: number, hh: number, couleur: string) => { ctx.fillStyle = couleur; ctx.fillRect(x, y, w, hh); ctx.strokeRect(x, y, w, hh) }
+      module(cx - 4.5 * k, portY - 4.6 * k, 9 * k, 3.6 * k, '#d9d1bd')
+      module(cx - 16 * k, portY - 3.8 * k, 10.5 * k, 2 * k, '#8fd0dc')
+      module(cx + 5.5 * k, portY - 3.8 * k, 10.5 * k, 2 * k, '#8fd0dc')
+      ctx.lineWidth = 1
+      for (let i = 1; i < 6; i++) {
+        ctx.beginPath(); ctx.moveTo(cx - 16 * k + i * 1.75 * k, portY - 3.8 * k); ctx.lineTo(cx - 16 * k + i * 1.75 * k, portY - 1.8 * k); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(cx + 5.5 * k + i * 1.75 * k, portY - 3.8 * k); ctx.lineTo(cx + 5.5 * k + i * 1.75 * k, portY - 1.8 * k); ctx.stroke()
     }
     ctx.lineWidth = 2
     module(cx - 0.9 * k, portY - 1.1 * k, 1.8 * k, 1.1 * k, '#f2c66a')
+    }
+    ctx.lineWidth = 2
+    ctx.strokeStyle = ENCRE
     // L'anneau du port : vert quand le contact serait bon.
     const c = contactBon(e)
     const bon = c.vitesse && c.centre && c.aligne && c.glisse

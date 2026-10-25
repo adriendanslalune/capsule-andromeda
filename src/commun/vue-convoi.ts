@@ -7,6 +7,7 @@ import { CAPSULE, COULEURS_CARGOS, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../d
 import { avancerConvoi, deplacer, lacherCargo, nouveauConvoi, prendre, type EtatConvoi } from '../moteur/convoi'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
+import { dessinerStation } from '../carte/objets-contrats'
 
 /** Un convoi : à quelle station, et ce qu'on fait quand il est formé (renvoie le texte du bilan). */
 export interface OptionsConvoi { titre: string; surFin: (egares: number) => string }
@@ -159,13 +160,16 @@ export class VueConvoi {
     const { k, ox, oy } = this.echelle()
     const X = (x: number) => ox + x * k, Y = (y: number) => oy + y * k
 
-    // Le hangar de la station, en bas.
-    ctx.lineWidth = 2
-    ctx.strokeStyle = ENCRE
-    ctx.fillStyle = '#c9c2b0'
-    ctx.fillRect(X(HANGAR.x - 30), Y(HANGAR.y - 2), 60 * k, 14 * k); ctx.strokeRect(X(HANGAR.x - 30), Y(HANGAR.y - 2), 60 * k, 14 * k)
-    ctx.fillStyle = '#2b2138'
-    ctx.fillRect(X(HANGAR.x - 9), Y(HANGAR.y - 2), 18 * k, 5 * k)
+    // Le hangar de la station, en bas : dessiné par ChatGPT (Adrien, 25/10/2026), le milieu de sa baie là d'où sortent
+    // les cargos ; sinon l'ancien dessin.
+    if (!dessinerStation(ctx, 'hangar', X(HANGAR.x), Y(HANGAR.y + 2), 84 * k, 0.55)) {
+      ctx.lineWidth = 2
+      ctx.strokeStyle = ENCRE
+      ctx.fillStyle = '#c9c2b0'
+      ctx.fillRect(X(HANGAR.x - 30), Y(HANGAR.y - 2), 60 * k, 14 * k); ctx.strokeRect(X(HANGAR.x - 30), Y(HANGAR.y - 2), 60 * k, 14 * k)
+      ctx.fillStyle = '#2b2138'
+      ctx.fillRect(X(HANGAR.x - 9), Y(HANGAR.y - 2), 18 * k, 5 * k)
+    }
 
     // Les places de la formation (en flèche), et les traits qui les relient à la capsule.
     ctx.setLineDash([3, 5])
