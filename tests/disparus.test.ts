@@ -6,6 +6,7 @@ import { Jeu } from '../src/moteur/jeu'
 import { restaurer, sauvegarder } from '../src/moteur/sauvegarde'
 import { PORTEE_RADAR } from '../src/moteur/radar'
 import { DOSSIERS } from '../src/donnees/dossiers-disparus'
+import { planifier } from '../src/moteur/mission'
 
 const t0 = Date.UTC(2026, 9, 21, 12)
 const ecart = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -70,5 +71,24 @@ describe('les Disparus (idée validée par Adrien le 21/10/2026)', () => {
       expect(dossier.cause.length, d.nom).toBeGreaterThan(40)
       expect(dossier.perte, d.nom).toMatch(/^(1er|\d{1,2}) [a-zéû]+ (19|20)\d\d$/)
     }
+  })
+})
+
+describe('une sonde posée se rejoint (Adrien, 25/10/2026 : « impossible si je ne peux pas passer sur une planète »)', () => {
+  it('de l’orbite lunaire, Luna 2 est à quelques minutes, et la rejoindre l’identifie', () => {
+    const t = Date.UTC(2026, 9, 25, 12)
+    const jeu = new Jeu()
+    jeu.nouvellePartie(42, t)
+    const aller = planifier(jeu.mission.etatHeliocentrique(t), 'Lune', t, 15_360)
+    if (!aller.possible) throw new Error('Lune')
+    jeu.mission.partir(aller.plan)
+    jeu.avancer(aller.plan.arrivee + 1000)
+    const t2 = aller.plan.arrivee + 60_000
+    const p = planifier(jeu.mission.etatHeliocentrique(t2), 'Luna 2', t2, 30)
+    if (!p.possible) throw new Error('Luna 2')
+    expect(p.plan.arrivee - t2).toBeLessThan(10 * 60_000)
+    jeu.mission.partir(p.plan)
+    jeu.avancer(p.plan.arrivee + 2000)
+    expect(jeu.disparus.trouves[1]).toBeDefined()
   })
 })

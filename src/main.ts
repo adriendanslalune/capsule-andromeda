@@ -1822,12 +1822,20 @@ document.querySelector('#collections')!.addEventListener('click', (e) => {
   if ((e.target as HTMLElement).closest('[data-classeur]')) vueClasseur.ouvrir()
   if ((e.target as HTMLElement).closest('[data-carnet]')) vueCarnet.ouvrir()
 })
-// Le classeur des Disparus : CHERCHER suit une sonde et emmène la carte là où chercher (son astre, ou sa zone).
+// Le classeur des Disparus : CHERCHER suit une sonde et emmène la carte là où chercher (son astre, ou sa zone) ;
+// Y ALLER, une fois son écho capté, choisit la sonde elle-même comme destination.
 const vueDisparus = new VueDisparus(document.querySelector<HTMLDivElement>('#disparus')!, () => jeu.disparus, (numero) => {
   const d = DISPARUS.find((x) => x.numero === numero)!
   jeu.disparus.suivi = numero
   enregistrerPartie()
   cockpit.fermer()
+  // Son écho capté : on va la rejoindre elle-même, c'est ce qui l'identifie.
+  if (jeu.disparus.echos[numero] !== undefined) {
+    choisir(d.nom, true)
+    proposee = true
+    annoncer(`${d.nom} : son écho est sur la carte. Rejoins-la pour l'identifier.`)
+    return
+  }
   const o = ouChercher(d)
   choisir(o.lieu, false, o.zone ? undefined : carte.echellePlanete(o.lieu))
   annoncer(o.zone ? `${d.nom} : sa zone de recherche est marquée sur la carte. Fouille-la au radar.` : `${d.nom} : ${d.indice} Passe au-dessus, de près, radar allumé.`)

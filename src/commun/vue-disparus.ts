@@ -65,8 +65,9 @@ export class VueDisparus {
       const echo = e.echos[d.numero] !== undefined, suivi = e.suivi === d.numero
       return `<div class="carte-disparu${suivi ? ' suivi' : ''}"><b class="numero">n° ${d.numero}</b><b class="nom">${echapper(d.nom)}</b>`
         + `<small>${echapper(d.qui)} · ${d.annee}</small><p class="indice">${echapper(d.indice)}</p>`
-        + (echo ? '<small class="echo">écho capté : elle est sur la carte</small>' : '')
-        + `<button type="button" data-chercher="${d.numero}">${suivi ? 'Y RETOURNER' : 'CHERCHER'}</button></div>`
+        + (echo ? '<small class="echo">écho capté : rejoins-la pour l\'identifier</small>' : '')
+        // Écho capté (Adrien, 25/10/2026 : le bouton ramenait à la Lune, jamais à la sonde) : Y ALLER mène à la sonde.
+        + `<button type="button" data-chercher="${d.numero}">${echo ? 'Y ALLER' : suivi ? 'Y RETOURNER' : 'CHERCHER'}</button></div>`
     }).join('')
     this.element.innerHTML = `
       <div class="entete-plein"><span>Les Disparus</span><button type="button" data-fermer>FERMER</button></div>

@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Disparus (Adrien, 25/10/2026 : « les sondes posées sont impossibles à repérer ») : l'écho se captait bien, mais le
+  bouton du classeur (CHERCHER, Y RETOURNER) ramenait toujours à l'astre de la sonde, jamais à elle ; or c'est en la
+  rejoignant qu'on l'identifie. Son écho capté, le bouton devient Y ALLER et choisit la sonde comme destination
+  (Luna 2 à 2 min de l'orbite lunaire). Test : `tests/disparus.test.ts`.
 - Zones (Adrien, 24/10/2026) : grises tant qu'elles ne sont pas libérées (au lieu de « tant qu'on n'y est pas allé ») ;
   leurs couleurs à la libération, avec le feu d'artifice. L'étiquette de la destination dit « en orbite · 521 km
   d'altitude » quand on est en orbite autour d'elle (au lieu de la distance à son centre).
