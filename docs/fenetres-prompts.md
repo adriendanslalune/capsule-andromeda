@@ -92,4 +92,6 @@ Soleil… ». **Même capsule** (crème et orange) d'une case à l'autre.
 
 ## Reçus
 
-(rien encore)
+- **Les trois blasons** (25/10/2026) : `public/blasons/<maison>.webp` (une planche découpée), `commun/blasons.ts` ;
+  en sceau sur la lettre d'invitation (à la place des emojis), et en petit devant le nom de la Maison dans le Profil
+  et la fiche d'un capitaine, et devant le pseudo dans les Messages.

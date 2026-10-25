@@ -8,6 +8,7 @@ import { niveauDuBot, palierDe } from '../moteur/niveau'
 import { statut } from '../moteur/monolithes'
 import { lieuDuBot } from '../moteur/messages'
 import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from '../carte/vaisseaux'
+import { blason } from './blasons'
 
 export interface ActionsCapitaine { ecrire: (pseudo: string) => void; voir: (pseudo: string) => void }
 
@@ -50,7 +51,7 @@ export class FicheCapitaine {
       + `<h2 class="nom-capitaine">${pseudo}</h2><div class="double-filet"></div>`
       + `<div class="portrait-vaisseau"><img src="${image}" alt="${p.nom}"><b>${p.nom}</b></div>`
       + `<div class="rang"><span>Niveau</span><b>${niveau}</b></div>`
-      + `<div class="rang"><span>Maison</span><b>${titreMaison(bot.maison)}</b></div>`
+      + `<div class="rang"><span>Maison</span><b>${blason(bot.maison, 'blason-texte')}${titreMaison(bot.maison)}</b></div>`
       + `<div class="rang"><span>Monolithes</span><b>${bot.monolithes}${s ? ` · ${s}` : ''}</b></div>`
       + `<div class="rang"><span>En ce moment</span><b>${lieuDuBot(pseudo, t)}</b></div>`
       + '<p class="petit">Un capitaine du jeu (PNJ), en attendant les vrais joueurs.</p>'

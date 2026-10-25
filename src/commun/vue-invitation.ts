@@ -6,9 +6,9 @@
 import { BOTS, LETTRES_INVITATION, PARRAINS } from '../donnees/messages'
 import { titreMaison, type Maison, COULEURS_MAISONS, MAISONS } from '../donnees/maisons'
 import { statut } from '../moteur/monolithes'
+import { blason } from './blasons'
 
 const TEINTES = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].pale])) as Record<Maison, string>
-const SCEAUX: Record<Maison, string> = { nettoyeurs: '🧹', ingenieurs: '🔧', mercenaires: '⚔️' }
 
 /** Le pseudo du joueur, et ce qu'on fait s'il rejoint (vrai si c'est fait). */
 export interface OptionsInvitation { joueur: () => string; rejoindre: (m: Maison) => boolean }
@@ -47,7 +47,7 @@ export class VueInvitation {
     this.element.innerHTML = `
       <div class="lettre">
         <div class="bandeau-maison"><small>MAISON DES</small><b>${titre}</b></div>
-        <div class="sceau" aria-hidden="true">${SCEAUX[m]}</div>
+        <div class="sceau" aria-hidden="true">${blason(m)}</div>
         <div class="texte-lettre">${paragraphes}</div>
         <div class="signature"><b>${echapper(parrain)}</b><small>pour la Maison des ${titre.toLowerCase()}${rang ? ` · ${rang}` : ''}${bot ? ` · ${bot.lieu}` : ''}</small></div>
       </div>

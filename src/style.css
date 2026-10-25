@@ -2722,3 +2722,9 @@ body.volet-ouvert #annonces { display: none; }
 .etoile-fenetre { position: absolute; z-index: 2; right: -12px; top: -22px; width: 92px; height: 92px; display: grid; place-items: center; padding: 14px; text-align: center;
   font: 900 14px/1 'Big Shoulders Display', var(--titre); color: var(--encre); background: #f2d58e; transform: rotate(12deg);
   clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 40%, 84% 55%, 96% 75%, 74% 76%, 70% 98%, 52% 85%, 33% 100%, 28% 78%, 6% 80%, 16% 60%, 0 45%, 20% 33%, 14% 12%, 36% 18%); }
+/* Les blasons des Maisons (Adrien, 25/10/2026) : en sceau sur la lettre d'invitation, en petit devant un nom de Maison
+   ou un pseudo. */
+#invitation .sceau { width: 74px; height: 74px; margin-left: -37px; top: 66px; background: none; border: none; box-shadow: none; }
+#invitation .sceau .blason { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(1px 2px 1px rgba(43, 33, 56, 0.35)); }
+#invitation .texte-lettre { padding-top: 64px; }
+.blason-texte { display: inline-block; width: 18px; height: 18px; margin-right: 5px; vertical-align: -4px; object-fit: contain; }

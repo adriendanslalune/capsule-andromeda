@@ -14,6 +14,7 @@ import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from '../
 import { CATEGORIES_TROPHEES, TROPHEES } from '../donnees/trophees'
 import { medaille } from './medailles'
 import { ZONES_A_LIBERER } from '../donnees/zones'
+import { blason } from './blasons'
 
 const TEINTES: Record<string, string> = Object.fromEntries(MAISONS.map((m) => [m.maison, COULEURS_MAISONS[m.maison].pale]))
 /** Les zones de la campagne (acte 1). */
@@ -61,7 +62,7 @@ function htmlAppartenance(jeu: Jeu): string {
     const bouton = membre ? '<span class="membre">MEMBRE</span>'
       : ouvertes.includes(m.maison) ? `<button type="button" data-rejoindre="${m.maison}">REJOINDRE</button>`
         : `<small>${Math.min(n, SEUIL_MISSIONS)}/${SEUIL_MISSIONS} missions · ${part} % (il faut ${Math.round(SEUIL_PART * 100)} %)</small>`
-    return `<div class="rang"><span class="maison maison-${m.maison}">${m.titre}</span>${bouton}</div>`
+    return `<div class="rang"><span class="maison maison-${m.maison}">${blason(m.maison, 'blason-texte')}${m.titre}</span>${bouton}</div>`
   }).join('')
     + (jeu.maison ? '<button type="button" class="neutre" data-rejoindre="">REDEVENIR NEUTRE</button>' : '')
     + `<p class="petit">Membre d'une Maison : dans chaque système, 4 de ses missions sur 6 (et 1 de chacune des autres), payées 25 % de plus, et son canal dans les Messages. Pour la rejoindre : ${SEUIL_MISSIONS} missions pour elle, et au moins ${Math.round(SEUIL_PART * 100)} % de tes missions. Jamais définitif.</p></div>`
@@ -163,7 +164,7 @@ export function htmlProfil(jeu: Jeu): string {
     + htmlCollection(jeu)
     + htmlTrophees(jeu)
     + `<h3>Maisons</h3><div class="bloc centre">${toile(jeu)}`
-    + `<p>Maison : <b>${jeu.maison ? titreMaison(jeu.maison) : 'aucune (neutre)'}</b></p>`
+    + `<p>Maison : <b>${jeu.maison ? `${blason(jeu.maison, 'blason-texte')}${titreMaison(jeu.maison)}` : 'aucune (neutre)'}</b></p>`
     + `<p class="petit">${!total ? 'Fais des missions : ta toile se dessinera selon ce que tu préfères faire.'
       : pref ? `Tu penches vers les <b>${titreMaison(pref).toLowerCase()}</b>.` : 'Tu n\'as pas encore de préférence nette.'}</p>`
     + htmlAppartenance(jeu) + '</div>'

@@ -14,6 +14,7 @@ import {
 } from '../moteur/messages'
 import { delaiLumiere } from '../moteur/marche'
 import { picto } from './symboles'
+import { blason } from './blasons'
 
 /** Le statut d'un capitaine (paliers des monolithes), en petit à côté de son pseudo. */
 const badge = (s: string | null) => (s ? ` <em class="statut">${s}</em>` : '')
@@ -147,7 +148,7 @@ export class VoletMessages {
     }
     const prive = this.canal.startsWith('prive:')
     const ouvert = this.menu === m.id
-    const pseudo = `<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? ENCRES[m.maison] : '#6a4f9a'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
+    const pseudo = `${m.maison ? blason(m.maison, 'blason-texte') : ''}<button type="button" class="pseudo" data-menu="${m.id}" style="color:${m.maison ? ENCRES[m.maison] : '#6a4f9a'}">${m.auteur}</button><em class="pnj" title="Personnage du jeu (bot)">PNJ</em>`
     const menu = ouvert ? `<span class="menu-pseudo">${prive ? '' : `<button type="button" data-ecrire-a="${m.auteur}">ÉCRIRE</button>`}<button type="button" data-profil="${m.auteur}">PROFIL</button><button type="button" data-voir="${m.auteur}" aria-label="Voir sur la carte">${picto('voir')}VOIR</button></span>` : ''
     return `<div class="ligne"><span class="heure">${heure}</span><span class="corps-ligne">${pseudo}${badge(m.statut)} ${echapper(m.texte)}`
       + `<small>${m.lieu.startsWith('en route') ? m.lieu : `de ${m.lieu}`} · la lumière a mis ${texteDelaiCourt(m.recu - m.envoye)}</small>${menu}</span></div>`
