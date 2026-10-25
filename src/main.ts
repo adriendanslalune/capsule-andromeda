@@ -1100,6 +1100,7 @@ function agirMission(): void {
     cockpit.fermer()
     vueRemorquage.ouvrir({
       titre: lieu.toUpperCase(),
+      epave: lieu,
       surFin: (rates) => {
         const ev = jeu.harponner(rates, horloge(), vitesse())
         if (!ev) return 'La capsule n\'est plus sur place : l\'épave s\'est décrochée.'
@@ -1119,6 +1120,7 @@ function agirMission(): void {
     cockpit.fermer()
     vueLargage.ouvrir({
       titre: lieu.toUpperCase(),
+      epave: jeu.remorque()?.epave,
       surFin: (rates) => {
         const ev = jeu.larguer(rates, horloge(), vitesse())
         if (!ev) return 'La capsule n\'est plus sur place : l\'épave n\'est pas déposée.'
@@ -1192,6 +1194,7 @@ function agirMission(): void {
     cockpit.fermer()
     vueTri.ouvrir({
       titre: `ÉPAVE · ${lieu.toUpperCase()}`,
+      epave: lieu,
       surFin: (e) => {
         const r = jeu.nettoyer(e.materiaux, objetsTries(e), horloge(), vitesse(), { erreurs: e.erreurs, pireSerieRatee: e.pireSerieRatee ?? 0 })
         if (!r) return 'La capsule n\'est plus sur place : rien n\'a été rangé.'
@@ -2467,10 +2470,11 @@ Object.assign(window, {
     // Essais : la manœuvre d'amarrage, sans mission.
     amarrage: () => vueAmarrage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est livré.' }),
     depannage: () => vueDepannage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est validé.' }),
-    remorquage: () => vueRemorquage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est remorqué.' }),
+    remorquage: (epave = 'Satellite mort') => vueRemorquage.ouvrir({ titre: 'ESSAI', epave, surFin: () => 'Essai : rien n\'est remorqué.' }),
     invitation: (m: Maison = 'nettoyeurs') => vueInvitation.ouvrir([m]),
     escorte: (zone = 1) => vueEscorte.ouvrir({ titre: 'ESSAI', zone, surFin: () => 'Essai : aucun convoi réel.' }),
-    largage: () => vueLargage.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : rien n\'est déposé.' }),
+    largage: (epave = 'Cargo abandonné') => vueLargage.ouvrir({ titre: 'ESSAI', epave, surFin: () => 'Essai : rien n\'est déposé.' }),
+    tri: (epave = 'Cargo abandonné') => vueTri.ouvrir({ titre: 'ESSAI', epave }),
     convoi: () => vueConvoi.ouvrir({ titre: 'ESSAI', surFin: () => 'Essai : aucun convoi réel.' }),
     etatConvoi: () => (vueConvoi as unknown as { etat: unknown }).etat,
   },

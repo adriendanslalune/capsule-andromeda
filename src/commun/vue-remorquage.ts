@@ -8,9 +8,10 @@ import { SEUIL, TOLERANCE } from '../donnees/remorquage'
 import { avancerRemorquage, lancer, nouveauRemorquage, type EtatRemorquage } from '../moteur/remorquage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
+import { dessinerEpave } from '../carte/epaves'
 
 /** Un remorquage : quelle épave, et ce qu'on fait quand elle est en remorque (renvoie le texte du bilan). */
-export interface OptionsRemorquage { titre: string; surFin: (rates: number) => string }
+export interface OptionsRemorquage { titre: string; surFin: (rates: number) => string; /** Le nom de l'épave (sa sorte, son image). */ epave?: string }
 
 const ENCRE = '#2b2138', CERISE = '#e04b37'
 /** La silhouette de l'épave (rayons relatifs, un tous les 30°) : une carcasse cabossée. */
@@ -174,33 +175,35 @@ export class VueRemorquage {
       ctx.setLineDash([])
     }
 
-    // L'épave : une carcasse cabossée, des tôles, une antenne arrachée ; elle tourne.
-    ctx.save()
-    ctx.translate(cx, ey)
-    ctx.rotate(-theta)
-    ctx.beginPath()
-    CONTOUR.forEach((r, k) => {
-      const a = (k * Math.PI) / 6
-      const x = R * r * Math.sin(a), y = R * r * Math.cos(a)
-      if (k === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    })
-    ctx.closePath()
-    ctx.fillStyle = '#c9c2b0'
-    ctx.fill()
-    ctx.lineWidth = 2.2
-    ctx.strokeStyle = ENCRE
-    ctx.stroke()
-    ctx.lineWidth = 1.2
-    ctx.fillStyle = '#a69f86'
-    ctx.fillRect(-R * 0.45, -R * 0.35, R * 0.55, R * 0.4)
-    ctx.strokeRect(-R * 0.45, -R * 0.35, R * 0.55, R * 0.4)
-    ctx.fillStyle = '#8fd0dc'
-    ctx.fillRect(R * 0.15, R * 0.05, R * 0.45, R * 0.25)
-    ctx.strokeRect(R * 0.15, R * 0.05, R * 0.45, R * 0.25)
-    for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(R * (0.15 + 0.11 * k), R * 0.05); ctx.lineTo(R * (0.15 + 0.11 * k), R * 0.3); ctx.stroke() }
-    ctx.beginPath(); ctx.moveTo(-R * 0.2, -R * 0.7); ctx.lineTo(-R * 0.55, -R * 1.25); ctx.moveTo(-R * 0.55, -R * 1.25); ctx.lineTo(-R * 0.75, -R * 1.15); ctx.stroke()
-    ctx.restore()
+    // L'épave, dessinée par ChatGPT (Adrien, 25/10/2026) ; elle tourne. Sinon l'ancien dessin : une carcasse cabossée.
+    if (!dessinerEpave(ctx, this.options?.epave ?? this.options?.titre ?? '', cx, ey, -theta, R * 2.3)) {
+      ctx.save()
+      ctx.translate(cx, ey)
+      ctx.rotate(-theta)
+      ctx.beginPath()
+      CONTOUR.forEach((r, k) => {
+        const a = (k * Math.PI) / 6
+        const x = R * r * Math.sin(a), y = R * r * Math.cos(a)
+        if (k === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      })
+      ctx.closePath()
+      ctx.fillStyle = '#c9c2b0'
+      ctx.fill()
+      ctx.lineWidth = 2.2
+      ctx.strokeStyle = ENCRE
+      ctx.stroke()
+      ctx.lineWidth = 1.2
+      ctx.fillStyle = '#a69f86'
+      ctx.fillRect(-R * 0.45, -R * 0.35, R * 0.55, R * 0.4)
+      ctx.strokeRect(-R * 0.45, -R * 0.35, R * 0.55, R * 0.4)
+      ctx.fillStyle = '#8fd0dc'
+      ctx.fillRect(R * 0.15, R * 0.05, R * 0.45, R * 0.25)
+      ctx.strokeRect(R * 0.15, R * 0.05, R * 0.45, R * 0.25)
+      for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(R * (0.15 + 0.11 * k), R * 0.05); ctx.lineTo(R * (0.15 + 0.11 * k), R * 0.3); ctx.stroke() }
+      ctx.beginPath(); ctx.moveTo(-R * 0.2, -R * 0.7); ctx.lineTo(-R * 0.55, -R * 1.25); ctx.moveTo(-R * 0.55, -R * 1.25); ctx.lineTo(-R * 0.75, -R * 1.15); ctx.stroke()
+      ctx.restore()
+    }
     // L'anneau rouge.
     ctx.beginPath()
     ctx.arc(anneau.x, anneau.y, 9, 0, 2 * Math.PI)

@@ -4,10 +4,11 @@
 // l'état du tri que tient le moteur (moteur/tri.ts).
 
 import { BACS, DUREE_TRI, OBJETS_EPAVE, type Bac } from '../donnees/tri'
+import { imageEpave } from '../carte/epaves'
 import { nouveauTri, objetsTries, resteTri, tonnesTriees, trier, type EtatTri } from '../moteur/tri'
 
 /** Un tri : son titre, et ce qu'on fait des matériaux à la fin (en mission : la soute ; le texte du bilan). */
-export interface OptionsTri { titre: string; surFin?: (e: EtatTri) => string }
+export interface OptionsTri { titre: string; surFin?: (e: EtatTri) => string; /** Le nom de l'épave (sa sorte, son image). */ epave?: string }
 export const ENTRAINEMENT: OptionsTri = { titre: 'ÉPAVE D\'ENTRAÎNEMENT' }
 
 const tonnes = (q: number) => `${q.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} t`
@@ -63,6 +64,7 @@ export class VueTri {
       <div class="entete-plein"><span class="titre-tri"></span><button type="button" data-terminer>TERMINER</button></div>
       <div class="corps">
         <div class="tableau-tri"><span class="chrono"><i></i></span><b class="serie"></b><b class="gain"></b></div>
+        <img class="epave-tri" alt="">
         <div class="tapis"><div class="objet"></div></div>
         <div class="bacs">${BACS.map((b) => `<button type="button" data-bac="${b.bac}" style="background:${b.teinte}">${b.titre}</button>`).join('')}</div>
         <p class="note">Jette chaque objet dans le bon bac, le plus vite possible. Sans erreur, la série monte (jusqu'à ×5) : tu récupères plus de matériaux. Le rebut ne se vend pas.</p>
@@ -91,6 +93,8 @@ export class VueTri {
     this.etat = nouveauTri((t % 2147483647) >>> 0, t)
     this.fini = false
     this.element.querySelector('.titre-tri')!.textContent = `TRI · ${this.options.titre}`
+    // L'épave qu'on vide, au-dessus du tapis d'où sortent les objets (Adrien, 25/10/2026).
+    this.element.querySelector<HTMLImageElement>('.epave-tri')!.src = imageEpave(options.epave ?? 'Satellite mort')
     this.elFin.hidden = true
     this.montrerObjet('')
     this.element.hidden = false

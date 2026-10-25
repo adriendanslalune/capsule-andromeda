@@ -8,9 +8,10 @@ import { DISTANCE_DEPART, ZONE_LOIN, ZONE_PROCHE } from '../donnees/largage'
 import { avancerLargage, lacher, nouveauLargage, type EtatLargage } from '../moteur/largage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
+import { dessinerEpave } from '../carte/epaves'
 
 /** Un largage : à quelle station, et ce qu'on fait quand l'épave est déposée (renvoie le texte du bilan). */
-export interface OptionsLargage { titre: string; surFin: (rates: number) => string }
+export interface OptionsLargage { titre: string; surFin: (rates: number) => string; /** Le nom de l'épave remorquée (sa sorte, son image). */ epave?: string }
 
 const ENCRE = '#2b2138', CERISE = '#e04b37'
 /** Longueur du câble (m) entre l'épave et la capsule. */
@@ -204,23 +205,27 @@ export class VueLargage {
     const ye = y(Math.max(0, e.distance)), yc = y(e.phase === 'approche' ? e.distance + CABLE : this.capsuleArretee)
     if (e.phase === 'approche') {
       ctx.lineWidth = 1.6
-      ctx.beginPath(); ctx.moveTo(cx, ye + 14); ctx.lineTo(cx, yc - 22); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(cx, ye + 22); ctx.lineTo(cx, yc - 22); ctx.stroke()
     }
     ctx.save()
     ctx.translate(cx, ye)
-    ctx.beginPath()
-    CONTOUR.forEach((r, i) => {
-      const a = (i * Math.PI) / 6, x = 16 * r * Math.sin(a), yy = 16 * r * Math.cos(a)
-      if (i === 0) ctx.moveTo(x, yy)
-      else ctx.lineTo(x, yy)
-    })
-    ctx.closePath()
-    ctx.fillStyle = '#c9c2b0'
-    ctx.fill()
+    // L'épave dessinée par ChatGPT (Adrien, 25/10/2026), sinon l'ancien dessin ; le point d'accroche cerise par-dessus.
+    if (!dessinerEpave(ctx, this.options?.epave ?? '', 0, 0, 0, 58)) {
+      ctx.beginPath()
+      CONTOUR.forEach((r, i) => {
+        const a = (i * Math.PI) / 6, x = 16 * r * Math.sin(a), yy = 16 * r * Math.cos(a)
+        if (i === 0) ctx.moveTo(x, yy)
+        else ctx.lineTo(x, yy)
+      })
+      ctx.closePath()
+      ctx.fillStyle = '#c9c2b0'
+      ctx.fill()
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
     ctx.lineWidth = 2
-    ctx.stroke()
     ctx.fillStyle = CERISE
-    ctx.beginPath(); ctx.arc(0, 14, 3.5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke()
+    ctx.beginPath(); ctx.arc(0, 22, 3.5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke()
     ctx.restore()
     ctx.save()
     ctx.translate(cx, yc)

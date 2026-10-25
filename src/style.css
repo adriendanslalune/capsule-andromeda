@@ -823,6 +823,7 @@ html, body {
 #tri .chrono { position: relative; flex: 1; height: 16px; border: 1.5px solid var(--encre); border-radius: 2px; overflow: hidden; background: var(--fond); }
 #tri .chrono i { display: block; height: 100%; background: repeating-linear-gradient(45deg, #f2b53a 0 5px, #f5d38a 5px 10px); }
 #tri .chrono::after { content: attr(data-secondes); position: absolute; inset: 0; text-align: center; font-size: 10px; font-weight: bold; line-height: 13px; }
+#tri .epave-tri { display: block; height: 110px; max-width: 70%; margin: 8px auto -4px; object-fit: contain; }
 #tri .tapis { margin-top: 10px; padding: 10px 0 8px; text-align: center; border: 1.5px solid var(--encre); border-radius: 2px;
   background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--encre) 8%, var(--creme)) 0 18px, var(--creme) 18px 36px); overflow: hidden; }
 #tri .objet svg { display: block; width: 190px; height: 152px; margin: 0 auto; }
