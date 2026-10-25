@@ -2730,3 +2730,5 @@ body.volet-ouvert #annonces { display: none; }
 .blason-texte { display: inline-block; width: 18px; height: 18px; margin-right: 5px; vertical-align: -4px; object-fit: contain; }
 /* Les vignettes des Collections (Adrien, 25/10/2026) : l'objet de ChatGPT dans son cadre. */
 #collections .illustration img { width: 84px; height: 108px; object-fit: contain; }
+/* L'illustration en tête d'une fenêtre (une zone libérée : Adrien, 25/10/2026), bord à bord, au-dessus du titre. */
+.carte-confirmation .illustration-fenetre { display: block; width: calc(100% + 2px); margin: -1px -1px 8px; aspect-ratio: 3 / 2; object-fit: cover; border-bottom: 2px solid var(--encre); }

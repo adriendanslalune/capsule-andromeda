@@ -95,7 +95,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   « Zone libérée ! » (Lune et planètes intérieures d'abord), rêve du Soleil en six cases ; fiche de prompts écrite
   (`docs/fenetres-prompts.md`) ; les trois blasons reçus et posés le même jour (sceau de la lettre d'invitation, à la
   place des emojis ; en petit dans le Profil, la fiche d'un capitaine et les Messages) ; les trois vignettes des
-  Collections aussi ; en attente : zones libérées, rêve.
+  Collections aussi ; les quatre zones libérées (Lune, Mars, Vénus, Mercure), en tête de leur fenêtre ; en attente :
+  le rêve, et les zones extérieures au fil de la campagne.
 - Orbites (Adrien, 25/10/2026 : « on ne voit pas l'orbite de Vénus ») : sa couleur jaune pâle, éclaircie de crème, se
   confondait avec le kraft teinté d'octobre ; sur le papier, les orbites des planètes et des lunes sont maintenant
   assombries vers l'encre (30 %) au lieu d'éclaircies (inchangées sur la carte de nuit).

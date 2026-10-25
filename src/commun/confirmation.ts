@@ -49,6 +49,8 @@ export interface Felicitation {
    * est retiré le 25/10/2026).
    */
   couverture?: { accroche: string }
+  /** Une illustration en tête de la fenêtre (une zone libérée : Adrien, 25/10/2026), son adresse. */
+  illustration?: string
 }
 
 export function feliciter(f: Felicitation): Promise<void> {
@@ -59,7 +61,7 @@ export function feliciter(f: Felicitation): Promise<void> {
     const c = f.couverture
     // Plus de nom de revue (Adrien, 25/10/2026 : « CAPITAINES ! » faisait cheap) : seule l'accroche reste, dans son étoile.
     const tete = c ? `<span class="etoile-revue etoile-fenetre">${echapper(c.accroche)}</span>` : ''
-    fond.innerHTML = `<div class="carte-confirmation${c ? ' en-couverture' : ''}" role="dialog" aria-modal="true">${tete}<div class="titre-confirmation"><span class="titre-pulp">${echapper(f.titre)}</span></div>`
+    fond.innerHTML = `<div class="carte-confirmation${c ? ' en-couverture' : ''}${f.illustration ? ' illustree' : ''}" role="dialog" aria-modal="true">${tete}${f.illustration ? `<img class="illustration-fenetre" src="${f.illustration}" alt="">` : ''}<div class="titre-confirmation"><span class="titre-pulp">${echapper(f.titre)}</span></div>`
       + `<div class="pnj-felicitation">${f.portrait}<div><b>${echapper(f.nom)}</b><small>${echapper(f.role)}</small></div></div>`
       + `<div class="texte-confirmation">${f.texte.map((p) => `<p>${echapper(p)}</p>`).join('')}</div>${ouvre}`
       + `<div class="boutons-confirmation-jeu"><button type="button" class="principal">${echapper(f.bouton)}</button></div></div>`

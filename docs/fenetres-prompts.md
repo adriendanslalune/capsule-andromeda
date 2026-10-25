@@ -99,5 +99,8 @@ Soleil… ». **Même capsule** (crème et orange) d'une case à l'autre.
 - **Zone libérée, premier jet** (25/10/2026, Lune, Mars, Vénus, Mercure, en une planche) : réussi, mais le drapeau porte
   une étoile au lieu de l'écusson de la Résistance (la planète à anneau des PNJ), la faute à la fiche, corrigée. À faire
   retoucher par ChatGPT avant de l'intégrer.
+- **Zone libérée, retouchée** (25/10/2026) : le drapeau et le ballon de Cythère portent l'écusson de la Résistance.
+  `public/liberations/<lune|mars|venus|mercure>.webp`, bord à bord en tête de la fenêtre « … libérée ! », au-dessus
+  du titre (`ILLUSTRATIONS_LIBERATION` dans main.ts) ; les autres zones restent sans image jusqu'à la leur.
 - **Les trois vignettes des Collections** (25/10/2026) : `public/collections/<monolithes|voix|disparus>.webp` (une planche
   découpée), dans le cadre de chaque couverture des Collections, à la place des petits dessins vectoriels.
