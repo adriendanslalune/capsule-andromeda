@@ -121,23 +121,27 @@ export function imageChasseur(): HTMLImageElement | null {
 /**
  * Ce qui sort à l'arrière de chaque forme en vol (Adrien, 25/10/2026 : pas de flammes, sauf si la référence en a) :
  * des flammes pour la capsule et la Navette (des fusées chimiques, comme l'Eagle), une lueur bleue pour la Corvette
- * (sa fente de propulsion), une lueur rouge au bout des nacelles du Croiseur, rien pour la Frégate (le Discovery One
- * n'en a pas) ni pour la Légende (la roue).
+ * (sa fente de propulsion), une lueur rouge au bout des nacelles du Croiseur, une lueur dorée aux tuyères de la
+ * Légende (l'Arcadia), rien pour la Frégate (le Discovery One n'en a pas).
  */
 export const PROPULSION: Readonly<Record<Forme, 'flammes' | 'lueur' | null>> = {
-  capsule: 'flammes', navette: 'flammes', corvette: 'lueur', fregate: null, croiseur: 'lueur', legende: null,
+  capsule: 'flammes', navette: 'flammes', corvette: 'lueur', fregate: null, croiseur: 'lueur', legende: 'lueur',
 }
 
-/** Une lueur : où (lat : de côté, arriere : en arrière du centre, en rayons du vaisseau sur la carte ; x, y : en parts
+/** Une lueur : où (lat : de côté, arriere : en arrière du centre, en rayons du vaisseau sur la carte, l'image faisant
+ *  15/9 de rayon sur son plus grand côté ; x, y : en parts
  *  de l'image au combat, comme les tuyères), sa demi-largeur au combat (part de la largeur), et ses trois teintes. */
 export interface Lueur { x: number; y: number; demi: number; lat: number; arriere: number }
 const BLEU: [string, string, string] = ['rgba(160, 235, 255, 0.95)', 'rgba(90, 200, 245, 0.6)', 'rgba(90, 200, 245, 0)']
 const ROUGE: [string, string, string] = ['rgba(255, 205, 180, 0.95)', 'rgba(240, 90, 60, 0.6)', 'rgba(240, 90, 60, 0)']
+const OR: [string, string, string] = ['rgba(255, 244, 200, 0.95)', 'rgba(250, 175, 60, 0.65)', 'rgba(250, 175, 60, 0)']
 export const LUEURS: Partial<Record<Forme, { teintes: [string, string, string]; points: Lueur[] }>> = {
   // La Corvette : sa fente de propulsion bleue (Adrien, 25/10/2026).
   corvette: { teintes: BLEU, points: [{ x: 0, y: 0.94, demi: 0.22, lat: 0, arriere: 0.75 }] },
   // Le Croiseur : la lueur rouge au bout de ses deux nacelles, comme les moteurs de l'Enterprise.
-  croiseur: { teintes: ROUGE, points: [{ x: -0.415, y: 0.985, demi: 0.08, lat: -0.69, arriere: 1.45 }, { x: 0.413, y: 0.985, demi: 0.08, lat: 0.69, arriere: 1.45 }] },
+  croiseur: { teintes: ROUGE, points: [{ x: -0.415, y: 0.985, demi: 0.08, lat: -0.39, arriere: 0.81 }, { x: 0.413, y: 0.985, demi: 0.08, lat: 0.39, arriere: 0.81 }] },
+  // La Légende (l'Arcadia) : une lueur dorée à sa grande tuyère et aux deux plus petites.
+  legende: { teintes: OR, points: [{ x: -0.12, y: 0.96, demi: 0.045, lat: -0.15, arriere: 0.77 }, { x: 0, y: 0.99, demi: 0.08, lat: 0, arriere: 0.82 }, { x: 0.12, y: 0.96, demi: 0.045, lat: 0.15, arriere: 0.77 }] },
 }
 
 /** Rayon (pixels) d'un engin de cette forme et de cette taille, pour le toucher. */

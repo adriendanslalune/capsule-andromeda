@@ -92,8 +92,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
 - Légende (Adrien, 25/10/2026 : « pas convaincu », et deux références à 2001) : l'Arcadia d'Albator remplace la roue,
-  sans tête de mort, toute dorée ; fiche de prompt écrite (`docs/capsule-prompts.md`), **en attente de l'image** (la
-  roue reste en attendant ; propulsion à décider sur l'image).
+  sans tête de mort, toute dorée ; reçue le même jour (déjà dorée), une lueur dorée à ses trois tuyères, au combat et
+  sur la carte. Les lueurs du Croiseur, mal placées sur la carte (trop loin derrière), recalées.
 - Taille des formes au combat (Adrien, 25/10/2026 : « évidemment que les vaisseaux sont de plus en plus gros ») :
   mesurée sur le plus grand côté de l'image, comme sur la carte (par la largeur, la longue Frégate devenait immense et
   la Légende minuscule), et une progression bien visible : Capsule 1, Navette 1,2, Corvette 1,35, Frégate 1,75 (longue

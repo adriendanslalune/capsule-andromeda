@@ -104,4 +104,4 @@ remplaçantes ne sont pas arrivées.
 - **La Frégate, refonte** (25/10/2026) : le Discovery One de 2001.
 - **Le Croiseur, refonte** (25/10/2026) : l'Enterprise, une lueur rouge au bout des nacelles.
 - **La Légende, refonte** (25/10/2026) : le vaisseau-anneau de 2001 ; ses bandes orange passées en or par Claude, et elle reste dorée quelle que soit la Maison.
-- Légende : l'Arcadia d'Albator remplace la roue (Adrien, 25/10/2026), **en attente de l'image**.
+- **La Légende, l'Arcadia** (25/10/2026) : dorée d'origine, une lueur dorée à ses tuyères ; elle remplace la roue.

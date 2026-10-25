@@ -553,7 +553,7 @@ export class Carte2D {
       const lueur = forme ? LUEURS[forme] : undefined
       if (!lueur) return
       for (const p of lueur.points) {
-        const rl = r * (forme === 'croiseur' ? 0.3 : 0.5) * (1 + 0.12 * Math.sin(performance.now() / 160 + graine + p.lat))
+        const rl = r * (lueur.points.length > 1 ? 0.25 : 0.5) * (1 + 0.12 * Math.sin(performance.now() / 160 + graine + p.lat))
         ctx.save()
         ctx.translate(x - dx * r * p.arriere - dy * r * p.lat, y - dy * r * p.arriere + dx * r * p.lat)
         ctx.rotate(angle)
