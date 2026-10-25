@@ -86,5 +86,6 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
   pour plus tard : fiches et carte).
 - **Le cargo** (25/10/2026) : ses bandes orange repeintes par Claude d'avance, hors de la soute (les conteneurs gardent
   leurs couleurs), en trois livrées, `cargo-0|1|2.webp` (jaune, bleu, lavande : `COULEURS_CARGOS`) ; au convoi et à
-  l'escorte (gris quand il est hors d'usage, une flamme à chaque tuyère).
+  l'escorte (gris quand il est hors d'usage, une flamme à chaque tuyère ; un peu plus grand à l'escorte, Adrien
+  25/10/2026 : on voyait mal sa couleur).
 - Reste à venir : le missile, la planche des débris.

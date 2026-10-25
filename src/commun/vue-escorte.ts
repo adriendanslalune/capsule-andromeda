@@ -152,11 +152,12 @@ export class VueEscorte {
       ctx.fillStyle = '#f2b53a'
       if (!hs) {
         for (const cote of [-1, 1]) {
-          const fx = cote * TUYERES_CARGO * 14.2 * s
-          ctx.beginPath(); ctx.moveTo(fx - 1.4 * s, 12.5 * s); ctx.lineTo(fx, (15.5 + Math.sin(e.temps * 20 + i + cote) * 1.2) * s); ctx.lineTo(fx + 1.4 * s, 12.5 * s); ctx.closePath(); ctx.fill(); ctx.stroke()
+          const fx = cote * TUYERES_CARGO * 19 * s
+          ctx.beginPath(); ctx.moveTo(fx - 1.8 * s, 15.5 * s); ctx.lineTo(fx, (19.5 + Math.sin(e.temps * 20 + i + cote) * 1.5) * s); ctx.lineTo(fx + 1.8 * s, 15.5 * s); ctx.closePath(); ctx.fill(); ctx.stroke()
         }
       }
-      if (!dessinerCargo(ctx, i, 0, 3, 20 * s, hs)) {
+      // Un peu plus grand que l'ancien dessin (Adrien, 25/10/2026 : on voyait mal sa couleur) ; la cible des missiles ne change pas.
+      if (!dessinerCargo(ctx, i, 0, 3, 27 * s, hs)) {
         const teintes = hs ? ['#b8b2a8', '#b8b2a8', '#b8b2a8'] : ['#f2c66a', '#8fd0dc', '#f3a08b']
         teintes.forEach((t, j) => { ctx.fillStyle = t; ctx.fillRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s); ctx.strokeRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s) })
         ctx.beginPath(); ctx.moveTo(-3 * s, -2 * s); ctx.lineTo(0, -7 * s); ctx.lineTo(3 * s, -2 * s); ctx.closePath()
