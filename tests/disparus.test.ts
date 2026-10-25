@@ -35,7 +35,7 @@ describe('les Disparus (idée validée par Adrien le 21/10/2026)', () => {
     expect(detecter(nouveauxDisparus(), loin, t0).some((x) => x.nom === d.nom)).toBe(false)
     const e = nouveauxDisparus()
     expect(detecter(e, dessus, t0).some((x) => x.nom === d.nom)).toBe(true)
-    expect(detecter(e, dessus, t0)).toEqual([]) // une seule fois
+    expect(detecter(e, dessus, t0).some((x) => x.nom === d.nom)).toBe(false) // une seule fois
   })
 
   it('perdue autour du Soleil : la zone de recherche est près d’elle, sans être dessus ; le radar la capte à sa portée', () => {
@@ -90,5 +90,20 @@ describe('une sonde posée se rejoint (Adrien, 25/10/2026 : « impossible si je 
     jeu.mission.partir(p.plan)
     jeu.avancer(p.plan.arrivee + 2000)
     expect(jeu.disparus.trouves[1]).toBeDefined()
+  })
+})
+
+describe('un seul écho par passage du radar (Adrien, 25/10/2026 : huit sondes de la Lune d’un coup)', () => {
+  it('au-dessus de la Lune, le radar capte la sonde la plus proche, et une seule', () => {
+    const d = disparu('Luna 9')!
+    const p = position(d.nom, t0), c = position('Lune', t0)
+    const dessus = { x: c.x + (p.x - c.x) * 4, y: c.y + (p.y - c.y) * 4, z: c.z + (p.z - c.z) * 4 }
+    const e = nouveauxDisparus()
+    const premiere = detecter(e, dessus, t0)
+    expect(premiere).toHaveLength(1)
+    const seconde = detecter(e, dessus, t0)
+    expect(seconde).toHaveLength(1)
+    expect(seconde[0].nom).not.toBe(premiere[0].nom)
+    expect(ecart(position(premiere[0].nom, t0), dessus)).toBeLessThanOrEqual(ecart(position(seconde[0].nom, t0), dessus))
   })
 })

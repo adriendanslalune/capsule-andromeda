@@ -104,6 +104,8 @@ export class Jeu {
   reparations: Partial<Record<NomAppareil, EtatReparation>> = {}
   /** Blocs (systèmes de la capsule) en panne. */
   pannes: NomModule[] = []
+  /** Le passage du radar (son début) qui a déjà capté l'écho d'une sonde disparue : une seule par passage. */
+  private passageDisparu = -Infinity
   /**
    * Pour chaque bloc en panne, ses modules encore en défaut (un ou deux, tirés à la panne, parmi les modules
    * raccordés). Liste vide : aucun module raccordé dans ce bloc, il se répare depuis ÉTAT (procédure provisoire).
@@ -734,7 +736,13 @@ export class Jeu {
       reperer(this.espace, t, PORTEE_RADAR)
       this.noter('reperes', Object.keys(this.espace.reperes ?? {}).filter((x) => !avant.has(x)).length)
       // Les Disparus : un écho faible capté (la sonde apparaît sur la carte).
-      for (const d of detecter(this.disparus, this.mission.etat(t).position, t)) this.annoncesQuetes.push(`Le radar capte un écho faible : ${d.nom} ? Va voir de plus près.`)
+      // Un seul écho par passage du radar (Adrien, 25/10/2026) : pour la suivante, le rallumer.
+      if (this.passageDisparu !== this.radar.debut) {
+        for (const d of detecter(this.disparus, this.mission.etat(t).position, t)) {
+          this.passageDisparu = this.radar.debut
+          this.annoncesQuetes.push(`Le radar capte un écho faible : ${d.nom} ? Va voir de plus près.`)
+        }
+      }
     }
     // Une sonde disparue rejointe : identifiée.
     const ici = this.lieuEnOrbite(t)

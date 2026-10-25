@@ -25,9 +25,14 @@ export function nouveauxDisparus(): EtatDisparus {
 
 const ecart = (a: Vecteur3, b: Vecteur3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
 
-/** Le radar balaie depuis ce point : renvoie les sondes dont il capte l'écho pour la première fois. */
+/**
+ * Le radar balaie depuis ce point : renvoie la sonde dont il capte l'écho pour la première fois, la plus proche, une
+ * seule (Adrien, 25/10/2026 : huit sondes de la Lune d'un coup, c'était trop facile ; jeu.ts n'en capte qu'une par
+ * passage du radar).
+ */
 export function detecter(e: EtatDisparus, capsule: Vecteur3, t: number): Disparu[] {
   const nouveaux: Disparu[] = []
+  let meilleur = Infinity
   for (const d of DISPARUS) {
     if (e.trouves[d.numero] !== undefined || e.echos[d.numero] !== undefined) continue
     const p = position(d.nom, t), l = d.lieu
@@ -41,9 +46,11 @@ export function detecter(e: EtatDisparus, capsule: Vecteur3, t: number): Disparu
         if (Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI > ANGLE_AU_DESSUS) continue
       }
     } else if (ecart(p, capsule) > PORTEE_RADAR) continue
-    e.echos[d.numero] = t
-    nouveaux.push(d)
+    if (ecart(p, capsule) >= meilleur) continue
+    meilleur = ecart(p, capsule)
+    nouveaux.splice(0, 1, d)
   }
+  for (const d of nouveaux) e.echos[d.numero] = t
   return nouveaux
 }
 
