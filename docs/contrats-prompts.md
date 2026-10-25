@@ -91,4 +91,7 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
 - **Le missile** (25/10/2026) : `missile.webp`, à l'escorte (dans une lueur verte qui pulse, pour le repérer sur le
   papier) et sur la carte (le missile d'un chasseur vers la capsule, au lieu de la flèche cerise ; le pointillé et le
   décompte restent cerise).
-- Reste à venir : la planche des débris.
+- **Les débris du tri** (25/10/2026) : la planche découpée objet par objet, `public/contrats/tri/<dessin>.webp`, sur le
+  tapis du tri (chargés au lancement). La boîte de conserve remplace le rouleau d'adhésif : « Conserve entamée », au
+  rebut.
+- Tout est reçu.

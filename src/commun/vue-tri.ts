@@ -15,6 +15,9 @@ const tonnes = (q: number) => `${q.toLocaleString('fr-FR', { maximumFractionDigi
 
 const E = 'stroke="#2b2138" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"'
 /** Les dessins des objets (viewBox 0 0 150 120), en aplats pastel et encre, style Moebius. */
+/** Les images des objets, par dessin (chargées au lancement du jeu). */
+const IMAGES_OBJETS: Record<string, HTMLImageElement> = {}
+
 const DESSINS: Record<string, string> = {
   plaque: `<path d="M30 34 l84 -6 l6 56 l-86 8z" fill="#c9c2b0" ${E}/><circle cx="40" cy="42" r="3.5" fill="#2b2138"/><circle cx="108" cy="36" r="3.5" fill="#2b2138"/><circle cx="112" cy="78" r="3.5" fill="#2b2138"/><circle cx="42" cy="84" r="3.5" fill="#2b2138"/><path d="M52 52 l40 -3 M54 66 l46 -4" stroke="#7d6a9e" stroke-width="2"/>`,
   tuyere: `<path d="M56 22 h36 l22 76 h-80z" fill="#d9a43a" ${E}/><path d="M60 34 l-10 58 M90 30 l6 20" stroke="#2b2138" stroke-width="1.6" fill="none"/><ellipse cx="74" cy="98" rx="40" ry="8" fill="#a69f86" ${E}/>`,
@@ -45,7 +48,7 @@ const DESSINS: Record<string, string> = {
   bocal: `<rect x="44" y="30" width="62" height="72" rx="10" fill="#bfe0e8" ${E}/><rect x="50" y="18" width="50" height="14" rx="3" fill="#d9a43a" ${E}/><path d="M48 70 q27 -10 54 0 v24 q0 6 -6 6 h-42 q-6 0 -6 -6z" fill="#8fcf98"/><rect x="58" y="44" width="34" height="14" fill="#faf2dc" ${E}/>`,
   chaussette: `<path d="M58 14 h32 v52 q0 10 10 14 q20 8 14 22 q-6 10 -26 4 l-34 -14 q-10 -6 -6 -20 q10 -20 10 -30z" fill="#e8b9c9" ${E}/><path d="M58 26 h32 M58 34 h32" stroke="#d9694f" stroke-width="3"/>`,
   sac: `<path d="M42 44 q-8 50 14 60 h38 q22 -10 14 -60 q-10 -10 -33 -10 q-23 0 -33 10z" fill="#3a3340" ${E}/><path d="M64 34 q10 -18 22 0 l-6 8 l-10 0z" fill="#3a3340" ${E}/><path d="M60 60 q8 6 4 16" stroke="#7d6a9e" stroke-width="2" fill="none"/>`,
-  adhesif: `<circle cx="70" cy="60" r="34" fill="#c9c2b0" ${E}/><circle cx="70" cy="60" r="16" fill="#efe2c4" ${E}/><path d="M100 72 l26 10 l-6 14 l-26 -10" fill="#c9c2b0" ${E}/>`,
+  conserve: `<circle cx="70" cy="60" r="34" fill="#c9c2b0" ${E}/><circle cx="70" cy="60" r="16" fill="#efe2c4" ${E}/><path d="M100 72 l26 10 l-6 14 l-26 -10" fill="#c9c2b0" ${E}/>`,
 }
 
 export class VueTri {
@@ -60,6 +63,8 @@ export class VueTri {
   private elFin: HTMLElement
 
   constructor(private element: HTMLElement) {
+    // Les trente objets sont chargés d'avance : aucun ne doit arriver en retard sur le tapis.
+    for (const o of OBJETS_EPAVE) if (!IMAGES_OBJETS[o.dessin]) { const im = new Image(); im.src = `contrats/tri/${o.dessin}.webp`; IMAGES_OBJETS[o.dessin] = im }
     element.innerHTML = `
       <div class="entete-plein"><span class="titre-tri"></span><button type="button" data-terminer>TERMINER</button></div>
       <div class="corps">
@@ -127,7 +132,10 @@ export class VueTri {
   private montrerObjet(animation: string): void {
     const o = OBJETS_EPAVE[this.etat!.objet]
     this.elObjet.className = `objet ${animation}`
-    this.elObjet.innerHTML = `<svg viewBox="0 0 150 120">${DESSINS[o.dessin]}</svg><b>${o.nom}</b>`
+    // L'objet dessiné par ChatGPT (Adrien, 25/10/2026), sinon l'ancien dessin tant que son image n'est pas chargée.
+    const im = IMAGES_OBJETS[o.dessin]
+    const dessin = im?.complete && im.naturalWidth ? `<img src="${im.src}" alt="">` : `<svg viewBox="0 0 150 120">${DESSINS[o.dessin]}</svg>`
+    this.elObjet.innerHTML = `${dessin}<b>${o.nom}</b>`
   }
 
   private dessiner(): void {

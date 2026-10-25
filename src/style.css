@@ -827,6 +827,7 @@ html, body {
 #tri .tapis { margin-top: 10px; padding: 10px 0 8px; text-align: center; border: 1.5px solid var(--encre); border-radius: 2px;
   background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--encre) 8%, var(--creme)) 0 18px, var(--creme) 18px 36px); overflow: hidden; }
 #tri .objet svg { display: block; width: 190px; height: 152px; margin: 0 auto; }
+#tri .objet img { display: block; width: 190px; height: 152px; margin: 0 auto; object-fit: contain; padding: 8px 0; box-sizing: border-box; }
 #tri .objet b { display: block; font-size: 16px; letter-spacing: 0.04em; }
 #tri .objet.arrive { animation: arriver 0.22s ease-out; }
 #tri .objet.rate { animation: trembler 0.3s ease-in-out; }
