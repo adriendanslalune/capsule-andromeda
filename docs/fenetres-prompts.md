@@ -57,7 +57,8 @@ avec une petite ombre portée sous lui ; dessiné pour être vu à 90 pixels.
 Format **paysage 1536 × 1024**. La fenêtre de libération s'ouvre sur cette image (sous elle, le portrait du PNJ de la
 Résistance, ses mots, ce qui s'ouvre). Ambiance de victoire : l'astre au centre ou de trois quarts, **un feu
 d'artifice qui éclate dans le ciel** au-dessus de lui (gerbes orange, moutarde et vert d'eau), le **drapeau de la
-Résistance** planté (un drapeau crème et orange avec une étoile, rien d'écrit), un vaisseau amiral d'Andromède (violet
+Résistance** planté (un drapeau orange frappé de l'écusson de la Résistance, **une planète à anneau crème sur un
+disque orange**, comme sur la poitrine des PNJ ; **pas d'étoile**, rien d'écrit), un vaisseau amiral d'Andromède (violet
 et vert d'eau, organique) qui part en fumée au loin. **Laisser un ciel calme en haut à gauche** (un titre s'y posera).
 
 - **La Lune** : la Lune grise et crème, ses cratères en aplats, la Terre bleue en arrière-plan ; une base lunaire
@@ -95,5 +96,8 @@ Soleil… ». **Même capsule** (crème et orange) d'une case à l'autre.
 - **Les trois blasons** (25/10/2026) : `public/blasons/<maison>.webp` (une planche découpée), `commun/blasons.ts` ;
   en sceau sur la lettre d'invitation (à la place des emojis), et en petit devant le nom de la Maison dans le Profil
   et la fiche d'un capitaine, et devant le pseudo dans les Messages.
+- **Zone libérée, premier jet** (25/10/2026, Lune, Mars, Vénus, Mercure, en une planche) : réussi, mais le drapeau porte
+  une étoile au lieu de l'écusson de la Résistance (la planète à anneau des PNJ), la faute à la fiche, corrigée. À faire
+  retoucher par ChatGPT avant de l'intégrer.
 - **Les trois vignettes des Collections** (25/10/2026) : `public/collections/<monolithes|voix|disparus>.webp` (une planche
   découpée), dans le cadre de chaque couverture des Collections, à la place des petits dessins vectoriels.
