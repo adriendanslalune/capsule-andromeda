@@ -94,7 +94,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Bandeaux des volets illustrés (Adrien, 25/10/2026 : une illustration en lien avec l'onglet, mêmes tons) : validé,
   même hauteur (environ 100 px), pas de réduction au défilement, l'illustration à droite fondue dans l'aplat, une image
   d'atelier pour la Capsule ; fiche de prompts écrite (`docs/bandeaux-prompts.md`) ; les cinq images reçues et posées
-  le même jour (`public/bandeaux/`, en CSS : `--bandeau` par onglet, le bord gauche fondu, un halo sous l'accroche).
+  le même jour (`public/bandeaux/`, en CSS : `--bandeau` par onglet, le bord gauche fondu, un halo sous l'accroche) ; validé par Adrien
+  le 25/10/2026 (« on garde comme ça », les aplats un poil plus foncés compris).
 - Illustrations des contrats (Adrien, 25/10/2026 : « graphiquement c'est pas fou »), ordre validé : 1. la capsule du
   joueur dans sa forme et sa Maison dans les écrans des contrats (remorquage, largage, amarrage, convoi, escorte ;
   `dessinerCapsuleDuJoueur`, `CAPSULE_DU_JOUEUR` tenu par main.ts) — fait ; 2. fiche de prompts (décors, épaves,
