@@ -108,7 +108,7 @@ export class VueDepannage {
     const voyant = VOYANTS.find((v) => v.voyant === e.voyant)!
     let html = '<div class="plaque"><div><small>BOÎTIER TECHNIQUE</small><b>BUS ' + e.bus + '</b></div>'
       + `<div class="voyant-defaut"><i style="background:${voyant.teinte}"></i><small>${voyant.titre}</small></div>`
-      + '<button type="button" data-manuel>📖 MANUEL</button></div>'
+      + '<button type="button" data-manuel>MANUEL</button></div>'
     for (const { appareil, titre, module } of APPAREILS_ENGIN) {
       const enDefaut = e.enDefaut.includes(appareil), repare = e.repares.includes(appareil)
       if (!enDefaut) { html += `<div class="module-engin calme"><span class="lampe verte"></span><b>MODULE ${module} — ${titre}</b><small>en état</small></div>`; continue }

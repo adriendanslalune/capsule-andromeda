@@ -2642,3 +2642,68 @@ body.volet-ouvert #annonces { display: none; }
 }
 #comptoir button.eteint { opacity: 0.45; }
 #comptoir .tete-comptoir .vals.presque-pleine { color: #c0392b; font-weight: 800; }
+
+/* Le dépannage façon Jules Verne (Adrien, 25/10/2026 : « graphiquement c'est pas fou ») : un boîtier d'acajou, des
+   plaques de laiton rivetées, des étiquettes d'ivoire gravées, des lampes serties, des interrupteurs à boule de
+   bakélite, des compteurs à tambour. La mécanique ne change pas, seulement l'habit. */
+#depannage {
+  --acajou: #5b3a2e; --acajou-fonce: #3e271f; --laiton: #c9a14a; --laiton-clair: #ecd28e; --laiton-fonce: #7e5c22;
+  --ivoire: #f4ebd3; --bakelite: #2a1d18; --grave: #3a2814;
+  --rivets: radial-gradient(circle at 9px 9px, var(--laiton-fonce) 0 2.6px, var(--laiton-clair) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 9px) 9px, var(--laiton-fonce) 0 2.6px, var(--laiton-clair) 3px, transparent 3.6px),
+    radial-gradient(circle at 9px calc(100% - 9px), var(--laiton-fonce) 0 2.6px, var(--laiton-clair) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), var(--laiton-fonce) 0 2.6px, var(--laiton-clair) 3px, transparent 3.6px);
+}
+#depannage .corps { background: repeating-linear-gradient(91deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 11px, rgba(255, 220, 180, 0.04) 11px 13px, transparent 13px 23px),
+  linear-gradient(180deg, var(--acajou), var(--acajou-fonce)); }
+/* La plaque du boîtier : du laiton, la lettre du bus gravée. */
+#depannage .plaque { color: var(--grave); background: var(--rivets), linear-gradient(170deg, var(--laiton-clair), var(--laiton) 55%, #b48a3a);
+  border: 2px solid var(--bakelite); border-radius: 6px; box-shadow: inset 0 0 0 2px rgba(255, 240, 200, 0.45), 0 3px 0 rgba(0, 0, 0, 0.35); padding: 12px 16px; }
+#depannage .plaque small { opacity: 0.85; font-weight: bold; }
+#depannage .plaque b { font-family: 'Big Shoulders Display', var(--titre); font-weight: 900; font-size: 26px; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.7); }
+#depannage .voyant-defaut i { border: 3px solid var(--laiton-fonce); box-shadow: 0 0 0 2px var(--laiton-clair), 0 0 12px currentColor, inset 0 -4px 6px rgba(0, 0, 0, 0.25); }
+#depannage .plaque button { color: var(--grave); background: var(--ivoire); border: 2px solid var(--bakelite); border-radius: 4px; letter-spacing: 0.1em;
+  box-shadow: 0 2px 0 var(--bakelite); }
+/* Chaque module : une plaque de laiton rivetée, son nom sur une étiquette d'ivoire. */
+#depannage .module-engin { padding: 14px 14px 12px; background: var(--rivets), linear-gradient(170deg, #e2c47c, var(--laiton) 60%, #b38a3c);
+  border: 2px solid var(--bakelite); border-radius: 6px; box-shadow: inset 0 0 0 2px rgba(255, 240, 200, 0.4), 0 3px 0 rgba(0, 0, 0, 0.35); }
+#depannage .module-engin.calme { opacity: 0.75; background: var(--rivets), linear-gradient(170deg, #c8b07a, #a88c4e); }
+#depannage .module-engin b { color: var(--grave); }
+#depannage .titre-module { padding: 4px 10px; margin: 0 6px 10px; background: var(--ivoire); border: 1.5px solid var(--bakelite); border-radius: 3px; }
+#depannage .titre-module b { font-size: 12px; letter-spacing: 0.08em; }
+#depannage .lampe { width: 16px; height: 16px; border: 2.5px solid var(--laiton-fonce); box-shadow: 0 0 0 1.5px var(--laiton-clair), inset 0 -3px 4px rgba(0, 0, 0, 0.25); }
+#depannage .lampe.rouge { box-shadow: 0 0 0 1.5px var(--laiton-clair), 0 0 8px var(--lampe-rouge), inset 0 -3px 4px rgba(0, 0, 0, 0.25); }
+/* Les disjoncteurs : une boule de bakélite au bout d'un levier, dans une fente de métal noir. */
+#depannage .leviers { padding: 4px 0 2px; }
+#depannage .leviers button { background: radial-gradient(circle at 50% 50%, var(--ivoire) 0 20px, transparent 21px), var(--laiton);
+  border: 2px solid var(--bakelite); border-radius: 8px; box-shadow: inset 0 0 0 2px rgba(255, 240, 200, 0.4), 0 2px 0 rgba(0, 0, 0, 0.35); }
+#depannage .leviers i { width: 10px; background: var(--bakelite); border-color: var(--bakelite); }
+#depannage .leviers i::after { left: -8px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--bakelite);
+  background: radial-gradient(circle at 35% 30%, #fff6dc 0 3px, #f0d9a8 4px, #c9a46a 11px); }
+#depannage .leviers .leve i::after { top: -10px; background: radial-gradient(circle at 35% 30%, #ffd2c4 0 3px, #e5654a 4px, #a7321f 11px); }
+#depannage .leviers .baisse i::after { bottom: -10px; }
+#depannage .leviers small { font-weight: bold; color: var(--grave); }
+/* Le câblage : des fiches d'ivoire, des prises de laiton. */
+#depannage .cables button { color: var(--grave); background: var(--ivoire); border: 2px solid var(--bakelite); border-radius: 22px; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+#depannage .cables button.choisi { background: var(--laiton-clair); box-shadow: 0 0 0 3px var(--ivoire), 0 2px 0 rgba(0, 0, 0, 0.35); }
+#depannage .prises button { color: var(--ivoire); background: radial-gradient(circle at 80% 50%, var(--bakelite) 0 9px, var(--laiton-fonce) 10px 12px, transparent 13px), var(--acajou-fonce);
+  border: 2px solid var(--bakelite); border-radius: 6px; }
+#depannage .prises button b { font-family: 'Big Shoulders Display', var(--titre); font-size: 18px; }
+#depannage .cables i, #depannage .prises i { border: 2px solid var(--bakelite); }
+#depannage .aide { color: var(--grave); opacity: 0.85; }
+/* Le gyroscope : l'écran vert dans un cadre de laiton, et des compteurs à tambour. */
+#depannage .ecran-gyro { border: 4px solid var(--laiton-fonce); border-radius: 12px; box-shadow: 0 0 0 2px var(--laiton-clair), inset 0 0 14px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 6px rgba(143, 207, 152, 0.8); }
+#depannage .molette b { color: var(--ivoire); background: linear-gradient(180deg, #000 0, var(--bakelite) 30%, var(--bakelite) 70%, #000 100%);
+  border: 3px solid var(--laiton-fonce); border-radius: 4px; box-shadow: 0 0 0 1.5px var(--laiton-clair); font-family: 'IBM Plex Mono', monospace; }
+#depannage .molette button { color: var(--grave); background: repeating-linear-gradient(90deg, var(--laiton-clair) 0 3px, var(--laiton) 3px 6px);
+  border: 2px solid var(--bakelite); border-radius: 6px; }
+/* VÉRIFIER : le gros bouton qui engage, orange, serti de laiton. */
+#depannage .verifier { color: #fff; background: var(--orange); border: 2px solid var(--bakelite); border-radius: 23px; letter-spacing: 0.14em;
+  box-shadow: 0 0 0 3px var(--laiton-clair), 0 4px 0 var(--bakelite); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35); }
+#depannage .verifier:active { transform: translateY(2px); box-shadow: 0 0 0 3px var(--laiton-clair), 0 2px 0 var(--bakelite); }
+#depannage .repare-texte { display: inline-block; padding: 4px 14px; margin: 8px auto 0; color: #2f6f3a; background: var(--ivoire); border: 2px solid #2f6f3a; border-radius: 3px; transform: rotate(-3deg); }
+#depannage .module-engin.repare { text-align: center; }
+#depannage .module-engin.repare .titre-module, #depannage .module-engin.repare .leviers, #depannage .module-engin.repare .cablage, #depannage .module-engin.repare .gyro { text-align: left; }
+#depannage .module-engin .prises button b { color: var(--laiton-clair); }
+#depannage .prises button:disabled { opacity: 0.8; }
