@@ -40,4 +40,7 @@ la Capsule, une image d'atelier.
 
 ## Reçus
 
-(rien encore)
+- **Les cinq bandeaux** (25/10/2026) : `public/bandeaux/<onglet>.webp`, la partie illustrée seule (l'aplat de gauche
+  retiré), 300 px de haut ; posés sur la droite du bandeau (62 % de sa largeur), le bord gauche fondu dans l'aplat de
+  l'onglet ; la référence gravée et l'accroche ont un halo de sa couleur ; FERMER, sur une petite plaque de papier. Les
+  pages de Plus (Messages, Profil, Manuel…) ont toutes le bureau de radio.

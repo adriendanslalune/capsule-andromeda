@@ -2709,3 +2709,21 @@ body.volet-ouvert #annonces { display: none; }
 #depannage .module-engin.repare .titre-module, #depannage .module-engin.repare .leviers, #depannage .module-engin.repare .cablage, #depannage .module-engin.repare .gyro { text-align: left; }
 #depannage .module-engin .prises button b { color: var(--laiton-clair); }
 #depannage .prises button:disabled { opacity: 0.8; }
+
+/* Les bandeaux illustrés des volets (Adrien, 25/10/2026 ; docs/bandeaux-prompts.md) : une illustration de ChatGPT en lien
+   avec l'onglet, dans ses tons, sur la moitié droite du bandeau ; son bord gauche se fond dans l'aplat de l'onglet, le
+   titre pulp reste à gauche. Pas de réduction au défilement. */
+#volet { --bandeau: url('/bandeaux/plus.webp'); }
+#volet:has(.page[data-contenu="capsule"]:not([hidden])) { --bandeau: url('/bandeaux/capsule.webp'); }
+#volet:has(.page[data-contenu="missions"]:not([hidden])) { --bandeau: url('/bandeaux/journal.webp'); }
+#volet:has(.page[data-contenu="marche"]:not([hidden])) { --bandeau: url('/bandeaux/marche.webp'); }
+#volet:has(.page[data-contenu="collections"]:not([hidden])) { --bandeau: url('/bandeaux/collections.webp'); }
+#volet .entete { min-height: 92px; isolation: isolate; }
+#volet .entete::before { content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: 62%; pointer-events: none;
+  background: var(--bandeau) right center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 32%); mask-image: linear-gradient(to right, transparent, #000 32%); }
+/* FERMER reste lisible par-dessus l'illustration : une petite plaque de papier. */
+#volet .entete #volet-fermer { align-self: flex-start; min-height: 32px; margin-top: -4px; padding: 0 10px; background: color-mix(in srgb, var(--creme) 88%, transparent);
+  border: 1.5px solid var(--encre); border-radius: 2px; font-size: 12px; }
+/* Là où l'accroche et la référence gravée mordent sur l'illustration, un halo de la couleur de l'onglet les détache. */
+#volet #volet-titre::before, #volet #volet-titre .accroche { text-shadow: 0 0 2px var(--rub), 0 0 5px var(--rub), 0 0 9px var(--rub); }
