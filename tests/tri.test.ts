@@ -9,7 +9,8 @@ describe('le tri des matériaux d’une épave', () => {
   it('une trentaine d’objets, tous différents ; chaque bac en a ; chaque matière se vend au Marché (sauf le rebut)', () => {
     expect(OBJETS_EPAVE.length).toBe(30)
     expect(new Set(OBJETS_EPAVE.map((o) => o.nom)).size).toBe(30)
-    for (const b of BACS) expect(OBJETS_EPAVE.filter((o) => o.bac === b.bac).length).toBeGreaterThanOrEqual(7)
+    // Le rebut en a six depuis que la conserve est passée en métaux (Adrien, 25/10/2026).
+    for (const b of BACS) expect(OBJETS_EPAVE.filter((o) => o.bac === b.bac).length).toBeGreaterThanOrEqual(6)
     for (const o of OBJETS_EPAVE) {
       if (o.bac === 'rebut') expect(o.matiere).toBeNull()
       else expect(MARCHANDISES.map((m) => m.nom)).toContain(o.matiere)
