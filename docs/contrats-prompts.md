@@ -2,8 +2,8 @@
 
 Adrien, 25/10/2026 : « les mini-jeux sont sympas mais graphiquement c'est pas fou ». Les écrans des contrats (tri,
 remorquage, largage, amarrage, convoi, escorte) sont aujourd'hui des schémas en traits simples sur du papier uni. On les
-habille avec des images de ChatGPT, comme les vaisseaux : des **décors** derrière, et de **vrais objets** (épaves,
-station, cargo, missile, débris du tri). La capsule du joueur y a déjà sa forme et sa Maison (fait le 25/10/2026). Le
+habille avec de **vrais objets** dessinés par ChatGPT, comme les vaisseaux (épaves, station, cargo, missile, débris du
+tri) ; le décor, l'arc de l'astre, est dessiné par le jeu. La capsule du joueur y a déjà sa forme et sa Maison (fait le 25/10/2026). Le
 dépannage, un panneau d'instruments, est refait par Claude à part.
 
 Ce que le code garde : tout ce qui bouge et ce qui sert à jouer (l'anneau d'accroche rouge du remorquage, le câble,
@@ -14,7 +14,7 @@ que le décor et les objets ; ne rien y dessiner de tout ça.
 
 1. Dans une nouvelle conversation, **envoyer d'abord une image du jeu** (la capsule, ou un vaisseau déjà reçu) en
    disant : « voici le style du jeu ; garde exactement ce style de dessin et ces couleurs ».
-2. Coller le **bloc de style** qui convient (objets ou décors), puis la fiche.
+2. Coller le **bloc de style des objets**, puis la fiche.
 3. Envoyer les images telles quelles, en disant laquelle c'est : Claude les recadre, les allège et les range.
 
 ## Bloc de style des objets (épaves, station, cargo, missile, débris)
@@ -25,26 +25,12 @@ que le décor et les objets ; ne rien y dessiner de tout ça.
 > L'objet seul, centré, qui remplit l'image. **Fond transparent**, aucun décor, aucun astre, aucun personnage, aucun
 > texte, aucun cadre. Format carré, 1024 × 1024.
 
-## Bloc de style des décors
+## Les décors : faits par le jeu, pas par ChatGPT
 
-> Décor de fond pour un jeu spatial sur téléphone, **format vertical 1024 × 1792**, vu du dessus. Style bande
-> dessinée de Moebius (Jean Giraud) : ligne claire, grands aplats de couleurs pastel, trait d'encre brun-violet fin.
-> L'espace n'est pas noir : un **bleu nuit doux tirant sur le violet**, en aplats, avec de petites étoiles crème
-> dessinées (points et petites croix), quelques traînées de poussière pastel. **Le centre de l'image reste calme et
-> vide** (on y jouera par-dessus) : les détails sont sur les bords. Contraste doux, rien de criard. Aucun vaisseau,
-> aucun personnage, aucun texte, aucun cadre.
-
-## Les décors (4)
-
-- **Décor « Terre »** : en bas de l'image, le bord de la Terre en grand arc (océans bleu pâle, nuages crème, un liseré
-  d'atmosphère bleu clair) ; le reste, l'espace.
-- **Décor « Lune »** : en bas, le bord de la Lune en grand arc, gris clair, ses cratères en aplats ; le reste, l'espace.
-- **Décor « Géante »** : sur un côté, un pan d'une planète géante à bandes (ocre, crème, rouille), avec un fin anneau
-  qui traverse le haut de l'image.
-- **Décor « Plein espace »** : seulement l'espace, une nébuleuse pastel (rose, lavande) qui s'effiloche dans un coin,
-  plus d'étoiles.
-
-Le jeu choisira le décor d'après le lieu du contrat (Terre, Lune et lunes, planètes géantes, ailleurs).
+Validé par Adrien le 25/10/2026 : des décors peints seraient incohérents selon le système du contrat. Le jeu dessine
+lui-même, au pied de chaque écran, un grand arc de l'astre près duquel on travaille, avec le moteur des globes de la
+carte (la vraie Terre et sa nuit autour de l'ISS, la Lune à Tycho, Saturne et ses anneaux…), grisé si la zone est
+encore occupée ; rien en plein espace (`carte/decor-contrat.ts`). Aucune image de décor à générer.
 
 ## Les épaves (4, pour le tri, le remorquage et le largage)
 

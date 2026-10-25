@@ -7,6 +7,7 @@
 import { DISTANCE_DEPART, ZONE_LOIN, ZONE_PROCHE } from '../donnees/largage'
 import { avancerLargage, lacher, nouveauLargage, type EtatLargage } from '../moteur/largage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
+import { dessinerDecorContrat } from '../carte/decor-contrat'
 
 /** Un largage : à quelle station, et ce qu'on fait quand l'épave est déposée (renvoie le texte du bilan). */
 export interface OptionsLargage { titre: string; surFin: (rates: number) => string }
@@ -152,6 +153,8 @@ export class VueLargage {
     if (toile.width !== Math.round(l * dpr) || toile.height !== Math.round(h * dpr)) { toile.width = Math.round(l * dpr); toile.height = Math.round(h * dpr) }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, l, h)
+    // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
+    dessinerDecorContrat(ctx, l, h)
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
     const cx = l / 2, quai = 125, k = (h - quai - 40) / (DISTANCE_DEPART + CABLE)

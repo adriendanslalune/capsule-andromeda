@@ -6,6 +6,7 @@
 import { CARGOS, HAUTEUR, LARGEUR, RAYON_INTERCEPTION, RESISTANCE } from '../donnees/escorte'
 import { avancerEscorte, nouvelleEscorte, positionMissile, tirer, type EtatEscorte } from '../moteur/escorte'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
+import { dessinerDecorContrat } from '../carte/decor-contrat'
 
 /** Une escorte : vers où, la zone (plus loin, plus de missiles), et ce qu'on fait à l'arrivée (texte du bilan). */
 export interface OptionsEscorte { titre: string; zone: number; surFin: (coups: number) => string }
@@ -120,6 +121,8 @@ export class VueEscorte {
     if (toile.width !== Math.round(l * dpr) || toile.height !== Math.round(h * dpr)) { toile.width = Math.round(l * dpr); toile.height = Math.round(h * dpr) }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, l, h)
+    // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
+    dessinerDecorContrat(ctx, l, h)
     this.k = Math.min(l / LARGEUR, h / HAUTEUR)
     this.ox = (l - LARGEUR * this.k) / 2
     this.oy = (h - HAUTEUR * this.k) / 2

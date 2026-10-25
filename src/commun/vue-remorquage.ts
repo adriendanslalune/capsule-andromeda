@@ -7,6 +7,7 @@
 import { SEUIL, TOLERANCE } from '../donnees/remorquage'
 import { avancerRemorquage, lancer, nouveauRemorquage, type EtatRemorquage } from '../moteur/remorquage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
+import { dessinerDecorContrat } from '../carte/decor-contrat'
 
 /** Un remorquage : quelle épave, et ce qu'on fait quand elle est en remorque (renvoie le texte du bilan). */
 export interface OptionsRemorquage { titre: string; surFin: (rates: number) => string }
@@ -147,6 +148,8 @@ export class VueRemorquage {
     if (toile.width !== Math.round(l * dpr) || toile.height !== Math.round(h * dpr)) { toile.width = Math.round(l * dpr); toile.height = Math.round(h * dpr) }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, l, h)
+    // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
+    dessinerDecorContrat(ctx, l, h)
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
     const cx = l / 2, ey = Math.max(h * 0.36, 150), R = Math.min(l * 0.2, 80)

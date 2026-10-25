@@ -6,6 +6,7 @@
 import { CAPSULE, COULEURS_CARGOS, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../donnees/convoi'
 import { avancerConvoi, deplacer, lacherCargo, nouveauConvoi, prendre, type EtatConvoi } from '../moteur/convoi'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
+import { dessinerDecorContrat } from '../carte/decor-contrat'
 
 /** Un convoi : à quelle station, et ce qu'on fait quand il est formé (renvoie le texte du bilan). */
 export interface OptionsConvoi { titre: string; surFin: (egares: number) => string }
@@ -151,6 +152,8 @@ export class VueConvoi {
     if (toile.width !== Math.round(l * dpr) || toile.height !== Math.round(h * dpr)) { toile.width = Math.round(l * dpr); toile.height = Math.round(h * dpr) }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, l, h)
+    // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
+    dessinerDecorContrat(ctx, l, h)
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
     const { k, ox, oy } = this.echelle()

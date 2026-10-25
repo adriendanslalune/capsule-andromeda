@@ -7,6 +7,7 @@
 import { ANGLE_CONTACT, ECART_CONTACT, VITESSE_CONTACT } from '../donnees/amarrage'
 import { avancerAmarrage, contactBon, nouvelAmarrage, type EtatAmarrage, type Poussees } from '../moteur/amarrage'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
+import { dessinerDecorContrat } from '../carte/decor-contrat'
 
 /** Un amarrage : où, et ce qu'on fait quand la capsule est amarrée (renvoie le texte du bilan). */
 export interface OptionsAmarrage { titre: string; surFin: (rebonds: number) => string }
@@ -154,6 +155,8 @@ export class VueAmarrage {
     if (toile.width !== Math.round(l * dpr) || toile.height !== Math.round(h * dpr)) { toile.width = Math.round(l * dpr); toile.height = Math.round(h * dpr) }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, l, h)
+    // L'astre près duquel on travaille, en arc au pied de l'écran (Adrien, 25/10/2026).
+    dessinerDecorContrat(ctx, l, h)
     // L'échelle suit la distance : de loin on voit toute l'approche, de près on voit le moindre écart.
     const voulue = Math.max(16, Math.min(90, (h - 140) / (Math.max(0, e.distance) + 9)))
     this.k += (voulue - this.k) * 0.08

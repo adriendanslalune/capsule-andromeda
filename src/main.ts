@@ -123,6 +123,7 @@ import { avancement, kmRestants, planifier, vitesseDePointe, vitesseEnVol, type 
 import { distanceDepuisCapsule, texteDistance } from './moteur/navigation'
 import { lignesDuBandeau } from './moteur/bandeau'
 import { chargerPoussiere } from './moteur/poussiere'
+import { DECOR_CONTRAT } from './carte/decor-contrat'
 
 const toilePlan = document.querySelector<HTMLCanvasElement>('#plan')!
 const ctxPlan = toilePlan.getContext('2d')!
@@ -2158,6 +2159,21 @@ let dernierDessinCarte = 0
 /** Vrai quand la carte doit être redessinée tout de suite (sélection, niveau, réglage changés). */
 let carteSale = true
 for (const evenement of ['pointerup', 'click', 'change']) document.addEventListener(evenement, () => { carteSale = true })
+/** Le décor des écrans des contrats (Adrien, 25/10/2026) : l'astre près duquel est la capsule (la planète ou la lune
+ *  autour de laquelle tourne l'engin où elle est), grisé s'il est encore occupé, éclairé du vrai côté. */
+function majDecorContrat(t: number): void {
+  let c = corps(mission.centre(t))
+  for (let k = 0; c && k < 4 && !['planete', 'lune', 'naine', 'etoile'].includes(c.type); k++) c = c.parent ? corps(c.parent) : undefined
+  const astre = c && c.type !== 'etoile' ? c.nom : null
+  DECOR_CONTRAT.astre = astre
+  DECOR_CONTRAT.temps = t
+  if (!astre) return
+  const a = position(astre, t)
+  DECOR_CONTRAT.versSoleil = Math.atan2(a.y, -a.x)
+  DECOR_CONTRAT.gris = !!zone(astre) && !jeu.zones.liberees.includes(astre)
+  DECOR_CONTRAT.couleur = couleurAstre(c!)
+}
+
 function image(maintenant: number): void {
   const debutCalcul = performance.now()
   const dt = Math.min(0.1, (maintenant - precedent) / 1000)
@@ -2165,6 +2181,7 @@ function image(maintenant: number): void {
   avancerHorloge(maintenant)
   const t = horloge()
   const sel = infosSelection(t)
+  majDecorContrat(t)
   prevoir(t, maintenant)
   avancerMissions(t)
   suivreEchos(t)
