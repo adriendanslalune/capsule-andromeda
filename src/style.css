@@ -2448,8 +2448,6 @@ body.volet-ouvert #annonces { display: none; }
 #couverture .aileron { fill: #e0571f; stroke: var(--encre); stroke-width: 2.5; stroke-linejoin: round; }
 #couverture .flamme { fill: #f2d58e; stroke: var(--encre); stroke-width: 2; animation: flamme-revue 0.25s ease-in-out infinite alternate; transform-origin: 0 30px; }
 @keyframes flamme-revue { to { transform: scaleY(1.35); } }
-#couverture .titre-revue { margin-top: 10px; font: 900 54px/0.88 'Big Shoulders Display', var(--titre); text-align: center; letter-spacing: 0.02em;
-  transform: skewX(-9deg) rotate(-3deg); text-shadow: 3px 3px 0 var(--creme), 6px 6px 0 var(--orange); }
 #couverture .une-revue { margin-top: 18px; padding: 6px 14px; font: italic 700 19px var(--titre); background: var(--creme); border: 2px solid var(--encre); transform: rotate(2deg); }
 #couverture .etoile-revue { position: absolute; right: 10px; top: 118px; width: 100px; height: 100px; display: grid; place-items: center; padding: 16px; text-align: center;
   font: 900 20px/1 'Big Shoulders Display', var(--titre); background: #f2d58e; transform: rotate(14deg);
@@ -2710,11 +2708,13 @@ body.volet-ouvert #annonces { display: none; }
 /* Là où l'accroche et la référence gravée mordent sur l'illustration, un halo de la couleur de l'onglet les détache. */
 #volet #volet-titre::before, #volet #volet-titre .accroche { text-shadow: 0 0 2px var(--rub), 0 0 5px var(--rub), 0 0 9px var(--rub); }
 
-/* La couverture illustrée par ChatGPT (Adrien, 25/10/2026 ; docs/couverture-prompts.md) : la capsule qui fonce vers
-   Triton fendu, en fond plein écran ; le titre et la une descendent au pied, sur un voile de nuit, en crème. */
-#couverture { background: linear-gradient(to bottom, transparent 58%, rgba(7, 20, 40, 0.75) 82%, rgba(7, 20, 40, 0.9)), url('/couverture.webp') 50% 40% / cover no-repeat, #072644; }
-#couverture .titre-revue { margin-top: auto; color: var(--creme); text-shadow: 3px 3px 0 var(--encre), 6px 6px 0 var(--orange); }
-#couverture .une-revue { margin-bottom: calc(44px + env(safe-area-inset-bottom)); }
+/* La couverture illustrée par ChatGPT, son titre compris (Adrien, 25/10/2026 ; docs/couverture-prompts.md) : la capsule
+   qui fonce vers Triton fendu et « CAPSULE ANDROMEDA » dessiné. L'image entière, sur toute la largeur et calée en bas
+   (rogner ses bords couperait le titre) ; au-dessus, le même ciel de nuit, quelques étoiles, l'étoile de la une et
+   l'accroche du jour. */
+#couverture { justify-content: flex-start; background: linear-gradient(#041d35, rgba(4, 29, 53, 0)) 0 calc(100vh - 150vw) / 100% 46px no-repeat,
+  url('/couverture.webp') 50% 100% / 100% auto no-repeat, radial-gradient(circle at 12% 6%, #faf2dc 1.4px, transparent 2.0px), radial-gradient(circle at 31% 14%, #faf2dc 1px, transparent 1.6px), radial-gradient(circle at 54% 4%, #faf2dc 1.2px, transparent 1.7999999999999998px), radial-gradient(circle at 78% 11%, #faf2dc 1.6px, transparent 2.2px), radial-gradient(circle at 91% 22%, #faf2dc 1px, transparent 1.6px), radial-gradient(circle at 8% 25%, #faf2dc 1px, transparent 1.6px), radial-gradient(circle at 44% 24%, #faf2dc 1.3px, transparent 1.9px), radial-gradient(circle at 66% 30%, #faf2dc 1px, transparent 1.6px), radial-gradient(circle at 22% 36%, #faf2dc 1.2px, transparent 1.7999999999999998px), radial-gradient(circle at 86% 38%, #faf2dc 1.1px, transparent 1.7000000000000002px), #041d35; }
+#couverture .une-revue { margin-top: calc(min(150px, 100vh - 150vw - 70px) + env(safe-area-inset-top)); }
 /* Sans le bandeau de la revue (Adrien, 25/10/2026) : l'étoile de la une se pose en haut à droite de la couverture, et
    en coin de la fenêtre de niveau. */
 #couverture .etoile-revue { top: calc(24px + env(safe-area-inset-top)); }

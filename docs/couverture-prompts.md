@@ -72,6 +72,10 @@ Vérifier chaque lettre avant de l'envoyer : ChatGPT écorche souvent les mots (
 
 ## Reçus
 
+- **La couverture avec son titre** (25/10/2026) : elle remplace la première. Affichée entière, sur toute la largeur
+  et calée en bas (rogner ses bords, comme avant, couperait le titre) ; au-dessus, le même ciel de nuit en aplat, quelques
+  étoiles, l'étoile de la une et l'accroche du jour ; le titre écrit par le jeu est retiré.
+
 - **La couverture** (25/10/2026) : `public/couverture.webp`, en fond plein écran (cadrée au centre : les bords sont
   rognés sur un téléphone) ; le titre et la une descendent au pied, en crème, sur un voile de nuit ; l'étoile de la
   une en haut à droite (le bandeau « CAPITAINES ! » retiré le même jour).

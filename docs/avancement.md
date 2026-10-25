@@ -95,7 +95,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   clip-art à côté des illustrations) : fiche de prompts écrite (`docs/couverture-prompts.md`) ; les deux images reçues
   et posées le même jour (la couverture en fond, le titre au pied en crème ; l'icône en toutes tailles, plus une
   masquable pour Android) ; plus de nom de revue « CAPITAINES ! » (Adrien, 25/10/2026 : cheap), ni sur la couverture
-  ni dans la fenêtre de niveau (son étoile reste) ; le titre du jeu sera dessiné par ChatGPT (section 3 de la fiche).
+  ni dans la fenêtre de niveau (son étoile reste) ; le titre du jeu dessiné par ChatGPT, reçu le même jour : la
+  couverture entière, calée en bas, le ciel de nuit au-dessus avec l'étoile et l'accroche.
 - Bandeaux des volets illustrés (Adrien, 25/10/2026 : une illustration en lien avec l'onglet, mêmes tons) : validé,
   même hauteur (environ 100 px), pas de réduction au défilement, l'illustration à droite fondue dans l'aplat, une image
   d'atelier pour la Capsule ; fiche de prompts écrite (`docs/bandeaux-prompts.md`) ; les cinq images reçues et posées
