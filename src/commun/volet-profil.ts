@@ -116,7 +116,7 @@ const attribut = (x: string) => x.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 
 /**
  * La vitrine des trophées (cadre validé par Adrien le 24/10/2026) : une étagère par catégorie, ses médailles ; gagnés,
- * leur nom (toucher : la phrase et la date) ; pas encore, grisés avec leur indice ; secrets, ni nom ni indice.
+ * leur nom (toucher : la phrase, comment on l'a eu et la date) ; pas encore, grisés avec leur indice ; secrets, ni nom ni indice.
  */
 function htmlTrophees(jeu: Jeu): string {
   const gagnes = Object.keys(jeu.trophees).length
@@ -126,7 +126,8 @@ function htmlTrophees(jeu: Jeu): string {
     const n = liste.filter((x) => x.n in jeu.trophees).length
     const cases = liste.map((x) => {
       const quand = jeu.trophees[x.n], gagne = quand !== undefined, cache = !gagne && x.secret
-      const detail = gagne ? `<b>${x.nom}</b> « ${x.phrase} » <small>Gagné le ${date(quand)}.</small>`
+      // Gagné : comment on l'a eu, aussi (Adrien, 25/10/2026 : « je ne sais pas comment je l'ai obtenu »).
+      const detail = gagne ? `<b>${x.nom}</b> « ${x.phrase} » <small>${x.indice}. Gagné le ${date(quand)}.</small>`
         : cache ? '<b>Trophée secret</b> <small>À toi de le trouver. Aucun indice.</small>'
           : `<b>${x.nom}</b> <small>Pas encore : ${x.indice.charAt(0).toLowerCase()}${x.indice.slice(1)}.</small>`
       return `<button type="button" class="trophee${gagne ? ' gagne' : ''}" data-trophee="${attribut(detail)}">${medaille(x.categorie, x.rarete, gagne, x.secret)}<small>${cache ? '???' : x.nom}</small></button>`

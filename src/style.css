@@ -2601,6 +2601,7 @@ body.volet-ouvert #annonces { display: none; }
 #trophee-gagne.or .etoile-trophee { background: #d9a227; }
 #trophee-gagne b { font-family: var(--titre); font-size: 19px; line-height: 1.1; }
 #trophee-gagne small { font-size: 12px; font-style: italic; line-height: 1.3; }
+#trophee-gagne small.indice-trophee { display: block; margin-top: 3px; font-style: normal; font-size: 11px; opacity: 0.75; }
 #trophee-gagne .plusieurs { align-items: stretch; width: 100%; }
 #trophee-gagne .rang-medailles { display: flex; gap: 2px; margin: 4px 0; }
 #trophee-gagne .rang-medailles svg { width: 40px; height: 48px; }

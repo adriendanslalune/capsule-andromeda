@@ -91,6 +91,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Trophées (Adrien, 25/10/2026 : « je ne sais pas comment je l'ai obtenu ») : un trophée gagné dit aussi ce qui l'a
+  valu (sa condition, `indice`), dans la vitrine du Profil et dans la petite fenêtre « TROPHÉE ! ».
 - Horloge (Adrien, 25/10/2026 : « le jeu n'est pas tout à fait à l'heure ») : elle avançait avec le compteur du
   navigateur (performance.now), qui s'arrête quand le téléphone se met en veille ; le jeu prenait du retard à chaque
   fois, sans jamais se recaler. Elle relit maintenant l'heure du téléphone (Date.now) ; l'accélération d'essai garde son

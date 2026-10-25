@@ -1,5 +1,5 @@
 // La petite fenêtre « TROPHÉE ! » (cadre validé par Adrien le 24/10/2026) : elle glisse sous la console, montre la
-// médaille, le nom et la phrase, et se referme seule (la toucher la referme plus tôt). Plusieurs d'un coup (une partie
+// médaille, le nom, la phrase et ce qui l'a valu, et se referme seule (la toucher la referme plus tôt). Plusieurs d'un coup (une partie
 // qui découvre les trophées, par exemple) : une seule fenêtre, qui les montre en rang.
 
 import type { Trophee } from '../donnees/trophees'
@@ -30,7 +30,7 @@ export class FenetreTrophee {
     if (haut !== undefined) this.element.style.top = `${Math.round(haut)}px`
     const seul = trophees.length === 1 ? trophees[0] : null
     this.element.innerHTML = seul
-      ? `${medaille(seul.categorie, seul.rarete, true)}<div><span class="etoile-trophee">TROPHÉE !</span><b>${seul.nom}</b><small>« ${seul.phrase} »</small></div>`
+      ? `${medaille(seul.categorie, seul.rarete, true)}<div><span class="etoile-trophee">TROPHÉE !</span><b>${seul.nom}</b><small>« ${seul.phrase} »</small><small class="indice-trophee">${seul.indice}</small></div>`
       : `<div class="plusieurs"><span class="etoile-trophee">${trophees.length} TROPHÉES !</span>`
         + `<div class="rang-medailles">${trophees.slice(0, 6).map((x) => `<span title="${x.nom}">${medaille(x.categorie, x.rarete, true)}</span>`).join('')}</div>`
         + `<small>${trophees.slice(0, 3).map((x) => x.nom).join(', ')}${trophees.length > 3 ? ` et ${trophees.length - 3} autre${trophees.length > 4 ? 's' : ''}` : ''}. Ils t'attendent dans le Profil.</small></div>`
