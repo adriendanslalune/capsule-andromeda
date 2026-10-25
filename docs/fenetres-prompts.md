@@ -70,6 +70,20 @@ et vert d'eau, organique) qui part en fumée au loin. **Laisser un ciel calme en
 - **Mercure** : un phare spatial sur une falaise de Mercure, son faisceau qui balaie le ciel noir, le Soleil énorme
   à l'horizon, le drapeau en haut du phare.
 
+### 3 bis. Zone libérée : à partir des décors des PNJ (Adrien, 25/10/2026)
+
+Adrien : les scènes inventées sont incohérentes avec les décors des lieux déjà dans le jeu (`public/decors/`, ceux des
+dialogues). On reprend donc **le décor du lieu du PNJ qui annonce la libération**, et ChatGPT y ajoute la fête :
+la Lune → `tycho.webp` (Okafor), Mars → `mars.webp` (Hélène), Vénus → `cythere.webp` (Odile), Mercure → `mercure.webp`
+(Aurelio). Envoyer le décor, puis :
+
+> Reprends exactement ce décor (même lieu, mêmes bâtiments, même lumière, même style) et fais-en la scène de sa
+> libération : un grand feu d'artifice qui éclate dans le ciel (gerbes orange, moutarde et vert d'eau), le drapeau de
+> la Résistance planté bien en vue (un drapeau orange frappé d'une planète à anneau crème sur un disque orange, cernée
+> d'encre ; aucune étoile), quelques silhouettes en scaphandre qui lèvent les bras, et au loin un vaisseau
+> extraterrestre violet et vert d'eau, organique, qui part en fumée. Élargis le cadre en **paysage 1536 × 1024** en
+> prolongeant le décor sur les côtés, sans rien couper de ce qui y est déjà. Aucun texte.
+
 ## 4. Le rêve du Soleil (6 cases)
 
 Format **portrait 1024 × 1536**, plein écran. Un rêve façon Moebius qui délire : couleurs plus saturées, perspectives
