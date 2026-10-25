@@ -302,7 +302,9 @@ export class VueCombat {
     if (imCapsule && (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0)) {
       // La capsule dessinée (13 unités de large, un peu plus pour les formes suivantes ; sa zone de touche ne change
       // pas), la flamme de sa tuyère qui vacille, et le point d'impact.
-      const [L, H] = dimensions(imCapsule), l = 13 * tailleAuCombat(this.forme) * k, h = (l * H) / L, x = X(e.capsule.x), y = Y(e.capsule.y)
+      // Mise à l'échelle par le plus grand côté (Adrien, 25/10/2026 : de palier en palier, le vaisseau grandit ; par la
+      // largeur, la longue Frégate devenait immense et la Légende, carrée, minuscule).
+      const [L, H] = dimensions(imCapsule), cote = 13 * tailleAuCombat(this.forme) * k, l = (cote * L) / Math.max(L, H), h = (cote * H) / Math.max(L, H), x = X(e.capsule.x), y = Y(e.capsule.y)
       const lueur = LUEURS[this.forme]
       const flammes = PROPULSION[this.forme] === 'flammes'
       for (const t of !flammes ? [] : TUYERES[this.forme] ?? [{ x: 0, y: 1 - (0.6 * k) / h, demi: 1.4 }]) {

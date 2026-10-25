@@ -5,9 +5,9 @@
 import type { Forme } from '../donnees/niveaux'
 import { COULEURS_MAISONS, type Maison } from '../donnees/maisons'
 
-/** Taille de chaque forme au combat, par rapport à la capsule (sur la carte, c'est le niveau qui fait la taille :
- *  palierDe, Adrien, 24/10/2026). */
-const TAILLE: Record<Forme, number> = { capsule: 1, navette: 1.05, corvette: 1.1, fregate: 1.15, croiseur: 1.2, legende: 1.25 }
+/** Taille de chaque forme au combat (son plus grand côté), par rapport à la capsule : chaque palier est visiblement
+ *  plus gros (Adrien, 25/10/2026). Sur la carte, c'est le niveau qui fait la taille (palierDe, Adrien, 24/10/2026). */
+const TAILLE: Record<Forme, number> = { capsule: 1, navette: 1.2, corvette: 1.35, fregate: 1.75, croiseur: 1.85, legende: 2 }
 export const tailleAuCombat = (forme: Forme) => TAILLE[forme]
 
 type Pt = [number, number]

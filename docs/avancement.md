@@ -91,6 +91,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Taille des formes au combat (Adrien, 25/10/2026 : « évidemment que les vaisseaux sont de plus en plus gros ») :
+  mesurée sur le plus grand côté de l'image, comme sur la carte (par la largeur, la longue Frégate devenait immense et
+  la Légende minuscule), et une progression bien visible : Capsule 1, Navette 1,2, Corvette 1,35, Frégate 1,75 (longue
+  et fine, un peu plus pour ne pas paraître plus petite que la Corvette), Croiseur 1,85, Légende 2 ; zone de touche
+  inchangée.
 - Propulsion des formes (Adrien, 25/10/2026 : pas de flammes, sauf si la référence en a) : `PROPULSION` dans
   carte/vaisseaux.ts, au combat et sur la carte : flammes pour la Capsule et la Navette, lueur bleue pour la Corvette,
   rien pour la Frégate et la Légende ; le Croiseur, une lueur rouge au bout de ses deux nacelles (`LUEURS`).
