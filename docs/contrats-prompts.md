@@ -84,4 +84,7 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
 - **La station** (25/10/2026) : `public/contrats/quai.webp` (amarrage et largage : la pointe de son port au point de
   contact), `hangar.webp` (convoi : les cargos sortent du milieu de sa baie), `station.webp` (la station entière, rangée
   pour plus tard : fiches et carte).
-- Reste à venir : le cargo, le missile, la planche des débris.
+- **Le cargo** (25/10/2026) : ses bandes orange repeintes par Claude d'avance, hors de la soute (les conteneurs gardent
+  leurs couleurs), en trois livrées, `cargo-0|1|2.webp` (jaune, bleu, lavande : `COULEURS_CARGOS`) ; au convoi et à
+  l'escorte (gris quand il est hors d'usage, une flamme à chaque tuyère).
+- Reste à venir : le missile, la planche des débris.

@@ -7,6 +7,7 @@ import { CARGOS, HAUTEUR, LARGEUR, RAYON_INTERCEPTION, RESISTANCE } from '../don
 import { avancerEscorte, nouvelleEscorte, positionMissile, tirer, type EtatEscorte } from '../moteur/escorte'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
+import { dessinerCargo, TUYERES_CARGO } from '../carte/objets-contrats'
 
 /** Une escorte : vers où, la zone (plus loin, plus de missiles), et ce qu'on fait à l'arrivée (texte du bilan). */
 export interface OptionsEscorte { titre: string; zone: number; surFin: (coups: number) => string }
@@ -146,12 +147,21 @@ export class VueEscorte {
       ctx.lineWidth = 1.8
       ctx.strokeStyle = ENCRE
       const s = k
-      const teintes = hs ? ['#b8b2a8', '#b8b2a8', '#b8b2a8'] : ['#f2c66a', '#8fd0dc', '#f3a08b']
-      teintes.forEach((t, j) => { ctx.fillStyle = t; ctx.fillRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s); ctx.strokeRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s) })
-      ctx.beginPath(); ctx.moveTo(-3 * s, -2 * s); ctx.lineTo(0, -7 * s); ctx.lineTo(3 * s, -2 * s); ctx.closePath()
-      ctx.fillStyle = hs ? '#b8b2a8' : '#efe6d2'; ctx.fill(); ctx.stroke()
+      // Le cargo dessiné par ChatGPT, de sa couleur (Adrien, 25/10/2026), une flamme à chacune de ses deux tuyères ;
+      // sinon l'ancien dessin, une cabine et trois conteneurs.
       ctx.fillStyle = '#f2b53a'
-      if (!hs) { ctx.beginPath(); ctx.moveTo(-2 * s, 13 * s); ctx.lineTo(0, (16 + Math.sin(e.temps * 20 + i) * 1.2) * s); ctx.lineTo(2 * s, 13 * s); ctx.closePath(); ctx.fill(); ctx.stroke() }
+      if (!hs) {
+        for (const cote of [-1, 1]) {
+          const fx = cote * TUYERES_CARGO * 14.2 * s
+          ctx.beginPath(); ctx.moveTo(fx - 1.4 * s, 12.5 * s); ctx.lineTo(fx, (15.5 + Math.sin(e.temps * 20 + i + cote) * 1.2) * s); ctx.lineTo(fx + 1.4 * s, 12.5 * s); ctx.closePath(); ctx.fill(); ctx.stroke()
+        }
+      }
+      if (!dessinerCargo(ctx, i, 0, 3, 20 * s, hs)) {
+        const teintes = hs ? ['#b8b2a8', '#b8b2a8', '#b8b2a8'] : ['#f2c66a', '#8fd0dc', '#f3a08b']
+        teintes.forEach((t, j) => { ctx.fillStyle = t; ctx.fillRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s); ctx.strokeRect(-4 * s, (-2 + j * 5) * s, 8 * s, 4.5 * s) })
+        ctx.beginPath(); ctx.moveTo(-3 * s, -2 * s); ctx.lineTo(0, -7 * s); ctx.lineTo(3 * s, -2 * s); ctx.closePath()
+        ctx.fillStyle = hs ? '#b8b2a8' : '#efe6d2'; ctx.fill(); ctx.stroke()
+      }
       for (let f = 0; f < d; f++) {
         ctx.fillStyle = 'rgba(80,72,88,0.35)'
         ctx.beginPath(); ctx.arc((f ? 3 : -3) * s, (-6 - ((e.temps * 6 + f * 3) % 8)) * s, (1.5 + ((e.temps * 3 + f) % 2)) * s, 0, 2 * Math.PI); ctx.fill()

@@ -63,3 +63,20 @@ export function dessinerEpave(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.restore()
   return true
 }
+
+/** Un cargo de la Résistance, dessiné par ChatGPT (Adrien, 25/10/2026), ses bandes repeintes d'avance (par Claude) aux
+ *  couleurs des trois cargos du convoi (COULEURS_CARGOS : jaune, bleu, lavande) ; la proue vers le haut, centré en
+ *  (x, y), haut de `hauteur` ; gris quand il est hors d'usage. False tant que l'image n'est pas chargée. */
+export function dessinerCargo(ctx: CanvasRenderingContext2D, i: number, x: number, y: number, hauteur: number, gris = false): boolean {
+  const im = imageObjet(`contrats/cargo-${i % 3}.webp`)
+  if (!im) return false
+  const l = (hauteur * im.naturalWidth) / im.naturalHeight
+  ctx.save()
+  if (gris) ctx.filter = 'grayscale(1) brightness(0.85)'
+  ctx.drawImage(im, x - l / 2, y - hauteur / 2, l, hauteur)
+  ctx.restore()
+  return true
+}
+
+/** Où sont ses deux tuyères, en parts de la largeur de l'image depuis son milieu. */
+export const TUYERES_CARGO = 0.22

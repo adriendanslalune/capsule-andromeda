@@ -7,7 +7,7 @@ import { CAPSULE, COULEURS_CARGOS, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../d
 import { avancerConvoi, deplacer, lacherCargo, nouveauConvoi, prendre, type EtatConvoi } from '../moteur/convoi'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
-import { dessinerStation } from '../carte/objets-contrats'
+import { dessinerCargo, dessinerStation } from '../carte/objets-contrats'
 
 /** Un convoi : à quelle station, et ce qu'on fait quand il est formé (renvoie le texte du bilan). */
 export interface OptionsConvoi { titre: string; surFin: (egares: number) => string }
@@ -135,6 +135,8 @@ export class VueConvoi {
     ctx.scale(k, k)
     ctx.lineWidth = 1.8 / k
     ctx.strokeStyle = ENCRE
+    // Le cargo dessiné par ChatGPT, aux couleurs de sa place (Adrien, 25/10/2026) ; la place vide reste en pointillé.
+    if (!fantome && dessinerCargo(ctx, COULEURS_CARGOS.indexOf(teinte), 0, -0.5, 19)) { ctx.restore(); return }
     if (fantome) { ctx.setLineDash([2, 2]); ctx.globalAlpha = 0.5 }
     ctx.beginPath()
     ctx.moveTo(0, -9); ctx.lineTo(5, -5); ctx.lineTo(5, 8); ctx.lineTo(-5, 8); ctx.lineTo(-5, -5); ctx.closePath()
