@@ -94,7 +94,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
 - Formes de la capsule, refonte (Adrien, 25/10/2026 : elles ne se distinguaient pas assez) : un clin d'œil à la SF par
   palier, validé : Navette l'Eagle de Cosmos 1999, Corvette le cargo-soucoupe à mandibules, Frégate le Discovery One,
   Croiseur l'Enterprise, Légende le vaisseau-anneau de 2001 en or ; la Capsule reste. Fiche de prompts refaite
-  (`docs/capsule-prompts.md`) ; **en attente des images d'Adrien** (les cinq ; les anciennes restent jusque-là ;
+  (`docs/capsule-prompts.md`) ; Navette reçue le 25/10/2026 (quatre tuyères, flammes calées) ; **en attente des images d'Adrien** (Corvette, Frégate, Croiseur, Légende ; les anciennes restent jusque-là ;
   flammes à remesurer, `TUYERES` de vue-combat.ts). D'autres clins d'œil plus tard en livrées de la boutique.
 - Trophées (Adrien, 25/10/2026 : « je ne sais pas comment je l'ai obtenu ») : un trophée gagné dit aussi ce qui l'a
   valu (sa condition, `indice`), dans la vitrine du Profil et dans la petite fenêtre « TROPHÉE ! ».
