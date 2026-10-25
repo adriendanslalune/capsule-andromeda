@@ -91,6 +91,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Formes de la capsule, refonte (Adrien, 25/10/2026 : elles ne se distinguaient pas assez) : un clin d'œil à la SF par
+  palier, validé : Navette l'Eagle de Cosmos 1999, Corvette le cargo-soucoupe à mandibules, Frégate le Discovery One,
+  Croiseur l'Enterprise, Légende le vaisseau-anneau de 2001 en or ; la Capsule reste. Fiche de prompts refaite
+  (`docs/capsule-prompts.md`) ; **en attente des images d'Adrien** (les cinq ; les anciennes restent jusque-là ;
+  flammes à remesurer, `TUYERES` de vue-combat.ts). D'autres clins d'œil plus tard en livrées de la boutique.
 - Trophées (Adrien, 25/10/2026 : « je ne sais pas comment je l'ai obtenu ») : un trophée gagné dit aussi ce qui l'a
   valu (sa condition, `indice`), dans la vitrine du Profil et dans la petite fenêtre « TROPHÉE ! ».
 - Horloge (Adrien, 25/10/2026 : « le jeu n'est pas tout à fait à l'heure ») : elle avançait avec le compteur du
