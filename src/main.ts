@@ -130,15 +130,22 @@ const infos = document.querySelector<HTMLDivElement>('#infos')!
 const titre = document.querySelector<HTMLDivElement>('#titre')!
 
 /**
- * L'horloge : la vraie heure UTC, précise au-dessous de la milliseconde (le moteur la reçoit en paramètre).
- * Réglage d'essai : on peut accélérer le temps (le temps simulé prend alors de l'avance sur l'heure réelle).
+ * L'horloge : la vraie heure UTC du téléphone (le moteur la reçoit en paramètre). Elle est relue à chaque fois
+ * (Adrien, 25/10/2026 : le jeu n'était pas à l'heure ; le compteur du navigateur s'arrête quand le téléphone se met
+ * en veille, et le jeu prenait du retard à chaque fois). Réglage d'essai : on peut accélérer le temps ; le temps
+ * simulé prend alors de l'avance (decalage), qu'il garde ensuite.
  */
+let decalage = 0
 let tempsSimule = Date.now()
 let dernierPerf = performance.now()
 let acceleration = 1
-const horloge = () => tempsSimule
+const horloge = () => (acceleration === 1 ? Date.now() + decalage : tempsSimule)
 function avancerHorloge(maintenant: number): void {
-  tempsSimule += (maintenant - dernierPerf) * acceleration
+  if (acceleration === 1) tempsSimule = Date.now() + decalage
+  else {
+    tempsSimule += (maintenant - dernierPerf) * acceleration
+    decalage = tempsSimule - Date.now()
+  }
   dernierPerf = maintenant
 }
 

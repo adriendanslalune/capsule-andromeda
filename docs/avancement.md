@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Horloge (Adrien, 25/10/2026 : « le jeu n'est pas tout à fait à l'heure ») : elle avançait avec le compteur du
+  navigateur (performance.now), qui s'arrête quand le téléphone se met en veille ; le jeu prenait du retard à chaque
+  fois, sans jamais se recaler. Elle relit maintenant l'heure du téléphone (Date.now) ; l'accélération d'essai garde son
+  avance (`decalage` dans main.ts).
 - Carte (Adrien, 25/10/2026) : anneaux de Saturne et d'Uranus inclinés (une ellipse penchée, la moitié arrière
   cachée derrière le globe, la moitié avant devant, l'ombre de la planète ramenée dans leur plan ; `carte/globes.ts`) ;
   les sondes lointaines façon Voyager (`carte/engins.ts`) ; le Soleil de loin, un globe doré dans sa lueur au lieu du
