@@ -80,3 +80,17 @@ export function dessinerCargo(ctx: CanvasRenderingContext2D, i: number, x: numbe
 
 /** Où sont ses deux tuyères, en parts de la largeur de l'image depuis son milieu. */
 export const TUYERES_CARGO = 0.22
+
+/** Le missile d'Andromède, dessiné par ChatGPT (Adrien, 25/10/2026), centré en (x, y), long de `longueur`, la pointe
+ *  dans la direction `angle` (radians, 0 vers la droite). False tant que l'image n'est pas chargée. */
+export function dessinerMissile(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, longueur: number): boolean {
+  const im = imageObjet('contrats/missile.webp')
+  if (!im) return false
+  const l = (longueur * im.naturalWidth) / im.naturalHeight
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle + Math.PI / 2)
+  ctx.drawImage(im, -l / 2, -longueur / 2, l, longueur)
+  ctx.restore()
+  return true
+}

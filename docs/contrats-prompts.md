@@ -88,4 +88,7 @@ Format carré 1024 × 1024 (ou plus grand si possible). Claude découpe la planc
   leurs couleurs), en trois livrées, `cargo-0|1|2.webp` (jaune, bleu, lavande : `COULEURS_CARGOS`) ; au convoi et à
   l'escorte (gris quand il est hors d'usage, une flamme à chaque tuyère ; un peu plus grand à l'escorte, Adrien
   25/10/2026 : on voyait mal sa couleur).
-- Reste à venir : le missile, la planche des débris.
+- **Le missile** (25/10/2026) : `missile.webp`, à l'escorte (dans une lueur verte qui pulse, pour le repérer sur le
+  papier) et sur la carte (le missile d'un chasseur vers la capsule, au lieu de la flèche cerise ; le pointillé et le
+  décompte restent cerise).
+- Reste à venir : la planche des débris.

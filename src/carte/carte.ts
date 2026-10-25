@@ -23,6 +23,7 @@ import { traceOrbite } from '../moteur/orbite'
 import { activiteComete, HALLEY, orbitePetitCorps } from '../moteur/petits-corps'
 import { PETITS_CORPS, type PetitCorps } from '../donnees/petits-corps'
 import { positionsPoussiere } from '../moteur/poussiere'
+import { dessinerMissile } from './objets-contrats'
 import { MS_PAR_JOUR, UA_KM } from '../moteur/temps'
 import type { Vecteur3 } from '../moteur/vecteur'
 
@@ -1136,17 +1137,20 @@ export class Carte2D {
       ctx.stroke()
       ctx.setLineDash([])
       ctx.globalAlpha = 1
-      // Le missile, dans le sens de sa course.
-      ctx.translate(x, y)
-      ctx.rotate(Math.atan2(capsule.y - a.y, capsule.x - a.x))
-      ctx.beginPath()
-      ctx.moveTo(8, 0); ctx.lineTo(3, -2.5); ctx.lineTo(-6, -2.5); ctx.lineTo(-9, -5); ctx.lineTo(-8, 0); ctx.lineTo(-9, 5); ctx.lineTo(-6, 2.5); ctx.lineTo(3, 2.5)
-      ctx.closePath()
-      ctx.fillStyle = '#e04b37'
-      ctx.fill()
-      ctx.lineWidth = 1.2
-      ctx.strokeStyle = c.encre
-      ctx.stroke()
+      // Le missile, dans le sens de sa course : celui de l'escorte (Adrien, 25/10/2026), sinon l'ancienne flèche.
+      const cap = Math.atan2(capsule.y - a.y, capsule.x - a.x)
+      if (!dessinerMissile(ctx, x, y, cap, 26)) {
+        ctx.translate(x, y)
+        ctx.rotate(cap)
+        ctx.beginPath()
+        ctx.moveTo(8, 0); ctx.lineTo(3, -2.5); ctx.lineTo(-6, -2.5); ctx.lineTo(-9, -5); ctx.lineTo(-8, 0); ctx.lineTo(-9, 5); ctx.lineTo(-6, 2.5); ctx.lineTo(3, 2.5)
+        ctx.closePath()
+        ctx.fillStyle = '#e04b37'
+        ctx.fill()
+        ctx.lineWidth = 1.2
+        ctx.strokeStyle = c.encre
+        ctx.stroke()
+      }
       ctx.restore()
       // Le décompte, sur une étiquette cerise.
       ctx.save()

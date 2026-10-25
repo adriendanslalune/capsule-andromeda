@@ -7,7 +7,7 @@ import { CARGOS, HAUTEUR, LARGEUR, RAYON_INTERCEPTION, RESISTANCE } from '../don
 import { avancerEscorte, nouvelleEscorte, positionMissile, tirer, type EtatEscorte } from '../moteur/escorte'
 import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 import { dessinerDecorContrat } from '../carte/decor-contrat'
-import { dessinerCargo, TUYERES_CARGO } from '../carte/objets-contrats'
+import { dessinerCargo, dessinerMissile, TUYERES_CARGO } from '../carte/objets-contrats'
 
 /** Une escorte : vers où, la zone (plus loin, plus de missiles), et ce qu'on fait à l'arrivée (texte du bilan). */
 export interface OptionsEscorte { titre: string; zone: number; surFin: (coups: number) => string }
@@ -186,6 +186,14 @@ export class VueEscorte {
       ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y)); ctx.lineTo(X(c.x), Y(c.y)); ctx.stroke()
       ctx.setLineDash([])
       const a = Math.atan2(c.y - m.depart.y, c.x - m.depart.x)
+      // Le missile d'Andromède dessiné par ChatGPT (Adrien, 25/10/2026), dans une lueur verte qui pulse pour qu'on le
+      // repère sur le papier ; sinon l'ancienne flèche.
+      const lueur = ctx.createRadialGradient(X(p.x), Y(p.y), 0, X(p.x), Y(p.y), (9 + Math.sin(e.temps * 9) * 1.2) * k)
+      lueur.addColorStop(0, 'rgba(150, 230, 90, 0.55)')
+      lueur.addColorStop(1, 'rgba(150, 230, 90, 0)')
+      ctx.fillStyle = lueur
+      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 10.2 * k, 0, 2 * Math.PI); ctx.fill()
+      if (dessinerMissile(ctx, X(p.x), Y(p.y), a, 15 * k)) continue
       ctx.save()
       ctx.translate(X(p.x), Y(p.y))
       ctx.rotate(a)
