@@ -91,6 +91,8 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Couverture et icône du jeu à refaire par ChatGPT (Adrien, 25/10/2026 : les dessins vectoriels de Claude font
+  clip-art à côté des illustrations) : fiche de prompts écrite (`docs/couverture-prompts.md`), en attente des images.
 - Bandeaux des volets illustrés (Adrien, 25/10/2026 : une illustration en lien avec l'onglet, mêmes tons) : validé,
   même hauteur (environ 100 px), pas de réduction au défilement, l'illustration à droite fondue dans l'aplat, une image
   d'atelier pour la Capsule ; fiche de prompts écrite (`docs/bandeaux-prompts.md`) ; les cinq images reçues et posées
