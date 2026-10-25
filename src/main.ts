@@ -2023,9 +2023,17 @@ function combattreAmiral(nom: string): void {
   })
 }
 
-/** Les illustrations des zones libérées déjà reçues (docs/fenetres-prompts.md). */
+/**
+ * L'illustration de la libération, une par système (Adrien, 25/10/2026 : le décor du PNJ du système, en fête ;
+ * docs/fenetres-prompts.md) : toutes les zones d'un système la partagent (le système de la Terre : la Lune). Triton,
+ * le boss de l'acte 1, aura la sienne. Seulement les images déjà reçues.
+ */
 const ILLUSTRATIONS_LIBERATION: Record<string, string> = {
-  Lune: 'liberations/lune.webp', Mars: 'liberations/mars.webp', Vénus: 'liberations/venus.webp', Mercure: 'liberations/mercure.webp',
+  Terre: 'liberations/lune.webp', Mars: 'liberations/mars.webp', Vénus: 'liberations/venus.webp', Mercure: 'liberations/mercure.webp',
+}
+const illustrationLiberation = (zone: string): string | undefined => {
+  const z = ZONES_A_LIBERER.find((x) => x.nom === zone)
+  return z && zone !== 'Triton' ? ILLUSTRATIONS_LIBERATION[z.systeme] : undefined
 }
 
 /** Attaquer un chasseur repéré (la vue de combat) : vaincu, il disparaît ; la retraite abîme la Coque. */
@@ -2264,7 +2272,7 @@ function image(maintenant: number): void {
     void feliciter({ titre: `${l.zone} libérée !`, portrait: medaillon(l.pnj, 'portrait'), nom: l.pnj.nom, role: l.pnj.role,
       texte: l.texte.map((x) => x.replaceAll('{joueur}', jeu.pseudo)), ouvre: l.ouvre, bouton: 'VIVE LA RÉSISTANCE !',
       // L'astre libéré, en fête, dessiné par ChatGPT (Adrien, 25/10/2026) ; les autres zones l'auront au fil de la campagne.
-      illustration: ILLUSTRATIONS_LIBERATION[l.zone] })
+      illustration: illustrationLiberation(l.zone) })
   }
   // Un message radio d'un PNJ arrivé : il s'ouvre dans la fenêtre de dialogue, avec son portrait.
   // (Celui qui annonce une nouvelle quête principale attend qu'on la touche au tableau de bord.)
