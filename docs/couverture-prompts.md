@@ -56,4 +56,9 @@ Format **carré 1024 × 1024**, **fond plein** (pas de transparence : l'iPhone m
 
 ## Reçus
 
-(rien encore)
+- **La couverture** (25/10/2026) : `public/couverture.webp`, en fond plein écran (cadrée au centre : les bords sont
+  rognés sur un téléphone) ; le titre et la une descendent au pied, en crème, sur un voile de nuit ; le bandeau
+  « CAPITAINES ! » et l'étoile de la une restent en haut.
+- **L'icône** (25/10/2026) : `public/icones/` (512, 192, 180 pour l'iPhone, 32 pour l'onglet du navigateur) et une
+  version masquable pour Android (le dessin réduit à 80 % sur le bleu nuit, pour que la découpe en rond ne mange pas
+  la capsule) ; l'ancienne icône SVG est retirée.

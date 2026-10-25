@@ -2727,3 +2727,9 @@ body.volet-ouvert #annonces { display: none; }
   border: 1.5px solid var(--encre); border-radius: 2px; font-size: 12px; }
 /* Là où l'accroche et la référence gravée mordent sur l'illustration, un halo de la couleur de l'onglet les détache. */
 #volet #volet-titre::before, #volet #volet-titre .accroche { text-shadow: 0 0 2px var(--rub), 0 0 5px var(--rub), 0 0 9px var(--rub); }
+
+/* La couverture illustrée par ChatGPT (Adrien, 25/10/2026 ; docs/couverture-prompts.md) : la capsule qui fonce vers
+   Triton fendu, en fond plein écran ; le titre et la une descendent au pied, sur un voile de nuit, en crème. */
+#couverture { background: linear-gradient(to bottom, transparent 58%, rgba(7, 20, 40, 0.75) 82%, rgba(7, 20, 40, 0.9)), url('/couverture.webp') 50% 40% / cover no-repeat, #072644; }
+#couverture .titre-revue { margin-top: auto; color: var(--creme); text-shadow: 3px 3px 0 var(--encre), 6px 6px 0 var(--orange); }
+#couverture .une-revue { margin-bottom: calc(44px + env(safe-area-inset-bottom)); }
