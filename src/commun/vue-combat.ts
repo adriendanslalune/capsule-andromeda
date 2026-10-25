@@ -4,7 +4,7 @@
 // aliens ; le bouton BOMBE efface toutes les balles. La vue ne décide rien : elle montre l'état que tient le moteur
 // (moteur/combat.ts).
 
-import { FORMES_PRETES, PROPULSION, dimensions, formePeinte, tailleAuCombat } from '../carte/vaisseaux'
+import { FORMES_PRETES, LUEURS, PROPULSION, dimensions, formePeinte, tailleAuCombat } from '../carte/vaisseaux'
 import type { Maison } from '../donnees/maisons'
 import type { Forme } from '../donnees/niveaux'
 import { confirmer } from './confirmation'
@@ -35,11 +35,6 @@ function vaisseau(nom: string): HTMLImageElement | null {
  *  part de sa hauteur depuis le haut, là où sort la flamme), et la demi-largeur de leur flamme (unités du combat). */
 const TUYERES: Partial<Record<Forme, { x: number; y: number; demi: number }[]>> = {
   navette: [{ x: -0.2, y: 0.86, demi: 0.45 }, { x: -0.1, y: 0.985, demi: 0.85 }, { x: 0.095, y: 0.985, demi: 0.85 }, { x: 0.2, y: 0.86, demi: 0.45 }],
-}
-/** Au lieu de flammes, une lueur bleue qui pulse sur sa fente de propulsion (Adrien, 25/10/2026, pour la Corvette) :
- *  sa demi-largeur (part de la largeur de l'image) et sa hauteur (part de sa hauteur depuis le haut). */
-const LUEURS: Partial<Record<Forme, { demi: number; y: number }>> = {
-  corvette: { demi: 0.22, y: 0.94 },
 }
 /** Le nom de fichier d'un amiral : « le Séléné » → selene, « l'Ithaque » → ithaque, « TRITON » → triton. */
 export function idAmiral(nom: string): string {
@@ -317,18 +312,18 @@ export class VueCombat {
       }
       ctx.drawImage(imCapsule, x - l / 2, y - h / 2, l, h)
       if (lueur) {
-        // La lueur bleue : un halo qui déborde sous la fente et respire.
-        const yl = y - h / 2 + lueur.y * h, rx = lueur.demi * l * (1.15 + 0.1 * Math.sin(e.temps * 12)), ry = 2.6 * k
-        ctx.save()
-        ctx.translate(x, yl)
-        ctx.scale(1, ry / rx)
-        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
-        g.addColorStop(0, 'rgba(160, 235, 255, 0.95)')
-        g.addColorStop(0.45, 'rgba(90, 200, 245, 0.6)')
-        g.addColorStop(1, 'rgba(90, 200, 245, 0)')
-        ctx.fillStyle = g
-        ctx.beginPath(); ctx.arc(0, 0, rx, 0, 2 * Math.PI); ctx.fill()
-        ctx.restore()
+        // La lueur : un halo qui déborde sous la fente ou la tuyère, et respire.
+        for (const p of lueur.points) {
+          const yl = y - h / 2 + p.y * h, rx = p.demi * l * (1.15 + 0.1 * Math.sin(e.temps * 12 + p.x * 5)), ry = Math.max(2.6 * k, rx * 0.8)
+          ctx.save()
+          ctx.translate(x + p.x * l, yl)
+          ctx.scale(1, ry / rx)
+          const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
+          lueur.teintes.forEach((c, i) => g.addColorStop([0, 0.45, 1][i], c))
+          ctx.fillStyle = g
+          ctx.beginPath(); ctx.arc(0, 0, rx, 0, 2 * Math.PI); ctx.fill()
+          ctx.restore()
+        }
       }
       ctx.beginPath(); ctx.arc(x, y, 0.9 * k, 0, 2 * Math.PI); ctx.fillStyle = CERISE; ctx.fill()
     } else if (e.temps >= e.invulnerableJusqua || Math.floor(e.temps * 12) % 2 === 0) {

@@ -15,7 +15,7 @@ import { CENTRES, projeter, projeterCorps, projeterPoussiere, rayonDessine, zone
 import { BOTS } from '../donnees/messages'
 import type { Forme } from '../donnees/niveaux'
 import { niveauDuBot, palierDe } from '../moteur/niveau'
-import { dessinerVaisseau, imageChasseur, PROPULSION, rayonVaisseau } from './vaisseaux'
+import { dessinerVaisseau, imageChasseur, LUEURS, PROPULSION, rayonVaisseau } from './vaisseaux'
 import { etatCapsule } from '../moteur/capsule'
 import { CORPS, corps, enfants, ouEstLeBot, position, type Corps } from '../moteur/corps'
 import { ZONE_RECHERCHE } from '../donnees/disparus'
@@ -550,17 +550,21 @@ export class Carte2D {
     const propulsion = forme ? PROPULSION[forme] : 'flammes'
     if (!propulsion) return
     if (propulsion === 'lueur') {
-      const rl = r * (0.5 + 0.06 * Math.sin(performance.now() / 160 + graine))
-      ctx.save()
-      ctx.translate(bx, by)
-      ctx.rotate(angle)
-      ctx.scale(0.45, 1)
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rl)
-      g.addColorStop(0, 'rgba(160, 235, 255, 0.9)')
-      g.addColorStop(1, 'rgba(90, 200, 245, 0)')
-      ctx.fillStyle = g
-      ctx.beginPath(); ctx.arc(0, 0, rl, 0, 2 * Math.PI); ctx.fill()
-      ctx.restore()
+      const lueur = forme ? LUEURS[forme] : undefined
+      if (!lueur) return
+      for (const p of lueur.points) {
+        const rl = r * (forme === 'croiseur' ? 0.3 : 0.5) * (1 + 0.12 * Math.sin(performance.now() / 160 + graine + p.lat))
+        ctx.save()
+        ctx.translate(x - dx * r * p.arriere - dy * r * p.lat, y - dy * r * p.arriere + dx * r * p.lat)
+        ctx.rotate(angle)
+        ctx.scale(0.45, 1)
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rl)
+        g.addColorStop(0, lueur.teintes[0])
+        g.addColorStop(1, lueur.teintes[2])
+        ctx.fillStyle = g
+        ctx.beginPath(); ctx.arc(0, 0, rl, 0, 2 * Math.PI); ctx.fill()
+        ctx.restore()
+      }
       return
     }
     ctx.save()

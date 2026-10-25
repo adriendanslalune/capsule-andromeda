@@ -93,11 +93,11 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
 - Propulsion des formes (Adrien, 25/10/2026 : pas de flammes, sauf si la référence en a) : `PROPULSION` dans
   carte/vaisseaux.ts, au combat et sur la carte : flammes pour la Capsule et la Navette, lueur bleue pour la Corvette,
-  rien pour la Frégate et la Légende ; le Croiseur aura la lueur rouge de ses moteurs d'impulsion avec sa nouvelle image.
+  rien pour la Frégate et la Légende ; le Croiseur, une lueur rouge au bout de ses deux nacelles (`LUEURS`).
 - Formes de la capsule, refonte (Adrien, 25/10/2026 : elles ne se distinguaient pas assez) : un clin d'œil à la SF par
   palier, validé : Navette l'Eagle de Cosmos 1999, Corvette le cargo-soucoupe à mandibules, Frégate le Discovery One,
   Croiseur l'Enterprise, Légende le vaisseau-anneau de 2001 en or ; la Capsule reste. Fiche de prompts refaite
-  (`docs/capsule-prompts.md`) ; Navette, Corvette et Frégate reçues le 25/10/2026 (flammes calées : quatre tuyères ; la Corvette n'a pas de flammes mais une lueur bleue qui pulse sur sa fente, au combat et sur la carte : Adrien, 25/10/2026) ; **en attente des images d'Adrien** (Croiseur, Légende ; les anciennes restent jusque-là ;
+  (`docs/capsule-prompts.md`) ; Navette, Corvette, Frégate et Croiseur reçus le 25/10/2026 (flammes calées : quatre tuyères ; la Corvette n'a pas de flammes mais une lueur bleue qui pulse sur sa fente, au combat et sur la carte : Adrien, 25/10/2026) ; **en attente de l'image d'Adrien** (la Légende ; les anciennes restent jusque-là ;
   flammes à remesurer, `TUYERES` de vue-combat.ts). D'autres clins d'œil plus tard en livrées de la boutique.
 - Trophées (Adrien, 25/10/2026 : « je ne sais pas comment je l'ai obtenu ») : un trophée gagné dit aussi ce qui l'a
   valu (sa condition, `indice`), dans la vitrine du Profil et dans la petite fenêtre « TROPHÉE ! ».
