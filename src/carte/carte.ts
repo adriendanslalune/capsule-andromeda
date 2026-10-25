@@ -538,14 +538,29 @@ export class Carte2D {
     const recul = Math.max(0.7, Math.min(1, 1 - 0.3 * Math.log10(Math.max(1, this.kmParPx / 15))))
     const angle = Math.atan2(q2.y - q.y, q2.x - q.x), taille = p.taille * 0.85 * recul * this.grossissement()
     // En vol, une flamme derrière lui (Adrien, 24/10/2026 : on doit les voir partir et arriver).
-    if (ouEstLeBot(nom, t).enRoute) this.dessinerFlamme(ctx, q.x, q.y, angle, rayonVaisseau(p.forme, taille), nom.length, couleurs)
+    if (ouEstLeBot(nom, t).enRoute) this.dessinerFlamme(ctx, q.x, q.y, angle, rayonVaisseau(p.forme, taille), nom.length, couleurs, p.forme)
     dessinerVaisseau(ctx, q.x, q.y, angle, p.forme, taille, teinte, couleurs.encre, false, maison)
   }
 
-  /** La flamme d'un vaisseau en vol, derrière lui (discrète : Adrien, 24/10/2026), qui vacille. */
-  private dessinerFlamme(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, r: number, graine: number, couleurs: Couleurs2D): void {
+  /** La flamme d'un vaisseau en vol, derrière lui (discrète : Adrien, 24/10/2026), qui vacille ; pour la Corvette, une
+   *  lueur bleue qui respire (Adrien, 25/10/2026). */
+  private dessinerFlamme(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, r: number, graine: number, couleurs: Couleurs2D, forme?: Forme): void {
     const long = r * (0.65 + 0.15 * Math.sin(performance.now() / 70 + graine))
     const dx = Math.cos(angle), dy = Math.sin(angle), bx = x - dx * r * 0.7, by = y - dy * r * 0.7, l = r * 0.17
+    if (forme === 'corvette') {
+      const rl = r * (0.5 + 0.06 * Math.sin(performance.now() / 160 + graine))
+      ctx.save()
+      ctx.translate(bx, by)
+      ctx.rotate(angle)
+      ctx.scale(0.45, 1)
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rl)
+      g.addColorStop(0, 'rgba(160, 235, 255, 0.9)')
+      g.addColorStop(1, 'rgba(90, 200, 245, 0)')
+      ctx.fillStyle = g
+      ctx.beginPath(); ctx.arc(0, 0, rl, 0, 2 * Math.PI); ctx.fill()
+      ctx.restore()
+      return
+    }
     ctx.save()
     ctx.globalAlpha *= 0.85
     ctx.beginPath()
@@ -1005,7 +1020,7 @@ export class Carte2D {
     const forme = this.formeCapsule, g = this.grossissement(), rc = rayonVaisseau(forme.forme, forme.taille * g)
     this.dessines.push({ nom: CAPSULE, x, y, r: rc })
     if (this.sillage) this.dessinerSillage(ctx, x, y, a, rc, couleurs)
-    if (this.capsuleEnRoute) this.dessinerFlamme(ctx, x, y, a, rc, 0, couleurs)
+    if (this.capsuleEnRoute) this.dessinerFlamme(ctx, x, y, a, rc, 0, couleurs, forme.forme)
     this.dessinerPulsesPing(ctx, x, y, rc, maintenant)
     dessinerVaisseau(ctx, x, y, a, forme.forme, forme.taille * g, '#e04b37', couleurs.encre, true, this.maisonCapsule)
     // Sa plaque (numéro et capitaine) se pose avec les noms, en dernier (dessinerNoms).
