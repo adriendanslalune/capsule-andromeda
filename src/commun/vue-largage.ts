@@ -6,6 +6,7 @@
 
 import { DISTANCE_DEPART, ZONE_LOIN, ZONE_PROCHE } from '../donnees/largage'
 import { avancerLargage, lacher, nouveauLargage, type EtatLargage } from '../moteur/largage'
+import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 
 /** Un largage : à quelle station, et ce qu'on fait quand l'épave est déposée (renvoie le texte du bilan). */
 export interface OptionsLargage { titre: string; surFin: (rates: number) => string }
@@ -221,9 +222,12 @@ export class VueLargage {
     ctx.save()
     ctx.translate(cx, yc)
     ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(-6, -22); ctx.lineTo(6, -22); ctx.lineTo(18, 4); ctx.quadraticCurveTo(0, 10, -18, 4); ctx.closePath()
-    ctx.fillStyle = '#efe6d2'; ctx.fill(); ctx.stroke()
+    // Dans sa forme et sa Maison (Adrien, 25/10/2026), sinon l'ancien dessin.
+    if (!dessinerCapsuleDuJoueur(ctx, 0, -6, 0, 46)) {
+      ctx.beginPath()
+      ctx.moveTo(-6, -22); ctx.lineTo(6, -22); ctx.lineTo(18, 4); ctx.quadraticCurveTo(0, 10, -18, 4); ctx.closePath()
+      ctx.fillStyle = '#efe6d2'; ctx.fill(); ctx.stroke()
+    }
     // La flamme du frein (vers l'avant : rétrofusée).
     if (this.frein && e.phase === 'approche') {
       ctx.fillStyle = '#f2b53a'

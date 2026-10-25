@@ -77,7 +77,7 @@ import { ZONES } from './donnees/tableaux'
 import { estLibre, jauge, zone } from './moteur/zones'
 import { ZONES_A_LIBERER } from './donnees/zones'
 import { niveauDe, niveauGagne, palierDe } from './moteur/niveau'
-import { dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from './carte/vaisseaux'
+import { CAPSULE_DU_JOUEUR, dessinerVaisseau, imageForme, rayonVaisseau, urlFormePeinte } from './carte/vaisseaux'
 import { oublierSoleilAnime, soleilAnime } from './carte/globes'
 import { htmlManuel } from './commun/manuel'
 import { Panneau, type EtatPanneau } from './commun/panneau'
@@ -187,6 +187,8 @@ const plaque = () => {
   carte.plaqueCapsule = `${jeu.numeroSerie} · ${jeu.pseudo} · niv. ${n}`
   carte.formeCapsule = palierDe(n)
   carte.maisonCapsule = jeu.maison
+  CAPSULE_DU_JOUEUR.forme = carte.formeCapsule.forme
+  CAPSULE_DU_JOUEUR.maison = jeu.maison
 }
 /** Le niveau du capitaine et sa jauge, pour le bandeau. */
 function xpBandeau(): { niveau: number; xp: number } {

@@ -210,3 +210,24 @@ export function dessinerVaisseau(ctx: CanvasRenderingContext2D, x: number, y: nu
   }
   ctx.restore()
 }
+
+/** La capsule du joueur dans les écrans des contrats (Adrien, 25/10/2026) : sa forme et sa Maison (main.ts les tient à jour). */
+export const CAPSULE_DU_JOUEUR: { forme: Forme; maison: Maison | null } = { forme: 'capsule', maison: null }
+
+/**
+ * Dessine la capsule du joueur dans sa forme et à la couleur de sa Maison, proue vers le haut puis tournée de angle,
+ * son plus grand côté long de cote pixels ; ancre « nez » : (x, y) est le bout de la proue, sinon le centre. Faux si
+ * son image n'est pas encore là (l'écran garde alors son ancien dessin).
+ */
+export function dessinerCapsuleDuJoueur(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, cote: number, ancre: 'centre' | 'nez' = 'centre'): boolean {
+  const forme = FORMES_PRETES.includes(CAPSULE_DU_JOUEUR.forme) ? CAPSULE_DU_JOUEUR.forme : 'capsule'
+  const im = formePeinte(forme, CAPSULE_DU_JOUEUR.maison)
+  if (!im) return false
+  const [L, H] = dimensions(im), l = (cote * L) / Math.max(L, H), h = (cote * H) / Math.max(L, H)
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.drawImage(im, -l / 2, ancre === 'nez' ? 0 : -h / 2, l, h)
+  ctx.restore()
+  return true
+}

@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Illustrations des contrats (Adrien, 25/10/2026 : « graphiquement c'est pas fou »), ordre validé : 1. la capsule du
+  joueur dans sa forme et sa Maison dans les écrans des contrats (remorquage, largage, amarrage, convoi, escorte ;
+  `dessinerCapsuleDuJoueur`, `CAPSULE_DU_JOUEUR` tenu par main.ts) — fait ; 2. fiche de prompts (décors, épaves,
+  station, cargo, missile, débris) ; 3. le dépannage refait façon Jules Verne.
 - Légende (Adrien, 25/10/2026 : « pas convaincu », et deux références à 2001) : l'Arcadia d'Albator remplace la roue,
   sans tête de mort, toute dorée ; reçue le même jour (déjà dorée), une lueur dorée à ses trois tuyères, au combat et
   sur la carte. Les lueurs du Croiseur, mal placées sur la carte (trop loin derrière), recalées.

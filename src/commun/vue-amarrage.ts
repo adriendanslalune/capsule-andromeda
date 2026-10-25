@@ -6,6 +6,7 @@
 
 import { ANGLE_CONTACT, ECART_CONTACT, VITESSE_CONTACT } from '../donnees/amarrage'
 import { avancerAmarrage, contactBon, nouvelAmarrage, type EtatAmarrage, type Poussees } from '../moteur/amarrage'
+import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 
 /** Un amarrage : où, et ce qu'on fait quand la capsule est amarrée (renvoie le texte du bilan). */
 export interface OptionsAmarrage { titre: string; surFin: (rebonds: number) => string }
@@ -216,8 +217,9 @@ export class VueAmarrage {
     if (p.cote === -1) flamme(1 * k, 2.6 * k, 1, 0)
     if (p.tourner === 1) { flamme(-1 * k, 1.9 * k, -1, 0); flamme(1 * k, 3.3 * k, 1, 0) }
     if (p.tourner === -1) { flamme(1 * k, 1.9 * k, 1, 0); flamme(-1 * k, 3.3 * k, -1, 0) }
-    // Le vaisseau : panneaux solaires de part et d'autre, module de service, tuyère, capsule conique, et la sonde
-    // d'amarrage rouge au nez.
+    // Le vaisseau dans sa forme et sa Maison (Adrien, 25/10/2026), la proue au point de contact ; sinon l'ancien dessin :
+    // panneaux solaires de part et d'autre, module de service, tuyère, capsule conique, et la sonde d'amarrage rouge au nez.
+    if (dessinerCapsuleDuJoueur(ctx, 0, 0, 0, 4 * k, 'nez')) { ctx.restore() } else {
     ctx.lineWidth = 2
     ctx.strokeStyle = ENCRE
     const rect = (x0: number, y0: number, w: number, hh: number, couleur: string) => { ctx.fillStyle = couleur; ctx.fillRect(x0 * k, y0 * k, w * k, hh * k); ctx.strokeRect(x0 * k, y0 * k, w * k, hh * k) }
@@ -243,6 +245,7 @@ export class VueAmarrage {
     ctx.beginPath(); ctx.arc(0, 1.15 * k, 0.2 * k, 0, 2 * Math.PI); ctx.fillStyle = '#bfe0e8'; ctx.fill(); ctx.stroke()
     rect(-0.1, 0, 0.2, 0.35, CERISE)
     ctx.restore()
+    }
 
     // Les cadrans : distance, vitesse d'approche, centrage, alignement (verts quand c'est bon).
     const cadran = (titre: string, valeur: string, ok: boolean | null) => `<span class="${ok === null ? '' : ok ? 'ok' : 'pas-ok'}"><small>${titre}</small><b>${valeur}</b></span>`

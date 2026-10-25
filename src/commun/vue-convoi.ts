@@ -5,6 +5,7 @@
 
 import { CAPSULE, COULEURS_CARGOS, HANGAR, HAUTEUR, LARGEUR, PLACES } from '../donnees/convoi'
 import { avancerConvoi, deplacer, lacherCargo, nouveauConvoi, prendre, type EtatConvoi } from '../moteur/convoi'
+import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 
 /** Un convoi : à quelle station, et ce qu'on fait quand il est formé (renvoie le texte du bilan). */
 export interface OptionsConvoi { titre: string; surFin: (egares: number) => string }
@@ -178,7 +179,8 @@ export class VueConvoi {
       this.cargo(X(p.x), Y(p.y), k * 1.1, '', true)
     })
 
-    // La capsule, nez vers le haut.
+    // La capsule, nez vers le haut, dans sa forme et sa Maison (Adrien, 25/10/2026) ; sinon l'ancien dessin.
+    if (!dessinerCapsuleDuJoueur(ctx, X(CAPSULE.x), Y(CAPSULE.y), 0, 16 * k)) {
     ctx.save()
     ctx.translate(X(CAPSULE.x), Y(CAPSULE.y))
     ctx.scale(k / 2.2, k / 2.2)
@@ -188,6 +190,7 @@ export class VueConvoi {
     ctx.moveTo(-6, -22); ctx.lineTo(6, -22); ctx.lineTo(18, 4); ctx.quadraticCurveTo(0, 10, -18, 4); ctx.closePath()
     ctx.fillStyle = '#e04b37'; ctx.fill(); ctx.stroke()
     ctx.restore()
+    }
 
     // Les cargos (le cargo tenu un peu plus gros, soulevé).
     e.cargos.forEach((c, i) => {

@@ -5,6 +5,7 @@
 
 import { CARGOS, HAUTEUR, LARGEUR, RAYON_INTERCEPTION, RESISTANCE } from '../donnees/escorte'
 import { avancerEscorte, nouvelleEscorte, positionMissile, tirer, type EtatEscorte } from '../moteur/escorte'
+import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 
 /** Une escorte : vers où, la zone (plus loin, plus de missiles), et ce qu'on fait à l'arrivée (texte du bilan). */
 export interface OptionsEscorte { titre: string; zone: number; surFin: (coups: number) => string }
@@ -155,12 +156,14 @@ export class VueEscorte {
       ctx.restore()
     })
 
-    // La capsule, en escorte derrière le convoi.
+    // La capsule, en escorte derrière le convoi, dans sa forme et sa Maison (Adrien, 25/10/2026) ; sinon un chevron.
+    if (!dessinerCapsuleDuJoueur(ctx, X(50), Y(146), 0, 10 * k)) {
     ctx.save()
     ctx.translate(X(50), Y(146))
     ctx.beginPath(); ctx.moveTo(0, -4 * k); ctx.lineTo(3 * k, 3 * k); ctx.lineTo(0, 1.5 * k); ctx.lineTo(-3 * k, 3 * k); ctx.closePath()
     ctx.fillStyle = CERISE; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = ENCRE; ctx.stroke()
     ctx.restore()
+    }
 
     // Les missiles : leur trajectoire (pointillé vers le cargo visé) et le missile lui-même.
     for (const m of e.missiles) {

@@ -6,6 +6,7 @@
 
 import { SEUIL, TOLERANCE } from '../donnees/remorquage'
 import { avancerRemorquage, lancer, nouveauRemorquage, type EtatRemorquage } from '../moteur/remorquage'
+import { dessinerCapsuleDuJoueur } from '../carte/vaisseaux'
 
 /** Un remorquage : quelle épave, et ce qu'on fait quand elle est en remorque (renvoie le texte du bilan). */
 export interface OptionsRemorquage { titre: string; surFin: (rates: number) => string }
@@ -220,7 +221,8 @@ export class VueRemorquage {
       ctx.fillStyle = '#f2b53a'; ctx.fill(); ctx.stroke()
     }
 
-    // La capsule, le nez (et le lance-grappin) vers l'épave.
+    // La capsule, le nez (et le lance-grappin) vers l'épave : dans sa forme et sa Maison (Adrien, 25/10/2026).
+    if (dessinerCapsuleDuJoueur(ctx, cx, capY, 0, 84)) return
     ctx.save()
     ctx.translate(cx, capY)
     ctx.lineWidth = 2
