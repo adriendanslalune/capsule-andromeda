@@ -177,11 +177,33 @@ const ANNEAUX: Readonly<Record<string, { bandes: [number, number, string, number
   },
 }
 
-/** Les anneaux (et l'ombre de la planète sur eux, du côté opposé au Soleil, en local : cote du Soleil sur l'axe x). */
-function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, cote: 1 | -1): void {
+/**
+ * Les anneaux un peu inclinés (Adrien, 25/10/2026 : vus de dessus, on ne comprenait pas ces grands cercles autour des
+ * planètes) : une ellipse penchée, la moitié arrière sous le globe, la moitié avant par-dessus (devant), et l'ombre de
+ * la planète portée sur eux, à l'opposé du Soleil (versSoleil : sa direction à l'écran).
+ */
+const INCLINAISON_ANNEAUX = -0.32, APLATI_ANNEAUX = 0.36
+function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, versSoleil: number, devant: boolean): void {
   const a = ANNEAUX[nom]
   if (!a) return
+  const exterieur = Math.max(...a.bandes.map((b) => b[1]), ...a.fins.map((f) => f[0])) * r
   ctx.save()
+  ctx.rotate(INCLINAISON_ANNEAUX)
+  ctx.scale(1, APLATI_ANNEAUX)
+  // La moitié avant (le bas de l'ellipse, la plus proche de nous) passe devant la planète.
+  if (devant) { ctx.beginPath(); ctx.rect(-exterieur - 2, 0, 2 * exterieur + 4, exterieur + 2); ctx.clip() }
+  else {
+    // La moitié arrière s'arrête au bord du globe (une planète occupée est transparente : on la verrait au travers).
+    ctx.beginPath()
+    ctx.rect(-exterieur - 2, -exterieur - 2, 2 * exterieur + 4, 2 * exterieur + 4)
+    ctx.save()
+    ctx.scale(1, 1 / APLATI_ANNEAUX)
+    ctx.rotate(-INCLINAISON_ANNEAUX)
+    ctx.moveTo(r, 0)
+    ctx.arc(0, 0, r, 0, 2 * Math.PI, true)
+    ctx.restore()
+    ctx.clip('evenodd')
+  }
   for (const [r0, r1, couleur, opacite] of a.bandes) {
     ctx.beginPath()
     ctx.arc(0, 0, r1 * r, 0, 2 * Math.PI)
@@ -195,10 +217,14 @@ function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, 
   for (const [rr, largeur] of a.fins) {
     ctx.beginPath()
     ctx.arc(0, 0, rr * r, 0, 2 * Math.PI)
-    ctx.lineWidth = Math.max(0.5, Math.min(2, largeur * epaisseurContour(r)))
+    // Le trait est écrasé avec l'ellipse : on l'épaissit d'autant pour qu'il reste fin, pas invisible.
+    ctx.lineWidth = Math.max(0.5, Math.min(2, largeur * epaisseurContour(r))) / Math.sqrt(APLATI_ANNEAUX)
     ctx.stroke()
   }
-  // L'ombre de la planète sur les anneaux, à l'opposé du Soleil (seulement sur la matière des anneaux, pas dans le vide).
+  // L'ombre de la planète sur les anneaux, à l'opposé du Soleil (seulement sur la matière des anneaux, pas dans le
+  // vide) : la direction du Soleil ramenée dans le plan des anneaux.
+  const dx = Math.cos(versSoleil - INCLINAISON_ANNEAUX), dy = Math.sin(versSoleil - INCLINAISON_ANNEAUX) / APLATI_ANNEAUX
+  const ombre = Math.atan2(-dy, -dx)
   ctx.globalCompositeOperation = 'multiply'
   ctx.fillStyle = '#54437a'
   for (const [r0, r1, , opacite] of a.bandes) {
@@ -207,8 +233,9 @@ function dessinerAnneaux(ctx: CanvasRenderingContext2D, nom: string, r: number, 
     ctx.arc(0, 0, r1 * r, 0, 2 * Math.PI)
     ctx.arc(0, 0, r0 * r, 0, 2 * Math.PI, true)
     ctx.clip()
+    ctx.rotate(ombre)
     ctx.globalAlpha = 0.5 * opacite
-    ctx.fillRect(cote === 1 ? -r1 * r : 0, -r, r1 * r, 2 * r)
+    ctx.fillRect(0, -r, r1 * r, 2 * r)
     ctx.restore()
   }
   ctx.restore()
@@ -237,9 +264,10 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   }
   ctx.save()
   ctx.translate(x, y)
+  // Les anneaux, inclinés : la moitié arrière sous le globe.
+  dessinerAnneaux(ctx, nom, r, versSoleil, false)
+  ctx.save()
   ctx.rotate(cote === 1 ? versSoleil : versSoleil - Math.PI)
-  // Les anneaux, tout autour (vus de dessus), sous le globe ; la couronne du Soleil.
-  dessinerAnneaux(ctx, nom, r, cote)
   if (nom === 'Soleil') couronne(ctx, r, s.lon)
   ctx.drawImage(toile, -r, -r, 2 * r, 2 * r)
   // Le contour : un trait fin, comme le reste (demande d'Adrien du 21/10/2026).
@@ -249,6 +277,9 @@ export function dessinerGlobe(ctx: CanvasRenderingContext2D, nom: string, x: num
   ctx.strokeStyle = ENCRE
   ctx.stroke()
   if (nom === 'Soleil') protuberances(ctx, r, s.lon)
+  ctx.restore()
+  // La moitié avant des anneaux, par-dessus le globe.
+  dessinerAnneaux(ctx, nom, r, versSoleil, true)
   ctx.restore()
   return true
 }

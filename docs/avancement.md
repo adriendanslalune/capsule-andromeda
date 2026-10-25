@@ -91,6 +91,10 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   sous la rangée de la médaille touchée), la petite fenêtre « TROPHÉE ! » (`commun/fenetre-trophee.ts`, sous la console,
   après les autres fenêtres, plusieurs d'un coup : une seule fenêtre), « n trophées » à côté du pseudo dans les Messages.
   Tests : `tests/trophees.test.ts`. En attente : la Légende dorée (dernière forme de la capsule, ChatGPT demain).
+- Carte (Adrien, 25/10/2026) : anneaux de Saturne et d'Uranus inclinés (une ellipse penchée, la moitié arrière
+  cachée derrière le globe, la moitié avant devant, l'ombre de la planète ramenée dans leur plan ; `carte/globes.ts`) ;
+  les sondes lointaines façon Voyager (`carte/engins.ts`) ; le Soleil de loin, un globe doré dans sa lueur au lieu du
+  symbole à rayons, 10 px de rayon au moins en dézoomant (`RAYON_SOLEIL_LOIN`).
 - Disparus (Adrien, 25/10/2026, piste A) : un seul écho par passage du radar, la sonde la plus proche ; pour la
   suivante, rallumer le radar (`detecter` n'en rend qu'une, `Jeu.passageDisparu`). Test : `tests/disparus.test.ts`.
 - Disparus sur la carte (Adrien, 25/10/2026) : une sonde à l'écho capté se montre même posée sur son astre (elle était

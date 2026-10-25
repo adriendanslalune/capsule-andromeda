@@ -78,6 +78,8 @@ const NOMS_CAPITAINES = 30
 const ORBITES_PETITS = new Map<string, Vecteur3[]>()
 const orbitePetit = (p: PetitCorps) => { let o = ORBITES_PETITS.get(p.nom); if (!o) { o = orbitePetitCorps(p, 512); ORBITES_PETITS.set(p.nom, o) } return o }
 const RAYON_POINT = 1.8
+/** Le rayon du Soleil (px) quand on dézoome : un globe doré qui se voit de loin, sans symbole (Adrien, 25/10/2026). */
+const RAYON_SOLEIL_LOIN = 10
 
 /** Rayon (km) sous lequel une lune ne se dessine que de près (sous ZOOM_PETITES_LUNES km par pixel) ou si on la vise. */
 const PETITE_LUNE = 100
@@ -254,6 +256,9 @@ export class Carte2D {
         / this.kmParPx
       : VUE_GENERALE / (this.largeur / 2) / this.kmParPx
     const k = PASTILLE
+    // Le Soleil garde une taille fixe en dézoomant, pour qu'on le voie toujours (Adrien, 25/10/2026) ; de près, sa
+    // vraie taille reprend le dessus.
+    if (c.type === 'etoile') return Math.max(RAYON_SOLEIL_LOIN, rayonDessine(c.nom) / this.kmParPx)
     const minimum = MINIMUMS[c.nom] !== undefined && c.type !== 'lune'
       ? Math.max(RAYON_POINT, k * MINIMUMS[c.nom] * Math.min(1, facteur))
       : Math.max(RAYON_POINT, k * (MINIMUMS[c.nom] ?? (c.type === 'lune' ? minimumLune(c.rayon) : 2)))
@@ -807,6 +812,7 @@ export class Carte2D {
       if (occupee) ctx.globalAlpha = 0.55
       // Assez grand à l'écran : l'astre illustré (planche validée par Adrien le 17/10/2026) ; sinon le simple disque.
       if (illustre(r) && aUneIllustration(c.nom) && dessinerAstreIllustre(ctx, c.nom, q.x, q.y, r, versSoleil, gris, t)) { /* dessiné */ }
+      else if (c.type === 'etoile') this.soleilLointain(ctx, q.x, q.y, r, couleurs)
       else if (r <= RAYON_POINT * 1.2) this.point(ctx, q.x, q.y, r, couleur, couleurs, versSoleil)
       else this.disque(ctx, q.x, q.y, r, couleur, versSoleil, couleurs)
       if (occupee) ctx.globalAlpha = 1
@@ -1263,6 +1269,28 @@ export class Carte2D {
       ctx.strokeStyle = couleur
       ctx.stroke()
     }
+  }
+
+  /** Le Soleil de loin (Adrien, 25/10/2026 : son symbole à rayons faisait tache) : un globe doré dans sa lueur. */
+  private soleilLointain(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, c: Couleurs2D): void {
+    const lueur = ctx.createRadialGradient(x, y, r * 0.8, x, y, r * 2.4)
+    lueur.addColorStop(0, 'rgba(247, 201, 85, 0.55)')
+    lueur.addColorStop(1, 'rgba(247, 201, 85, 0)')
+    ctx.fillStyle = lueur
+    ctx.beginPath()
+    ctx.arc(x, y, r * 2.4, 0, 2 * Math.PI)
+    ctx.fill()
+    const globe = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r)
+    globe.addColorStop(0, '#fbe08a')
+    globe.addColorStop(0.7, '#f2b53a')
+    globe.addColorStop(1, '#de8a2c')
+    ctx.fillStyle = globe
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, 2 * Math.PI)
+    ctx.fill()
+    ctx.lineWidth = 0.8
+    ctx.strokeStyle = c.encre
+    ctx.stroke()
   }
 
   /** Astre réduit à un point (serré contre ses voisins) : un rond de sa couleur cerné d'encre. */

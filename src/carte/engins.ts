@@ -75,12 +75,35 @@ export function dessinerEngin(ctx: CanvasRenderingContext2D, modele: string, x: 
     ctx.fill()
     ctx.stroke()
   } else if (forme === 'antenne') {
-    trait(0, 0, 6, 6)
-    rect(-2, 0, 4, 3.5, CORPS)
+    // Une sonde lointaine, façon Voyager (Adrien, 25/10/2026 : on ne la reconnaissait pas) : la grande parabole
+    // blanche vue de face, avec son cornet au centre, le corps à dix pans dessous, la longue perche du magnétomètre
+    // d'un côté, les générateurs nucléaires en chapelet de l'autre.
+    trait(0, 2, -10, 7, 0.8)
+    trait(-10, 7, -10.6, 5.6, 0.8)
+    trait(0, 2, 8, 6, 1)
+    for (const [cx, cy] of [[4.2, 4.1], [6, 5], [7.8, 5.9]]) {
+      ctx.save()
+      ctx.translate(cx, cy)
+      ctx.rotate(0.46)
+      rect(-1, -1.2, 2, 2.4, '#a69f86')
+      ctx.restore()
+    }
+    chemin(Array.from({ length: 10 }, (_, k) => [3 * Math.cos((k * Math.PI) / 5), 2.4 + 2.2 * Math.sin((k * Math.PI) / 5)]), CORPS)
     ctx.beginPath()
-    ctx.ellipse(0, -1, 6.5, 4, 0, Math.PI, 2 * Math.PI)
-    ctx.closePath()
+    ctx.ellipse(0, -2.5, 6.8, 5.8, 0, 0, 2 * Math.PI)
     ctx.fillStyle = CLAIR
+    ctx.fill()
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.ellipse(0, -2.5, 4.2, 3.6, 0, 0, 2 * Math.PI)
+    ctx.lineWidth = 0.6
+    ctx.stroke()
+    ctx.lineWidth = 0.9
+    // Le cornet et le sous-réflecteur, tenus par trois bras.
+    for (const a of [-Math.PI / 2, Math.PI / 6, (5 * Math.PI) / 6]) trait(0, -2.5, 4.2 * Math.cos(a), -2.5 + 3.6 * Math.sin(a), 0.5)
+    ctx.beginPath()
+    ctx.arc(0, -2.5, 1.3, 0, 2 * Math.PI)
+    ctx.fillStyle = OR
     ctx.fill()
     ctx.stroke()
   } else if (forme === 'epave') {
