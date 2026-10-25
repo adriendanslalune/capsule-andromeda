@@ -759,6 +759,9 @@ export class Carte2D {
     this.newHorizons = { x: nh.x, y: nh.y }
     // Moebius : couleurs adoucies vers le sable, encre brun-violet.
     const couleurDe = (c: Corps) => melanger(couleurAstre(c), '#f7e8cc', 0.3)
+    // Les orbites, un peu assombries sur le papier (Adrien, 25/10/2026 : celle de Vénus, jaune pâle, se perdait dans le
+    // kraft teinté du mois) ; éclaircies sur la carte de nuit.
+    const couleurOrbite = (c: Corps) => this.nuit ? couleurDe(c) : melanger(couleurAstre(c), ENCRE_MOEBIUS, 0.3)
     if (!this.nuit && couleurs.encre === '#1f1b18') couleurs = { ...couleurs, encre: ENCRE_MOEBIUS }
     const soleil = this.ecranDe({ x: 0, y: 0 })
     const dedans = (x: number, y: number, marge = 30) => x > -marge && x < this.largeur + marge && y > -marge && y < this.hauteur + marge
@@ -788,7 +791,7 @@ export class Carte2D {
         if (!points) continue
         ctx.beginPath()
         this.ligneCoupee(ctx, points.map((p) => this.ecranDe(p)))
-        ctx.strokeStyle = couleurDe(c)
+        ctx.strokeStyle = couleurOrbite(c)
         ctx.globalAlpha = 0.75
         ctx.stroke()
         ctx.globalAlpha = 1
@@ -878,7 +881,7 @@ export class Carte2D {
           ctx.beginPath()
           ctx.arc(e.x, e.y, Math.hypot(q.x - e.x, q.y - e.y), 0, 2 * Math.PI)
           ctx.lineWidth = 0.8
-          ctx.strokeStyle = couleurDe(c)
+          ctx.strokeStyle = couleurOrbite(c)
           ctx.globalAlpha = 0.55
           ctx.stroke()
           ctx.globalAlpha = 1
