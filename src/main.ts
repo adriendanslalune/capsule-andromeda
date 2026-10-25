@@ -2030,6 +2030,7 @@ function combattreAmiral(nom: string): void {
  */
 const ILLUSTRATIONS_LIBERATION: Record<string, string> = {
   Terre: 'liberations/lune.webp', Mars: 'liberations/mars.webp', Vénus: 'liberations/venus.webp', Mercure: 'liberations/mercure.webp',
+  Jupiter: 'liberations/jupiter.webp', Uranus: 'liberations/uranus.webp', Neptune: 'liberations/neptune.webp', Pluton: 'liberations/pluton.webp',
 }
 const illustrationLiberation = (zone: string): string | undefined => {
   const z = ZONES_A_LIBERER.find((x) => x.nom === zone)

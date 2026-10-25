@@ -97,7 +97,7 @@ Feuille de route : voir `CLAUDE.md`. Légende : **fait** / **en cours** / **à f
   place des emojis ; en petit dans le Profil, la fiche d'un capitaine et les Messages) ; les trois vignettes des
   Collections aussi ; les quatre zones libérées (Lune, Mars, Vénus, Mercure), en tête de leur fenêtre ; en attente :
   le rêve ; les zones refaites à partir des décors des PNJ (Adrien : cohérence avec les dialogues), une image par
-  système partagée par toutes ses zones (Triton à part).
+  système partagée par toutes ses zones (Triton à part) ; huit reçues le même jour, manque Saturne.
 - Orbites (Adrien, 25/10/2026 : « on ne voit pas l'orbite de Vénus ») : sa couleur jaune pâle, éclaircie de crème, se
   confondait avec le kraft teinté d'octobre ; sur le papier, les orbites des planètes et des lunes sont maintenant
   assombries vers l'encre (30 %) au lieu d'éclaircies (inchangées sur la carte de nuit).

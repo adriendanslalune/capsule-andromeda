@@ -121,3 +121,6 @@ Soleil… ». **Même capsule** (crème et orange) d'une case à l'autre.
   du titre (`ILLUSTRATIONS_LIBERATION` dans main.ts) ; les autres zones restent sans image jusqu'à la leur.
 - **Les trois vignettes des Collections** (25/10/2026) : `public/collections/<monolithes|voix|disparus>.webp` (une planche
   découpée), dans le cadre de chaque couverture des Collections, à la place des petits dessins vectoriels.
+- **Zones libérées, d'après les décors des PNJ** (25/10/2026) : huit systèmes sur neuf (Terre, Mars, Vénus, Mercure,
+  Jupiter, Uranus, Neptune, Pluton), `public/liberations/<système>.webp`, elles remplacent les scènes inventées. Manque
+  Saturne (Titan) ; Triton viendra à part.
